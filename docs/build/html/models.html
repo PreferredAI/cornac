@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>models &mdash; Cornac 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="metrics" href="metrics.html" />
+    <link rel="prev" title="First example" href="example.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cornac
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example.html">First example</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.cf.recom_pmf">Probabilitic Matrix Factorization (PMF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.cf.recom_hpf">Hierarchical Poisson Factorization (HPF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.cf.recom_bpr">Bayesian Personalized Ranking (BPR)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.context_cf.recom_c2pf">Collaborative Context Poisson Factorization (C2PF)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment.html">experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation_strategies.html">evaluation strategies</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cornac</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>models</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/models.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-cornac.models">
+<span id="models"></span><h1>models<a class="headerlink" href="#module-cornac.models" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-cornac.models.cf.recom_pmf">
+<span id="probabilitic-matrix-factorization-pmf"></span><h2>Probabilitic Matrix Factorization (PMF)<a class="headerlink" href="#module-cornac.models.cf.recom_pmf" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Aghiles Salah</p>
+<dl class="class">
+<dt id="cornac.models.cf.recom_pmf.Pmf">
+<em class="property">class </em><code class="descclassname">cornac.models.cf.recom_pmf.</code><code class="descname">Pmf</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>learning_rate=0.001</em>, <em>lamda=0.01</em>, <em>name='pmf'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/cf/recom_pmf.html#Pmf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.cf.recom_pmf.Pmf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Probabilistic Matrix Factorization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 5</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations or the number of epochs for SGD.</li>
+<li><strong>learning_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The learning rate for SGD.</li>
+<li><strong>lamda</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.01</em>) – The regularization parameter.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'PMF'</em>) – The name of the recommender model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
+<li><strong>U</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
+<li><strong>V</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>Mnih, Andriy, and Ruslan R. Salakhutdinov. Probabilistic matrix factorization.     In NIPS, pp. 1257-1264. 2008.</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cornac.models.cf.recom_hpf">
+<span id="hierarchical-poisson-factorization-hpf"></span><h2>Hierarchical Poisson Factorization (HPF)<a class="headerlink" href="#module-cornac.models.cf.recom_hpf" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Aghiles Salah</p>
+<dl class="class">
+<dt id="cornac.models.cf.recom_hpf.Hpf">
+<em class="property">class </em><code class="descclassname">cornac.models.cf.recom_hpf.</code><code class="descname">Hpf</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>name='HPF'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/cf/recom_hpf.html#Hpf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.cf.recom_hpf.Hpf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hierarchical Poisson Factorization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 5</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'HPF'</em>) – The name of the recommender model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (Theta and Beta are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘G_s’:G_s, ‘G_r’:G_r, ‘L_s’:L_s, ‘L_r’:L_r},         where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below).         They represent respectively the “shape” and “rate” parameters of Gamma distribution over         Theta. Similarly, L_s, L_r are the shape and rate parameters of the Gamma over Beta.</li>
+<li><strong>Theta</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The expected user latent factors.</li>
+<li><strong>Beta</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The expected item latent factors.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>Gopalan, Prem, Jake M. Hofman, and David M. Blei. Scalable Recommendation with     Hierarchical Poisson Factorization. In UAI, pp. 326-335. 2015.</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cornac.models.cf.recom_bpr">
+<span id="bayesian-personalized-ranking-bpr"></span><h2>Bayesian Personalized Ranking (BPR)<a class="headerlink" href="#module-cornac.models.cf.recom_bpr" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Guo Jingyao</p>
+<dl class="class">
+<dt id="cornac.models.cf.recom_bpr.Bpr">
+<em class="property">class </em><code class="descclassname">cornac.models.cf.recom_bpr.</code><code class="descname">Bpr</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>learning_rate=0.001</em>, <em>lamda=0.01</em>, <em>batch_size=100</em>, <em>name='bpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/cf/recom_bpr.html#Bpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.cf.recom_bpr.Bpr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bayesian Personalized Ranking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 5</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations or the number of epochs for SGD.</li>
+<li><strong>learning_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The learning rate for SGD.</li>
+<li><strong>lamda</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.01</em>) – The regularization parameter.</li>
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'BRP'</em>) – The name of the recommender model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
+<li><strong>U</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
+<li><strong>V</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, and Lars Schmidt-Thieme.     BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cornac.models.context_cf.recom_c2pf">
+<span id="collaborative-context-poisson-factorization-c2pf"></span><h2>Collaborative Context Poisson Factorization (C2PF)<a class="headerlink" href="#module-cornac.models.context_cf.recom_c2pf" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Aghiles Salah &lt;<a class="reference external" href="mailto:salahaghiles&#37;&#52;&#48;gmail&#46;com">salahaghiles<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</p>
+<dl class="class">
+<dt id="cornac.models.context_cf.recom_c2pf.C2pf">
+<em class="property">class </em><code class="descclassname">cornac.models.context_cf.recom_c2pf.</code><code class="descname">C2pf</code><span class="sig-paren">(</span><em>k=100</em>, <em>max_iter=100</em>, <em>aux_info=None</em>, <em>variant='c2pf'</em>, <em>name=None</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/context_cf/recom_c2pf.html#C2pf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.context_cf.recom_c2pf.C2pf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collaborative Context Poisson Factorization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations for variational C2PF.</li>
+<li><strong>aux_info</strong> (<em>array</em><em>, </em><em>required</em><em>, </em><em>shape</em><em> (</em><em>n_context_items</em><em>,</em><em>3</em><em>)</em>) – The item-context matrix, noted C in the original paper,         in the triplet sparse format: (row_id, col_id, value).</li>
+<li><strong>variant</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'c2pf'</em>) – C2pf’s variant: c2pf: ‘c2pf’, ‘tc2pf’ (tied-c2pf) or ‘rc2pf’ (reduced-c2pf).         Please refer to the original paper for details.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The name of the recommender model. If None,         then “variant” is used as the default name of the model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (Theta, Beta and Xi are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘G_s’:G_s, ‘G_r’:G_r, ‘L_s’:L_s, ‘L_r’:L_r,         ‘L2_s’:L2_s, ‘L2_r’:L2_r, ‘L3_s’:L3_s, ‘L3_r’:L3_r},         where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below).         They represent respectively the “shape” and “rate” parameters of Gamma distribution over         Theta. It is the same for L_s, L_r and Beta, L2_s, L2_r and Xi, L3_s, L3_r and Kappa.</li>
+<li><strong>Theta</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The expected user latent factors.</li>
+<li><strong>Beta</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The expected item latent factors.</li>
+<li><strong>Xi</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The expected context item latent factors multiplied by context effects Kappa,         please refer to the paper below for details.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>Salah, Aghiles, and Hady W. Lauw. A Bayesian Latent Variable Model of User Preferences with Item Context.     In IJCAI, pp. 2667-2674. 2018.</li>
+</ul>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="metrics.html" class="btn btn-neutral float-right" title="metrics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="example.html" class="btn btn-neutral" title="First example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cornac Contributors.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
