@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>evaluation strategies &mdash; Cornac 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="experiment" href="experiment.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Cornac
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example.html">First example</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment.html">experiment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">evaluation strategies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.evaluation_strategies.split">Split</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.evaluation_strategies.cross_validation">Cross Validation</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cornac</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>evaluation strategies</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/evaluation_strategies.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-cornac.evaluation_strategies">
+<span id="evaluation-strategies"></span><h1>evaluation strategies<a class="headerlink" href="#module-cornac.evaluation_strategies" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-cornac.evaluation_strategies.split">
+<span id="split"></span><h2>Split<a class="headerlink" href="#module-cornac.evaluation_strategies.split" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Aghiles Salah</p>
+<dl class="class">
+<dt id="cornac.evaluation_strategies.split.Split">
+<em class="property">class </em><code class="descclassname">cornac.evaluation_strategies.split.</code><code class="descname">Split</code><span class="sig-paren">(</span><em>data</em>, <em>prop_test=0.2</em>, <em>prop_validation=0.0</em>, <em>good_rating=1.0</em>, <em>data_train=None</em>, <em>data_validation=None</em>, <em>data_test=None</em>, <em>index_train=None</em>, <em>index_validation=None</em>, <em>index_test=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/evaluation_strategies/split.html#Split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.evaluation_strategies.split.Split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluation Strategy Split.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – The user-item preference matrix.</li>
+<li><strong>prop_test</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.2</em>) – The propotion of the test set,         if &gt; 1 then it is treated as the size of the test set.</li>
+<li><strong>prop_validation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – The propotion of the validation set,         if &gt; 1 then it is treated as the size of the validation set.</li>
+<li><strong>good_rating</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 1</em>) – The minimum value that is considered to be a good rating,         e.g, if the ratings are in {1, …, 5}, then good_rating = 4.</li>
+<li><strong>data_train</strong> (<em>..</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The training data.</li>
+<li><strong>data_validation</strong> (<em>..</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The validation data.</li>
+<li><strong>data_test</strong> (<em>..</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The test data.</li>
+<li><strong>index_train</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The indexes of training data (starting from 0).</li>
+<li><strong>index_validation</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The indexes of validation data (starting from 0).</li>
+<li><strong>index_test</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The indexes of test data (starting from 0).</li>
+<li><strong>data_train_bin</strong> (<em>..</em><em>, </em><em>default: None</em>) – The binary training data.</li>
+<li><strong>data_validation_bin</strong> (<em>..</em><em>, </em><em>default: None</em>) – The binary validation data.</li>
+<li><strong>data_test_bin</strong> (<em>..</em><em>, </em><em>default: None</em>) – The binary test data.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cornac.evaluation_strategies.cross_validation">
+<span id="cross-validation"></span><h2>Cross Validation<a class="headerlink" href="#module-cornac.evaluation_strategies.cross_validation" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Aghiles Salah</p>
+<dl class="class">
+<dt id="cornac.evaluation_strategies.cross_validation.CrossValidation">
+<em class="property">class </em><code class="descclassname">cornac.evaluation_strategies.cross_validation.</code><code class="descname">CrossValidation</code><span class="sig-paren">(</span><em>data</em>, <em>n_folds=5</em>, <em>good_rating=1.0</em>, <em>partition=None</em>, <em>data_train=None</em>, <em>data_validation=None</em>, <em>data_test=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/evaluation_strategies/cross_validation.html#CrossValidation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.evaluation_strategies.cross_validation.CrossValidation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluation Strategy Cross Validation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – The user-item interaction matrix.</li>
+<li><strong>n_folds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 5</em>) – The number of folds for cross validation.</li>
+<li><strong>good_rating</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 1</em>) – The minimum value that is considered to be a good rating,         e.g, if the ratings are in {1, … ,5}, then good_rating = 4.</li>
+<li><strong>partition</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>n_observed_ratings</em><em>,</em><em>)</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The partition of ratings into n_folds (fold label of each rating)         If None, random partitioning is performed to assign each rating into a fold.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="experiment.html" class="btn btn-neutral" title="experiment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cornac Contributors.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
