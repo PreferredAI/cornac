@@ -12,7 +12,7 @@ typedef Eigen::SparseMatrix<double> SpMat;
 typedef SpMat::InnerIterator SpMatiter;
 
 typedef Eigen::Triplet<double> T;
-typedef std::vector<std::vector<double>> Mat;
+typedef std::vector<std::vector<double> > Mat;
 typedef std::vector<double> dVec;
 typedef std::vector<int> iVec;
 
