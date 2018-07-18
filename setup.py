@@ -60,7 +60,7 @@ setuptools.setup(
     url="",
     zip_safe=False,
     ext_modules = external_modules,
-	install_requires=['numpy', 'scipy', 'pandas'],
+	install_requires=['numpy', 'scipy', 'pandas','torch==0.4.0'],
 	dependency_links = [torch_dl],
     packages=setuptools.find_packages(),
     classifiers=(
