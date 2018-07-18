@@ -22,6 +22,7 @@ Then, please run the appropriate Cornac install command according to your platfo
 
 	pip install https://github.com/PreferredAI/cornac/archive/master.zip --process-dependency-links
 	
-* **MacOS**::
-
+* **MacOS**
+	```
 	pip install https://github.com/PreferredAI/cornac/archive/master.zip
+	```
