@@ -32,9 +32,9 @@ if use_cython:
 
 else:
     ext_c2pf = [setuptools.Extension('c2pf',
-					['./cornac/models/context_cf/cython/c2pf.cpp'],
-					include_dirs=['./cornac/models/context_cf/cpp/','./cornac/utils/external/eigen/Eigen','./cornac/utils/external/eigen/unsupported/Eigen/'],
-					language="c++")]
+					sources=['./cornac/models/context_cf/cython/c2pf.cpp', "./cornac/models/context_cf/cpp/cpp_c2pf.cpp"],
+					language='c++',
+					include_dirs=['./cornac/models/context_cf/cpp/','./cornac/utils/external/eigen/Eigen','./cornac/utils/external/eigen/unsupported/Eigen/'])]
     external_modules += ext_c2pf
     #
     ext_pmf = [setuptools.Extension('pmf',
