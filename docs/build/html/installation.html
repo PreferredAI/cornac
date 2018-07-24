@@ -161,33 +161,40 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <p>Before to install Cornac, please make sure you are using Python 3 (version &gt;=3.6, is recommended), and you are on the latest pip.
 Then, please run the appropriate Cornac install command according to your platform.</p>
-<ul>
-<li><p class="first"><strong>Windows</strong>:</p>
+<ul class="simple">
+<li><strong>Windows</strong>:</li>
+</ul>
+<blockquote>
+<div><p>We provide the wheel (.whl) file for Python 3.6, please make sure this is the Python version you are using so as to install cornac directly from the whl file.</p>
 <blockquote>
 <div><ul class="simple">
-<li>Some recommender models run with PyTorch. The latter library is not in PyPI, so when you install Cornac from the Wheel file this dependency is not handled automatically. You will, therefore need to install PyTorch first.</li>
+<li>Some recommender models run with PyTorch. The latter library is not in PyPI, so when you install Cornac from the Wheel file this dependency is not handled automatically. You will, therefore, need to install PyTorch first.</li>
 </ul>
 </div></blockquote>
-</li>
-</ul>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">download</span><span class="o">.</span><span class="n">pytorch</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">whl</span><span class="o">/</span><span class="n">cpu</span><span class="o">/</span><span class="n">torch</span><span class="o">-</span><span class="mf">0.4</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="n">cp36</span><span class="o">-</span><span class="n">cp36m</span><span class="o">-</span><span class="n">win_amd64</span><span class="o">.</span><span class="n">whl</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">dist</span><span class="o">/</span><span class="n">cornac</span><span class="o">-</span><span class="mf">0.1</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="n">cp36</span><span class="o">-</span><span class="n">cp36m</span><span class="o">-</span><span class="n">win_amd64</span><span class="o">.</span><span class="n">whl</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">download</span><span class="o">.</span><span class="n">pytorch</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">whl</span><span class="o">/</span><span class="n">cpu</span><span class="o">/</span><span class="n">torch</span><span class="o">-</span><span class="mf">0.4</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="n">cp36</span><span class="o">-</span><span class="n">cp36m</span><span class="o">-</span><span class="n">win_amd64</span><span class="o">.</span><span class="n">whl</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">dist</span><span class="o">/</span><span class="n">cornac</span><span class="o">-</span><span class="mf">0.1</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="n">cp36</span><span class="o">-</span><span class="n">cp36m</span><span class="o">-</span><span class="n">win_amd64</span><span class="o">.</span><span class="n">whl</span>
 </pre></div>
 </div>
 </div></blockquote>
 <ul>
 <li><p class="first"><strong>Linux</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span> <span class="o">--</span><span class="n">process</span><span class="o">-</span><span class="n">dependency</span><span class="o">-</span><span class="n">links</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span> <span class="o">--</span><span class="n">process</span><span class="o">-</span><span class="n">dependency</span><span class="o">-</span><span class="n">links</span>
 </pre></div>
 </div>
 </li>
 <li><p class="first"><strong>MacOS</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span>
-</pre></div>
-</div>
+<blockquote>
+<div><ul class="simple">
+<li>You will need to install the Torch dependency first. Please follow the instructions <a class="reference external" href="https://pytorch.org/">here</a> to install PyTorch on MacOS using conda. Then run the following command.</li>
+</ul>
+</div></blockquote>
 </li>
 </ul>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span>
+</pre></div>
+</div>
+</div></blockquote>
 </div>
 
 

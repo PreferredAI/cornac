@@ -29,8 +29,9 @@ Then, please run the appropriate Cornac install command according to your platfo
 	```
 
 * **MacOS**:
+	- You will need to install the Torch dependency first. Please follow the instructions [here](https://pytorch.org/) to install PyTorch on MacOS using conda. Then run the following command.
 	```
-	pip3 install https://github.com/PreferredAI/cornac/archive/master.zip
+	pip install https://github.com/PreferredAI/cornac/archive/master.zip
 	```
 
 
