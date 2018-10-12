@@ -54,12 +54,11 @@ class Pmf(Recommender):
 
     V: csc_matrix, shape (n_items,k)
         The item latent factors, optional initialization via init_params.
-                
+
     References
     ----------
     * Mnih, Andriy, and Ruslan R. Salakhutdinov. Probabilistic matrix factorization. \
     In NIPS, pp. 1257-1264. 2008.
-
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate = 0.001,gamma = 0.9, lamda = 0.001, name = "pmf", variant ='non_linear', trainable = True,init_params = None):

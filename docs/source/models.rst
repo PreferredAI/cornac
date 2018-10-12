@@ -6,7 +6,7 @@ models
     :members:
 	
 Probabilistic Collaborative Representation Learning (PCRL)
------------------------------------------------------------
+------------------------------------------------------------
 .. automodule:: cornac.models.pcrl.recom_pcrl
    :members:
    
@@ -26,7 +26,7 @@ Bayesian Personalized Ranking (BPR)
    :members:
 
 Probabilitic Matrix Factorization (PMF)
-----------------------------------------
+-----------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
    
