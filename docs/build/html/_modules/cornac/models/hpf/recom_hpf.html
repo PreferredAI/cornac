@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cornac.models.cf.recom_hpf &mdash; Cornac 0.1.0 documentation</title>
+  <title>cornac.models.hpf.recom_hpf &mdash; Cornac 0.1.0 documentation</title>
   
 
   
@@ -138,7 +138,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>cornac.models.cf.recom_hpf</li>
+      <li>cornac.models.hpf.recom_hpf</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,11 +153,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for cornac.models.cf.recom_hpf</h1><div class="highlight"><pre>
+  <h1>Source code for cornac.models.hpf.recom_hpf</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">@author: Aghiles Salah</span>
+<span class="sd">@author: Aghiles Salah &lt;asalah@smu.edu.sg&gt;</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -165,7 +165,7 @@
 <span class="kn">from</span> <span class="nn">.hpf</span> <span class="k">import</span> <span class="o">*</span>
 
 <span class="c1">#HierarchicalPoissonFactorization: Hpf</span>
-<div class="viewcode-block" id="Hpf"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_hpf.Hpf">[docs]</a><span class="k">class</span> <span class="nc">Hpf</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
+<div class="viewcode-block" id="Hpf"><a class="viewcode-back" href="../../../../models.html#cornac.models.hpf.recom_hpf.Hpf">[docs]</a><span class="k">class</span> <span class="nc">Hpf</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Hierarchical Poisson Factorization.</span>
 
 <span class="sd">    Parameters</span>
@@ -216,7 +216,7 @@
         
         
     <span class="c1">#fit the recommender model to the traning data    </span>
-<div class="viewcode-block" id="Hpf.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_hpf.Hpf.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="Hpf.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.hpf.recom_hpf.Hpf.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
@@ -237,7 +237,7 @@
 
     <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
     <span class="c1">#predictions are not stored for the same efficiency reasons&quot;&quot;&quot;         </span>
-<div class="viewcode-block" id="Hpf.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_hpf.Hpf.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
+<div class="viewcode-block" id="Hpf.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.hpf.recom_hpf.Hpf.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
 
 <span class="sd">        Parameters</span>

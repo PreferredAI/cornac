@@ -26,6 +26,16 @@ Recall
 .. autoclass:: Recall
 
 
-Fmeasure (F2)
+Fmeasure (F1)
 -------------------
 .. autoclass:: Fmeasure
+
+
+Mean Absolute Error (MAE)
+----------------------------
+.. autoclass:: Mae
+
+
+Root Mean Squared Error (RMSE)
+--------------------------------
+.. autoclass:: Rmse

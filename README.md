@@ -56,7 +56,7 @@ mat_office = office['mat']
 
 #Instantiate a pfm recommender model.
 #Please refer to the documentation for details on parameter settings.
-rec_pmf = Pmf(k=10, max_iter=10, learning_rate=0.001, lamda=0.001, init_params={'U':None,'V':None})
+rec_pmf = Pmf(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, init_params={'U':None,'V':None})
 
 #Instantiate an evaluation strategy.
 es_split = Split(data = mat_office, prop_test=0.2, prop_validation=0.0, good_rating=4)
@@ -64,9 +64,11 @@ es_split = Split(data = mat_office, prop_test=0.2, prop_validation=0.0, good_rat
 #Instantiate evaluation metrics.
 rec = metrics.Recall(m=20)
 pre = metrics.Precision(m=20)
+mae = metrics.Mae()
+rmse = metrics.Rmse()
 
 #Instantiate and then run an experiment.
-res_pmf = Experiment(es_split, [rec_pmf], metrics=[pre,rec])
+res_pmf = Experiment(es_split, [rec_pmf], metrics=[mae,rmse,pre,rec])
 res_pmf.run_()
 
 #Get average results.
