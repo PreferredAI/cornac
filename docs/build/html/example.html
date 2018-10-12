@@ -184,9 +184,11 @@
 <span class="c1">#Instantiate evaluation metrics.</span>
 <span class="n">rec</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Recall</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">pre</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Precision</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">mae</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Mae</span><span class="p">()</span>
+<span class="n">rmse</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Rmse</span><span class="p">()</span>
 
 <span class="c1">#Instantiate and then run an experiment.</span>
-<span class="n">res_pmf</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">es_split</span><span class="p">,</span> <span class="p">[</span><span class="n">rec_pmf</span><span class="p">],</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">pre</span><span class="p">,</span><span class="n">rec</span><span class="p">])</span>
+<span class="n">res_pmf</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">es_split</span><span class="p">,</span> <span class="p">[</span><span class="n">rec_pmf</span><span class="p">],</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">mae</span><span class="p">,</span><span class="n">rmse</span><span class="p">,</span><span class="n">pre</span><span class="p">,</span><span class="n">rec</span><span class="p">])</span>
 <span class="n">res_pmf</span><span class="o">.</span><span class="n">run_</span><span class="p">()</span>
 
 <span class="c1">#Get average results.</span>
