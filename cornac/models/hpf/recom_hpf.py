@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-@author: Aghiles Salah
+@author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
 import numpy as np
@@ -60,10 +60,21 @@ class Hpf(Recommender):
         
         
     #fit the recommender model to the traning data    
-    def fit(self,X):   
-        res = pf(X,k = self.k, max_iter = self.max_iter,init_param = self.init_params)
-        self.Theta = res['Z']
-        self.Beta = res['W']
+    def fit(self,X):
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        X: scipy sparse matrix, required
+            the user-item preference matrix (traning data), in a scipy sparse format\
+            (e.g., csc_matrix).
+        """
+        if self.trainable: 
+            res = pf(X,k = self.k, max_iter = self.max_iter,init_param = self.init_params)
+            self.Theta = res['Z']
+            self.Beta = res['W']
+        else:
+            print('%s is trained already (trainable = False)' % (self.name))
         
    
     
@@ -71,6 +82,19 @@ class Hpf(Recommender):
     #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     #predictions are not stored for the same efficiency reasons"""         
     def predict(self,index_user):
+        """Predic the scores (ratings) of a user for all items.
+
+        Parameters
+        ----------
+        index_user: int, required
+            The index of the user for whom to perform predictions.
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array containing the predicted values for all items
+        """
+        
         user_pred = self.Beta*self.Theta[index_user,:].T
         #transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred,dtype='float64').flatten()

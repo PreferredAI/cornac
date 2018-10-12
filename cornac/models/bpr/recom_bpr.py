@@ -66,23 +66,47 @@ class Bpr(Recommender):
 
     # fit the recommender model to the traning data
     def fit(self, X):
-        #change the data to original user Id item Id and rating format
-        X = X.tocoo()
-        data = np.ndarray(shape=(len(X.data), 3), dtype=float)
-        data[:, 0] = X.row
-        data[:, 1] = X.col
-        data[:, 2] = X.data
+        """Fit the model to observations.
 
-        print('Learning...')
-        res = bpr(X, data, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
-        self.U = res['U']
-        self.V = res['V']
-        print('Learning completed')
+        Parameters
+        ----------
+        X: scipy sparse matrix, required
+            the user-item preference matrix (traning data), in a scipy sparse format\
+            (e.g., csc_matrix).
+        """
+        if self.trainable:
+            #change the data to original user Id item Id and rating format
+            X = X.tocoo()
+            data = np.ndarray(shape=(len(X.data), 3), dtype=float)
+            data[:, 0] = X.row
+            data[:, 1] = X.col
+            data[:, 2] = X.data
+
+            print('Learning...')
+            res = bpr(X, data, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
+            self.U = res['U']
+            self.V = res['V']
+            print('Learning completed')
+        else:
+            print('%s is trained already (trainable = False)' % (self.name))
 
     #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     #predictions are not stored for the same efficiency reasons"""
 
     def predict(self, index_user):
+        """Predic the scores (ratings) of a user for all items.
+
+        Parameters
+        ----------
+        index_user: int, required
+            The index of the user for whom to perform predictions.
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array containing the predicted values for all items
+        """
+        
         user_pred = self.U[index_user, :].dot(self.V.T)
         # transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred, dtype='float64').flatten()

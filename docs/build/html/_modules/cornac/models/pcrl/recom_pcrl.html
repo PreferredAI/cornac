@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cornac.models.cf.recom_hpf &mdash; Cornac 0.1.0 documentation</title>
+  <title>cornac.models.pcrl.recom_pcrl &mdash; Cornac 0.1.0 documentation</title>
   
 
   
@@ -138,7 +138,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>cornac.models.cf.recom_hpf</li>
+      <li>cornac.models.pcrl.recom_pcrl</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,42 +153,61 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for cornac.models.cf.recom_hpf</h1><div class="highlight"><pre>
+  <h1>Source code for cornac.models.pcrl.recom_pcrl</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@author: Aghiles Salah &lt;asalah@smu.edu.sg&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">@author: Aghiles Salah</span>
-<span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">..recommender</span> <span class="k">import</span> <span class="n">Recommender</span>
-<span class="kn">from</span> <span class="nn">.hpf</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.pcrl</span> <span class="k">import</span> <span class="n">Pcrl_</span>
 
-<span class="c1">#HierarchicalPoissonFactorization: Hpf</span>
-<div class="viewcode-block" id="Hpf"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_hpf.Hpf">[docs]</a><span class="k">class</span> <span class="nc">Hpf</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Hierarchical Poisson Factorization.</span>
+<span class="c1">#Recommender class for Probabilistic Collaborative Representation Learning (PCRL)</span>
+<div class="viewcode-block" id="Pcrl"><a class="viewcode-back" href="../../../../models.html#cornac.models.pcrl.recom_pcrl.Pcrl">[docs]</a><span class="k">class</span> <span class="nc">Pcrl</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Probabilistic Collaborative Representation Learning.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    k: int, optional, default: 5</span>
+<span class="sd">    k: int, optional, default: 100</span>
 <span class="sd">        The dimension of the latent factors.</span>
+<span class="sd">        </span>
+<span class="sd">    z_dims: Numpy 1d array, optional, default: [300]</span>
+<span class="sd">        The dimensions of the hidden intermdiate layers &#39;z&#39; in the order \</span>
+<span class="sd">        [dim(z_L), ...,dim(z_1)], please refer to Figure 1 in the orginal paper for more details.</span>
 
-<span class="sd">    max_iter: int, optional, default: 100</span>
-<span class="sd">        Maximum number of iterations.</span>
+<span class="sd">    max_iter: int, optional, default: 300</span>
+<span class="sd">        Maximum number of iterations (number of epochs) for variational PCRL.</span>
+<span class="sd">        </span>
+<span class="sd">    batch_size: int, optional, default: 300</span>
+<span class="sd">        The batch size for SGD.</span>
+<span class="sd">        </span>
+<span class="sd">    learning_rate: float, optional, default: 0.001</span>
+<span class="sd">        The learning rate for SGD.</span>
 
-<span class="sd">    name: string, optional, default: &#39;HPF&#39;</span>
+<span class="sd">    aux_info: csc sparse matrix, required</span>
+<span class="sd">        The item auxiliary information matrix, item-context in the PCRL&#39;s paper, \</span>
+<span class="sd">        in the scipy csc sparse format.</span>
+
+<span class="sd">    name: string, optional, default: &#39;PCRL&#39;</span>
 <span class="sd">        The name of the recommender model.</span>
 
 <span class="sd">    trainable: boolean, optional, default: True</span>
 <span class="sd">        When False, the model is not trained and Cornac assumes that the model already \</span>
-<span class="sd">        pre-trained (Theta and Beta are not None). </span>
+<span class="sd">        pre-trained (Theta, Beta and Xi are not None). </span>
+<span class="sd">        </span>
+<span class="sd">    w_determinist: boolean, optional, default: True</span>
+<span class="sd">        When True, determinist wheights &quot;W&quot; are used for the generator network, \</span>
+<span class="sd">        otherwise &quot;W&quot; is stochastic as in the original paper.</span>
 
 <span class="sd">    init_params: dictionary, optional, default: None</span>
 <span class="sd">        List of initial parameters, e.g., init_params = {&#39;G_s&#39;:G_s, &#39;G_r&#39;:G_r, &#39;L_s&#39;:L_s, &#39;L_r&#39;:L_r}, \</span>
 <span class="sd">        where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below). \</span>
 <span class="sd">        They represent respectively the &quot;shape&quot; and &quot;rate&quot; parameters of Gamma distribution over \</span>
-<span class="sd">        Theta. Similarly, L_s, L_r are the shape and rate parameters of the Gamma over Beta.</span>
-<span class="sd">      </span>
+<span class="sd">        Theta. It is the same for L_s, L_r and Beta.</span>
+
 <span class="sd">    Theta: csc_matrix, shape (n_users,k)</span>
 <span class="sd">        The expected user latent factors.</span>
 
@@ -197,26 +216,27 @@
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    * Gopalan, Prem, Jake M. Hofman, and David M. Blei. Scalable Recommendation with \</span>
-<span class="sd">    Hierarchical Poisson Factorization. In UAI, pp. 326-335. 2015.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    * Salah, Aghiles, and Hady W. Lauw. Probabilistic Collaborative Representation Learning for Personalized Item Recommendation. \</span>
+<span class="sd">    In UAI 2018.</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;HPF&quot;</span><span class="p">,</span><span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">init_params</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="n">trainable</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">z_dims</span> <span class="o">=</span> <span class="p">[</span><span class="mi">300</span><span class="p">],</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span><span class="n">aux_info</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;pcrl&quot;</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span><span class="n">w_determinist</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">init_params</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="n">trainable</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">aux_info</span> <span class="o">=</span> <span class="n">aux_info</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_params</span> <span class="o">=</span> <span class="n">init_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_dims</span> <span class="o">=</span> <span class="n">z_dims</span>                <span class="c1">#the dimension of the second hidden layer (we consider a 2-layers PCRL)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">ll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">max_iter</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">etp_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">max_iter</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">etp_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">max_iter</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="mf">0.000000001</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Theta</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#matrix of user factors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Beta</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#matrix of item factors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_params</span> <span class="o">=</span> <span class="n">init_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_determinist</span> <span class="o">=</span> <span class="n">w_determinist</span>
+
         
         
     <span class="c1">#fit the recommender model to the traning data    </span>
-<div class="viewcode-block" id="Hpf.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_hpf.Hpf.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="Pcrl.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.pcrl.recom_pcrl.Pcrl.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
@@ -225,10 +245,13 @@
 <span class="sd">            the user-item preference matrix (traning data), in a scipy sparse format\</span>
 <span class="sd">            (e.g., csc_matrix).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainable</span><span class="p">:</span> 
-            <span class="n">res</span> <span class="o">=</span> <span class="n">pf</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">max_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span><span class="n">init_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_params</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Theta</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;Z&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Beta</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;W&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainable</span><span class="p">:</span>
+            <span class="c1">#intanciate pcrl</span>
+            <span class="n">pcrl_</span> <span class="o">=</span> <span class="n">Pcrl_</span><span class="p">(</span><span class="n">cf_data</span> <span class="o">=</span> <span class="n">X</span><span class="p">,</span> <span class="n">aux_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aux_info</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span><span class="n">z_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_dims</span><span class="p">,</span> <span class="n">n_epoch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span><span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="n">w_determinist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_determinist</span><span class="p">,</span> <span class="n">init_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_params</span><span class="p">)</span>
+            <span class="n">pcrl_</span><span class="o">.</span><span class="n">learn</span><span class="p">()</span>
+                        
+            <span class="bp">self</span><span class="o">.</span><span class="n">Theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pcrl_</span><span class="o">.</span><span class="n">Gs</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pcrl_</span><span class="o">.</span><span class="n">Gr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pcrl_</span><span class="o">.</span><span class="n">Ls</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pcrl_</span><span class="o">.</span><span class="n">Lr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is trained already (trainable = False)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
         
@@ -236,8 +259,8 @@
     
 
     <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
-    <span class="c1">#predictions are not stored for the same efficiency reasons&quot;&quot;&quot;         </span>
-<div class="viewcode-block" id="Hpf.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_hpf.Hpf.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
+    <span class="c1">#predictions are not stored for the same efficiency reasons        </span>
+<div class="viewcode-block" id="Pcrl.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.pcrl.recom_pcrl.Pcrl.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
 
 <span class="sd">        Parameters</span>
@@ -254,8 +277,8 @@
         <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Beta</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Theta</span><span class="p">[</span><span class="n">index_user</span><span class="p">,:]</span><span class="o">.</span><span class="n">T</span>
         <span class="c1">#transform user_pred to a flatten array, but keep thinking about another possible format</span>
         <span class="n">user_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">user_pred</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        
         <span class="k">return</span> <span class="n">user_pred</span></div></div>
-                
         
         
 </pre></div>
