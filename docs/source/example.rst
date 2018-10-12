@@ -28,9 +28,11 @@ This example will show you how to run your very first experiment using Cornac. I
 	#Instantiate evaluation metrics.
 	rec = metrics.Recall(m=20)
 	pre = metrics.Precision(m=20)
+	mae = metrics.Mae()
+	rmse = metrics.Rmse()
 
 	#Instantiate and then run an experiment.
-	res_pmf = Experiment(es_split, [rec_pmf], metrics=[pre,rec])
+	res_pmf = Experiment(es_split, [rec_pmf], metrics=[mae,rmse,pre,rec])
 	res_pmf.run_()
 
 	#Get average results.
