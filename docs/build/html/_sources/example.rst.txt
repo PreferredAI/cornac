@@ -20,7 +20,7 @@ This example will show you how to run your very first experiment using Cornac. I
 
 	#Instantiate a pfm recommender model.
 	#Please refer to the documentation for details on parameter settings.
-	rec_pmf = Pmf(k=10, max_iter=10, learning_rate=0.001, lamda=0.001, init_params={'U':None,'V':None})
+	rec_pmf = Pmf(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, init_params={'U':None,'V':None})
 
 	#Instantiate an evaluation strategy.
 	es_split = Split(data = mat_office, prop_test=0.2, prop_validation=0.0, good_rating=4)
