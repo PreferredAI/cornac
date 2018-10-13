@@ -96,7 +96,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#mean-reciprocal-rank-mrr">Mean Reciprocal Rank (MRR)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#precision">Precision</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#recall">Recall</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fmeasure-f2">Fmeasure (F2)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fmeasure-f1">Fmeasure (F1)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mean-absolute-error-mae">Mean Absolute Error (MAE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#root-mean-squared-error-rmse">Root Mean Squared Error (RMSE)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="experiment.html">experiment</a></li>
@@ -171,7 +173,7 @@
 <h2>Normalized Discount Cumulative Gain (NDCG)<a class="headerlink" href="#normalized-discount-cumulative-gain-ndcg" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Ndcg">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Ndcg</code><span class="sig-paren">(</span><em>m=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/metric.html#Ndcg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Ndcg" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Ndcg</code><span class="sig-paren">(</span><em>m=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/recom_metrics.html#Ndcg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Ndcg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalized Discount Cumulative Gain.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -193,7 +195,7 @@
 <h2>Normalized Cumulative Reciprocal Rank (NCRR)<a class="headerlink" href="#normalized-cumulative-reciprocal-rank-ncrr" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Ncrr">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Ncrr</code><span class="sig-paren">(</span><em>m=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/metric.html#Ncrr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Ncrr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Ncrr</code><span class="sig-paren">(</span><em>m=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/recom_metrics.html#Ncrr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Ncrr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalized Cumulative Reciprocal Rank.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -215,7 +217,7 @@
 <h2>Mean Reciprocal Rank (MRR)<a class="headerlink" href="#mean-reciprocal-rank-mrr" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Mrr">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Mrr</code><a class="reference internal" href="_modules/cornac/metrics/metric.html#Mrr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Mrr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Mrr</code><a class="reference internal" href="_modules/cornac/metrics/recom_metrics.html#Mrr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Mrr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mean Reciprocal Rank.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -236,7 +238,7 @@
 <h2>Precision<a class="headerlink" href="#precision" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Precision">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Precision</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/metric.html#Precision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Precision" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Precision</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/recom_metrics.html#Precision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Precision" title="Permalink to this definition">¶</a></dt>
 <dd><p>Precision&#64;M.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -258,7 +260,7 @@
 <h2>Recall<a class="headerlink" href="#recall" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Recall">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Recall</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/metric.html#Recall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Recall" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Recall</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/recom_metrics.html#Recall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Recall" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recall&#64;M.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -276,20 +278,62 @@
 </dd></dl>
 
 </div>
-<div class="section" id="fmeasure-f2">
-<h2>Fmeasure (F2)<a class="headerlink" href="#fmeasure-f2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="fmeasure-f1">
+<h2>Fmeasure (F1)<a class="headerlink" href="#fmeasure-f1" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Fmeasure">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Fmeasure</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/metric.html#Fmeasure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Fmeasure" title="Permalink to this definition">¶</a></dt>
-<dd><p>F-meansure&#64;M.</p>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Fmeasure</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/recom_metrics.html#Fmeasure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Fmeasure" title="Permalink to this definition">¶</a></dt>
+<dd><p>F-measure&#64;M.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>m</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 20</em>) – The number of items in the top&#64;m list.</li>
-<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'F2&#64;m'</em>) – Name of the measure.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'F1&#64;m'</em>) – Name of the measure.</li>
 <li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'ranking'</em>) – Type of the metric, e.g., “ranking”.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="mean-absolute-error-mae">
+<h2>Mean Absolute Error (MAE)<a class="headerlink" href="#mean-absolute-error-mae" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="cornac.metrics.Mae">
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Mae</code><a class="reference internal" href="_modules/cornac/metrics/pred_metrics.html#Mae"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Mae" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean Absolute Error.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'MAE'</em>) – Name of the measure.</li>
+<li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'prediction'</em>) – Type of the metric, e.g., “ranking”, “prediction”.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="root-mean-squared-error-rmse">
+<h2>Root Mean Squared Error (RMSE)<a class="headerlink" href="#root-mean-squared-error-rmse" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="cornac.metrics.Rmse">
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Rmse</code><a class="reference internal" href="_modules/cornac/metrics/pred_metrics.html#Rmse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Rmse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Root Mean Squared Error.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'RMSE'</em>) – Name of the measure.</li>
+<li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'prediction'</em>) – Type of the metric, e.g., “ranking”, “prediction”.</li>
 </ul>
 </td>
 </tr>

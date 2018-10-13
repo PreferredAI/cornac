@@ -19,26 +19,26 @@ with open("README.md", "r") as fh:
 external_modules = []
 if use_cython:
 	ext_c2pf = setuptools.Extension("c2pf",
-                  sources=["./cornac/models/context_cf/cython/c2pf.pyx", "./cornac/models/context_cf/cpp/cpp_c2pf.cpp"],
+                  sources=["./cornac/models/c2pf/cython/c2pf.pyx", "./cornac/models/c2pf/cpp/cpp_c2pf.cpp"],
                   libraries=[],
-                  include_dirs=['./cornac/models/context_cf/cpp/','./cornac/utils/external/eigen/Eigen','./cornac/utils/external/eigen/unsupported/Eigen/'],
+                  include_dirs=['./cornac/models/c2pf/cpp/','./cornac/utils/external/eigen/Eigen','./cornac/utils/external/eigen/unsupported/Eigen/'],
                   language="c++" )
 	external_modules += cythonize(ext_c2pf)
 	#
-	ext_pmf = './cornac/models/cf/cython/pmf.pyx'
+	ext_pmf = './cornac/models/pmf/cython/pmf.pyx'
 	external_modules += cythonize(ext_pmf)
 				  
 				  
 
 else:
     ext_c2pf = [setuptools.Extension('c2pf',
-					sources=['./cornac/models/context_cf/cython/c2pf.cpp', "./cornac/models/context_cf/cpp/cpp_c2pf.cpp"],
+					sources=['./cornac/models/c2pf/cython/c2pf.cpp', "./cornac/models/c2pf/cpp/cpp_c2pf.cpp"],
 					language='c++',
-					include_dirs=['./cornac/models/context_cf/cpp/','./cornac/utils/external/eigen/Eigen','./cornac/utils/external/eigen/unsupported/Eigen/'])]
+					include_dirs=['./cornac/models/c2pf/cpp/','./cornac/utils/external/eigen/Eigen','./cornac/utils/external/eigen/unsupported/Eigen/'])]
     external_modules += ext_c2pf
     #
     ext_pmf = [setuptools.Extension('pmf',
-                    ['./cornac/models/cf/cython/pmf.c'])]
+                    ['./cornac/models/pmf/cython/pmf.c'])]
     external_modules += ext_pmf
 	
 	
@@ -60,7 +60,7 @@ setuptools.setup(
     url="",
     zip_safe=False,
     ext_modules = external_modules,
-	install_requires=['numpy', 'scipy', 'pandas','torch==0.4.0'],
+	install_requires=['numpy', 'scipy', 'pandas','tensorflow>=1.2.1','torch==0.4.0'],
 	dependency_links = [torch_dl],
     packages=setuptools.find_packages(),
     classifiers=(

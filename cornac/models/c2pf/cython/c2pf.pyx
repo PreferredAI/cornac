@@ -2,7 +2,7 @@
 """
 Created on Mon May 28 11:51:26 2018
 
-@author: asalah
+@author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
 from libcpp.vector cimport vector

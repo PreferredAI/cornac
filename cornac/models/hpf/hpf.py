@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@author: Aghiles Salah
+@author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
 import numpy as np
