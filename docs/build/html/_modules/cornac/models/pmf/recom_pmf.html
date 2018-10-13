@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cornac.models.cf.recom_pmf &mdash; Cornac 0.1.0 documentation</title>
+  <title>cornac.models.pmf.recom_pmf &mdash; Cornac 0.1.0 documentation</title>
   
 
   
@@ -138,7 +138,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>cornac.models.cf.recom_pmf</li>
+      <li>cornac.models.pmf.recom_pmf</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,7 +153,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for cornac.models.cf.recom_pmf</h1><div class="highlight"><pre>
+  <h1>Source code for cornac.models.pmf.recom_pmf</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -170,7 +170,7 @@
 <span class="kn">from</span> <span class="nn">...utils.util_functions</span> <span class="k">import</span> <span class="n">clipping</span>
 
 
-<div class="viewcode-block" id="Pmf"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_pmf.Pmf">[docs]</a><span class="k">class</span> <span class="nc">Pmf</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
+<div class="viewcode-block" id="Pmf"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.Pmf">[docs]</a><span class="k">class</span> <span class="nc">Pmf</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Probabilistic Matrix Factorization.</span>
 
 <span class="sd">    Parameters</span>
@@ -210,12 +210,11 @@
 
 <span class="sd">    V: csc_matrix, shape (n_items,k)</span>
 <span class="sd">        The item latent factors, optional initialization via init_params.</span>
-<span class="sd">                </span>
+
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    * Mnih, Andriy, and Ruslan R. Salakhutdinov. Probabilistic matrix factorization. \</span>
 <span class="sd">    In NIPS, pp. 1257-1264. 2008.</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">lamda</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;pmf&quot;</span><span class="p">,</span> <span class="n">variant</span> <span class="o">=</span><span class="s1">&#39;non_linear&#39;</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span><span class="n">init_params</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -237,7 +236,7 @@
         
         
     <span class="c1">#fit the recommender model to the traning data    </span>
-<div class="viewcode-block" id="Pmf.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_pmf.Pmf.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="Pmf.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.Pmf.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
@@ -276,7 +275,7 @@
 
     <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
     <span class="c1">#predictions are not stored for the same efficiency reasons        </span>
-<div class="viewcode-block" id="Pmf.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.cf.recom_pmf.Pmf.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
+<div class="viewcode-block" id="Pmf.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.Pmf.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
 
 <span class="sd">        Parameters</span>

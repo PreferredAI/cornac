@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@author: Aghiles Salah <salahaghiles@gmail.com>
+@author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
 
@@ -83,7 +83,14 @@ class C2pf(Recommender):
         
     #fit the recommender model to the traning data    
     def fit(self,X):   
-        
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        X: scipy sparse matrix, required
+            the user-item preference matrix (traning data), in a scipy sparse format\
+            (e.g., csc_matrix).
+        """
         #recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
         (rid,cid,val)=sp.find(X)
         val = np.array(val,dtype='float32')
@@ -110,6 +117,19 @@ class C2pf(Recommender):
     #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     #predictions are not stored for the same efficiency reasons      
     def predict(self,index_user):
+        """Predic the scores (ratings) of a user for all items.
+
+        Parameters
+        ----------
+        index_user: int, required
+            The index of the user for whom to perform predictions.
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array containing the predicted values for all items
+        """
+        
         if self.variant == 'c2pf' or self.variant == 'tc2pf':
             user_pred = self.Beta*self.Theta[index_user,:].T + self.Xi*self.Theta[index_user,:].T
         elif self.variant == 'rc2pf':

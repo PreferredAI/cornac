@@ -223,8 +223,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">index_train</span> <span class="o">=</span> <span class="n">index_train</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">index_validation</span> <span class="o">=</span> <span class="n">index_validation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">index_test</span> <span class="o">=</span> <span class="n">index_test</span>
-        <span class="c1">#this is an internal attribute, useful to check whether the data are already split or not</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">split_ran</span>  <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1">#Additional attributes, </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_ran</span>  <span class="o">=</span> <span class="kc">False</span>          <span class="c1">#check whether the data is already split or not           </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rank_met</span> <span class="o">=</span> <span class="kc">False</span>            <span class="c1">#Check wether there is no ranking metric to save some computation</span>
         
     
     <span class="k">def</span> <span class="nf">train_test_split_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -296,10 +297,17 @@
 
     <span class="c1">#This function is callable from the experiement class so as to run an experiment </span>
     <span class="k">def</span> <span class="nf">run_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
+        <span class="c1">#check wether we have at least one ranking metric</span>
+        <span class="k">for</span> <span class="n">mt</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;ranking&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rank_met</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+
         
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_ran</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">run_</span><span class="p">()</span>
-
+        
+        
         <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_train</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting evaluation&quot;</span><span class="p">)</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">data_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="c1">#this matrix will contain the evaluation results for each user</span>
@@ -313,7 +321,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">pred_u</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">index_user</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
                 <span class="n">pred_u</span><span class="p">[</span><span class="n">which_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_train</span><span class="p">[</span><span class="n">u</span><span class="p">,:]</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span><span class="o">.</span><span class="n">A1</span><span class="p">,</span><span class="s2">&quot;&gt;&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.</span>   <span class="c1">#remove known ratings #.A1 allows to flatten a dense matrix</span>
-                <span class="n">rec_list_u</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pred_u</span><span class="p">)</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>  <span class="c1">#ordering the items (in decreasing order) according to the predictions</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank_met</span><span class="p">:</span>
+                    <span class="n">rec_list_u</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">pred_u</span><span class="p">)</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>  <span class="c1">#ordering the items (in decreasing order) according to the predictions</span>
                 
                 <span class="c1">#computing the diffirent metrics</span>
                 <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
@@ -321,8 +330,7 @@
                     <span class="k">if</span> <span class="n">mt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;ranking&#39;</span><span class="p">:</span>
                         <span class="n">res</span><span class="p">[</span><span class="n">u</span><span class="p">,</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">data_test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_test_bin</span><span class="p">[</span><span class="n">u</span><span class="p">,:]</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span><span class="o">.</span><span class="n">A1</span><span class="p">,</span> <span class="n">reclist</span><span class="o">=</span><span class="n">rec_list_u</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="c1">#res[u,idx] = mt.compute(data_test = self.data_test_bin[u,:].todense().A1, prediction=pred_u)</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Only ranking type metrics are implemented so far!&quot;</span><span class="p">)</span>
+                        <span class="n">res</span><span class="p">[</span><span class="n">u</span><span class="p">,</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mt</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">data_test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_test</span><span class="p">[</span><span class="n">u</span><span class="p">,:]</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span><span class="o">.</span><span class="n">A1</span><span class="p">,</span> <span class="n">prediction</span><span class="o">=</span><span class="n">pred_u</span><span class="p">)</span>
                     <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
                 <span class="n">res</span><span class="p">[</span><span class="n">u</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">metrics</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># This column indicates whether a user have been preprocessed</span>
                 <span class="n">nb_processed_users</span> <span class="o">+=</span><span class="mi">1</span>

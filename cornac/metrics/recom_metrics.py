@@ -131,7 +131,7 @@ class MeasureAtM:
         self.tp_fp = None
     
     
-    #Evaluate TopMlist for a single user: Precision@M, Recall@M, F-meansure@M (F2)
+    #Evaluate TopMlist for a single user: Precision@M, Recall@M, F-meansure@M (F1)
     def measures_at_m(self,data_test,reclist):
   
         data_test_bin = np.full(len(data_test), 0)
@@ -200,14 +200,14 @@ class Recall(MeasureAtM):
     
     
 class Fmeasure(MeasureAtM):
-    """F-meansure@M.
+    """F-measure@M.
 
     Parameters
     ----------
     m: int, optional, default: 20
         The number of items in the top@m list.
         
-    name: string, value: 'F2@m'
+    name: string, value: 'F1@m'
         Name of the measure.
 
     type: string, value: 'ranking'
@@ -215,7 +215,7 @@ class Fmeasure(MeasureAtM):
     """ 
     
     def __init__(self, m = 20):
-        MeasureAtM.__init__(self,m = m, name="F2@"+str(m))
+        MeasureAtM.__init__(self,m = m, name="F1@"+str(m))
     
     
     #Compute Precision@M for a single user i
@@ -225,9 +225,9 @@ class Fmeasure(MeasureAtM):
         prec = self.tp/self.tp_fp
         rec = self.tp/self.tp_fn
         if (prec+rec):
-            f2 = 2*(prec*rec)/(prec+rec)
+            f1 = 2*(prec*rec)/(prec+rec)
         else:
-            f2 = 0
-        return f2
+            f1 = 0
+        return f1
 
 

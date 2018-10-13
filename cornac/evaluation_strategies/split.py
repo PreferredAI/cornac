@@ -67,8 +67,9 @@ class Split(EvaluationStrategy):
         self.index_train = index_train
         self.index_validation = index_validation
         self.index_test = index_test
-        #this is an internal attribute, useful to check whether the data are already split or not
-        self.split_ran  = False
+        #Additional attributes, 
+        self.split_ran  = False          #check whether the data is already split or not           
+        self.rank_met = False            #Check wether there is no ranking metric to save some computation
         
     
     def train_test_split_(self):
@@ -140,10 +141,17 @@ class Split(EvaluationStrategy):
 
     #This function is callable from the experiement class so as to run an experiment 
     def run_exp(self, model, metrics):
+        #check wether we have at least one ranking metric
+        for mt in metrics:
+            if mt.type == 'ranking':
+                self.rank_met = True
+                break
+
         
         if not self.split_ran:
             self.run_()
-
+        
+        
         model.fit(self.data_train)
         print("Starting evaluation")
         res = sp.csc_matrix((self.data_test.shape[0],len(metrics)+1)) #this matrix will contain the evaluation results for each user
@@ -157,7 +165,8 @@ class Split(EvaluationStrategy):
             else:
                 pred_u = model.predict(index_user=u)
                 pred_u[which_(self.data_train[u,:].todense().A1,">",0)] = 0.   #remove known ratings #.A1 allows to flatten a dense matrix
-                rec_list_u = (-pred_u).argsort()  #ordering the items (in decreasing order) according to the predictions
+                if self.rank_met:
+                    rec_list_u = (-pred_u).argsort()  #ordering the items (in decreasing order) according to the predictions
                 
                 #computing the diffirent metrics
                 idx = 0
@@ -165,8 +174,7 @@ class Split(EvaluationStrategy):
                     if mt.type == 'ranking':
                         res[u,idx] = mt.compute(data_test = self.data_test_bin[u,:].todense().A1, reclist=rec_list_u)
                     else:
-                        #res[u,idx] = mt.compute(data_test = self.data_test_bin[u,:].todense().A1, prediction=pred_u)
-                        print("Only ranking type metrics are implemented so far!")
+                        res[u,idx] = mt.compute(data_test = self.data_test[u,:].todense().A1, prediction=pred_u)
                     idx = idx + 1
                 res[u,len(metrics)] = 1 # This column indicates whether a user have been preprocessed
                 nb_processed_users +=1
