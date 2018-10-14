@@ -24,7 +24,7 @@ class Hpf(Recommender):
         The name of the recommender model.
 
     trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already \
+        When False, the model is not trained and Cornac assumes that the model is already \
         pre-trained (Theta and Beta are not None). 
 
     init_params: dictionary, optional, default: None
