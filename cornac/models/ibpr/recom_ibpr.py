@@ -66,6 +66,14 @@ class Ibpr(Recommender):
 
     # fit the recommender model to the traning data
     def fit(self, X):
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        X: scipy sparse matrix, required
+            the user-item preference matrix (traning data), in a scipy sparse format\
+            (e.g., csc_matrix).
+        """
         #change the data to original user Id item Id and rating format
         X = X.tocoo() # convert sparse matrix to COOrdiante format
         data = np.ndarray(shape=(len(X.data), 3), dtype=float)
@@ -83,6 +91,18 @@ class Ibpr(Recommender):
     #predictions are not stored for the same efficiency reasons"""
 
     def predict(self, index_user):
+        """Predic the scores (ratings) of a user for all items.
+
+        Parameters
+        ----------
+        index_user: int, required
+            The index of the user for whom to perform predictions.
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array containing the predicted values for all items
+        """
         user_pred = self.U[index_user, :].dot(self.V.T) 
         # transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred, dtype='float64').flatten()
