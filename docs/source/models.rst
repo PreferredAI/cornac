@@ -20,6 +20,11 @@ Indexable Bayesian Personalized Ranking (IBPR)
 .. automodule:: cornac.models.ibpr.recom_ibpr
    :members:
    
+Spherical k-means (Skmeans)
+----------------------------
+.. automodule:: cornac.models.skm.recom_skmeans
+   :members:
+   
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
