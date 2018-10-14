@@ -15,6 +15,11 @@ Collaborative Context Poisson Factorization (C2PF)
 .. automodule:: cornac.models.c2pf.recom_c2pf
    :members:
    
+Indexable Bayesian Personalized Ranking (IBPR)
+-----------------------------------------------
+.. automodule:: cornac.models.ibpr.recom_ibpr
+   :members:
+   
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
