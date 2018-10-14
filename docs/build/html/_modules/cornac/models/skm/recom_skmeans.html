@@ -179,7 +179,7 @@
 
 <span class="sd">    trainable: boolean, optional, default: True</span>
 <span class="sd">        When False, the model is not trained and Cornac assumes that the model is already \</span>
-<span class="sd">        pre-trained (Theta and Beta are not None). </span>
+<span class="sd">        trained. </span>
 <span class="sd">        </span>
 <span class="sd">    tol : float, optional, default: 1e-6</span>
 <span class="sd">        Relative tolerance with regards to skmeans&#39; criterion to declare convergence.</span>
@@ -221,18 +221,17 @@
 <span class="sd">            the user-item preference matrix (traning data), in a scipy sparse format\</span>
 <span class="sd">            (e.g., csc_matrix).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X1</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">X1</span> <span class="o">=</span> <span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">A1</span><span class="p">)</span><span class="o">+</span><span class="mf">1e-20</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainable</span><span class="p">:</span>
             <span class="c1">#Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.</span>
-            <span class="n">X1</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">X1</span> <span class="o">=</span> <span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">A1</span><span class="p">)</span><span class="o">+</span><span class="mf">1e-20</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">skmeans</span><span class="p">(</span><span class="n">X1</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">max_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span><span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tol</span><span class="p">,</span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span><span class="n">init_par</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">par</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;partition&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span> <span class="o">=</span> <span class="n">X1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="o">.</span><span class="n">T</span>   <span class="c1">#user-centroid cosine similarity matrix</span>
-            <span class="k">del</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is trained already (trainable = False)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
-        
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is trained already (trainable = False)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span> <span class="o">=</span> <span class="n">X1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="o">.</span><span class="n">T</span>   <span class="c1">#user-centroid cosine similarity matrix</span>
+        <span class="k">del</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span></div>
    
     
 

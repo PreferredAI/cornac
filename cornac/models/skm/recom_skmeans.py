@@ -23,7 +23,7 @@ class Skmeans(Recommender):
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model is already \
-        pre-trained (Theta and Beta are not None). 
+        trained. 
         
     tol : float, optional, default: 1e-6
         Relative tolerance with regards to skmeans' criterion to declare convergence.
@@ -65,18 +65,17 @@ class Skmeans(Recommender):
             the user-item preference matrix (traning data), in a scipy sparse format\
             (e.g., csc_matrix).
         """
+        X1 = X.copy()
+        X1 = X1.multiply(sp.csc_matrix(1./(np.sqrt(X1.multiply(X1).sum(1).A1)+1e-20)).T)
         if self.trainable:
             #Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.
-            X1 = X.copy()
-            X1 = X1.multiply(sp.csc_matrix(1./(np.sqrt(X1.multiply(X1).sum(1).A1)+1e-20)).T)
             res = skmeans(X1,k = self.k, max_iter = self.max_iter,tol = self.tol,verbose = self.verbose,init_par = self.par)
             self.centroids = res['centroids']
             self.par = res['partition']
-            self.user_center_sim = X1*self.centroids.T   #user-centroid cosine similarity matrix
-            del(X1)
         else:
             print('%s is trained already (trainable = False)' % (self.name))
-        
+        self.user_center_sim = X1*self.centroids.T   #user-centroid cosine similarity matrix
+        del(X1)
    
     
 
