@@ -44,9 +44,9 @@ else:
 	
 #Handling PyTorch dependency
 if os.name == 'nt':
-	torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-win_amd64.whl'
+	torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl'
 elif os.name == 'posix':
-	torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl'	
+	torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl'	
 	
 	
 setuptools.setup(
@@ -60,7 +60,7 @@ setuptools.setup(
     url="",
     zip_safe=False,
     ext_modules = external_modules,
-	install_requires=['numpy', 'scipy', 'pandas','tensorflow>=1.2.1','torch==0.4.0'],
+	install_requires=['numpy', 'scipy', 'pandas','tensorflow>=1.2.1','torch>=0.4.0'],
 	dependency_links = [torch_dl],
     packages=setuptools.find_packages(),
     classifiers=(
