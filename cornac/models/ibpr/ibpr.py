@@ -4,6 +4,7 @@
 """
 
 import numpy as np
+import scipy as sp
 import random
 import torch
 from ...utils.util_data import Dataset
@@ -17,6 +18,7 @@ from ...utils.util_data import Dataset
    for each user u, he/she prefers item i over item j.
    """
 def sampleData(X, data):
+    X = sp.sparse.csr_matrix(X)
     sampled_data = np.zeros((data.shape[0], 5), dtype=np.int)
     data = data.astype(int)
 
@@ -71,9 +73,6 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
             
             Scorei = torch.acos(torch.clamp(regU_norm.mm(regI_norm.t()), -1 + 1e-7, 1 - 1e-7))  
             Scorej = torch.acos(torch.clamp(regU_norm.mm(regJ_norm.t()), -1 + 1e-7, 1 - 1e-7))  
-
-            Scorei = angularSim[sampled_batch[:, 0], sampled_batch[:, 1]]
-            Scorej = angularSim[sampled_batch[:, 0], sampled_batch[:, 2]]
 
             loss = lamda * (regU.norm().pow(2) + regI.norm().pow(2) + regJ.norm().pow(2)) - torch.log(torch.sigmoid(Scorej - Scorei)).sum()
             optimizer.zero_grad()
