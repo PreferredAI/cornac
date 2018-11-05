@@ -160,8 +160,7 @@ class Split(EvaluationStrategy):
         #loops are inefficent in python, this part should be re-implement in cython or c/c++"""
         nb_processed_users = 0
         for u in range(self.data_test.shape[0]):
-           # if not np.sum(self.data_test_bin[u, :]): #users with 0 heldout items should not be consider in the evaluation
-            if not self.data_test_bin[u, :].sum():
+            if not np.sum(self.data_test_bin[u,:]): #users with 0 heldout items should not be consider in the evaluation
                 nb_processed_users +=1
             else:
                 pred_u = model.predict(index_user=u)
