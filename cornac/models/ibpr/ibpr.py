@@ -29,7 +29,7 @@ def sampleData(X, data):
         j = random.randint(0, X.shape[0] - 1)
 
         while X[u, j] > ratingi:
-            j = random.randint(0, data.shape[1] - 1)
+            j = random.randint(0, X.shape[1] - 1)
 
         sampled_data[k, :] = [u, i, j, ratingi, X[u, j]]
 
