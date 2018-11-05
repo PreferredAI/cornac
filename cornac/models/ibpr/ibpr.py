@@ -17,7 +17,7 @@ from ...utils.util_data import Dataset
         [userId itemId_i itemId_j rating_i rating_j]
    for each user u, he/she prefers item i over item j.
    """
-def sampleTriplets(X, data):
+def sampleData(X, data):
     X = sp.sparse.csr_matrix(X)
     sampled_data = np.zeros((data.shape[0], 5), dtype=np.int)
     data = data.astype(int)
@@ -29,7 +29,7 @@ def sampleTriplets(X, data):
         j = random.randint(0, X.shape[0] - 1)
 
         while X[u, j] > ratingi:
-            j = random.randint(0, X.shape[1] - 1)
+            j = random.randint(0, data.shape[1] - 1)
 
         sampled_data[k, :] = [u, i, j, ratingi, X[u, j]]
 
@@ -61,7 +61,7 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
 
         for i in range(1, num_steps + 1):
             batch_c,_ = Data.next_batch(batch_size)
-            sampled_batch = sampleTriplets(X, batch_c)
+            sampled_batch = sampleData(X, batch_c)
             
             regU = U[sampled_batch[:, 0], :]
             regI = V[sampled_batch[:, 1], :]
