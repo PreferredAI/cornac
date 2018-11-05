@@ -14,9 +14,9 @@ from ...utils.util_data import Dataset
    given rated item i, randomly choose item j and check whether rating of j is missing or lower than i, 
    if not randomly sample another item. 
    each row of the sampled data in the following form:
-        [userId itemId_i itemId_j rating_i rating_j]
+        [userId itemId_i itemId  _j rating_i rating_j]
    for each user u, he/she prefers item i over item j.
-   """
+   """  
 def sampleTriplets(X, data):
     X = sp.sparse.csr_matrix(X)
     sampled_data = np.zeros((data.shape[0], 5), dtype=np.int)
@@ -29,14 +29,14 @@ def sampleTriplets(X, data):
         j = random.randint(0, X.shape[0] - 1)
 
         while X[u, j] > ratingi:
-            j = random.randint(0, X.shape[1] - 1)
+            j = random.randint(0, data.shape[1] - 1)
 
         sampled_data[k, :] = [u, i, j, ratingi, X[u, j]]
 
     return sampled_data
 
 
-def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size = 100, init_params=None):
+def coe(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size = 100, init_params=None):
 
     Data = Dataset(data)
 
@@ -67,12 +67,8 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
             regI = V[sampled_batch[:, 1], :]
             regJ = V[sampled_batch[:, 2], :]
             
-            regU_norm     = regU / regU.norm(dim = 1)[:, None]
-            regI_norm     = regI / regI.norm(dim = 1)[:, None] 
-            regJ_norm     = regJ / regJ.norm(dim = 1)[:, None] 
-            
-            Scorei = torch.acos(torch.clamp(regU_norm.mm(regI_norm.t()), -1 + 1e-7, 1 - 1e-7))  
-            Scorej = torch.acos(torch.clamp(regU_norm.mm(regJ_norm.t()), -1 + 1e-7, 1 - 1e-7))  
+            Scorei = torch.dist(regU, regI, 2)  
+            Scorej = torch.dist(regU, regJ, 2)  
 
             loss = lamda * (regU.norm().pow(2) + regI.norm().pow(2) + regJ.norm().pow(2)) - torch.log(torch.sigmoid(Scorej - Scorei)).sum()
             optimizer.zero_grad()
@@ -81,8 +77,6 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
         print('epoch:',epoch,'loss:', loss)
     
     # since the user's preference is defined by the angular distance, we can normalize the user/item vectors without changing the ranking
-    U = torch.nn.functional.normalize(U, p = 2, dim=1)
-    V = torch.nn.functional.normalize(V, p = 2, dim=1)
     U = U.data.numpy()
     V = V.data.numpy()
 
