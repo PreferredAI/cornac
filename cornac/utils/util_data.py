@@ -21,7 +21,7 @@ class Dataset:
         return self._data
 
     #in this version we do not shuffle the original data (only the ids)
-    def next_batch(self,batch_size,shuffle = True):
+    def next_batch(self, batch_size, shuffle = True):
         start = self._index_in_epoch
         if start == 0 and self._epochs_completed == 0:
             print('Shafling the data')
@@ -53,9 +53,9 @@ class Dataset:
             self._index_in_epoch += batch_size
             end = self._index_in_epoch
             #alose return the ids
-            return self._data[self.index][start:end], self.index[start:end]
+            return self._data[self.index[start:end]], self.index[start:end]
             #return self._data[start:end], self.index[start:end]
-    
+
     
     
     

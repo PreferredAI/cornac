@@ -7,6 +7,8 @@ import numpy as np
 import scipy as sp
 import random
 import torch
+
+from scipy.stats import norm 
 from ...utils.util_data import Dataset
 
 """Firstly, we define a helper function to generate\sample training ordinal triplets:
@@ -36,7 +38,7 @@ def sampleData(X, data):
     return sampled_data
 
 
-def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size = 100, init_params=None):
+def ihre(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size = 100, init_params=None):
 
     Data = Dataset(data)
 
@@ -61,7 +63,6 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
 
         for i in range(1, num_steps + 1):
             batch_c,_ = Data.next_batch(batch_size)
-            print("Andrew")
             sampled_batch = sampleData(X, batch_c)
             
             regU = U[sampled_batch[:, 0], :]
@@ -72,16 +73,22 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
             regI_norm     = regI / regI.norm(dim = 1)[:, None] 
             regJ_norm     = regJ / regJ.norm(dim = 1)[:, None] 
             
-            Scorei = torch.acos(torch.clamp(torch.sum(regU_norm * regI_norm, dim = 1), -1 + 1e-7, 1 - 1e-7))  
-            Scorej = torch.acos(torch.clamp(torch.sum(regU_norm * regJ_norm, dim = 1), -1 + 1e-7, 1 - 1e-7))  
+            Scorei = 1/np.pi * torch.acos(torch.clamp(torch.sum(regU_norm * regI_norm, dim = 1), -1 + 1e-7, 1 - 1e-7))  
+            Scorej = 1/np.pi * torch.acos(torch.clamp(torch.sum(regU_norm * regJ_norm, dim = 1), -1 + 1e-7, 1 - 1e-7))  
 
-            loss = lamda * (regU.norm().pow(2) + regI.norm().pow(2) + regJ.norm().pow(2)) - torch.log(torch.sigmoid(Scorej - Scorei)).sum()
+            mean_uij  = Scorej - Scorei
+            std_uij   = torch.sqrt(Scorej * (1 - Scorej) + Scorei * (1 - Scorei))
+            alpha_uij = torch.div(mean_uij, std_uij)
+            
+            nrm = torch.distributions.normal.Normal(torch.tensor([0.0]), torch.tensor([1.0]))
+            cdf_uij   = nrm.cdf(alpha_uij) 
+
+            loss = lamda * (regU.norm().pow(2) + regI.norm().pow(2) + regJ.norm().pow(2)) - torch.log(cdf_uij).sum()
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
         print('epoch:',epoch,'loss:', loss)
     
-    # since the user's preference is defined by the angular distance, we can normalize the user/item vectors without changing the ranking
     U = torch.nn.functional.normalize(U, p = 2, dim=1)
     V = torch.nn.functional.normalize(V, p = 2, dim=1)
     U = U.data.numpy()
@@ -90,5 +97,4 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
     res = {'U': U, 'V': V}
 
     return res
-
 
