@@ -4,4 +4,6 @@ from .hpf import *
 from .pcrl import *
 from .pmf import *
 from .ibpr import *
+from .coe import *
+from .ihre import *
 from .skm import *
