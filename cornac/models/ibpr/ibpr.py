@@ -61,7 +61,6 @@ def ibpr(X, data, k, lamda = 0.005, n_epochs=150, learning_rate=0.001,batch_size
 
         for i in range(1, num_steps + 1):
             batch_c,_ = Data.next_batch(batch_size)
-            print("Andrew")
             sampled_batch = sampleData(X, batch_c)
             
             regU = U[sampled_batch[:, 0], :]
