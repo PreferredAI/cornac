@@ -7,9 +7,7 @@
 import numpy as np
 import random
 import torch
-from torch.utils.data import DataLoader
-
-
+from ...utils.util_data import Dataset
 
 
 """Generate training data pairs:
@@ -20,7 +18,6 @@ from torch.utils.data import DataLoader
    for each user u, he/she prefers item i over item j.
    """
 def sampleData(X, data):
-    X = X.todense()
     sampled_data = np.zeros((data.shape[0], 5), dtype=np.int)
     data = data.astype(int)
 
@@ -28,54 +25,58 @@ def sampleData(X, data):
         u = data[k, 0]
         i = data[k, 1]
         ratingi = data[k, 2]
-        j = random.randint(0, X.shape[0])
+        j = random.randint(0, X.shape[1]-1)
 
         while X[u, j] > ratingi:
-            j = random.randint(0, data.shape[1])
+            j = random.randint(0, X.shape[1]-1)
 
         sampled_data[k, :] = [u, i, j, ratingi, X[u, j]]
 
     return sampled_data
 
 
-	
-	
-	
-def bpr(X, data, k, lamda = 0.01, n_epochs=100, learning_rate=0.001,batch_size = 100, init_params=None):
+
+def bpr(X, data, k, lamda = 0.01, n_epochs=100, learning_rate=0.001, batch_size = 10000, init_params=None):
+
+    Data = Dataset(data)
 
     #Initial user factors
     if init_params['U'] is None:
         U = torch.randn(X.shape[0], k, requires_grad=True)
     else:
         U = init_params['U']
+        U = torch.tensor(U, requires_grad=True)
 
     #Initial item factors
     if init_params['V'] is None:
         V = torch.randn(X.shape[1], k, requires_grad=True)
     else:
         V = init_params['V']
+        V = torch.tensor(V, requires_grad=True)
 
     optimizer = torch.optim.Adam([U, V], lr=learning_rate)
+
     for epoch in range(n_epochs):
-        # for each epoch, randomly sample training pair
-        Data = sampleData(X, data)
-        # set batch size for each step, and shuffle the training data
-        train_loader = torch.utils.data.DataLoader(Data, batch_size=batch_size, shuffle=True)
-        for step, batch_data in enumerate(train_loader):
-            R = U.mm(V.t())
-            batch_data = np.array(batch_data)
-            regU = U[batch_data[:, 0], :]
-            regV = V[np.unique(np.append(batch_data[:, 1], batch_data[:, 2])), :]
 
-            Ratingi = R[batch_data[:, 0], batch_data[:, 1]]
-            Ratingj = R[batch_data[:, 0], batch_data[:, 2]]
-
-            loss = lamda * (torch.trace(regU.mm(regU.t())) + torch.trace(regV.mm(regV.t()))) - torch.log(
-                torch.sigmoid(Ratingi.add(Ratingj * -1))).sum()
+        num_steps = int(Data.data.shape[0] / batch_size)
+        for i in range(1, num_steps + 1):
+            batch_c, _ = Data.next_batch(batch_size)
+            # print(batch_c, idx)
+            sampled_batch = sampleData(X, batch_c)
+            regU = U[sampled_batch[:, 0], :]
+            regVi = V[sampled_batch[:, 1],:]
+            regVj = V[sampled_batch[:, 2],:]
+            Ri = torch.diag(regU.mm(regVi.t()), 0)
+            Rj = torch.diag(regU.mm(regVj.t()), 0)
+            # print(torch.log(torch.sigmoid(regU.mm(regVi.t()) - regU.mm(regVj.t()))).sum())
+            loss = (lamda * (regU.norm().pow(2) + regVi.norm().pow(2) +regVj.norm().pow(2))
+                    - torch.log(torch.sigmoid(Ri - Rj)).sum())
+            # loss = - torch.log(torch.sigmoid(Ri - Rj)).sum()
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        print('epoch:',epoch,'loss:', loss)
+
+        print('epoch:', epoch, 'loss:', loss)
 
     U = U.data.numpy()
     V = V.data.numpy()
