@@ -39,10 +39,10 @@ class Bpr(Recommender):
         List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
         please see below the definition of U and V.
 
-    U: csc_matrix, shape (n_users,k)
+    U: ndarray, shape (n_users,k)
         The user latent factors, optional initialization via init_params.
 
-    V: csc_matrix, shape (n_items,k)
+    V: ndarray, shape (n_items,k)
         The item latent factors, optional initialization via init_params.
 
     References
@@ -51,7 +51,7 @@ class Bpr(Recommender):
     BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate = 0.001, lamda = 0.01,batch_size = 100, name="bpr",trainable = True,init_params = None):
+    def __init__(self, k=5, max_iter=100, learning_rate=0.001, lamda=0.01, batch_size=100, name="bpr", trainable=True, init_params=None):
         Recommender.__init__(self, name=name, trainable = trainable)
         self.k = k
         self.init_params = init_params
@@ -76,14 +76,14 @@ class Bpr(Recommender):
         """
         if self.trainable:
             #change the data to original user Id item Id and rating format
-            X = X.tocoo()
-            data = np.ndarray(shape=(len(X.data), 3), dtype=float)
-            data[:, 0] = X.row
-            data[:, 1] = X.col
-            data[:, 2] = X.data
+            cooX = X.tocoo()
+            data = np.ndarray(shape=(len(cooX.data), 3), dtype=float)
+            data[:, 0] = cooX.row
+            data[:, 1] = cooX.col
+            data[:, 2] = cooX.data
 
             print('Learning...')
-            res = bpr(X, data, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
+            res = bpr(X, data, k=self.k, n_epochs=self.max_iter, lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
             self.U = res['U']
             self.V = res['V']
             print('Learning completed')

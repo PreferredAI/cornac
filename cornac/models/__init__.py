@@ -5,3 +5,5 @@ from .pcrl import *
 from .pmf import *
 from .ibpr import *
 from .skm import *
+from .autorec import *
+from .vbpr import *
