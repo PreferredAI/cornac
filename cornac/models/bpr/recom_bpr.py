@@ -35,15 +35,10 @@ class Bpr(Recommender):
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
 
-    init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
-        please see below the definition of U and V.
-
-    U: ndarray, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
-
-    V: ndarray, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
+    init_params: dictionary, optional, default: {'U':None,'V':None}
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
+        U: a csc_matrix of shape (n_users,k), containing the user latent factors. \
+        V: a csc_matrix of shape (n_items,k), containing the item latent factors.
 
     References
     ----------
@@ -51,7 +46,7 @@ class Bpr(Recommender):
     BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate=0.001, lamda=0.01, batch_size=100, name="bpr", trainable=True, init_params=None):
+    def __init__(self, k=5, max_iter=100, learning_rate=0.001, lamda=0.001, batch_size=100, name="bpr", trainable=True, init_params= {'U':None,'V':None}):
         Recommender.__init__(self, name=name, trainable = trainable)
         self.k = k
         self.init_params = init_params
