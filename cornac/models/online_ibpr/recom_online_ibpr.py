@@ -1,34 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-@author: Guo Jingyao
+@author: Dung D. Le (Andrew) <ddle.2015@smu.edu.sg>
 """
 
 import numpy as np
-from .bpr import *
+from .online_ibpr import *
 from ..recommender import Recommender
 
 
-class Bpr(Recommender):
-    """Bayesian Personalized Ranking.
+class Online_Ibpr(Recommender):
+    """Indexable Bayesian Personalized Ranking.
 
     Parameters
     ----------
-    k: int, optional, default: 5
+    k: int, optional, default: 20
         The dimension of the latent factors.
 
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs for SGD.
 
-    learning_rate: float, optional, default: 0.001
+    learning_rate: float, optional, default: 0.05
         The learning rate for SGD.
 
-    lamda: float, optional, default: 0.01
+    lamda: float, optional, default: 0.001
         The regularization parameter.
 
     batch_size: int, optional, default: 100
         The batch size for SGD.
 
-    name: string, optional, default: 'BRP'
+    name: string, optional, default: 'IBRP'
         The name of the recommender model.
 
     trainable: boolean, optional, default: True
@@ -47,11 +47,11 @@ class Bpr(Recommender):
 
     References
     ----------
-    * Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, and Lars Schmidt-Thieme. \
-    BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.
+    * Le, D. D., & Lauw, H. W. (2017, November). Indexable Bayesian personalized ranking for efficient top-k recommendation.\
+      In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate = 0.001, lamda = 0.01,batch_size = 100, name="bpr",trainable = True,init_params = None):
+    def __init__(self, k=20, max_iter=100, learning_rate = 0.05, lamda = 0.001, batch_size = 100, name="online_ibpr",trainable = True, init_params = None):
         Recommender.__init__(self, name=name, trainable = trainable)
         self.k = k
         self.init_params = init_params
@@ -65,30 +65,27 @@ class Bpr(Recommender):
         self.V = init_params['V']  # matrix of item factors
 
     # fit the recommender model to the traning data
-    def fit(self, X):
+    def fit(self, triplets):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        triplets: 
+            the user-specific ordinal triplets (u, i, j) indicating u prefers an item i to an item j.\
         """
-        if self.trainable:
-            #change the data to original user Id item Id and rating format
-            #X = X.tocoo()
-            #data = np.ndarray(shape=(len(X.data), 3), dtype=float)
-            #data[:, 0] = X.row
-            #data[:, 1] = X.col
-            #data[:, 2] = X.data
+        #change the data to original user Id item Id and rating format
+        #X = X.tocoo() # convert sparse matrix to COOrdiante format
+        #data = np.ndarray(shape=(len(X.data), 3), dtype=float)
+        #data[:, 0] = X.row
+        #data[:, 1] = X.col
+        #data[:, 2] = X.data
+        
 
-            print('Learning...')
-            res = bpr(X, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
-            self.U = res['U']
-            self.V = res['V']
-            print('Learning completed')
-        else:
-            print('%s is trained already (trainable = False)' % (self.name))
+        print('Learning...')
+        res = online_ibpr(triplets, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
+        self.U = res['U']
+        self.V = res['V']
+        print('Learning completed')
 
     #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     #predictions are not stored for the same efficiency reasons"""
@@ -106,8 +103,7 @@ class Bpr(Recommender):
         Numpy 1d array 
             Array containing the predicted values for all items
         """
-        
-        user_pred = self.U[index_user, :].dot(self.V.T)
+        user_pred = self.U[index_user, :].dot(self.V.T) 
         # transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred, dtype='float64').flatten()
 
