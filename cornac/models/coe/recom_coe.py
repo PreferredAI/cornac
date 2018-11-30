@@ -75,14 +75,14 @@ class Coe(Recommender):
             (e.g., csc_matrix).
         """
         #change the data to original user Id item Id and rating format
-        X = X.tocoo() # convert sparse matrix to COOrdiante format
-        data = np.ndarray(shape=(len(X.data), 3), dtype=float)
-        data[:, 0] = X.row
-        data[:, 1] = X.col
-        data[:, 2] = X.data
+        #X = X.tocoo() # convert sparse matrix to COOrdiante format
+        #data = np.ndarray(shape=(len(X.data), 3), dtype=float)
+        #data[:, 0] = X.row
+        #data[:, 1] = X.col
+        #data[:, 2] = X.data
 
         print('Learning...')
-        res = coe(X, data, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
+        res = coe(X, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
         self.U = res['U']
         self.V = res['V']
         print('Learning completed')
