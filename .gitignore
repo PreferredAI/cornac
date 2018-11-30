@@ -1,0 +1,5 @@
+.idea/
+example.py
+cornac/__pycache__
+cornac/models/__pycache__
+cornac/models/*/__pycache__
