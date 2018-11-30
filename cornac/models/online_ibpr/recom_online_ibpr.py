@@ -4,12 +4,12 @@
 """
 
 import numpy as np
-from .ibpr import *
+from .online_ibpr import *
 from ..recommender import Recommender
 
 
-class Ibpr(Recommender):
-    """Indexable Bayesian Personalized Ranking.
+class OnlineIbpr(Recommender):
+    """Online Indexable Bayesian Personalized Ranking.
 
     Parameters
     ----------
@@ -51,7 +51,7 @@ class Ibpr(Recommender):
       In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate = 0.05, lamda = 0.001, batch_size = 100, name="ibpr",trainable = True,init_params = None):
+    def __init__(self, k=20, max_iter=100, learning_rate = 0.05, lamda = 0.001, batch_size = 100, name="online_ibpr",trainable = True,init_params = None):
         Recommender.__init__(self, name=name, trainable = trainable)
         self.k = k
         self.init_params = init_params
@@ -65,25 +65,16 @@ class Ibpr(Recommender):
         self.V = init_params['V']  # matrix of item factors
 
     # fit the recommender model to the traning data
-    def fit(self, X):
+    def fit(self, triplets):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        triplets: collections of user's ordinal triplets (u, i, j) indicating u prefers i to j
         """
-        #change the data to original user Id item Id and rating format
-        #X = X.tocoo() # convert sparse matrix to COOrdiante format
-        #data = np.ndarray(shape=(len(X.data), 3), dtype=float)
-        #data[:, 0] = X.row
-        #data[:, 1] = X.col
-        #data[:, 2] = X.data
-        
 
         print('Learning...')
-        res = ibpr(X, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
+        res = online_ibpr(triplets, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
         self.U = res['U']
         self.V = res['V']
         print('Learning completed')
