@@ -2458,7 +2458,7 @@ static PyObject *__pyx_pf_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, Py
  *             #update user factors
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]             # <<<<<<<<<<<<<<
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
  */
       __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 55, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
@@ -2508,7 +2508,7 @@ static PyObject *__pyx_pf_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, Py
  *             #update user factors
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])             # <<<<<<<<<<<<<<
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
  *             #update item factors
  */
       __pyx_t_16 = PyTuple_New(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 56, __pyx_L1_error)
@@ -2576,7 +2576,7 @@ static PyObject *__pyx_pf_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, Py
       /* "pmf.pyx":57
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user             # <<<<<<<<<<<<<<
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,             # <<<<<<<<<<<<<<
  *             #update item factors
  *             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]
  */
@@ -2685,7 +2685,7 @@ static PyObject *__pyx_pf_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, Py
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
       /* "pmf.pyx":59
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
  *             #update item factors
  *             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]             # <<<<<<<<<<<<<<
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
@@ -4324,7 +4324,7 @@ static PyObject *__pyx_pf_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_sel
  *             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]             # <<<<<<<<<<<<<<
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
  */
       __pyx_t_16 = PyTuple_New(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
@@ -4374,7 +4374,7 @@ static PyObject *__pyx_pf_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_sel
  *             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])             # <<<<<<<<<<<<<<
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
  *             #update item factors
  */
       __pyx_t_13 = PyTuple_New(2); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 153, __pyx_L1_error)
@@ -4442,7 +4442,7 @@ static PyObject *__pyx_pf_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_sel
       /* "pmf.pyx":154
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user             # <<<<<<<<<<<<<<
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user             # <<<<<<<<<<<<<<
  *             #update item factors
  *             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]
  */
@@ -4551,7 +4551,7 @@ static PyObject *__pyx_pf_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_sel
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
       /* "pmf.pyx":156
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
  *             #update item factors
  *             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]             # <<<<<<<<<<<<<<
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
@@ -5210,7 +5210,7 @@ static int __Pyx_InitCachedConstants(void) {
  *             #update user factors
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]             # <<<<<<<<<<<<<<
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
  */
   __pyx_slice__3 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__3)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__3);
@@ -5226,7 +5226,7 @@ static int __Pyx_InitCachedConstants(void) {
  *             #update user factors
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])             # <<<<<<<<<<<<<<
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
  *             #update item factors
  */
   __pyx_slice__6 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__6)) __PYX_ERR(0, 56, __pyx_L1_error)
@@ -5245,7 +5245,7 @@ static int __Pyx_InitCachedConstants(void) {
   /* "pmf.pyx":57
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user             # <<<<<<<<<<<<<<
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,             # <<<<<<<<<<<<<<
  *             #update item factors
  *             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]
  */
@@ -5260,7 +5260,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_slice__12);
 
   /* "pmf.pyx":59
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
  *             #update item factors
  *             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]             # <<<<<<<<<<<<<<
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
@@ -5352,7 +5352,7 @@ static int __Pyx_InitCachedConstants(void) {
  *             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]             # <<<<<<<<<<<<<<
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
  */
   __pyx_slice__29 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__29)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__29);
@@ -5368,7 +5368,7 @@ static int __Pyx_InitCachedConstants(void) {
  *             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])             # <<<<<<<<<<<<<<
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
  *             #update item factors
  */
   __pyx_slice__32 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__32)) __PYX_ERR(0, 153, __pyx_L1_error)
@@ -5387,7 +5387,7 @@ static int __Pyx_InitCachedConstants(void) {
   /* "pmf.pyx":154
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user             # <<<<<<<<<<<<<<
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user             # <<<<<<<<<<<<<<
  *             #update item factors
  *             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]
  */
@@ -5402,7 +5402,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_slice__38);
 
   /* "pmf.pyx":156
- *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user
+ *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
  *             #update item factors
  *             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]             # <<<<<<<<<<<<<<
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
