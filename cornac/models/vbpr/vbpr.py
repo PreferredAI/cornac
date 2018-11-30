@@ -36,7 +36,7 @@ def sampleData(X, data):
 
 
 
-def bpr(X, data, k, lamda = 0.01, n_epochs=100, learning_rate=0.001, batch_size = 10000, init_params=None):
+def vbpr(X, data, k, d, aux_info, lamda = 0.01, n_epochs=100, learning_rate=0.001, batch_size = 10000, init_params=None):
 
     Data = Dataset(data)
 
@@ -54,24 +54,37 @@ def bpr(X, data, k, lamda = 0.01, n_epochs=100, learning_rate=0.001, batch_size 
         V = init_params['V']
         V = torch.tensor(V, requires_grad=True)
 
-    optimizer = torch.optim.Adam([U, V], lr=learning_rate)
+
+    if aux_info.all()!=None:
+        aux_info = torch.from_numpy(aux_info).float()
+        print("add img feature info")
+        if init_params['E'] is None:
+            E = torch.randn(d, aux_info.shape[1], requires_grad=True)
+        else:
+            E = init_params['E']
+            E = torch.tensor(E, requires_grad=True)
+
+        if init_params['Ue'] is None:
+            Ue = torch.randn(X.shape[0], d, requires_grad=True)
+        else:
+            Ue = init_params['Ue']
+            Ue = torch.tensor(Ue, requires_grad=True)
+
+    optimizer = torch.optim.Adam([U, V, E, Ue], lr=learning_rate)
 
     for epoch in range(n_epochs):
 
         num_steps = int(Data.data.shape[0] / batch_size)
         for i in range(1, num_steps + 1):
             batch_c, _ = Data.next_batch(batch_size)
-            # print(batch_c, idx)
             sampled_batch = sampleData(X, batch_c)
             regU = U[sampled_batch[:, 0], :]
             regVi = V[sampled_batch[:, 1],:]
             regVj = V[sampled_batch[:, 2],:]
-            Ri = torch.diag(regU.mm(regVi.t()), 0)
-            Rj = torch.diag(regU.mm(regVj.t()), 0)
-            # print(torch.log(torch.sigmoid(regU.mm(regVi.t()) - regU.mm(regVj.t()))).sum())
+            Ri =torch.sum(regU * regVi, dim=1) + torch.sum(Ue[sampled_batch[:, 0], :] * (aux_info[sampled_batch[:, 1],:].mm(E.t())), dim=1)
+            Rj =torch.sum(regU * regVj, dim=1) + torch.sum(Ue[sampled_batch[:, 0], :] * (aux_info[sampled_batch[:, 2],:].mm(E.t())), dim=1)
             loss = (lamda * (regU.norm().pow(2) + regVi.norm().pow(2) +regVj.norm().pow(2))
-                    - torch.log(torch.sigmoid(Ri - Rj)).sum())
-            # loss = - torch.log(torch.sigmoid(Ri - Rj)).sum()
+                    - torch.log(torch.sigmoid(Ri - Rj)+1e-10).sum())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -80,7 +93,10 @@ def bpr(X, data, k, lamda = 0.01, n_epochs=100, learning_rate=0.001, batch_size 
 
     U = U.data.numpy()
     V = V.data.numpy()
+    E = E.data.numpy()
+    Ue = Ue.data.numpy()
 
-    res = {'U': U, 'V': V}
+
+    res = {'U': U, 'V': V,'E':E,'Ue':Ue}
 
     return res

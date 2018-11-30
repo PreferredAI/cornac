@@ -20,6 +20,18 @@ class Dataset:
     def data(self):
         return self._data
 
+
+    def index_trans(self):
+        self._data = np.unique(self._data, axis=0)
+        validUsers = list(np.unique(self._data[:, 0]))
+        validItems = list(np.unique(self._data[:, 1]))
+        mylist = []
+        for row in self._data:
+            mylist.append([validUsers.index(row[0]), validItems.index(row[1]), row[2]])
+        mat = np.array(mylist)
+        return mat,validUsers,validItems
+
+
     #in this version we do not shuffle the original data (only the ids)
     def next_batch(self,batch_size,shuffle = True):
         start = self._index_in_epoch
@@ -57,7 +69,7 @@ class Dataset:
             #return self._data[start:end], self.index[start:end]
     
     
-    
+
     
     
     
