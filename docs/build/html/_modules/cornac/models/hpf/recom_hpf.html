@@ -183,7 +183,7 @@
 <span class="sd">        When False, the model is not trained and Cornac assumes that the model is already \</span>
 <span class="sd">        pre-trained (Theta and Beta are not None). </span>
 
-<span class="sd">    init_params: dictionary, optional, default: None</span>
+<span class="sd">    init_params: dictionary, optional, default: {&#39;G_s&#39;:None, &#39;G_r&#39;:None, &#39;L_s&#39;:None, &#39;L_r&#39;:None}</span>
 <span class="sd">        List of initial parameters, e.g., init_params = {&#39;G_s&#39;:G_s, &#39;G_r&#39;:G_r, &#39;L_s&#39;:L_s, &#39;L_r&#39;:L_r}, \</span>
 <span class="sd">        where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below). \</span>
 <span class="sd">        They represent respectively the &quot;shape&quot; and &quot;rate&quot; parameters of Gamma distribution over \</span>
@@ -201,7 +201,7 @@
 <span class="sd">    Hierarchical Poisson Factorization. In UAI, pp. 326-335. 2015.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;HPF&quot;</span><span class="p">,</span><span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">init_params</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;HPF&quot;</span><span class="p">,</span><span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">init_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;G_s&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;G_r&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;L_s&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;L_r&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">}):</span>
         <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="n">trainable</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_params</span> <span class="o">=</span> <span class="n">init_params</span>
