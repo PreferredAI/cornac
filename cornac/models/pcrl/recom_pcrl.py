@@ -46,7 +46,7 @@ class Pcrl(Recommender):
         When True, determinist wheights "W" are used for the generator network, \
         otherwise "W" is stochastic as in the original paper.
 
-    init_params: dictionary, optional, default: None
+    init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}
         List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}, \
         where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below). \
         They represent respectively the "shape" and "rate" parameters of Gamma distribution over \
@@ -64,7 +64,7 @@ class Pcrl(Recommender):
     In UAI 2018.
     """    
 
-    def __init__(self, k=100, z_dims = [300], max_iter=300, batch_size = 300,learning_rate = 0.001,aux_info = None, name = "pcrl", trainable = True,w_determinist = True, init_params = None):
+    def __init__(self, k=100, z_dims = [300], max_iter=300, batch_size = 300,learning_rate = 0.001,aux_info = None, name = "pcrl", trainable = True,w_determinist = True, init_params = {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}):
 
         Recommender.__init__(self, name=name, trainable = trainable)
 
