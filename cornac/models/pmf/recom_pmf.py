@@ -44,16 +44,14 @@ class Pmf(Recommender):
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
+        
+    rating_range: 1d array, optional, default: [None,None]
+        The minimum and maximum rating values, e.g., [1,5]. 
 
-    init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
-        please see below the definition of U and V.
-
-    U: csc_matrix, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
-
-    V: csc_matrix, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
+    init_params: dictionary, optional, default: {'U':None,'V':None}
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
+        U: a csc_matrix of shape (n_users,k), containing the user latent factors. \
+        V: a csc_matrix of shape (n_items,k), containing the item latent factors.
 
     References
     ----------
@@ -61,7 +59,7 @@ class Pmf(Recommender):
     In NIPS, pp. 1257-1264. 2008.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate = 0.001,gamma = 0.9, lamda = 0.001, name = "pmf", variant ='non_linear', trainable = True,init_params = None):
+    def __init__(self, k=5, max_iter=100, learning_rate = 0.001,gamma = 0.9, lamda = 0.001, name = "pmf", variant ='non_linear', trainable = True, rating_range = [None,None] ,init_params = {'U':None,'V':None}):
         Recommender.__init__(self,name=name, trainable = trainable)
         self.k = k
         self.init_params = init_params
@@ -75,8 +73,8 @@ class Pmf(Recommender):
         self.eps = 0.000000001
         self.U = init_params['U'] #matrix of user factors
         self.V = init_params['V'] #matrix of item factors
-        self.min_rating = None
-        self.max_rating = None
+        self.min_rating = rating_range[0]
+        self.max_rating = rating_range[1]
         
         
     #fit the recommender model to the traning data    
@@ -89,14 +87,17 @@ class Pmf(Recommender):
             the user-item preference matrix (traning data), in a scipy sparse format\
             (e.g., csc_matrix).
         """
-        self.min_rating = np.min(X.data)
-        self.max_rating = np.max(X.data)
+        if self.min_rating is None:
+            self.min_rating = np.min(X.data)
+        if self.max_rating is None:
+            self.max_rating = np.max(X.data)
         if self.trainable:
             #converting data to the triplet format (needed for cython function pmf)
             (rid,cid,val)=sp.find(X)
             val = np.array(val,dtype='float32')
-            if self.variant == 'non_linear':   #need to pass the ratings through the Sigmoid
-                val = map_to(val,0.,1.)
+            if self.variant == 'non_linear':   #need to map the ratings to [0,1]
+                if[self.min_rating,self.max_rating] != [0,1]:
+                    val = map_to(val,0.,1.,self.min_rating,self.max_rating)
             rid = np.array(rid,dtype='int32')
             cid = np.array(cid,dtype='int32')
             tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T,val.reshape((len(val),1))),axis = 1)
@@ -136,7 +137,7 @@ class Pmf(Recommender):
         user_pred = np.array(user_pred,dtype='float64').flatten()
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
-            user_pred = map_to(user_pred,1.,5.,0.,1.)
+            user_pred = map_to(user_pred,self.min_rating,self.max_rating,0.,1.)
         else:
             #perform clipping to enforce the predictions to lie in the same range as the original ratings
             user_pred = clipping(user_pred,self.min_rating,self.max_rating)        

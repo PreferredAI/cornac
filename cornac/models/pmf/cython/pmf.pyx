@@ -54,7 +54,7 @@ def pmf_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,ga
             #update user factors
             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]
             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
-            U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user 
+            U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
             #update item factors
             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]
             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])            
@@ -151,7 +151,7 @@ def pmf_non_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.00
             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]
             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
-            U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, this update  in not exactly faire need to reweight the L2 regularization terms acoording the number of ratings per-user 
+            U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user 
             #update item factors
             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]
             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])            

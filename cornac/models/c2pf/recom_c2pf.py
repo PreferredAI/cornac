@@ -39,7 +39,8 @@ class C2pf(Recommender):
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (Theta, Beta and Xi are not None). 
 
-    init_params: dictionary, optional, default: None
+    init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None, \
+        'L2_s':None, 'L2_r':None, 'L3_s':None, 'L3_r':None}
         List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r, \
         'L2_s':L2_s, 'L2_r':L2_r, 'L3_s':L3_s, 'L3_r':L3_r}, \
         where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below). \
@@ -62,7 +63,7 @@ class C2pf(Recommender):
     In IJCAI, pp. 2667-2674. 2018.
     """
 
-    def __init__(self, k=100, max_iter=100, aux_info = None, variant = 'c2pf', name = None, trainable = True, init_params = None):
+    def __init__(self, k=100, max_iter=100, aux_info = None, variant = 'c2pf', name = None, trainable = True, init_params = {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None,'L2_s':None, 'L2_r':None, 'L3_s':None, 'L3_r':None}):
         if name is None:
             Recommender.__init__(self, name=variant.upper(), trainable = trainable)
         else:

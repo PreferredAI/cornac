@@ -90,16 +90,20 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
         L2_r = init_param['L2_r']
     #L2_r = sp.csc_matrix(L_r,dtype=np.float64)
     #shape kappa_ij matrix
-    if init_param['L3_s'] is None: 
-        L3_s = np.copy(C)
-        L3_s[:,2] = np.random.gamma(a_t,scale=1./b_t, size= C.shape[0])
+    if init_param['L3_s'] is None:
+        tmp = np.copy(C)
+        tmp[:,2] = np.random.gamma(a_t,scale=1./b_t, size= C.shape[0])
+        L3_s = tmp
+        del(tmp)
     else:
         L3_s = init_param['L3_s']
 
     ## rate kappa_ij matrix (dgCMatrix)
     if init_param['L3_r'] is None: 
-        L3_r = np.copy(C)
-        L3_r[:,2] = np.random.gamma(a_t,scale=1./b_t, size= C.shape[0])
+        tmp = np.copy(C)
+        tmp[:,2] = np.random.gamma(a_t,scale=1./b_t, size= C.shape[0])
+        L3_r = tmp
+        del(tmp)
     else:
         L3_r = init_param['L3_r']
 
