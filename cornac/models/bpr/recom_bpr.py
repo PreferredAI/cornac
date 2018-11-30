@@ -76,14 +76,14 @@ class Bpr(Recommender):
         """
         if self.trainable:
             #change the data to original user Id item Id and rating format
-            #X = X.tocoo()
-            #data = np.ndarray(shape=(len(X.data), 3), dtype=float)
-            #data[:, 0] = X.row
-            #data[:, 1] = X.col
-            #data[:, 2] = X.data
+            X = X.tocoo()
+            data = np.ndarray(shape=(len(X.data), 3), dtype=float)
+            data[:, 0] = X.row
+            data[:, 1] = X.col
+            data[:, 2] = X.data
 
             print('Learning...')
-            res = bpr(X, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
+            res = bpr(X, data, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
             self.U = res['U']
             self.V = res['V']
             print('Learning completed')
