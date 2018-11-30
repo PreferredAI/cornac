@@ -58,7 +58,7 @@ class Vbpr(Recommender):
 
     References
     ----------
-    * R. He and J. McAuley. Vbpr: Visual bayesian personalized ranking from implicit feedback. CoRR, 2015.
+    * HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.
     """
 
     def __init__(self, k=10, d=10, max_iter=100, aux_info=None, learning_rate=0.001, lamda=0.01, batch_size=100, name="vbpr", trainable=True,

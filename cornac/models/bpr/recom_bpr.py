@@ -22,7 +22,7 @@ class Bpr(Recommender):
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD.
 
-    lamda: float, optional, default: 0.01
+    lamda: float, optional, default: 0.001
         The regularization parameter.
 
     batch_size: int, optional, default: 100
