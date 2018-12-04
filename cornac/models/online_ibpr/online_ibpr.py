@@ -11,11 +11,11 @@ import torch
 def online_ibpr(triplets, k, lamda = 0.005, n_epochs=150, learning_rate=0.001, batch_size = 100, init_params=None):
     
     U = init_params['U']
-    U = torch.from_numpy(U)
+    U = torch.tensor(U, requires_grad=True)
 
     #Initial item factors
     V = init_params['V']
-    V = torch.from_numpy(V)
+    V = torch.tensor(V)
     
     optimizer = torch.optim.Adam([U], lr=learning_rate)
     for epoch in range(n_epochs):
@@ -41,8 +41,8 @@ def online_ibpr(triplets, k, lamda = 0.005, n_epochs=150, learning_rate=0.001, b
         print('epoch:',epoch,'loss:', loss)
     
     # since the user's preference is defined by the angular distance, we can normalize the user/item vectors without changing the ranking
-    U = torch.nn.functional.normalize(U, p = 2, dim=1)
-    V = torch.nn.functional.normalize(V, p = 2, dim=1)
+    #U = torch.nn.functional.normalize(U, p = 2, dim=1)
+    #V = torch.nn.functional.normalize(V, p = 2, dim=1)
     U = U.data.cpu().numpy()
     V = V.data.cpu().numpy()
 
