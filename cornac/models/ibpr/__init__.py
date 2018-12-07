@@ -1,5 +1,3 @@
+from .recom_ibpr import IBPR
 
-from .recom_ibpr import Ibpr 
-
-
-__all__ = ['Ibpr']
+__all__ = ['IBPR']

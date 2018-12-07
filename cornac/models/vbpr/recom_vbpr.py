@@ -7,7 +7,7 @@ from .vbpr import *
 from ..recommender import Recommender
 
 
-class Vbpr(Recommender):
+class VBPR(Recommender):
     """Visual Bayesian Personalized Ranking.
 
     Parameters
@@ -61,7 +61,8 @@ class Vbpr(Recommender):
     * HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.
     """
 
-    def __init__(self, k=10, d=10, max_iter=100, aux_info=None, learning_rate=0.001, lamda=0.01, batch_size=100, name="vbpr", trainable=True,
+    def __init__(self, k=10, d=10, max_iter=100, aux_info=None, learning_rate=0.001, lamda=0.01, batch_size=100,
+                 name="vbpr", trainable=True,
                  init_params=None):
         Recommender.__init__(self, name=name, trainable=trainable)
         self.k = k
@@ -98,8 +99,9 @@ class Vbpr(Recommender):
             data[:, 2] = cooX.data
 
             print('Learning...')
-            res = vbpr(X, data, k=self.k, d=self.d, aux_info=self.aux_info,n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
-                      batch_size=self.batch_size, init_params=self.init_params)
+            res = vbpr(X, data, k=self.k, d=self.d, aux_info=self.aux_info, n_epochs=self.max_iter, lamda=self.lamda,
+                       learning_rate=self.learning_rate,
+                       batch_size=self.batch_size, init_params=self.init_params)
             self.U = res['U']
             self.V = res['V']
             self.Ue = res['Ue']

@@ -1,5 +1,3 @@
+from .recom_vbpr import VBPR
 
-from .recom_vbpr import Vbpr
-
-
-__all__ = ['Vbpr']
+__all__ = ['VBPR']
