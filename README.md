@@ -2,7 +2,8 @@
 
 **Cornac** is python recommender system library for **easy**, **effective** and **efficient** experiments. Cornac is **simple** and **handy**. It is designed from the ground-up to faithfully reflect the standard steps taken by researchers to implement and evaluate personalized recommendation models.
 
-### Useful links
+### Quick links
+[Website](https://cornac.preferred.ai/) |
 [Docs](https://cornac.readthedocs.io/en/latest/index.html) |
 [Preferred.AI](https://preferred.ai/)
 
@@ -41,7 +42,7 @@ This example will show you how to run your very first experiment using Cornac. I
 
 ```python
 #Importing required modules from Cornac.
-from cornac.models import Pmf
+from cornac.models import PMF
 from cornac.experiment import Experiment
 from cornac.evaluation_strategies import Split
 from cornac import metrics 
@@ -56,7 +57,7 @@ mat_office = office['mat']
 
 #Instantiate a pfm recommender model.
 #Please refer to the documentation for details on parameter settings.
-rec_pmf = Pmf(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, init_params={'U':None,'V':None})
+rec_pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, init_params={'U':None,'V':None})
 
 #Instantiate an evaluation strategy.
 es_split = Split(data = mat_office, prop_test=0.2, prop_validation=0.0, good_rating=4)
@@ -64,12 +65,12 @@ es_split = Split(data = mat_office, prop_test=0.2, prop_validation=0.0, good_rat
 #Instantiate evaluation metrics.
 rec = metrics.Recall(m=20)
 pre = metrics.Precision(m=20)
-mae = metrics.Mae()
-rmse = metrics.Rmse()
+mae = metrics.MAE()
+rmse = metrics.RMSE()
 
 #Instantiate and then run an experiment.
-res_pmf = Experiment(es_split, [rec_pmf], metrics=[mae,rmse,pre,rec])
-res_pmf.run_()
+res_pmf = Experiment(es_split, [rec_pmf], metrics=[mae, rmse, pre, rec])
+res_pmf.run()
 
 #Get average results.
 res_pmf.res_avg
