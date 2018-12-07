@@ -7,7 +7,7 @@ from ..recommender import Recommender
 from .skmeans import *
 
 
-class Skmeans(Recommender):
+class SKMeans(Recommender):
     """Spherical k-means based recommender.
 
     Parameters
@@ -44,19 +44,18 @@ class Skmeans(Recommender):
     via a weighted clustering approach." Neurocomputing 175 (2016): 206-215.
     """
 
-    def __init__(self, k=5, max_iter=100, name = "Skmeans",trainable = True, tol = 1e-6, verbose = True, init_par = None):
-        Recommender.__init__(self,name=name, trainable = trainable)
+    def __init__(self, k=5, max_iter=100, name="Skmeans", trainable=True, tol=1e-6, verbose=True, init_par=None):
+        Recommender.__init__(self, name=name, trainable=trainable)
         self.k = k
         self.par = init_par
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
 
-        self.centroids = None #matrix of cluster centroids
-        
-        
-    #fit the recommender model to the traning data    
-    def fit(self,X):
+        self.centroids = None  # matrix of cluster centroids
+
+    # fit the recommender model to the traning data
+    def fit(self, X):
         """Fit the model to observations.
 
         Parameters
@@ -66,22 +65,20 @@ class Skmeans(Recommender):
             (e.g., csc_matrix).
         """
         X1 = X.copy()
-        X1 = X1.multiply(sp.csc_matrix(1./(np.sqrt(X1.multiply(X1).sum(1).A1)+1e-20)).T)
+        X1 = X1.multiply(sp.csc_matrix(1. / (np.sqrt(X1.multiply(X1).sum(1).A1) + 1e-20)).T)
         if self.trainable:
-            #Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.
-            res = skmeans(X1,k = self.k, max_iter = self.max_iter,tol = self.tol,verbose = self.verbose,init_par = self.par)
+            # Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.
+            res = skmeans(X1, k=self.k, max_iter=self.max_iter, tol=self.tol, verbose=self.verbose, init_par=self.par)
             self.centroids = res['centroids']
             self.par = res['partition']
         else:
             print('%s is trained already (trainable = False)' % (self.name))
-        self.user_center_sim = X1*self.centroids.T   #user-centroid cosine similarity matrix
-        del(X1)
-   
-    
+        self.user_center_sim = X1 * self.centroids.T  # user-centroid cosine similarity matrix
+        del (X1)
 
-    #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
-    #predictions are not stored for the same efficiency reasons"""         
-    def predict(self,index_user):
+    # get prefiction for a single user (predictions for one user at a time for efficiency purposes)
+    # predictions are not stored for the same efficiency reasons"""
+    def predict(self, index_user):
         """Predic the scores (ratings) of a user for all items.
 
         Parameters
@@ -94,12 +91,9 @@ class Skmeans(Recommender):
         Numpy 1d array 
             Array containing the predicted values for all items
         """
-        user_pred = self.centroids.multiply(self.user_center_sim[index_user,:].T)
-        #transform user_pred to a flatten array
-        user_pred = user_pred.sum(0).A1/(self.user_center_sim[index_user,:].sum()+1e-20)    #weighted average of cluster centroids
-        
-        return user_pred
-                
-        
-        
+        user_pred = self.centroids.multiply(self.user_center_sim[index_user, :].T)
+        # transform user_pred to a flatten array
+        user_pred = user_pred.sum(0).A1 / (
+                    self.user_center_sim[index_user, :].sum() + 1e-20)  # weighted average of cluster centroids
 
+        return user_pred
