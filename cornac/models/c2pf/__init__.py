@@ -1,4 +1,3 @@
-from .recom_c2pf import C2pf
+from .recom_c2pf import C2PF
 
-
-__all__ = ['C2pf']
+__all__ = ['C2PF']

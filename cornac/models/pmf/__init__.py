@@ -1,5 +1,3 @@
+from .recom_pmf import PMF
 
-from .recom_pmf import Pmf
-
-
-__all__ = ['Pmf']
+__all__ = ['PMF']

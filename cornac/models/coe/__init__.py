@@ -1,4 +1,3 @@
+from .recom_coe import COE
 
-from .recom_coe import Coe
-
-__all__ = ['Coe']
+__all__ = ['COE']
