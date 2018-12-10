@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cornac.models.bpr.recom_bpr &mdash; Cornac 0.1.0 documentation</title>
+  <title>cornac.models.vbpr.recom_vbpr &mdash; Cornac 0.1.0 documentation</title>
   
 
   
@@ -138,7 +138,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>cornac.models.bpr.recom_bpr</li>
+      <li>cornac.models.vbpr.recom_vbpr</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,32 +153,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for cornac.models.bpr.recom_bpr</h1><div class="highlight"><pre>
+  <h1>Source code for cornac.models.vbpr.recom_vbpr</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">@author: Guo Jingyao</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">.bpr</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.vbpr</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">..recommender</span> <span class="k">import</span> <span class="n">Recommender</span>
 
 
-<div class="viewcode-block" id="Bpr"><a class="viewcode-back" href="../../../../models.html#cornac.models.bpr.recom_bpr.Bpr">[docs]</a><span class="k">class</span> <span class="nc">Bpr</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Bayesian Personalized Ranking.</span>
+<div class="viewcode-block" id="Vbpr"><a class="viewcode-back" href="../../../../models.html#cornac.models.vbpr.recom_vbpr.Vbpr">[docs]</a><span class="k">class</span> <span class="nc">Vbpr</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Visual Bayesian Personalized Ranking.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    k: int, optional, default: 5</span>
 <span class="sd">        The dimension of the latent factors.</span>
 
+<span class="sd">    d: int, optional, default: 5</span>
+<span class="sd">        The dimension of the latent factors.</span>
+
 <span class="sd">    max_iter: int, optional, default: 100</span>
 <span class="sd">        Maximum number of iterations or the number of epochs for SGD.</span>
+
+<span class="sd">    aux_info：ndarray, shape (n_items, feature dimension), optional, default:None</span>
+<span class="sd">        Image features of items</span>
 
 <span class="sd">    learning_rate: float, optional, default: 0.001</span>
 <span class="sd">        The learning rate for SGD.</span>
 
-<span class="sd">    lamda: float, optional, default: 0.001</span>
+<span class="sd">    lamda: float, optional, default: 0.01</span>
 <span class="sd">        The regularization parameter.</span>
 
 <span class="sd">    batch_size: int, optional, default: 100</span>
@@ -191,32 +196,47 @@
 <span class="sd">        When False, the model is not trained and Cornac assumes that the model already \</span>
 <span class="sd">        pre-trained (U and V are not None).</span>
 
-<span class="sd">    init_params: dictionary, optional, default: {&#39;U&#39;:None,&#39;V&#39;:None}</span>
-<span class="sd">        List of initial parameters, e.g., init_params = {&#39;U&#39;:U, &#39;V&#39;:V}. \</span>
-<span class="sd">        U: a csc_matrix of shape (n_users,k), containing the user latent factors. \</span>
-<span class="sd">        V: a csc_matrix of shape (n_items,k), containing the item latent factors.</span>
+<span class="sd">    init_params: dictionary, optional, default: None</span>
+<span class="sd">        List of initial parameters, e.g., init_params = {&#39;U&#39;:U, &#39;V&#39;:V} \</span>
+<span class="sd">        please see below the definition of U and V.</span>
+
+<span class="sd">    U: ndarray, shape (n_users,k)</span>
+<span class="sd">        The user latent factors, optional initialization via init_params.</span>
+
+<span class="sd">    V: ndarray, shape (n_items,k)</span>
+<span class="sd">        The item latent factors, optional initialization via init_params.</span>
+
+<span class="sd">    E: ndarray, shape (d, feature dimension)</span>
+<span class="sd">        The matrix embedding deep CNN feature, optional initialization via init_params.</span>
+
+<span class="sd">    Ue: ndarray, shape (n_users, d)</span>
+<span class="sd">        The visual factors of users, optional initialization via init_params.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    * Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, and Lars Schmidt-Thieme. \</span>
-<span class="sd">    BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.</span>
+<span class="sd">    * HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">lamda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bpr&quot;</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init_params</span><span class="o">=</span> <span class="p">{</span><span class="s1">&#39;U&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span><span class="s1">&#39;V&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">}):</span>
-        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="n">trainable</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">aux_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">lamda</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;vbpr&quot;</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">init_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="n">trainable</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">d</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_params</span> <span class="o">=</span> <span class="n">init_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aux_info</span> <span class="o">=</span> <span class="n">aux_info</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lamda</span> <span class="o">=</span> <span class="n">lamda</span>   
-        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span> 
-        
+        <span class="bp">self</span><span class="o">.</span><span class="n">lamda</span> <span class="o">=</span> <span class="n">lamda</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">]</span>  <span class="c1"># matrix of user factors</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>  <span class="c1"># matrix of item factors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">E</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">]</span>  <span class="c1"># matrix embedding deep CNN feature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ue</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;Ue&#39;</span><span class="p">]</span>  <span class="c1"># visual factors of users</span>
 
     <span class="c1"># fit the recommender model to the traning data</span>
-<div class="viewcode-block" id="Bpr.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.bpr.recom_bpr.Bpr.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="Vbpr.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.vbpr.recom_vbpr.Vbpr.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
@@ -226,7 +246,7 @@
 <span class="sd">            (e.g., csc_matrix).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainable</span><span class="p">:</span>
-            <span class="c1">#change the data to original user Id item Id and rating format</span>
+            <span class="c1"># change the data to original user Id item Id and rating format</span>
             <span class="n">cooX</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">tocoo</span><span class="p">()</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cooX</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">cooX</span><span class="o">.</span><span class="n">row</span>
@@ -234,17 +254,20 @@
             <span class="n">data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">cooX</span><span class="o">.</span><span class="n">data</span>
 
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Learning...&#39;</span><span class="p">)</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">bpr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">lamda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lamda</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">init_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">init_params</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">vbpr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">aux_info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_info</span><span class="p">,</span><span class="n">n_epochs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">lamda</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lamda</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+                      <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">init_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">init_params</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Ue</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;Ue&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">E</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">]</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Learning completed&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is trained already (trainable = False)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
 
-    <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
-    <span class="c1">#predictions are not stored for the same efficiency reasons&quot;&quot;&quot;</span>
+    <span class="c1"># get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
+    <span class="c1"># predictions are not stored for the same efficiency reasons&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Bpr.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.bpr.recom_bpr.Bpr.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_user</span><span class="p">):</span>
+<div class="viewcode-block" id="Vbpr.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.vbpr.recom_vbpr.Vbpr.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
 
 <span class="sd">        Parameters</span>
@@ -254,11 +277,12 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Numpy 1d array </span>
+<span class="sd">        Numpy 1d array</span>
 <span class="sd">            Array containing the predicted values for all items</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
-        <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="n">index_user</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="n">index_user</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="n">index_user</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ue</span><span class="p">[</span><span class="n">index_user</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">E</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_info</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="c1"># user_pred = self.U[index_user, :].dot(self.V.T) + self.Ue[index_user, :]*self.E.dot(self.aux_info.T)</span>
         <span class="c1"># transform user_pred to a flatten array, but keep thinking about another possible format</span>
         <span class="n">user_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">user_pred</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
 
