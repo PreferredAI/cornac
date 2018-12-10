@@ -5,15 +5,15 @@ metrics
    
 Normalized Discount Cumulative Gain (NDCG)
 -------------------------------------------
-.. autoclass:: Ndcg
+.. autoclass:: NDCG
 
 Normalized Cumulative Reciprocal Rank (NCRR)
 --------------------------------------------
-.. autoclass:: Ncrr
+.. autoclass:: NCRR
 
 Mean Reciprocal Rank (MRR)
 -------------------------------------------
-.. autoclass:: Mrr
+.. autoclass:: MRR
 
 
 Precision
@@ -28,14 +28,14 @@ Recall
 
 Fmeasure (F1)
 -------------------
-.. autoclass:: Fmeasure
+.. autoclass:: FMeasure
 
 
 Mean Absolute Error (MAE)
 ----------------------------
-.. autoclass:: Mae
+.. autoclass:: MAE
 
 
 Root Mean Squared Error (RMSE)
 --------------------------------
-.. autoclass:: Rmse
+.. autoclass:: RMSE

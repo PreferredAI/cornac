@@ -170,7 +170,7 @@
 <span class="kn">from</span> <span class="nn">...utils.util_functions</span> <span class="k">import</span> <span class="n">clipping</span>
 
 
-<div class="viewcode-block" id="Pmf"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.Pmf">[docs]</a><span class="k">class</span> <span class="nc">Pmf</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
+<div class="viewcode-block" id="PMF"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.PMF">[docs]</a><span class="k">class</span> <span class="nc">PMF</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Probabilistic Matrix Factorization.</span>
 
 <span class="sd">    Parameters</span>
@@ -234,7 +234,7 @@
         
         
     <span class="c1">#fit the recommender model to the traning data    </span>
-<div class="viewcode-block" id="Pmf.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.Pmf.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="PMF.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.PMF.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
@@ -276,7 +276,7 @@
 
     <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
     <span class="c1">#predictions are not stored for the same efficiency reasons        </span>
-<div class="viewcode-block" id="Pmf.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.Pmf.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
+<div class="viewcode-block" id="PMF.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.pmf.recom_pmf.PMF.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
 
 <span class="sd">        Parameters</span>
