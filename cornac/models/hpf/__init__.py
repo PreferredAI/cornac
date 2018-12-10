@@ -1,5 +1,3 @@
+from .recom_hpf import HPF
 
-from .recom_hpf import Hpf
-
-
-__all__ = ['Hpf']
+__all__ = ['HPF']
