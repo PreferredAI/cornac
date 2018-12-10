@@ -175,8 +175,8 @@
 <span id="probabilistic-collaborative-representation-learning-pcrl"></span><h2>Probabilistic Collaborative Representation Learning (PCRL)<a class="headerlink" href="#module-cornac.models.pcrl.recom_pcrl" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Aghiles Salah &lt;<a class="reference external" href="mailto:asalah&#37;&#52;&#48;smu&#46;edu&#46;sg">asalah<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
-<dt id="cornac.models.pcrl.recom_pcrl.Pcrl">
-<em class="property">class </em><code class="descclassname">cornac.models.pcrl.recom_pcrl.</code><code class="descname">Pcrl</code><span class="sig-paren">(</span><em>k=100, z_dims=[300], max_iter=300, batch_size=300, learning_rate=0.001, aux_info=None, name='pcrl', trainable=True, w_determinist=True, init_params={'G_r': None, 'G_s': None, 'L_r': None, 'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pcrl/recom_pcrl.html#Pcrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pcrl.recom_pcrl.Pcrl" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.pcrl.recom_pcrl.PCRL">
+<em class="property">class </em><code class="descclassname">cornac.models.pcrl.recom_pcrl.</code><code class="descname">PCRL</code><span class="sig-paren">(</span><em>k=100, z_dims=[300], max_iter=300, batch_size=300, learning_rate=0.001, aux_info=None, name='pcrl', trainable=True, w_determinist=True, init_params={'G_r': None, 'G_s': None, 'L_r': None, 'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pcrl/recom_pcrl.html#PCRL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pcrl.recom_pcrl.PCRL" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probabilistic Collaborative Representation Learning.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -205,8 +205,8 @@
 <li>Salah, Aghiles, and Hady W. Lauw. Probabilistic Collaborative Representation Learning for Personalized Item Recommendation.     In UAI 2018.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.pcrl.recom_pcrl.Pcrl.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pcrl/recom_pcrl.html#Pcrl.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pcrl.recom_pcrl.Pcrl.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.pcrl.recom_pcrl.PCRL.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pcrl/recom_pcrl.html#PCRL.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pcrl.recom_pcrl.PCRL.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -219,8 +219,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.pcrl.recom_pcrl.Pcrl.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pcrl/recom_pcrl.html#Pcrl.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pcrl.recom_pcrl.Pcrl.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.pcrl.recom_pcrl.PCRL.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pcrl/recom_pcrl.html#PCRL.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pcrl.recom_pcrl.PCRL.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -243,8 +243,8 @@
 <span id="collaborative-context-poisson-factorization-c2pf"></span><h2>Collaborative Context Poisson Factorization (C2PF)<a class="headerlink" href="#module-cornac.models.c2pf.recom_c2pf" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Aghiles Salah &lt;<a class="reference external" href="mailto:asalah&#37;&#52;&#48;smu&#46;edu&#46;sg">asalah<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
-<dt id="cornac.models.c2pf.recom_c2pf.C2pf">
-<em class="property">class </em><code class="descclassname">cornac.models.c2pf.recom_c2pf.</code><code class="descname">C2pf</code><span class="sig-paren">(</span><em>k=100</em>, <em>max_iter=100</em>, <em>aux_info=None</em>, <em>variant='c2pf'</em>, <em>name=None</em>, <em>trainable=True</em>, <em>init_params={'G_r': None</em>, <em>'G_s': None</em>, <em>'L2_r': None</em>, <em>'L2_s': None</em>, <em>'L3_r': None</em>, <em>'L3_s': None</em>, <em>'L_r': None</em>, <em>'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/c2pf/recom_c2pf.html#C2pf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.c2pf.recom_c2pf.C2pf" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.c2pf.recom_c2pf.C2PF">
+<em class="property">class </em><code class="descclassname">cornac.models.c2pf.recom_c2pf.</code><code class="descname">C2PF</code><span class="sig-paren">(</span><em>k=100</em>, <em>max_iter=100</em>, <em>aux_info=None</em>, <em>variant='c2pf'</em>, <em>name=None</em>, <em>trainable=True</em>, <em>init_params={'G_r': None</em>, <em>'G_s': None</em>, <em>'L2_r': None</em>, <em>'L2_s': None</em>, <em>'L3_r': None</em>, <em>'L3_s': None</em>, <em>'L_r': None</em>, <em>'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/c2pf/recom_c2pf.html#C2PF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.c2pf.recom_c2pf.C2PF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collaborative Context Poisson Factorization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -271,8 +271,8 @@
 <li>Salah, Aghiles, and Hady W. Lauw. A Bayesian Latent Variable Model of User Preferences with Item Context.     In IJCAI, pp. 2667-2674. 2018.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.c2pf.recom_c2pf.C2pf.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/c2pf/recom_c2pf.html#C2pf.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.c2pf.recom_c2pf.C2pf.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.c2pf.recom_c2pf.C2PF.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/c2pf/recom_c2pf.html#C2PF.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.c2pf.recom_c2pf.C2PF.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -285,8 +285,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.c2pf.recom_c2pf.C2pf.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/c2pf/recom_c2pf.html#C2pf.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.c2pf.recom_c2pf.C2pf.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.c2pf.recom_c2pf.C2PF.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/c2pf/recom_c2pf.html#C2PF.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.c2pf.recom_c2pf.C2PF.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -309,8 +309,8 @@
 <span id="indexable-bayesian-personalized-ranking-ibpr"></span><h2>Indexable Bayesian Personalized Ranking (IBPR)<a class="headerlink" href="#module-cornac.models.ibpr.recom_ibpr" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
-<dt id="cornac.models.ibpr.recom_ibpr.Ibpr">
-<em class="property">class </em><code class="descclassname">cornac.models.ibpr.recom_ibpr.</code><code class="descname">Ibpr</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='ibpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#Ibpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.Ibpr" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.ibpr.recom_ibpr.IBPR">
+<em class="property">class </em><code class="descclassname">cornac.models.ibpr.recom_ibpr.</code><code class="descname">IBPR</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='ibpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indexable Bayesian Personalized Ranking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -337,8 +337,8 @@
 <li>Le, D. D., &amp; Lauw, H. W. (2017, November). Indexable Bayesian personalized ranking for efficient top-k recommendation.      In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.ibpr.recom_ibpr.Ibpr.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#Ibpr.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.Ibpr.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.ibpr.recom_ibpr.IBPR.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -351,8 +351,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.ibpr.recom_ibpr.Ibpr.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#Ibpr.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.Ibpr.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.ibpr.recom_ibpr.IBPR.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -375,8 +375,8 @@
 <span id="online-indexable-bayesian-personalized-ranking-oibpr"></span><h2>Online Indexable Bayesian Personalized Ranking (OIBPR)<a class="headerlink" href="#module-cornac.models.online_ibpr.recom_online_ibpr" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
-<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr">
-<em class="property">class </em><code class="descclassname">cornac.models.online_ibpr.recom_online_ibpr.</code><code class="descname">OnlineIbpr</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='online_ibpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIbpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR">
+<em class="property">class </em><code class="descclassname">cornac.models.online_ibpr.recom_online_ibpr.</code><code class="descname">OnlineIBPR</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='online_ibpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Online Indexable Bayesian Personalized Ranking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -403,8 +403,8 @@
 <li>Le, D. D., &amp; Lauw, H. W. (2017, November). Indexable Bayesian personalized ranking for efficient top-k recommendation.      In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>triplets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIbpr.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>triplets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -417,8 +417,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIbpr.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -441,8 +441,8 @@
 <span id="collaborative-ordinal-embedding-coe"></span><h2>Collaborative Ordinal Embedding (COE)<a class="headerlink" href="#module-cornac.models.coe.recom_coe" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
-<dt id="cornac.models.coe.recom_coe.Coe">
-<em class="property">class </em><code class="descclassname">cornac.models.coe.recom_coe.</code><code class="descname">Coe</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=1000</em>, <em>name='coe'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#Coe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.Coe" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.coe.recom_coe.COE">
+<em class="property">class </em><code class="descclassname">cornac.models.coe.recom_coe.</code><code class="descname">COE</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=1000</em>, <em>name='coe'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collaborative Ordinal Embedding.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -469,8 +469,8 @@
 <li>Le, D. D., &amp; Lauw, H. W. (2016, June). Euclidean co-embedding of ordinal data for multi-type visualization.     In Proceedings of the 2016 SIAM International Conference on Data Mining (pp. 396-404). Society for Industrial and Applied Mathematics.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.coe.recom_coe.Coe.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#Coe.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.Coe.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.coe.recom_coe.COE.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -483,8 +483,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.coe.recom_coe.Coe.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#Coe.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.Coe.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.coe.recom_coe.COE.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -507,8 +507,8 @@
 <span id="visual-bayesian-personalized-ranking-vbpr"></span><h2>Visual Bayesian Personalized Ranking (VBPR)<a class="headerlink" href="#module-cornac.models.vbpr.recom_vbpr" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Guo Jingyao</p>
 <dl class="class">
-<dt id="cornac.models.vbpr.recom_vbpr.Vbpr">
-<em class="property">class </em><code class="descclassname">cornac.models.vbpr.recom_vbpr.</code><code class="descname">Vbpr</code><span class="sig-paren">(</span><em>k=10</em>, <em>d=10</em>, <em>max_iter=100</em>, <em>aux_info=None</em>, <em>learning_rate=0.001</em>, <em>lamda=0.01</em>, <em>batch_size=100</em>, <em>name='vbpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#Vbpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.Vbpr" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.vbpr.recom_vbpr.VBPR">
+<em class="property">class </em><code class="descclassname">cornac.models.vbpr.recom_vbpr.</code><code class="descname">VBPR</code><span class="sig-paren">(</span><em>k=10</em>, <em>d=10</em>, <em>max_iter=100</em>, <em>aux_info=None</em>, <em>learning_rate=0.001</em>, <em>lamda=0.01</em>, <em>batch_size=100</em>, <em>name='vbpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#VBPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.VBPR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visual Bayesian Personalized Ranking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -539,8 +539,8 @@
 <li>HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.vbpr.recom_vbpr.Vbpr.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#Vbpr.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.Vbpr.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.vbpr.recom_vbpr.VBPR.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#VBPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.VBPR.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -553,8 +553,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.vbpr.recom_vbpr.Vbpr.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#Vbpr.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.Vbpr.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.vbpr.recom_vbpr.VBPR.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#VBPR.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.VBPR.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -577,8 +577,8 @@
 <span id="spherical-k-means-skmeans"></span><h2>Spherical k-means (Skmeans)<a class="headerlink" href="#module-cornac.models.skm.recom_skmeans" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Aghiles Salah &lt;<a class="reference external" href="mailto:asalah&#37;&#52;&#48;smu&#46;edu&#46;sg">asalah<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
-<dt id="cornac.models.skm.recom_skmeans.Skmeans">
-<em class="property">class </em><code class="descclassname">cornac.models.skm.recom_skmeans.</code><code class="descname">Skmeans</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>name='Skmeans'</em>, <em>trainable=True</em>, <em>tol=1e-06</em>, <em>verbose=True</em>, <em>init_par=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#Skmeans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.Skmeans" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.skm.recom_skmeans.SKMeans">
+<em class="property">class </em><code class="descclassname">cornac.models.skm.recom_skmeans.</code><code class="descname">SKMeans</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>name='Skmeans'</em>, <em>trainable=True</em>, <em>tol=1e-06</em>, <em>verbose=True</em>, <em>init_par=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans" title="Permalink to this definition">¶</a></dt>
 <dd><p>Spherical k-means based recommender.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -603,8 +603,8 @@
 <li>Salah, Aghiles, Nicoleta Rogovschi, and Mohamed Nadif. “A dynamic collaborative filtering system     via a weighted clustering approach.” Neurocomputing 175 (2016): 206-215.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.skm.recom_skmeans.Skmeans.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#Skmeans.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.Skmeans.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.skm.recom_skmeans.SKMeans.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -617,8 +617,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.skm.recom_skmeans.Skmeans.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#Skmeans.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.Skmeans.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.skm.recom_skmeans.SKMeans.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -641,8 +641,8 @@
 <span id="hierarchical-poisson-factorization-hpf"></span><h2>Hierarchical Poisson Factorization (HPF)<a class="headerlink" href="#module-cornac.models.hpf.recom_hpf" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Aghiles Salah &lt;<a class="reference external" href="mailto:asalah&#37;&#52;&#48;smu&#46;edu&#46;sg">asalah<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
-<dt id="cornac.models.hpf.recom_hpf.Hpf">
-<em class="property">class </em><code class="descclassname">cornac.models.hpf.recom_hpf.</code><code class="descname">Hpf</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>name='HPF'</em>, <em>trainable=True</em>, <em>init_params={'G_r': None</em>, <em>'G_s': None</em>, <em>'L_r': None</em>, <em>'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#Hpf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.Hpf" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.hpf.recom_hpf.HPF">
+<em class="property">class </em><code class="descclassname">cornac.models.hpf.recom_hpf.</code><code class="descname">HPF</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>name='HPF'</em>, <em>trainable=True</em>, <em>init_params={'G_r': None</em>, <em>'G_s': None</em>, <em>'L_r': None</em>, <em>'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hierarchical Poisson Factorization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -666,8 +666,8 @@
 <li>Gopalan, Prem, Jake M. Hofman, and David M. Blei. Scalable Recommendation with     Hierarchical Poisson Factorization. In UAI, pp. 326-335. 2015.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.hpf.recom_hpf.Hpf.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#Hpf.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.Hpf.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.hpf.recom_hpf.HPF.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -680,8 +680,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.hpf.recom_hpf.Hpf.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#Hpf.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.Hpf.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.hpf.recom_hpf.HPF.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -704,8 +704,8 @@
 <span id="bayesian-personalized-ranking-bpr"></span><h2>Bayesian Personalized Ranking (BPR)<a class="headerlink" href="#module-cornac.models.bpr.recom_bpr" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Guo Jingyao</p>
 <dl class="class">
-<dt id="cornac.models.bpr.recom_bpr.Bpr">
-<em class="property">class </em><code class="descclassname">cornac.models.bpr.recom_bpr.</code><code class="descname">Bpr</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>learning_rate=0.001</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='bpr'</em>, <em>trainable=True</em>, <em>init_params={'U': None</em>, <em>'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#Bpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.Bpr" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.bpr.recom_bpr.BPR">
+<em class="property">class </em><code class="descclassname">cornac.models.bpr.recom_bpr.</code><code class="descname">BPR</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>learning_rate=0.001</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='bpr'</em>, <em>trainable=True</em>, <em>init_params={'U': None</em>, <em>'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bayesian Personalized Ranking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -730,8 +730,8 @@
 <li>Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, and Lars Schmidt-Thieme.     BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.bpr.recom_bpr.Bpr.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#Bpr.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.Bpr.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.bpr.recom_bpr.BPR.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -744,8 +744,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.bpr.recom_bpr.Bpr.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#Bpr.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.Bpr.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.bpr.recom_bpr.BPR.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -768,8 +768,8 @@
 <span id="probabilitic-matrix-factorization-pmf"></span><h2>Probabilitic Matrix Factorization (PMF)<a class="headerlink" href="#module-cornac.models.pmf.recom_pmf" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Aghiles Salah</p>
 <dl class="class">
-<dt id="cornac.models.pmf.recom_pmf.Pmf">
-<em class="property">class </em><code class="descclassname">cornac.models.pmf.recom_pmf.</code><code class="descname">Pmf</code><span class="sig-paren">(</span><em>k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name='pmf', variant='non_linear', trainable=True, rating_range=[None, None], init_params={'U': None, 'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#Pmf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.Pmf" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.pmf.recom_pmf.PMF">
+<em class="property">class </em><code class="descclassname">cornac.models.pmf.recom_pmf.</code><code class="descname">PMF</code><span class="sig-paren">(</span><em>k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name='pmf', variant='non_linear', trainable=True, rating_range=[None, None], init_params={'U': None, 'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probabilistic Matrix Factorization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -796,8 +796,8 @@
 <li>Mnih, Andriy, and Ruslan R. Salakhutdinov. Probabilistic matrix factorization.     In NIPS, pp. 1257-1264. 2008.</li>
 </ul>
 <dl class="method">
-<dt id="cornac.models.pmf.recom_pmf.Pmf.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#Pmf.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.Pmf.fit" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.pmf.recom_pmf.PMF.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -810,8 +810,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="cornac.models.pmf.recom_pmf.Pmf.predict">
-<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#Pmf.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.Pmf.predict" title="Permalink to this definition">¶</a></dt>
+<dt id="cornac.models.pmf.recom_pmf.PMF.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predic the scores (ratings) of a user for all items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
