@@ -163,7 +163,7 @@
 <span class="kn">from</span> <span class="nn">.skmeans</span> <span class="k">import</span> <span class="o">*</span>
 
 
-<div class="viewcode-block" id="Skmeans"><a class="viewcode-back" href="../../../../models.html#cornac.models.skm.recom_skmeans.Skmeans">[docs]</a><span class="k">class</span> <span class="nc">Skmeans</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
+<div class="viewcode-block" id="SKMeans"><a class="viewcode-back" href="../../../../models.html#cornac.models.skm.recom_skmeans.SKMeans">[docs]</a><span class="k">class</span> <span class="nc">SKMeans</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Spherical k-means based recommender.</span>
 
 <span class="sd">    Parameters</span>
@@ -200,19 +200,18 @@
 <span class="sd">    via a weighted clustering approach.&quot; Neurocomputing 175 (2016): 206-215.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Skmeans&quot;</span><span class="p">,</span><span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">init_par</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="n">trainable</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Skmeans&quot;</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init_par</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="n">trainable</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">par</span> <span class="o">=</span> <span class="n">init_par</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#matrix of cluster centroids</span>
-        
-        
-    <span class="c1">#fit the recommender model to the traning data    </span>
-<div class="viewcode-block" id="Skmeans.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.skm.recom_skmeans.Skmeans.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># matrix of cluster centroids</span>
+
+    <span class="c1"># fit the recommender model to the traning data</span>
+<div class="viewcode-block" id="SKMeans.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.skm.recom_skmeans.SKMeans.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
@@ -222,22 +221,20 @@
 <span class="sd">            (e.g., csc_matrix).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X1</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">X1</span> <span class="o">=</span> <span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">A1</span><span class="p">)</span><span class="o">+</span><span class="mf">1e-20</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">X1</span> <span class="o">=</span> <span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">X1</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">A1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-20</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainable</span><span class="p">:</span>
-            <span class="c1">#Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">skmeans</span><span class="p">(</span><span class="n">X1</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">max_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span><span class="n">tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tol</span><span class="p">,</span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span><span class="n">init_par</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)</span>
+            <span class="c1"># Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">skmeans</span><span class="p">(</span><span class="n">X1</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tol</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">init_par</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;centroids&#39;</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">par</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;partition&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is trained already (trainable = False)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span> <span class="o">=</span> <span class="n">X1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="o">.</span><span class="n">T</span>   <span class="c1">#user-centroid cosine similarity matrix</span>
-        <span class="k">del</span><span class="p">(</span><span class="n">X1</span><span class="p">)</span></div>
-   
-    
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span> <span class="o">=</span> <span class="n">X1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># user-centroid cosine similarity matrix</span>
+        <span class="k">del</span> <span class="p">(</span><span class="n">X1</span><span class="p">)</span></div>
 
-    <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
-    <span class="c1">#predictions are not stored for the same efficiency reasons&quot;&quot;&quot;         </span>
-<div class="viewcode-block" id="Skmeans.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.skm.recom_skmeans.Skmeans.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
+    <span class="c1"># get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
+    <span class="c1"># predictions are not stored for the same efficiency reasons&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SKMeans.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.skm.recom_skmeans.SKMeans.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
 
 <span class="sd">        Parameters</span>
@@ -250,15 +247,12 @@
 <span class="sd">        Numpy 1d array </span>
 <span class="sd">            Array containing the predicted values for all items</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span><span class="p">[</span><span class="n">index_user</span><span class="p">,:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="c1">#transform user_pred to a flatten array</span>
-        <span class="n">user_pred</span> <span class="o">=</span> <span class="n">user_pred</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">A1</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span><span class="p">[</span><span class="n">index_user</span><span class="p">,:]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">+</span><span class="mf">1e-20</span><span class="p">)</span>    <span class="c1">#weighted average of cluster centroids</span>
-        
-        <span class="k">return</span> <span class="n">user_pred</span></div></div>
-                
-        
-        
+        <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centroids</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span><span class="p">[</span><span class="n">index_user</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="c1"># transform user_pred to a flatten array</span>
+        <span class="n">user_pred</span> <span class="o">=</span> <span class="n">user_pred</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">A1</span> <span class="o">/</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">user_center_sim</span><span class="p">[</span><span class="n">index_user</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-20</span><span class="p">)</span>  <span class="c1"># weighted average of cluster centroids</span>
 
+        <span class="k">return</span> <span class="n">user_pred</span></div></div>
 </pre></div>
 
            </div>

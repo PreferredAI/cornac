@@ -164,7 +164,7 @@
 <span class="kn">from</span> <span class="nn">..recommender</span> <span class="k">import</span> <span class="n">Recommender</span>
 
 
-<div class="viewcode-block" id="OnlineIbpr"><a class="viewcode-back" href="../../../../models.html#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr">[docs]</a><span class="k">class</span> <span class="nc">OnlineIbpr</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
+<div class="viewcode-block" id="OnlineIBPR"><a class="viewcode-back" href="../../../../models.html#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR">[docs]</a><span class="k">class</span> <span class="nc">OnlineIBPR</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Online Indexable Bayesian Personalized Ranking.</span>
 
 <span class="sd">    Parameters</span>
@@ -221,7 +221,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>  <span class="c1"># matrix of item factors</span>
 
     <span class="c1"># fit the recommender model to the traning data</span>
-<div class="viewcode-block" id="OnlineIbpr.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triplets</span><span class="p">):</span>
+<div class="viewcode-block" id="OnlineIBPR.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triplets</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
@@ -238,7 +238,7 @@
     <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
     <span class="c1">#predictions are not stored for the same efficiency reasons&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="OnlineIbpr.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_user</span><span class="p">):</span>
+<div class="viewcode-block" id="OnlineIBPR.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_user</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
 
 <span class="sd">        Parameters</span>
