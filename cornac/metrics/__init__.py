@@ -1,20 +1,18 @@
+from .ranking import NDCG
+from .ranking import NCRR
+from .ranking import MRR
+from .ranking import Precision
+from .ranking import Recall
+from .ranking import FMeasure
 
-from .recom_metrics import Ndcg
-from .recom_metrics import Ncrr
-from .recom_metrics import Mrr
-from .recom_metrics import Precision
-from .recom_metrics import Recall
-from .recom_metrics import Fmeasure
+from .rating import MAE
+from .rating import RMSE
 
-from .pred_metrics import Mae
-from .pred_metrics import Rmse
-
-
-__all__ = ['Ndcg',
-		   'Ncrr',
-		   'Mrr',
-		   'Precision',
-		   'Recall',
-		   'Fmeasure',
-		   'Mae',
-		   'Rmse']
+__all__ = ['NDCG',
+           'NCRR',
+           'MRR',
+           'Precision',
+           'Recall',
+           'FMeasure',
+           'MAE',
+           'RMSE']

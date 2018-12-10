@@ -7,10 +7,10 @@
 
 import numpy as np
 from ..recommender import Recommender
-from .pcrl import Pcrl_
+from .pcrl import PCRL_
 
 #Recommender class for Probabilistic Collaborative Representation Learning (PCRL)
-class Pcrl(Recommender):
+class PCRL(Recommender):
     """Probabilistic Collaborative Representation Learning.
 
     Parameters
@@ -91,7 +91,7 @@ class Pcrl(Recommender):
         """
         if self.trainable:
             #intanciate pcrl
-            pcrl_ = Pcrl_(cf_data = X, aux_data = self.aux_info, k =self.k,z_dims = self.z_dims, n_epoch=self.max_iter,batch_size = self.batch_size,learning_rate = self.learning_rate, B = 1,w_determinist = self.w_determinist, init_params = self.init_params)
+            pcrl_ = PCRL_(cf_data = X, aux_data = self.aux_info, k =self.k, z_dims = self.z_dims, n_epoch=self.max_iter, batch_size = self.batch_size, learning_rate = self.learning_rate, B = 1, w_determinist = self.w_determinist, init_params = self.init_params)
             pcrl_.learn()
                         
             self.Theta = np.array(pcrl_.Gs)/np.array(pcrl_.Gr)
