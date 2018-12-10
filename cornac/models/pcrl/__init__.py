@@ -1,4 +1,3 @@
-from .recom_pcrl import Pcrl
+from .recom_pcrl import PCRL
 
-
-__all__ = ['Pcrl']
+__all__ = ['PCRL']

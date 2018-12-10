@@ -14,7 +14,7 @@ from ...utils.util_functions import map_to
 from ...utils.util_functions import clipping
 
 
-class Pmf(Recommender):
+class PMF(Recommender):
     """Probabilistic Matrix Factorization.
 
     Parameters

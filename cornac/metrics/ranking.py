@@ -7,8 +7,8 @@ import numpy as np
 from ..utils.util_functions import which_
 
 
-#todo: take into account 'm' parameter
-class Ndcg:
+# todo: take into account 'm' parameter
+class NDCG:
     """Normalized Discount Cumulative Gain.
 
     Parameters
@@ -24,34 +24,33 @@ class Ndcg:
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, m= None):
+    def __init__(self, m=None):
         self.name = 'NDCG'
         self.type = 'ranking'
         self.m = m
-        
-    #Compute nDCG for a single user i
-    def compute(self,data_test,reclist):
-        #Compute Ideal DCG for user i
-        irankTest_i = np.array(range(1,len(which_(data_test,'>',0))+1))
+
+    # Compute nDCG for a single user i
+    def compute(self, data_test, reclist):
+        # Compute Ideal DCG for user i
+        irankTest_i = np.array(range(1, len(which_(data_test, '>', 0)) + 1))
         irankTest_i = irankTest_i + 1
         irankTest_i = np.log2(irankTest_i)
-        idcg_i = sum(np.divide(1,irankTest_i))
-      
-        #Compute DCG for user i
-        rankTest_i = np.where(np.in1d(reclist,which_(data_test,'>',0)))[0]
-        rankTest_i = rankTest_i +1 +1  # the second +1 because indices starst from 0 in python 
+        idcg_i = sum(np.divide(1, irankTest_i))
+
+        # Compute DCG for user i
+        rankTest_i = np.where(np.in1d(reclist, which_(data_test, '>', 0)))[0]
+        rankTest_i = rankTest_i + 1 + 1  # the second +1 because indices starst from 0 in python
         rankTest_i = np.log2(rankTest_i)
-        dcg_i      = sum(np.divide(1,rankTest_i))
-    
-        #Compute nDCG for user i
-        ndcg_i = dcg_i/idcg_i
+        dcg_i = sum(np.divide(1, rankTest_i))
+
+        # Compute nDCG for user i
+        ndcg_i = dcg_i / idcg_i
 
         return ndcg_i
 
 
-
-#todo: take into account 'm' parameter
-class Ncrr:
+# todo: take into account 'm' parameter
+class NCRR:
     """Normalized Cumulative Reciprocal Rank.
 
     Parameters
@@ -67,31 +66,30 @@ class Ncrr:
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, m= None):
+    def __init__(self, m=None):
         self.name = 'NCRR'
         self.m = m
         self.type = 'ranking'
 
-    #Compute nCRR for a single user i
-    def compute(self,data_test,reclist):
-        #Compute Ideal DCG for user i
-        irankTest_i = np.array(range(1,len(which_(data_test,'>',0))+1))
+    # Compute nCRR for a single user i
+    def compute(self, data_test, reclist):
+        # Compute Ideal DCG for user i
+        irankTest_i = np.array(range(1, len(which_(data_test, '>', 0)) + 1))
         irankTest_i = irankTest_i
-        icrr_i = sum(np.divide(1,irankTest_i))
-      
+        icrr_i = sum(np.divide(1, irankTest_i))
+
         #### Compute DCG for user i
-        rankTest_i = np.where(np.in1d(reclist,which_(data_test,'>',0)))[0]
-        rankTest_i = rankTest_i +1  # the +1 because indices starst from 0 in python 
-        crr_i      = sum(np.divide(1,rankTest_i))
-    
-        #Compute nDCG for user i
-        ncrr_i = crr_i/icrr_i
+        rankTest_i = np.where(np.in1d(reclist, which_(data_test, '>', 0)))[0]
+        rankTest_i = rankTest_i + 1  # the +1 because indices starst from 0 in python
+        crr_i = sum(np.divide(1, rankTest_i))
+
+        # Compute nDCG for user i
+        ncrr_i = crr_i / icrr_i
 
         return ncrr_i
 
 
-
-class Mrr:
+class MRR:
     """Mean Reciprocal Rank.
 
     Parameters
@@ -102,18 +100,17 @@ class Mrr:
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
     """
-    
+
     def __init__(self):
         self.name = 'MRR'
         self.type = 'ranking'
 
-    #Compute MRR for a single user i
-    def compute(self,data_test,reclist):
-
-        rankTest_i = np.where(np.in1d(reclist,which_(data_test,'>',0)))[0]
-        #if rankTest_i:
-        mrr_i = np.divide(1,(rankTest_i[0]+1)) # +1 beacause indeces start from 0 in python
-        #else:
+    # Compute MRR for a single user i
+    def compute(self, data_test, reclist):
+        rankTest_i = np.where(np.in1d(reclist, which_(data_test, '>', 0)))[0]
+        # if rankTest_i:
+        mrr_i = np.divide(1, (rankTest_i[0] + 1))  # +1 beacause indeces start from 0 in python
+        # else:
         #    mrr_i = 0
         #    print('Error! only users with at least one heldout item should be evaluated')
 
@@ -121,25 +118,23 @@ class Mrr:
 
 
 class MeasureAtM:
-    
-    def __init__(self, m = 20, name=None):
+
+    def __init__(self, m=20, name=None):
         self.name = name
         self.m = m
-        self.type = 'ranking' 
+        self.type = 'ranking'
         self.tp = None
         self.tp_fn = None
         self.tp_fp = None
-    
-    
-    #Evaluate TopMlist for a single user: Precision@M, Recall@M, F-meansure@M (F1)
-    def measures_at_m(self,data_test,reclist):
-  
+
+    # Evaluate TopMlist for a single user: Precision@M, Recall@M, F-meansure@M (F1)
+    def measures_at_m(self, data_test, reclist):
         data_test_bin = np.full(len(data_test), 0)
-        data_test_bin[which_(data_test,'>',0)] = 1
-    
+        data_test_bin[which_(data_test, '>', 0)] = 1
+
         pred = np.full(len(data_test), 0)
-        pred[reclist[range(0,self.m)]] = 1
-        
+        pred[reclist[range(0, self.m)]] = 1
+
         self.tp = np.sum(pred * data_test_bin)
         self.tp_fn = np.sum(data_test_bin)
         self.tp_fp = np.sum(pred)
@@ -160,18 +155,16 @@ class Precision(MeasureAtM):
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, m = 20):
-        MeasureAtM.__init__(self,m = m, name="Precision@"+str(m))
-    
-    
-    #Compute Precision@M for a single user i
-    def compute(self,data_test,reclist):
-        
-        self.measures_at_m(data_test,reclist)
-        prec = self.tp/self.tp_fp
+    def __init__(self, m=20):
+        MeasureAtM.__init__(self, m=m, name="Precision@" + str(m))
+
+    # Compute Precision@M for a single user i
+    def compute(self, data_test, reclist):
+        self.measures_at_m(data_test, reclist)
+        prec = self.tp / self.tp_fp
         return prec
-    
-    
+
+
 class Recall(MeasureAtM):
     """Recall@M.
 
@@ -186,20 +179,18 @@ class Recall(MeasureAtM):
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
     """
-    
-    def __init__(self, m = 20):
-        MeasureAtM.__init__(self,m = m, name="Recall@"+str(m))
-    
-    
-    #Compute Precision@M for a single user i
-    def compute(self,data_test,reclist):
-        
-        self.measures_at_m(data_test,reclist)
-        rec = self.tp/self.tp_fn
+
+    def __init__(self, m=20):
+        MeasureAtM.__init__(self, m=m, name="Recall@" + str(m))
+
+    # Compute Precision@M for a single user i
+    def compute(self, data_test, reclist):
+        self.measures_at_m(data_test, reclist)
+        rec = self.tp / self.tp_fn
         return rec
-    
-    
-class Fmeasure(MeasureAtM):
+
+
+class FMeasure(MeasureAtM):
     """F-measure@M.
 
     Parameters
@@ -212,22 +203,19 @@ class Fmeasure(MeasureAtM):
 
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
-    """ 
-    
-    def __init__(self, m = 20):
-        MeasureAtM.__init__(self,m = m, name="F1@"+str(m))
-    
-    
-    #Compute Precision@M for a single user i
-    def compute(self,data_test,reclist):
-        
-        self.measures_at_m(data_test,reclist)
-        prec = self.tp/self.tp_fp
-        rec = self.tp/self.tp_fn
-        if (prec+rec):
-            f1 = 2*(prec*rec)/(prec+rec)
+    """
+
+    def __init__(self, m=20):
+        MeasureAtM.__init__(self, m=m, name="F1@" + str(m))
+
+    # Compute Precision@M for a single user i
+    def compute(self, data_test, reclist):
+
+        self.measures_at_m(data_test, reclist)
+        prec = self.tp / self.tp_fp
+        rec = self.tp / self.tp_fn
+        if (prec + rec):
+            f1 = 2 * (prec * rec) / (prec + rec)
         else:
             f1 = 0
         return f1
-
-

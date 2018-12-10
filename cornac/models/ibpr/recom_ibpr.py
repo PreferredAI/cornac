@@ -8,7 +8,7 @@ from .ibpr import *
 from ..recommender import Recommender
 
 
-class Ibpr(Recommender):
+class IBPR(Recommender):
     """Indexable Bayesian Personalized Ranking.
 
     Parameters
