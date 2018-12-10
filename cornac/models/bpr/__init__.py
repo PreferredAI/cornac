@@ -1,5 +1,3 @@
+from .recom_bpr import BPR
 
-from .recom_bpr import Bpr
-
-
-__all__ = ['Bpr']
+__all__ = ['BPR']
