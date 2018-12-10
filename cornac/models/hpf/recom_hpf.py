@@ -8,8 +8,9 @@ import numpy as np
 from ..recommender import Recommender
 from .hpf import *
 
-#HierarchicalPoissonFactorization: Hpf
-class Hpf(Recommender):
+
+# HierarchicalPoissonFactorization: Hpf
+class HPF(Recommender):
     """Hierarchical Poisson Factorization.
 
     Parameters
@@ -45,22 +46,22 @@ class Hpf(Recommender):
     Hierarchical Poisson Factorization. In UAI, pp. 326-335. 2015.
     """
 
-    def __init__(self, k=5, max_iter=100,name = "HPF",trainable = True, init_params = {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}):
-        Recommender.__init__(self,name=name, trainable = trainable)
+    def __init__(self, k=5, max_iter=100, name="HPF", trainable=True,
+                 init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
+        Recommender.__init__(self, name=name, trainable=trainable)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
-        
+
         self.ll = np.full(max_iter, 0)
         self.etp_r = np.full(max_iter, 0)
         self.etp_c = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.Theta = None #matrix of user factors
-        self.Beta = None #matrix of item factors
-        
-        
-    #fit the recommender model to the traning data    
-    def fit(self,X):
+        self.Theta = None  # matrix of user factors
+        self.Beta = None  # matrix of item factors
+
+    # fit the recommender model to the traning data
+    def fit(self, X):
         """Fit the model to observations.
 
         Parameters
@@ -69,19 +70,16 @@ class Hpf(Recommender):
             the user-item preference matrix (traning data), in a scipy sparse format\
             (e.g., csc_matrix).
         """
-        if self.trainable: 
-            res = pf(X,k = self.k, max_iter = self.max_iter,init_param = self.init_params)
+        if self.trainable:
+            res = pf(X, k=self.k, max_iter=self.max_iter, init_param=self.init_params)
             self.Theta = res['Z']
             self.Beta = res['W']
         else:
             print('%s is trained already (trainable = False)' % (self.name))
-        
-   
-    
 
-    #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
-    #predictions are not stored for the same efficiency reasons"""         
-    def predict(self,index_user):
+    # get prefiction for a single user (predictions for one user at a time for efficiency purposes)
+    # predictions are not stored for the same efficiency reasons"""
+    def predict(self, index_user):
         """Predic the scores (ratings) of a user for all items.
 
         Parameters
@@ -94,11 +92,8 @@ class Hpf(Recommender):
         Numpy 1d array 
             Array containing the predicted values for all items
         """
-        
-        user_pred = self.Beta*self.Theta[index_user,:].T
-        #transform user_pred to a flatten array, but keep thinking about another possible format
-        user_pred = np.array(user_pred,dtype='float64').flatten()
+
+        user_pred = self.Beta * self.Theta[index_user, :].T
+        # transform user_pred to a flatten array, but keep thinking about another possible format
+        user_pred = np.array(user_pred, dtype='float64').flatten()
         return user_pred
-                
-        
-        

@@ -8,7 +8,7 @@ from .online_ibpr import *
 from ..recommender import Recommender
 
 
-class OnlineIbpr(Recommender):
+class OnlineIBPR(Recommender):
     """Online Indexable Bayesian Personalized Ranking.
 
     Parameters

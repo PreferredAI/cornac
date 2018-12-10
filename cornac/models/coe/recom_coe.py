@@ -8,7 +8,7 @@ from  .coe import *
 from ..recommender import Recommender
 
 
-class Coe(Recommender):
+class COE(Recommender):
     """Collaborative Ordinal Embedding.
 
     Parameters
