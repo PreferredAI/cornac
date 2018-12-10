@@ -137,7 +137,7 @@ class Split(EvaluationStrategy):
         self.split_ran = True
 
     # This function is callable from the experiement class so as to run an experiment
-    def run_exp(self, model, metrics):
+    def evaluate(self, model, metrics):
         # check wether we have at least one ranking metric
         for mt in metrics:
             if mt.type == 'ranking':
@@ -160,7 +160,7 @@ class Split(EvaluationStrategy):
                     self.data_test_bin[u, :]):  # users with 0 heldout items should not be consider in the evaluation
                 nb_processed_users += 1
             else:
-                pred_u = model.predict(index_user=u)
+                pred_u = model.score(user_index=u, item_indexes = None)
                 pred_u[which_(self.data_train[u, :].todense().A1, ">",
                               0)] = 0.  # remove known ratings #.A1 allows to flatten a dense matrix
                 if self.rank_met:

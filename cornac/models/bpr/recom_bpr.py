@@ -90,22 +90,34 @@ class BPR(Recommender):
     # get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     # predictions are not stored for the same efficiency reasons"""
 
-    def predict(self, index_user):
-        """Predic the scores (ratings) of a user for all items.
+    def score(self, user_index, item_indexes = None):
+        """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        index_user: int, required
-            The index of the user for whom to perform predictions.
+        user_index: int, required
+            The index of the user for whom to perform score predictions.
+            
+        item_indexes: 1d array, optional, default: None
+            A list of item indexes for which to predict the rating score.\
+            When "None", score prediction is performed for all test items of the given user. 
 
         Returns
         -------
         Numpy 1d array 
-            Array containing the predicted values for all items
+            Array containing the predicted values for the items of interest
         """
-
-        user_pred = self.U[index_user, :].dot(self.V.T)
+        if item_indexes is None: 
+            user_pred = self.U[user_index, :].dot(self.V.T)
+        else:
+            user_pred = self.U[user_index,:].dot(self.V[item_indexes,:].T)
         # transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred, dtype='float64').flatten()
 
         return user_pred
+
+
+
+    def rank(self, user_index):
+        ranking = None
+        return ranking
