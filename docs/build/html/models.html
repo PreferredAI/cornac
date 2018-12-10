@@ -93,6 +93,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.pcrl.recom_pcrl">Probabilistic Collaborative Representation Learning (PCRL)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.c2pf.recom_c2pf">Collaborative Context Poisson Factorization (C2PF)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.ibpr.recom_ibpr">Indexable Bayesian Personalized Ranking (IBPR)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.online_ibpr.recom_online_ibpr">Online Indexable Bayesian Personalized Ranking (OIBPR)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.coe.recom_coe">Collaborative Ordinal Embedding (COE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.vbpr.recom_vbpr">Visual Bayesian Personalized Ranking (VBPR)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.skm.recom_skmeans">Spherical k-means (Skmeans)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.hpf.recom_hpf">Hierarchical Poisson Factorization (HPF)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.bpr.recom_bpr">Bayesian Personalized Ranking (BPR)</a></li>
@@ -368,6 +371,208 @@
 </dd></dl>
 
 </div>
+<div class="section" id="module-cornac.models.online_ibpr.recom_online_ibpr">
+<span id="online-indexable-bayesian-personalized-ranking-oibpr"></span><h2>Online Indexable Bayesian Personalized Ranking (OIBPR)<a class="headerlink" href="#module-cornac.models.online_ibpr.recom_online_ibpr" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
+<dl class="class">
+<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr">
+<em class="property">class </em><code class="descclassname">cornac.models.online_ibpr.recom_online_ibpr.</code><code class="descname">OnlineIbpr</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='online_ibpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIbpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Online Indexable Bayesian Personalized Ranking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 20</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations or the number of epochs for SGD.</li>
+<li><strong>learning_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.05</em>) – The learning rate for SGD.</li>
+<li><strong>lamda</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The regularization parameter.</li>
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'IBRP'</em>) – The name of the recommender model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
+<li><strong>U</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
+<li><strong>V</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>Le, D. D., &amp; Lauw, H. W. (2017, November). Indexable Bayesian personalized ranking for efficient top-k recommendation.      In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.</li>
+</ul>
+<dl class="method">
+<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>triplets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIbpr.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the model to observations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>triplets</strong> (<em>collections of user's ordinal triplets</em><em> (</em><em>u</em><em>, </em><em>i</em><em>, </em><em>j</em><em>) </em><em>indicating u prefers i to j</em>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIbpr.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIbpr.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predic the scores (ratings) of a user for all items.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index_user</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform predictions.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array containing the predicted values for all items</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Numpy 1d array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cornac.models.coe.recom_coe">
+<span id="collaborative-ordinal-embedding-coe"></span><h2>Collaborative Ordinal Embedding (COE)<a class="headerlink" href="#module-cornac.models.coe.recom_coe" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
+<dl class="class">
+<dt id="cornac.models.coe.recom_coe.Coe">
+<em class="property">class </em><code class="descclassname">cornac.models.coe.recom_coe.</code><code class="descname">Coe</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=1000</em>, <em>name='coe'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#Coe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.Coe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collaborative Ordinal Embedding.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 20</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations or the number of epochs for SGD.</li>
+<li><strong>learning_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.05</em>) – The learning rate for SGD.</li>
+<li><strong>lamda</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The regularization parameter.</li>
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'IBRP'</em>) – The name of the recommender model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
+<li><strong>U</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
+<li><strong>V</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>Le, D. D., &amp; Lauw, H. W. (2016, June). Euclidean co-embedding of ordinal data for multi-type visualization.     In Proceedings of the 2016 SIAM International Conference on Data Mining (pp. 396-404). Society for Industrial and Applied Mathematics.</li>
+</ul>
+<dl class="method">
+<dt id="cornac.models.coe.recom_coe.Coe.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#Coe.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.Coe.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the model to observations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornac.models.coe.recom_coe.Coe.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#Coe.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.Coe.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predic the scores (ratings) of a user for all items.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index_user</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform predictions.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array containing the predicted values for all items</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Numpy 1d array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cornac.models.vbpr.recom_vbpr">
+<span id="visual-bayesian-personalized-ranking-vbpr"></span><h2>Visual Bayesian Personalized Ranking (VBPR)<a class="headerlink" href="#module-cornac.models.vbpr.recom_vbpr" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Guo Jingyao</p>
+<dl class="class">
+<dt id="cornac.models.vbpr.recom_vbpr.Vbpr">
+<em class="property">class </em><code class="descclassname">cornac.models.vbpr.recom_vbpr.</code><code class="descname">Vbpr</code><span class="sig-paren">(</span><em>k=10</em>, <em>d=10</em>, <em>max_iter=100</em>, <em>aux_info=None</em>, <em>learning_rate=0.001</em>, <em>lamda=0.01</em>, <em>batch_size=100</em>, <em>name='vbpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#Vbpr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.Vbpr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visual Bayesian Personalized Ranking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 5</em>) – The dimension of the latent factors.</li>
+<li><strong>d</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 5</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations or the number of epochs for SGD.</li>
+<li><strong>shape</strong><strong> (</strong><strong>n_items</strong><strong>, </strong><strong>feature dimension</strong><strong>)</strong><strong>, </strong><strong>optional</strong><strong>, </strong><strong>default</strong> (<em>aux_info：ndarray</em><em>,</em>) – Image features of items</li>
+<li><strong>learning_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The learning rate for SGD.</li>
+<li><strong>lamda</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.01</em>) – The regularization parameter.</li>
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'BRP'</em>) – The name of the recommender model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
+<li><strong>U</strong> (<em>ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
+<li><strong>V</strong> (<em>ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
+<li><strong>E</strong> (<em>ndarray</em><em>, </em><em>shape</em><em> (</em><em>d</em><em>, </em><em>feature dimension</em><em>)</em>) – The matrix embedding deep CNN feature, optional initialization via init_params.</li>
+<li><strong>Ue</strong> (<em>ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>, </em><em>d</em><em>)</em>) – The visual factors of users, optional initialization via init_params.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.</li>
+</ul>
+<dl class="method">
+<dt id="cornac.models.vbpr.recom_vbpr.Vbpr.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#Vbpr.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.Vbpr.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the model to observations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornac.models.vbpr.recom_vbpr.Vbpr.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>index_user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/vbpr/recom_vbpr.html#Vbpr.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.vbpr.recom_vbpr.Vbpr.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predic the scores (ratings) of a user for all items.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index_user</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform predictions.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array containing the predicted values for all items</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Numpy 1d array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-cornac.models.skm.recom_skmeans">
 <span id="spherical-k-means-skmeans"></span><h2>Spherical k-means (Skmeans)<a class="headerlink" href="#module-cornac.models.skm.recom_skmeans" title="Permalink to this headline">¶</a></h2>
 <p>&#64;author: Aghiles Salah &lt;<a class="reference external" href="mailto:asalah&#37;&#52;&#48;smu&#46;edu&#46;sg">asalah<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
@@ -510,7 +715,7 @@
 <li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 5</em>) – The dimension of the latent factors.</li>
 <li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations or the number of epochs for SGD.</li>
 <li><strong>learning_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The learning rate for SGD.</li>
-<li><strong>lamda</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.01</em>) – The regularization parameter.</li>
+<li><strong>lamda</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The regularization parameter.</li>
 <li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'BRP'</em>) – The name of the recommender model.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>

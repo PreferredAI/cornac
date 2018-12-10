@@ -20,6 +20,21 @@ Indexable Bayesian Personalized Ranking (IBPR)
 .. automodule:: cornac.models.ibpr.recom_ibpr
    :members:
    
+Online Indexable Bayesian Personalized Ranking (OIBPR)
+-------------------------------------------------------
+.. automodule:: cornac.models.online_ibpr.recom_online_ibpr
+   :members:
+   
+Collaborative Ordinal Embedding (COE)
+-------------------------------------------------------
+.. automodule:: cornac.models.coe.recom_coe
+   :members:
+
+Visual Bayesian Personalized Ranking (VBPR)
+-----------------------------------------------
+.. automodule:: cornac.models.vbpr.recom_vbpr
+   :members:
+
 Spherical k-means (Skmeans)
 ----------------------------
 .. automodule:: cornac.models.skm.recom_skmeans
