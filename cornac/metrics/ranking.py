@@ -43,7 +43,7 @@ class NDCG(RankingMetric):
     """
 
     def __init__(self, m=None):
-        RankingMetric.__init__(self, 'NDCG', m)
+        RankingMetric.__init__(self, name='NDCG', m=m)
 
     # Compute nDCG for a single user i
     def compute(self, data_test, reclist):
@@ -83,7 +83,7 @@ class NCRR(RankingMetric):
     """
 
     def __init__(self, m=None):
-        RankingMetric.__init__(self, 'NCRR', m)
+        RankingMetric.__init__(self, name='NCRR', m=m)
 
     # Compute nCRR for a single user i
     def compute(self, data_test, reclist):
@@ -116,7 +116,7 @@ class MRR(RankingMetric):
     """
 
     def __init__(self):
-        RankingMetric.__init__(self, 'MRR')
+        RankingMetric.__init__(self, name='MRR')
 
     # Compute MRR for a single user i
     def compute(self, data_test, reclist):
@@ -167,7 +167,7 @@ class Precision(MeasureAtM):
     """
 
     def __init__(self, m=20):
-        MeasureAtM.__init__(self, "Precision@" + str(m), m)
+        MeasureAtM.__init__(self, name="Precision@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
     def compute(self, data_test, reclist):
@@ -192,7 +192,7 @@ class Recall(MeasureAtM):
     """
 
     def __init__(self, m=20):
-        MeasureAtM.__init__(self, "Recall@" + str(m), m)
+        MeasureAtM.__init__(self, name="Recall@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
     def compute(self, data_test, reclist):
@@ -217,7 +217,7 @@ class FMeasure(MeasureAtM):
     """
 
     def __init__(self, m=20):
-        MeasureAtM.__init__(self, "F1@" + str(m), m)
+        MeasureAtM.__init__(self, name="F1@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
     def compute(self, data_test, reclist):
