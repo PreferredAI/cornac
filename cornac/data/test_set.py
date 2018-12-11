@@ -21,8 +21,7 @@ class TestSet:
         user_ratings = {}
 
         for user, item, rating in triplet_data:
-            if user not in user_ratings:
-                user_ratings[user] = []
-            user_ratings[user].append((item, rating))
+            ur_list = user_ratings.setdefault(user, [])
+            ur_list.append((item, rating))
 
         return self(user_ratings)
