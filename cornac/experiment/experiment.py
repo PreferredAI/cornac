@@ -57,7 +57,7 @@ class Experiment:
         for model in self.models:
             print(model.name)
             model_names.append(model.name)
-            res = self.eval_strategy.run_exp(model=model, metrics=self.metrics)
+            res = self.eval_strategy.evaluate(model=model, metrics=self.metrics)
             self.res_per_user[model.name] = res['ResPerUser']
             if self.res_avg is None:
                 self.res_avg = res['ResAvg']
