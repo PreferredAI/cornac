@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from scipy.sparse import coo_matrix
+from scipy.sparse import csr_matrix
 
 
 class TrainSet:
@@ -61,13 +61,12 @@ class MatrixTrainSet(TrainSet):
         for user, item, rating in triplet_data:
             mapped_uid = uid_map.setdefault(user, len(uid_map))
             mapped_iid = uid_map.setdefault(item, len(iid_map))
-            uid_map[user] = mapped_uid
-            iid_map[item] = mapped_iid
 
             u_indices.append(mapped_uid)
             i_indices.append(mapped_iid)
             r_values.append(rating)
 
-        coo_mat = coo_matrix((r_values, (u_indices, i_indices)), shape=(len(uid_map), len(iid_map)))
+        # csr_matrix is more efficient for row (user) slicing
+        csr_mat = csr_matrix((r_values, (u_indices, i_indices)), shape=(len(uid_map), len(iid_map)))
 
-        return cls(coo_mat.tocsc(), uid_map, iid_map)
+        return cls(csr_mat, uid_map, iid_map)
