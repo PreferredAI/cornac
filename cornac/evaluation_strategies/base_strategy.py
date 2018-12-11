@@ -12,6 +12,19 @@ class BaseStrategy:
 
     Parameters
     ----------
+
+    train_set: :obj:`TrainSet<cornac.data.TrainSet>`, optional, default: None
+        The training data.
+
+    val_set: :obj:`TestSet<cornac.data.TestSet>`, optional, default: None
+        The validation data.
+
+    test_set: :obj:`TestSet<cornac.data.TestSet>`, optional, default: None
+        The test data.
+
+    rating_threshold: float, optional, default: 1
+        The minimum value that is considered to be a good rating used for ranking, \
+        e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
     """
 
     def __init__(self, train_set=None, val_set=None, test_set=None, rating_threshold=1.):
@@ -32,7 +45,10 @@ class BaseStrategy:
         if self.train_set is None:
             raise ValueError('train_set is required but None!')
 
-        model.fit(self.train_set)
+        if self.test_set is None:
+            raise ValueError('test_set is required but None!')
+
+        model.fit(self.train_set.matrix)
 
         print("Starting evaluation")
 
