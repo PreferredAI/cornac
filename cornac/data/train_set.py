@@ -6,6 +6,7 @@
 
 from scipy.sparse import coo_matrix
 
+
 class TrainSet:
 
     def __init__(self, uid_map, iid_map):
@@ -33,6 +34,7 @@ class TrainSet:
     def map_iid(self, item_id):
         mapped_iid = self._iid_map[item_id]
         return mapped_iid
+
 
 class MatrixTrainSet(TrainSet):
 
