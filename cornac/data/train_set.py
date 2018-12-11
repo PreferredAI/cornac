@@ -60,7 +60,7 @@ class MatrixTrainSet(TrainSet):
         r_values = []
         for user, item, rating in triplet_data:
             mapped_uid = uid_map.setdefault(user, len(uid_map))
-            mapped_iid = uid_map.setdefault(item, len(iid_map))
+            mapped_iid = iid_map.setdefault(item, len(iid_map))
 
             u_indices.append(mapped_uid)
             i_indices.append(mapped_iid)
