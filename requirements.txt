@@ -1,0 +1,4 @@
+numpy>=1.11.2
+scipy>=1.0.0
+pandas
+pytest>=3.0.3
