@@ -76,24 +76,62 @@ class SKMeans(Recommender):
         self.user_center_sim = X1 * self.centroids.T  # user-centroid cosine similarity matrix
         del (X1)
 
-    # get prefiction for a single user (predictions for one user at a time for efficiency purposes)
-    # predictions are not stored for the same efficiency reasons"""
-    def predict(self, index_user):
-        """Predic the scores (ratings) of a user for all items.
+
+
+    def score(self, user_index, item_indexes = None):
+        """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        index_user: int, required
-            The index of the user for whom to perform predictions.
+        user_index: int, required
+            The index of the user for whom to perform score predictions.
+            
+        item_indexes: 1d array, optional, default: None
+            A list of item indexes for which to predict the rating score.\
+            When "None", score prediction is performed for all test items of the given user. 
 
         Returns
         -------
         Numpy 1d array 
-            Array containing the predicted values for all items
+            Array containing the predicted values for the items of interest
         """
-        user_pred = self.centroids.multiply(self.user_center_sim[index_user, :].T)
-        # transform user_pred to a flatten array
-        user_pred = user_pred.sum(0).A1 / (
-                    self.user_center_sim[index_user, :].sum() + 1e-20)  # weighted average of cluster centroids
+        
+        if item_indexes is None:
+            user_pred = self.centroids.multiply(self.user_center_sim[user_index, :].T)
+            # transform user_pred to a flatten array
+            user_pred = user_pred.sum(0).A1 / (
+                    self.user_center_sim[user_index, :].sum() + 1e-20)  # weighted average of cluster centroids
+        else:
+            user_pred = self.centroids[item_indexes,:].multiply(self.user_center_sim[user_index, item_indexes].T)  
+            # transform user_pred to a flatten array
+            user_pred = user_pred.sum(0).A1 / (
+                    self.user_center_sim[user_index, item_indexes].sum() + 1e-20)  # weighted average of cluster centroids
 
         return user_pred
+
+
+
+
+    def rank(self, user_index, known_items = None):
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_index: int, required
+            The index of the user for whom to perform item raking.
+        known_items: 1d array, optional, default: None
+            A list of item indices already known by the user
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
+        """  
+        
+        u_pref_score = np.array(self.score(user_index))
+        if known_items is not None:
+            u_pref_score[known_items] = None
+            
+        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+
+        return rank_item_list
