@@ -58,6 +58,21 @@ class Recommender:
     
 
     def rank(self, user_index):
-        ranking = None
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_index: int, required
+            The index of the user for whom to perform item raking.
+        known_items: 1d array, optional, default: None
+            A list of item indices already known by the user
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
+        """  
+        
         print('called outside of a recommender model!')
-        return ranking
+
+        return None

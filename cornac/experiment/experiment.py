@@ -44,20 +44,28 @@ class Experiment:
     def run(self):
 
         model_names = []
-        metric_names = []
+        ranking_metric_names = []
+        rating_metric_names = []
+        organized_metrics = {'ranking':[],'rating':[]}
 
         if not hasattr(self.metrics, "__len__"):
             self.metrics = np.array([self.metrics])  # test whether self.metrics is an array
         if not hasattr(self.models, "__len__"):
             self.models = np.array([self.models])  # test whether self.models is an array
 
+        # Organize metrics into "rating" and "ranking" for efficiency purposes
         for mt in self.metrics:
-            metric_names.append(mt.name)
+            if mt.type == 'ranking':
+                organized_metrics['ranking'].append(mt)
+                ranking_metric_names.append(mt.name)
+            else:
+                organized_metrics['rating'].append(mt)
+                rating_metric_names.append(mt.name)
 
         for model in self.models:
             print(model.name)
             model_names.append(model.name)
-            res = self.eval_strategy.evaluate(model=model, metrics=self.metrics)
+            res = self.eval_strategy.evaluate(model=model, metrics=organized_metrics)
             self.res_per_user[model.name] = res['ResPerUser']
             if self.res_avg is None:
                 self.res_avg = res['ResAvg']
@@ -67,7 +75,7 @@ class Experiment:
         # Formatting the results using the Pandas DataFrame
         if len(self.models) == 1:
             self.res_avg = self.res_avg.reshape(1, len(self.metrics))
-        resAvg_dataFrame = pd.DataFrame(data=self.res_avg, index=model_names, columns=metric_names)
+        resAvg_dataFrame = pd.DataFrame(data=self.res_avg, index=model_names, columns=[*ranking_metric_names,*rating_metric_names])
         self.res_avg = resAvg_dataFrame
         ##Metrics, take into account the metrics specified by the user
         del (resAvg_dataFrame)
