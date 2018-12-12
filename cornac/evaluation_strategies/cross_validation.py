@@ -64,7 +64,7 @@ class CrossValidation(EvaluationStrategy):
         else:
             self.current_fold = 0
 
-    def run_exp(self, model, metrics):
+    def evaluate(self, model, metrics):
 
         if self.partition is None:
             self.partition = self._get_partition()
@@ -73,12 +73,12 @@ class CrossValidation(EvaluationStrategy):
             print("fold:", self.current_fold)
             self._get_next_train_test_split()
             if self.current_fold == 1:
-                res_tot = self.current_split.run_exp(model=model, metrics=metrics)
+                res_tot = self.current_split.evaluate(model=model, metrics=metrics)
                 resAvg = res_tot["ResAvg"]
                 print(resAvg)
                 resPerU = res_tot["ResPerUser"]
             else:
-                res_tot = self.current_split.run_exp(model=model, metrics=metrics)
+                res_tot = self.current_split.evaluate(model=model, metrics=metrics)
                 """ need to figure out how to average the resuls accoording"""
                 resAvg = np.vstack((resAvg, res_tot["ResAvg"]))
                 resPerU = resPerU + res_tot["ResPerUser"]

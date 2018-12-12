@@ -1,5 +1,5 @@
-from .train_set import TrainSet, MatrixTrainSet
-from .test_set import TestSet
+from .trainset import TrainSet, MatrixTrainSet
+from .testset import TestSet
 
 __all__ = ['TrainSet',
            'MatrixTrainSet',

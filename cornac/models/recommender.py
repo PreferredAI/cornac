@@ -31,11 +31,48 @@ class Recommender:
     def fit(self, X):
         print('called outside of a recommender model!!!')
 
-    """get prefiction for a single user (predictions for one user at a time for efficiency purposes)
-       predictions are not stored for the same efficiency reasons
-       should be re-implemented in each recommender model's class"""
 
-    def predict(self, index_user):
-        print('called outside of a recommender model!!!')
 
-        return 0
+    def score(self, user_index, item_indexes = None):
+        """Predict the scores/ratings of a user for a list of items.
+
+        Parameters
+        ----------
+        user_index: int, required
+            The index of the user for whom to perform score predictions.
+            
+        item_indexes: 1d array, optional, default: None
+            A list of item indexes for which to predict the rating score.\
+            When "None", score prediction is performed for all test items of the given user. 
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array containing the predicted values for the items of interest
+        """
+        
+        print('called outside of a recommender model!')
+
+        return None
+    
+    
+
+    def rank(self, user_index):
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_index: int, required
+            The index of the user for whom to perform item raking.
+        known_items: 1d array, optional, default: None
+            A list of item indices already known by the user
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
+        """  
+        
+        print('called outside of a recommender model!')
+
+        return None
