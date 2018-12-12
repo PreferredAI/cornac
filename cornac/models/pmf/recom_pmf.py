@@ -118,23 +118,32 @@ class PMF(Recommender):
    
     
 
-    #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
-    #predictions are not stored for the same efficiency reasons        
-    def predict(self,index_user):
-        """Predic the scores (ratings) of a user for all items.
+     
+    def score(self, user_index, item_indexes = None):
+        """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        index_user: int, required
-            The index of the user for whom to perform predictions.
+        user_index: int, required
+            The index of the user for whom to perform score predictions.
+            
+        item_indexes: 1d array, optional, default: None
+            A list of item indexes for which to predict the rating score.\
+            When "None", score prediction is performed for all test items of the given user. 
 
         Returns
         -------
         Numpy 1d array 
-            Array containing the predicted values for all items
+            Array containing the predicted values for the items of interest
         """
-        user_pred = self.V.todense()*self.U[index_user,:].T.todense()
+        
+        if item_indexes is None:
+            user_pred = self.V.todense()*self.U[user_index,:].T.todense()
+        else:
+            user_pred = self.V[item_indexes,:].todense()*self.U[user_index,:].T.todense()
+            
         user_pred = np.array(user_pred,dtype='float64').flatten()
+        
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
             user_pred = map_to(user_pred,self.min_rating,self.max_rating,0.,1.)
@@ -142,3 +151,30 @@ class PMF(Recommender):
             #perform clipping to enforce the predictions to lie in the same range as the original ratings
             user_pred = clipping(user_pred,self.min_rating,self.max_rating)        
         return user_pred
+    
+    
+    
+    
+    def rank(self, user_index, known_items = None):
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_index: int, required
+            The index of the user for whom to perform item raking.
+        known_items: 1d array, optional, default: None
+            A list of item indices already known by the user
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
+        """  
+        
+        u_pref_score = np.array(self.score(user_index))
+        if known_items is not None:
+            u_pref_score[known_items] = None
+            
+        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+
+        return rank_item_list

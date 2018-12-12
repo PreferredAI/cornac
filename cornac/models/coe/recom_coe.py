@@ -90,21 +90,56 @@ class COE(Recommender):
     #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     #predictions are not stored for the same efficiency reasons"""
 
-    def predict(self, index_user):
-        """Predic the scores (ratings) of a user for all items.
+    def score(self, user_index, item_indexes = None):
+        """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        index_user: int, required
-            The index of the user for whom to perform predictions.
+        user_index: int, required
+            The index of the user for whom to perform score predictions.
+            
+        item_indexes: 1d array, optional, default: None
+            A list of item indexes for which to predict the rating score.\
+            When "None", score prediction is performed for all test items of the given user. 
 
         Returns
         -------
         Numpy 1d array 
-            Array containing the predicted values for all items
+            Array containing the predicted values for the items of interest
         """
-        user_pred = np.sum(np.abs(self.V - self.U[index_user, :])**2,axis=-1)**(1./2) 
+        
+        if item_indexes is None:
+            user_pred = np.sum(np.abs(self.V - self.U[user_index, :])**2,axis=-1)**(1./2) 
+        else:
+            user_pred = np.sum(np.abs(self.V[item_indexes,] - self.U[user_index, :])**2,axis=-1)**(1./2)
         # transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred, dtype='float64').flatten()
 
         return user_pred
+    
+    
+ 
+    
+    def rank(self, user_index, known_items = None):
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_index: int, required
+            The index of the user for whom to perform item raking.
+        known_items: 1d array, optional, default: None
+            A list of item indices already known by the user
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
+        """  
+        
+        u_pref_score = np.array(self.score(user_index))
+        if known_items is not None:
+            u_pref_score[known_items] = None
+            
+        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+
+        return rank_item_list
