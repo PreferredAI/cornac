@@ -71,7 +71,6 @@ class Split(EvaluationStrategy):
         self.index_test = index_test
         # Additional attributes,
         self.split_ran = False  # check whether the data is already split or not
-        self.rank_met = False  # Check wether there is no ranking metric to save some computation
 
     def _train_test_split(self):
 
@@ -138,11 +137,9 @@ class Split(EvaluationStrategy):
 
     # This function is callable from the experiement class so as to run an experiment
     def evaluate(self, model, metrics):
-        # check wether we have at least one ranking metric
-        for mt in metrics:
-            if mt.type == 'ranking':
-                self.rank_met = True
-                break
+        # Organize metrics into "rating" and "ranking" for efficiency purposes
+        ranking_metrics = metrics['ranking']
+        rating_metrics = metrics['rating']
 
         if not self.split_ran:
             self.run()
@@ -150,36 +147,34 @@ class Split(EvaluationStrategy):
         model.fit(self.data_train)
         print("Starting evaluation")
         res = sp.csc_matrix((self.data_test.shape[0],
-                             len(metrics) + 1))  # this matrix will contain the evaluation results for each user
+                             len(ranking_metrics)+len(rating_metrics) + 1))  # this matrix will contain the evaluation results for each user
 
         # evaluation is done user by user to avoid memory errors on large datasets.
         # loops are inefficent in python, this part should be re-implement in cython or c/c++"""
         nb_processed_users = 0
         for u in range(self.data_test.shape[0]):
-            if not np.sum(
-                    self.data_test_bin[u, :]):  # users with 0 heldout items should not be consider in the evaluation
+            if not np.sum(self.data_test_bin[u, :]):  # users with 0 heldout items should not be consider in the evaluation
                 nb_processed_users += 1
             else:
-                pred_u = model.score(user_index=u, item_indexes = None)
-                pred_u[which_(self.data_train[u, :].todense().A1, ">",
-                              0)] = 0.  # remove known ratings #.A1 allows to flatten a dense matrix
-                if self.rank_met:
-                    rec_list_u = (
-                        -pred_u).argsort()  # ordering the items (in decreasing order) according to the predictions
+                known_items = which_(self.data_train[u, :].todense().A1, ">",0)
+                if len(ranking_metrics):
+                    u_rank_list = model.rank(user_index=u,known_items = known_items)
+                if len(rating_metrics):
+                    u_pred_scores = model.score(user_index=u, item_indexes = None)
 
                 # computing the diffirent metrics
                 idx = 0
-                for mt in metrics:
-                    if mt.type == 'ranking':
-                        res[u, idx] = mt.compute(data_test=self.data_test_bin[u, :].todense().A1, reclist=rec_list_u)
-                    else:
-                        res[u, idx] = mt.compute(data_test=self.data_test[u, :].todense().A1, prediction=pred_u)
+                for mt in ranking_metrics:
+                    res[u, idx] = mt.compute(data_test=self.data_test_bin[u, :].todense().A1, reclist=u_rank_list)
                     idx = idx + 1
-                res[u, len(metrics)] = 1  # This column indicates whether a user have been preprocessed
+                for mt in rating_metrics:
+                    res[u, idx] = mt.compute(data_test=self.data_test[u, :].todense().A1, prediction=u_pred_scores)
+                    idx = idx + 1
+                res[u, len(ranking_metrics)+len(rating_metrics)] = 1  # This column indicates whether a user have been preprocessed
                 nb_processed_users += 1
             if nb_processed_users % 1000 == 0:
                 print(nb_processed_users, "processed users")
         # computing the average results
-        res_avg = res[which_(res[:, len(metrics)].todense().A1, ">", 0), :].mean(0).A1  # of type array
-        res_tot = {"ResAvg": res_avg[0:len(metrics)], "ResPerUser": res}
+        res_avg = res[which_(res[:, len(ranking_metrics)+len(rating_metrics)].todense().A1, ">", 0), :].mean(0).A1  # of type array
+        res_tot = {"ResAvg": res_avg[0:len(ranking_metrics)+len(rating_metrics)], "ResPerUser": res}
         return res_tot

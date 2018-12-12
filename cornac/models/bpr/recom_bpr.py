@@ -107,6 +107,7 @@ class BPR(Recommender):
         Numpy 1d array 
             Array containing the predicted values for the items of interest
         """
+        
         if item_indexes is None: 
             user_pred = self.U[user_index, :].dot(self.V.T)
         else:
@@ -118,6 +119,26 @@ class BPR(Recommender):
 
 
 
-    def rank(self, user_index):
-        ranking = None
-        return ranking
+    def rank(self, user_index, known_items = None):
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_index: int, required
+            The index of the user for whom to perform item raking.
+        known_items: 1d array, optional, default: None
+            A list of item indices already known by the user
+
+        Returns
+        -------
+        Numpy 1d array 
+            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
+        """  
+        
+        u_pref_score = np.array(self.score(user_index))
+        if known_items is not None:
+            u_pref_score[known_items] = None
+            
+        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+
+        return rank_item_list
