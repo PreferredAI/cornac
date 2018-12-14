@@ -2,9 +2,14 @@
 
 **Cornac** is python recommender system library for **easy**, **effective** and **efficient** experiments. Cornac is **simple** and **handy**. It is designed from the ground-up to faithfully reflect the standard steps taken by researchers to implement and evaluate personalized recommendation models.
 
+[![Build Status](https://www.travis-ci.org/PreferredAI/cornac.svg?branch=master)](https://www.travis-ci.org/PreferredAI/cornac)
+[![Documentation Status](https://readthedocs.org/projects/cornac/badge/?version=latest)](https://cornac.readthedocs.io/en/latest/?badge=latest)
+[![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 ### Quick links
 [Website](https://cornac.preferred.ai/) |
-[Docs](https://cornac.readthedocs.io/en/latest/index.html) |
+[Documentation](https://cornac.readthedocs.io/en/latest/index.html) |
 [Preferred.AI](https://preferred.ai/)
 
 ## Getting started
