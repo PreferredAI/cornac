@@ -3,3 +3,4 @@ example.py
 cornac/__pycache__
 cornac/models/__pycache__
 cornac/models/*/__pycache__
+cornac/data/__pycache__

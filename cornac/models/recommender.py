@@ -25,47 +25,52 @@ class Recommender:
         self.name = name
         self.trainable = trainable
 
+        self.train_set = None
         self.perfomance = None
 
     # fit the model to the traning data, should be re-implemented in each recommender model's class
-    def fit(self, X):
+    def fit(self, train_set):
         print('called outside of a recommender model!!!')
 
+        self.train_set = train_set
 
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item for that to perform score predictions.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            A relative score that the user gives to the item
         """
         
         print('called outside of a recommender model!')
 
-        return None
-    
-    
+        pass
 
-    def rank(self, user_index):
+
+
+    def rate(self, user_id, item_id, clip=True):
+        pass
+
+
+    def rank(self, user_id, candidate_item_ids):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
+        candidate_item_ids: 1d array, required
+            A list of item indices to be ranked by the user
 
         Returns
         -------
@@ -75,4 +80,4 @@ class Recommender:
         
         print('called outside of a recommender model!')
 
-        return None
+        pass

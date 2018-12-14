@@ -158,17 +158,17 @@ class Split(EvaluationStrategy):
             else:
                 known_items = which_(self.data_train[u, :].todense().A1, ">",0)
                 if len(ranking_metrics):
-                    u_rank_list = model.rank(user_index=u,known_items = known_items)
+                    u_rank_list = model.rank(user_id=u, known_items = known_items)
                 if len(rating_metrics):
                     u_pred_scores = model.score(user_index=u, item_indexes = None)
 
                 # computing the diffirent metrics
                 idx = 0
                 for mt in ranking_metrics:
-                    res[u, idx] = mt.compute(data_test=self.data_test_bin[u, :].todense().A1, reclist=u_rank_list)
+                    res[u, idx] = mt.compute(self.data_test_bin[u, :].todense().A1, u_rank_list)
                     idx = idx + 1
                 for mt in rating_metrics:
-                    res[u, idx] = mt.compute(data_test=self.data_test[u, :].todense().A1, prediction=u_pred_scores)
+                    res[u, idx] = mt.compute(self.data_test[u, :].todense().A1, u_pred_scores)
                     idx = idx + 1
                 res[u, len(ranking_metrics)+len(rating_metrics)] = 1  # This column indicates whether a user have been preprocessed
                 nb_processed_users += 1

@@ -75,10 +75,15 @@ class PMF(Recommender):
         self.V = init_params['V'] #matrix of item factors
         self.min_rating = rating_range[0]
         self.max_rating = rating_range[1]
-        
+
+
+    def fit_(self, train_set):
+        self.train_set = train_set
+        self.fit(train_set.matrix)
+
         
     #fit the recommender model to the traning data    
-    def fit(self,X):
+    def fit(self, X):
         """Fit the model to observations.
 
         Parameters
@@ -87,6 +92,7 @@ class PMF(Recommender):
             the user-item preference matrix (traning data), in a scipy sparse format\
             (e.g., csc_matrix).
         """
+
         if self.min_rating is None:
             self.min_rating = np.min(X.data)
         if self.max_rating is None:
@@ -176,5 +182,42 @@ class PMF(Recommender):
             u_pref_score[known_items] = None
             
         rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+
+        return rank_item_list
+
+
+
+    def score_(self, user_id, item_id):
+        if not self.train_set.is_known_user(user_id) or not self.train_set.is_known_item(item_id):
+            return self.train_set.global_mean
+
+        mapped_uid = self.train_set.uid_map[user_id]
+        mapped_iid = self.train_set.iid_map[item_id]
+        user_pred = self.V[mapped_iid, :].todense() * self.U[mapped_uid, :].T.todense()
+
+        if self.variant == "non_linear":
+            user_pred = sigmoid(user_pred)
+            user_pred = map_to(user_pred, self.min_rating, self.max_rating, 0., 1.)
+        else:
+            # perform clipping to enforce the predictions to lie in the same range as the original ratings
+            user_pred = clipping(user_pred, self.min_rating, self.max_rating)
+
+        return user_pred
+
+    def rank_(self, user_id):
+        if not self.train_set.is_known_user(user_id):
+            return np.arange(self.train_set.num_items)
+
+        user_pred = self.V.todense() * self.U[user_id, :].T.todense()
+        user_pred = np.array(user_pred, dtype='float64').flatten()
+
+        if self.variant == "non_linear":
+            user_pred = sigmoid(user_pred)
+            user_pred = map_to(user_pred, self.min_rating, self.max_rating, 0., 1.)
+        else:
+            # perform clipping to enforce the predictions to lie in the same range as the original ratings
+            user_pred = clipping(user_pred, self.min_rating, self.max_rating)
+
+        rank_item_list = (-user_pred).argsort()  # ordering the items (in decreasing order) according to the preference score
 
         return rank_item_list
