@@ -83,4 +83,4 @@ res_pmf.average_result
 
 ## License
 
-[Apache License 2.0](LICENSE)
+[Apache License 2.0](LICENSE.md)
