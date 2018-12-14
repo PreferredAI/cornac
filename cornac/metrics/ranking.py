@@ -144,7 +144,7 @@ class MeasureAtM(RankingMetric):
         data_test_bin[which_(data_test, '>', 0)] = 1
 
         pred = np.full(len(data_test), 0)
-        pred[reclist[range(0, self.m)]] = 1
+        pred[reclist[:self.m]] = 1
 
         self.tp = np.sum(pred * data_test_bin)
         self.tp_fn = np.sum(data_test_bin)
