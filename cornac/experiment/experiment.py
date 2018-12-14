@@ -23,10 +23,10 @@ class Experiment:
         A collection of metrics to use to evaluate the recommender models, \
         e.g., [Ndcg, Mrr, Recall].
 
-    res_avg: DataFrame, default: None
+    average_result: DataFrame, default: None
         The average result per model.
 
-    res_per_user: dictionary, default: {}
+    result_per_user: dictionary, default: {}
         Results per user for each model.    
     """
 
@@ -36,9 +36,9 @@ class Experiment:
         self.metrics = metrics
 
         self.res = None
-        self.res_avg = None
-        self.res_std = None
-        self.res_per_user = {}
+        self.average_result = None
+        self.std_result = None
+        self.result_per_user = {}
 
     # modify this function to accomodate several models
     def run(self):
@@ -65,17 +65,16 @@ class Experiment:
         for model in self.models:
             print(model.name)
             model_names.append(model.name)
-            res = self.eval_strategy.evaluate(model=model, metrics=organized_metrics)
-            self.res_per_user[model.name] = res['ResPerUser']
-            if self.res_avg is None:
-                self.res_avg = res['ResAvg']
+            avg_res, self.result_per_user[model.name] = self.eval_strategy.evaluate(model=model, metrics=organized_metrics)
+            if self.average_result is None:
+                self.average_result = avg_res
             else:
-                self.res_avg = np.vstack((self.res_avg, res['ResAvg']))
+                self.average_result = np.vstack((self.average_result, avg_res))
 
         # Formatting the results using the Pandas DataFrame
         if len(self.models) == 1:
-            self.res_avg = self.res_avg.reshape(1, len(self.metrics))
-        resAvg_dataFrame = pd.DataFrame(data=self.res_avg, index=model_names, columns=[*ranking_metric_names,*rating_metric_names])
-        self.res_avg = resAvg_dataFrame
+            self.average_result = self.average_result.reshape(1, len(self.metrics))
+        resAvg_dataFrame = pd.DataFrame(data=self.average_result, index=model_names, columns=[*ranking_metric_names,*rating_metric_names])
+        self.average_result = resAvg_dataFrame
         ##Metrics, take into account the metrics specified by the user
         del (resAvg_dataFrame)

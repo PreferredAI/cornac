@@ -146,7 +146,7 @@ class Split(EvaluationStrategy):
 
         model.fit(self.data_train)
         print("Starting evaluation")
-        res = sp.csc_matrix((self.data_test.shape[0],
+        res_per_u = sp.csc_matrix((self.data_test.shape[0],
                              len(ranking_metrics)+len(rating_metrics) + 1))  # this matrix will contain the evaluation results for each user
 
         # evaluation is done user by user to avoid memory errors on large datasets.
@@ -165,16 +165,16 @@ class Split(EvaluationStrategy):
                 # computing the diffirent metrics
                 idx = 0
                 for mt in ranking_metrics:
-                    res[u, idx] = mt.compute(data_test=self.data_test_bin[u, :].todense().A1, reclist=u_rank_list)
+                    res_per_u[u, idx] = mt.compute(data_test=self.data_test_bin[u, :].todense().A1, reclist=u_rank_list)
                     idx = idx + 1
                 for mt in rating_metrics:
-                    res[u, idx] = mt.compute(data_test=self.data_test[u, :].todense().A1, prediction=u_pred_scores)
+                    res_per_u[u, idx] = mt.compute(data_test=self.data_test[u, :].todense().A1, prediction=u_pred_scores)
                     idx = idx + 1
-                res[u, len(ranking_metrics)+len(rating_metrics)] = 1  # This column indicates whether a user have been preprocessed
+                res_per_u[u, len(ranking_metrics)+len(rating_metrics)] = 1  # This column indicates whether a user have been preprocessed
                 nb_processed_users += 1
             if nb_processed_users % 1000 == 0:
                 print(nb_processed_users, "processed users")
         # computing the average results
-        res_avg = res[which_(res[:, len(ranking_metrics)+len(rating_metrics)].todense().A1, ">", 0), :].mean(0).A1  # of type array
-        res_tot = {"ResAvg": res_avg[0:len(ranking_metrics)+len(rating_metrics)], "ResPerUser": res}
-        return res_tot
+        average_res = res_per_u[which_(res_per_u[:, len(ranking_metrics)+len(rating_metrics)].todense().A1, ">", 0), :].mean(0).A1  # of type array
+        #res_tot = {"ResAvg": res_avg[0:len(ranking_metrics)+len(rating_metrics)], "ResPerUser": res}
+        return average_res[0:len(ranking_metrics)+len(rating_metrics)], res_per_u
