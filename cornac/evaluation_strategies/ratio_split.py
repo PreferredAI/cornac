@@ -11,6 +11,7 @@ from ..data import MatrixTrainSet, TestSet
 
 
 class RatioSplit(BaseStrategy):
+
     """Train-Test Split Evaluation Strategy.
 
     Parameters
@@ -33,14 +34,19 @@ class RatioSplit(BaseStrategy):
 
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
+
+    include_unknowns: bool, optional, default: True
+        Taking into account unknown users and items (cold-start) in the evaluation
+
     """
 
-    def __init__(self, triplet_data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True):
-        BaseStrategy.__init__(self, rating_threshold=rating_threshold)
+    def __init__(self, triplet_data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, include_unknowns=True):
+        BaseStrategy.__init__(self, rating_threshold=rating_threshold, include_unknowns=include_unknowns)
         self._triplet_data = triplet_data
         self._shuffle = shuffle
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(triplet_data))
         self._split = False
+
 
     def _validate_sizes(self, val_size, test_size, num_ratings):
         if val_size is None:
@@ -73,26 +79,35 @@ class RatioSplit(BaseStrategy):
 
         return int(train_size), int(val_size), int(test_size)
 
+
     def _split_data(self):
         print("Splitting the data")
 
         if self._shuffle and self._triplet_data is not None:
             shuffle(self._triplet_data)
 
-        if self.train_set is None:
-            train_data = self._triplet_data[:self._train_size]
-            self.train_set = MatrixTrainSet.from_triplets(train_data)
+        global_uid_map = {}
+        global_iid_map = {}
+        global_ur_set = set() # avoid duplicate rating in the data
 
-        if self.val_set is None:
-            val_data = self._triplet_data[self._train_size:(self._train_size + self._val_size)]
-            self.val_set = TestSet.from_triplets(val_data)
+        train_data = self._triplet_data[:self._train_size]
+        self.train_set = MatrixTrainSet.from_triplets(train_data, global_uid_map, global_iid_map, global_ur_set)
 
-        if self.test_set is None:
-            test_data = self._triplet_data[-self._test_size:]
-            self.test_set = TestSet.from_triplets(test_data)
+        val_data = self._triplet_data[self._train_size:(self._train_size + self._val_size)]
+        self.val_set = TestSet.from_triplets(val_data, global_uid_map, global_iid_map, global_ur_set)
+
+        test_data = self._triplet_data[-self._test_size:]
+        self.test_set = TestSet.from_triplets(test_data, global_uid_map, global_iid_map, global_ur_set)
 
         self._split = True
-        del self._triplet_data # free memory after splitting
+        self.total_users = len(global_uid_map)
+        self.total_items = len(global_iid_map)
+        print('Total users = {}'.format(self.total_users))
+        print('Total items = {}'.format(self.total_items))
+
+        # free memory after splitting
+        del self._triplet_data, global_uid_map, global_iid_map, global_ur_set
+
 
     def evaluate(self, model, metrics):
         if not self._split:
