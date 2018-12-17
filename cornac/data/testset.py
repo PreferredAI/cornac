@@ -4,6 +4,8 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
+from collections import OrderedDict
+
 
 class TestSet:
 
@@ -32,8 +34,8 @@ class TestSet:
 
     @classmethod
     def from_triplets(self, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
-        uid_map = {}
-        iid_map = {}
+        uid_map = OrderedDict()
+        iid_map = OrderedDict()
         user_ratings = {}
 
         for raw_uid, raw_iid, rating in triplet_data:
