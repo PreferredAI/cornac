@@ -36,4 +36,4 @@ This example will show you how to run your very first experiment using Cornac. I
 	res_pmf.run()
 
 	#Get average results.
-	res_pmf.res_avg
+	res_pmf.average_result
