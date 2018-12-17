@@ -33,10 +33,6 @@ class BaseStrategy:
         The minimum value that is considered to be a good rating used for ranking, \
         e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
 
-    user_based: bool, optional, default: True
-        Performance will be averaged based on number of users for rating metrics.
-        If `False`, averaging over number of ratings will be computed.
-
     exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
 
@@ -46,14 +42,13 @@ class BaseStrategy:
 
     def __init__(self, train_set=None, val_set=None, test_set=None,
                  total_users=None, total_items=None, rating_threshold=1.,
-                 user_based=True, exclude_unknowns=False, verbose=False):
+                 exclude_unknowns=False, verbose=False):
         self.train_set = train_set
         self.val_set = val_set
         self.test_set = test_set
         self.total_users = total_users
         self.total_items = total_items
         self.rating_threshold = rating_threshold
-        self.user_based = user_based
         self.exclude_unknowns = exclude_unknowns
         self.verbose = verbose
 
@@ -62,7 +57,7 @@ class BaseStrategy:
             print('exclude_unknowns = {}'.format(exclude_unknowns))
 
 
-    def evaluate(self, model, metrics):
+    def evaluate(self, model, metrics, user_based):
         rating_metrics = metrics.get('rating', [])
         ranking_metrics = metrics.get('ranking', [])
 
@@ -147,7 +142,7 @@ class BaseStrategy:
 
         # avg results of rating metrics
         for mt in rating_metrics:
-            if self.user_based: # averaging over users
+            if user_based: # averaging over users
                 user_results = list(metric_user_results[mt.name].values())
                 metric_avg_results[mt.name] = np.asarray(user_results).mean()
             else: # averaging over ratings
