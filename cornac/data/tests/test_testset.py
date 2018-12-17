@@ -6,7 +6,7 @@
 
 
 
-data_file = './cornac/data/tests/triplet_data.txt'
+data_file = './cornac/data/tests/data.txt'
 u_col = 0
 i_col = 1
 r_col = 2
@@ -28,3 +28,7 @@ def test_TestSet():
     assert all([a == b for a, b in zip(test_set.get_users(), range(10))])
 
     assert all([a == b for a, b in zip(test_set.get_ratings(2), [(2, 4)])])
+
+    test_set = TestSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
+                                      pre_ur_set=set([('76', '93')]), verbose=True)
+    assert len(test_set.get_users()) == 9

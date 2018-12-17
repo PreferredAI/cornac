@@ -5,21 +5,53 @@
 """
 
 
-data_file = './cornac/data/tests/triplet_data.txt'
-u_col = 0
-i_col = 1
-r_col = 2
-sep = '\t'
+def test_TrainSet():
+    """Test TrainSet"""
+
+    uid_map = {'a': 0, 'b': 1}
+    iid_map = {'x': 0, 'y': 1, 'z': 2}
+
+    from ..trainset import TrainSet
+    train_set = TrainSet(uid_map, iid_map)
+
+    assert train_set.num_users == 2
+    assert train_set.num_items == 3
+
+    assert train_set.is_unk_user(1) == False
+    assert train_set.is_unk_user(2) == True
+
+    assert train_set.is_unk_item(2) == False
+    assert train_set.is_unk_item(4) == True
+
+    assert train_set.get_uid('b') == 1
+    assert train_set.get_iid('y') == 1
+
+    assert all([a == b for a, b in zip(train_set.get_uid_list(), [0, 1])])
+    assert all([a == b for a, b in zip(train_set.get_raw_uid_list(), ['a', 'b'])])
+
+    assert all([a == b for a, b in zip(train_set.get_iid_list(), [0, 1, 2])])
+    assert all([a == b for a, b in zip(train_set.get_raw_iid_list(), ['x', 'y', 'z'])])
 
 
 def test_MatrixTrainSet():
     """Test MatrixTrainSet"""
+
+    data_file = './cornac/data/tests/data.txt'
+    u_col = 0
+    i_col = 1
+    r_col = 2
+    sep = '\t'
 
     from ..reader import txt_to_triplets
     triplet_data = txt_to_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     from ..trainset import MatrixTrainSet
     train_set = MatrixTrainSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ur_set=set())
+
+    assert train_set.matrix.shape == (10, 10)
+    assert train_set.min_rating == 3
+    assert train_set.max_rating == 5
+    assert int(train_set.global_mean) == int((3*2 + 4*7 + 5) / 10)
 
     assert train_set.num_users == 10
     assert train_set.num_items == 10
@@ -30,8 +62,6 @@ def test_MatrixTrainSet():
     assert train_set.is_unk_item(3) == False
     assert train_set.is_unk_item(16) == True
 
-    assert train_set.min_rating == 3
-    assert train_set.max_rating == 5
 
     assert train_set.get_uid('768') == 1
     assert train_set.get_iid('195') == 7
@@ -43,3 +73,9 @@ def test_MatrixTrainSet():
     assert all([a == b for a, b in zip(train_set.get_iid_list(), range(10))])
     assert all([a == b for a, b in zip(train_set.get_raw_iid_list(),
                                        ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])])
+
+
+    train_set = MatrixTrainSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
+                                             pre_ur_set=set([('76', '93')]), verbose=True)
+    assert train_set.num_users == 9
+    assert train_set.num_items == 9
