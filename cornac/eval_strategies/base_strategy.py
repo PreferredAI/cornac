@@ -33,22 +33,33 @@ class BaseStrategy:
         The minimum value that is considered to be a good rating used for ranking, \
         e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
 
-    exclude_unknowns: bool, optional, default: True
+    user_based: bool, optional, default: True
+        Performance will be averaged based on number of users for rating metrics.
+        If `False`, averaging over number of ratings will be computed.
+
+    exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
 
+    verbose: bool, optional, default: False
+        Output running log
     """
 
     def __init__(self, train_set=None, val_set=None, test_set=None,
-                 total_users=None, total_items=None, rating_threshold=1., exclude_unknowns=False):
+                 total_users=None, total_items=None, rating_threshold=1.,
+                 user_based=True, exclude_unknowns=False, verbose=False):
         self.train_set = train_set
         self.val_set = val_set
         self.test_set = test_set
         self.total_users = total_users
         self.total_items = total_items
         self.rating_threshold = rating_threshold
+        self.user_based = user_based
         self.exclude_unknowns = exclude_unknowns
-        print('Rating threshold = {:.1f}'.format(rating_threshold))
-        print('exclude_unknowns = {}'.format(exclude_unknowns))
+        self.verbose = verbose
+
+        if verbose:
+            print('Rating threshold = {:.1f}'.format(rating_threshold))
+            print('exclude_unknowns = {}'.format(exclude_unknowns))
 
 
     def evaluate(self, model, metrics):
@@ -71,23 +82,22 @@ class BaseStrategy:
                                        self.val_set.get_iid_list() +
                                        self.test_set.get_iid_list()))
 
-        print("Training started!")
+        if self.verbose:
+            print("Training started!")
 
         model.fit(self.train_set)
 
-        print("Evaluation started!")
+        if self.verbose:
+            print("Evaluation started!")
 
-        metric_avg_results = {}
+        all_rating_gts = []
+        all_rating_pds = []
         metric_user_results = {}
-
-        rating_gts = []
-        rating_pds = []
         for mt in (rating_metrics + ranking_metrics):
-            metric_avg_results[mt.name] = []
             metric_user_results[mt.name] = {}
 
         for i, user_id in enumerate(self.test_set.get_users()):
-            if i % 1000 == 0:
+            if self.verbose and i % 1000 == 0:
                 print(i, "users processed")
 
             # ignore unknown users when self.exclude_unknown
@@ -108,52 +118,44 @@ class BaseStrategy:
                 if self.exclude_unknowns and self.train_set.is_unk_item(item_id):
                     continue
 
-                rating_gts.append(rating)
-                u_rating_gts.append(rating)
                 if len(rating_metrics) > 0:
-                    prediction = model.score(user_id, item_id)
-                    rating_pds.append(prediction)
-                    u_rating_pds.append(prediction)
+                    all_rating_gts.append(rating)
+                    u_rating_gts.append(rating)
 
-                # constructing ground-truth rank list
+                    rating_pred = model.rate(user_id, item_id)
+                    all_rating_pds.append(rating_pred)
+                    u_rating_pds.append(rating_pred)
+
+                # constructing ranking ground-truth
                 if rating >= self.rating_threshold:
                     u_ranking_gts[item_id] = 1
 
             # per user evaluation for rating metrics
-            if len(rating_metrics) > 0:
-                u_rating_gts = np.asarray(u_rating_gts, dtype=np.float)
-                u_rating_pds = np.asarray(u_rating_pds, dtype=np.float)
+            if len(rating_metrics) > 0 and len(u_rating_gts) > 0:
                 for mt in rating_metrics:
-                    mt_score = mt.compute(u_rating_gts, u_rating_pds)
+                    mt_score = mt.compute(np.asarray(u_rating_gts), np.asarray(u_rating_pds))
                     metric_user_results[mt.name][user_id] = mt_score
-                    metric_avg_results[mt.name].append(mt_score)
-
-            if u_ranking_gts.sum() == 0: # no ranking ground-truth for this user
-                continue
 
             # per user evaluation for ranking metrics
-            if len(ranking_metrics) > 0:
+            if len(ranking_metrics) > 0 and u_ranking_gts.sum() > 0:
                 u_ranking_pds = model.rank(user_id, candidate_item_ids)
                 for mt in ranking_metrics:
                     mt_score = mt.compute(u_ranking_gts, u_ranking_pds)
                     metric_user_results[mt.name][user_id] = mt_score
-                    metric_avg_results[mt.name].append(mt_score)
 
-        res_avg = []
+        metric_avg_results = {}
+
+        # avg results of rating metrics
+        for mt in rating_metrics:
+            if self.user_based: # averaging over users
+                user_results = list(metric_user_results[mt.name].values())
+                metric_avg_results[mt.name] = np.asarray(user_results).mean()
+            else: # averaging over ratings
+                metric_avg_results[mt.name] = mt.compute(np.asarray(all_rating_gts), np.asarray(all_rating_pds))
 
         # avg results of ranking metrics
         for mt in ranking_metrics:
-            metric_avg_results[mt.name] = np.asarray(metric_avg_results[mt.name]).mean()
-
-            res_avg.append(metric_avg_results[mt.name])
-
-        # avg results of rating metrics
-        # rating_gts = np.asarray(rating_gts, dtype=np.float)
-        # rating_pds = np.asarray(rating_pds, dtype=np.float)
-        for mt in rating_metrics:
-            # metric_avg_results[mt.name] = mt.compute(rating_gts, rating_pds)
-            metric_avg_results[mt.name] = np.asarray(metric_avg_results[mt.name]).mean()
-
-            res_avg.append(metric_avg_results[mt.name])
+            user_results = list(metric_user_results[mt.name].values())
+            metric_avg_results[mt.name] = np.asarray(user_results).mean()
 
         return metric_avg_results, metric_user_results

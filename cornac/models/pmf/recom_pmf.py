@@ -9,10 +9,8 @@ import scipy.sparse as sp
 import pmf
 from ..recommender import Recommender
 from ...utils.util_functions import sigmoid
-from ...utils.util_functions import which_
 from ...utils.util_functions import map_to
-from ...utils.util_functions import clipping
-from collections import OrderedDict
+from ...exception import ScoreException
 
 
 class PMF(Recommender):
@@ -58,7 +56,7 @@ class PMF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
-                 trainable=True, init_params={'U': None, 'V': None}):
+                 trainable=True, init_params={'U': None, 'V': None}, verbose=False):
         Recommender.__init__(self, name=name, trainable=trainable)
         self.k = k
         self.init_params = init_params
@@ -72,6 +70,7 @@ class PMF(Recommender):
         self.eps = 0.000000001
         self.U = init_params['U']  # matrix of user factors
         self.V = init_params['V']  # matrix of item factors
+        self.verbose = verbose
 
 
     # fit the recommender model to the traning data
@@ -98,7 +97,10 @@ class PMF(Recommender):
             cid = np.array(cid, dtype='int32')
             tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
             del rid, cid, val
-            print('Learning...')
+
+            if self.verbose:
+                print('Learning...')
+
             if self.variant == 'linear':
                 res = pmf.pmf_linear(tX, k=self.k, n_X=X.shape[0], d_X=X.shape[1], n_epochs=self.max_iter,
                                      lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
@@ -111,8 +113,10 @@ class PMF(Recommender):
                 raise ValueError('variant must be one of {"linear","non_linear"}')
             self.U = sp.csc_matrix(res['U'])
             self.V = sp.csc_matrix(res['V'])
-            print('Learning completed')
-        else:
+
+            if self.verbose:
+                print('Learning completed')
+        elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
 
 
@@ -134,7 +138,7 @@ class PMF(Recommender):
         """
 
         if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
-            return self.train_set.global_mean
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
         user_pred = self.V[item_id, :].todense() * self.U[user_id, :].T.todense()
 
@@ -142,7 +146,7 @@ class PMF(Recommender):
             user_pred = sigmoid(user_pred)
             user_pred = map_to(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
-        return user_pred
+        return np.asscalar(user_pred)
 
 
     def rank(self, user_id, candidate_item_ids=None):
@@ -155,7 +159,7 @@ class PMF(Recommender):
 
         candidate_item_ids: 1d array, optional, default: None
             A list of item indices to be ranked by the user.
-            If None, list of ranked known item indices will be returned
+            If `None`, list of ranked known item indices will be returned
 
         Returns
         -------

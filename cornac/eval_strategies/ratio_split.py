@@ -35,17 +35,25 @@ class RatioSplit(BaseStrategy):
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
 
-    exclude_unknowns: bool, optional, default: True
+    user_based: bool, optional, default: True
+        Performance will be averaged based on number of users for rating metrics.
+        If `False`, averaging over number of ratings will be computed.
+
+    exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
 
+    verbose: bool, optional, default: False
+        Output running log
     """
 
-    def __init__(self, triplet_data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, exclude_unknowns=False):
-        super().__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns)
+    def __init__(self, data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True,
+                 user_based=True, exclude_unknowns=False, verbose=False):
+        super().__init__(self, rating_threshold=rating_threshold, user_based=user_based,
+                         exclude_unknowns=exclude_unknowns, verbose=verbose)
 
-        self._triplet_data = triplet_data
+        self._data = data
         self._shuffle = shuffle
-        self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(triplet_data))
+        self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(data))
         self._split = False
 
 
@@ -82,32 +90,35 @@ class RatioSplit(BaseStrategy):
 
 
     def _split_data(self):
-        print("Splitting the data")
+        if self.verbose:
+            print("Splitting the data")
 
-        if self._shuffle and self._triplet_data is not None:
-            shuffle(self._triplet_data)
+        if self._shuffle and self._data is not None:
+            shuffle(self._data)
 
         global_uid_map = {}
         global_iid_map = {}
         global_ur_set = set() # avoid duplicate rating in the data
 
-        train_data = self._triplet_data[:self._train_size]
-        self.train_set = MatrixTrainSet.from_triplets(train_data, global_uid_map, global_iid_map, global_ur_set)
+        train_data = self._data[:self._train_size]
+        self.train_set = MatrixTrainSet.from_triplets(train_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
 
-        val_data = self._triplet_data[self._train_size:(self._train_size + self._val_size)]
-        self.val_set = TestSet.from_triplets(val_data, global_uid_map, global_iid_map, global_ur_set)
+        val_data = self._data[self._train_size:(self._train_size + self._val_size)]
+        self.val_set = TestSet.from_triplets(val_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
 
-        test_data = self._triplet_data[-self._test_size:]
-        self.test_set = TestSet.from_triplets(test_data, global_uid_map, global_iid_map, global_ur_set)
+        test_data = self._data[-self._test_size:]
+        self.test_set = TestSet.from_triplets(test_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
 
         self._split = True
         self.total_users = len(global_uid_map)
         self.total_items = len(global_iid_map)
-        print('Total users = {}'.format(self.total_users))
-        print('Total items = {}'.format(self.total_items))
+
+        if self.verbose:
+            print('Total users = {}'.format(self.total_users))
+            print('Total items = {}'.format(self.total_items))
 
         # free memory after splitting
-        del self._triplet_data, global_uid_map, global_iid_map, global_ur_set
+        del self._data, global_uid_map, global_iid_map, global_ur_set
 
 
     def evaluate(self, model, metrics):
