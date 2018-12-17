@@ -35,10 +35,6 @@ class RatioSplit(BaseStrategy):
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
 
-    user_based: bool, optional, default: True
-        Performance will be averaged based on number of users for rating metrics.
-        If `False`, averaging over number of ratings will be computed.
-
     exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
 
@@ -47,9 +43,8 @@ class RatioSplit(BaseStrategy):
     """
 
     def __init__(self, data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True,
-                 user_based=True, exclude_unknowns=False, verbose=False):
-        super().__init__(self, rating_threshold=rating_threshold, user_based=user_based,
-                         exclude_unknowns=exclude_unknowns, verbose=verbose)
+                 exclude_unknowns=False, verbose=False):
+        super().__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
 
         self._data = data
         self._shuffle = shuffle
@@ -121,8 +116,8 @@ class RatioSplit(BaseStrategy):
         del self._data, global_uid_map, global_iid_map, global_ur_set
 
 
-    def evaluate(self, model, metrics):
+    def evaluate(self, model, metrics, user_based):
         if not self._split:
             self._split_data()
 
-        return BaseStrategy.evaluate(self, model, metrics)
+        return BaseStrategy.evaluate(self, model, metrics, user_based)

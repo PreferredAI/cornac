@@ -23,6 +23,9 @@ class Experiment:
         A collection of metrics to use to evaluate the recommender models, \
         e.g., [Ndcg, Mrr, Recall].
 
+    user_based: bool, optional, default: True
+        Performance will be averaged based on number of users for rating metrics.
+        If `False`, results will be averaged over number of ratings.
 
     avg_results: DataFrame, default: None
         The average result per model.
@@ -32,11 +35,12 @@ class Experiment:
         Result of user u, of metric m, of model d will be user_results[d][m][u]
     """
 
-    def __init__(self, eval_strategy, models, metrics, verbose=False):
+    def __init__(self, eval_strategy, models, metrics, user_based=True, verbose=False):
         self.eval_strategy = eval_strategy
         self.models = models
         self.metrics = metrics
-        self.verbose = False
+        self.user_based = user_based
+        self.verbose = verbose
 
         self.res = None
         self.std_result = None
@@ -71,7 +75,8 @@ class Experiment:
             model_names.append(model.name)
 
             metric_avg_results, self.user_results[model.name] = self.eval_strategy.evaluate(model=model,
-                                                                                            metrics=organized_metrics)
+                                                                                            metrics=organized_metrics,
+                                                                                            user_based=self.user_based)
 
             avg_res = []
             for mt_name in (ranking_metric_names + rating_metric_names):
