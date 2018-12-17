@@ -5,8 +5,6 @@
 """
 
 
-from ..reader import txt_to_triplets
-
 
 def test_txt_to_triplets():
     """Test txt_to_triplets function"""
@@ -17,6 +15,7 @@ def test_txt_to_triplets():
     r_col = 2
     sep = '\t'
 
+    from ..reader import txt_to_triplets
     triplet_data = txt_to_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     assert len(triplet_data) == 10
