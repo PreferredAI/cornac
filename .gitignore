@@ -4,3 +4,4 @@ cornac/__pycache__
 cornac/models/__pycache__
 cornac/models/*/__pycache__
 cornac/data/__pycache__
+cornac/eval_strategies/__pycache__
