@@ -5,6 +5,8 @@
 """
 
 from scipy.sparse import csr_matrix
+from collections import OrderedDict
+
 
 class TrainSet:
 
@@ -43,8 +45,16 @@ class TrainSet:
         return self._uid_map.values()
 
 
+    def get_raw_uid_list(self):
+        return self._uid_map.keys()
+
+
     def get_iid_list(self):
         return self._iid_map.values()
+
+
+    def get_raw_iid_list(self):
+        return self._iid_map.keys()
 
 
 
@@ -69,8 +79,8 @@ class MatrixTrainSet(TrainSet):
 
     @classmethod
     def from_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
-        uid_map = {}
-        iid_map = {}
+        uid_map = OrderedDict()
+        iid_map = OrderedDict()
 
         u_indices = []
         i_indices = []
