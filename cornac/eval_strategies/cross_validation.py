@@ -6,7 +6,7 @@
 
 import numpy as np
 from ..utils.util_functions import which_
-from .evaluation_strategy import EvaluationStrategy
+from .eval_strategy import EvaluationStrategy
 from .split import Split
 
 

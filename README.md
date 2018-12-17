@@ -43,42 +43,53 @@ Then, please run the appropriate Cornac install command according to your platfo
 
 ### Your first Cornac experiment
 
-This example will show you how to run your very first experiment using Cornac. It consists in training and evaluating the Probabilistic Matrix Factorization (PMF) recommender model.
+This example will show you how to run your very first experiment using Cornac. 
 
+Loading and preparing the Amazon office data (available inside folder 'data/').
 ```python
-# Importing required modules from Cornac.
-from cornac.models import PMF
-from cornac.experiment import Experiment
-from cornac.evaluation_strategies import Split
-from cornac import metrics 
-
-# Importing some additional useful modules.
 from scipy.io import loadmat
 
-# Loading and preparing the Amazon office data (available inside folder 'data/') 
-office= loadmat("data/office.mat")
+office = loadmat("data/office.mat")
 mat_office = office['mat']
-
-# Instantiate a pfm recommender model.
-# Please refer to the documentation for details on parameter settings.
-rec_pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, init_params={'U':None,'V':None})
-
-# Instantiate an evaluation strategy.
-es_split = Split(data = mat_office, prop_test=0.2, prop_validation=0.0, good_rating=4)
-
-# Instantiate evaluation metrics.
-rec = metrics.Recall(m=20)
-pre = metrics.Precision(m=20)
-mae = metrics.MAE()
-rmse = metrics.RMSE()
-
-# Instantiate and then run an experiment.
-res_pmf = Experiment(es_split, [rec_pmf], metrics=[mae, rmse, pre, rec])
-res_pmf.run()
-
-# Get average results.
-res_pmf.average_result
 ```
+
+Instantiate an evaluation strategy.
+```python
+from cornac.eval_strategies import RatioSplit
+
+ratio_split = RatioSplit(data=mat_office, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
+```
+
+Here we use `Probabilistic Matrix Factorization (PMF)` recommender model.
+```python
+from cornac.models import PMF
+
+pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
+```
+
+Instantiate evaluation metrics.
+```python
+from cornac.metrics import Recall, Precision, MAE, RMSE
+
+mae = MAE()
+rmse = RMSE()
+rec_20 = Recall(m=20)
+pre_20 = Precision(m=20)
+```
+
+
+Instantiate and then run an experiment.
+```python
+from cornac.experiment import Experiment
+
+res_pmf = Experiment(eval_strategy=ratio_split,
+                     models=[pmf],
+                     metrics=[mae, rmse, rec_20, pre_20],
+                     user_based=True)
+res_pmf.run()
+```
+
+For more details, take a look at the provided [example](examples/pmf_ratio.py).
 
 ## License
 
