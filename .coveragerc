@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = cornac
+omit =
+    */examples/*
+    */setup.py
