@@ -9,9 +9,8 @@ import scipy.sparse as sp
 import pmf
 from ..recommender import Recommender
 from ...utils.util_functions import sigmoid
-from ...utils.util_functions import which_
 from ...utils.util_functions import map_to
-from ...utils.util_functions import clipping
+from ...exception import ScoreException
 
 
 class PMF(Recommender):
@@ -44,9 +43,6 @@ class PMF(Recommender):
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
-        
-    rating_range: 1d array, optional, default: [None,None]
-        The minimum and maximum rating values, e.g., [1,5]. 
 
     init_params: dictionary, optional, default: {'U':None,'V':None}
         List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
@@ -59,8 +55,9 @@ class PMF(Recommender):
     In NIPS, pp. 1257-1264. 2008.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate = 0.001,gamma = 0.9, lamda = 0.001, name = "pmf", variant ='non_linear', trainable = True, rating_range = [None,None] ,init_params = {'U':None,'V':None}):
-        Recommender.__init__(self,name=name, trainable = trainable)
+    def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
+                 trainable=True, init_params={'U': None, 'V': None}, verbose=False):
+        Recommender.__init__(self, name=name, trainable=trainable)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
@@ -68,113 +65,130 @@ class PMF(Recommender):
         self.gamma = gamma
         self.lamda = lamda
         self.variant = variant
-        
+
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = init_params['U'] #matrix of user factors
-        self.V = init_params['V'] #matrix of item factors
-        self.min_rating = rating_range[0]
-        self.max_rating = rating_range[1]
-        
-        
-    #fit the recommender model to the traning data    
-    def fit(self,X):
+        self.U = init_params['U']  # matrix of user factors
+        self.V = init_params['V']  # matrix of item factors
+        self.verbose = verbose
+
+
+    # fit the recommender model to the traning data
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+
         """
-        if self.min_rating is None:
-            self.min_rating = np.min(X.data)
-        if self.max_rating is None:
-            self.max_rating = np.max(X.data)
+
+        Recommender.fit(self, train_set)
+
+        X = self.train_set.matrix
+
         if self.trainable:
-            #converting data to the triplet format (needed for cython function pmf)
-            (rid,cid,val)=sp.find(X)
-            val = np.array(val,dtype='float32')
-            if self.variant == 'non_linear':   #need to map the ratings to [0,1]
-                if[self.min_rating,self.max_rating] != [0,1]:
-                    val = map_to(val,0.,1.,self.min_rating,self.max_rating)
-            rid = np.array(rid,dtype='int32')
-            cid = np.array(cid,dtype='int32')
-            tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T,val.reshape((len(val),1))),axis = 1)
+            # converting data to the triplet format (needed for cython function pmf)
+            (rid, cid, val) = sp.find(X)
+            val = np.array(val, dtype='float32')
+            if self.variant == 'non_linear':  # need to map the ratings to [0,1]
+                if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
+                    val = map_to(val, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
+            rid = np.array(rid, dtype='int32')
+            cid = np.array(cid, dtype='int32')
+            tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
             del rid, cid, val
-            print('Learning...')
+
+            if self.verbose:
+                print('Learning...')
+
             if self.variant == 'linear':
-                res = pmf.pmf_linear(tX,k = self.k,n_X= X.shape[0], d_X =  X.shape[1], n_epochs = self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate,gamma = self.gamma, init_params = self.init_params)
+                res = pmf.pmf_linear(tX, k=self.k, n_X=X.shape[0], d_X=X.shape[1], n_epochs=self.max_iter,
+                                     lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
+                                     init_params=self.init_params)
             elif self.variant == 'non_linear':
-                res = pmf.pmf_non_linear(tX,k = self.k,n_X= X.shape[0], d_X =  X.shape[1], n_epochs = self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate,gamma = self.gamma, init_params = self.init_params)
+                res = pmf.pmf_non_linear(tX, k=self.k, n_X=X.shape[0], d_X=X.shape[1], n_epochs=self.max_iter,
+                                         lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
+                                         init_params=self.init_params)
             else:
                 raise ValueError('variant must be one of {"linear","non_linear"}')
             self.U = sp.csc_matrix(res['U'])
             self.V = sp.csc_matrix(res['V'])
-            print('Learning completed')
-        else:
-            print('%s is trained already (trainable = False)' % (self.name))
-        
-   
-    
 
-     
-    def score(self, user_index, item_indexes = None):
+            if self.verbose:
+                print('Learning completed')
+        elif self.verbose:
+            print('%s is trained already (trainable = False)' % (self.name))
+
+
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            A relative score that the user gives to the item
         """
-        
-        if item_indexes is None:
-            user_pred = self.V.todense()*self.U[user_index,:].T.todense()
-        else:
-            user_pred = self.V[item_indexes,:].todense()*self.U[user_index,:].T.todense()
-            
-        user_pred = np.array(user_pred,dtype='float64').flatten()
-        
+
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+
+        user_pred = self.V[item_id, :].todense() * self.U[user_id, :].T.todense()
+
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
-            user_pred = map_to(user_pred,self.min_rating,self.max_rating,0.,1.)
-        else:
-            #perform clipping to enforce the predictions to lie in the same range as the original ratings
-            user_pred = clipping(user_pred,self.min_rating,self.max_rating)        
-        return user_pred
-    
-    
-    
-    
-    def rank(self, user_index, known_items = None):
+            user_pred = map_to(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+
+        return np.asscalar(user_pred)
+
+
+    def rank(self, user_id, candidate_item_ids=None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
+
+        candidate_item_ids: 1d array, optional, default: None
+            A list of item indices to be ranked by the user.
+            If `None`, list of ranked known item indices will be returned
 
         Returns
         -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
-        
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+        Numpy 1d array
+            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        """
 
-        return rank_item_list
+        if self.train_set.is_unk_user(user_id):
+            if candidate_item_ids is None:
+                return np.arange(self.train_set.num_items)
+            return candidate_item_ids
+
+        known_item_scores = self.V.todense() * self.U[user_id, :].T.todense()
+        known_item_scores = np.ravel(known_item_scores)
+
+        if self.variant == "non_linear":
+            known_item_scores = sigmoid(known_item_scores)
+            known_item_scores = map_to(known_item_scores, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+
+        if candidate_item_ids is None:
+            ranked_item_ids = known_item_scores.argsort()[::-1]
+            return ranked_item_ids
+        else:
+            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
+            user_pref_scores = np.ones(num_items) * self.default_score()
+            user_pref_scores[:self.train_set.num_items] = known_item_scores
+
+            ranked_item_ids = user_pref_scores.argsort()[::-1]
+            mask = np.in1d(ranked_item_ids, candidate_item_ids)
+            ranked_item_ids = ranked_item_ids[mask]
+
+            return ranked_item_ids
