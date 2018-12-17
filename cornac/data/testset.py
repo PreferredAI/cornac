@@ -31,7 +31,7 @@ class TestSet:
 
 
     @classmethod
-    def from_triplets(self, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set):
+    def from_triplets(self, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
         uid_map = {}
         iid_map = {}
         user_ratings = {}
@@ -48,5 +48,8 @@ class TestSet:
 
             ur_list = user_ratings.setdefault(mapped_uid, [])
             ur_list.append((mapped_iid, float(rating)))
+
+        if verbose:
+            print('Number of tested users = {}'.format(len(user_ratings)))
 
         return self(user_ratings, uid_map, iid_map)

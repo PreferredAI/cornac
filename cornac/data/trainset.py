@@ -58,11 +58,6 @@ class MatrixTrainSet(TrainSet):
         self.min_rating = min_rating
         self.global_mean = global_mean
 
-        print('Number of training users = {}'.format(self.num_users))
-        print('Number of training users = {}'.format(self.num_items))
-        print('Max rating = {:.1f}'.format(self.max_rating))
-        print('Min rating = {:.1f}'.format(self.min_rating))
-        print('Global mean = {:.1f}'.format(self.global_mean))
 
     @property
     def num_users(self):
@@ -73,7 +68,7 @@ class MatrixTrainSet(TrainSet):
         return self.matrix.shape[1]
 
     @classmethod
-    def from_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set):
+    def from_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
         uid_map = {}
         iid_map = {}
 
@@ -111,5 +106,12 @@ class MatrixTrainSet(TrainSet):
         # csr_matrix is more efficient for row (user) slicing
         csr_mat = csr_matrix((r_values, (u_indices, i_indices)), shape=(len(uid_map), len(iid_map)))
         global_mean = rating_sum / rating_count
+
+        if verbose:
+            print('Number of training users = {}'.format(len(uid_map)))
+            print('Number of training users = {}'.format(len(iid_map)))
+            print('Max rating = {:.1f}'.format(max_rating))
+            print('Min rating = {:.1f}'.format(min_rating))
+            print('Global mean = {:.1f}'.format(global_mean))
 
         return cls(csr_mat, max_rating, min_rating, global_mean, uid_map, iid_map)

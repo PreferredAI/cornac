@@ -57,7 +57,8 @@ Instantiate an evaluation strategy.
 ```python
 from cornac.eval_strategies import RatioSplit
 
-ratio_split = RatioSplit(mat_office, test_size=0.2, rating_threshold=4.0)
+ratio_split = RatioSplit(data=mat_office, test_size=0.2, rating_threshold=4.0,
+                         user_based=True, exclude_unknowns=False)
 ```
 
 Here we use `Probabilistic Matrix Factorization (PMF)` recommender model.
@@ -86,8 +87,6 @@ res_pmf = Experiment(eval_strategy=ratio_split,
                      models=[pmf],
                      metrics=[mae, rmse, rec_20, pre_20])
 res_pmf.run()
-
-print(res_pmf.average_result)
 ```
 
 
