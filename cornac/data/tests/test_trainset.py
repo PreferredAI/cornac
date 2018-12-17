@@ -5,9 +5,6 @@
 """
 
 
-from ..reader import txt_to_triplets
-from ..trainset import MatrixTrainSet
-
 data_file = './cornac/data/tests/triplet_data.txt'
 u_col = 0
 i_col = 1
@@ -18,7 +15,10 @@ sep = '\t'
 def test_MatrixTrainSet():
     """Test MatrixTrainSet"""
 
+    from ..reader import txt_to_triplets
     triplet_data = txt_to_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
+
+    from ..trainset import MatrixTrainSet
     train_set = MatrixTrainSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ur_set=set())
 
     assert train_set.num_users == 10
