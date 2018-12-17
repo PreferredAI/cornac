@@ -111,8 +111,9 @@ class PMF(Recommender):
                                          init_params=self.init_params)
             else:
                 raise ValueError('variant must be one of {"linear","non_linear"}')
-            self.U = sp.csc_matrix(res['U'])
-            self.V = sp.csc_matrix(res['V'])
+
+            self.U = np.asarray(res['U'])
+            self.V = np.asarray(res['V'])
 
             if self.verbose:
                 print('Learning completed')
@@ -140,13 +141,13 @@ class PMF(Recommender):
         if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
             raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-        user_pred = self.V[item_id, :].todense() * self.U[user_id, :].T.todense()
+        user_pred = np.matmul(self.V[item_id, :], self.U[user_id, :].T)
 
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
             user_pred = map_to(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
-        return np.asscalar(user_pred)
+        return user_pred
 
 
     def rank(self, user_id, candidate_item_ids=None):
@@ -172,8 +173,7 @@ class PMF(Recommender):
                 return np.arange(self.train_set.num_items)
             return candidate_item_ids
 
-        known_item_scores = self.V.todense() * self.U[user_id, :].T.todense()
-        known_item_scores = np.ravel(known_item_scores)
+        known_item_scores = np.matmul(self.V, self.U[user_id, :].T)
 
         if self.variant == "non_linear":
             known_item_scores = sigmoid(known_item_scores)
