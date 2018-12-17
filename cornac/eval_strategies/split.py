@@ -7,7 +7,7 @@
 import numpy as np
 import scipy.sparse as sp
 from ..utils.util_functions import which_
-from .evaluation_strategy import EvaluationStrategy
+from .eval_strategy import EvaluationStrategy
 import sys
 
 
