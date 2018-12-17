@@ -17,7 +17,7 @@ office = loadmat('data/office.mat')
 mat_office = office['mat']
 
 # Instantiate a PMF recommender model.
-pmf = PMF(k=10, max_iter=0, learning_rate=0.001, lamda=0.001)
+pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 
 # Instantiate an evaluation strategy.
 ratio_split = RatioSplit(data=mat_office, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
