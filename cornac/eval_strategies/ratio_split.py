@@ -17,7 +17,7 @@ class RatioSplit(BaseStrategy):
     Parameters
     ----------
 
-    triplet_data: ...
+    data: ..., required
         The input data in the form of triplets (user, item, rating).
 
     val_size: float, optional, default: 0.0
@@ -28,9 +28,9 @@ class RatioSplit(BaseStrategy):
         The proportion of the test set, \
         if > 1 then it is treated as the size of the test set.
 
-    rating_threshold: float, optional, default: 1
+    rating_threshold: float, optional, default: 1.
         The minimum value that is considered to be a good rating used for ranking, \
-        e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
+        e.g, if the ratings are in {1, ..., 5}, then rating_threshold = 4.
 
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
