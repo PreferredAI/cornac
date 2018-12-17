@@ -23,22 +23,29 @@ class Experiment:
         A collection of metrics to use to evaluate the recommender models, \
         e.g., [Ndcg, Mrr, Recall].
 
-    average_result: DataFrame, default: None
+    user_based: bool, optional, default: True
+        Performance will be averaged based on number of users for rating metrics.
+        If `False`, results will be averaged over number of ratings.
+
+    avg_results: DataFrame, default: None
         The average result per model.
 
-    result_per_user: dictionary, default: {}
-        Results per user for each model.    
+    user_results: dictionary, default: {}
+        Results per user for each model.
+        Result of user u, of metric m, of model d will be user_results[d][m][u]
     """
 
-    def __init__(self, eval_strategy, models, metrics):
+    def __init__(self, eval_strategy, models, metrics, user_based=True, verbose=False):
         self.eval_strategy = eval_strategy
         self.models = models
         self.metrics = metrics
+        self.user_based = user_based
+        self.verbose = verbose
 
         self.res = None
-        self.average_result = None
         self.std_result = None
-        self.result_per_user = {}
+        self.avg_results = None
+        self.user_results = {}
 
     # modify this function to accomodate several models
     def run(self):
@@ -55,26 +62,35 @@ class Experiment:
 
         # Organize metrics into "rating" and "ranking" for efficiency purposes
         for mt in self.metrics:
+            organized_metrics[mt.type].append(mt)
             if mt.type == 'ranking':
-                organized_metrics['ranking'].append(mt)
                 ranking_metric_names.append(mt.name)
-            else:
-                organized_metrics['rating'].append(mt)
+            elif mt.type == 'rating':
                 rating_metric_names.append(mt.name)
 
         for model in self.models:
-            print(model.name)
+            if self.verbose:
+                print(model.name)
+
             model_names.append(model.name)
-            avg_res, self.result_per_user[model.name] = self.eval_strategy.evaluate(model=model, metrics=organized_metrics)
-            if self.average_result is None:
-                self.average_result = avg_res
+
+            metric_avg_results, self.user_results[model.name] = self.eval_strategy.evaluate(model=model,
+                                                                                            metrics=organized_metrics,
+                                                                                            user_based=self.user_based)
+
+            avg_res = []
+            for mt_name in (ranking_metric_names + rating_metric_names):
+                avg_res.append(metric_avg_results.get(mt_name, np.nan))
+
+            if self.avg_results is None:
+                self.avg_results = np.asarray(avg_res)
             else:
-                self.average_result = np.vstack((self.average_result, avg_res))
+                self.avg_results = np.vstack((self.avg_results, np.asarray(avg_res)))
 
         # Formatting the results using the Pandas DataFrame
         if len(self.models) == 1:
-            self.average_result = self.average_result.reshape(1, len(self.metrics))
-        resAvg_dataFrame = pd.DataFrame(data=self.average_result, index=model_names, columns=[*ranking_metric_names,*rating_metric_names])
-        self.average_result = resAvg_dataFrame
-        ##Metrics, take into account the metrics specified by the user
-        del (resAvg_dataFrame)
+            self.avg_results = self.avg_results.reshape(1, len(self.metrics))
+
+        self.avg_results = pd.DataFrame(data=self.avg_results, index=model_names,
+                                        columns=[*ranking_metric_names, *rating_metric_names])
+        print(self.avg_results)

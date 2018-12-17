@@ -7,8 +7,26 @@ import numpy as np
 from ..utils.util_functions import which_
 
 
+class RankingMetric:
+    """Rating Metric.
+
+    Parameters
+    ----------
+    type: string, value: 'ranking'
+        Type of the metric, e.g., "ranking", "rating".
+    """
+
+    def __init__(self, name=None, m=None):
+        self.type = 'ranking'
+        self.name = name
+        self.m = m
+
+    def compute(self, data_test, reclist):
+        pass
+
+
 # todo: take into account 'm' parameter
-class NDCG:
+class NDCG(RankingMetric):
     """Normalized Discount Cumulative Gain.
 
     Parameters
@@ -25,9 +43,7 @@ class NDCG:
     """
 
     def __init__(self, m=None):
-        self.name = 'NDCG'
-        self.type = 'ranking'
-        self.m = m
+        RankingMetric.__init__(self, name='NDCG', m=m)
 
     # Compute nDCG for a single user i
     def compute(self, data_test, reclist):
@@ -50,7 +66,7 @@ class NDCG:
 
 
 # todo: take into account 'm' parameter
-class NCRR:
+class NCRR(RankingMetric):
     """Normalized Cumulative Reciprocal Rank.
 
     Parameters
@@ -67,9 +83,7 @@ class NCRR:
     """
 
     def __init__(self, m=None):
-        self.name = 'NCRR'
-        self.m = m
-        self.type = 'ranking'
+        RankingMetric.__init__(self, name='NCRR', m=m)
 
     # Compute nCRR for a single user i
     def compute(self, data_test, reclist):
@@ -89,7 +103,7 @@ class NCRR:
         return ncrr_i
 
 
-class MRR:
+class MRR(RankingMetric):
     """Mean Reciprocal Rank.
 
     Parameters
@@ -102,8 +116,7 @@ class MRR:
     """
 
     def __init__(self):
-        self.name = 'MRR'
-        self.type = 'ranking'
+        RankingMetric.__init__(self, name='MRR')
 
     # Compute MRR for a single user i
     def compute(self, data_test, reclist):
@@ -117,12 +130,10 @@ class MRR:
         return mrr_i
 
 
-class MeasureAtM:
+class MeasureAtM(RankingMetric):
 
-    def __init__(self, m=20, name=None):
-        self.name = name
-        self.m = m
-        self.type = 'ranking'
+    def __init__(self, name=None, m=20):
+        RankingMetric.__init__(self, name, m)
         self.tp = None
         self.tp_fn = None
         self.tp_fp = None
@@ -133,7 +144,7 @@ class MeasureAtM:
         data_test_bin[which_(data_test, '>', 0)] = 1
 
         pred = np.full(len(data_test), 0)
-        pred[reclist[range(0, self.m)]] = 1
+        pred[reclist[:self.m]] = 1
 
         self.tp = np.sum(pred * data_test_bin)
         self.tp_fn = np.sum(data_test_bin)
@@ -156,7 +167,7 @@ class Precision(MeasureAtM):
     """
 
     def __init__(self, m=20):
-        MeasureAtM.__init__(self, m=m, name="Precision@" + str(m))
+        MeasureAtM.__init__(self, name="Precision@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
     def compute(self, data_test, reclist):
@@ -181,7 +192,7 @@ class Recall(MeasureAtM):
     """
 
     def __init__(self, m=20):
-        MeasureAtM.__init__(self, m=m, name="Recall@" + str(m))
+        MeasureAtM.__init__(self, name="Recall@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
     def compute(self, data_test, reclist):
@@ -206,7 +217,7 @@ class FMeasure(MeasureAtM):
     """
 
     def __init__(self, m=20):
-        MeasureAtM.__init__(self, m=m, name="F1@" + str(m))
+        MeasureAtM.__init__(self, name="F1@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
     def compute(self, data_test, reclist):

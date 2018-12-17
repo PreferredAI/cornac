@@ -3,53 +3,59 @@
 """
 @author: Aghiles Salah
 """
+
 import numpy as np
-from ..utils.util_functions import which_
+
+class RatingMetric:
+    """Rating Metric.
+
+    Parameters
+    ----------
+    name: string,
+        Name of the measure.
+
+    type: string, value: 'rating'
+        Type of the metric, e.g., "ranking", "rating".
+    """
+
+    def __init__(self, name=None):
+        self.type = 'rating'
+        self.name = name
+
+    def compute(self, data_test, prediction):
+        pass
 
 
-class MAE:
+class MAE(RatingMetric):
     """Mean Absolute Error.
 
     Parameters
     ----------
     name: string, value: 'MAE'
         Name of the measure.
-
-    type: string, value: 'prediction'
-        Type of the metric, e.g., "ranking", "prediction".
     """
 
     def __init__(self):
-        self.name = 'MAE'
-        self.type = 'prediction'
+        RatingMetric.__init__(self, name='MAE')
 
-    # Compute MAE for a single user
-    def compute(self, data_test, prediction):
-        index_rated = which_(data_test, '>', 0.)
-        mae_u = np.sum(abs(data_test[index_rated] - prediction[index_rated])) / len(index_rated)
-
-        return mae_u
+    # Compute MAE
+    def compute(self, ground_truths, predictions):
+        mae = np.mean(abs(ground_truths - predictions))
+        return mae
 
 
-class RMSE:
+class RMSE(RatingMetric):
     """Root Mean Squared Error.
 
     Parameters
     ----------
     name: string, value: 'RMSE'
         Name of the measure.
-
-    type: string, value: 'prediction'
-        Type of the metric, e.g., "ranking", "prediction".
     """
-
     def __init__(self):
-        self.name = 'RMSE'
-        self.type = 'prediction'
+        RatingMetric.__init__(self, name='RMSE')
 
-    # Compute MAE for a single user
-    def compute(self, data_test, prediction):
-        index_rated = which_(data_test, '>', 0.)
-        mse_u = np.sum((data_test[index_rated] - prediction[index_rated]) ** 2) / len(index_rated)
-
-        return np.sqrt(mse_u)
+    # Compute RMSE
+    def compute(self, ground_truths, predictions):
+        mse = np.mean((ground_truths - predictions) ** 2)
+        return np.sqrt(mse)

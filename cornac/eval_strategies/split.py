@@ -7,7 +7,7 @@
 import numpy as np
 import scipy.sparse as sp
 from ..utils.util_functions import which_
-from .evaluation_strategy import EvaluationStrategy
+from .eval_strategy import EvaluationStrategy
 import sys
 
 
@@ -158,7 +158,7 @@ class Split(EvaluationStrategy):
             else:
                 known_items = which_(self.data_train[u, :].todense().A1, ">",0)
                 if len(ranking_metrics):
-                    u_rank_list = model.rank(user_index=u,known_items = known_items)
+                    u_rank_list = model.rank(user_id=u, known_items = known_items)
                 if len(rating_metrics):
                     u_pred_scores = model.score(user_index=u, item_indexes = None)
 
