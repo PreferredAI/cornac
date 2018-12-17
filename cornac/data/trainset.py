@@ -23,12 +23,12 @@ class TrainSet:
         return len(self._iid_map)
 
 
-    def is_known_user(self, mapped_uid):
-        return mapped_uid < self.num_users
+    def is_unk_user(self, mapped_uid):
+        return mapped_uid >= self.num_users
 
 
-    def is_known_item(self, mapped_iid):
-        return mapped_iid < self.num_items
+    def is_unk_item(self, mapped_iid):
+        return mapped_iid >= self.num_items
 
 
     def get_uid(self, raw_uid):
@@ -47,6 +47,7 @@ class TrainSet:
         return self._iid_map.values()
 
 
+
 class MatrixTrainSet(TrainSet):
 
     def __init__(self, matrix, max_rating, min_rating, global_mean, uid_map, iid_map):
@@ -63,6 +64,13 @@ class MatrixTrainSet(TrainSet):
         print('Min rating = {:.1f}'.format(self.min_rating))
         print('Global mean = {:.1f}'.format(self.global_mean))
 
+    @property
+    def num_users(self):
+        return self.matrix.shape[0]
+
+    @property
+    def num_items(self):
+        return self.matrix.shape[1]
 
     @classmethod
     def from_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set):
@@ -72,8 +80,11 @@ class MatrixTrainSet(TrainSet):
         u_indices = []
         i_indices = []
         r_values = []
+
         rating_sum = 0.
         rating_count = 0
+        max_rating = float('-inf')
+        min_rating = float('inf')
 
         for raw_uid, raw_iid, rating in triplet_data:
             if (raw_uid, raw_iid) in pre_ur_set: # duplicate rating
@@ -88,6 +99,10 @@ class MatrixTrainSet(TrainSet):
             rating = float(rating)
             rating_sum += rating
             rating_count +=1
+            if rating > max_rating:
+                max_rating = rating
+            if rating < min_rating:
+                min_rating = rating
 
             u_indices.append(mapped_uid)
             i_indices.append(mapped_iid)
@@ -97,4 +112,4 @@ class MatrixTrainSet(TrainSet):
         csr_mat = csr_matrix((r_values, (u_indices, i_indices)), shape=(len(uid_map), len(iid_map)))
         global_mean = rating_sum / rating_count
 
-        return cls(csr_mat, global_mean, uid_map, iid_map)
+        return cls(csr_mat, max_rating, min_rating, global_mean, uid_map, iid_map)
