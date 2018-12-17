@@ -258,29 +258,59 @@
    
     
 
-    <span class="c1">#get prefiction for a single user (predictions for one user at a time for efficiency purposes)</span>
-    <span class="c1">#predictions are not stored for the same efficiency reasons        </span>
-<div class="viewcode-block" id="PCRL.predict"><a class="viewcode-back" href="../../../../models.html#cornac.models.pcrl.recom_pcrl.PCRL.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">index_user</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Predic the scores (ratings) of a user for all items.</span>
+      
+<div class="viewcode-block" id="PCRL.score"><a class="viewcode-back" href="../../../../models.html#cornac.models.pcrl.recom_pcrl.PCRL.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_index</span><span class="p">,</span> <span class="n">item_indexes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Predict the scores/ratings of a user for a list of items.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        index_user: int, required</span>
-<span class="sd">            The index of the user for whom to perform predictions.</span>
+<span class="sd">        user_index: int, required</span>
+<span class="sd">            The index of the user for whom to perform score predictions.</span>
+<span class="sd">            </span>
+<span class="sd">        item_indexes: 1d array, optional, default: None</span>
+<span class="sd">            A list of item indexes for which to predict the rating score.\</span>
+<span class="sd">            When &quot;None&quot;, score prediction is performed for all test items of the given user. </span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        Numpy 1d array </span>
-<span class="sd">            Array containing the predicted values for all items</span>
+<span class="sd">            Array containing the predicted values for the items of interest</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Beta</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Theta</span><span class="p">[</span><span class="n">index_user</span><span class="p">,:]</span><span class="o">.</span><span class="n">T</span>
-        <span class="c1">#transform user_pred to a flatten array, but keep thinking about another possible format</span>
+        <span class="k">if</span> <span class="n">item_indexes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Beta</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Theta</span><span class="p">[</span><span class="n">user_index</span><span class="p">,:]</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Beta</span><span class="p">[</span><span class="n">item_indexes</span><span class="p">,:]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Theta</span><span class="p">[</span><span class="n">user_index</span><span class="p">,:]</span><span class="o">.</span><span class="n">T</span>
+        <span class="c1">#transform user_pred to a flatten array</span>
         <span class="n">user_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">user_pred</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         
-        <span class="k">return</span> <span class="n">user_pred</span></div></div>
+        <span class="k">return</span> <span class="n">user_pred</span></div>
         
         
+    
+<div class="viewcode-block" id="PCRL.rank"><a class="viewcode-back" href="../../../../models.html#cornac.models.pcrl.recom_pcrl.PCRL.rank">[docs]</a>    <span class="k">def</span> <span class="nf">rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_index</span><span class="p">,</span> <span class="n">known_items</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rank all test items for a given user.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        user_index: int, required</span>
+<span class="sd">            The index of the user for whom to perform item raking.</span>
+<span class="sd">        known_items: 1d array, optional, default: None</span>
+<span class="sd">            A list of item indices already known by the user</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Numpy 1d array </span>
+<span class="sd">            Array of item indices sorted (in decreasing order) relative to some user preference scores. </span>
+<span class="sd">        &quot;&quot;&quot;</span>  
+        
+        <span class="n">u_pref_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">user_index</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">known_items</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">u_pref_score</span><span class="p">[</span><span class="n">known_items</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            
+        <span class="n">rank_item_list</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">u_pref_score</span><span class="p">)</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>  <span class="c1"># ordering the items (in decreasing order) according to the preference score</span>
+
+        <span class="k">return</span> <span class="n">rank_item_list</span></div></div>
 </pre></div>
 
            </div>

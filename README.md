@@ -73,5 +73,5 @@ res_pmf = Experiment(es_split, [rec_pmf], metrics=[mae, rmse, pre, rec])
 res_pmf.run()
 
 #Get average results.
-res_pmf.res_avg
+res_pmf.average_result
 ```

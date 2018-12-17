@@ -33,22 +33,22 @@ class BaseStrategy:
         The minimum value that is considered to be a good rating used for ranking, \
         e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
 
-    include_unknowns: bool, optional, default: True
-        Taking into account unknown users and items (cold-start) in the evaluation
+    exclude_unknowns: bool, optional, default: True
+        Ignore unknown users and items (cold-start) during evaluation and testing
 
     """
 
     def __init__(self, train_set=None, val_set=None, test_set=None,
-                 total_users=None, total_items=None, rating_threshold=1., include_unknowns=True):
+                 total_users=None, total_items=None, rating_threshold=1., exclude_unknowns=False):
         self.train_set = train_set
         self.val_set = val_set
         self.test_set = test_set
         self.total_users = total_users
         self.total_items = total_items
         self.rating_threshold = rating_threshold
-        self.include_unknowns = include_unknowns
+        self.exclude_unknowns = exclude_unknowns
         print('Rating threshold = {:.1f}'.format(rating_threshold))
-        print('Including unknowns = {}'.format(include_unknowns))
+        print('exclude_unknowns = {}'.format(exclude_unknowns))
 
 
     def evaluate(self, model, metrics):
@@ -73,7 +73,7 @@ class BaseStrategy:
 
         print("Training started!")
 
-        model.fit_(self.train_set)
+        model.fit(self.train_set)
 
         print("Evaluation started!")
 
@@ -88,28 +88,30 @@ class BaseStrategy:
 
         for i, user_id in enumerate(self.test_set.get_users()):
             if i % 1000 == 0:
-                print(i, "processed users")
+                print(i, "users processed")
 
-            # ignore unknown users when self.include_unknowns=False
-            if not self.train_set.is_known_user(user_id) and not self.include_unknowns:
+            # ignore unknown users when self.exclude_unknown
+            if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue
 
             u_rating_gts = []
             u_rating_pds = []
-            if self.include_unknowns:
-                u_ranking_gts = np.zeros(self.total_items)
-            else:
+            if self.exclude_unknowns:
                 u_ranking_gts = np.zeros(self.train_set.num_items)
+                candidate_item_ids = None # all known items
+            else:
+                u_ranking_gts = np.zeros(self.total_items)
+                candidate_item_ids = range(self.total_items)
 
             for item_id, rating in self.test_set.get_ratings(user_id):
-                # ignore unknown items when self.include_unknowns=False
-                if not self.train_set.is_known_item(item_id) and not self.include_unknowns:
+                # ignore unknown items when self.exclude_unknown
+                if self.exclude_unknowns and self.train_set.is_unk_item(item_id):
                     continue
 
                 rating_gts.append(rating)
                 u_rating_gts.append(rating)
                 if len(rating_metrics) > 0:
-                    prediction = model.score_(user_id, item_id)
+                    prediction = model.score(user_id, item_id)
                     rating_pds.append(prediction)
                     u_rating_pds.append(prediction)
 
@@ -131,7 +133,7 @@ class BaseStrategy:
 
             # per user evaluation for ranking metrics
             if len(ranking_metrics) > 0:
-                u_ranking_pds = model.rank_(user_id)
+                u_ranking_pds = model.rank(user_id, candidate_item_ids)
                 for mt in ranking_metrics:
                     mt_score = mt.compute(u_ranking_gts, u_ranking_pds)
                     metric_user_results[mt.name][user_id] = mt_score
@@ -154,7 +156,4 @@ class BaseStrategy:
 
             res_avg.append(metric_avg_results[mt.name])
 
-        # return metric_avg_results, metric_user_results
-
-        res_tot = {"ResAvg": np.asarray(res_avg), "ResPerUser": metric_user_results}
-        return res_tot
+        return metric_avg_results, metric_user_results

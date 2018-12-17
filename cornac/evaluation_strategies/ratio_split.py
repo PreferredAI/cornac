@@ -35,13 +35,14 @@ class RatioSplit(BaseStrategy):
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
 
-    include_unknowns: bool, optional, default: True
-        Taking into account unknown users and items (cold-start) in the evaluation
+    exclude_unknowns: bool, optional, default: True
+        Ignore unknown users and items (cold-start) during evaluation and testing
 
     """
 
-    def __init__(self, triplet_data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, include_unknowns=True):
-        BaseStrategy.__init__(self, rating_threshold=rating_threshold, include_unknowns=include_unknowns)
+    def __init__(self, triplet_data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, exclude_unknowns=False):
+        super().__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns)
+
         self._triplet_data = triplet_data
         self._shuffle = shuffle
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(triplet_data))
