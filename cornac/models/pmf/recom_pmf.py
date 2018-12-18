@@ -146,7 +146,7 @@ class PMF(Recommender):
         if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
             raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-        user_pred = np.matmul(self.V[item_id, :], self.U[user_id, :].T)
+        user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
