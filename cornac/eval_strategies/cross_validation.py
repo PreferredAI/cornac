@@ -55,7 +55,7 @@ class CrossValidation(BaseStrategy):
 		
 
     # Partition users into n_folds
-    def _get_partition(self):
+"""    def _get_partition(self):
 
         n_fold_partition = np.random.choice(self.n_folds, size=self.n_ratings, replace=True,
                                             p=None)  # sample with replacement
@@ -113,8 +113,8 @@ class CrossValidation(BaseStrategy):
                 resPerU = res_tot["ResPerUser"]
             else:
                 res_tot = self.current_split.evaluate(model=model, metrics=metrics)
-                """ need to figure out how to average the resuls accoording"""
-                resAvg = np.vstack((resAvg, res_tot["ResAvg"]))
+"""                """ need to figure out how to average the resuls accoording"""
+"""                resAvg = np.vstack((resAvg, res_tot["ResAvg"]))
                 resPerU = resPerU + res_tot["ResPerUser"]
 
         avg_resAvg = resAvg.mean(
@@ -131,3 +131,4 @@ class CrossValidation(BaseStrategy):
         # This is a temporary solution, we just return a single structure containing all the results, (may be consider returning an object of class result instead)
         res_tot = {"ResAvg": avg_resAvg[0:len(metrics)], "ResStd": std_resAvg[0:len(metrics)], "ResPerUser": resPerU}
         return res_tot
+"""
