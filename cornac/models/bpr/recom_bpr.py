@@ -6,6 +6,7 @@
 import numpy as np
 from .bpr import *
 from ..recommender import Recommender
+from ...exception import ScoreException
 
 
 class BPR(Recommender):
@@ -117,12 +118,10 @@ class BPR(Recommender):
             The estimated score (e.g., rating) for the user and item of interest
         """
         
-        if item_indexes is None: 
-            user_pred = self.U[user_index, :].dot(self.V.T)
-        else:
-            user_pred = self.U[user_index,:].dot(self.V[item_indexes,:].T)
-        # transform user_pred to a flatten array, but keep thinking about another possible format
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))        
+         
+        user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
         return user_pred
 
