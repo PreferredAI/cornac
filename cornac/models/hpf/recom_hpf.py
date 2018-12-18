@@ -110,6 +110,7 @@ class HPF(Recommender):
             raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
         user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T
+        user_pred = np.array(user_pred, dtype='float64').flatten()[0]
         
         return user_pred
     
@@ -140,6 +141,7 @@ class HPF(Recommender):
             return candidate_item_ids
 
         known_item_scores = self.Beta * self.Theta[user_id, :].T
+        known_item_scores = np.array(known_item_scores, dtype='float64').flatten()
         
         if candidate_item_ids is None:
             ranked_item_ids = known_item_scores.argsort()[::-1]
