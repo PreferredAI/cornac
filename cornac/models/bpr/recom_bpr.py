@@ -165,6 +165,5 @@ class BPR(Recommender):
             ranked_item_ids = ranked_item_ids[mask]
 
             return ranked_item_ids        
-        
-        
+              
         
