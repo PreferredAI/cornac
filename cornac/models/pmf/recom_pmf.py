@@ -43,6 +43,9 @@ class PMF(Recommender):
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
+        
+    verbose: boolean, optional, default: True
+        When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: {'U':None,'V':None}
         List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
@@ -56,7 +59,7 @@ class PMF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
-                 trainable=True, init_params={'U': None, 'V': None}, verbose=False):
+                 trainable=True, verbose=False, init_params={'U': None, 'V': None}):
         Recommender.__init__(self, name=name, trainable=trainable)
         self.k = k
         self.init_params = init_params
