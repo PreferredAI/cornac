@@ -44,7 +44,7 @@ class PMF(Recommender):
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
         
-    verbose: boolean, optional, default: True
+    verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: {'U':None,'V':None}
@@ -60,7 +60,7 @@ class PMF(Recommender):
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
                  trainable=True, verbose=False, init_params={'U': None, 'V': None}):
-        Recommender.__init__(self, name=name, trainable=trainable)
+        Recommender.__init__(self, name=name, trainable=trainable, verbose = verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
@@ -73,7 +73,6 @@ class PMF(Recommender):
         self.eps = 0.000000001
         self.U = init_params['U']  # matrix of user factors
         self.V = init_params['V']  # matrix of item factors
-        self.verbose = verbose
 
 
     # fit the recommender model to the traning data

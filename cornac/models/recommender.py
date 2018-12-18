@@ -25,11 +25,12 @@ class Recommender:
         A collection of recommender models
     """
 
-    def __init__(self, name, trainable=True):
+    def __init__(self, name, trainable=True, verbose = False):
         self.name = name
         self.trainable = trainable
 
         self.train_set = None
+        self.verbose = verbose
         self.perfomance = None
 
 
