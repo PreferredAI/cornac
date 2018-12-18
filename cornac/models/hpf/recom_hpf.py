@@ -27,6 +27,9 @@ class HPF(Recommender):
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model is already \
         pre-trained (Theta and Beta are not None). 
+        
+    verbose: boolean, optional, default: False
+        When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}
         List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}, \
@@ -47,8 +50,8 @@ class HPF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, name="HPF", trainable=True,
-                 init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
-        Recommender.__init__(self, name=name, trainable=trainable)
+                 verbose=False, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
+        Recommender.__init__(self, name=name, trainable=trainable, verbose = verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
@@ -60,21 +63,27 @@ class HPF(Recommender):
         self.Theta = None  # matrix of user factors
         self.Beta = None  # matrix of item factors
 
+
     # fit the recommender model to the traning data
-    def fit(self, X):
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
+
+        Recommender.fit(self, train_set)
+        X = self.train_set.matrix
+
         if self.trainable:
             res = pf(X, k=self.k, max_iter=self.max_iter, init_param=self.init_params)
             self.Theta = res['Z']
             self.Beta = res['W']
-        else:
+        elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
 
 
