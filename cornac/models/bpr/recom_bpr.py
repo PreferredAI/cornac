@@ -35,8 +35,7 @@ class BPR(Recommender):
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
         
-        
-    verbose: boolean, optional, default: True
+    verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: {'U':None,'V':None}
@@ -52,7 +51,7 @@ class BPR(Recommender):
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, lamda=0.001, batch_size=100, name="bpr", trainable=True,
                  verbose=False, init_params={'U': None, 'V': None}):
-        Recommender.__init__(self, name=name, trainable=trainable)
+        Recommender.__init__(self, name=name, trainable=trainable, verbose = verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
@@ -60,7 +59,6 @@ class BPR(Recommender):
         self.learning_rate = learning_rate
         self.lamda = lamda
         self.batch_size = batch_size
-        self.ve
 
         self.U = init_params['U']  # matrix of user factors
         self.V = init_params['V']  # matrix of item factors
@@ -95,8 +93,10 @@ class BPR(Recommender):
                       batch_size=self.batch_size, init_params=self.init_params)
             self.U = res['U']
             self.V = res['V']
-            print('Learning completed')
-        else:
+            
+            if self.verbose:
+                print('Learning completed')
+        elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
 
 
