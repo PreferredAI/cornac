@@ -71,6 +71,13 @@ class Recommender:
         return self.train_set.global_mean
 
 
+    def default_rank(self):
+        """Overwrite this function if your algorithm has special treatment for cold-start problem
+
+        """
+
+        return self.train_set.item_ppl_rank
+
 
     def rate(self, user_id, item_id, clip=True):
         """Give a rating score between pair of user and item
