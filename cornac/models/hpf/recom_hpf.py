@@ -109,7 +109,7 @@ class HPF(Recommender):
         if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
             raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-        user_pred = self.Beta[item_id, :].dot(self.Theta[user_id, :])
+        user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T
         
         return user_pred
     
@@ -139,7 +139,7 @@ class HPF(Recommender):
                 return np.arange(self.train_set.num_items)
             return candidate_item_ids
 
-        known_item_scores = self.Beta.dot(self.Theta[user_id, :])
+        known_item_scores = self.Beta * self.Theta[user_id, :].T
         
         if candidate_item_ids is None:
             ranked_item_ids = known_item_scores.argsort()[::-1]
