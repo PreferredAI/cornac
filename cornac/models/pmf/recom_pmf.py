@@ -169,7 +169,7 @@ class PMF(Recommender):
         """
 
         if self.train_set.is_unk_user(user_id):
-            self.default_rank(candidate_item_ids)
+            return self.default_rank(candidate_item_ids)
 
         known_item_scores = np.matmul(self.V, self.U[user_id, :].T)
 
