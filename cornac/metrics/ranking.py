@@ -8,7 +8,7 @@ from ..utils.util_functions import which_
 
 
 class RankingMetric:
-    """Rating Metric.
+    """Ranking Metric.
 
     Parameters
     ----------

@@ -79,7 +79,10 @@ class PMF(Recommender):
 
         Parameters
         ----------
-
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
 
         Recommender.fit(self, train_set)
@@ -135,7 +138,7 @@ class PMF(Recommender):
         Returns
         -------
         A scalar
-            A relative score that the user gives to the item
+            The estimated score (e.g., rating) for the user and item of interest
         """
 
         if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
