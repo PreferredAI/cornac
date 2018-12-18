@@ -81,7 +81,7 @@ pre_20 = Precision(m=20)
 
 Instantiate and then run an experiment.
 ```python
-from cornac.experiment import Experiment
+from cornac import Experiment
 
 res_pmf = Experiment(eval_strategy=ratio_split,
                      models=[pmf],
