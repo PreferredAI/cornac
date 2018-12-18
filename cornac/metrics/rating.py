@@ -23,7 +23,7 @@ class RatingMetric:
         self.type = 'rating'
         self.name = name
 
-    def compute(self, data_test, prediction):
+    def compute(self, ground_truths, predictions):
         raise NotImplementedError()
 
 

@@ -9,7 +9,7 @@ from ..utils.util_functions import which_
 
 
 class RankingMetric:
-    """Rating Metric.
+    """Ranking Metric.
 
     Parameters
     ----------
@@ -17,12 +17,12 @@ class RankingMetric:
         Type of the metric, e.g., "ranking", "rating".
     """
 
-    def __init__(self, name=None, m=None):
+    def __init__(self, name=None, k=None):
         self.type = 'ranking'
         self.name = name
-        self.m = m
+        self.k = k
 
-    def compute(self, data_test, reclist):
+    def compute(self, ground_truth, rec_list):
         raise NotImplementedError()
 
 
@@ -47,27 +47,29 @@ class NDCG(RankingMetric):
     https://en.wikipedia.org/wiki/Discounted_cumulative_gain
     """
 
-    def __init__(self, m=None):
-        RankingMetric.__init__(self, name='NDCG', m=m)
+    def __init__(self, k=-1):
+        RankingMetric.__init__(self, name='NDCG', k=k)
 
-    # Compute nDCG for a single user i
-    def compute(self, ground_truths, rec_list):
-        # Compute Ideal DCG for user i
-        irankTest_i = np.array(range(1, len(which_(ground_truths, '>', 0)) + 1))
-        irankTest_i = irankTest_i + 1
-        irankTest_i = np.log2(irankTest_i)
-        idcg_i = sum(np.divide(1, irankTest_i))
 
-        # Compute DCG for user i
-        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truths, '>', 0)))[0]
-        rankTest_i = rankTest_i + 1 + 1  # the second +1 because indices starst from 0 in python
-        rankTest_i = np.log2(rankTest_i)
-        dcg_i = sum(np.divide(1, rankTest_i))
+    @staticmethod
+    def dcg_score(ground_truth, rec_list, k):
+        if k > 0:
+            rec_list = rec_list[:k]
 
-        # Compute nDCG for user i
-        ndcg_i = dcg_i / idcg_i
+        ground_truth = np.take(ground_truth, rec_list)
 
-        return ndcg_i
+        gain = 2 ** ground_truth - 1
+        discounts = np.log2(np.arange(len(ground_truth)) + 2)
+
+        return np.sum(gain / discounts)
+
+    # Compute nDCG
+    def compute(self, ground_truth, rec_list):
+        dcg = self.dcg_score(ground_truth, rec_list, self.k)
+        idcg = self.dcg_score(ground_truth, np.argsort(ground_truth)[::-1], self.k)
+        ndcg = dcg / idcg
+
+        return ndcg
 
 
 # todo: take into account 'm' parameter
@@ -87,18 +89,18 @@ class NCRR(RankingMetric):
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, m=None):
-        RankingMetric.__init__(self, name='NCRR', m=m)
+    def __init__(self, k=None):
+        RankingMetric.__init__(self, name='NCRR', k=k)
 
     # Compute nCRR for a single user i
-    def compute(self, ground_truths, rec_list):
+    def compute(self, ground_truth, rec_list):
         # Compute Ideal DCG for user i
-        irankTest_i = np.array(range(1, len(which_(ground_truths, '>', 0)) + 1))
+        irankTest_i = np.arange(1, len(which_(ground_truth, '>', 0)) + 1)
         irankTest_i = irankTest_i
         icrr_i = sum(np.divide(1, irankTest_i))
 
         #### Compute DCG for user i
-        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truths, '>', 0)))[0]
+        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
         rankTest_i = rankTest_i + 1  # the +1 because indices starst from 0 in python
         crr_i = sum(np.divide(1, rankTest_i))
 
@@ -118,14 +120,18 @@ class MRR(RankingMetric):
 
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Mean_reciprocal_rank
     """
 
     def __init__(self):
         RankingMetric.__init__(self, name='MRR')
 
     # Compute MRR for a single user i
-    def compute(self, ground_truths, rec_list):
-        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truths, '>', 0)))[0]
+    def compute(self, ground_truth, rec_list):
+        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
         # if rankTest_i:
         mrr_i = np.divide(1, (rankTest_i[0] + 1))  # +1 beacause indeces start from 0 in python
         # else:
@@ -137,19 +143,19 @@ class MRR(RankingMetric):
 
 class MeasureAtM(RankingMetric):
 
-    def __init__(self, name=None, m=20):
-        RankingMetric.__init__(self, name, m)
+    def __init__(self, name=None, k=20):
+        RankingMetric.__init__(self, name, k)
         self.tp = None
         self.tp_fn = None
         self.tp_fp = None
 
     # Evaluate TopMlist for a single user: Precision@M, Recall@M, F-meansure@M (F1)
-    def measures_at_m(self, ground_truths, rec_list):
-        data_test_bin = np.full(len(ground_truths), 0)
-        data_test_bin[which_(ground_truths, '>', 0)] = 1
+    def measures_at_m(self, ground_truth, rec_list):
+        data_test_bin = np.full(len(ground_truth), 0)
+        data_test_bin[which_(ground_truth, '>', 0)] = 1
 
-        pred = np.full(len(ground_truths), 0)
-        pred[rec_list[:self.m]] = 1
+        pred = np.full(len(ground_truth), 0)
+        pred[rec_list[:self.k]] = 1
 
         self.tp = np.sum(pred * data_test_bin)
         self.tp_fn = np.sum(data_test_bin)
@@ -171,12 +177,12 @@ class Precision(MeasureAtM):
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, m=20):
-        MeasureAtM.__init__(self, name="Precision@" + str(m), m=m)
+    def __init__(self, k=20):
+        MeasureAtM.__init__(self, name="Precision@" + str(k), k=k)
 
     # Compute Precision@M for a single user i
-    def compute(self, ground_truths, rec_list):
-        self.measures_at_m(ground_truths, rec_list)
+    def compute(self, ground_truth, rec_list):
+        self.measures_at_m(ground_truth, rec_list)
         prec = self.tp / self.tp_fp
         return prec
 
@@ -196,12 +202,12 @@ class Recall(MeasureAtM):
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, m=20):
-        MeasureAtM.__init__(self, name="Recall@" + str(m), m=m)
+    def __init__(self, k=20):
+        MeasureAtM.__init__(self, name="Recall@" + str(k), k=k)
 
     # Compute Precision@M for a single user i
-    def compute(self, ground_truths, rec_list):
-        self.measures_at_m(ground_truths, rec_list)
+    def compute(self, ground_truth, rec_list):
+        self.measures_at_m(ground_truth, rec_list)
         rec = self.tp / self.tp_fn
         return rec
 
@@ -221,13 +227,13 @@ class FMeasure(MeasureAtM):
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, m=20):
-        MeasureAtM.__init__(self, name="F1@" + str(m), m=m)
+    def __init__(self, k=20):
+        MeasureAtM.__init__(self, name="F1@" + str(k), k=k)
 
     # Compute Precision@M for a single user i
-    def compute(self, ground_truths, rec_list):
+    def compute(self, ground_truth, rec_list):
 
-        self.measures_at_m(ground_truths, rec_list)
+        self.measures_at_m(ground_truth, rec_list)
         prec = self.tp / self.tp_fp
         rec = self.tp / self.tp_fn
         if (prec + rec):
