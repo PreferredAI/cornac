@@ -61,15 +61,21 @@ class BPR(Recommender):
         self.V = init_params['V']  # matrix of item factors
 
     # fit the recommender model to the traning data
-    def fit(self, X):
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
+        
+        Recommender.fit(self, train_set)
+
+        X = self.train_set.matrix
+        
         if self.trainable:
             # change the data to original user Id item Id and rating format
             cooX = X.tocoo()
@@ -87,25 +93,22 @@ class BPR(Recommender):
         else:
             print('%s is trained already (trainable = False)' % (self.name))
 
-    # get prefiction for a single user (predictions for one user at a time for efficiency purposes)
-    # predictions are not stored for the same efficiency reasons"""
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
         
         if item_indexes is None: 
