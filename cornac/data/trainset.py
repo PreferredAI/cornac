@@ -57,12 +57,10 @@ class TrainSet:
         return self._iid_map.keys()
 
 
-
 class MatrixTrainSet(TrainSet):
 
     def __init__(self, matrix, max_rating, min_rating, global_mean, uid_map, iid_map):
         TrainSet.__init__(self, uid_map, iid_map)
-
         self.matrix = matrix
         self.max_rating = max_rating
         self.min_rating = min_rating
@@ -73,9 +71,11 @@ class MatrixTrainSet(TrainSet):
     def num_users(self):
         return self.matrix.shape[0]
 
+
     @property
     def num_items(self):
         return self.matrix.shape[1]
+
 
     @classmethod
     def from_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
