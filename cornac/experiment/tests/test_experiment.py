@@ -6,13 +6,14 @@
 
 
 def test_Experiment():
-    from ...data import reader
+    from ...data.reader import txt_to_triplets
     from ...eval_strategies.ratio_split import RatioSplit
-    from ...models import PMF
-    from ...metrics import MAE, RMSE, Recall, FMeasure
+    from ...models.pmf.recom_pmf import PMF
+    from ...metrics.rating import MAE, RMSE
+    from ...metrics.ranking import Recall, FMeasure
     from ..experiment import Experiment
 
-    data = reader.txt_to_triplets('./cornac/data/tests/data.txt')
+    data = txt_to_triplets('./cornac/data/tests/data.txt')
     exp = Experiment(eval_strategy=RatioSplit(data),
                      models=[PMF(1, 0)],
                      metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
