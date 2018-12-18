@@ -165,10 +165,10 @@ class Split(EvaluationStrategy):
                 # computing the diffirent metrics
                 idx = 0
                 for mt in ranking_metrics:
-                    res_per_u[u, idx] = mt.compute(data_test=self.data_test_bin[u, :].todense().A1, reclist=u_rank_list)
+                    res_per_u[u, idx] = mt.compute(ground_truths=self.data_test_bin[u, :].todense().A1, rec_list=u_rank_list)
                     idx = idx + 1
                 for mt in rating_metrics:
-                    res_per_u[u, idx] = mt.compute(data_test=self.data_test[u, :].todense().A1, prediction=u_pred_scores)
+                    res_per_u[u, idx] = mt.compute(ground_truths=self.data_test[u, :].todense().A1, predictions=u_pred_scores)
                     idx = idx + 1
                 res_per_u[u, len(ranking_metrics)+len(rating_metrics)] = 1  # This column indicates whether a user have been preprocessed
                 nb_processed_users += 1

@@ -171,7 +171,7 @@ class PMF(Recommender):
         if self.train_set.is_unk_user(user_id):
             if candidate_item_ids is None:
                 return np.arange(self.train_set.num_items)
-            return candidate_item_ids
+            return np.asarray(candidate_item_ids)
 
         known_item_scores = np.matmul(self.V, self.U[user_id, :].T)
 

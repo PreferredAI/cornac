@@ -1,7 +1,9 @@
 [run]
 branch = True
 source = cornac
-include = */cornac/*
+include = 
+    */cornac/*
 omit =
+    */models/*
     */examples/*
     */setup.py
