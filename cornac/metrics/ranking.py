@@ -17,7 +17,7 @@ class RankingMetric:
         Type of the metric, e.g., "ranking", "rating".
     """
 
-    def __init__(self, name=None, k=None):
+    def __init__(self, name=None, k=-1):
         self.type = 'ranking'
         self.name = name
         self.k = k
@@ -32,8 +32,8 @@ class NDCG(RankingMetric):
 
     Parameters
     ----------
-    m: int, optional, default: None
-        The number of items in the top@m list, \
+    k: int, optional, default: -1 (all)
+        The number of items in the top@k list, \
         if None then all items are considered to compute NDCG.
 
     name: string, value: 'NDCG'
@@ -48,7 +48,7 @@ class NDCG(RankingMetric):
     """
 
     def __init__(self, k=-1):
-        RankingMetric.__init__(self, name='NDCG', k=k)
+        RankingMetric.__init__(self, name='NDCG@{}'.format(k), k=k)
 
 
     @staticmethod
@@ -78,8 +78,8 @@ class NCRR(RankingMetric):
 
     Parameters
     ----------
-    m: int, optional, default: None
-        The number of items in the top@m list, \
+    k: int, optional, default: -1 (all)
+        The number of items in the top@k list, \
         if None then all items are considered to compute NDCG.
 
     name: string, value: 'NCRR'
@@ -89,23 +89,24 @@ class NCRR(RankingMetric):
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, k=None):
-        RankingMetric.__init__(self, name='NCRR', k=k)
+    def __init__(self, k=-1):
+        RankingMetric.__init__(self, name='NCRR@{}'.format(k), k=k)
+
 
     # Compute nCRR for a single user i
     def compute(self, ground_truth, rec_list):
-        # Compute Ideal DCG for user i
-        irankTest_i = np.arange(1, len(which_(ground_truth, '>', 0)) + 1)
-        irankTest_i = irankTest_i
-        icrr_i = sum(np.divide(1, irankTest_i))
+        # Compute Ideal CRR
+        ideal_rank = np.arange(len(which_(ground_truth, '>', 0)))
+        ideal_rank = ideal_rank + 1  # +1 because indices starts from 0 in python
+        icrr = np.sum(1. / ideal_rank)
 
-        #### Compute DCG for user i
-        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
-        rankTest_i = rankTest_i + 1  # the +1 because indices starst from 0 in python
-        crr_i = sum(np.divide(1, rankTest_i))
+        # Compute CRR
+        rec_rank = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
+        rec_rank = rec_rank + 1  # +1 because indices starts from 0 in python
+        crr = np.sum(1. / rec_rank)
 
-        # Compute nDCG for user i
-        ncrr_i = crr_i / icrr_i
+        # Compute nDCG
+        ncrr_i = crr / icrr
 
         return ncrr_i
 
@@ -131,109 +132,111 @@ class MRR(RankingMetric):
 
     # Compute MRR for a single user i
     def compute(self, ground_truth, rec_list):
-        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
-        # if rankTest_i:
-        mrr_i = np.divide(1, (rankTest_i[0] + 1))  # +1 beacause indeces start from 0 in python
-        # else:
-        #    mrr_i = 0
-        #    print('Error! only users with at least one heldout item should be evaluated')
+        matched_indices = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
 
-        return mrr_i
+        if len(matched_indices) == 0:
+            raise ValueError('No matched between ground truth and recommended list')
+
+        mrr = np.divide(1, (matched_indices[0] + 1))  # +1 because indices start from 0 in python
+        return mrr
 
 
-class MeasureAtM(RankingMetric):
+class MeasureAtK(RankingMetric):
 
-    def __init__(self, name=None, k=20):
+    def __init__(self, name=None, k=-1):
         RankingMetric.__init__(self, name, k)
         self.tp = None
         self.tp_fn = None
         self.tp_fp = None
 
-    # Evaluate TopMlist for a single user: Precision@M, Recall@M, F-meansure@M (F1)
-    def measures_at_m(self, ground_truth, rec_list):
-        data_test_bin = np.full(len(ground_truth), 0)
-        data_test_bin[which_(ground_truth, '>', 0)] = 1
+    # Evaluate TopK list for a single user: Precision@K, Recall@K, F-meansure@K (F1)
+    def compute(self, ground_truth, rec_list):
+        if self.k > 0:
+            rec_list = rec_list[:self.k]
 
-        pred = np.full(len(ground_truth), 0)
-        pred[rec_list[:self.k]] = 1
+        ground_truth_bin = np.zeros(len(ground_truth))
+        ground_truth_bin[which_(ground_truth, '>', 0)] = 1
 
-        self.tp = np.sum(pred * data_test_bin)
-        self.tp_fn = np.sum(data_test_bin)
+        pred = np.zeros_like(ground_truth_bin)
+        pred[rec_list] = 1
+
+        self.tp = np.sum(pred * ground_truth_bin)
+        self.tp_fn = np.sum(ground_truth_bin)
         self.tp_fp = np.sum(pred)
 
 
-class Precision(MeasureAtM):
-    """Precision@M.
+class Precision(MeasureAtK):
+    """Precision@K.
 
     Parameters
     ----------
-    m: int, optional, default: 20
-        The number of items in the top@m list.
+    k: int, optional, default: -1 (all)
+        The number of items in the top@k list.
         
-    name: string, value: 'Precision@m'
+    name: string, value: 'Precision@k'
         Name of the measure.
 
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, k=20):
-        MeasureAtM.__init__(self, name="Precision@" + str(k), k=k)
+    def __init__(self, k=-1):
+        MeasureAtK.__init__(self, name="Precision@{}".format(k), k=k)
 
-    # Compute Precision@M for a single user i
+    # Compute Precision@K for a single user i
     def compute(self, ground_truth, rec_list):
-        self.measures_at_m(ground_truth, rec_list)
+        super().compute(ground_truth, rec_list)
         prec = self.tp / self.tp_fp
         return prec
 
 
-class Recall(MeasureAtM):
-    """Recall@M.
+class Recall(MeasureAtK):
+    """Recall@K.
 
     Parameters
     ----------
-    m: int, optional, default: 20
-        The number of items in the top@m list.
+    k: int, optional, default: -1 (all)
+        The number of items in the top@k list.
         
-    name: string, value: 'Recall@m'
+    name: string, value: 'Recall@k'
         Name of the measure.
 
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, k=20):
-        MeasureAtM.__init__(self, name="Recall@" + str(k), k=k)
+    def __init__(self, k=-1):
+        MeasureAtK.__init__(self, name="Recall@{}".format(k), k=k)
 
-    # Compute Precision@M for a single user i
+    # Compute Precision@K for a single user i
     def compute(self, ground_truth, rec_list):
-        self.measures_at_m(ground_truth, rec_list)
+        super().compute(ground_truth, rec_list)
         rec = self.tp / self.tp_fn
         return rec
 
 
-class FMeasure(MeasureAtM):
-    """F-measure@M.
+class FMeasure(MeasureAtK):
+    """F-measure@K@.
 
     Parameters
     ----------
-    m: int, optional, default: 20
-        The number of items in the top@m list.
+    k: int, optional, default: -1 (all)
+        The number of items in the top@k list.
         
-    name: string, value: 'F1@m'
+    name: string, value: 'F1@k'
         Name of the measure.
 
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
     """
 
-    def __init__(self, k=20):
-        MeasureAtM.__init__(self, name="F1@" + str(k), k=k)
+    def __init__(self, k=-1):
+        MeasureAtK.__init__(self, name="F1@{}".format(k), k=k)
 
-    # Compute Precision@M for a single user i
+    # Compute Precision@K for a single user i
     def compute(self, ground_truth, rec_list):
+        super().compute(ground_truth, rec_list)
 
-        self.measures_at_m(ground_truth, rec_list)
         prec = self.tp / self.tp_fp
         rec = self.tp / self.tp_fn
         if (prec + rec):
