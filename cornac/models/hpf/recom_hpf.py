@@ -7,6 +7,7 @@
 import numpy as np
 from ..recommender import Recommender
 from .hpf import *
+from ...exception import ScoreException
 
 
 # HierarchicalPoissonFactorization: Hpf
@@ -87,6 +88,7 @@ class HPF(Recommender):
             print('%s is trained already (trainable = False)' % (self.name))
 
 
+
     def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
@@ -113,26 +115,42 @@ class HPF(Recommender):
     
     
 
-    def rank(self, user_index, known_items = None):
+    def rank(self, user_id, candidate_item_ids=None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
+
+        candidate_item_ids: 1d array, optional, default: None
+            A list of item indices to be ranked by the user.
+            If `None`, list of ranked known item indices will be returned
 
         Returns
         -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
+        Numpy 1d array
+            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        """
         
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+        if self.train_set.is_unk_user(user_id):
+            print("I am here")
+            if candidate_item_ids is None:
+                return np.arange(self.train_set.num_items)
+            return candidate_item_ids
 
-        return rank_item_list
+        known_item_scores = self.Beta.dot(self.Theta[user_id, :])
+        
+        if candidate_item_ids is None:
+            ranked_item_ids = known_item_scores.argsort()[::-1]
+            return ranked_item_ids
+        else:
+            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
+            user_pref_scores = np.ones(num_items) * self.default_score()
+            user_pref_scores[:self.train_set.num_items] = known_item_scores
+
+            ranked_item_ids = user_pref_scores.argsort()[::-1]
+            mask = np.in1d(ranked_item_ids, candidate_item_ids)
+            ranked_item_ids = ranked_item_ids[mask]
+
+            return ranked_item_ids
