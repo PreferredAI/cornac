@@ -36,3 +36,15 @@ def clipping(x, min_, max_):
     x[which_(x, '>', max_)] = max_
     x[which_(x, '<', min_)] = min_
     return x
+
+
+def intersects(x, y, assume_unique=False):
+    mask = np.in1d(x, y, assume_unique=assume_unique)
+    x_intersects_y = x[mask]
+    return x_intersects_y
+
+
+def excepts(x, y, assume_unique=False):
+    mask = np.in1d(x, y, assume_unique=assume_unique, invert=True)
+    x_excepts_y = x[mask]
+    return x_excepts_y

@@ -6,6 +6,7 @@ Created on Wed Dec 13 21:18:14 2017
 """
 
 from ..exception import ScoreException
+from ..utils.util_functions import intersects, excepts
 import numpy as np
 
 class Recommender:
@@ -81,8 +82,8 @@ class Recommender:
         if candidate_item_ids is None:
             rank_item_ids = known_item_rank
         else:
-            known_candidate_items = np.intersect1d(known_item_rank, candidate_item_ids, assume_unique=True)
-            unk_candidate_items = np.setdiff1d(known_candidate_items, candidate_item_ids, assume_unique=True)
+            known_candidate_items = intersects(known_item_rank, candidate_item_ids, assume_unique=True)
+            unk_candidate_items = excepts(known_candidate_items, candidate_item_ids, assume_unique=True)
             rank_item_ids = np.concatenate((known_candidate_items, unk_candidate_items))
 
         return rank_item_ids

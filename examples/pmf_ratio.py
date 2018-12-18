@@ -8,8 +8,8 @@ Example to run Probabilistic Matrix Factorization (PMF) model with Ratio Split e
 
 from cornac.models import PMF
 from cornac.eval_strategies import RatioSplit
-from cornac.experiment import Experiment
 from cornac.metrics import Recall, Precision, MAE, RMSE
+from cornac import Experiment
 
 from scipy.io import loadmat
 
