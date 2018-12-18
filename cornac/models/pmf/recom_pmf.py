@@ -10,6 +10,7 @@ import pmf
 from ..recommender import Recommender
 from ...utils.util_functions import sigmoid
 from ...utils.util_functions import map_to
+from ...utils.util_functions import intersects
 from ...exception import ScoreException
 
 
@@ -186,6 +187,6 @@ class PMF(Recommender):
             user_pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = user_pref_scores.argsort()[::-1]
-            ranked_item_ids = np.intersect1d(ranked_item_ids, candidate_item_ids, assume_unique=True)
+            ranked_item_ids = intersects(ranked_item_ids, candidate_item_ids, assume_unique=True)
 
             return ranked_item_ids
