@@ -2,6 +2,7 @@
 
 """
 @author: Aghiles Salah
+         Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 import numpy as np
 from ..utils.util_functions import which_
@@ -22,7 +23,7 @@ class RankingMetric:
         self.m = m
 
     def compute(self, data_test, reclist):
-        pass
+        raise NotImplementedError()
 
 
 # todo: take into account 'm' parameter
@@ -40,21 +41,25 @@ class NDCG(RankingMetric):
 
     type: string, value: 'ranking'
         Type of the metric, e.g., "ranking".
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Discounted_cumulative_gain
     """
 
     def __init__(self, m=None):
         RankingMetric.__init__(self, name='NDCG', m=m)
 
     # Compute nDCG for a single user i
-    def compute(self, data_test, reclist):
+    def compute(self, ground_truths, rec_list):
         # Compute Ideal DCG for user i
-        irankTest_i = np.array(range(1, len(which_(data_test, '>', 0)) + 1))
+        irankTest_i = np.array(range(1, len(which_(ground_truths, '>', 0)) + 1))
         irankTest_i = irankTest_i + 1
         irankTest_i = np.log2(irankTest_i)
         idcg_i = sum(np.divide(1, irankTest_i))
 
         # Compute DCG for user i
-        rankTest_i = np.where(np.in1d(reclist, which_(data_test, '>', 0)))[0]
+        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truths, '>', 0)))[0]
         rankTest_i = rankTest_i + 1 + 1  # the second +1 because indices starst from 0 in python
         rankTest_i = np.log2(rankTest_i)
         dcg_i = sum(np.divide(1, rankTest_i))
@@ -86,14 +91,14 @@ class NCRR(RankingMetric):
         RankingMetric.__init__(self, name='NCRR', m=m)
 
     # Compute nCRR for a single user i
-    def compute(self, data_test, reclist):
+    def compute(self, ground_truths, rec_list):
         # Compute Ideal DCG for user i
-        irankTest_i = np.array(range(1, len(which_(data_test, '>', 0)) + 1))
+        irankTest_i = np.array(range(1, len(which_(ground_truths, '>', 0)) + 1))
         irankTest_i = irankTest_i
         icrr_i = sum(np.divide(1, irankTest_i))
 
         #### Compute DCG for user i
-        rankTest_i = np.where(np.in1d(reclist, which_(data_test, '>', 0)))[0]
+        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truths, '>', 0)))[0]
         rankTest_i = rankTest_i + 1  # the +1 because indices starst from 0 in python
         crr_i = sum(np.divide(1, rankTest_i))
 
@@ -119,8 +124,8 @@ class MRR(RankingMetric):
         RankingMetric.__init__(self, name='MRR')
 
     # Compute MRR for a single user i
-    def compute(self, data_test, reclist):
-        rankTest_i = np.where(np.in1d(reclist, which_(data_test, '>', 0)))[0]
+    def compute(self, ground_truths, rec_list):
+        rankTest_i = np.where(np.in1d(rec_list, which_(ground_truths, '>', 0)))[0]
         # if rankTest_i:
         mrr_i = np.divide(1, (rankTest_i[0] + 1))  # +1 beacause indeces start from 0 in python
         # else:
@@ -139,12 +144,12 @@ class MeasureAtM(RankingMetric):
         self.tp_fp = None
 
     # Evaluate TopMlist for a single user: Precision@M, Recall@M, F-meansure@M (F1)
-    def measures_at_m(self, data_test, reclist):
-        data_test_bin = np.full(len(data_test), 0)
-        data_test_bin[which_(data_test, '>', 0)] = 1
+    def measures_at_m(self, ground_truths, rec_list):
+        data_test_bin = np.full(len(ground_truths), 0)
+        data_test_bin[which_(ground_truths, '>', 0)] = 1
 
-        pred = np.full(len(data_test), 0)
-        pred[reclist[:self.m]] = 1
+        pred = np.full(len(ground_truths), 0)
+        pred[rec_list[:self.m]] = 1
 
         self.tp = np.sum(pred * data_test_bin)
         self.tp_fn = np.sum(data_test_bin)
@@ -170,8 +175,8 @@ class Precision(MeasureAtM):
         MeasureAtM.__init__(self, name="Precision@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
-    def compute(self, data_test, reclist):
-        self.measures_at_m(data_test, reclist)
+    def compute(self, ground_truths, rec_list):
+        self.measures_at_m(ground_truths, rec_list)
         prec = self.tp / self.tp_fp
         return prec
 
@@ -195,8 +200,8 @@ class Recall(MeasureAtM):
         MeasureAtM.__init__(self, name="Recall@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
-    def compute(self, data_test, reclist):
-        self.measures_at_m(data_test, reclist)
+    def compute(self, ground_truths, rec_list):
+        self.measures_at_m(ground_truths, rec_list)
         rec = self.tp / self.tp_fn
         return rec
 
@@ -220,9 +225,9 @@ class FMeasure(MeasureAtM):
         MeasureAtM.__init__(self, name="F1@" + str(m), m=m)
 
     # Compute Precision@M for a single user i
-    def compute(self, data_test, reclist):
+    def compute(self, ground_truths, rec_list):
 
-        self.measures_at_m(data_test, reclist)
+        self.measures_at_m(ground_truths, rec_list)
         prec = self.tp / self.tp_fp
         rec = self.tp / self.tp_fn
         if (prec + rec):
