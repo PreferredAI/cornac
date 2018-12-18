@@ -6,7 +6,7 @@
 
 import numpy as np
 from ..utils.util_functions import which_
-from .eval_strategy import BaseStrategy
+from .base_strategy import BaseStrategy
 from .split import Split
 from ..data import MatrixTrainSet, TestSet
 
