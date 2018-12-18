@@ -178,7 +178,7 @@ class PMF(Recommender):
                 return np.arange(self.train_set.num_items)
             return candidate_item_ids
 
-        known_item_scores = np.matmul(self.V, self.U[user_id, :].T)
+        known_item_scores = self.V.dot(self.U[user_id, :])
 
         if self.variant == "non_linear":
             known_item_scores = sigmoid(known_item_scores)
