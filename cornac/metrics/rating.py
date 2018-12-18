@@ -2,6 +2,7 @@
 
 """
 @author: Aghiles Salah
+         Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
 import numpy as np
@@ -22,8 +23,8 @@ class RatingMetric:
         self.type = 'rating'
         self.name = name
 
-    def compute(self, data_test, prediction):
-        pass
+    def compute(self, ground_truths, predictions):
+        raise NotImplementedError()
 
 
 class MAE(RatingMetric):
@@ -39,9 +40,26 @@ class MAE(RatingMetric):
         RatingMetric.__init__(self, name='MAE')
 
     # Compute MAE
-    def compute(self, ground_truths, predictions):
-        mae = np.mean(abs(ground_truths - predictions))
+    def compute(self, ground_truths, predictions, weights=None):
+        mae = np.average(np.abs(ground_truths - predictions), axis=0, weights=weights)
         return mae
+
+
+class MSE(RatingMetric):
+    """Mean Squared Error.
+
+    Parameters
+    ----------
+    name: string, value: 'MSE'
+        Name of the measure.
+    """
+    def __init__(self):
+        RatingMetric.__init__(self, name='MSE')
+
+    # Compute MSE
+    def compute(self, ground_truths, predictions, weights=None):
+        mse = np.average((ground_truths - predictions) ** 2, axis=0, weights=weights)
+        return mse
 
 
 class RMSE(RatingMetric):
@@ -56,6 +74,6 @@ class RMSE(RatingMetric):
         RatingMetric.__init__(self, name='RMSE')
 
     # Compute RMSE
-    def compute(self, ground_truths, predictions):
-        mse = np.mean((ground_truths - predictions) ** 2)
+    def compute(self, ground_truths, predictions, weights=None):
+        mse = np.average((ground_truths - predictions) ** 2, axis=0, weights=weights)
         return np.sqrt(mse)
