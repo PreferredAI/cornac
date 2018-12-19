@@ -6,6 +6,8 @@
 import numpy as np
 from  .coe import *
 from ..recommender import Recommender
+from ...exception import ScoreException
+
 
 
 class COE(Recommender):
@@ -100,30 +102,29 @@ class COE(Recommender):
     #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     #predictions are not stored for the same efficiency reasons"""
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
         
-        if item_indexes is None:
-            user_pred = np.sum(np.abs(self.V - self.U[user_index, :])**2,axis=-1)**(1./2) 
-        else:
-            user_pred = np.sum(np.abs(self.V[item_indexes,] - self.U[user_index, :])**2,axis=-1)**(1./2)
-        # transform user_pred to a flatten array, but keep thinking about another possible format
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+        
+
+        user_pred = np.sum(np.abs(self.V[item_id,:] - self.U[user_id, :])**2,axis=-1)**(1./2) 
+
 
         return user_pred
     
