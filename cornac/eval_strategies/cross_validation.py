@@ -5,7 +5,7 @@
 """
 
 import numpy as np
-from ..utils.util_functions import which_
+from ..utils.generic_utils import which_
 from .eval_strategy import EvaluationStrategy
 from .split import Split
 

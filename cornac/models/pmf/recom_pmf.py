@@ -8,9 +8,9 @@ import numpy as np
 import scipy.sparse as sp
 import pmf
 from ..recommender import Recommender
-from ...utils.util_functions import sigmoid
-from ...utils.util_functions import map_to
-from ...utils.util_functions import intersects
+from ...utils.generic_utils import sigmoid
+from ...utils.generic_utils import map_to
+from ...utils.generic_utils import intersects
 from ...exception import ScoreException
 
 

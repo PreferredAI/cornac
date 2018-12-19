@@ -4,8 +4,8 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..utils.util_download import DownloadItem
-from ..utils.util_functions import validate_data_format
+from ..utils.download_utils import DownloadItem
+from ..utils.generic_utils import validate_data_format
 from ..data import reader
 
 

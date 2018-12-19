@@ -5,7 +5,7 @@
 """
 
 import os
-from ..util_download import DownloadItem
+from ..download_utils import DownloadItem
 
 
 def test_download_normal_file():
