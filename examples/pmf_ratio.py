@@ -28,8 +28,8 @@ rec_20 = Recall(k=20)
 pre_20 = Precision(k=20)
 
 # Instantiate and then run an experiment.
-res_pmf = Experiment(eval_strategy=ratio_split,
-                     models=[pmf],
-                     metrics=[mae, rmse, rec_20, pre_20],
-                     user_based=True)
-res_pmf.run()
+exp = Experiment(eval_strategy=ratio_split,
+                 models=[pmf],
+                 metrics=[mae, rmse, rec_20, pre_20],
+                 user_based=True)
+exp.run()
