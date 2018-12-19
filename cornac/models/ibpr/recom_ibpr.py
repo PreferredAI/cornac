@@ -65,15 +65,21 @@ class IBPR(Recommender):
         self.V = init_params['V']  # matrix of item factors
 
     # fit the recommender model to the traning data
-    def fit(self, X):
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
+        
+        Recommender.fit(self, train_set)
+
+        X = self.train_set.matrix        
+        
         #change the data to original user Id item Id and rating format
         #X = X.tocoo() # convert sparse matrix to COOrdiante format
         #data = np.ndarray(shape=(len(X.data), 3), dtype=float)
@@ -84,8 +90,8 @@ class IBPR(Recommender):
 
         print('Learning...')
         res = ibpr(X, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
-        self.U = res['U']
-        self.V = res['V']
+        self.U = np.asarray(res['U'])
+        self.V = np.asarray(res['V'])
         print('Learning completed')
 
 
