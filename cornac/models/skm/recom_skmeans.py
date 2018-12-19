@@ -89,34 +89,31 @@ class SKMeans(Recommender):
 
 
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
         
-        if item_indexes is None:
-            user_pred = self.centroids.multiply(self.user_center_sim[user_index, :].T)
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+        
+
+        user_pred = self.centroids[item_id,:].multiply(self.user_center_sim[user_id,:].T)  
             # transform user_pred to a flatten array
-            user_pred = user_pred.sum(0).A1 / (
-                    self.user_center_sim[user_index, :].sum() + 1e-20)  # weighted average of cluster centroids
-        else:
-            user_pred = self.centroids[item_indexes,:].multiply(self.user_center_sim[user_index, item_indexes].T)  
-            # transform user_pred to a flatten array
-            user_pred = user_pred.sum(0).A1 / (
-                    self.user_center_sim[user_index, item_indexes].sum() + 1e-20)  # weighted average of cluster centroids
+        user_pred = user_pred.sum(0).A1 / (
+                    self.user_center_sim[user_id, :].sum() + 1e-20)  # weighted average of cluster centroids
 
         return user_pred
 
