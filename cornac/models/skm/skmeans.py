@@ -11,6 +11,8 @@ def skmeans(X, k=5, max_iter=100, tol=1e-6, verbose=True, init_par=None):
     # The Spherical k-means clustering algorithm
 
     n = X.shape[0]
+    print(n)
+    print(k)
     # normalize rows of X so as they lie on a unit hypersphere
     X = X.multiply(sp.csc_matrix(1. / (np.sqrt(X.multiply(X).sum(1).A1) + 1e-20)).T)
     if init_par is None:

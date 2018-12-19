@@ -50,7 +50,7 @@ class SKMeans(Recommender):
     def __init__(self, k=5, max_iter=100, name="Skmeans", trainable=True, tol=1e-6, verbose=True, init_par=None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.par = init_par
+        self.init_par = init_par
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
@@ -79,9 +79,9 @@ class SKMeans(Recommender):
         X1 = X1.multiply(sp.csc_matrix(1. / (np.sqrt(X1.multiply(X1).sum(1).A1) + 1e-20)).T)
         
         if self.trainable:
-            res = skmeans(X1, k=self.k, max_iter=self.max_iter, tol=self.tol, verbose=self.verbose, init_par=self.par)
+            res = skmeans(X1, k=self.k, max_iter=self.max_iter, tol=self.tol, verbose=self.verbose, init_par=self.init_par)
             self.centroids = res['centroids']
-            self.par = res['partition']
+            self.final_par = res['partition']
         else:
             print('%s is trained already (trainable = False)' % (self.name))
         self.user_center_sim = X1 * self.centroids.T  # user-centroid cosine similarity matrix
