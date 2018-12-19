@@ -54,6 +54,8 @@ def safe_indexing(X, indices):
     """Return items or rows from X using indices.
     Allows simple indexing of lists or arrays.
 
+    Borrowed from https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/utils/__init__.py
+
     Parameters
     ----------
     X : array-like, sparse-matrix, list, pandas.DataFrame, pandas.Series.
@@ -75,3 +77,11 @@ def safe_indexing(X, indices):
             return X[indices]
     else:
         return [X[idx] for idx in indices]
+
+
+def validate_data_format(data_format):
+    data_format = str(data_format).upper()
+    if not data_format in ['UIR', 'UIRT']:
+        raise ValueError('{} data format is not supported!'.format(data_format))
+
+    return data_format
