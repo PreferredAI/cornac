@@ -92,12 +92,14 @@ class IBPR(Recommender):
         #data[:, 1] = X.col
         #data[:, 2] = X.data
         
-
-        print('Learning...')
+        if self.verbose:
+            print('Learning...')
         res = ibpr(X, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
         self.U = np.asarray(res['U'])
         self.V = np.asarray(res['V'])
-        print('Learning completed')
+        
+        if self.verbose:
+            print('Learning completed')
 
 
 
