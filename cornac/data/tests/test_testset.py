@@ -16,11 +16,11 @@ sep = '\t'
 def test_TestSet():
     """Test TestSet"""
 
-    from ..reader import txt_to_triplets
-    triplet_data = txt_to_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
+    from ..reader import txt_to_uir_triplets
+    triplet_data = txt_to_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     from ..testset import TestSet
-    test_set = TestSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ur_set=set())
+    test_set = TestSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ui_set=set())
 
     assert test_set.get_uid('768') == 1
     assert test_set.get_iid('195') == 7
@@ -29,6 +29,6 @@ def test_TestSet():
 
     assert all([a == b for a, b in zip(test_set.get_ratings(2), [(2, 4)])])
 
-    test_set = TestSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
-                                      pre_ur_set=set([('76', '93')]), verbose=True)
+    test_set = TestSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
+                                         pre_ui_set=set([('76', '93')]), verbose=True)
     assert len(test_set.get_users()) == 9
