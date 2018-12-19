@@ -5,7 +5,7 @@
 """
 
 
-def test_Experiment():
+def test_with_ratio_split():
     from ...data import reader
     from ...eval_strategies import RatioSplit
     from ...models import PMF
