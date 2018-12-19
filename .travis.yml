@@ -3,13 +3,13 @@ python:
   - "3.6"
 
 install:
-  - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas h5py pytest pytest-cov codecov --progress-bar off
+  - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas h5py pytest pytest-cov codecov --quiet
   
   # install TensorFlow (CPU version).
-  - pip install tensorflow==1.12.0 --progress-bar off
+  - pip install tensorflow==1.12.0 --quiet
   
   # install PyTorch (CPU version).
-  - pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl --progress-bar off
+  - pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl --quiet
   
   # install other setup extensions.
   - python setup.py install
