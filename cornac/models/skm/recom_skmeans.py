@@ -139,9 +139,7 @@ class SKMeans(Recommender):
         """ 
         
         if self.train_set.is_unk_user(user_id):
-            if candidate_item_ids is None:
-                return np.arange(self.train_set.num_items)
-            return candidate_item_ids
+            return self.default_rank(candidate_item_ids)
         
         
         known_item_scores = self.centroids.multiply(self.user_center_sim[user_id,:].T) 
@@ -153,7 +151,7 @@ class SKMeans(Recommender):
             return ranked_item_ids
         else:
             num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.ones(num_items) * self.default_score()
+            user_pref_scores = np.ones(num_items) * float('-inf')
             user_pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = user_pref_scores.argsort()[::-1]
