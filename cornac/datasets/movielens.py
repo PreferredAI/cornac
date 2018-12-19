@@ -12,13 +12,10 @@ from ..data import reader
 class MovieLens:
 
     def __init__(self):
-        pass
+        super().__init__()
 
 
 class MovieLens100K(MovieLens):
-
-    def __init__(self):
-        super().__init__()
 
     @staticmethod
     def load_data(format='UIR', verbose=False):
@@ -32,9 +29,6 @@ class MovieLens100K(MovieLens):
 
 
 class MovieLens1M(MovieLens):
-
-    def __init__(self):
-        super().__init__()
 
     @staticmethod
     def load_data(format='UIR', verbose=False):
