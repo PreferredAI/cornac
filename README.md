@@ -14,12 +14,7 @@
 [![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## Getting started
-
-Getting started with Cornac is simple and straightforward.
-
-
-### Your first Cornac experiment
+## Getting started: your first Cornac experiment
 
 This example will show you how to run your very first experiment using Cornac. 
 
@@ -50,7 +45,6 @@ rec_20 = cornac.metrics.Recall(k=20)
 pre_20 = cornac.metrics.Precision(k=20)
 ```
 
-
 Instantiate and then run an experiment.
 ```python
 from cornac import Experiment
@@ -72,10 +66,10 @@ PMF  0.760277  0.919413   0.081803        0.0462
 For more details, please take a look at our [examples](examples).
 
 
-### Installation
+## Installation
 
 Currently, we are supporting Python 3 (version 3.6 is recommended), please make sure that you are on the latest pip.
-Then, please run the appropriate Cornac install command according to your platform.
+Then, run the appropriate Cornac install command according to your platform.
 
 * **Linux**:
 	```
@@ -92,7 +86,7 @@ Then, please run the appropriate Cornac install command according to your platfo
  
 	```python
 	# Installing PyTorch is required as this dependency is not handle automatically.
-	pip3 install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl 
+	pip3 install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl
 	pip3 install https://github.com/PreferredAI/cornac/raw/master/dist/cornac-0.1.0-cp36-cp36m-win_amd64.whl
 	```
 
