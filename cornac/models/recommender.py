@@ -6,7 +6,8 @@ Created on Wed Dec 13 21:18:14 2017
 """
 
 from ..exception import ScoreException
-
+from ..utils.util_functions import intersects, excepts
+import numpy as np
 
 class Recommender:
     """Generic class for a recommender model. All recommendation models should inherit from this class 
@@ -71,6 +72,22 @@ class Recommender:
 
         return self.train_set.global_mean
 
+
+    def default_rank(self, candidate_item_ids=None):
+        """Overwrite this function if your algorithm has special treatment for cold-start problem
+
+        """
+
+        known_item_rank = self.train_set.item_ppl_rank
+
+        if candidate_item_ids is None:
+            rank_item_ids = known_item_rank
+        else:
+            known_candidate_items = intersects(known_item_rank, candidate_item_ids, assume_unique=True)
+            unk_candidate_items = excepts(known_candidate_items, candidate_item_ids, assume_unique=True)
+            rank_item_ids = np.concatenate((known_candidate_items, unk_candidate_items))
+
+        return rank_item_ids
 
 
     def rate(self, user_id, item_id, clip=True):

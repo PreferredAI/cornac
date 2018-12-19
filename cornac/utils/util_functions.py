@@ -36,3 +36,42 @@ def clipping(x, min_, max_):
     x[which_(x, '>', max_)] = max_
     x[which_(x, '<', min_)] = min_
     return x
+
+
+def intersects(x, y, assume_unique=False):
+    mask = np.in1d(x, y, assume_unique=assume_unique)
+    x_intersects_y = x[mask]
+    return x_intersects_y
+
+
+def excepts(x, y, assume_unique=False):
+    mask = np.in1d(x, y, assume_unique=assume_unique, invert=True)
+    x_excepts_y = x[mask]
+    return x_excepts_y
+
+
+def safe_indexing(X, indices):
+    """Return items or rows from X using indices.
+    Allows simple indexing of lists or arrays.
+
+    Parameters
+    ----------
+    X : array-like, sparse-matrix, list, pandas.DataFrame, pandas.Series.
+        Data from which to sample rows or items.
+    indices : array-like of int
+        Indices according to which X will be subsampled.
+
+    Returns
+    -------
+    subset
+        Subset of X on first axis
+    """
+    if hasattr(X, "shape"):
+        if hasattr(X, 'take') and (hasattr(indices, 'dtype') and
+                                   indices.dtype.kind == 'i'):
+            # This is often substantially faster than X[indices]
+            return X.take(indices, axis=0)
+        else:
+            return X[indices]
+    else:
+        return [X[idx] for idx in indices]
