@@ -10,6 +10,7 @@ import pmf
 from ..recommender import Recommender
 from ...utils.util_functions import sigmoid
 from ...utils.util_functions import map_to
+from ...utils.util_functions import intersects
 from ...exception import ScoreException
 
 
@@ -169,9 +170,7 @@ class PMF(Recommender):
         """
 
         if self.train_set.is_unk_user(user_id):
-            if candidate_item_ids is None:
-                return np.arange(self.train_set.num_items)
-            return np.asarray(candidate_item_ids)
+            return self.default_rank(candidate_item_ids)
 
         known_item_scores = np.matmul(self.V, self.U[user_id, :].T)
 
@@ -184,11 +183,10 @@ class PMF(Recommender):
             return ranked_item_ids
         else:
             num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.ones(num_items) * self.default_score()
+            user_pref_scores = np.ones(num_items) * self.default_score() # use min_rating to shift unk items to the end
             user_pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = user_pref_scores.argsort()[::-1]
-            mask = np.in1d(ranked_item_ids, candidate_item_ids)
-            ranked_item_ids = ranked_item_ids[mask]
+            ranked_item_ids = intersects(ranked_item_ids, candidate_item_ids, assume_unique=True)
 
             return ranked_item_ids

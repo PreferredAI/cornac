@@ -46,12 +46,16 @@ def test_MatrixTrainSet():
     triplet_data = txt_to_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     from ..trainset import MatrixTrainSet
-    train_set = MatrixTrainSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ur_set=set())
+    train_set = MatrixTrainSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ur_set=set(), verbose=True)
 
     assert train_set.matrix.shape == (10, 10)
     assert train_set.min_rating == 3
     assert train_set.max_rating == 5
+
     assert int(train_set.global_mean) == int((3*2 + 4*7 + 5) / 10)
+
+    assert all([a == b for a, b in zip(train_set.item_ppl_rank,
+                                       [7, 9, 6, 5, 3, 2, 1, 0, 8, 4])])
 
     assert train_set.num_users == 10
     assert train_set.num_items == 10
@@ -61,7 +65,6 @@ def test_MatrixTrainSet():
 
     assert train_set.is_unk_item(3) == False
     assert train_set.is_unk_item(16) == True
-
 
     assert train_set.get_uid('768') == 1
     assert train_set.get_iid('195') == 7
