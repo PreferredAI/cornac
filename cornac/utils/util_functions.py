@@ -75,3 +75,11 @@ def safe_indexing(X, indices):
             return X[indices]
     else:
         return [X[idx] for idx in indices]
+
+
+def validate_data_format(data_format):
+    data_format = str(data_format).upper()
+    if not data_format in ['UIR', 'UIRT']:
+        raise ValueError('{} data format is not supported!'.format(data_format))
+
+    return data_format
