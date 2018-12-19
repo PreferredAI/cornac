@@ -89,7 +89,7 @@ res_pmf = Experiment(eval_strategy=ratio_split,
 res_pmf.run()
 ```
 
-For more details, take a look at the provided [example](examples/pmf_ratio.py).
+For more details, take a look at the provided [examples](examples).
 
 ## License
 
