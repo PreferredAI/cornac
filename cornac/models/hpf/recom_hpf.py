@@ -146,8 +146,8 @@ class HPF(Recommender):
             ranked_item_ids = known_item_scores.argsort()[::-1]
             return ranked_item_ids
         else:
-            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.ones(num_items) * self.default_score()
+            n_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
+            user_pref_scores = np.ones(n_items) * np.sum(u_representation)
             user_pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = user_pref_scores.argsort()[::-1]
@@ -155,3 +155,10 @@ class HPF(Recommender):
             ranked_item_ids = ranked_item_ids[mask]
 
             return ranked_item_ids
+
+
+
+
+
+
+
