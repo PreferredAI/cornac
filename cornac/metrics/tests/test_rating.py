@@ -7,7 +7,7 @@
 import numpy as np
 
 
-def test_RatingMetric():
+def test_rating_metric():
     from ..rating import RatingMetric
     metric = RatingMetric()
 
@@ -20,7 +20,7 @@ def test_RatingMetric():
         assert True
 
 
-def test_MAE():
+def test_mae():
     from ..rating import MAE
     mae = MAE()
 
@@ -32,7 +32,7 @@ def test_MAE():
     assert 2 == mae.compute(np.asarray([0, 1]), np.asarray([2, 3]), np.asarray([1, 3]))
 
 
-def test_MSE():
+def test_mse():
     from ..rating import MSE
     mse = MSE()
 
@@ -44,7 +44,7 @@ def test_MSE():
     assert 4 == mse.compute(np.asarray([0, 1]), np.asarray([2, 3]), np.asarray([1, 3]))
 
 
-def test_RMSE():
+def test_rmse():
     from ..rating import RMSE
     rmse = RMSE()
 
