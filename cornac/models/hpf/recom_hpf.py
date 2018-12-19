@@ -82,8 +82,8 @@ class HPF(Recommender):
 
         if self.trainable:
             res = pf(X, k=self.k, max_iter=self.max_iter, init_param=self.init_params)
-            self.Theta = res['Z']
-            self.Beta = res['W']
+            self.Theta = np.asarray(res['Z'])
+            self.Beta = np.asarray(res['W'])
         elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
 
@@ -109,7 +109,7 @@ class HPF(Recommender):
         if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
             raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-        user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T
+        user_pred = self.Beta[item_id,:].dot(self.Theta[user_id, :])
         user_pred = np.array(user_pred, dtype='float64').flatten()[0]
         
         return user_pred
@@ -135,12 +135,11 @@ class HPF(Recommender):
         """
         
         if self.train_set.is_unk_user(user_id):
-            print("I am here")
-            if candidate_item_ids is None:
-                return np.arange(self.train_set.num_items)
-            return candidate_item_ids
+            u_representation = np.ones(self.k)
+        else:
+            u_representation =  self.Theta[user_id, :]
 
-        known_item_scores = self.Beta * self.Theta[user_id, :].T
+        known_item_scores = self.Beta.dot(u_representation)
         known_item_scores = np.array(known_item_scores, dtype='float64').flatten()
         
         if candidate_item_ids is None:
