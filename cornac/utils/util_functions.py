@@ -54,6 +54,8 @@ def safe_indexing(X, indices):
     """Return items or rows from X using indices.
     Allows simple indexing of lists or arrays.
 
+    Borrowed from https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/utils/__init__.py
+
     Parameters
     ----------
     X : array-like, sparse-matrix, list, pandas.DataFrame, pandas.Series.
