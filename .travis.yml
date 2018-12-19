@@ -3,7 +3,7 @@ python:
   - "3.6"
 
 install:
-  - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas h5py pytest pytest-cov codecov --quiet
+  - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov --quiet
   
   # install TensorFlow (CPU version).
   - pip install tensorflow==1.12.0 --quiet
@@ -16,7 +16,7 @@ install:
 
 script:
   # create dataset directory to avoid concurrent directory creation at runtime
-  - mkdir ~/.cornac/datasets
+  - mkdir -p ~/.cornac/datasets
   - pytest --cov=./
 
 branches:
