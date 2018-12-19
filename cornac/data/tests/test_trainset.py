@@ -42,11 +42,11 @@ def test_MatrixTrainSet():
     r_col = 2
     sep = '\t'
 
-    from ..reader import txt_to_triplets
-    triplet_data = txt_to_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
+    from ..reader import txt_to_uir_triplets
+    triplet_data = txt_to_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     from ..trainset import MatrixTrainSet
-    train_set = MatrixTrainSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ur_set=set(), verbose=True)
+    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ui_set=set(), verbose=True)
 
     assert train_set.matrix.shape == (10, 10)
     assert train_set.min_rating == 3
@@ -78,7 +78,7 @@ def test_MatrixTrainSet():
                                        ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])])
 
 
-    train_set = MatrixTrainSet.from_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
-                                             pre_ur_set=set([('76', '93')]), verbose=True)
+    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
+                                                 pre_ui_set=set([('76', '93')]), verbose=True)
     assert train_set.num_users == 9
     assert train_set.num_items == 9

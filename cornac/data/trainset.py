@@ -86,7 +86,7 @@ class MatrixTrainSet(TrainSet):
         return item_rank
 
     @classmethod
-    def from_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
+    def from_uir_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ui_set, verbose=False):
         uid_map = OrderedDict()
         iid_map = OrderedDict()
 
@@ -100,9 +100,9 @@ class MatrixTrainSet(TrainSet):
         min_rating = float('inf')
 
         for raw_uid, raw_iid, rating in triplet_data:
-            if (raw_uid, raw_iid) in pre_ur_set: # duplicate rating
+            if (raw_uid, raw_iid) in pre_ui_set: # duplicate rating
                 continue
-            pre_ur_set.add((raw_uid, raw_iid))
+            pre_ui_set.add((raw_uid, raw_iid))
 
             mapped_uid = pre_uid_map.setdefault(raw_uid, len(pre_uid_map))
             mapped_iid = pre_iid_map.setdefault(raw_iid, len(pre_iid_map))
@@ -127,7 +127,7 @@ class MatrixTrainSet(TrainSet):
 
         if verbose:
             print('Number of training users = {}'.format(len(uid_map)))
-            print('Number of training users = {}'.format(len(iid_map)))
+            print('Number of training items = {}'.format(len(iid_map)))
             print('Max rating = {:.1f}'.format(max_rating))
             print('Min rating = {:.1f}'.format(min_rating))
             print('Global mean = {:.1f}'.format(global_mean))

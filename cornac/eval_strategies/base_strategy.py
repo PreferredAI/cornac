@@ -17,9 +17,6 @@ class BaseStrategy:
     train_set: :obj:`TrainSet<cornac.data.TrainSet>`, optional, default: None
         The training data.
 
-    val_set: :obj:`TestSet<cornac.data.TestSet>`, optional, default: None
-        The validation data.
-
     test_set: :obj:`TestSet<cornac.data.TestSet>`, optional, default: None
         The test data.
 
@@ -40,11 +37,10 @@ class BaseStrategy:
         Output running log
     """
 
-    def __init__(self, train_set=None, val_set=None, test_set=None,
+    def __init__(self, train_set=None, test_set=None,
                  total_users=None, total_items=None, rating_threshold=1.,
                  exclude_unknowns=False, verbose=False):
         self.train_set = train_set
-        self.val_set = val_set
         self.test_set = test_set
         self.total_users = total_users
         self.total_items = total_items
@@ -69,12 +65,10 @@ class BaseStrategy:
 
         if self.total_users is None:
             self.total_users = len(set(self.train_set.get_uid_list() +
-                                       self.val_set.get_uid_list() +
                                        self.test_set.get_uid_list()))
 
         if self.total_items is None:
             self.total_items = len(set(self.train_set.get_iid_list() +
-                                       self.val_set.get_iid_list() +
                                        self.test_set.get_iid_list()))
 
         if self.verbose:
