@@ -6,21 +6,20 @@ Example to run Probabilistic Matrix Factorization (PMF) model with Ratio Split e
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from cornac.models import PMF
+from cornac.datasets import MovieLens100K
 from cornac.eval_strategies import RatioSplit
-from cornac.metrics import Recall, Precision, MAE, RMSE
+from cornac.models import PMF
+from cornac.metrics import MAE, RMSE, Recall, Precision
 from cornac import Experiment
 
-from scipy.io import loadmat
-
-office = loadmat('data/office.mat')
-mat_office = office['mat']
+# Load the MovieLens 100K dataset
+ml_100k = MovieLens100K.load_data()
 
 # Instantiate a PMF recommender model.
 pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 
 # Instantiate an evaluation strategy.
-ratio_split = RatioSplit(data=mat_office, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
+ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
 
 # Instantiate evaluation metrics.
 mae = MAE()

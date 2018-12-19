@@ -46,22 +46,21 @@ Then, please run the appropriate Cornac install command according to your platfo
 
 This example will show you how to run your very first experiment using Cornac. 
 
-Loading and preparing the Amazon office data (available inside folder 'data/').
+Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset.
 ```python
-from scipy.io import loadmat
+from cornac.datasets import MovieLens100K
 
-office = loadmat("data/office.mat")
-mat_office = office['mat']
+ml_100k = MovieLens100K.load_data()
 ```
 
 Instantiate an evaluation strategy.
 ```python
 from cornac.eval_strategies import RatioSplit
 
-ratio_split = RatioSplit(data=mat_office, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
+ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
 ```
 
-Here we use `Probabilistic Matrix Factorization (PMF)` recommender model.
+Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
 ```python
 from cornac.models import PMF
 
@@ -70,12 +69,12 @@ pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 
 Instantiate evaluation metrics.
 ```python
-from cornac.metrics import Recall, Precision, MAE, RMSE
+from cornac.metrics import MAE, RMSE, Recall, Precision
 
 mae = MAE()
 rmse = RMSE()
-rec_20 = Recall(m=20)
-pre_20 = Precision(m=20)
+rec_20 = Recall(k=20)
+pre_20 = Precision(k=20)
 ```
 
 
@@ -90,7 +89,7 @@ res_pmf = Experiment(eval_strategy=ratio_split,
 res_pmf.run()
 ```
 
-For more details, take a look at the provided [example](examples/pmf_ratio.py).
+For more details, take a look at the provided [examples](examples).
 
 ## License
 

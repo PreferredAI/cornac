@@ -6,7 +6,7 @@
 
 import numpy as np
 
-def test_RankingMetric():
+def test_ranking_metric():
     from ..ranking import RankingMetric
     metric = RankingMetric()
 
@@ -20,7 +20,7 @@ def test_RankingMetric():
         assert True
 
 
-def test_NDCG():
+def test_ndcg():
     from ..ranking import NDCG
     ndcg = NDCG()
 
@@ -41,7 +41,7 @@ def test_NDCG():
     assert 0.63 == float('{:.2f}'.format(ndcg_2.compute(ground_truth, rec_list)))
 
 
-def test_NCRR():
+def test_ncrr():
     from ..ranking import NCRR
     ncrr = NCRR()
 
@@ -66,7 +66,7 @@ def test_NCRR():
     assert 0.5 == ncrr_2.compute(ground_truth, rec_list)
 
 
-def test_MRR():
+def test_mrr():
     from ..ranking import MRR
     mrr = MRR()
 
@@ -91,7 +91,7 @@ def test_MRR():
         assert True
 
 
-def test_MeasureAtK():
+def test_measure_at_k():
     from ..ranking import MeasureAtK
     measure_at_k = MeasureAtK()
 
@@ -112,7 +112,7 @@ def test_MeasureAtK():
     assert 3 == measure_at_k.tp_fp
 
 
-def test_Precision():
+def test_precision():
     from ..ranking import Precision
     prec = Precision()
 
@@ -137,7 +137,7 @@ def test_Precision():
     assert 0.5 == prec_2.compute(ground_truth, rec_list)
 
 
-def test_Recall():
+def test_recall():
     from ..ranking import Recall
     rec = Recall()
 
@@ -162,7 +162,7 @@ def test_Recall():
     assert 1 == rec_2.compute(ground_truth, rec_list)
 
 
-def test_FMeasure():
+def test_f_measure():
     from ..ranking import FMeasure
     f1 = FMeasure()
 
