@@ -4,6 +4,8 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
+from collections import OrderedDict
+
 
 class TestSet:
 
@@ -31,15 +33,23 @@ class TestSet:
 
 
     @classmethod
-    def from_triplets(self, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
-        uid_map = {}
-        iid_map = {}
+    def from_uir_triplets(self, triplet_data, pre_uid_map, pre_iid_map, pre_ui_set, verbose=False):
+        uid_map = OrderedDict()
+        iid_map = OrderedDict()
         user_ratings = {}
 
+        unk_user_count = 0
+        unk_item_count = 0
+
         for raw_uid, raw_iid, rating in triplet_data:
-            if (raw_uid, raw_iid) in pre_ur_set: # duplicate rating
+            if (raw_uid, raw_iid) in pre_ui_set: # duplicate rating
                 continue
-            pre_ur_set.add((raw_uid, raw_iid))
+            pre_ui_set.add((raw_uid, raw_iid))
+
+            if not raw_uid in pre_uid_map:
+                unk_user_count += 1
+            if not raw_iid in pre_iid_map:
+                unk_item_count += 1
 
             mapped_uid = pre_uid_map.setdefault(raw_uid, len(pre_uid_map))
             mapped_iid = pre_iid_map.setdefault(raw_iid, len(pre_iid_map))
@@ -51,5 +61,7 @@ class TestSet:
 
         if verbose:
             print('Number of tested users = {}'.format(len(user_ratings)))
+            print('Number of unknown users = {}'.format(unk_user_count))
+            print('Number of unknown items = {}'.format(unk_item_count))
 
         return self(user_ratings, uid_map, iid_map)

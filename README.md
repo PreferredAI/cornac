@@ -10,6 +10,7 @@
 
 [![Build Status](https://www.travis-ci.org/PreferredAI/cornac.svg?branch=master)](https://www.travis-ci.org/PreferredAI/cornac)
 [![Documentation Status](https://readthedocs.org/projects/cornac/badge/?version=latest)](https://cornac.readthedocs.io/en/latest/?badge=latest)
+[![Codecov](https://codecov.io/gh/PreferredAI/cornac/branch/master/graph/badge.svg)](https://codecov.io/gh/PreferredAI/cornac)
 [![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -80,7 +81,7 @@ pre_20 = Precision(m=20)
 
 Instantiate and then run an experiment.
 ```python
-from cornac.experiment import Experiment
+from cornac import Experiment
 
 res_pmf = Experiment(eval_strategy=ratio_split,
                      models=[pmf],

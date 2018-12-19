@@ -4,10 +4,11 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
+from ..utils.util_functions import safe_indexing
 from math import ceil
-from random import shuffle
 from .base_strategy import BaseStrategy
 from ..data import MatrixTrainSet, TestSet
+import numpy as np
 
 
 class RatioSplit(BaseStrategy):
@@ -19,6 +20,11 @@ class RatioSplit(BaseStrategy):
 
     data: ..., required
         The input data in the form of triplets (user, item, rating).
+
+    data_format: str, optional, default: "UIR"
+        The format of input data:
+        - UIR: (user, item, rating) triplet data
+        - UIRT: (user, item , rating, timestamp) quadruplet data
 
     val_size: float, optional, default: 0.0
         The proportion of the validation set, \
@@ -42,17 +48,29 @@ class RatioSplit(BaseStrategy):
         Output running log
     """
 
-    def __init__(self, data, val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True,
+    def __init__(self, data, data_format='UIR', val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, random_state=None,
                  exclude_unknowns=False, verbose=False):
         super().__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
 
         self._data = data
+        self._data_format = self._validate_data_format(data_format)
         self._shuffle = shuffle
+        self._random_state = random_state
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(data))
         self._split = False
 
 
-    def _validate_sizes(self, val_size, test_size, num_ratings):
+    @staticmethod
+    def _validate_data_format(data_format):
+        data_format = str(data_format).upper()
+        if not data_format in ['UIR', 'UIRT']:
+            raise ValueError('{} data format is not supported!'.format(data_format))
+
+        return data_format
+
+
+    @staticmethod
+    def _validate_sizes(val_size, test_size, num_ratings):
         if val_size is None:
             val_size = 0.0
         elif val_size < 0:
@@ -84,36 +102,54 @@ class RatioSplit(BaseStrategy):
         return int(train_size), int(val_size), int(test_size)
 
 
+    def build_from_uir_format(self, train_data, val_data, test_data):
+        global_uid_map = {}
+        global_iid_map = {}
+        global_ui_set = set() # avoid duplicate ratings in the data
+
+        if self.verbose:
+            print('Building training set')
+        self.train_set = MatrixTrainSet.from_uir_triplets(train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building validation set')
+        self.val_set = TestSet.from_uir_triplets(val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building test set')
+        self.test_set = TestSet.from_uir_triplets(test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        self.total_users = len(global_uid_map)
+        self.total_items = len(global_iid_map)
+
+
     def _split_data(self):
         if self.verbose:
             print("Splitting the data")
 
-        if self._shuffle and self._data is not None:
-            shuffle(self._data)
+        data_idx = np.arange(len(self._data))
 
-        global_uid_map = {}
-        global_iid_map = {}
-        global_ur_set = set() # avoid duplicate rating in the data
+        if self._shuffle:
+            if not self._random_state is None:
+                np.random.set_state(self._random_state)
+            data_idx = np.random.permutation(data_idx)
 
-        train_data = self._data[:self._train_size]
-        self.train_set = MatrixTrainSet.from_triplets(train_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
+        train_idx = data_idx[:self._train_size]
+        val_idx = data_idx[self._train_size:(self._train_size + self._val_size)]
+        test_idx = data_idx[-self._test_size:]
 
-        val_data = self._data[self._train_size:(self._train_size + self._val_size)]
-        self.val_set = TestSet.from_triplets(val_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
+        train_data = safe_indexing(self._data, train_idx)
+        val_data = safe_indexing(self._data, val_idx)
+        test_data = safe_indexing(self._data, test_idx)
 
-        test_data = self._data[-self._test_size:]
-        self.test_set = TestSet.from_triplets(test_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
+        if self._data_format == 'UIR':
+            self.build_from_uir_format(train_data, val_data, test_data)
 
         self._split = True
-        self.total_users = len(global_uid_map)
-        self.total_items = len(global_iid_map)
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
-
-        # free memory after splitting
-        del self._data, global_uid_map, global_iid_map, global_ur_set
 
 
     def evaluate(self, model, metrics, user_based):
