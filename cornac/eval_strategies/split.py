@@ -6,7 +6,7 @@
 
 import numpy as np
 import scipy.sparse as sp
-from ..utils.util_functions import which_
+from ..utils.generic_utils import which_
 from .eval_strategy import EvaluationStrategy
 import sys
 

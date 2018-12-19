@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 import scipy.sparse as sp
 import scipy as sc
-from ...utils.util_data import Dataset
+from ...utils.data_utils import Dataset
 
 
 class PCRL_:

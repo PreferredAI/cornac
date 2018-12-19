@@ -6,7 +6,7 @@ Created on Wed Dec 13 21:18:14 2017
 """
 
 from ..exception import ScoreException
-from ..utils.util_functions import intersects, excepts
+from ..utils.generic_utils import intersects, excepts, clipping
 import numpy as np
 
 class Recommender:
@@ -112,8 +112,7 @@ class Recommender:
             rating_pred = self.default_score()
 
         if clip:
-            rating_pred = max(rating_pred, self.train_set.min_rating)
-            rating_pred = min(rating_pred, self.train_set.max_rating)
+            rating_pred = clipping(rating_pred, self.train_set.min_rating, self.train_set.max_rating)
 
         return rating_pred
 
