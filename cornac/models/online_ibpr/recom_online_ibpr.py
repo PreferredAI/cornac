@@ -6,6 +6,8 @@
 import numpy as np
 from .online_ibpr import *
 from ..recommender import Recommender
+from ...exception import ScoreException
+
 
 
 class OnlineIBPR(Recommender):
@@ -102,30 +104,27 @@ class OnlineIBPR(Recommender):
 
 
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
         
-        if item_indexes is None:
-            user_pred = self.U[user_index, :].dot(self.V.T)
-        else:
-            user_pred = self.U[user_index, :].dot(self.V[item_indexes,:].T)
-        # transform user_pred to a flatten array
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))        
+         
+        user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
         return user_pred
     
