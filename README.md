@@ -48,17 +48,16 @@ This example will show you how to run your very first experiment using Cornac.
 
 Loading and preparing the Amazon office data (available inside folder 'data/').
 ```python
-from scipy.io import loadmat
+from cornac.datasets import MovieLens100K
 
-office = loadmat("data/office.mat")
-mat_office = office['mat']
+ml_100k = MovieLens100K.load_data()
 ```
 
 Instantiate an evaluation strategy.
 ```python
 from cornac.eval_strategies import RatioSplit
 
-ratio_split = RatioSplit(data=mat_office, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
+ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
 ```
 
 Here we use `Probabilistic Matrix Factorization (PMF)` recommender model.
@@ -74,8 +73,8 @@ from cornac.metrics import Recall, Precision, MAE, RMSE
 
 mae = MAE()
 rmse = RMSE()
-rec_20 = Recall(m=20)
-pre_20 = Precision(m=20)
+rec_20 = Recall(k=20)
+pre_20 = Precision(k=20)
 ```
 
 
