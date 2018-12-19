@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..utils.util_functions import safe_indexing
+from ..utils.util_functions import safe_indexing, validate_data_format
 from math import ceil
 from .base_strategy import BaseStrategy
 from ..data import MatrixTrainSet, TestSet
@@ -53,20 +53,12 @@ class RatioSplit(BaseStrategy):
         super().__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
 
         self._data = data
-        self._data_format = self._validate_data_format(data_format)
+        self._data_format = validate_data_format(data_format)
         self._shuffle = shuffle
         self._random_state = random_state
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(data))
         self._split = False
 
-
-    @staticmethod
-    def _validate_data_format(data_format):
-        data_format = str(data_format).upper()
-        if not data_format in ['UIR', 'UIRT']:
-            raise ValueError('{} data format is not supported!'.format(data_format))
-
-        return data_format
 
 
     @staticmethod
