@@ -5,6 +5,9 @@
 """
 
 from scipy.sparse import csr_matrix
+from collections import OrderedDict
+import numpy as np
+
 
 class TrainSet:
 
@@ -43,34 +46,49 @@ class TrainSet:
         return self._uid_map.values()
 
 
+    def get_raw_uid_list(self):
+        return self._uid_map.keys()
+
+
     def get_iid_list(self):
         return self._iid_map.values()
 
+
+    def get_raw_iid_list(self):
+        return self._iid_map.keys()
 
 
 class MatrixTrainSet(TrainSet):
 
     def __init__(self, matrix, max_rating, min_rating, global_mean, uid_map, iid_map):
         TrainSet.__init__(self, uid_map, iid_map)
-
         self.matrix = matrix
         self.max_rating = max_rating
         self.min_rating = min_rating
         self.global_mean = global_mean
+        self.item_ppl_rank = self._rank_items_by_popularity(matrix)
 
 
     @property
     def num_users(self):
         return self.matrix.shape[0]
 
+
     @property
     def num_items(self):
         return self.matrix.shape[1]
 
+
+    @staticmethod
+    def _rank_items_by_popularity(rating_matrix):
+        item_ppl_scores = rating_matrix.sum(axis=0)
+        item_rank = np.argsort(item_ppl_scores.A1)[::-1]
+        return item_rank
+
     @classmethod
-    def from_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ur_set, verbose=False):
-        uid_map = {}
-        iid_map = {}
+    def from_uir_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ui_set, verbose=False):
+        uid_map = OrderedDict()
+        iid_map = OrderedDict()
 
         u_indices = []
         i_indices = []
@@ -82,9 +100,9 @@ class MatrixTrainSet(TrainSet):
         min_rating = float('inf')
 
         for raw_uid, raw_iid, rating in triplet_data:
-            if (raw_uid, raw_iid) in pre_ur_set: # duplicate rating
+            if (raw_uid, raw_iid) in pre_ui_set: # duplicate rating
                 continue
-            pre_ur_set.add((raw_uid, raw_iid))
+            pre_ui_set.add((raw_uid, raw_iid))
 
             mapped_uid = pre_uid_map.setdefault(raw_uid, len(pre_uid_map))
             mapped_iid = pre_iid_map.setdefault(raw_iid, len(pre_iid_map))
@@ -109,7 +127,7 @@ class MatrixTrainSet(TrainSet):
 
         if verbose:
             print('Number of training users = {}'.format(len(uid_map)))
-            print('Number of training users = {}'.format(len(iid_map)))
+            print('Number of training items = {}'.format(len(iid_map)))
             print('Max rating = {:.1f}'.format(max_rating))
             print('Min rating = {:.1f}'.format(min_rating))
             print('Global mean = {:.1f}'.format(global_mean))
