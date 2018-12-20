@@ -53,12 +53,10 @@ pre_20 = cornac.metrics.Precision(k=20)
 
 Instantiate and then run an experiment.
 ```python
-from cornac import Experiment
-
-exp = Experiment(eval_strategy=ratio_split,
-                 models=[pmf],
-                 metrics=[mae, rmse, rec_20, pre_20],
-                 user_based=True)
+exp = cornac.Experiment(eval_strategy=ratio_split,
+                        models=[pmf],
+                        metrics=[mae, rmse, rec_20, pre_20],
+                        user_based=True)
 exp.run()
 ```
 
