@@ -115,12 +115,13 @@ class Experiment:
                     if f not in self.set_avg_results:
                         self.set_avg_results[f] = []
                     self.set_avg_results[f].append([metric_avg_results[f].get(mt_name, np.nan) for mt_name in metric_names]) 
-                    
+           
+        print(self.set_avg_results)    
         if len(self.avg_results) > 0:
             self.avg_results = pd.DataFrame(data=np.asarray(self.avg_results), index=model_names, columns=metric_names)
             
         if len(self.set_avg_results) > 0:
             for f in self.set_avg_results:
-                self.set_avg_results[f] = pd.DataFrame(data=np.asarray(self.self.set_avg_results[f]), index=model_names, columns=metric_names)
+                self.set_avg_results[f] = pd.DataFrame(data=np.asarray(self.set_avg_results[f]), index=model_names, columns=metric_names)
             
         #print(self.set_avg_results)
