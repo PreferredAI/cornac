@@ -50,22 +50,13 @@ class RatioSplit(BaseStrategy):
 
     def __init__(self, data, data_format='UIR', val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, random_state=None,
                  exclude_unknowns=False, verbose=False):
-        super().__init__(self, data = data, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
+        super().__init__(self, data = data, data_format='UIR', rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
 
-        self._data_format = self._validate_data_format(data_format)
         self._shuffle = shuffle
         self._random_state = random_state
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(data))
         self._split_run = False
 
-
-    @staticmethod
-    def _validate_data_format(data_format):
-        data_format = str(data_format).upper()
-        if not data_format in ['UIR', 'UIRT']:
-            raise ValueError('{} data format is not supported!'.format(data_format))
-
-        return data_format
 
 
     @staticmethod
