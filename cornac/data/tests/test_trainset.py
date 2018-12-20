@@ -5,7 +5,7 @@
 """
 
 
-def test_TrainSet():
+def test_trainset():
     """Test TrainSet"""
 
     uid_map = {'a': 0, 'b': 1}
@@ -33,7 +33,7 @@ def test_TrainSet():
     assert all([a == b for a, b in zip(train_set.get_raw_iid_list(), ['x', 'y', 'z'])])
 
 
-def test_MatrixTrainSet():
+def test_matrix_trainset():
     """Test MatrixTrainSet"""
 
     data_file = './cornac/data/tests/data.txt'

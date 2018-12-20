@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+
+"""
+@author: Aghiles Salah
+         Quoc-Tuan Truong <tuantq.vnu@gmail.com>
+"""
+
+
+
 import operator
 import numpy as np
 
 
-# util functions
 def which_(a, op, x):
     ops = {'>': operator.gt,
            '<': operator.lt,
@@ -31,10 +39,10 @@ def map_to(x, t_min, t_max, o_min=None, o_max=None):
     return ((x - o_min) / (o_max - o_min)) * (t_max - t_min) + t_min
 
 
-# Perfom clipping to enforce values to lie in a specific range [min_,max_]
+# Perform clipping to enforce values to lie in a specific range [min_,max_]
 def clipping(x, min_, max_):
-    x[which_(x, '>', max_)] = max_
-    x[which_(x, '<', min_)] = min_
+    x = np.where(x > max_, max_, x)
+    x = np.where(x < min_, min_, x)
     return x
 
 
@@ -53,6 +61,7 @@ def excepts(x, y, assume_unique=False):
 def safe_indexing(X, indices):
     """Return items or rows from X using indices.
     Allows simple indexing of lists or arrays.
+    Borrowed from https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/utils/__init__.py
 
     Parameters
     ----------
@@ -75,3 +84,11 @@ def safe_indexing(X, indices):
             return X[indices]
     else:
         return [X[idx] for idx in indices]
+
+
+def validate_data_format(data_format):
+    data_format = str(data_format).upper()
+    if not data_format in ['UIR', 'UIRT']:
+        raise ValueError('{} data format is not supported!'.format(data_format))
+
+    return data_format
