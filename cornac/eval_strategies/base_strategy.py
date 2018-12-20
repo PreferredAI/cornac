@@ -6,6 +6,8 @@
 
 
 from ..data import MatrixTrainSet, TestSet
+from ..utils.generic_utils import validate_data_format
+
 import numpy as np
 
 
@@ -43,7 +45,7 @@ class BaseStrategy:
                  total_users=None, total_items=None, rating_threshold=1.,
                  exclude_unknowns=False, verbose=False):
         self._data = data
-        self._data_format = self._validate_data_format(data_format)
+        self._data_format = validate_data_format(data_format)
         self.train_set = train_set
         self.test_set = test_set
         self.total_users = total_users
@@ -154,14 +156,6 @@ class BaseStrategy:
 
         return metric_avg_results, metric_user_results
     
-
-    @staticmethod
-    def _validate_data_format(data_format):
-        data_format = str(data_format).upper()
-        if not data_format in ['UIR', 'UIRT']:
-            raise ValueError('{} data format is not supported!'.format(data_format))
-
-        return data_format
 
 
     def build_from_uir_format(self, train_data, val_data, test_data):
