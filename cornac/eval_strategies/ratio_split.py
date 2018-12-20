@@ -57,7 +57,7 @@ class RatioSplit(BaseStrategy):
         self._shuffle = shuffle
         self._random_state = random_state
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(data))
-        self._split = False
+        self._split_run = False
 
 
     @staticmethod
@@ -102,7 +102,7 @@ class RatioSplit(BaseStrategy):
         return int(train_size), int(val_size), int(test_size)
     
     
-    def build_train_test_val(self,train_idx, test_idx, val_idx, data_format = 'UIR'):
+    def build_train_val_test(self, train_idx, val_idx, test_idx, data_format = 'UIR'):
         
         train_data = safe_indexing(self._data, train_idx)
         val_data = safe_indexing(self._data, val_idx)
@@ -110,30 +110,9 @@ class RatioSplit(BaseStrategy):
 
         if self._data_format == 'UIR':
             self.build_from_uir_format(train_data, val_data, test_data)
+            
 
-
-    def build_from_uir_format(self, train_data, val_data, test_data):
-        global_uid_map = {}
-        global_iid_map = {}
-        global_ui_set = set() # avoid duplicate ratings in the data
-
-        if self.verbose:
-            print('Building training set')
-        self.train_set = MatrixTrainSet.from_uir_triplets(train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        if self.verbose:
-            print('Building validation set')
-        self.val_set = TestSet.from_uir_triplets(val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        if self.verbose:
-            print('Building test set')
-        self.test_set = TestSet.from_uir_triplets(test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        self.total_users = len(global_uid_map)
-        self.total_items = len(global_iid_map)
-
-
-    def _split_data(self):
+    def split(self):
         if self.verbose:
             print("Splitting the data")
 
@@ -148,9 +127,9 @@ class RatioSplit(BaseStrategy):
         val_idx = data_idx[self._train_size:(self._train_size + self._val_size)]
         test_idx = data_idx[-self._test_size:]
 
-        self.build_train_test_val(self,train_idx, val_idx, test_idx)
+        self.build_train_val_test(self,train_idx, val_idx, test_idx)
 
-        self._split = True
+        self._split_run = True
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
@@ -158,7 +137,7 @@ class RatioSplit(BaseStrategy):
 
 
     def evaluate(self, model, metrics, user_based):
-        if not self._split:
-            self._split_data()
+        if not self._split_run:
+            self.split()
 
         return BaseStrategy.evaluate(self, model, metrics, user_based)
