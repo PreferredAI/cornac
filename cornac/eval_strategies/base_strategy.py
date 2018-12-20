@@ -39,9 +39,10 @@ class BaseStrategy:
         Output running log
     """
 
-    def __init__(self, train_set=None, test_set=None,
+    def __init__(self, data, train_set=None, test_set=None,
                  total_users=None, total_items=None, rating_threshold=1.,
                  exclude_unknowns=False, verbose=False):
+        self._data = data
         self.train_set = train_set
         self.test_set = test_set
         self.total_users = total_users

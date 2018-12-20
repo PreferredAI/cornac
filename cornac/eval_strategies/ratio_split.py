@@ -50,9 +50,8 @@ class RatioSplit(BaseStrategy):
 
     def __init__(self, data, data_format='UIR', val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, random_state=None,
                  exclude_unknowns=False, verbose=False):
-        super().__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
+        super().__init__(self, data = data, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
 
-        self._data = data
         self._data_format = self._validate_data_format(data_format)
         self._shuffle = shuffle
         self._random_state = random_state
