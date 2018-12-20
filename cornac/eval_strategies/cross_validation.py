@@ -6,10 +6,9 @@
 
 import numpy as np
 from ..utils.util_functions import which_
-from .base_strategy import BaseStrategy
-#from .ratio_split import 
-from .split import Split
-from ..data import MatrixTrainSet, TestSet
+from .base_strategy import BaseStrategy 
+from ..utils.util_functions import safe_indexing
+
 
 
 class CrossValidation(BaseStrategy):
@@ -49,6 +48,7 @@ class CrossValidation(BaseStrategy):
                  exclude_unknowns=False, verbose=False):
         BaseStrategy.__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns,
                                     verbose=verbose)
+        self._data = data
         self.n_folds = n_folds
         self.partition = partition
         self.current_fold = 0
@@ -70,25 +70,14 @@ class CrossValidation(BaseStrategy):
     # This function is used to get the next train_test data
     def _get_next_train_test_split(self):
 
-        idx_test = np.where(self.partition == self.current_fold)[0]
-        idx_train = np.where(self.partition != self.current_fold)[0]
+        test_idx = np.where(self.partition == self.current_fold)[0]
+        train_idx = np.where(self.partition != self.current_fold)[0]
 		
-        global_uid_map = {}
-        global_iid_map = {}
-        global_ur_set = set() # avoid duplicate rating in the data
+        train_data = safe_indexing(self._data, train_idx)
+        test_data = safe_indexing(self._data, test_idx)
 
-        train_data = self._data[idx_train]
-        self.train_set = MatrixTrainSet.from_triplets(train_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
-
-        #val_data = self._data[self._train_size:(self._train_size + self._val_size)]
-        #self.val_set = TestSet.from_triplets(val_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
-
-        test_data = self._data[idx_test]
-        self.test_set = TestSet.from_triplets(test_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
-
-        #self._split = True
-        self.total_users = len(global_uid_map)
-        self.total_items = len(global_iid_map)
+        if self._data_format == 'UIR':
+            self.build_from_uir_format(train_data, val_data, test_data)
 		
 		
         #self.current_split = Split(self.data, rating_threshold=self.rating_threshold, index_train=index_train,
