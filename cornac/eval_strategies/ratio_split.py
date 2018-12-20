@@ -52,6 +52,11 @@ class RatioSplit(BaseStrategy):
                  exclude_unknowns=False, verbose=False):
         BaseStrategy.__init__(self, data = data, data_format='UIR', rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
 
+<<<<<<< HEAD
+=======
+        self._data = data
+        self._data_format = validate_data_format(data_format)
+>>>>>>> upstream/master
         self._shuffle = shuffle
         self._random_state = random_state
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(self._data))
