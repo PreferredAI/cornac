@@ -42,14 +42,14 @@ class CrossValidation(BaseStrategy):
     """
 
     def __init__(self, data, data_format='UIR', n_folds=5, rating_threshold=1., partition=None,
-                 exclude_unknowns=False, verbose=False):
+                 exclude_unknowns=True, verbose=False):
         BaseStrategy.__init__(self, data=data, data_format = data_format, rating_threshold=rating_threshold,
                               exclude_unknowns=exclude_unknowns, verbose=verbose)
         self.n_folds = n_folds
         self.partition = partition
         self.current_fold = 0
         self.current_split = None
-        self.n_ratings = data.shape[0]
+        self.n_ratings = self._data.shape[0]
 		
 
     # Partition ratings into n_folds
@@ -66,6 +66,9 @@ class CrossValidation(BaseStrategy):
 
 
     def _get_next_train_test_sets(self):
+        
+        if self.verbose:
+            print('Fold: {}'.format(self.current_fold+1))
 
         test_idx = np.where(self.partition == self.current_fold)[0]
         train_idx = np.where(self.partition != self.current_fold)[0]
@@ -87,7 +90,6 @@ class CrossValidation(BaseStrategy):
             self.current_fold = 0
             
         if self.verbose:
-            print('Fold: {}'.format(self.current_fold))
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
 
@@ -106,18 +108,5 @@ class CrossValidation(BaseStrategy):
             fold_name = 'fold:'+str(self.current_fold)
             per_fold_avg_res[fold_name] = avg_res
             per_fold_user_res[fold_name] = per_user_res
-
-        """
-        avg_resAvg = resAvg.mean(
-            0)  # we are averaging the average results across the n_folds, another possibility is to make it per-user?
-        std_resAvg = resAvg.std(0, ddof=1)
-
-        # Averaging the results per-user across diffirent folds
-        n_processed_u = resPerU[which_(resPerU[:, len(metrics)].todense().A1, ">", 0), len(metrics)].shape[0]
-        resPerU[which_(resPerU[:, len(metrics)].todense().A1, ">", 0), :] = resPerU[which_(
-            resPerU[:, len(metrics)].todense().A1, ">", 0), :] / resPerU[which_(resPerU[:, len(metrics)].todense().A1,
-                                                                                ">", 0), len(
-            metrics)].todense().reshape(n_processed_u, 1)
-        """
 
         return per_fold_avg_res, per_fold_user_res
