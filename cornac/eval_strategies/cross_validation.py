@@ -6,9 +6,7 @@
 
 import numpy as np
 from .base_strategy import BaseStrategy 
-from ..utils.generic_utils import safe_indexing, validate_data_format
-from ..utils.generic_utils import which_
-
+from ..utils.generic_utils import safe_indexing
 
 
 class CrossValidation(BaseStrategy):
