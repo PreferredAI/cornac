@@ -12,7 +12,6 @@ import numpy as np
 
 
 class RatioSplit(BaseStrategy):
-
     """Train-Test Split Evaluation Strategy.
 
     Parameters
@@ -48,15 +47,15 @@ class RatioSplit(BaseStrategy):
         Output running log
     """
 
-    def __init__(self, data, data_format='UIR', val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, random_state=None,
-                 exclude_unknowns=False, verbose=False):
-        BaseStrategy.__init__(self, data = data, data_format='UIR', rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
+    def __init__(self, data, data_format='UIR', val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True,
+                 random_state=None, exclude_unknowns=False, verbose=False):
+        BaseStrategy.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
+                              exclude_unknowns=exclude_unknowns, verbose=verbose)
 
         self._shuffle = shuffle
         self._random_state = random_state
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(self._data))
-        self._split_run = False
-
+        self._split_ran = False
 
 
     @staticmethod
@@ -93,6 +92,11 @@ class RatioSplit(BaseStrategy):
 
 
     def split(self):
+        if self._split_ran:
+            if self.verbose:
+                print('Data is already split!')
+            return
+
         if self.verbose:
             print("Splitting the data")
 
@@ -114,7 +118,7 @@ class RatioSplit(BaseStrategy):
         if self._data_format == 'UIR':
             self.build_from_uir_format(train_data, val_data, test_data)
 
-        self._split_run = True
+        self._split_ran = True
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
@@ -122,7 +126,5 @@ class RatioSplit(BaseStrategy):
 
 
     def evaluate(self, model, metrics, user_based):
-        if not self._split_run:
-            self.split()
-
+        self.split()
         return BaseStrategy.evaluate(self, model, metrics, user_based)
