@@ -102,7 +102,6 @@ class RatioSplit(BaseStrategy):
         return int(train_size), int(val_size), int(test_size)
 
 
-
     def split(self):
         if self.verbose:
             print("Splitting the data")
@@ -125,7 +124,7 @@ class RatioSplit(BaseStrategy):
         if self._data_format == 'UIR':
             self.build_from_uir_format(train_data, val_data, test_data)
 
-        self._split = True
+        self._split_run = True
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
