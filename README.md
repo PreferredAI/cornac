@@ -14,13 +14,10 @@
 [![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## Getting Started
 
-### Installation
+## Installation
 
-
-Currently, we are supporting Python 3 (version 3.6 is recommended), please make sure that you are on the latest pip.
-
+Currently, we are supporting Python 3 (version 3.6 is recommended).
 There are two ways to install Cornac:
 
 - **Install Cornac from PyPI (recommended):**
@@ -51,7 +48,7 @@ Some installed dependencies are CPU versions. If you want to utilize your GPU, y
 - [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
 
 
-### Your first Cornac experiment
+## Getting started: your first Cornac experiment
 
 This example will show you how to run your very first experiment using Cornac. 
 
