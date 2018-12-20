@@ -3,8 +3,11 @@
 """
 
 import numpy as np
+import scipy.sparse as sp
 from ..recommender import Recommender
 from .skmeans import *
+from ...exception import ScoreException
+
 
 
 class SKMeans(Recommender):
@@ -28,8 +31,8 @@ class SKMeans(Recommender):
     tol : float, optional, default: 1e-6
         Relative tolerance with regards to skmeans' criterion to declare convergence.
         
-    verbose: boolean, optional, default: True
-        When True, the skmeans criterion (likelihood) is displayed after each iteration.
+    verbose: boolean, optional, default: False
+        When True, some running logs are displayed.
 
     init_par: numpy 1d array, optional, default: None
         The initial object parition, 1d array contaning the cluster label (int type starting from 0) \
@@ -45,32 +48,40 @@ class SKMeans(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, name="Skmeans", trainable=True, tol=1e-6, verbose=True, init_par=None):
-        Recommender.__init__(self, name=name, trainable=trainable)
+        Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.par = init_par
+        self.init_par = init_par
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
-
         self.centroids = None  # matrix of cluster centroids
 
+
     # fit the recommender model to the traning data
-    def fit(self, X):
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
+        
+        Recommender.fit(self, train_set)
+
+        X = self.train_set.matrix  
+        X = sp.csr_matrix(X)
+        
+        # Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.
         X1 = X.copy()
         X1 = X1.multiply(sp.csc_matrix(1. / (np.sqrt(X1.multiply(X1).sum(1).A1) + 1e-20)).T)
+        
         if self.trainable:
-            # Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.
-            res = skmeans(X1, k=self.k, max_iter=self.max_iter, tol=self.tol, verbose=self.verbose, init_par=self.par)
+            res = skmeans(X1, k=self.k, max_iter=self.max_iter, tol=self.tol, verbose=self.verbose, init_par=self.init_par)
             self.centroids = res['centroids']
-            self.par = res['partition']
+            self.final_par = res['partition']
         else:
             print('%s is trained already (trainable = False)' % (self.name))
         self.user_center_sim = X1 * self.centroids.T  # user-centroid cosine similarity matrix
@@ -78,60 +89,73 @@ class SKMeans(Recommender):
 
 
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
         
-        if item_indexes is None:
-            user_pred = self.centroids.multiply(self.user_center_sim[user_index, :].T)
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+        
+
+        user_pred = self.centroids[item_id,:].multiply(self.user_center_sim[user_id,:].T)  
             # transform user_pred to a flatten array
-            user_pred = user_pred.sum(0).A1 / (
-                    self.user_center_sim[user_index, :].sum() + 1e-20)  # weighted average of cluster centroids
-        else:
-            user_pred = self.centroids[item_indexes,:].multiply(self.user_center_sim[user_index, item_indexes].T)  
-            # transform user_pred to a flatten array
-            user_pred = user_pred.sum(0).A1 / (
-                    self.user_center_sim[user_index, item_indexes].sum() + 1e-20)  # weighted average of cluster centroids
+        user_pred = user_pred.sum(0).A1 / (
+                    self.user_center_sim[user_id, :].sum() + 1e-20)  # weighted average of cluster centroids
 
         return user_pred
 
 
 
 
-    def rank(self, user_index, known_items = None):
+    def rank(self, user_id, candidate_item_ids=None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
+
+        candidate_item_ids: 1d array, optional, default: None
+            A list of item indices to be ranked by the user.
+            If `None`, list of ranked known item indices will be returned
 
         Returns
         -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
+        Numpy 1d array
+            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        """ 
         
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+        if self.train_set.is_unk_user(user_id):
+            return self.default_rank(candidate_item_ids)
+        
+        
+        known_item_scores = self.centroids.multiply(self.user_center_sim[user_id,:].T) 
+        known_item_scores = known_item_scores.sum(0).A1 / (
+                    self.user_center_sim[user_id, :].sum() + 1e-20)  # weighted average of cluster centroids
+        
+        if candidate_item_ids is None:
+            ranked_item_ids = known_item_scores.argsort()[::-1]
+            return ranked_item_ids
+        else:
+            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
+            user_pref_scores = np.ones(num_items) * float('-inf')
+            user_pref_scores[:self.train_set.num_items] = known_item_scores
 
-        return rank_item_list
+            ranked_item_ids = user_pref_scores.argsort()[::-1]
+            mask = np.in1d(ranked_item_ids, candidate_item_ids)
+            ranked_item_ids = ranked_item_ids[mask]
+
+            return ranked_item_ids
