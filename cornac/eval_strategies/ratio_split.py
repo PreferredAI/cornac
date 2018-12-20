@@ -100,6 +100,16 @@ class RatioSplit(BaseStrategy):
         train_size = num_ratings - (val_size + test_size)
 
         return int(train_size), int(val_size), int(test_size)
+    
+    
+    def build_train_test_val(self,train_idx, test_idx, val_idx, data_format = 'UIR'):
+        
+        train_data = safe_indexing(self._data, train_idx)
+        val_data = safe_indexing(self._data, val_idx)
+        test_data = safe_indexing(self._data, test_idx)
+
+        if self._data_format == 'UIR':
+            self.build_from_uir_format(train_data, val_data, test_data)
 
 
     def build_from_uir_format(self, train_data, val_data, test_data):
@@ -138,12 +148,7 @@ class RatioSplit(BaseStrategy):
         val_idx = data_idx[self._train_size:(self._train_size + self._val_size)]
         test_idx = data_idx[-self._test_size:]
 
-        train_data = safe_indexing(self._data, train_idx)
-        val_data = safe_indexing(self._data, val_idx)
-        test_data = safe_indexing(self._data, test_idx)
-
-        if self._data_format == 'UIR':
-            self.build_from_uir_format(train_data, val_data, test_data)
+        self.build_train_test_val(self,train_idx, val_idx, test_idx)
 
         self._split = True
 
