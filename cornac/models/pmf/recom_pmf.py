@@ -44,6 +44,9 @@ class PMF(Recommender):
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
+        
+    verbose: boolean, optional, default: False
+        When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: {'U':None,'V':None}
         List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
@@ -57,8 +60,8 @@ class PMF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
-                 trainable=True, init_params={'U': None, 'V': None}, verbose=False):
-        Recommender.__init__(self, name=name, trainable=trainable)
+                 trainable=True, verbose=False, init_params={'U': None, 'V': None}):
+        Recommender.__init__(self, name=name, trainable=trainable, verbose = verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
@@ -71,7 +74,6 @@ class PMF(Recommender):
         self.eps = 0.000000001
         self.U = init_params['U']  # matrix of user factors
         self.V = init_params['V']  # matrix of item factors
-        self.verbose = verbose
 
 
     # fit the recommender model to the traning data
@@ -80,7 +82,10 @@ class PMF(Recommender):
 
         Parameters
         ----------
-
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
 
         Recommender.fit(self, train_set)
@@ -136,13 +141,13 @@ class PMF(Recommender):
         Returns
         -------
         A scalar
-            A relative score that the user gives to the item
+            The estimated score (e.g., rating) for the user and item of interest
         """
 
         if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
             raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-        user_pred = np.matmul(self.V[item_id, :], self.U[user_id, :].T)
+        user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
@@ -172,7 +177,7 @@ class PMF(Recommender):
         if self.train_set.is_unk_user(user_id):
             return self.default_rank(candidate_item_ids)
 
-        known_item_scores = np.matmul(self.V, self.U[user_id, :].T)
+        known_item_scores = self.V.dot(self.U[user_id, :])
 
         if self.variant == "non_linear":
             known_item_scores = sigmoid(known_item_scores)

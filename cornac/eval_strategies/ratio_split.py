@@ -18,8 +18,8 @@ class RatioSplit(BaseStrategy):
     Parameters
     ----------
 
-    data: ...
-        The input data.
+    data: ..., required
+        The input data in the form of triplets (user, item, rating).
 
     data_format: str, optional, default: "UIR"
         The format of input data:
@@ -34,9 +34,9 @@ class RatioSplit(BaseStrategy):
         The proportion of the test set, \
         if > 1 then it is treated as the size of the test set.
 
-    rating_threshold: float, optional, default: 1
+    rating_threshold: float, optional, default: 1.
         The minimum value that is considered to be a good rating used for ranking, \
-        e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
+        e.g, if the ratings are in {1, ..., 5}, then rating_threshold = 4.
 
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
@@ -50,14 +50,12 @@ class RatioSplit(BaseStrategy):
 
     def __init__(self, data, data_format='UIR', val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True, random_state=None,
                  exclude_unknowns=False, verbose=False):
-        super().__init__(self, rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
+        BaseStrategy.__init__(self, data = data, data_format='UIR', rating_threshold=rating_threshold, exclude_unknowns=exclude_unknowns, verbose=verbose)
 
-        self._data = data
-        self._data_format = validate_data_format(data_format)
         self._shuffle = shuffle
         self._random_state = random_state
-        self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(data))
-        self._split = False
+        self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(self._data))
+        self._split_run = False
 
 
 
@@ -94,28 +92,7 @@ class RatioSplit(BaseStrategy):
         return int(train_size), int(val_size), int(test_size)
 
 
-    def build_from_uir_format(self, train_data, val_data, test_data):
-        global_uid_map = {}
-        global_iid_map = {}
-        global_ui_set = set() # avoid duplicate ratings in the data
-
-        if self.verbose:
-            print('Building training set')
-        self.train_set = MatrixTrainSet.from_uir_triplets(train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        if self.verbose:
-            print('Building validation set')
-        self.val_set = TestSet.from_uir_triplets(val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        if self.verbose:
-            print('Building test set')
-        self.test_set = TestSet.from_uir_triplets(test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        self.total_users = len(global_uid_map)
-        self.total_items = len(global_iid_map)
-
-
-    def _split_data(self):
+    def split(self):
         if self.verbose:
             print("Splitting the data")
 
@@ -137,7 +114,7 @@ class RatioSplit(BaseStrategy):
         if self._data_format == 'UIR':
             self.build_from_uir_format(train_data, val_data, test_data)
 
-        self._split = True
+        self._split_run = True
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
@@ -145,7 +122,7 @@ class RatioSplit(BaseStrategy):
 
 
     def evaluate(self, model, metrics, user_based):
-        if not self._split:
-            self._split_data()
+        if not self._split_run:
+            self.split()
 
         return BaseStrategy.evaluate(self, model, metrics, user_based)

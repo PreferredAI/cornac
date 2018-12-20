@@ -6,6 +6,7 @@
 import numpy as np
 from .ibpr import *
 from ..recommender import Recommender
+from ...exception import ScoreException
 
 
 class IBPR(Recommender):
@@ -34,6 +35,9 @@ class IBPR(Recommender):
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
+        
+    verbose: boolean, optional, default: False
+        When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
@@ -51,8 +55,9 @@ class IBPR(Recommender):
       In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate = 0.05, lamda = 0.001, batch_size = 100, name="ibpr",trainable = True,init_params = None):
-        Recommender.__init__(self, name=name, trainable = trainable)
+    def __init__(self, k=20, max_iter=100, learning_rate = 0.05, lamda = 0.001, batch_size = 100, name="ibpr", trainable = True,
+                 verbose=False, init_params = None):
+        Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
@@ -65,15 +70,21 @@ class IBPR(Recommender):
         self.V = init_params['V']  # matrix of item factors
 
     # fit the recommender model to the traning data
-    def fit(self, X):
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
+        
+        Recommender.fit(self, train_set)
+
+        X = self.train_set.matrix        
+        
         #change the data to original user Id item Id and rating format
         #X = X.tocoo() # convert sparse matrix to COOrdiante format
         #data = np.ndarray(shape=(len(X.data), 3), dtype=float)
@@ -81,64 +92,78 @@ class IBPR(Recommender):
         #data[:, 1] = X.col
         #data[:, 2] = X.data
         
-
-        print('Learning...')
+        if self.verbose:
+            print('Learning...')
         res = ibpr(X, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
-        self.U = res['U']
-        self.V = res['V']
-        print('Learning completed')
+        self.U = np.asarray(res['U'])
+        self.V = np.asarray(res['V'])
+        
+        if self.verbose:
+            print('Learning completed')
 
 
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
         
-        if item_indexes is None:
-            user_pred = self.U[user_index, :].dot(self.V.T)
-        else:
-            user_pred = self.U[user_index, :].dot(self.V[item_indexes,:].T)
-        # transform user_pred to a flatten array
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))        
+         
+        user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
         return user_pred
     
     
     
-    def rank(self, user_index, known_items = None):
+    def rank(self, user_id, candidate_item_ids=None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
+
+        candidate_item_ids: 1d array, optional, default: None
+            A list of item indices to be ranked by the user.
+            If `None`, list of ranked known item indices will be returned
 
         Returns
         -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
+        Numpy 1d array
+            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        """ 
         
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+        if self.train_set.is_unk_user(user_id):
+            if candidate_item_ids is None:
+                return np.arange(self.train_set.num_items)
+            return candidate_item_ids
 
-        return rank_item_list  
+        known_item_scores = self.V.dot(self.U[user_id, :])
+        
+        if candidate_item_ids is None:
+            ranked_item_ids = known_item_scores.argsort()[::-1]
+            return ranked_item_ids
+        else:
+            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
+            user_pref_scores = np.ones(num_items) * self.default_score()
+            user_pref_scores[:self.train_set.num_items] = known_item_scores
+
+            ranked_item_ids = user_pref_scores.argsort()[::-1]
+            mask = np.in1d(ranked_item_ids, candidate_item_ids)
+            ranked_item_ids = ranked_item_ids[mask]
+
+            return ranked_item_ids  
