@@ -4,8 +4,8 @@
 @author: Aghiles Salah
          Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
+
 import numpy as np
-from ..utils.util_functions import which_
 
 
 class RankingMetric:
@@ -95,13 +95,15 @@ class NCRR(RankingMetric):
 
     # Compute nCRR for a single user i
     def compute(self, ground_truth, rec_list):
+        ground_truth_idx = np.nonzero(ground_truth > 0)
+
         # Compute Ideal CRR
-        ideal_rank = np.arange(len(which_(ground_truth, '>', 0)))
+        ideal_rank = np.arange(len(ground_truth_idx[0]))
         ideal_rank = ideal_rank + 1  # +1 because indices starts from 0 in python
         icrr = np.sum(1. / ideal_rank)
 
         # Compute CRR
-        rec_rank = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
+        rec_rank = np.where(np.in1d(rec_list, ground_truth_idx))[0]
         rec_rank = rec_rank + 1  # +1 because indices starts from 0 in python
         crr = np.sum(1. / rec_rank)
 
@@ -132,7 +134,8 @@ class MRR(RankingMetric):
 
     # Compute MRR for a single user i
     def compute(self, ground_truth, rec_list):
-        matched_indices = np.where(np.in1d(rec_list, which_(ground_truth, '>', 0)))[0]
+        ground_truth_idx = np.nonzero(ground_truth > 0)
+        matched_indices = np.nonzero(np.in1d(rec_list, ground_truth_idx))[0]
 
         if len(matched_indices) == 0:
             raise ValueError('No matched between ground truth and recommended list')
@@ -154,8 +157,9 @@ class MeasureAtK(RankingMetric):
         if self.k > 0:
             rec_list = rec_list[:self.k]
 
-        ground_truth_bin = np.zeros(len(ground_truth))
-        ground_truth_bin[which_(ground_truth, '>', 0)] = 1
+        # ground_truth_bin = np.zeros(len(ground_truth))
+        # ground_truth_bin[np.nonzero(ground_truth > 0)] = 1
+        ground_truth_bin = ground_truth # ground_truth assumed to be already a binary vector
 
         pred = np.zeros_like(ground_truth_bin)
         pred[rec_list] = 1
