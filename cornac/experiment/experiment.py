@@ -2,6 +2,7 @@
 
 """
 @author: Aghiles Salah
+         Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
 import numpy as np

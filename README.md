@@ -14,14 +14,60 @@
 [![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## Getting started
+## Getting started: your first Cornac experiment
 
-Getting started with Cornac is simple, and you just need to install it first.
+This example will show you how to run your very first experiment using Cornac. 
 
-### Installation
+Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
+```python
+from cornac.datasets import MovieLens100K
+
+ml_100k = MovieLens100K.load_data()
+```
+
+Instantiate an evaluation strategy.
+```python
+from cornac.eval_strategies import RatioSplit
+
+ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
+```
+
+Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
+```python
+pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
+```
+
+Instantiate evaluation metrics.
+```python
+mae = cornac.metrics.MAE()
+rmse = cornac.metrics.RMSE()
+rec_20 = cornac.metrics.Recall(k=20)
+pre_20 = cornac.metrics.Precision(k=20)
+```
+
+Instantiate and then run an experiment.
+```python
+exp = cornac.Experiment(eval_strategy=ratio_split,
+                        models=[pmf],
+                        metrics=[mae, rmse, rec_20, pre_20],
+                        user_based=True)
+exp.run()
+```
+
+**Output**
+
+```
+          MAE      RMSE  Recall@20  Precision@20
+PMF  0.760277  0.919413   0.081803        0.0462
+```
+
+For more details, please take a look at our [examples](examples).
+
+
+## Installation
 
 Currently, we are supporting Python 3 (version 3.6 is recommended), please make sure that you are on the latest pip.
-Then, please run the appropriate Cornac install command according to your platform.
+Then, run the appropriate Cornac install command according to your platform.
 
 * **Linux**:
 	```
@@ -38,59 +84,9 @@ Then, please run the appropriate Cornac install command according to your platfo
  
 	```python
 	# Installing PyTorch is required as this dependency is not handle automatically.
-	pip3 install http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl 
+	pip3 install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl
 	pip3 install https://github.com/PreferredAI/cornac/raw/master/dist/cornac-0.1.0-cp36-cp36m-win_amd64.whl
 	```
-
-### Your first Cornac experiment
-
-This example will show you how to run your very first experiment using Cornac. 
-
-Loading and preparing the Amazon office data (available inside folder 'data/').
-```python
-from scipy.io import loadmat
-
-office = loadmat("data/office.mat")
-mat_office = office['mat']
-```
-
-Instantiate an evaluation strategy.
-```python
-from cornac.eval_strategies import RatioSplit
-
-ratio_split = RatioSplit(data=mat_office, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
-```
-
-Here we use `Probabilistic Matrix Factorization (PMF)` recommender model.
-```python
-from cornac.models import PMF
-
-pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
-```
-
-Instantiate evaluation metrics.
-```python
-from cornac.metrics import Recall, Precision, MAE, RMSE
-
-mae = MAE()
-rmse = RMSE()
-rec_20 = Recall(m=20)
-pre_20 = Precision(m=20)
-```
-
-
-Instantiate and then run an experiment.
-```python
-from cornac import Experiment
-
-res_pmf = Experiment(eval_strategy=ratio_split,
-                     models=[pmf],
-                     metrics=[mae, rmse, rec_20, pre_20],
-                     user_based=True)
-res_pmf.run()
-```
-
-For more details, take a look at the provided [example](examples/pmf_ratio.py).
 
 ## License
 

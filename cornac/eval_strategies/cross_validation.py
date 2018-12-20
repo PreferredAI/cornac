@@ -5,9 +5,15 @@
 """
 
 import numpy as np
+<<<<<<< HEAD
 from ..utils.util_functions import which_
 from .base_strategy import BaseStrategy 
 from ..utils.util_functions import safe_indexing
+=======
+from ..utils.generic_utils import which_
+from .eval_strategy import EvaluationStrategy
+from .split import Split
+>>>>>>> upstream/master
 
 
 

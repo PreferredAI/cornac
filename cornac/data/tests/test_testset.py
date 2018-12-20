@@ -13,7 +13,7 @@ r_col = 2
 sep = '\t'
 
 
-def test_TestSet():
+def test_testset():
     """Test TestSet"""
 
     from ..reader import txt_to_uir_triplets
@@ -32,3 +32,5 @@ def test_TestSet():
     test_set = TestSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
                                          pre_ui_set=set([('76', '93')]), verbose=True)
     assert len(test_set.get_users()) == 9
+
+

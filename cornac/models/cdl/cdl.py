@@ -7,7 +7,7 @@
 import numpy as np 
 import tensorflow as tf 
 import numpy as np
-from ...utils.util_data import Dataset
+from ...utils.data_utils import Dataset
 
 # Stacked Denoising Autoencoder
 def sdae(text_information_corrupted, autoencoder_structure, W, b, batch_size, cdl_keep_prob):
