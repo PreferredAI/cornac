@@ -153,7 +153,6 @@ class BaseStrategy:
         return metric_avg_results, metric_user_results
     
 
-"""    
     def build_from_uir_format(self, train_data, val_data, test_data):
         global_uid_map = {}
         global_iid_map = {}
@@ -172,4 +171,4 @@ class BaseStrategy:
         self.test_set = TestSet.from_uir_triplets(test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
 
         self.total_users = len(global_uid_map)
-        self.total_items = len(global_iid_map)"""
+        self.total_items = len(global_iid_map)
