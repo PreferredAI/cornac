@@ -2,7 +2,7 @@
 
 **Cornac** is python recommender system library for **easy**, **effective** and **efficient** experiments. Cornac is **simple** and **handy**. It is designed from the ground-up to faithfully reflect the standard steps taken by researchers to implement and evaluate personalized recommendation models.
 
-### Quick links
+### Quick Links
 
 [Website](https://cornac.preferred.ai/) |
 [Documentation](https://cornac.readthedocs.io/en/latest/index.html) |
@@ -13,6 +13,40 @@
 [![Codecov](https://codecov.io/gh/PreferredAI/cornac/branch/master/graph/badge.svg)](https://codecov.io/gh/PreferredAI/cornac)
 [![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+
+
+## Installation
+
+Currently, we are supporting Python 3 (version 3.6 is recommended).
+There are two ways to install Cornac:
+
+- **Install Cornac from PyPI (recommended):**
+
+```sh
+pip3 install cornac
+```
+
+- **Install Cornac from the GitHub source:**
+
+First, clone Cornac using `git`:
+
+```sh
+git clone https://github.com/PreferredAI/cornac.git
+```
+
+ Then, `cd` to the Cornac folder and run the install command:
+```sh
+cd cornac
+python3 setup.py install
+```
+
+**Note** 
+
+Some installed dependencies are CPU versions. If you want to utilize your GPU, you might consider:
+
+- [TensorFlow installation instructions](https://www.tensorflow.org/install/).
+- [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
+
 
 ## Getting started: your first Cornac experiment
 
@@ -63,31 +97,6 @@ PMF  0.760277  0.919413   0.081803        0.0462
 
 For more details, please take a look at our [examples](examples).
 
-
-## Installation
-
-Currently, we are supporting Python 3 (version 3.6 is recommended), please make sure that you are on the latest pip.
-Then, run the appropriate Cornac install command according to your platform.
-
-* **Linux**:
-	```
-	pip3 install https://github.com/PreferredAI/cornac/archive/master.zip --process-dependency-links
-	```
-
-* **MacOS**:
-	- You will need to install the Torch dependency first. Please follow the instructions [here](https://pytorch.org/) to install PyTorch on MacOS using conda. Then run the following command.
-	```
-	pip3 install https://github.com/PreferredAI/cornac/archive/master.zip
-	```
-	
-* **Windows**:
- 
-	```python
-	# Installing PyTorch is required as this dependency is not handle automatically.
-	pip3 install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl
-	pip3 install https://github.com/PreferredAI/cornac/raw/master/dist/cornac-0.1.0-cp36-cp36m-win_amd64.whl
-	```
-
 ## License
 
-[Apache License 2.0](LICENSE.md)
+[Apache License 2.0](LICENSE)
