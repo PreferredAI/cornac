@@ -4,6 +4,8 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
+
+from ..data import MatrixTrainSet, TestSet
 import numpy as np
 
 
@@ -51,6 +53,7 @@ class BaseStrategy:
         if verbose:
             print('Rating threshold = {:.1f}'.format(rating_threshold))
             print('exclude_unknowns = {}'.format(exclude_unknowns))
+
 
 
     def evaluate(self, model, metrics, user_based):
@@ -148,3 +151,25 @@ class BaseStrategy:
             metric_avg_results[mt.name] = np.asarray(user_results).mean()
 
         return metric_avg_results, metric_user_results
+    
+
+    
+    def build_from_uir_format(self, train_data, val_data, test_data):
+        global_uid_map = {}
+        global_iid_map = {}
+        global_ui_set = set() # avoid duplicate ratings in the data
+
+        if self.verbose:
+            print('Building training set')
+        self.train_set = MatrixTrainSet.from_uir_triplets(train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building validation set')
+        self.val_set = TestSet.from_uir_triplets(val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building test set')
+        self.test_set = TestSet.from_uir_triplets(test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        self.total_users = len(global_uid_map)
+        self.total_items = len(global_iid_map)
