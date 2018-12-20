@@ -7,6 +7,7 @@
 import numpy as np
 from ..utils.util_functions import which_
 from .base_strategy import BaseStrategy
+#from .ratio_split import 
 from .split import Split
 from ..data import MatrixTrainSet, TestSet
 
@@ -68,11 +69,9 @@ class CrossValidation(BaseStrategy):
 
     # This function is used to get the next train_test data
     def _get_next_train_test_split(self):
-        #print(len(self.partition))
+
         idx_test = np.where(self.partition == self.current_fold)[0]
-        #print(len(index_test))
         idx_train = np.where(self.partition != self.current_fold)[0]
-        #print(len(index_train))
 		
         global_uid_map = {}
         global_iid_map = {}
