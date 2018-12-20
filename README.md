@@ -90,4 +90,4 @@ Then, run the appropriate Cornac install command according to your platform.
 
 ## License
 
-[Apache License 2.0](LICENSE.md)
+[Apache License 2.0](LICENSE)
