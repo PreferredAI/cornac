@@ -110,7 +110,8 @@ class RatioSplit(BaseStrategy):
 
         if self._data_format == 'UIR':
             self.build_from_uir_format(train_data, val_data, test_data)
-            
+
+
 
     def split(self):
         if self.verbose:
