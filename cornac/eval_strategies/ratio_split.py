@@ -100,17 +100,27 @@ class RatioSplit(BaseStrategy):
         train_size = num_ratings - (val_size + test_size)
 
         return int(train_size), int(val_size), int(test_size)
-    
-    
-    def build_train_val_test(self, train_idx, val_idx, test_idx, data_format = 'UIR'):
-        
-        train_data = safe_indexing(self._data, train_idx)
-        val_data = safe_indexing(self._data, val_idx)
-        test_data = safe_indexing(self._data, test_idx)
 
-        if self._data_format == 'UIR':
-            self.build_from_uir_format(train_data, val_data, test_data)
 
+    def build_from_uir_format(self, train_data, val_data, test_data):
+        global_uid_map = {}
+        global_iid_map = {}
+        global_ui_set = set() # avoid duplicate ratings in the data
+
+        if self.verbose:
+            print('Building training set')
+        self.train_set = MatrixTrainSet.from_uir_triplets(train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building validation set')
+        self.val_set = TestSet.from_uir_triplets(val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building test set')
+        self.test_set = TestSet.from_uir_triplets(test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+
+        self.total_users = len(global_uid_map)
+        self.total_items = len(global_iid_map)
 
 
     def split(self):
@@ -128,9 +138,14 @@ class RatioSplit(BaseStrategy):
         val_idx = data_idx[self._train_size:(self._train_size + self._val_size)]
         test_idx = data_idx[-self._test_size:]
 
-        self.build_train_val_test(self,train_idx, val_idx, test_idx)
+        train_data = safe_indexing(self._data, train_idx)
+        val_data = safe_indexing(self._data, val_idx)
+        test_data = safe_indexing(self._data, test_idx)
 
-        self._split_run = True
+        if self._data_format == 'UIR':
+            self.build_from_uir_format(train_data, val_data, test_data)
+
+        self._split = True
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
