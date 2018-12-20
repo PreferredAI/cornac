@@ -60,6 +60,7 @@ class CrossValidation(BaseStrategy):
 
         n_fold_partition = np.random.choice(self.n_folds, size=self.n_ratings, replace=True,
                                             p=None)  # sample with replacement
+        
         while len(set(n_fold_partition)) != self.n_folds:  # just in case some fold is empty
             n_fold_partition = np.random.choice(self.n_folds, size=self.n_ratings, replace=True, p=None)
 
@@ -68,22 +69,22 @@ class CrossValidation(BaseStrategy):
     # This function is used to get the next train_test data
     def _get_next_train_test_split(self):
         #print(len(self.partition))
-        index_test = np.where(self.partition == self.current_fold)[0]
+        idx_test = np.where(self.partition == self.current_fold)[0]
         #print(len(index_test))
-        index_train = np.where(self.partition != self.current_fold)[0]
+        idx_train = np.where(self.partition != self.current_fold)[0]
         #print(len(index_train))
 		
         global_uid_map = {}
         global_iid_map = {}
         global_ur_set = set() # avoid duplicate rating in the data
 
-        train_data = self._data[index_train]
+        train_data = self._data[idx_train]
         self.train_set = MatrixTrainSet.from_triplets(train_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
 
         #val_data = self._data[self._train_size:(self._train_size + self._val_size)]
         #self.val_set = TestSet.from_triplets(val_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
 
-        test_data = self._data[index_test]
+        test_data = self._data[idx_test]
         self.test_set = TestSet.from_triplets(test_data, global_uid_map, global_iid_map, global_ur_set, self.verbose)
 
         #self._split = True
@@ -98,11 +99,18 @@ class CrossValidation(BaseStrategy):
             self.current_fold = self.current_fold + 1
         else:
             self.current_fold = 0
+            
+        if self.verbose:
+            print('Fold: {}'.format(self.current_fold))
+            print('Total users = {}'.format(self.total_users))
+            print('Total items = {}'.format(self.total_items))
 
     def evaluate(self, model, metrics):
 
         if self.partition is None:
             self.partition = self._get_partition()
+        elif len(self.partition) != self.n_ratings:
+            raise Exception('the partition length must be equal to the number of ratings')
 
         for fold in range(self.n_folds):
             print("fold:", self.current_fold)
