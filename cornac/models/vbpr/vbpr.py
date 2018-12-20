@@ -6,7 +6,7 @@
 import numpy as np
 import random
 import torch
-from ...utils.util_data import Dataset
+from ...utils.data_utils import Dataset
 
 """Generate training data pairs:
    given rated item i, randomly choose item j and check whether rating of j is missing or lower than i, 

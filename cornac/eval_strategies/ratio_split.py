@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..utils.util_functions import safe_indexing
+from ..utils.generic_utils import safe_indexing, validate_data_format
 from math import ceil
 from .base_strategy import BaseStrategy
 from ..data import MatrixTrainSet, TestSet
