@@ -1,5 +1,6 @@
 include LICENSE
-snclude README.md
-recursive-include doc *
-recursive-include examples *
-recursive-include surprise *.c *.cpp *.pyx
+include README.md
+graft docs
+graft examples
+graft cornac/models
+graft cornac/utils
