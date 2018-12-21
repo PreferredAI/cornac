@@ -21,23 +21,11 @@
 
 Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:
 
-**From PyPI (you need a C compiler):**
+**From PyPI (you may need a C compiler):**
 
 ```sh
 pip3 install cornac
 ```
-
-**From Wheel file:**
-
-- For Linux:
-```sh
-pip3 install https://static.preferred.ai/cornac/whl/cornac-0.1.0.post3-cp36-cp36m-linux_x86_64.whl
-```
-
-<!-- - For Windows:
-```sh
-pip3 install cornac
-``` -->
 
 **From the GitHub source (for latest updates):**
 
