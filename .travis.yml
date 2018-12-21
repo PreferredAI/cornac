@@ -5,7 +5,6 @@ matrix:
         - python: 3.4
         - python: 3.5
         - python: 3.6
-        - python: 3.7
           
 branches:
   only:
@@ -31,7 +30,7 @@ install:
   - source activate test-environment
   - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov --quiet
   # Install TensorFlow CPU version.
-  - pip install tensorflow==1.12.0 --quiet
+  - pip install tensorflow --quiet
   # Install PyTorch CPU version.
   - conda install pytorch-cpu -c pytorch
   - python setup.py -q install

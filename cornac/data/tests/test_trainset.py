@@ -5,11 +5,14 @@
 """
 
 
+
 def test_trainset():
     """Test TrainSet"""
+    
+    from collections import OrderedDict
 
-    uid_map = {'a': 0, 'b': 1}
-    iid_map = {'x': 0, 'y': 1, 'z': 2}
+    uid_map = OrderedDict([('a', 0), ('b', 1)])
+    iid_map = OrderedDict([('x', 0), ('y', 1), ('z', 2)])
 
     from ..trainset import TrainSet
     train_set = TrainSet(uid_map, iid_map)
