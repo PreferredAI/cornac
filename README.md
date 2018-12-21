@@ -9,8 +9,8 @@
 [Preferred.AI](https://preferred.ai/)
 
 [![Build Status](https://www.travis-ci.org/PreferredAI/cornac.svg?branch=master)](https://www.travis-ci.org/PreferredAI/cornac)
-[![Documentation Status](https://readthedocs.org/projects/cornac/badge/?version=latest)](https://cornac.readthedocs.io/en/latest/?badge=latest)
 [![Codecov](https://codecov.io/gh/PreferredAI/cornac/branch/master/graph/badge.svg)](https://codecov.io/gh/PreferredAI/cornac)
+[![Documentation Status](https://readthedocs.org/projects/cornac/badge/?version=latest)](https://cornac.readthedocs.io/en/latest/?badge=latest)
 [![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
 [![GitHub Version](https://badge.fury.io/gh/PreferredAI%2FCornac.svg)](https://badge.fury.io/gh/PreferredAI%2FCornac)
 [![PyPI](https://badge.fury.io/py/cornac.svg)](https://badge.fury.io/py/cornac)
