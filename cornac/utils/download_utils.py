@@ -55,18 +55,22 @@ class DownloadItem:
         if os.path.exists(fpath):
             return fpath
 
-        if verbose:
-            print('Downloading data from', self.url)
-            print('and save to', fpath)
+        print('Downloading data from', self.url)
+        print('and save to', fpath)
 
         if self.unzip:
             tmp_path = os.path.join(download_dir, 'tmp.zip')
             urlretrieve(self.url, tmp_path)
 
+            if verbose:
+                print('Unziping...')
             with zipfile.ZipFile(tmp_path, 'r') as tmp_zip:
                 tmp_zip.extractall(download_dir)
             os.remove(tmp_path)
         else:
             urlretrieve(self.url, fpath)
+
+        if verbose:
+            print('Downloading finished!')
 
         return fpath
