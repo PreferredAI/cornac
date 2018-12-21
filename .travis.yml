@@ -37,7 +37,7 @@ install:
   - travis_retry conda install -c pytorch pytorch-cpu
   - python setup.py -q install
 
-script: python -m pytest --cov=cornac
+script: PYTHONPATH=$PWD:$PYTHONPATH py.test --cov=cornac
 
 after_success: codecov || echo "codecov failed"
 
