@@ -21,7 +21,7 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  
+
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip requests
   - source activate test-environment
   - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov --quiet
@@ -40,6 +40,8 @@ deploy:
   user: qttruong
   password:
     secure: 2w2NsHDJGj/Dzl9JDkTS+GV5vGwp6Ys3rrTPWV/wmps2IcWvmh1k9rSVYXbpiaw1CDqOU9iMXpmwtuiuZkl1XvdlEARbOPz+gATHAhbvO+I55Ur3eOBmoUOeVfxevdY33BDlZ1Kd5GGq/bvPZheRrJZJJSeNw2rIxv6WlFgDJ0GaRGT0nFaKmEf54RVskckhURgrgLoE0spr1FDfezjFgFcApp/HBytB9uAIyl5dIP9TZBuESDSBk7qwPJzrYwd1Un9zwYDR7CbeWCHtU1I3ov1bn/f7CzUs55KVi8PFBiVc2ockW7cA8fQf3Odhg3YI2dmxuXF83uL4GWWK1W6365hyIlDz03j5DWzFp9QjqLRlvH6/rVobAbsmXGckHNv+m43hVTEN/85CDXOGxjrb4lIriheDdsTc7NT9Ovhz0JP1yX+rGETNdgHWWD88VKPUWVYDuGqs9lTTJ5r6hnma6WAXy2fbEUolAZABRHB3KWNGNRyOvIluijfc7i0Y1CHD4MYx8T29mJ5KH/bPkLc3o/TDLHaooGMp4scnyJ328O5Hd307t0BirgLA4HcKHwPV8/2nx39AN93nhywpoIoamgg9oHMLxtcgKdTqcwVHUUW1wq1FZQZkJ0hPB3Fbs7w/Y+MU0tYqrfTORmHEASgAk5/5l6YO61jSqNhXn7lgNmw=
-  distributions: sdist bdist_wheel
+  distributions: sdist
   skip_existing: true
   skip_cleanup: true
+  on:
+    tags: true
