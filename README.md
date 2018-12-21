@@ -31,7 +31,7 @@ pip3 install cornac
 
 - For Linux:
 ```sh
-pip3 install cornac
+pip3 install https://static.preferred.ai/cornac/whl/cornac-0.1.0.post3-cp36-cp36m-linux_x86_64.whl
 ```
 
 <!-- - For Windows:
