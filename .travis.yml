@@ -21,7 +21,7 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip requests
   - source activate test-environment
   - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov --quiet
   # install TensorFlow (CPU version).
