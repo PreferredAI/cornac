@@ -1,6 +1,4 @@
 language: python
-python:
-  - '3.6'
 
 branches:
   only:
@@ -44,5 +42,3 @@ deploy:
   distributions: "sdist bdist_wheel"
   skip_existing: true
   skip_cleanup: true
-  on:
-    tags: true
