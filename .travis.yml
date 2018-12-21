@@ -26,12 +26,13 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy pandas pytest pytest-cov codecov
+  - travis_retry conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
+  - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov
   # Install TensorFlow CPU version.
-  - conda install -c anaconda tensorflow==1.12.0
+  - travis_retry conda install -c anaconda tensorflow==1.12.0
   # Install PyTorch CPU version.
-  - conda install -c pytorch pytorch-cpu
+  - travis_retry conda install -c pytorch pytorch-cpu
   - python setup.py -q install
 
 script: pytest --cov=cornac
