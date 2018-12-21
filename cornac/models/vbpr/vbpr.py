@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@author: Guo Jingyao
+@author: Guo Jingyao <jyguo@smu.edu.sg>
 """
 
 import numpy as np
