@@ -27,7 +27,7 @@ install:
   # install TensorFlow (CPU version).
   - pip install tensorflow==1.12.0 --quiet
   # install PyTorch (CPU version).
-  - pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl --quiet
+  - conda install pytorch-cpu -c pytorch
   - python setup.py -q install
 
 script: pytest --cov=cornac
