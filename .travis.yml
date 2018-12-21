@@ -32,7 +32,7 @@ install:
   - source activate test-environment
   - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov
   # Install TensorFlow CPU version.
-  - pip install tensorflow==1.12.0
+  - travis_retry conda install -c anaconda tensorflow==1.12.0
   # Install PyTorch CPU version.
   - travis_retry conda install -c pytorch pytorch-cpu
   - python setup.py -q install
