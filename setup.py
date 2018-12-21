@@ -1,6 +1,7 @@
 import setuptools
 import os
 
+
 try:
     from Cython.Build import cythonize
 except ImportError:
