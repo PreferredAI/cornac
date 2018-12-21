@@ -19,25 +19,19 @@
 
 ## Installation
 
-Currently, we are supporting Python 3 (version 3.6 is recommended).
-There are two ways to install Cornac:
+Currently, we are supporting Python 3 (version 3.6 is recommended). There are two ways to install Cornac:
 
-- **Install Cornac from PyPI (recommended):**
+- **Install Cornac from PyPI:**
 
 ```sh
 pip3 install cornac
 ```
 
-- **Install Cornac from the GitHub source:**
-
-First, clone Cornac using `git`:
+- **Install Cornac from the GitHub source (for latest updates):**
 
 ```sh
+pip3 install cython
 git clone https://github.com/PreferredAI/cornac.git
-```
-
- Then, `cd` to the Cornac folder and run the install command:
-```sh
 cd cornac
 python3 setup.py install
 ```
@@ -48,7 +42,7 @@ Some installed dependencies are CPU versions. If you want to utilize your GPU, y
 
 - [TensorFlow installation instructions](https://www.tensorflow.org/install/).
 - [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
-
+- [cuDNN](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/) (for Nvidia GPUs).
 
 ## Getting started: your first Cornac experiment
 
