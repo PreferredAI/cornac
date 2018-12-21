@@ -27,6 +27,12 @@ Currently, we are supporting Python 3 (version 3.6 is recommended). There are se
 pip3 install cornac
 ```
 
+**From Anaconda:**
+
+```sh
+conda install cornac -c qttruong -c pytorch -c anaconda
+```
+
 **From the GitHub source (for latest updates):**
 
 ```sh
