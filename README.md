@@ -11,23 +11,32 @@
 [![Build Status](https://www.travis-ci.org/PreferredAI/cornac.svg?branch=master)](https://www.travis-ci.org/PreferredAI/cornac)
 [![Codecov](https://codecov.io/gh/PreferredAI/cornac/branch/master/graph/badge.svg)](https://codecov.io/gh/PreferredAI/cornac)
 [![Documentation Status](https://readthedocs.org/projects/cornac/badge/?version=latest)](https://cornac.readthedocs.io/en/latest/?badge=latest)
-[![Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://cornac.preferred.ai/)
-[![GitHub Version](https://badge.fury.io/gh/PreferredAI%2FCornac.svg)](https://badge.fury.io/gh/PreferredAI%2FCornac)
+<br />
+[![GitHub Version](https://badge.fury.io/gh/PreferredAI%2FCornac.svg)](https://github.com/PreferredAI/cornac/releases)
 [![PyPI](https://badge.fury.io/py/cornac.svg)](https://badge.fury.io/py/cornac)
-[![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Anaconda Cloud](https://anaconda.org/qttruong/cornac/badges/version.svg)](https://anaconda.org/qttruong/cornac)
+<br />
+[![Python Versions](https://img.shields.io/badge/python-3.4%20|%203.5%20|%203.6-blue.svg)](https://cornac.preferred.ai/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
 ## Installation
 
-Currently, we are supporting Python 3 (version 3.6 is recommended). There are two ways to install Cornac:
+Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:
 
-- **Install Cornac from PyPI:**
+**From PyPI (you may need a C compiler):**
 
 ```sh
 pip3 install cornac
 ```
 
-- **Install Cornac from the GitHub source (for latest updates):**
+**From Anaconda (Linux and Windows are supported):**
+
+```sh
+conda install cornac -c qttruong -c pytorch
+```
+
+**From the GitHub source (for latest updates):**
 
 ```sh
 pip3 install cython
