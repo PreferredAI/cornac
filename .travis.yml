@@ -32,7 +32,7 @@ install:
   # Install TensorFlow CPU version.
   - pip install tensorflow==1.12.0
   # Install PyTorch CPU version.
-  - travis_retry conda install -c pytorch pytorch-cpu
+  - travis_retry conda install pytorch-cpu==1.0.0 -c pytorch
   - python setup.py install
 
 script: python -m pytest
