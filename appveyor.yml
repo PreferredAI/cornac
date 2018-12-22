@@ -2,11 +2,11 @@ build: false
 
 environment:
   matrix:
-    - PYTHON_VERSION: 3.5
-      MINICONDA: C:\Miniconda3-x64
+    - PYTHON_VERSION: "3.5"
+      MINICONDA: "C:\\Miniconda3-x64"
       PYTHON_ARCH: "64"
-    - PYTHON_VERSION: 3.6
-      MINICONDA: C:\Miniconda3-x64
+    - PYTHON_VERSION: "3.6"
+      MINICONDA: "C:\Miniconda3-x64"
       PYTHON_ARCH: "64"
 
 matrix:
@@ -28,14 +28,10 @@ install:
   - python --version
   - python -c "import struct; print(struct.calcsize('P') * 8)"
   
-  # Install TensorFlow and PyTorch CPU version.
-  - ps: if ($env:PYTHON_VERSION -eq 3.5) { 
-      pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl
-      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-win_amd64.whl
-    } elseif ($env:PYTHON_VERSION -eq 3.6) {
-      pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl
-      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl
-    }
+  # Install TensorFlow CPU version.
+  - ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl }
+  # Install PyTorch CPU version.
+  - ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl }
   - python setup.py install
 
 test_script:

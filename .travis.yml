@@ -36,12 +36,12 @@ install:
 
   - travis_retry conda create -q -n test-environment python=$PYTHON_VERSION
   - source activate test-environment
-  
+
   - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest
   # Install TensorFlow CPU version.
   - pip install tensorflow==1.12.0
   # Install PyTorch CPU version.
-  - install torch==1.0.0
+  - pip install torch==1.0.0
   - python setup.py install
 
 script: python -m pytest
