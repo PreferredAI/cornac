@@ -2,10 +2,11 @@ build: false
 
 environment:
   matrix:
-    - PYTHON_VERSION: 3.5
-      MINICONDA: C:\Miniconda3
-    - PYTHON_VERSION: 3.6
-      MINICONDA: C:\Miniconda3
+    - MINICONDA: C:\Miniconda35-x64
+    - MINICONDA: C:\Miniconda36-x64
+
+matrix:
+    fast_finish: true
 
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA%"
@@ -23,13 +24,13 @@ install:
   - pip install tensorflow==1.12.0
   # Install PyTorch CPU version.
   - travis_retry conda install pytorch-cpu -c pytorch
-  - python setup.py -q install
+  - python setup.py install
 
 test_script:
   - python -m pytest
 
 after_test:
-  - "build.cmd %PYTHON%\\python.exe setup.py bdist_wheel"
+  - python setup.py bdist_wheel
 
 artifacts:
   - path: dist\*
