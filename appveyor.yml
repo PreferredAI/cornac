@@ -23,15 +23,19 @@ install:
   - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas"
   - activate test-environment
   - python -m pip install --upgrade pip
+  - pip install pytest
   
   - python --version
   - python -c "import struct; print(struct.calcsize('P') * 8)"
   
-  - pip install wheel twine pytest
-  # Install TensorFlow CPU version.
-  - conda install tensorflow==1.12.0 -c anaconda
-  # Install PyTorch CPU version.
-  - conda install pytorch-cpu==1.0.0 -c pytorch
+  # Install TensorFlow and PyTorch CPU version.
+  - ps: if ($env:PYTHON_VERSION -eq 3.5) { 
+      pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl
+      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-win_amd64.whl
+    } elseif ($env:PYTHON_VERSION -eq 3.6) {
+      pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl
+      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl
+    }
   - python setup.py install
 
 test_script:
