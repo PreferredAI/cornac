@@ -1,0 +1,37 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: ~/cornac
+    docker:
+      - image: circleci/python:3.6.4
+        environment:
+          PIPENV_VENV_IN_PROJECT: true
+    steps:
+      - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+      - restore_cache:
+          key: deps9-{{ .Branch }}
+      - run:
+          command: |
+            sudo pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov
+            # Install TensorFlow CPU version.
+            sudo pip install tensorflow==1.12.0
+            # Install PyTorch CPU version.
+            sudo pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
+            python setup.py -q install
+      - save_cache:
+          key: deps9-{{ .Branch }}
+          paths:
+            - ".venv"
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.6/site-packages"
+      - run:
+          command: |
+            python -m pytest
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: tr1
