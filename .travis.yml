@@ -1,10 +1,23 @@
 sudo: required
-dist: trusty
 language: python
+
 matrix:
   include:
-    - python: 3.5
-    - python: 3.6
+    - os: linux
+      env: DISTRIB="trusty" PYTHON_VERSION="3.4"
+    - os: linux
+      env: DISTRIB="trusty" PYTHON_VERSION="3.5"
+    - os: linux
+      env: DISTRIB="trusty" PYTHON_VERSION="3.6"
+    - os: osx
+      language: generic
+      env: DISTRIB="conda" PYTHON_VERSION="3.4"
+    - os: osx
+      language: generic
+      env: DISTRIB="conda" PYTHON_VERSION="3.5"
+    - os: osx
+      language: generic
+      env: DISTRIB="conda" PYTHON_VERSION="3.6"
 
 branches:
   only:
@@ -13,8 +26,8 @@ branches:
 install:  
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
-      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh; 
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh; 
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh; 
     fi
@@ -26,7 +39,7 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - travis_retry conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - travis_retry conda create -q -n test-environment python=$PYTHON_VERSION
   - source activate test-environment
   - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest
   # Install TensorFlow CPU version.
@@ -45,5 +58,3 @@ deploy:
   distributions: "sdist bdist_wheel"
   skip_existing: true
   skip_cleanup: true
-  on:
-    tags: true
