@@ -6,7 +6,7 @@ environment:
       MINICONDA: "C:\\Miniconda3-x64"
       PYTHON_ARCH: "64"
     - PYTHON_VERSION: "3.6"
-      MINICONDA: "C:\Miniconda3-x64"
+      MINICONDA: "C:\\Miniconda3-x64"
       PYTHON_ARCH: "64"
 
 matrix:
