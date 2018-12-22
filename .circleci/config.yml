@@ -21,7 +21,7 @@ jobs:
             sudo pip install tensorflow==1.12.0
             # Install PyTorch CPU version.
             sudo pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
-            python setup.py install
+            sudo python setup.py install
       - save_cache:
           key: deps9-{{ .Branch }}
           paths:
@@ -32,8 +32,3 @@ jobs:
           command: |
             python -m pytest --cov=cornac
             codecov || echo "codecov failed"
-      - store_test_results:
-          path: test-results
-      - store_artifacts:
-          path: test-results
-          destination: tr1

@@ -3,10 +3,10 @@ build: false
 environment:
   matrix:
     - PYTHON_VERSION: 3.5
-      MINICONDA: C:\Miniconda3
+      MINICONDA: C:\Miniconda3-x64
       PYTHON_ARCH: "64"
     - PYTHON_VERSION: 3.6
-      MINICONDA: C:\Miniconda3
+      MINICONDA: C:\Miniconda3-x64
       PYTHON_ARCH: "64"
 
 matrix:
@@ -20,14 +20,17 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy nose"
+  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas pytest"
   - activate test-environment
   - python -m pip install --upgrade pip
-  - pip install numpy scipy pandas pytest
+  
+  - python --version
+  - python -c "import struct; print(struct.calcsize('P') * 8)"
+  
   # Install TensorFlow CPU version.
-  - pip install --trusted-host=pypi.python.org tensorflow==1.12.0
+  - conda install tensorflow -c conda-forge 
   # Install PyTorch CPU version.
-  - travis_retry conda install pytorch-cpu -c pytorch
+  - conda install pytorch-cpu -c pytorch
   - python setup.py install
 
 test_script:
