@@ -12,12 +12,13 @@
 [![Codecov](https://codecov.io/gh/PreferredAI/cornac/branch/master/graph/badge.svg)](https://codecov.io/gh/PreferredAI/cornac)
 [![Documentation Status](https://readthedocs.org/projects/cornac/badge/?version=latest)](https://cornac.readthedocs.io/en/latest/?badge=latest)
 <br />
-[![GitHub Version](https://badge.fury.io/gh/PreferredAI%2FCornac.svg)](https://badge.fury.io/gh/PreferredAI%2FCornac)
+[![GitHub Version](https://badge.fury.io/gh/PreferredAI%2FCornac.svg)](https://github.com/PreferredAI/cornac/releases)
 [![PyPI](https://badge.fury.io/py/cornac.svg)](https://badge.fury.io/py/cornac)
 [![Anaconda Cloud](https://anaconda.org/qttruong/cornac/badges/version.svg)](https://anaconda.org/qttruong/cornac)
 <br />
 [![Python Versions](https://img.shields.io/badge/python-3.4%20|%203.5%20|%203.6-blue.svg)](https://cornac.preferred.ai/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
+
 
 
 ## Installation
