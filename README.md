@@ -8,15 +8,15 @@
 [Documentation](https://cornac.readthedocs.io/en/latest/index.html) |
 [Preferred.AI](https://preferred.ai/)
 
-[![Build Status](https://www.travis-ci.org/PreferredAI/cornac.svg?branch=master)](https://www.travis-ci.org/PreferredAI/cornac)
-[![Codecov](https://codecov.io/gh/PreferredAI/cornac/branch/master/graph/badge.svg)](https://codecov.io/gh/PreferredAI/cornac)
-[![Documentation Status](https://readthedocs.org/projects/cornac/badge/?version=latest)](https://cornac.readthedocs.io/en/latest/?badge=latest)
+[![TravisCI](https://img.shields.io/travis/PreferredAI/cornac/master.svg?logo=travis)](https://www.travis-ci.org/PreferredAI/cornac)
+[![Codecov](https://img.shields.io/codecov/c/github/PreferredAI/cornac/master.svg?logo=codecov)](https://codecov.io/gh/PreferredAI/cornac)
+[![Docs](https://img.shields.io/readthedocs/cornac/latest.svg)](https://cornac.readthedocs.io/en/latest)
 <br />
-[![GitHub Version](https://badge.fury.io/gh/PreferredAI%2FCornac.svg)](https://github.com/PreferredAI/cornac/releases)
-[![PyPI](https://badge.fury.io/py/cornac.svg)](https://badge.fury.io/py/cornac)
-[![Anaconda Cloud](https://anaconda.org/qttruong/cornac/badges/version.svg)](https://anaconda.org/qttruong/cornac)
+[![Release](https://img.shields.io/github/release-pre/PreferredAI/cornac.svg)](https://github.com/PreferredAI/cornac/releases)
+[![PyPI](https://img.shields.io/pypi/v/cornac.svg)](https://pypi.org/project/cornac/)
+[![Conda](https://img.shields.io/conda/v/qttruong/cornac.svg?label=anaconda)](https://anaconda.org/qttruong/cornac)
 <br />
-[![Python Versions](https://img.shields.io/badge/python-3.4%20|%203.5%20|%203.6-blue.svg)](https://cornac.preferred.ai/)
+[![Python](https://img.shields.io/pypi/pyversions/cornac.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
