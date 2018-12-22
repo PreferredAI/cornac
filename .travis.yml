@@ -1,17 +1,22 @@
+sudo: required
+dist: trusty
 language: python
+matrix:
+  include:
+    - python: 3.5
+    - python: 3.6
 
 branches:
   only:
   - master
 
-install:
-  # code below is taken from http://conda.pydata.org/docs/travis.html
+install:  
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then 
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh; 
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh; 
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -21,16 +26,16 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
 
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - travis_retry conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov --quiet
-  # install TensorFlow (CPU version).
-  - pip install tensorflow==1.12.0 --quiet
-  # install PyTorch (CPU version).
-  - pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl --quiet
+  - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov
+  # Install TensorFlow CPU version.
+  - pip install tensorflow==1.12.0
+  # Install PyTorch CPU version.
+  - travis_retry conda install -c pytorch pytorch-cpu
   - python setup.py -q install
 
-script: pytest --cov=cornac
+script: python -m pytest --cov=cornac
 
 after_success: codecov || echo "codecov failed"
 
@@ -38,7 +43,9 @@ deploy:
   provider: pypi
   user: qttruong
   password:
-    secure: OgWchiEQ9xaSRU9QL4agyfd3MOPqI0yu4SzR2k1htyPxf1mdTWY1Zrg3xNf0TkWmv27LYcJcmz0304iWvMP7WdrGAZs4pTvCHoNoIZhN4oOoZ0zOG3hJMXaCPSsBXgcB3Pn7RkfVRspHpophjCQSwBYyKkmKaCofba682quGUoqZ3xyNPwtzL2fbsLDAyPhwJJrz4mgdhsPH21b3i7oq2l8KfdfEk+lmB1lp0QxXl/xU8+0Ycm98+khRbpWjGyPBgocN82WQTrhuQaD+QBpADLvC8RG6+urjJDZO8bttVPnPRSIOkqK7K71OtF133oEmdwsyfm30FV5IfkeGk+jGCGTmeWG61nJ2zcgzebJvwZnnOGvAOG4tA/7t/Ut3+E9SLmFqvouufdhpCCWn4b4zY9VvdKwQdulM6w8095oQxRMLkFpy5UJZJuScboe7Iq+jj02oBfVJ182G685Skcuw2TWsEAjBJspNd7L7HeNwYH/T4bUUDKyGbX3RTra0C4udxFSbnZx950a6+ODCFQofeN84AYvI9m9FS7EKRZ7qhmu5yf+V0x3SrhT0hUZNcZZCEILM8y8xa8aHrBZRelWFTyAuD57vkiinu9TJ7vIacVS3tV4Ki6lpG2AGCP3yyoOYsHgyJJzXf/xkP6e9Dt5/Fn/EmZdr0NrLs9/Gv+xJ+6s=
-  distributions: "sdist bdist_wheel"
+    secure: 2w2NsHDJGj/Dzl9JDkTS+GV5vGwp6Ys3rrTPWV/wmps2IcWvmh1k9rSVYXbpiaw1CDqOU9iMXpmwtuiuZkl1XvdlEARbOPz+gATHAhbvO+I55Ur3eOBmoUOeVfxevdY33BDlZ1Kd5GGq/bvPZheRrJZJJSeNw2rIxv6WlFgDJ0GaRGT0nFaKmEf54RVskckhURgrgLoE0spr1FDfezjFgFcApp/HBytB9uAIyl5dIP9TZBuESDSBk7qwPJzrYwd1Un9zwYDR7CbeWCHtU1I3ov1bn/f7CzUs55KVi8PFBiVc2ockW7cA8fQf3Odhg3YI2dmxuXF83uL4GWWK1W6365hyIlDz03j5DWzFp9QjqLRlvH6/rVobAbsmXGckHNv+m43hVTEN/85CDXOGxjrb4lIriheDdsTc7NT9Ovhz0JP1yX+rGETNdgHWWD88VKPUWVYDuGqs9lTTJ5r6hnma6WAXy2fbEUolAZABRHB3KWNGNRyOvIluijfc7i0Y1CHD4MYx8T29mJ5KH/bPkLc3o/TDLHaooGMp4scnyJ328O5Hd307t0BirgLA4HcKHwPV8/2nx39AN93nhywpoIoamgg9oHMLxtcgKdTqcwVHUUW1wq1FZQZkJ0hPB3Fbs7w/Y+MU0tYqrfTORmHEASgAk5/5l6YO61jSqNhXn7lgNmw=
+  distributions: sdist
   skip_existing: true
   skip_cleanup: true
+  on:
+    tags: true
