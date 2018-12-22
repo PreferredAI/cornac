@@ -20,17 +20,18 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas pytest"
+  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas"
   - activate test-environment
   - python -m pip install --upgrade pip
   
   - python --version
   - python -c "import struct; print(struct.calcsize('P') * 8)"
   
+  - pip install wheel twine pytest
   # Install TensorFlow CPU version.
-  - conda install tensorflow -c conda-forge 
+  - conda install tensorflow==1.12.0 -c anaconda
   # Install PyTorch CPU version.
-  - conda install pytorch-cpu -c pytorch
+  - conda install pytorch-cpu==1.0.0 -c pytorch
   - python setup.py install
 
 test_script:
