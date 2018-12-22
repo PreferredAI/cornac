@@ -72,7 +72,7 @@ setuptools.setup(
         'scipy',
         'pandas',
         'tensorflow>=1.2.1',
-        'torch>=0.4.0'
+        'torch>=0.4.1'
     ],
     dependency_links=[torch_dl],
     packages=setuptools.find_packages(),
@@ -82,6 +82,8 @@ setuptools.setup(
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'License :: OSI Approved :: Apache Software License',
         'Topic :: Software Development',
