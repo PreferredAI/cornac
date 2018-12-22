@@ -17,6 +17,7 @@ install:
   - conda info -a
   - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy nose"
   - activate test-environment
+  - python -m pip install --upgrade pip
   - pip install numpy scipy pandas pytest
   # Install TensorFlow CPU version.
   - pip install tensorflow==1.12.0
@@ -26,3 +27,9 @@ install:
 
 test_script:
   - python -m pytest
+
+after_test:
+  - "build.cmd %PYTHON%\\python.exe setup.py bdist_wheel"
+
+artifacts:
+  - path: dist\*
