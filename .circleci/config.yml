@@ -21,7 +21,7 @@ jobs:
             sudo pip install tensorflow==1.12.0
             # Install PyTorch CPU version.
             sudo pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
-            python setup.py -q install
+            python setup.py install
       - save_cache:
           key: deps9-{{ .Branch }}
           paths:
