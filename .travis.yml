@@ -28,23 +28,21 @@ install:
 
   - travis_retry conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov
+  - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest
   # Install TensorFlow CPU version.
   - pip install tensorflow==1.12.0
   # Install PyTorch CPU version.
   - travis_retry conda install -c pytorch pytorch-cpu
   - python setup.py -q install
 
-script: python -m pytest --cov=cornac
-
-after_success: codecov || echo "codecov failed"
+script: python -m pytest
 
 deploy:
   provider: pypi
   user: qttruong
   password:
     secure: 2w2NsHDJGj/Dzl9JDkTS+GV5vGwp6Ys3rrTPWV/wmps2IcWvmh1k9rSVYXbpiaw1CDqOU9iMXpmwtuiuZkl1XvdlEARbOPz+gATHAhbvO+I55Ur3eOBmoUOeVfxevdY33BDlZ1Kd5GGq/bvPZheRrJZJJSeNw2rIxv6WlFgDJ0GaRGT0nFaKmEf54RVskckhURgrgLoE0spr1FDfezjFgFcApp/HBytB9uAIyl5dIP9TZBuESDSBk7qwPJzrYwd1Un9zwYDR7CbeWCHtU1I3ov1bn/f7CzUs55KVi8PFBiVc2ockW7cA8fQf3Odhg3YI2dmxuXF83uL4GWWK1W6365hyIlDz03j5DWzFp9QjqLRlvH6/rVobAbsmXGckHNv+m43hVTEN/85CDXOGxjrb4lIriheDdsTc7NT9Ovhz0JP1yX+rGETNdgHWWD88VKPUWVYDuGqs9lTTJ5r6hnma6WAXy2fbEUolAZABRHB3KWNGNRyOvIluijfc7i0Y1CHD4MYx8T29mJ5KH/bPkLc3o/TDLHaooGMp4scnyJ328O5Hd307t0BirgLA4HcKHwPV8/2nx39AN93nhywpoIoamgg9oHMLxtcgKdTqcwVHUUW1wq1FZQZkJ0hPB3Fbs7w/Y+MU0tYqrfTORmHEASgAk5/5l6YO61jSqNhXn7lgNmw=
-  distributions: sdist
+  distributions: "sdist bdist_wheel"
   skip_existing: true
   skip_cleanup: true
   on:
