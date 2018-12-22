@@ -20,6 +20,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
+
 ## Installation
 
 Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:
@@ -30,7 +31,7 @@ Currently, we are supporting Python 3 (version 3.6 is recommended). There are se
 pip3 install cornac
 ```
 
-**From Anaconda (Linux and Windows are supported):**
+**From Anaconda:**
 
 ```sh
 conda install cornac -c qttruong -c pytorch
