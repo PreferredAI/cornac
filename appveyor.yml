@@ -1,6 +1,10 @@
 build: false
 
 environment:
+  global:
+    PYPI_PASSWORD:
+      secure: cTOEFT9KZZBMDVJgZzi9IpUKnJVxzESacNbQbFraRIA
+
   matrix:
     - PYTHON_VERSION: "3.5"
       MINICONDA: "C:\\Miniconda3-x64"
@@ -8,6 +12,13 @@ environment:
     - PYTHON_VERSION: "3.6"
       MINICONDA: "C:\\Miniconda3-x64"
       PYTHON_ARCH: "64"
+
+platform:
+  - x64
+
+branches:
+  only:
+  - master
 
 matrix:
     fast_finish: true
@@ -23,7 +34,7 @@ install:
   - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas"
   - activate test-environment
   - python -m pip install --upgrade pip
-  - pip install pytest
+  - pip install wheel twine pytest
   
   - python --version
   - python -c "import struct; print(struct.calcsize('P') * 8)"
@@ -34,11 +45,28 @@ install:
   - ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl }
   - python setup.py install
 
+build: off
+
 test_script:
   - python -m pytest
 
 after_test:
   - python setup.py bdist_wheel
+  - ps: rm dist/*.egg
 
 artifacts:
   - path: dist\*
+
+deploy_script:
+  - echo "Starting Artifact Deployment"
+  # Make .pypirc file for twine
+  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
+  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
+  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
+  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
+  - echo username=qttruong                           >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPI_PASSWORD%                    >> %USERPROFILE%\\.pypirc
+  # Upload to PyPI
+  - set HOME=%USERPROFILE%
+  - ps: If ($env:APPVEYOR_REPO_TAG -eq "true" -And $env:APPVEYOR_REPO_BRANCH -eq "master") { Invoke-Expression "twine upload --skip-existing dist/*.whl" 2>$null } Else { write-output "Not on a tag on master, won't deploy to pypi"}
+  - echo "Finished Artifact Deployment"
