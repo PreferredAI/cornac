@@ -16,10 +16,6 @@ environment:
 platform:
   - x64
 
-branches:
-  only:
-  - master
-
 matrix:
     fast_finish: true
 
