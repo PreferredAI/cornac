@@ -1,9 +1,8 @@
 build: off
 
 environment:
-  global:
-    PYPI_PASSWORD:
-      secure: cTOEFT9KZZBMDVJgZzi9IpUKnJVxzESacNbQbFraRIA
+  PYPI_PASSWORD:
+    secure: cTOEFT9KZZBMDVJgZzi9IpUKnJVxzESacNbQbFraRIA=
 
   matrix:
     - PYTHON_VERSION: "3.5"
