@@ -1,4 +1,4 @@
-build: false
+build: off
 
 environment:
   global:
@@ -44,8 +44,6 @@ install:
   # Install PyTorch CPU version.
   - ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl }
   - python setup.py install
-
-build: off
 
 test_script:
   - python -m pytest
