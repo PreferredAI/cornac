@@ -56,7 +56,7 @@ elif os.name == 'posix':
 
 setuptools.setup(
     name='cornac',
-    version='0.1.0.post3',
+    version='0.1.0.post4',
     author='Aghiles Salah',
     author_email='asalah@smu.edu.sg',
     description='A collection of recommendation algorithms and comparisons',
@@ -82,6 +82,7 @@ setuptools.setup(
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'License :: OSI Approved :: Apache Software License',
