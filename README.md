@@ -17,6 +17,7 @@
 [![Release](https://img.shields.io/github/release-pre/PreferredAI/cornac.svg)](https://github.com/PreferredAI/cornac/releases)
 [![PyPI](https://img.shields.io/pypi/v/cornac.svg)](https://pypi.org/project/cornac/)
 [![Conda](https://img.shields.io/conda/v/qttruong/cornac.svg?label=anaconda)](https://anaconda.org/qttruong/cornac)
+[![Conda Recipe](https://img.shields.io/badge/conda-recipe-green.svg)](https://github.com/tqtg/cornac-feedstock)
 <br />
 [![Python](https://img.shields.io/pypi/pyversions/cornac.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
