@@ -28,19 +28,19 @@
 
 Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:
 
-**From PyPI (you may need a C compiler):**
+- **From PyPI (you may need a C compiler):**
 
 ```sh
 pip3 install cornac
 ```
 
-**From Anaconda:**
+- **From Anaconda:**
 
 ```sh
 conda install cornac -c qttruong -c pytorch
 ```
 
-**From the GitHub source (for latest updates):**
+- **From the GitHub source (for latest updates):**
 
 ```sh
 pip3 install cython
@@ -59,8 +59,8 @@ Some installed dependencies are CPU versions. If you want to utilize your GPU, y
 
 ## Getting started: your first Cornac experiment
 
-<table align="center">
-  <tr style="border-style:hidden;">
+<table align="center" border="0">
+  <tr>
     <td align="center"><img src="flow.png" alt="flow"></td>
   </tr>
   <tr>
