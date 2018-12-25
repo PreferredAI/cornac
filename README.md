@@ -49,7 +49,7 @@ cd cornac
 python3 setup.py install
 ```
 
-**Note** 
+**Note:** 
 
 Some installed dependencies are CPU versions. If you want to utilize your GPU, you might consider:
 
@@ -59,31 +59,38 @@ Some installed dependencies are CPU versions. If you want to utilize your GPU, y
 
 ## Getting started: your first Cornac experiment
 
-![alt tag](flow.png)
-*Flow of an Experiment in Cornac*
+<table align="center">
+  <tr style="border-style:hidden;">
+    <td align="center"><img src="flow.png" alt="flow"></td>
+  </tr>
+  <tr>
+    <td align="center"><i>Flow of an Experiment in Cornac</i></td>
+  </tr>
+</table>
+
 
 This example will show you how to run your very first experiment using Cornac.
 
-Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
+- Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
 ```python
 from cornac.datasets import MovieLens100K
 
 ml_100k = MovieLens100K.load_data()
 ```
 
-Instantiate an evaluation strategy.
+- Instantiate an evaluation strategy.
 ```python
 from cornac.eval_strategies import RatioSplit
 
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
 ```
 
-Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
+- Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
 ```python
 pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 ```
 
-Instantiate evaluation metrics.
+- Instantiate evaluation metrics.
 ```python
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
@@ -91,7 +98,7 @@ rec_20 = cornac.metrics.Recall(k=20)
 pre_20 = cornac.metrics.Precision(k=20)
 ```
 
-Instantiate and then run an experiment.
+- Instantiate and then run an experiment.
 ```python
 exp = cornac.Experiment(eval_strategy=ratio_split,
                         models=[pmf],
@@ -100,7 +107,7 @@ exp = cornac.Experiment(eval_strategy=ratio_split,
 exp.run()
 ```
 
-**Output**
+**Output:**
 
 ```
           MAE      RMSE  Recall@20  Precision@20
