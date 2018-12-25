@@ -59,17 +59,10 @@ Some installed dependencies are CPU versions. If you want to utilize your GPU, y
 
 ## Getting started: your first Cornac experiment
 
-<table align="center" border="0">
-  <tr>
-    <td align="center"><img src="flow.png" alt="flow"></td>
-  </tr>
-  <tr>
-    <td align="center"><i>Flow of an Experiment in Cornac</i></td>
-  </tr>
-</table>
+![](flow.png)
+<p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
-
-This example will show you how to run your very first experiment using Cornac.
+This example will show you how to run your very first experiment.
 
 - Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
 ```python
