@@ -59,7 +59,7 @@ Some installed dependencies are CPU versions. If you want to utilize your GPU, y
 
 ## Getting started: your first Cornac experiment
 
-![](flow.jpg)
+![](exp-flow.jpg)
 <p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
 This example will show you how to run your very first experiment.
