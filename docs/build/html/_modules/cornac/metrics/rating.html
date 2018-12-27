@@ -158,57 +158,81 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">@author: Aghiles Salah</span>
+<span class="sd">         Quoc-Tuan Truong &lt;tuantq.vnu@gmail.com&gt;</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">..utils.util_functions</span> <span class="k">import</span> <span class="n">which_</span>
+
+<span class="k">class</span> <span class="nc">RatingMetric</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Rating Metric.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: string,</span>
+<span class="sd">        Name of the measure.</span>
+
+<span class="sd">    type: string, value: &#39;rating&#39;</span>
+<span class="sd">        Type of the metric, e.g., &quot;ranking&quot;, &quot;rating&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;rating&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ground_truths</span><span class="p">,</span> <span class="n">predictions</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="MAE"><a class="viewcode-back" href="../../../metrics.html#cornac.metrics.MAE">[docs]</a><span class="k">class</span> <span class="nc">MAE</span><span class="p">:</span>
+<div class="viewcode-block" id="MAE"><a class="viewcode-back" href="../../../metrics.html#cornac.metrics.MAE">[docs]</a><span class="k">class</span> <span class="nc">MAE</span><span class="p">(</span><span class="n">RatingMetric</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mean Absolute Error.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name: string, value: &#39;MAE&#39;</span>
 <span class="sd">        Name of the measure.</span>
-
-<span class="sd">    type: string, value: &#39;prediction&#39;</span>
-<span class="sd">        Type of the metric, e.g., &quot;ranking&quot;, &quot;prediction&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;MAE&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;prediction&#39;</span>
+        <span class="n">RatingMetric</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;MAE&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Compute MAE for a single user</span>
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_test</span><span class="p">,</span> <span class="n">prediction</span><span class="p">):</span>
-        <span class="n">index_rated</span> <span class="o">=</span> <span class="n">which_</span><span class="p">(</span><span class="n">data_test</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
-        <span class="n">mae_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">data_test</span><span class="p">[</span><span class="n">index_rated</span><span class="p">]</span> <span class="o">-</span> <span class="n">prediction</span><span class="p">[</span><span class="n">index_rated</span><span class="p">]))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">index_rated</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">mae_u</span></div>
+    <span class="c1"># Compute MAE</span>
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ground_truths</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">mae</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ground_truths</span> <span class="o">-</span> <span class="n">predictions</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mae</span></div>
 
 
-<div class="viewcode-block" id="RMSE"><a class="viewcode-back" href="../../../metrics.html#cornac.metrics.RMSE">[docs]</a><span class="k">class</span> <span class="nc">RMSE</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">MSE</span><span class="p">(</span><span class="n">RatingMetric</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Mean Squared Error.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: string, value: &#39;MSE&#39;</span>
+<span class="sd">        Name of the measure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">RatingMetric</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Compute MSE</span>
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ground_truths</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">((</span><span class="n">ground_truths</span> <span class="o">-</span> <span class="n">predictions</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mse</span>
+
+
+<div class="viewcode-block" id="RMSE"><a class="viewcode-back" href="../../../metrics.html#cornac.metrics.RMSE">[docs]</a><span class="k">class</span> <span class="nc">RMSE</span><span class="p">(</span><span class="n">RatingMetric</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Root Mean Squared Error.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name: string, value: &#39;RMSE&#39;</span>
 <span class="sd">        Name of the measure.</span>
-
-<span class="sd">    type: string, value: &#39;prediction&#39;</span>
-<span class="sd">        Type of the metric, e.g., &quot;ranking&quot;, &quot;prediction&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;RMSE&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;prediction&#39;</span>
+        <span class="n">RatingMetric</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;RMSE&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Compute MAE for a single user</span>
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_test</span><span class="p">,</span> <span class="n">prediction</span><span class="p">):</span>
-        <span class="n">index_rated</span> <span class="o">=</span> <span class="n">which_</span><span class="p">(</span><span class="n">data_test</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
-        <span class="n">mse_u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">data_test</span><span class="p">[</span><span class="n">index_rated</span><span class="p">]</span> <span class="o">-</span> <span class="n">prediction</span><span class="p">[</span><span class="n">index_rated</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">index_rated</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse_u</span><span class="p">)</span></div>
+    <span class="c1"># Compute RMSE</span>
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ground_truths</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">((</span><span class="n">ground_truths</span> <span class="o">-</span> <span class="n">predictions</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

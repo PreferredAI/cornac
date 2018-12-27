@@ -161,7 +161,7 @@
 <span id="experiment"></span><h1>experiment<a class="headerlink" href="#module-cornac.experiment" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="cornac.experiment.Experiment">
-<em class="property">class </em><code class="descclassname">cornac.experiment.</code><code class="descname">Experiment</code><span class="sig-paren">(</span><em>eval_strategy</em>, <em>models</em>, <em>metrics</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/experiment/experiment.html#Experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.experiment.Experiment" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.experiment.</code><code class="descname">Experiment</code><span class="sig-paren">(</span><em>eval_strategy</em>, <em>models</em>, <em>metrics</em>, <em>user_based=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/experiment/experiment.html#Experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.experiment.Experiment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Experiment Class</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -171,8 +171,11 @@
 <li><strong>eval_strategy</strong> (<em>EvaluationStrategy object</em><em>, </em><em>required</em>) – The evaluation strategy (e.g., Split).</li>
 <li><strong>models</strong> (<em>array of objects Recommender</em><em>, </em><em>required</em>) – A collection of recommender models to evaluate, e.g., [C2pf, Hpf, Pmf].</li>
 <li><strong>metrics</strong> (<em>array of object metrics</em><em>, </em><em>required</em>) – A collection of metrics to use to evaluate the recommender models,         e.g., [Ndcg, Mrr, Recall].</li>
-<li><strong>average_result</strong> (<em>DataFrame</em><em>, </em><em>default: None</em>) – The average result per model.</li>
-<li><strong>result_per_user</strong> (<em>dictionary</em><em>, </em><em>default: {}</em>) – Results per user for each model.</li>
+<li><strong>user_based</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – Performance will be averaged based on number of users for rating metrics.
+If <cite>False</cite>, results will be averaged over number of ratings.</li>
+<li><strong>avg_results</strong> (<em>DataFrame</em><em>, </em><em>default: None</em>) – The average result per model.</li>
+<li><strong>user_results</strong> (<em>dictionary</em><em>, </em><em>default: {}</em>) – Results per user for each model.
+Result of user u, of metric m, of model d will be user_results[d][m][u]</li>
 </ul>
 </td>
 </tr>

@@ -370,7 +370,7 @@
 <p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
 <dt id="cornac.models.ibpr.recom_ibpr.IBPR">
-<em class="property">class </em><code class="descclassname">cornac.models.ibpr.recom_ibpr.</code><code class="descname">IBPR</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='ibpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.models.ibpr.recom_ibpr.</code><code class="descname">IBPR</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='ibpr'</em>, <em>trainable=True</em>, <em>verbose=False</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indexable Bayesian Personalized Ranking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -384,6 +384,7 @@
 <li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'IBRP'</em>) – The name of the recommender model.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – When True, some running logs are displayed.</li>
 <li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
 <li><strong>U</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
 <li><strong>V</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
@@ -398,13 +399,13 @@
 </ul>
 <dl class="method">
 <dt id="cornac.models.ibpr.recom_ibpr.IBPR.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>train_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>train_set</strong> (<em>object of type TrainSet</em><em>, </em><em>required</em>) – An object contraining the user-item preference in csr scipy sparse format,            as well as some useful attributes such as mappings to the original user/item ids.            Please refer to the class TrainSet in the “data” module for details.</td>
 </tr>
 </tbody>
 </table>
@@ -412,15 +413,16 @@
 
 <dl class="method">
 <dt id="cornac.models.ibpr.recom_ibpr.IBPR.rank">
-<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.rank" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_id</em>, <em>candidate_item_ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rank all test items for a given user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
-<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>candidate_item_ids</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices to be ranked by the user.
+If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </ul>
 </td>
 </tr>
@@ -436,22 +438,22 @@
 
 <dl class="method">
 <dt id="cornac.models.ibpr.recom_ibpr.IBPR.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_id</em>, <em>item_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/ibpr/recom_ibpr.html#IBPR.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.ibpr.recom_ibpr.IBPR.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the scores/ratings of a user for a list of items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
-<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the item to be scored by the user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The estimated score (e.g., rating) for the user and item of interest</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
 </td>
 </tr>
 </tbody>
@@ -466,7 +468,7 @@
 <p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
 <dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR">
-<em class="property">class </em><code class="descclassname">cornac.models.online_ibpr.recom_online_ibpr.</code><code class="descname">OnlineIBPR</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='online_ibpr'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.models.online_ibpr.recom_online_ibpr.</code><code class="descname">OnlineIBPR</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='online_ibpr'</em>, <em>trainable=True</em>, <em>verbose=False</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Online Indexable Bayesian Personalized Ranking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -480,6 +482,7 @@
 <li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'IBRP'</em>) – The name of the recommender model.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – When True, some running logs are displayed.</li>
 <li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
 <li><strong>U</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
 <li><strong>V</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
@@ -494,13 +497,13 @@
 </ul>
 <dl class="method">
 <dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>triplets</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>train_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>triplets</strong> (<em>collections of user's ordinal triplets</em><em> (</em><em>u</em><em>, </em><em>i</em><em>, </em><em>j</em><em>) </em><em>indicating u prefers i to j</em>) – </td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>train_set</strong> (<em>object of type TrainSet</em><em>, </em><em>required</em>) – An object contraining the user-item preference in csr scipy sparse format,            as well as some useful attributes such as mappings to the original user/item ids.            Please refer to the class TrainSet in the “data” module for details.</td>
 </tr>
 </tbody>
 </table>
@@ -508,15 +511,16 @@
 
 <dl class="method">
 <dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.rank">
-<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.rank" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_id</em>, <em>candidate_item_ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rank all test items for a given user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
-<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>candidate_item_ids</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices to be ranked by the user.
+If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </ul>
 </td>
 </tr>
@@ -532,22 +536,22 @@
 
 <dl class="method">
 <dt id="cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_id</em>, <em>item_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/online_ibpr/recom_online_ibpr.html#OnlineIBPR.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.online_ibpr.recom_online_ibpr.OnlineIBPR.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the scores/ratings of a user for a list of items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
-<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the item to be scored by the user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The estimated score (e.g., rating) for the user and item of interest</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
 </td>
 </tr>
 </tbody>
@@ -562,7 +566,7 @@
 <p>&#64;author: Dung D. Le (Andrew) &lt;<a class="reference external" href="mailto:ddle&#46;2015&#37;&#52;&#48;smu&#46;edu&#46;sg">ddle<span>&#46;</span>2015<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
 <dt id="cornac.models.coe.recom_coe.COE">
-<em class="property">class </em><code class="descclassname">cornac.models.coe.recom_coe.</code><code class="descname">COE</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=1000</em>, <em>name='coe'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.models.coe.recom_coe.</code><code class="descname">COE</code><span class="sig-paren">(</span><em>k=20</em>, <em>max_iter=100</em>, <em>learning_rate=0.05</em>, <em>lamda=0.001</em>, <em>batch_size=1000</em>, <em>name='coe'</em>, <em>trainable=True</em>, <em>verbose=False</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collaborative Ordinal Embedding.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -576,6 +580,7 @@
 <li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'IBRP'</em>) – The name of the recommender model.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – When True, some running logs are displayed.</li>
 <li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}         please see below the definition of U and V.</li>
 <li><strong>U</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
 <li><strong>V</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
@@ -590,13 +595,13 @@
 </ul>
 <dl class="method">
 <dt id="cornac.models.coe.recom_coe.COE.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>train_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>train_set</strong> (<em>object of type TrainSet</em><em>, </em><em>required</em>) – An object contraining the user-item preference in csr scipy sparse format,            as well as some useful attributes such as mappings to the original user/item ids.            Please refer to the class TrainSet in the “data” module for details.</td>
 </tr>
 </tbody>
 </table>
@@ -604,15 +609,16 @@
 
 <dl class="method">
 <dt id="cornac.models.coe.recom_coe.COE.rank">
-<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.rank" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_id</em>, <em>candidate_item_ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rank all test items for a given user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
-<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>candidate_item_ids</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices to be ranked by the user.
+If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </ul>
 </td>
 </tr>
@@ -628,22 +634,22 @@
 
 <dl class="method">
 <dt id="cornac.models.coe.recom_coe.COE.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_id</em>, <em>item_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/coe/recom_coe.html#COE.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.coe.recom_coe.COE.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the scores/ratings of a user for a list of items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
-<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the item to be scored by the user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The estimated score (e.g., rating) for the user and item of interest</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
 </td>
 </tr>
 </tbody>
@@ -770,7 +776,7 @@
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'Skmeans'</em>) – The name of the recommender model.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model is already         trained.</li>
 <li><strong>tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 1e-6</em>) – Relative tolerance with regards to skmeans’ criterion to declare convergence.</li>
-<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When True, the skmeans criterion (likelihood) is displayed after each iteration.</li>
+<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – When True, some running logs are displayed.</li>
 <li><strong>init_par</strong> (<em>numpy 1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The initial object parition, 1d array contaning the cluster label (int type starting from 0)         of each object (user). If par = None, then skmeans is initialized randomly.</li>
 <li><strong>centroids</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>k</em><em>,</em><em>n_users</em><em>)</em>) – The maxtrix of cluster centroids.</li>
 </ul>
@@ -784,13 +790,13 @@
 </ul>
 <dl class="method">
 <dt id="cornac.models.skm.recom_skmeans.SKMeans.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>train_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>train_set</strong> (<em>object of type TrainSet</em><em>, </em><em>required</em>) – An object contraining the user-item preference in csr scipy sparse format,            as well as some useful attributes such as mappings to the original user/item ids.            Please refer to the class TrainSet in the “data” module for details.</td>
 </tr>
 </tbody>
 </table>
@@ -798,15 +804,16 @@
 
 <dl class="method">
 <dt id="cornac.models.skm.recom_skmeans.SKMeans.rank">
-<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.rank" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_id</em>, <em>candidate_item_ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rank all test items for a given user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
-<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>candidate_item_ids</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices to be ranked by the user.
+If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </ul>
 </td>
 </tr>
@@ -822,22 +829,22 @@
 
 <dl class="method">
 <dt id="cornac.models.skm.recom_skmeans.SKMeans.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_id</em>, <em>item_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/skm/recom_skmeans.html#SKMeans.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.skm.recom_skmeans.SKMeans.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the scores/ratings of a user for a list of items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
-<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the item to be scored by the user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The estimated score (e.g., rating) for the user and item of interest</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
 </td>
 </tr>
 </tbody>
@@ -852,7 +859,7 @@
 <p>&#64;author: Aghiles Salah &lt;<a class="reference external" href="mailto:asalah&#37;&#52;&#48;smu&#46;edu&#46;sg">asalah<span>&#64;</span>smu<span>&#46;</span>edu<span>&#46;</span>sg</a>&gt;</p>
 <dl class="class">
 <dt id="cornac.models.hpf.recom_hpf.HPF">
-<em class="property">class </em><code class="descclassname">cornac.models.hpf.recom_hpf.</code><code class="descname">HPF</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>name='HPF'</em>, <em>trainable=True</em>, <em>init_params={'G_r': None</em>, <em>'G_s': None</em>, <em>'L_r': None</em>, <em>'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.models.hpf.recom_hpf.</code><code class="descname">HPF</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>name='HPF'</em>, <em>trainable=True</em>, <em>verbose=False</em>, <em>init_params={'G_r': None</em>, <em>'G_s': None</em>, <em>'L_r': None</em>, <em>'L_s': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hierarchical Poisson Factorization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -863,6 +870,7 @@
 <li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'HPF'</em>) – The name of the recommender model.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model is already         pre-trained (Theta and Beta are not None).</li>
+<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – When True, some running logs are displayed.</li>
 <li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: {'G_s':None</em><em>, </em><em>'G_r':None</em><em>, </em><em>'L_s':None</em><em>, </em><em>'L_r':None}</em>) – List of initial parameters, e.g., init_params = {‘G_s’:G_s, ‘G_r’:G_r, ‘L_s’:L_s, ‘L_r’:L_r},         where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below).         They represent respectively the “shape” and “rate” parameters of Gamma distribution over         Theta. Similarly, L_s, L_r are the shape and rate parameters of the Gamma over Beta.</li>
 <li><strong>Theta</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The expected user latent factors.</li>
 <li><strong>Beta</strong> (<em>csc_matrix</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The expected item latent factors.</li>
@@ -877,13 +885,13 @@
 </ul>
 <dl class="method">
 <dt id="cornac.models.hpf.recom_hpf.HPF.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>train_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>train_set</strong> (<em>object of type TrainSet</em><em>, </em><em>required</em>) – An object contraining the user-item preference in csr scipy sparse format,            as well as some useful attributes such as mappings to the original user/item ids.            Please refer to the class TrainSet in the “data” module for details.</td>
 </tr>
 </tbody>
 </table>
@@ -891,15 +899,16 @@
 
 <dl class="method">
 <dt id="cornac.models.hpf.recom_hpf.HPF.rank">
-<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.rank" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_id</em>, <em>candidate_item_ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rank all test items for a given user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
-<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>candidate_item_ids</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices to be ranked by the user.
+If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </ul>
 </td>
 </tr>
@@ -915,22 +924,22 @@
 
 <dl class="method">
 <dt id="cornac.models.hpf.recom_hpf.HPF.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_id</em>, <em>item_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/hpf/recom_hpf.html#HPF.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.hpf.recom_hpf.HPF.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the scores/ratings of a user for a list of items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
-<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the item to be scored by the user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The estimated score (e.g., rating) for the user and item of interest</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
 </td>
 </tr>
 </tbody>
@@ -945,7 +954,7 @@
 <p>&#64;author: Guo Jingyao</p>
 <dl class="class">
 <dt id="cornac.models.bpr.recom_bpr.BPR">
-<em class="property">class </em><code class="descclassname">cornac.models.bpr.recom_bpr.</code><code class="descname">BPR</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>learning_rate=0.001</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='bpr'</em>, <em>trainable=True</em>, <em>init_params={'U': None</em>, <em>'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.models.bpr.recom_bpr.</code><code class="descname">BPR</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>learning_rate=0.001</em>, <em>lamda=0.001</em>, <em>batch_size=100</em>, <em>name='bpr'</em>, <em>trainable=True</em>, <em>verbose=False</em>, <em>init_params={'U': None</em>, <em>'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bayesian Personalized Ranking.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -959,6 +968,7 @@
 <li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'BRP'</em>) – The name of the recommender model.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
+<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – When True, some running logs are displayed.</li>
 <li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: {'U':None</em><em>,</em><em>'V':None}</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}.         U: a csc_matrix of shape (n_users,k), containing the user latent factors.         V: a csc_matrix of shape (n_items,k), containing the item latent factors.</li>
 </ul>
 </td>
@@ -971,13 +981,13 @@
 </ul>
 <dl class="method">
 <dt id="cornac.models.bpr.recom_bpr.BPR.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>train_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>train_set</strong> (<em>object of type TrainSet</em><em>, </em><em>required</em>) – An object contraining the user-item preference in csr scipy sparse format,            as well as some useful attributes such as mappings to the original user/item ids.            Please refer to the class TrainSet in the “data” module for details.</td>
 </tr>
 </tbody>
 </table>
@@ -985,15 +995,16 @@
 
 <dl class="method">
 <dt id="cornac.models.bpr.recom_bpr.BPR.rank">
-<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.rank" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_id</em>, <em>candidate_item_ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rank all test items for a given user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
-<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>candidate_item_ids</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices to be ranked by the user.
+If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </ul>
 </td>
 </tr>
@@ -1009,22 +1020,22 @@
 
 <dl class="method">
 <dt id="cornac.models.bpr.recom_bpr.BPR.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_id</em>, <em>item_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/bpr/recom_bpr.html#BPR.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.bpr.recom_bpr.BPR.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the scores/ratings of a user for a list of items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
-<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the item to be scored by the user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The estimated score (e.g., rating) for the user and item of interest</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
 </td>
 </tr>
 </tbody>
@@ -1039,7 +1050,7 @@
 <p>&#64;author: Aghiles Salah</p>
 <dl class="class">
 <dt id="cornac.models.pmf.recom_pmf.PMF">
-<em class="property">class </em><code class="descclassname">cornac.models.pmf.recom_pmf.</code><code class="descname">PMF</code><span class="sig-paren">(</span><em>k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name='pmf', variant='non_linear', trainable=True, rating_range=[None, None], init_params={'U': None, 'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.models.pmf.recom_pmf.</code><code class="descname">PMF</code><span class="sig-paren">(</span><em>k=5</em>, <em>max_iter=100</em>, <em>learning_rate=0.001</em>, <em>gamma=0.9</em>, <em>lamda=0.001</em>, <em>name='PMF'</em>, <em>variant='non_linear'</em>, <em>trainable=True</em>, <em>verbose=False</em>, <em>init_params={'U': None</em>, <em>'V': None}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probabilistic Matrix Factorization.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1054,7 +1065,7 @@
 <li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'PMF'</em>) – The name of the recommender model.</li>
 <li><strong>variant</strong> (<em>{&quot;linear&quot;</em><em>,</em><em>&quot;non_linear&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: 'non_linear'</em>) – Pmf variant. If ‘non_linear’, the Gaussian mean is the output of a Sigmoid function.        If ‘linear’ the Gaussian mean is the output of the identity function.</li>
 <li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already         pre-trained (U and V are not None).</li>
-<li><strong>rating_range</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default:</em><em> [</em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em>,</em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><em>None</em></a><em>]</em>) – The minimum and maximum rating values, e.g., [1,5].</li>
+<li><strong>verbose</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – When True, some running logs are displayed.</li>
 <li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: {'U':None</em><em>,</em><em>'V':None}</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}.         U: a csc_matrix of shape (n_users,k), containing the user latent factors.         V: a csc_matrix of shape (n_items,k), containing the item latent factors.</li>
 </ul>
 </td>
@@ -1067,13 +1078,13 @@
 </ul>
 <dl class="method">
 <dt id="cornac.models.pmf.recom_pmf.PMF.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>train_set</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit the model to observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (traning data), in a scipy sparse format            (e.g., csc_matrix).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>train_set</strong> (<em>object of type TrainSet</em><em>, </em><em>required</em>) – An object contraining the user-item preference in csr scipy sparse format,            as well as some useful attributes such as mappings to the original user/item ids.            Please refer to the class TrainSet in the “data” module for details.</td>
 </tr>
 </tbody>
 </table>
@@ -1081,15 +1092,16 @@
 
 <dl class="method">
 <dt id="cornac.models.pmf.recom_pmf.PMF.rank">
-<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.rank" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_id</em>, <em>candidate_item_ids=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.rank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rank all test items for a given user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
-<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>candidate_item_ids</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices to be ranked by the user.
+If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </ul>
 </td>
 </tr>
@@ -1105,22 +1117,22 @@
 
 <dl class="method">
 <dt id="cornac.models.pmf.recom_pmf.PMF.score">
-<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.score" title="Permalink to this definition">¶</a></dt>
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_id</em>, <em>item_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/pmf/recom_pmf.html#PMF.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.pmf.recom_pmf.PMF.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the scores/ratings of a user for a list of items.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
-<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+<li><strong>user_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the item to be scored by the user.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The estimated score (e.g., rating) for the user and item of interest</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
 </td>
 </tr>
 </tbody>

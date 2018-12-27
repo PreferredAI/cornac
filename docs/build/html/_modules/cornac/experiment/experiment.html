@@ -158,6 +158,7 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">@author: Aghiles Salah</span>
+<span class="sd">         Quoc-Tuan Truong &lt;tuantq.vnu@gmail.com&gt;</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -179,61 +180,115 @@
 <span class="sd">        A collection of metrics to use to evaluate the recommender models, \</span>
 <span class="sd">        e.g., [Ndcg, Mrr, Recall].</span>
 
-<span class="sd">    average_result: DataFrame, default: None</span>
+<span class="sd">    user_based: bool, optional, default: True</span>
+<span class="sd">        Performance will be averaged based on number of users for rating metrics.</span>
+<span class="sd">        If `False`, results will be averaged over number of ratings.</span>
+
+<span class="sd">    avg_results: DataFrame, default: None</span>
 <span class="sd">        The average result per model.</span>
 
-<span class="sd">    result_per_user: dictionary, default: {}</span>
-<span class="sd">        Results per user for each model.    </span>
+<span class="sd">    user_results: dictionary, default: {}</span>
+<span class="sd">        Results per user for each model.</span>
+<span class="sd">        Result of user u, of metric m, of model d will be user_results[d][m][u]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eval_strategy</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eval_strategy</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">user_based</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eval_strategy</span> <span class="o">=</span> <span class="n">eval_strategy</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">models</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_models</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_metrics</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_based</span> <span class="o">=</span> <span class="n">user_based</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">res</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">average_result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">std_result</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">result_per_user</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">avg_results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="c1"># modify this function to accomodate several models</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_validate_models</span><span class="p">(</span><span class="n">input_models</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">input_models</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;models have to be an array but </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_models</span><span class="p">)))</span>
+
+        <span class="kn">from</span> <span class="nn">..models.recommender</span> <span class="k">import</span> <span class="n">Recommender</span>
+
+        <span class="n">valid_models</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">input_models</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Recommender</span><span class="p">):</span>
+                <span class="n">valid_models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">valid_models</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_validate_metrics</span><span class="p">(</span><span class="n">input_metrics</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">input_metrics</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;metrics have to be an array but </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">input_metrics</span><span class="p">)))</span>
+
+        <span class="kn">from</span> <span class="nn">..metrics.rating</span> <span class="k">import</span> <span class="n">RatingMetric</span>
+        <span class="kn">from</span> <span class="nn">..metrics.ranking</span> <span class="k">import</span> <span class="n">RankingMetric</span>
+
+        <span class="n">valid_metrics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">input_metrics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">RatingMetric</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">RankingMetric</span><span class="p">):</span>
+                <span class="n">valid_metrics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">valid_metrics</span>
+    
+    <span class="c1"># Check depth of dictionary</span>
+    <span class="k">def</span> <span class="nf">dict_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">d</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict_depth</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="k">if</span> <span class="n">d</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+
+    <span class="c1"># modify this function to accommodate several models</span>
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="n">model_names</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">ranking_metric_names</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">rating_metric_names</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">organized_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ranking&#39;</span><span class="p">:[],</span><span class="s1">&#39;rating&#39;</span><span class="p">:[]}</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">])</span>  <span class="c1"># test whether self.metrics is an array</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">])</span>  <span class="c1"># test whether self.models is an array</span>
+        <span class="n">metric_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">organized_metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ranking&#39;</span><span class="p">:[],</span> <span class="s1">&#39;rating&#39;</span><span class="p">:[]}</span>
 
         <span class="c1"># Organize metrics into &quot;rating&quot; and &quot;ranking&quot; for efficiency purposes</span>
         <span class="k">for</span> <span class="n">mt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">mt</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;ranking&#39;</span><span class="p">:</span>
-                <span class="n">organized_metrics</span><span class="p">[</span><span class="s1">&#39;ranking&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span>
-                <span class="n">ranking_metric_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">organized_metrics</span><span class="p">[</span><span class="s1">&#39;rating&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span>
-                <span class="n">rating_metric_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">organized_metrics</span><span class="p">[</span><span class="n">mt</span><span class="o">.</span><span class="n">type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span>
+            <span class="n">metric_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mt</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">model_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">avg_res</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_per_user</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_strategy</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">organized_metrics</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">average_result</span> <span class="o">=</span> <span class="n">avg_res</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">average_result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">average_result</span><span class="p">,</span> <span class="n">avg_res</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-        <span class="c1"># Formatting the results using the Pandas DataFrame</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">average_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">))</span>
-        <span class="n">resAvg_dataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">average_result</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">model_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="o">*</span><span class="n">ranking_metric_names</span><span class="p">,</span><span class="o">*</span><span class="n">rating_metric_names</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">average_result</span> <span class="o">=</span> <span class="n">resAvg_dataFrame</span>
-        <span class="c1">##Metrics, take into account the metrics specified by the user</span>
-        <span class="k">del</span> <span class="p">(</span><span class="n">resAvg_dataFrame</span><span class="p">)</span></div>
+            <span class="n">model_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">metric_avg_results</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_results</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_strategy</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                                                                                            <span class="n">metrics</span><span class="o">=</span><span class="n">organized_metrics</span><span class="p">,</span>
+                                                                                            <span class="n">user_based</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user_based</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_depth</span><span class="p">(</span><span class="n">metric_avg_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">avg_results</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">metric_avg_results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mt_name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span> <span class="k">for</span> <span class="n">mt_name</span> <span class="ow">in</span> <span class="n">metric_names</span><span class="p">])</span>
+                
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_depth</span><span class="p">(</span><span class="n">metric_avg_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">metric_avg_results</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">metric_avg_results</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mt_name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span> <span class="k">for</span> <span class="n">mt_name</span> <span class="ow">in</span> <span class="n">metric_names</span><span class="p">])</span> 
+           
+            
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">[</span><span class="n">f</span><span class="p">]),</span> <span class="n">index</span><span class="o">=</span><span class="n">model_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">metric_names</span><span class="p">)</span>
+                
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">avg_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">avg_results</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">model_names</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">metric_names</span><span class="p">)</span>
+        
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n_folds</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fold_avg_results</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+                <span class="n">n_folds</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_results</span> <span class="o">=</span> <span class="n">s</span><span class="o">/</span><span class="n">n_folds</span></div>
+        <span class="c1">#print(self.fold_avg_results)</span>
 </pre></div>
 
            </div>
