@@ -6,5 +6,5 @@ evaluation strategies
    
 Cross Validation
 ------------------
-.. automodule:: cornac.evaluation_strategies.cross_validation
+.. automodule:: cornac.eval_strategies.cross_validation
    :members:
