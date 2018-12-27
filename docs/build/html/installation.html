@@ -92,7 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metrics.html">metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="experiment.html">experiment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation_strategies.html">evaluation strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eval_strategies.html">evaluation strategies</a></li>
 </ul>
 
             
@@ -159,42 +159,35 @@
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>Before to install Cornac, please make sure you are using Python 3 (version &gt;=3.6, is recommended), and you are on the latest pip.
-Then, please run the appropriate Cornac install command according to your platform.</p>
+<p>Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:</p>
 <ul class="simple">
-<li><strong>Windows</strong>:</li>
+<li><strong>From PyPI (you may need a C compiler):</strong></li>
 </ul>
-<blockquote>
-<div><p>We provide the wheel (.whl) file for Python 3.6, please make sure this is the Python version you are using so as to install cornac directly from the whl file.</p>
-<blockquote>
-<div><ul class="simple">
-<li>Some recommender models run with PyTorch. The latter library is not in PyPI, so when you install Cornac from the Wheel file this dependency is not handled automatically. You will, therefore, need to install PyTorch first.</li>
+<p><code class="docutils literal notranslate"><span class="pre">`sh</span>
+<span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">cornac</span>
+<span class="pre">`</span></code></p>
+<ul class="simple">
+<li><strong>From Anaconda:</strong></li>
 </ul>
-</div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">download</span><span class="o">.</span><span class="n">pytorch</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">whl</span><span class="o">/</span><span class="n">cpu</span><span class="o">/</span><span class="n">torch</span><span class="o">-</span><span class="mf">0.4</span><span class="o">.</span><span class="mi">1</span><span class="o">-</span><span class="n">cp36</span><span class="o">-</span><span class="n">cp36m</span><span class="o">-</span><span class="n">win_amd64</span><span class="o">.</span><span class="n">whl</span>
-<span class="n">pip3</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">raw</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">dist</span><span class="o">/</span><span class="n">cornac</span><span class="o">-</span><span class="mf">0.1</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="n">cp36</span><span class="o">-</span><span class="n">cp36m</span><span class="o">-</span><span class="n">win_amd64</span><span class="o">.</span><span class="n">whl</span>
-</pre></div>
-</div>
-</div></blockquote>
-<ul>
-<li><p class="first"><strong>Linux</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span> <span class="o">--</span><span class="n">process</span><span class="o">-</span><span class="n">dependency</span><span class="o">-</span><span class="n">links</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first"><strong>MacOS</strong>:</p>
-<blockquote>
-<div><ul class="simple">
-<li>You will need to install the Torch dependency first. Please follow the instructions <a class="reference external" href="https://pytorch.org/">here</a> to install PyTorch on MacOS using conda. Then run the following command.</li>
+<p><code class="docutils literal notranslate"><span class="pre">`sh</span>
+<span class="pre">conda</span> <span class="pre">install</span> <span class="pre">cornac</span> <span class="pre">-c</span> <span class="pre">qttruong</span> <span class="pre">-c</span> <span class="pre">pytorch</span>
+<span class="pre">`</span></code></p>
+<ul class="simple">
+<li><strong>From the GitHub source (for latest updates):</strong></li>
 </ul>
-</div></blockquote>
-</li>
+<p><code class="docutils literal notranslate"><span class="pre">`sh</span>
+<span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">cython</span>
+<span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/PreferredAI/cornac.git</span>
+<span class="pre">cd</span> <span class="pre">cornac</span>
+<span class="pre">python3</span> <span class="pre">setup.py</span> <span class="pre">install</span>
+<span class="pre">`</span></code></p>
+<p><strong>Note:</strong></p>
+<p>Some installed dependencies are CPU versions. If you want to utilize your GPU, you might consider:</p>
+<ul class="simple">
+<li>[TensorFlow installation instructions](<a class="reference external" href="https://www.tensorflow.org/install/">https://www.tensorflow.org/install/</a>).</li>
+<li>[PyTorch installation instructions](<a class="reference external" href="https://pytorch.org/get-started/locally/">https://pytorch.org/get-started/locally/</a>).</li>
+<li>[cuDNN](<a class="reference external" href="https://docs.nvidia.com/deeplearning/sdk/cudnn-install/">https://docs.nvidia.com/deeplearning/sdk/cudnn-install/</a>) (for Nvidia GPUs).</li>
 </ul>
-<blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">PreferredAI</span><span class="o">/</span><span class="n">cornac</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">master</span><span class="o">.</span><span class="n">zip</span>
-</pre></div>
-</div>
-</div></blockquote>
 </div>
 
 
