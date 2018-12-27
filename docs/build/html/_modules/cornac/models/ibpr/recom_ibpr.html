@@ -162,6 +162,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">.ibpr</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">..recommender</span> <span class="k">import</span> <span class="n">Recommender</span>
+<span class="kn">from</span> <span class="nn">...exception</span> <span class="k">import</span> <span class="n">ScoreException</span>
 
 
 <div class="viewcode-block" id="IBPR"><a class="viewcode-back" href="../../../../models.html#cornac.models.ibpr.recom_ibpr.IBPR">[docs]</a><span class="k">class</span> <span class="nc">IBPR</span><span class="p">(</span><span class="n">Recommender</span><span class="p">):</span>
@@ -190,6 +191,9 @@
 <span class="sd">    trainable: boolean, optional, default: True</span>
 <span class="sd">        When False, the model is not trained and Cornac assumes that the model already \</span>
 <span class="sd">        pre-trained (U and V are not None).</span>
+<span class="sd">        </span>
+<span class="sd">    verbose: boolean, optional, default: False</span>
+<span class="sd">        When True, some running logs are displayed.</span>
 
 <span class="sd">    init_params: dictionary, optional, default: None</span>
 <span class="sd">        List of initial parameters, e.g., init_params = {&#39;U&#39;:U, &#39;V&#39;:V} \</span>
@@ -207,8 +211,9 @@
 <span class="sd">      In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">lamda</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ibpr&quot;</span><span class="p">,</span><span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span><span class="n">init_params</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="n">trainable</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">lamda</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ibpr&quot;</span><span class="p">,</span> <span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init_params</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">Recommender</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="n">trainable</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_params</span> <span class="o">=</span> <span class="n">init_params</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
@@ -221,15 +226,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>  <span class="c1"># matrix of item factors</span>
 
     <span class="c1"># fit the recommender model to the traning data</span>
-<div class="viewcode-block" id="IBPR.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.ibpr.recom_ibpr.IBPR.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="IBPR.fit"><a class="viewcode-back" href="../../../../models.html#cornac.models.ibpr.recom_ibpr.IBPR.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_set</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the model to observations.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        X: scipy sparse matrix, required</span>
-<span class="sd">            the user-item preference matrix (traning data), in a scipy sparse format\</span>
-<span class="sd">            (e.g., csc_matrix).</span>
+<span class="sd">        train_set: object of type TrainSet, required</span>
+<span class="sd">            An object contraining the user-item preference in csr scipy sparse format,\</span>
+<span class="sd">            as well as some useful attributes such as mappings to the original user/item ids.\</span>
+<span class="sd">            Please refer to the class TrainSet in the &quot;data&quot; module for details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">Recommender</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_set</span><span class="p">)</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">matrix</span>        
+        
         <span class="c1">#change the data to original user Id item Id and rating format</span>
         <span class="c1">#X = X.tocoo() # convert sparse matrix to COOrdiante format</span>
         <span class="c1">#data = np.ndarray(shape=(len(X.data), 3), dtype=float)</span>
@@ -237,67 +248,81 @@
         <span class="c1">#data[:, 1] = X.col</span>
         <span class="c1">#data[:, 2] = X.data</span>
         
-
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Learning...&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Learning...&#39;</span><span class="p">)</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">ibpr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span><span class="n">lamda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lamda</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">init_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">init_params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Learning completed&#39;</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Learning completed&#39;</span><span class="p">)</span></div>
 
 
 
-<div class="viewcode-block" id="IBPR.score"><a class="viewcode-back" href="../../../../models.html#cornac.models.ibpr.recom_ibpr.IBPR.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_index</span><span class="p">,</span> <span class="n">item_indexes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="IBPR.score"><a class="viewcode-back" href="../../../../models.html#cornac.models.ibpr.recom_ibpr.IBPR.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">item_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Predict the scores/ratings of a user for a list of items.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        user_index: int, required</span>
+<span class="sd">        user_id: int, required</span>
 <span class="sd">            The index of the user for whom to perform score predictions.</span>
 <span class="sd">            </span>
-<span class="sd">        item_indexes: 1d array, optional, default: None</span>
-<span class="sd">            A list of item indexes for which to predict the rating score.\</span>
-<span class="sd">            When &quot;None&quot;, score prediction is performed for all test items of the given user. </span>
+<span class="sd">        item_id: int, required</span>
+<span class="sd">            The index of the item to be scored by the user.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Numpy 1d array </span>
-<span class="sd">            Array containing the predicted values for the items of interest</span>
+<span class="sd">        A scalar</span>
+<span class="sd">            The estimated score (e.g., rating) for the user and item of interest</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">if</span> <span class="n">item_indexes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="n">user_index</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="n">user_index</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">[</span><span class="n">item_indexes</span><span class="p">,:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="c1"># transform user_pred to a flatten array</span>
-        <span class="n">user_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">user_pred</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">is_unk_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">is_unk_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ScoreException</span><span class="p">(</span><span class="s2">&quot;Can&#39;t make score prediction for (user_id=</span><span class="si">%d</span><span class="s2">, item_id=</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">item_id</span><span class="p">))</span>        
+         
+        <span class="n">user_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">[</span><span class="n">item_id</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="n">user_id</span><span class="p">,</span> <span class="p">:])</span>
 
         <span class="k">return</span> <span class="n">user_pred</span></div>
     
     
     
-<div class="viewcode-block" id="IBPR.rank"><a class="viewcode-back" href="../../../../models.html#cornac.models.ibpr.recom_ibpr.IBPR.rank">[docs]</a>    <span class="k">def</span> <span class="nf">rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_index</span><span class="p">,</span> <span class="n">known_items</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="IBPR.rank"><a class="viewcode-back" href="../../../../models.html#cornac.models.ibpr.recom_ibpr.IBPR.rank">[docs]</a>    <span class="k">def</span> <span class="nf">rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">candidate_item_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Rank all test items for a given user.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        user_index: int, required</span>
+<span class="sd">        user_id: int, required</span>
 <span class="sd">            The index of the user for whom to perform item raking.</span>
-<span class="sd">        known_items: 1d array, optional, default: None</span>
-<span class="sd">            A list of item indices already known by the user</span>
+
+<span class="sd">        candidate_item_ids: 1d array, optional, default: None</span>
+<span class="sd">            A list of item indices to be ranked by the user.</span>
+<span class="sd">            If `None`, list of ranked known item indices will be returned</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Numpy 1d array </span>
-<span class="sd">            Array of item indices sorted (in decreasing order) relative to some user preference scores. </span>
-<span class="sd">        &quot;&quot;&quot;</span>  
+<span class="sd">        Numpy 1d array</span>
+<span class="sd">            Array of item indices sorted (in decreasing order) relative to some user preference scores.</span>
+<span class="sd">        &quot;&quot;&quot;</span> 
         
-        <span class="n">u_pref_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">user_index</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">known_items</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">u_pref_score</span><span class="p">[</span><span class="n">known_items</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-            
-        <span class="n">rank_item_list</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">u_pref_score</span><span class="p">)</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>  <span class="c1"># ordering the items (in decreasing order) according to the preference score</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">is_unk_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">candidate_item_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">num_items</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">candidate_item_ids</span>
 
-        <span class="k">return</span> <span class="n">rank_item_list</span>  </div></div>
+        <span class="n">known_item_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">U</span><span class="p">[</span><span class="n">user_id</span><span class="p">,</span> <span class="p">:])</span>
+        
+        <span class="k">if</span> <span class="n">candidate_item_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ranked_item_ids</span> <span class="o">=</span> <span class="n">known_item_scores</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">ranked_item_ids</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_items</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">num_items</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">candidate_item_ids</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">user_pref_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_items</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_score</span><span class="p">()</span>
+            <span class="n">user_pref_scores</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">num_items</span><span class="p">]</span> <span class="o">=</span> <span class="n">known_item_scores</span>
+
+            <span class="n">ranked_item_ids</span> <span class="o">=</span> <span class="n">user_pref_scores</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">ranked_item_ids</span><span class="p">,</span> <span class="n">candidate_item_ids</span><span class="p">)</span>
+            <span class="n">ranked_item_ids</span> <span class="o">=</span> <span class="n">ranked_item_ids</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+            <span class="k">return</span> <span class="n">ranked_item_ids</span>  </div></div>
 </pre></div>
 
            </div>
