@@ -173,14 +173,14 @@
 <h2>Normalized Discount Cumulative Gain (NDCG)<a class="headerlink" href="#normalized-discount-cumulative-gain-ndcg" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.NDCG">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">NDCG</code><span class="sig-paren">(</span><em>m=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#NDCG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.NDCG" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">NDCG</code><span class="sig-paren">(</span><em>k=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#NDCG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.NDCG" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalized Discount Cumulative Gain.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>m</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The number of items in the top&#64;m list,         if None then all items are considered to compute NDCG.</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: -1</em><em> (</em><em>all</em><em>)</em>) – The number of items in the top&#64;k list,         if None then all items are considered to compute NDCG.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'NDCG'</em>) – Name of the measure.</li>
 <li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'ranking'</em>) – Type of the metric, e.g., “ranking”.</li>
 </ul>
@@ -188,6 +188,8 @@
 </tr>
 </tbody>
 </table>
+<p class="rubric">References</p>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">https://en.wikipedia.org/wiki/Discounted_cumulative_gain</a></p>
 </dd></dl>
 
 </div>
@@ -195,14 +197,14 @@
 <h2>Normalized Cumulative Reciprocal Rank (NCRR)<a class="headerlink" href="#normalized-cumulative-reciprocal-rank-ncrr" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.NCRR">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">NCRR</code><span class="sig-paren">(</span><em>m=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#NCRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.NCRR" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">NCRR</code><span class="sig-paren">(</span><em>k=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#NCRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.NCRR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalized Cumulative Reciprocal Rank.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>m</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The number of items in the top&#64;m list,         if None then all items are considered to compute NDCG.</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: -1</em><em> (</em><em>all</em><em>)</em>) – The number of items in the top&#64;k list,         if None then all items are considered to compute NDCG.</li>
 <li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'NCRR'</em>) – Name of the measure.</li>
 <li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'ranking'</em>) – Type of the metric, e.g., “ranking”.</li>
 </ul>
@@ -231,6 +233,8 @@
 </tr>
 </tbody>
 </table>
+<p class="rubric">References</p>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Mean_reciprocal_rank">https://en.wikipedia.org/wiki/Mean_reciprocal_rank</a></p>
 </dd></dl>
 
 </div>
@@ -238,15 +242,15 @@
 <h2>Precision<a class="headerlink" href="#precision" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Precision">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Precision</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#Precision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Precision" title="Permalink to this definition">¶</a></dt>
-<dd><p>Precision&#64;M.</p>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Precision</code><span class="sig-paren">(</span><em>k=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#Precision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precision&#64;K.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>m</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 20</em>) – The number of items in the top&#64;m list.</li>
-<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'Precision&#64;m'</em>) – Name of the measure.</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: -1</em><em> (</em><em>all</em><em>)</em>) – The number of items in the top&#64;k list.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'Precision&#64;k'</em>) – Name of the measure.</li>
 <li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'ranking'</em>) – Type of the metric, e.g., “ranking”.</li>
 </ul>
 </td>
@@ -260,15 +264,15 @@
 <h2>Recall<a class="headerlink" href="#recall" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.Recall">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Recall</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#Recall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Recall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Recall&#64;M.</p>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">Recall</code><span class="sig-paren">(</span><em>k=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#Recall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.Recall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recall&#64;K.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>m</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 20</em>) – The number of items in the top&#64;m list.</li>
-<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'Recall&#64;m'</em>) – Name of the measure.</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: -1</em><em> (</em><em>all</em><em>)</em>) – The number of items in the top&#64;k list.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'Recall&#64;k'</em>) – Name of the measure.</li>
 <li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'ranking'</em>) – Type of the metric, e.g., “ranking”.</li>
 </ul>
 </td>
@@ -282,15 +286,15 @@
 <h2>Fmeasure (F1)<a class="headerlink" href="#fmeasure-f1" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="cornac.metrics.FMeasure">
-<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">FMeasure</code><span class="sig-paren">(</span><em>m=20</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#FMeasure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.FMeasure" title="Permalink to this definition">¶</a></dt>
-<dd><p>F-measure&#64;M.</p>
+<em class="property">class </em><code class="descclassname">cornac.metrics.</code><code class="descname">FMeasure</code><span class="sig-paren">(</span><em>k=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/metrics/ranking.html#FMeasure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.metrics.FMeasure" title="Permalink to this definition">¶</a></dt>
+<dd><p>F-measure&#64;K&#64;.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>m</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 20</em>) – The number of items in the top&#64;m list.</li>
-<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'F1&#64;m'</em>) – Name of the measure.</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: -1</em><em> (</em><em>all</em><em>)</em>) – The number of items in the top&#64;k list.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'F1&#64;k'</em>) – Name of the measure.</li>
 <li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'ranking'</em>) – Type of the metric, e.g., “ranking”.</li>
 </ul>
 </td>
@@ -310,11 +314,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'MAE'</em>) – Name of the measure.</li>
-<li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'prediction'</em>) – Type of the metric, e.g., “ranking”, “prediction”.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em><em>, </em><em>value: 'MAE'</em>) – Name of the measure.</td>
 </tr>
 </tbody>
 </table>
@@ -331,11 +331,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>string</em><em>, </em><em>value: 'RMSE'</em>) – Name of the measure.</li>
-<li><strong>type</strong> (<em>string</em><em>, </em><em>value: 'prediction'</em>) – Type of the metric, e.g., “ranking”, “prediction”.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em><em>, </em><em>value: 'RMSE'</em>) – Name of the measure.</td>
 </tr>
 </tbody>
 </table>
