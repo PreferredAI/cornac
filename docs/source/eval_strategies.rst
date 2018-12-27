@@ -6,8 +6,14 @@ evaluation strategies
 
 
 Base Strategy
-------------------
+--------------
 .. automodule:: cornac.eval_strategies.base_strategy
+   :members:
+   
+
+Ratio Split
+--------------
+.. automodule:: cornac.eval_strategies.ratio_split
    :members:
 
    
