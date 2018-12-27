@@ -1,7 +1,7 @@
 evaluation strategies
 ======================
 
-.. automodule:: cornac.evaluation_strategies
+.. automodule:: cornac.eval_strategies
 
 
 
