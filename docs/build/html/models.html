@@ -97,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.coe.recom_coe">Collaborative Ordinal Embedding (COE)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.vbpr.recom_vbpr">Visual Bayesian Personalized Ranking (VBPR)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.skm.recom_skmeans">Spherical k-means (Skmeans)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.cdl.recom_cdl">Collaborative Deep Learning (CDL)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.hpf.recom_hpf">Hierarchical Poisson Factorization (HPF)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.bpr.recom_bpr">Bayesian Personalized Ranking (BPR)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-cornac.models.pmf.recom_pmf">Probabilitic Matrix Factorization (PMF)</a></li>
@@ -104,7 +105,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metrics.html">metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="experiment.html">experiment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation_strategies.html">evaluation strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eval_strategies.html">evaluation strategies</a></li>
 </ul>
 
             
@@ -845,6 +846,117 @@ If <cite>None</cite>, list of ranked known item indices will be returned</li>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A scalar</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cornac.models.cdl.recom_cdl">
+<span id="collaborative-deep-learning-cdl"></span><h2>Collaborative Deep Learning (CDL)<a class="headerlink" href="#module-cornac.models.cdl.recom_cdl" title="Permalink to this headline">¶</a></h2>
+<p>&#64;author: Trieu Thi Ly Ly</p>
+<dl class="class">
+<dt id="cornac.models.cdl.recom_cdl.CDL">
+<em class="property">class </em><code class="descclassname">cornac.models.cdl.recom_cdl.</code><code class="descname">CDL</code><span class="sig-paren">(</span><em>k=50</em>, <em>text_information=None</em>, <em>autoencoder_structure=None</em>, <em>lambda_u=0.1</em>, <em>lambda_v=0.01</em>, <em>lambda_w=0.01</em>, <em>lambda_n=0.01</em>, <em>a=1</em>, <em>b=0.01</em>, <em>autoencoder_corruption=0.3</em>, <em>learning_rate=0.001</em>, <em>keep_prob=1.0</em>, <em>batch_size=100</em>, <em>max_iter=100</em>, <em>name='CDL'</em>, <em>trainable=True</em>, <em>init_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/cdl/recom_cdl.html#CDL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.cdl.recom_cdl.CDL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collaborative Deep Learning.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 50</em>) – The dimension of the latent factors.</li>
+<li><strong>max_iter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – Maximum number of iterations or the number of epochs for SGD.</li>
+<li><strong>shape</strong><strong> (</strong><strong>n_items</strong><strong>, </strong><strong>n_vocabularies</strong><strong>)</strong><strong>, </strong><strong>optional</strong><strong>, </strong><strong>default</strong> (<em>text_information：ndarray</em><em>,</em>) – Bag-of-words features of items</li>
+<li><strong>optional</strong><strong>, </strong><strong>default</strong> (<em>autoencoder_structure：array</em><em>,</em>) – The number of neurons of encoder/ decoder layer for SDAE</li>
+<li><strong>learning_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – The learning rate for AdamOptimizer.</li>
+<li><strong>lambda_u</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.1</em>) – The regularization parameter for users.</li>
+<li><strong>lambda_v</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 10</em>) – The regularization parameter for items.</li>
+<li><strong>lambda_w</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.1</em>) – The regularization parameter for SDAE weights.</li>
+<li><strong>lambda_n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 1000</em>) – The regularization parameter for SDAE output.</li>
+<li><strong>a</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 1</em>) – The confidence of observed ratings.</li>
+<li><strong>b</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.01</em>) – The confidence of unseen ratings.</li>
+<li><strong>autoencoder_corruption</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 0.3</em>) – The corruption ratio for SDAE.</li>
+<li><strong>keep_prob</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a><em>, </em><em>optional</em><em>, </em><em>default: 1.0</em>) – The probability that each element is kept in dropout of SDAE.</li>
+<li><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em><em>, </em><em>default: 100</em>) – The batch size for SGD.</li>
+<li><strong>name</strong> (<em>string</em><em>, </em><em>optional</em><em>, </em><em>default: 'CDL'</em>) – The name of the recommender model.</li>
+<li><strong>trainable</strong> (<em>boolean</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – When False, the model is not trained and Cornac assumes that the model already
+pre-trained (U and V are not None).</li>
+<li><strong>init_params</strong> (<em>dictionary</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – List of initial parameters, e.g., init_params = {‘U’:U, ‘V’:V}
+please see below the definition of U and V.</li>
+<li><strong>U</strong> (<em>ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_users</em><em>,</em><em>k</em><em>)</em>) – The user latent factors, optional initialization via init_params.</li>
+<li><strong>V</strong> (<em>ndarray</em><em>, </em><em>shape</em><em> (</em><em>n_items</em><em>,</em><em>k</em><em>)</em>) – The item latent factors, optional initialization via init_params.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<ul class="simple">
+<li>Hao Wang, Naiyan Wang, Dit-Yan Yeung. CDL: Collaborative Deep Learning for Recommender Systems. In : SIGKDD. 2015. p. 1235-1244.</li>
+</ul>
+<dl class="method">
+<dt id="cornac.models.cdl.recom_cdl.CDL.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/cdl/recom_cdl.html#CDL.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.cdl.recom_cdl.CDL.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the model to observations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>X</strong> (<em>scipy sparse matrix</em><em>, </em><em>required</em>) – the user-item preference matrix (training data), in a scipy sparse format            (e.g., csc_matrix).</li>
+<li><strong>csc_matrix</strong><strong>)</strong><strong></strong> (<em>(</em><em>e.g.</em><em>,</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornac.models.cdl.recom_cdl.CDL.rank">
+<code class="descname">rank</code><span class="sig-paren">(</span><em>user_index</em>, <em>known_items=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/cdl/recom_cdl.html#CDL.rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.cdl.recom_cdl.CDL.rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rank all test items for a given user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform item raking.</li>
+<li><strong>known_items</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indices already known by the user</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array of item indices sorted (in decreasing order) relative to some user preference scores.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cornac.models.cdl.recom_cdl.CDL.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>user_index</em>, <em>item_indexes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cornac/models/cdl/recom_cdl.html#CDL.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cornac.models.cdl.recom_cdl.CDL.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict the scores/ratings of a user for a list of items.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>user_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>required</em>) – The index of the user for whom to perform score predictions.</li>
+<li><strong>item_indexes</strong> (<em>1d array</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – A list of item indexes for which to predict the rating score.            When “None”, score prediction is performed for all test items of the given user.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array containing the predicted values for the items of interest</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Numpy 1d array</p>
 </td>
 </tr>
 </tbody>
