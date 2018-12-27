@@ -92,7 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="metrics.html">metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="experiment.html">experiment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation_strategies.html">evaluation strategies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eval_strategies.html">evaluation strategies</a></li>
 </ul>
 
             
@@ -160,39 +160,38 @@
   <div class="section" id="first-example">
 <h1>First example<a class="headerlink" href="#first-example" title="Permalink to this headline">¶</a></h1>
 <p>This example will show you how to run your very first experiment using Cornac. It consists in training and evaluating the Probabilistic Matrix Factorization (PMF) recommender model.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#Importing required modules from Cornac.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Importing required modules from Cornac.</span>
 <span class="kn">from</span> <span class="nn">cornac.models</span> <span class="k">import</span> <span class="n">PMF</span>
-<span class="kn">from</span> <span class="nn">cornac.experiment</span> <span class="k">import</span> <span class="n">Experiment</span>
-<span class="kn">from</span> <span class="nn">cornac.evaluation_strategies</span> <span class="k">import</span> <span class="n">Split</span>
+<span class="kn">from</span> <span class="nn">cornac</span> <span class="k">import</span> <span class="n">Experiment</span>
+<span class="kn">from</span> <span class="nn">cornac.eval_strategies</span> <span class="k">import</span> <span class="n">RatioSplit</span>
+<span class="kn">from</span> <span class="nn">cornac.datasets</span> <span class="k">import</span> <span class="n">MovieLens100K</span>
 <span class="kn">from</span> <span class="nn">cornac</span> <span class="k">import</span> <span class="n">metrics</span>
 
-<span class="c1">#Importing some additional useful modules.</span>
-<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="k">import</span> <span class="n">loadmat</span>
 
-<span class="c1">#Loading and preparing the Amazon office data,</span>
-<span class="c1">#Available in the GitHub repository, inside folder &#39;data/&#39;.</span>
-<span class="n">office</span><span class="o">=</span> <span class="n">loadmat</span><span class="p">(</span><span class="s2">&quot;path to office.mat&quot;</span><span class="p">)</span>
-<span class="n">mat_office</span> <span class="o">=</span> <span class="n">office</span><span class="p">[</span><span class="s1">&#39;mat&#39;</span><span class="p">]</span>
+<span class="c1"># Load the MovieLens 100K dataset</span>
+<span class="n">ml_100k</span> <span class="o">=</span> <span class="n">MovieLens100K</span><span class="o">.</span><span class="n">load_data</span><span class="p">()</span>
 
-<span class="c1">#Instantiate a pfm recommender model.</span>
-<span class="c1">#Please refer to the documentation for details on parameter settings.</span>
-<span class="n">rec_pmf</span> <span class="o">=</span> <span class="n">PMF</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">lamda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">init_params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;U&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span><span class="s1">&#39;V&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">})</span>
+<span class="c1"># Instantiate an evaluation strategy.</span>
+<span class="n">ratio_split</span> <span class="o">=</span> <span class="n">RatioSplit</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">ml_100k</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">rating_threshold</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">exclude_unknowns</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="c1">#Instantiate an evaluation strategy.</span>
-<span class="n">es_split</span> <span class="o">=</span> <span class="n">Split</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">mat_office</span><span class="p">,</span> <span class="n">prop_test</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">prop_validation</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">good_rating</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="c1"># Instantiate a PMF recommender model.</span>
+<span class="n">pmf</span> <span class="o">=</span> <span class="n">PMF</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">lamda</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
 
-<span class="c1">#Instantiate evaluation metrics.</span>
-<span class="n">rec</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Recall</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
-<span class="n">pre</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Precision</span><span class="p">(</span><span class="n">m</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="c1"># Instantiate evaluation metrics.</span>
 <span class="n">mae</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">MAE</span><span class="p">()</span>
 <span class="n">rmse</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">RMSE</span><span class="p">()</span>
+<span class="n">rec_20</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Recall</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">pre_20</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">Precision</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 
-<span class="c1">#Instantiate and then run an experiment.</span>
-<span class="n">res_pmf</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">es_split</span><span class="p">,</span> <span class="p">[</span><span class="n">rec_pmf</span><span class="p">],</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">mae</span><span class="p">,</span><span class="n">rmse</span><span class="p">,</span><span class="n">pre</span><span class="p">,</span><span class="n">rec</span><span class="p">])</span>
-<span class="n">res_pmf</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="c1"># Instantiate and then run an experiment.</span>
+<span class="n">exp</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">eval_strategy</span><span class="o">=</span><span class="n">ratio_split</span><span class="p">,</span>
+                 <span class="n">models</span><span class="o">=</span><span class="p">[</span><span class="n">pmf</span><span class="p">],</span>
+                 <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">mae</span><span class="p">,</span> <span class="n">rmse</span><span class="p">,</span> <span class="n">rec_20</span><span class="p">,</span> <span class="n">pre_20</span><span class="p">],</span>
+                 <span class="n">user_based</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">exp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
-<span class="c1">#Get average results.</span>
-<span class="n">res_pmf</span><span class="o">.</span><span class="n">average_result</span>
+<span class="c1"># Get average results.</span>
+<span class="n">exp</span><span class="o">.</span><span class="n">avg_results</span>
 </pre></div>
 </div>
 </div>
