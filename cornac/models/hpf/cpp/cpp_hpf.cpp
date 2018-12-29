@@ -2,6 +2,22 @@
 #include "./cpp_hpf.h"
 
 
+// Update the Gamma rate parameter, can be used to update Lambda rate parameter as well 
+void update_gamma_r(MSpMat &G_r, MSpMat &L_s,MSpMat &L_r,NumericVector &K_r, double k_s, double att = 1.0){
+  
+	for(int k = 0;k<G_r.cols();++k){
+		double Sk = 0.0;
+		for (InIterMat j_(L_r, k); j_; ++j_){
+			Sk += L_s.coeff(j_.row(),k)/L_r.coeff(j_.row(),k);
+		}
+    
+		for(int i = 0;i<G_r.rows();++i){
+			G_r.coeffRef(i,k) = att*k_s/K_r[i] + Sk;
+		}
+	}
+}
+
+
 //Update the shape parameters of Gamma 
 void update_gamma_s(MSpMat &G_s,MSpMat const& X, SpMat const&Lt, SpMat const&Lb){
   
