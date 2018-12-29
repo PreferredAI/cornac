@@ -43,16 +43,22 @@ void update_gamma_s(MSpMat &G_s,MSpMat const& X, SpMat const&Lt, SpMat const&Lb)
 
 
 //Update the shape parameters of Lambda 
-void update_lambda_s(MSpMat &L_s,MSpMat const& X, SpMat const&Lt, SpMat const&Lb){
+void update_lambda_s(Mat &L_s, SpMat const& X, SpMat const&Lt, SpMat const&Lb)
+{
 	double eps = pow(2,-52);
-	for(int nz = 0;nz<X.outerSize();++nz){
-		for (InIterMat i_(X,nz); i_; ++i_){
+	
+	for(int nz = 0;nz<X.outerSize();++nz)
+	{
+		for (SpMatiter x_(X,nz); x_; ++x_)
+		{
 			double dk = eps;
-			for(int k = 0;k<L_s.cols();++k){
-				dk += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k);           
+			for(int k = 0;k<L_s.cols();++k)
+			{
+				dk += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k);           
 			} 
-			for(int k = 0;k<L_s.cols();++k){
-				L_s.coeffRef(i_.col(),k) += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k)*X.coeff(i_.row(),i_.col())/dk;
+			for(int k = 0;k<L_s.cols();++k)
+			{
+				L_s[x_.col()][k] += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k)*X.coeff(x_.row(),x_.col())/dk;
 			}   
 		}
 	}
@@ -86,6 +92,7 @@ SpMat E_SpMat_logGamma(SpMat const& G_s, SpMat const& G_r)
   
     return (digaG_s - logG_r);
 }
+
 
 // Build a csc sparse matrix from triplet data
 SpMat triplet_to_csc_sparse(Mat const& M, int n_row, int n_col)
