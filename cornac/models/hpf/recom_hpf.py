@@ -6,8 +6,11 @@
 
 import numpy as np
 from ..recommender import Recommender
-from .hpf import *
+#from .hpf import *
 from ...exception import ScoreException
+import hpf
+import scipy.sparse as sp
+
 
 
 # HierarchicalPoissonFactorization: Hpf
@@ -78,10 +81,19 @@ class HPF(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        X = self.train_set.matrix
+        X = sp.csc_matrix(self.train_set.matrix)
+        
+        # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
+        (rid, cid, val) = sp.find(X)
+        val = np.array(val, dtype='float32')
+        rid = np.array(rid, dtype='int32')
+        cid = np.array(cid, dtype='int32')
+        tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
+        del rid, cid, val
+        
 
         if self.trainable:
-            res = pf(X, k=self.k, max_iter=self.max_iter, init_param=self.init_params)
+            res = hpf.pf(tX, X.shape[0], X.shape[1], k=self.k, max_iter=self.max_iter, init_param=self.init_params)
             self.Theta = np.asarray(res['Z'])
             self.Beta = np.asarray(res['W'])
         elif self.verbose:
