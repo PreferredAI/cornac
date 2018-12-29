@@ -35,9 +35,9 @@ void update_gamma_s(Mat &G_s, SpMat const& X, SpMat const&Lt, SpMat const&Lb){
 			{
 				dk += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k);           
 			} 
-			for(int k = 0;k<G_s.cols();++k)
+			for(int k = 0;k<Lt.cols();++k)
 			{
-				G_s.coeffRef[x_.row()][k] += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k)*X.coeff(x_.row(),x_.col())/dk;
+				G_s[x_.row()][k] += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k)*X.coeff(x_.row(),x_.col())/dk;
 				//L_s.coeffRef(i_.col(),k) += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k)*X.coeff(i_.row(),i_.col())/dk;
 			} 
 		}
@@ -55,11 +55,11 @@ void update_lambda_s(Mat &L_s, SpMat const& X, SpMat const&Lt, SpMat const&Lb)
 		for (SpMatiter x_(X,nz); x_; ++x_)
 		{
 			double dk = eps;
-			for(int k = 0;k<L_s.cols();++k)
+			for(int k = 0;k<Lt.cols();++k)
 			{
 				dk += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k);           
 			} 
-			for(int k = 0;k<L_s.cols();++k)
+			for(int k = 0;k<Lt.cols();++k)
 			{
 				L_s[x_.col()][k] += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k)*X.coeff(x_.row(),x_.col())/dk;
 			}   
