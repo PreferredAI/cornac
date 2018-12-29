@@ -82,15 +82,25 @@ void set_coeffs_to(Mat &L_s,double c_)
 
 
 // Compute expectations of Sparse matrices contaning logGamma elements
-SpMat E_SpMat_logGamma(SpMat const& G_s, SpMat const& G_r)
-{
-  
-    SpMat logG_r(G_r.rows(),G_r.cols());
-    logG_r = G_r;
+
+SpMat E_SpMat_logGamma(Mat const& G_s, Mat const& G_r)
+{  
+    SpMat logG_r(G_r.size(),G_r[0].size());
+    SpMat digaG_s(G_s.size(),G_s[0].size());
+    
+    for(int u = 0; u<G_s.size();++u)
+    {
+        for(int k = 0; k<G_s[0].size();++k)
+        {
+            if(G_r[u][k]>0.0)
+                logG_r.coeffRef(u,k) = G_r[u][k];
+            if(G_s[u][k]>0.0)
+                digaG_s.coeffRef(u,k) = G_s[u][k];
+        }
+    }
+    logG_r.prune(0.0);
+    digaG_s.prune(0.0);
     logG_r.coeffs() = logG_r.coeffs().log();
-  
-    SpMat digaG_s(G_s.rows(),G_s.cols());
-    digaG_s = G_s;
     digaG_s.coeffs() = digaG_s.coeffs().digamma();
   
     return (digaG_s - logG_r);
