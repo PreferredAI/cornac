@@ -3,7 +3,7 @@
 
 
 //update the Gamma rate parameter, can be used to update Lambda rate parameter as well 
-void update_gamma_r(Mat &G_r, Mat &L_s, Mat &L_r, double k_s)
+void update_gamma_r(Mat &G_r, Mat &L_s, Mat &L_r, double k_s, double double att)
 {
 	for(int k = 0;k<G_r[0].size();++k)
 	{
