@@ -173,8 +173,6 @@ void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, d
 		//update_kappa_r(T_r,L_s,L_r,c_,d_);
     
 		// End of learning 
-		if((iter%10)==0)
-			Rcout << "iter: " << iter <<std::endl;
     
 	}
 
