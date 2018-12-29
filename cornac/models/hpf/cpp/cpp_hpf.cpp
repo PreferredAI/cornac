@@ -5,13 +5,14 @@
 
 
 // Set all entries of sparse matrix into a particular value
-void set_coeffs_to(MSpMat &L_s,double c){
-	
-	for(int j = 0;j<L_s.rows();++j){
-		for(int k = 0;k<L_s.cols();++k){
-			L_s.coeffRef(j,k) = c;
+void set_coeffs_to(Mat &L_s,double c_)
+{
+	for(int j = 0;j<L_s.size();++j){
+    	for(int k = 0;k<L_s[0].size();++k)
+    	{
+			L_s[j][k] = c_;
 		}
-	} 
+	}
 }
 
 
