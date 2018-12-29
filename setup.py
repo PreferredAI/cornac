@@ -27,6 +27,19 @@ if use_cython:
                                     ],
                                     language='c++')
     external_modules += cythonize(ext_c2pf)
+	#
+    ext_hpf = setuptools.Extension('hpf',
+                                    sources=[
+                                        'cornac/models/hpf/cython/hpf.pyx',
+                                        'cornac/models/hpf/cpp/cpp_hpf.cpp'],
+                                    libraries=[],
+                                    include_dirs=[
+                                        'cornac/models/hpf/cpp/',
+                                        'cornac/utils/external/eigen/Eigen',
+                                        'cornac/utils/external/eigen/unsupported/Eigen/'
+                                    ],
+                                    language='c++')
+    external_modules += cythonize(ext_hpf)
     #
     ext_pmf = 'cornac/models/pmf/cython/pmf.pyx'
     external_modules += cythonize(ext_pmf)
@@ -43,6 +56,19 @@ else:
                                          'cornac/utils/external/eigen/unsupported/Eigen/'
                                      ])]
     external_modules += ext_c2pf
+	#
+    ext_hpf = [setuptools.Extension('hpf',
+                                     sources=[
+                                         'cornac/models/hpf/cython/hpf.cpp',
+                                         'cornac/models/hpf/cpp/cpp_hpf.cpp'
+                                     ],
+                                     language='c++',
+                                     include_dirs=[
+                                         'cornac/models/hpf/cpp/',
+                                         'cornac/utils/external/eigen/Eigen',
+                                         'cornac/utils/external/eigen/unsupported/Eigen/'
+                                     ])]
+    external_modules += ext_hpf
     #
     ext_pmf = [setuptools.Extension('pmf',
                                     ['cornac/models/pmf/cython/pmf.c'])]
