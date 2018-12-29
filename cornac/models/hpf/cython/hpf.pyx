@@ -19,18 +19,18 @@ cdef extern from "cpp_hpf.h":
 	
 cpdef pf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     
-    n   = n_X
-    d   = d_X
-    d2  = d_C
+	n   = n_X
+	d   = d_X
+	d2  = d_C
 
-    #Hyper parameter setting
-    a  = 0.3
-    a_ = 0.3
-    a1 = 2.
-    c  = 0.3
-    c_ = 0.3
-    c1 = 1.
-    b_ = 1
+	#Hyper parameter setting
+	a  = 0.3
+	a_ = 0.3
+	a1 = 2.
+	c  = 0.3
+	c_ = 0.3
+	c1 = 1.
+	b_ = 1
     d_ = 1
 	k_s = a + k*a
 	t_s = a + k*c
