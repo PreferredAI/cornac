@@ -93,7 +93,7 @@ class HPF(Recommender):
         
 
         if self.trainable:
-            res = hpf.pf(tX, X.shape[0], X.shape[1], k=self.k, max_iter=self.max_iter, init_param=self.init_params)
+            res = hpf.pf(tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params)
             self.Theta = np.asarray(res['Z'])
             self.Beta = np.asarray(res['W'])
         elif self.verbose:
