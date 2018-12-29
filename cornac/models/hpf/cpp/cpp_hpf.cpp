@@ -6,6 +6,21 @@
 
 
 
+//Compute expectations of Sparse matrices contaning logGamma elements
+SpMat E_SpMat_logGamma(SpMat const& G_s, SpMat const& G_r)
+{
+  
+    SpMat logG_r(G_r.rows(),G_r.cols());
+    logG_r = G_r;
+    logG_r.coeffs() = logG_r.coeffs().log();
+  
+    SpMat digaG_s(G_s.rows(),G_s.cols());
+    digaG_s = G_s;
+    digaG_s.coeffs() = digaG_s.coeffs().digamma();
+  
+    return (digaG_s - logG_r);
+}
+
 
 void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter = 100){
   
