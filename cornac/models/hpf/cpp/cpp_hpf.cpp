@@ -110,7 +110,7 @@ SpMat triplet_to_csc_sparse(Mat const& M, int n_row, int n_col)
 }
 
 
-void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter = 100){
+void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter){
   
 	//data shape
 	int n = X.rows();
