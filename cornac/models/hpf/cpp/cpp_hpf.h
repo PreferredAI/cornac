@@ -20,4 +20,4 @@ typedef std::vector<int> iVec;
 
 
 
-void hpf_cpp(Mat const&X, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter);
+void pf_cpp(Mat const&X, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter);
