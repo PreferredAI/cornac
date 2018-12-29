@@ -22,24 +22,27 @@ void update_gamma_r(Mat &G_r, Mat &L_s, Mat &L_r, double k_s)
 
 
 //Update the shape parameters of Gamma 
-void update_gamma_s(MSpMat &G_s,MSpMat const& X, SpMat const&Lt, SpMat const&Lb){
+void update_gamma_s(Mat &G_s, SpMat const& X, SpMat const&Lt, SpMat const&Lb){
   
 	double eps = pow(2,-52);
-	for(int nz = 0;nz<X.outerSize();++nz){
-		for (InIterMat i_(X,nz); i_; ++i_){
+	for(int nz = 0;nz<X.outerSize();++nz)
+	{
+		for (SpMatiter x_(X,nz); x_; ++x_)
+		{
 			double dk = eps;
       
-			for(int k = 0;k<Lt.cols();++k){
-				dk += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k);           
+			for(int k = 0;k<Lt.cols();++k)
+			{
+				dk += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k);           
 			} 
-			for(int k = 0;k<G_s.cols();++k){
-				G_s.coeffRef(i_.row(),k) += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k)*X.coeff(i_.row(),i_.col())/dk;
+			for(int k = 0;k<G_s.cols();++k)
+			{
+				G_s.coeffRef[x_.row()][k] += Lt.coeff(x_.row(),k)*Lb.coeff(x_.col(),k)*X.coeff(x_.row(),x_.col())/dk;
 				//L_s.coeffRef(i_.col(),k) += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k)*X.coeff(i_.row(),i_.col())/dk;
 			} 
 		}
 	}
 }
-
 
 
 //Update the shape parameters of Lambda 
