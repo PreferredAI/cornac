@@ -2,7 +2,24 @@
 #include "./cpp_hpf.h"
 
 
-
+//Update the shape parameters of Gamma 
+void update_gamma_s(MSpMat &G_s,MSpMat const& X, SpMat const&Lt, SpMat const&Lb){
+  
+	double eps = pow(2,-52);
+	for(int nz = 0;nz<X.outerSize();++nz){
+		for (InIterMat i_(X,nz); i_; ++i_){
+			double dk = eps;
+      
+			for(int k = 0;k<Lt.cols();++k){
+				dk += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k);           
+			} 
+			for(int k = 0;k<G_s.cols();++k){
+				G_s.coeffRef(i_.row(),k) += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k)*X.coeff(i_.row(),i_.col())/dk;
+				//L_s.coeffRef(i_.col(),k) += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k)*X.coeff(i_.row(),i_.col())/dk;
+			} 
+		}
+	}
+}
 
 // Set all entries of sparse matrix into a particular value
 void set_coeffs_to(Mat &L_s,double c_)
