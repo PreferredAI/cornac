@@ -19,21 +19,21 @@ cdef extern from "cpp_hpf.h":
 	
 cpdef pf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     
-	n   = n_X
-	d   = d_X
-	d2  = d_C
+    n   = n_X
+    d   = d_X
+    d2  = d_C
 
-	#Hyper parameter setting
-	a  = 0.3
-	a_ = 0.3
-	a1 = 2.
-	c  = 0.3
-	c_ = 0.3
-	c1 = 1.
-	b_ = 1
+    #Hyper parameter setting
+    a  = 0.3
+    a_ = 0.3
+    a1 = 2.
+    c  = 0.3
+    c_ = 0.3
+    c1 = 1.
+    b_ = 1
     d_ = 1
-	k_s = a + k*a
-	t_s = a + k*c
+    k_s = a + k*a
+    t_s = a + k*c
     
     #Declare C++ variables
     cdef:
@@ -71,13 +71,13 @@ cpdef pf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     #L_r = sp.csc_matrix(L_r,dtype=np.float64)  
   
 
-	#  K_r = c1/b_ + a*rowSums(G_s/G_r)
-	#  T_r = c1/d_ + a*rowSums(L_s/L_r)
-	K_r = np.repeat(1.0,n)
-	T_r = np.repeat(1.0,d)
+    #  K_r = c1/b_ + a*rowSums(G_s/G_r)
+    #  T_r = c1/d_ + a*rowSums(L_s/L_r)
+    K_r = np.repeat(1.0,n)
+    T_r = np.repeat(1.0,d)
 
     print('Learning...')    
-	pf_cpp(X, k, G_s, G_r, L_s, L_r, K_r, T_r, iter_max)
+    pf_cpp(X, k, G_s, G_r, L_s, L_r, K_r, T_r, iter_max)
     print('Learning completed!')
 
 
