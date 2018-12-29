@@ -7,7 +7,7 @@
 
 
 
-void pf_cpp(MSpMat X,int g,MSpMat G_s,MSpMat G_r,MSpMat L_s,MSpMat L_r,NumericVector K_r,NumericVector T_r,int maxiter = 100){
+void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter = 100){
   
 	//data shape
 	int n = X.rows();
