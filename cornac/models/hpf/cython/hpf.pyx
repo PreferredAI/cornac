@@ -21,7 +21,6 @@ cpdef pf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     
     n   = n_X
     d   = d_X
-    d2  = d_C
 
     #Hyper parameter setting
     a  = 0.3
