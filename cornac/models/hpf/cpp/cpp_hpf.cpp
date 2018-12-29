@@ -87,6 +87,18 @@ SpMat E_SpMat_logGamma(SpMat const& G_s, SpMat const& G_r)
     return (digaG_s - logG_r);
 }
 
+// Build a csc sparse matrix from triplet data
+SpMat triplet_to_csc_sparse(Mat const& M, int n_row, int n_col)
+{
+    SpMat spM(n_row, n_col);
+    for(int i = 0;i<M.size();++i)
+    {
+        spM.coeffRef(M[i][0],M[i][1]) = M[i][2];
+    }
+      
+    return spM;
+}
+
 
 void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter = 100){
   
