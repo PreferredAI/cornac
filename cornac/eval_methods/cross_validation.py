@@ -10,7 +10,7 @@ from ..utils.generic_utils import safe_indexing
 
 
 class CrossValidation(BaseMethod):
-    """Evaluation Strategy Cross Validation.
+    """Cross Validation Evaluation Method.
 
     Parameters
     ----------
