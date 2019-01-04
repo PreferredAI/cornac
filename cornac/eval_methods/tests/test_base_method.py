@@ -4,18 +4,18 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..base_strategy import BaseStrategy
+from ..base_method import BaseMethod
 
 
 def test_init():
-    bs = BaseStrategy(None, verbose=True)
+    bs = BaseMethod(None, verbose=True)
 
     assert not bs.exclude_unknowns
     assert 1. == bs.rating_threshold
 
 
 def test_trainset_none():
-    bs = BaseStrategy(None, verbose=True)
+    bs = BaseMethod(None, verbose=True)
 
     try:
         bs.evaluate(None, {}, False)
@@ -24,7 +24,7 @@ def test_trainset_none():
 
 
 def test_testset_none():
-    bs = BaseStrategy(None, train_set=[], verbose=True)
+    bs = BaseMethod(None, train_set=[], verbose=True)
 
     try:
         bs.evaluate(None, {}, False)
