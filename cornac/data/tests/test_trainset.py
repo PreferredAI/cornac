@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-
+from ..reader import Reader
 
 def test_trainset():
     """Test TrainSet"""
@@ -45,8 +45,7 @@ def test_matrix_trainset():
     r_col = 2
     sep = '\t'
 
-    from ..reader import txt_to_uir_triplets
-    triplet_data = txt_to_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
+    triplet_data = Reader.read_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     from ..trainset import MatrixTrainSet
     train_set = MatrixTrainSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ui_set=set(), verbose=True)
