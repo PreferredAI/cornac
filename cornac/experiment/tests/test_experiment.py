@@ -7,7 +7,7 @@
 
 def test_with_ratio_split():
     from ...data import reader
-    from ...eval_strategies import RatioSplit
+    from ...eval_methods import RatioSplit
     from ...models import PMF
     from ...metrics import MAE, RMSE, Recall, FMeasure
     from ..experiment import Experiment
