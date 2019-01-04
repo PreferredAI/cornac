@@ -14,23 +14,17 @@ class TestSet:
         self._uid_map = uid_map
         self._iid_map = iid_map
 
-
     def get_users(self):
         return self._user_ratings.keys()
-
 
     def get_ratings(self, mapped_uid):
         return self._user_ratings.get(mapped_uid, [])
 
-
     def get_uid(self, raw_uid):
         return self._uid_map[raw_uid]
 
-
     def get_iid(self, raw_iid):
         return self._iid_map[raw_iid]
-
-
 
     @classmethod
     def from_uir_triplets(self, triplet_data, pre_uid_map, pre_iid_map, pre_ui_set, verbose=False):
@@ -42,7 +36,7 @@ class TestSet:
         unk_item_count = 0
 
         for raw_uid, raw_iid, rating in triplet_data:
-            if (raw_uid, raw_iid) in pre_ui_set: # duplicate rating
+            if (raw_uid, raw_iid) in pre_ui_set:  # duplicate rating
                 continue
             pre_ui_set.add((raw_uid, raw_iid))
 

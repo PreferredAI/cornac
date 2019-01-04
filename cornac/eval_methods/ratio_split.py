@@ -6,12 +6,12 @@
 
 from ..utils.generic_utils import safe_indexing, validate_data_format
 from math import ceil
-from .base_strategy import BaseStrategy
+from .base_method import BaseMethod
 from ..data import MatrixTrainSet, TestSet
 import numpy as np
 
 
-class RatioSplit(BaseStrategy):
+class RatioSplit(BaseMethod):
     """Train-Test Split Evaluation Strategy.
 
     Parameters
@@ -49,8 +49,8 @@ class RatioSplit(BaseStrategy):
 
     def __init__(self, data, data_format='UIR', val_size=0.0, test_size=0.2, rating_threshold=1., shuffle=True,
                  random_state=None, exclude_unknowns=False, verbose=False):
-        BaseStrategy.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
-                              exclude_unknowns=exclude_unknowns, verbose=verbose)
+        BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
+                            exclude_unknowns=exclude_unknowns, verbose=verbose)
 
         self._shuffle = shuffle
         self._random_state = random_state
@@ -115,8 +115,8 @@ class RatioSplit(BaseStrategy):
         val_data = safe_indexing(self._data, val_idx)
         test_data = safe_indexing(self._data, test_idx)
 
-        if self._data_format == 'UIR':
-            self.build_from_uir_format(train_data, val_data, test_data)
+        if self.data_format == 'UIR':
+            self._build_from_uir_format(train_data=train_data, test_data=test_data, val_data=val_data)
 
         self._split_ran = True
 
@@ -127,4 +127,4 @@ class RatioSplit(BaseStrategy):
 
     def evaluate(self, model, metrics, user_based):
         self.split()
-        return BaseStrategy.evaluate(self, model, metrics, user_based)
+        return BaseMethod.evaluate(self, model, metrics, user_based)

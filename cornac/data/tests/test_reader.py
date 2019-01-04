@@ -4,8 +4,6 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-
-
 def test_txt_to_triplets():
     """Test txt_to_triplets function"""
 
