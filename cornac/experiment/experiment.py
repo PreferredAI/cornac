@@ -14,8 +14,8 @@ class Experiment:
 
     Parameters
     ----------
-    eval_strategy: EvaluationStrategy object, required
-        The evaluation strategy (e.g., Split).
+    eval_method: BaseMethod object, required
+        The evaluation method (e.g., RatioSplit).
 
     models: array of objects Recommender, required
         A collection of recommender models to evaluate, e.g., [C2pf, Hpf, Pmf].
@@ -36,8 +36,8 @@ class Experiment:
         Result of user u, of metric m, of model d will be user_results[d][m][u]
     """
 
-    def __init__(self, eval_strategy, models, metrics, user_based=True, verbose=False):
-        self.eval_strategy = eval_strategy
+    def __init__(self, eval_method, models, metrics, user_based=True, verbose=False):
+        self.eval_method = eval_method
         self.models = self._validate_models(models)
         self.metrics = self._validate_metrics(metrics)
         self.user_based = user_based
@@ -104,9 +104,9 @@ class Experiment:
 
             model_names.append(model.name)
 
-            metric_avg_results, self.user_results[model.name] = self.eval_strategy.evaluate(model=model,
-                                                                                            metrics=organized_metrics,
-                                                                                            user_based=self.user_based)
+            metric_avg_results, self.user_results[model.name] = self.eval_method.evaluate(model=model,
+                                                                                          metrics=organized_metrics,
+                                                                                          user_based=self.user_based)
             
             if self.dict_depth(metric_avg_results) == 1:
                 self.avg_results.append([metric_avg_results.get(mt_name, np.nan) for mt_name in metric_names])
