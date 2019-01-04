@@ -80,6 +80,8 @@ ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, excl
 
 - Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
 ```python
+import cornac
+
 pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 ```
 
