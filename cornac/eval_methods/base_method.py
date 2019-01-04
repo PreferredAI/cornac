@@ -11,7 +11,7 @@ import numpy as np
 
 
 class BaseMethod:
-    """Base Evaluation Strategy
+    """Base Evaluation Method
 
     Parameters
     ----------

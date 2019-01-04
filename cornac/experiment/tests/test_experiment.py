@@ -12,7 +12,7 @@ from ..experiment import Experiment
 
 def test_with_ratio_split():
     data = Reader.read_uir_triplets('./cornac/data/tests/data.txt')
-    exp = Experiment(eval_strategy=RatioSplit(data, verbose=True),
+    exp = Experiment(eval_method=RatioSplit(data, verbose=True),
                      models=[PMF(1, 0)],
                      metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
                      verbose=True)

@@ -12,7 +12,7 @@ import numpy as np
 
 
 class RatioSplit(BaseMethod):
-    """Train-Test Split Evaluation Strategy.
+    """Train-Test Split Evaluation Method.
 
     Parameters
     ----------

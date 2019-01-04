@@ -27,7 +27,7 @@ rec_20 = cornac.metrics.Recall(k=20)
 pre_20 = cornac.metrics.Precision(k=20)
 
 # Instantiate and then run an experiment.
-exp = cornac.Experiment(eval_strategy=ratio_split,
+exp = cornac.Experiment(eval_method=ratio_split,
                         models=[pmf],
                         metrics=[mae, rmse, rec_20, pre_20],
                         user_based=True)
