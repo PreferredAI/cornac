@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-
+from ..reader import Reader
 
 data_file = './cornac/data/tests/data.txt'
 u_col = 0
@@ -16,8 +16,7 @@ sep = '\t'
 def test_testset():
     """Test TestSet"""
 
-    from ..reader import txt_to_uir_triplets
-    triplet_data = txt_to_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
+    triplet_data = Reader.read_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     from ..testset import TestSet
     test_set = TestSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={}, pre_ui_set=set())
