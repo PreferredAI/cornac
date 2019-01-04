@@ -1,6 +1,6 @@
 
 from . import datasets
-from . import eval_strategies
+from . import eval_methods
 from . import models
 from . import metrics
 

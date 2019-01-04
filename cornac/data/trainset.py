@@ -86,7 +86,15 @@ class MatrixTrainSet(TrainSet):
         return item_rank
 
     @classmethod
-    def from_uir_triplets(cls, triplet_data, pre_uid_map, pre_iid_map, pre_ui_set, verbose=False):
+    def from_uir_triplets(cls, triplet_data, pre_uid_map=None, pre_iid_map=None,
+                          pre_ui_set=None, verbose=False):
+        if pre_uid_map is None:
+            pre_uid_map = OrderedDict()
+        if pre_iid_map is None:
+            pre_iid_map = OrderedDict()
+        if pre_ui_set is None:
+            pre_ui_set = set()
+
         uid_map = OrderedDict()
         iid_map = OrderedDict()
 
