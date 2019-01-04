@@ -13,8 +13,8 @@ def test_txt_to_triplets():
     r_col = 2
     sep = '\t'
 
-    from ..reader import txt_to_uir_triplets
-    triplet_data = txt_to_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
+    from ..reader import Reader
+    triplet_data = Reader.read_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
 
     assert len(triplet_data) == 10
     assert triplet_data[4][2] == 3
@@ -22,6 +22,6 @@ def test_txt_to_triplets():
     assert triplet_data[8][0] == '543'
 
     try:
-        txt_to_uir_triplets(data_file, 10)
+        Reader.read_uir_triplets(data_file, 10)
     except IndexError:
         assert True
