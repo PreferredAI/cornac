@@ -1,52 +1,46 @@
-import setuptools
+from setuptools import Extension, setup, find_packages
 import os
-
+import numpy
 
 try:
     from Cython.Build import cythonize
+    from Cython.Distutils import build_ext
 except ImportError:
-    use_cython = False
+    USE_CYTHON = False
 else:
-    use_cython = True
+    USE_CYTHON = True
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-# cython c++ modules
-external_modules = []
-if use_cython:
-    ext_c2pf = setuptools.Extension('c2pf',
-                                    sources=[
-                                        'cornac/models/c2pf/cython/c2pf.pyx',
-                                        'cornac/models/c2pf/cpp/cpp_c2pf.cpp'],
-                                    libraries=[],
-                                    include_dirs=[
-                                        'cornac/models/c2pf/cpp/',
-                                        'cornac/utils/external/eigen/Eigen',
-                                        'cornac/utils/external/eigen/unsupported/Eigen/'
-                                    ],
-                                    language='c++')
-    external_modules += cythonize(ext_c2pf)
-    #
-    ext_pmf = 'cornac/models/pmf/cython/pmf.pyx'
-    external_modules += cythonize(ext_pmf)
-else:
-    ext_c2pf = [setuptools.Extension('c2pf',
-                                     sources=[
-                                         'cornac/models/c2pf/cython/c2pf.cpp',
-                                         'cornac/models/c2pf/cpp/cpp_c2pf.cpp'
-                                     ],
-                                     language='c++',
-                                     include_dirs=[
-                                         'cornac/models/c2pf/cpp/',
-                                         'cornac/utils/external/eigen/Eigen',
-                                         'cornac/utils/external/eigen/unsupported/Eigen/'
-                                     ])]
-    external_modules += ext_c2pf
-    #
-    ext_pmf = [setuptools.Extension('pmf',
-                                    ['cornac/models/pmf/cython/pmf.c'])]
-    external_modules += ext_pmf
+ext = '.pyx' if USE_CYTHON else '.cpp'
+
+extensions = [
+    Extension(name='c2pf',
+              sources=[
+                  'cornac/models/c2pf/cython/c2pf' + ext,
+                  'cornac/models/c2pf/cpp/cpp_c2pf.cpp'],
+              include_dirs=[
+                  'cornac/models/c2pf/cpp/',
+                  'cornac/utils/external/eigen/Eigen',
+                  'cornac/utils/external/eigen/unsupported/Eigen/'
+              ],
+              language='c++'),
+    Extension(name='pmf',
+              sources=['cornac/models/pmf/cython/pmf' + ext],
+              language='c++'),
+    Extension(name='cornac.models.mf.recom_mf',
+              sources=['cornac/models/mf/recom_mf' + ext],
+              include_dirs=[numpy.get_include()],
+              language='c++')
+]
+
+cmdclass = {}
+
+# cythonize c++ modules
+if USE_CYTHON:
+    extensions = cythonize(extensions)
+    cmdclass.update({'build_ext': build_ext})
 
 # Handling PyTorch dependency
 if os.name == 'nt':
@@ -54,7 +48,7 @@ if os.name == 'nt':
 elif os.name == 'posix':
     torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl'
 
-setuptools.setup(
+setup(
     name='cornac',
     version='0.1.0.post4',
     author='Aghiles Salah',
@@ -66,7 +60,8 @@ setuptools.setup(
     download_url='https://github.com/PreferredAI/cornac/archive/v0.1.0.tar.gz',
     keywords=['recommender', 'recommendation', 'factorization', 'multimodal'],
     zip_safe=False,
-    ext_modules=external_modules,
+    cmdclass=cmdclass,
+    ext_modules=extensions,
     install_requires=[
         'numpy',
         'scipy',
@@ -75,7 +70,7 @@ setuptools.setup(
         'torch>=0.4.1'
     ],
     dependency_links=[torch_dl],
-    packages=setuptools.find_packages(),
+    packages=find_packages(),
     classifiers=(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
