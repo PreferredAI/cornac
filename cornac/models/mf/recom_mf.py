@@ -9,9 +9,7 @@ import scipy.sparse as sp
 from cornac.models.recommender import Recommender
 from cornac.utils.generic_utils import intersects
 from cornac.exception import ScoreException
-
-cimport cython
-cimport numpy as np
+import mf
 
 
 class MF(Recommender):
@@ -58,8 +56,6 @@ class MF(Recommender):
         self.early_stop = early_stop
         self.fitted = False
 
-    @cython.boundscheck(False)  # turn off bounds-checking for entire function
-    @cython.wraparound(False)  # turn off negative index wrapping for entire function
     def fit(self, train_set):
         """Fit the model to observations.
 
@@ -74,66 +70,20 @@ class MF(Recommender):
         Recommender.fit(self, train_set)
 
         (rid, cid, val) = sp.find(train_set.matrix)
+        data = [(u, i, r) for u, i, r in zip(rid, cid, val)]
 
-        cdef np.ndarray[np.double_t, ndim=2] u_factors
-        cdef np.ndarray[np.double_t, ndim=2] i_factors
-        u_factors = np.random.normal(size=[train_set.num_users, self.k], loc=0., scale=0.01)
-        i_factors = np.random.normal(size=[train_set.num_items, self.k], loc=0., scale=0.01)
-
-        cdef np.ndarray[np.double_t] u_biases
-        cdef np.ndarray[np.double_t] i_biases
-        if self.use_bias:
-            u_biases = np.zeros([train_set.num_users], dtype=np.double)
-            i_biases = np.zeros([train_set.num_items], dtype=np.double)
-
-        cdef double loss = 0
-        cdef double last_loss = 0
-        cdef double lr = self.learning_rate
-        cdef double reg = self.lambda_reg
-        cdef double mu = train_set.global_mean
-        cdef int u, i, factor
-        cdef double r, r_pred, error, u_f, i_f, delta_loss
-
-        for iter in range(1, self.max_iter + 1):
-            last_loss = loss
-            loss = 0
-
-            for u, i, r in zip(rid, cid, val):
-                r_pred = 0
-                for factor in range(self.k):
-                    r_pred += u_factors[u, factor] * i_factors[i, factor]
-                if self.use_bias:
-                    r_pred += mu + u_biases[u] + i_biases[i]
-
-                error = r - r_pred
-                loss += error * error
-
-                for factor in range(self.k):
-                    u_f = u_factors[u, factor]
-                    i_f = i_factors[i, factor]
-                    u_factors[u, factor] += lr * (error * i_f - reg * u_f)
-                    i_factors[i, factor] += lr * (error * u_f - reg * i_f)
-
-            loss = 0.5 * loss
-
-            delta_loss = np.abs(loss - last_loss)
-            if self.early_stop and delta_loss < 1e-5:
-                if self.verbose:
-                    print('Early stopping, delta_loss = '.format(delta_loss))
-                break
-
-            if self.verbose:
-                print('Iter {}, loss = {}'.format(iter, loss))
-
-        if self.verbose:
-            print('Optimization finished!')
-
+        self.u_factors, self.i_factors, self.u_biases, self.i_biases = mf.sgd(data=data,
+                                                                              num_users=train_set.num_users,
+                                                                              num_items=train_set.num_items,
+                                                                              k=self.k,
+                                                                              max_iter=self.max_iter,
+                                                                              learning_rate=self.learning_rate,
+                                                                              lambda_reg=self.lambda_reg,
+                                                                              global_mean=train_set.global_mean,
+                                                                              use_bias=self.use_bias,
+                                                                              early_stop=self.early_stop,
+                                                                              verbose=self.verbose)
         self.fitted = True
-        self.u_factors = u_factors
-        self.i_factors = i_factors
-        if self.use_bias:
-            self.u_biases = u_biases
-            self.i_biases = i_biases
 
     def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
