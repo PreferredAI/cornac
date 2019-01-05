@@ -75,7 +75,7 @@ class MF(Recommender):
         self.u_factors, self.i_factors, self.u_biases, self.i_biases = mf.sgd(data=data,
                                                                               num_users=train_set.num_users,
                                                                               num_items=train_set.num_items,
-                                                                              k=self.k,
+                                                                              num_factors=self.k,
                                                                               max_iter=self.max_iter,
                                                                               learning_rate=self.learning_rate,
                                                                               lambda_reg=self.lambda_reg,
