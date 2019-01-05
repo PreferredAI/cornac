@@ -9,29 +9,34 @@ import numpy as np
 cimport cython
 cimport numpy as np
 
+DTYPE = np.double
+ctypedef np.double_t DTYPE_t
+
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 @cython.wraparound(False)  # turn off negative index wrapping for entire function
-def sgd(data, num_users, num_items, k, max_iter, learning_rate, lambda_reg, global_mean, use_bias, early_stop, verbose):
+def sgd(data, num_users, num_items, num_factors, max_iter, learning_rate,
+        lambda_reg, global_mean, use_bias, early_stop, verbose):
     """Fit the model with SGD
     """
 
-    cdef np.ndarray[np.double_t, ndim=2] u_factors
-    cdef np.ndarray[np.double_t, ndim=2] i_factors
-    u_factors = np.random.normal(size=[num_users, k], loc=0., scale=0.01)
-    i_factors = np.random.normal(size=[num_items, k], loc=0., scale=0.01)
+    cdef np.ndarray[DTYPE_t, ndim=2] u_factors
+    cdef np.ndarray[DTYPE_t, ndim=2] i_factors
+    cdef np.ndarray[DTYPE_t] u_biases
+    cdef np.ndarray[DTYPE_t] i_biases
 
-    cdef np.ndarray[np.double_t] u_biases
-    cdef np.ndarray[np.double_t] i_biases
-    u_biases = np.zeros([num_users], dtype=np.double)
-    i_biases = np.zeros([num_items], dtype=np.double)
+    u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01)
+    i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01)
+    u_biases = np.zeros([num_users], dtype=DTYPE)
+    i_biases = np.zeros([num_items], dtype=DTYPE)
 
     cdef double loss = 0
     cdef double last_loss = 0
     cdef double lr = learning_rate
     cdef double reg = lambda_reg
     cdef double mu = global_mean
-    cdef int u, i, factor
     cdef double r, r_pred, error, u_f, i_f, delta_loss
+    cdef int u, i, factor
+    cdef int k = num_factors
 
     for iter in range(1, max_iter + 1):
         last_loss = loss
