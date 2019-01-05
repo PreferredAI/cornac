@@ -9,26 +9,23 @@ cimport numpy as np
 
 cimport cython
 
-DTYPE = np.double
-ctypedef np.double_t DTYPE_t
-
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 @cython.wraparound(False)  # turn off negative index wrapping for entire function
-def sgd(np.ndarray[np.int_t] rid, np.ndarray[np.int_t] cid, np.ndarray[DTYPE_t] val,
+cpdef sgd(int[:] rid, int[:] cid, double[:] val,
         int num_users, int num_items, int num_factors, int max_iter,
         double lr, double reg, double mu, use_bias, early_stop, verbose):
     """Fit the model with SGD
     """
 
-    cdef np.ndarray[DTYPE_t, ndim=2] u_factors
-    cdef np.ndarray[DTYPE_t, ndim=2] i_factors
-    cdef np.ndarray[DTYPE_t] u_biases
-    cdef np.ndarray[DTYPE_t] i_biases
+    cdef double[:,:] u_factors
+    cdef double[:,:] i_factors
+    cdef double[:] u_biases
+    cdef double[:] i_biases
 
     u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01)
     i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01)
-    u_biases = np.zeros([num_users], dtype=DTYPE)
-    i_biases = np.zeros([num_items], dtype=DTYPE)
+    u_biases = np.zeros([num_users])
+    i_biases = np.zeros([num_items])
 
     cdef double loss = 0
     cdef double last_loss = 0
@@ -43,10 +40,10 @@ def sgd(np.ndarray[np.int_t] rid, np.ndarray[np.int_t] cid, np.ndarray[DTYPE_t] 
             u, i, r = rid[j], cid[j], val[j]
 
             r_pred = 0
-            for factor in range(num_factors):
-                r_pred += u_factors[u, factor] * i_factors[i, factor]
             if use_bias:
                 r_pred += mu + u_biases[u] + i_biases[i]
+            for factor in range(num_factors):
+                r_pred += u_factors[u, factor] * i_factors[i, factor]
 
             error = r - r_pred
             loss += error * error
