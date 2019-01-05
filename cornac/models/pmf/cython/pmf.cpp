@@ -5,12 +5,12 @@
     "distutils": {
         "depends": [],
         "language": "c++",
-        "name": "cornac.models.pmf",
+        "name": "pmf",
         "sources": [
             "cornac/models/pmf/cython/pmf.pyx"
         ]
     },
-    "module_name": "cornac.models.pmf"
+    "module_name": "pmf"
 }
 END: Cython Metadata */
 
@@ -633,8 +633,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__cornac__models__pmf
-#define __PYX_HAVE_API__cornac__models__pmf
+#define __PYX_HAVE__pmf
+#define __PYX_HAVE_API__pmf
 /* Early includes */
 #include <math.h>
 #ifdef _OPENMP
@@ -1175,13 +1175,13 @@ static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 /* Module declarations from 'libc.math' */
 
-/* Module declarations from 'cornac.models.pmf' */
-static double __pyx_f_6cornac_6models_3pmf_sigmoid(double); /*proto*/
-#define __Pyx_MODULE_NAME "cornac.models.pmf"
-extern int __pyx_module_is_main_cornac__models__pmf;
-int __pyx_module_is_main_cornac__models__pmf = 0;
+/* Module declarations from 'pmf' */
+static double __pyx_f_3pmf_sigmoid(double); /*proto*/
+#define __Pyx_MODULE_NAME "pmf"
+extern int __pyx_module_is_main_pmf;
+int __pyx_module_is_main_pmf = 0;
 
-/* Implementation of 'cornac.models.pmf' */
+/* Implementation of 'pmf' */
 static PyObject *__pyx_builtin_range;
 static const char __pyx_k_T[] = "T";
 static const char __pyx_k_U[] = "U";
@@ -1202,6 +1202,7 @@ static const char __pyx_k_end[] = "end";
 static const char __pyx_k_eps[] = "eps";
 static const char __pyx_k_loc[] = "loc";
 static const char __pyx_k_n_X[] = "n_X";
+static const char __pyx_k_pmf[] = "pmf";
 static const char __pyx_k_res[] = "res";
 static const char __pyx_k_val[] = "val";
 static const char __pyx_k_file[] = "file";
@@ -1235,7 +1236,6 @@ static const char __pyx_k_init_params[] = "init_params";
 static const char __pyx_k_learning_rate[] = "learning_rate";
 static const char __pyx_k_epoch_i_loss_f[] = "epoch %i, loss: %f";
 static const char __pyx_k_pmf_non_linear[] = "pmf_non_linear";
-static const char __pyx_k_cornac_models_pmf[] = "cornac.models.pmf";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_author_Aghiles_Salah[] = "\n@author: Aghiles Salah\n";
 static const char __pyx_k_cornac_models_pmf_cython_pmf_pyx[] = "cornac/models/pmf/cython/pmf.pyx";
@@ -1246,7 +1246,6 @@ static PyObject *__pyx_n_s_X;
 static PyObject *__pyx_n_s_cache_u;
 static PyObject *__pyx_n_s_cache_v;
 static PyObject *__pyx_n_s_cline_in_traceback;
-static PyObject *__pyx_n_s_cornac_models_pmf;
 static PyObject *__pyx_kp_s_cornac_models_pmf_cython_pmf_pyx;
 static PyObject *__pyx_n_s_d;
 static PyObject *__pyx_n_s_d_X;
@@ -1278,6 +1277,7 @@ static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_normal;
 static PyObject *__pyx_n_s_np;
 static PyObject *__pyx_n_s_numpy;
+static PyObject *__pyx_n_s_pmf;
 static PyObject *__pyx_n_s_pmf_linear;
 static PyObject *__pyx_n_s_pmf_non_linear;
 static PyObject *__pyx_n_s_print;
@@ -1294,8 +1294,8 @@ static PyObject *__pyx_n_s_u;
 static PyObject *__pyx_n_s_val;
 static PyObject *__pyx_n_s_we;
 static PyObject *__pyx_n_s_zeros;
-static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params); /* proto */
-static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params); /* proto */
+static PyObject *__pyx_pf_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params); /* proto */
+static PyObject *__pyx_pf_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params); /* proto */
 static PyObject *__pyx_float_0_0;
 static PyObject *__pyx_float_0_9;
 static PyObject *__pyx_float_0_001;
@@ -1308,7 +1308,7 @@ static PyObject *__pyx_codeobj__3;
 static PyObject *__pyx_codeobj__5;
 /* Late includes */
 
-/* "cornac/models/pmf/cython/pmf.pyx":10
+/* "pmf.pyx":10
  * 
  * #Sigmoid function
  * cdef double sigmoid(double z):             # <<<<<<<<<<<<<<
@@ -1316,7 +1316,7 @@ static PyObject *__pyx_codeobj__5;
  *     cdef double MAX_EXP = 6.0
  */
 
-static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
+static double __pyx_f_3pmf_sigmoid(double __pyx_v_z) {
   double __pyx_v_s;
   double __pyx_v_MAX_EXP;
   double __pyx_r;
@@ -1325,7 +1325,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
   double __pyx_t_2;
   __Pyx_RefNannySetupContext("sigmoid", 0);
 
-  /* "cornac/models/pmf/cython/pmf.pyx":12
+  /* "pmf.pyx":12
  * cdef double sigmoid(double z):
  *     cdef double s
  *     cdef double MAX_EXP = 6.0             # <<<<<<<<<<<<<<
@@ -1334,7 +1334,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
  */
   __pyx_v_MAX_EXP = 6.0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":13
+  /* "pmf.pyx":13
  *     cdef double s
  *     cdef double MAX_EXP = 6.0
  *     if z > MAX_EXP:             # <<<<<<<<<<<<<<
@@ -1344,7 +1344,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
   __pyx_t_1 = ((__pyx_v_z > __pyx_v_MAX_EXP) != 0);
   if (__pyx_t_1) {
 
-    /* "cornac/models/pmf/cython/pmf.pyx":14
+    /* "pmf.pyx":14
  *     cdef double MAX_EXP = 6.0
  *     if z > MAX_EXP:
  *         return 1.0             # <<<<<<<<<<<<<<
@@ -1354,7 +1354,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
     __pyx_r = 1.0;
     goto __pyx_L0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":13
+    /* "pmf.pyx":13
  *     cdef double s
  *     cdef double MAX_EXP = 6.0
  *     if z > MAX_EXP:             # <<<<<<<<<<<<<<
@@ -1363,7 +1363,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
  */
   }
 
-  /* "cornac/models/pmf/cython/pmf.pyx":16
+  /* "pmf.pyx":16
  *         return 1.0
  *     else:
  *         if z < -MAX_EXP:             # <<<<<<<<<<<<<<
@@ -1374,7 +1374,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
     __pyx_t_1 = ((__pyx_v_z < (-__pyx_v_MAX_EXP)) != 0);
     if (__pyx_t_1) {
 
-      /* "cornac/models/pmf/cython/pmf.pyx":17
+      /* "pmf.pyx":17
  *     else:
  *         if z < -MAX_EXP:
  *             return 0.0             # <<<<<<<<<<<<<<
@@ -1384,7 +1384,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
       __pyx_r = 0.0;
       goto __pyx_L0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":16
+      /* "pmf.pyx":16
  *         return 1.0
  *     else:
  *         if z < -MAX_EXP:             # <<<<<<<<<<<<<<
@@ -1393,7 +1393,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
  */
     }
 
-    /* "cornac/models/pmf/cython/pmf.pyx":19
+    /* "pmf.pyx":19
  *             return 0.0
  *         else:
  *             s = 1.0 / (1.0 + exp(-z))             # <<<<<<<<<<<<<<
@@ -1408,7 +1408,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
       }
       __pyx_v_s = (1.0 / __pyx_t_2);
 
-      /* "cornac/models/pmf/cython/pmf.pyx":20
+      /* "pmf.pyx":20
  *         else:
  *             s = 1.0 / (1.0 + exp(-z))
  *             return s             # <<<<<<<<<<<<<<
@@ -1420,7 +1420,7 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
     }
   }
 
-  /* "cornac/models/pmf/cython/pmf.pyx":10
+  /* "pmf.pyx":10
  * 
  * #Sigmoid function
  * cdef double sigmoid(double z):             # <<<<<<<<<<<<<<
@@ -1430,14 +1430,14 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("cornac.models.pmf.sigmoid", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
+  __Pyx_WriteUnraisable("pmf.sigmoid", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 0);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "cornac/models/pmf/cython/pmf.pyx":24
+/* "pmf.pyx":24
  * 
  * #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
  * def pmf_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
@@ -1446,9 +1446,9 @@ static double __pyx_f_6cornac_6models_3pmf_sigmoid(double __pyx_v_z) {
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cornac_6models_3pmf_1pmf_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cornac_6models_3pmf_1pmf_linear = {"pmf_linear", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6cornac_6models_3pmf_1pmf_linear, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cornac_6models_3pmf_1pmf_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_3pmf_1pmf_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_3pmf_1pmf_linear = {"pmf_linear", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_3pmf_1pmf_linear, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_3pmf_1pmf_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_X = 0;
   PyObject *__pyx_v_n_X = 0;
   PyObject *__pyx_v_d_X = 0;
@@ -1585,18 +1585,18 @@ static PyObject *__pyx_pw_6cornac_6models_3pmf_1pmf_linear(PyObject *__pyx_self,
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("pmf_linear", 0, 4, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 24, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cornac.models.pmf.pmf_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pmf.pmf_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cornac_6models_3pmf_pmf_linear(__pyx_self, __pyx_v_X, __pyx_v_n_X, __pyx_v_d_X, __pyx_v_k, __pyx_v_n_epochs, __pyx_v_lamda, __pyx_v_learning_rate, __pyx_v_gamma, __pyx_v_init_params);
+  __pyx_r = __pyx_pf_3pmf_pmf_linear(__pyx_self, __pyx_v_X, __pyx_v_n_X, __pyx_v_d_X, __pyx_v_k, __pyx_v_n_epochs, __pyx_v_lamda, __pyx_v_learning_rate, __pyx_v_gamma, __pyx_v_init_params);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params) {
+static PyObject *__pyx_pf_3pmf_pmf_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params) {
   PyObject *__pyx_v_loss = NULL;
   PyObject *__pyx_v_n = NULL;
   PyObject *__pyx_v_d = NULL;
@@ -1637,7 +1637,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   PyObject *__pyx_t_20 = NULL;
   __Pyx_RefNannySetupContext("pmf_linear", 0);
 
-  /* "cornac/models/pmf/cython/pmf.pyx":27
+  /* "pmf.pyx":27
  * 
  *     #some useful variables
  *     loss = np.full(n_epochs, 0.0)             # <<<<<<<<<<<<<<
@@ -1697,7 +1697,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_v_loss = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":28
+  /* "pmf.pyx":28
  *     #some useful variables
  *     loss = np.full(n_epochs, 0.0)
  *     n = n_X             # <<<<<<<<<<<<<<
@@ -1707,7 +1707,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __Pyx_INCREF(__pyx_v_n_X);
   __pyx_v_n = __pyx_v_n_X;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":29
+  /* "pmf.pyx":29
  *     loss = np.full(n_epochs, 0.0)
  *     n = n_X
  *     d = d_X             # <<<<<<<<<<<<<<
@@ -1717,7 +1717,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __Pyx_INCREF(__pyx_v_d_X);
   __pyx_v_d = __pyx_v_d_X;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":30
+  /* "pmf.pyx":30
  *     n = n_X
  *     d = d_X
  *     cache_u = np.zeros((n,k))             # <<<<<<<<<<<<<<
@@ -1756,7 +1756,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_v_cache_u = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":31
+  /* "pmf.pyx":31
  *     d = d_X
  *     cache_u = np.zeros((n,k))
  *     cache_v = np.zeros((d,k))             # <<<<<<<<<<<<<<
@@ -1795,7 +1795,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_v_cache_v = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":32
+  /* "pmf.pyx":32
  *     cache_u = np.zeros((n,k))
  *     cache_v = np.zeros((d,k))
  *     grad_u = np.zeros((n,k))             # <<<<<<<<<<<<<<
@@ -1834,7 +1834,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_v_grad_u = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":33
+  /* "pmf.pyx":33
  *     cache_v = np.zeros((d,k))
  *     grad_u = np.zeros((n,k))
  *     grad_v = np.zeros((d,k))             # <<<<<<<<<<<<<<
@@ -1873,7 +1873,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_v_grad_v = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":34
+  /* "pmf.pyx":34
  *     grad_u = np.zeros((n,k))
  *     grad_v = np.zeros((d,k))
  *     eps = 1e-8             # <<<<<<<<<<<<<<
@@ -1882,7 +1882,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
  */
   __pyx_v_eps = 1e-8;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":37
+  /* "pmf.pyx":37
  *     #Parameter initialization
  *     #User factors
  *     if init_params['U'] is None:             # <<<<<<<<<<<<<<
@@ -1896,7 +1896,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_t_7 = (__pyx_t_6 != 0);
   if (__pyx_t_7) {
 
-    /* "cornac/models/pmf/cython/pmf.pyx":38
+    /* "pmf.pyx":38
  *     #User factors
  *     if init_params['U'] is None:
  *         U = np.random.normal(loc=0.0, scale=0.001, size=n*k).reshape(n,k)             # <<<<<<<<<<<<<<
@@ -1974,7 +1974,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
     __pyx_v_U = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":37
+    /* "pmf.pyx":37
  *     #Parameter initialization
  *     #User factors
  *     if init_params['U'] is None:             # <<<<<<<<<<<<<<
@@ -1984,7 +1984,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
     goto __pyx_L3;
   }
 
-  /* "cornac/models/pmf/cython/pmf.pyx":40
+  /* "pmf.pyx":40
  *         U = np.random.normal(loc=0.0, scale=0.001, size=n*k).reshape(n,k)
  *     else:
  *         U = init_params['U']             # <<<<<<<<<<<<<<
@@ -1999,7 +1999,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   }
   __pyx_L3:;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":43
+  /* "pmf.pyx":43
  * 
  *     #Item factors
  *     if init_params['V'] is None:             # <<<<<<<<<<<<<<
@@ -2013,7 +2013,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_t_6 = (__pyx_t_7 != 0);
   if (__pyx_t_6) {
 
-    /* "cornac/models/pmf/cython/pmf.pyx":44
+    /* "pmf.pyx":44
  *     #Item factors
  *     if init_params['V'] is None:
  *         V = np.random.normal(loc=0.0, scale=0.001, size=d*k).reshape(d,k)             # <<<<<<<<<<<<<<
@@ -2091,7 +2091,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
     __pyx_v_V = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":43
+    /* "pmf.pyx":43
  * 
  *     #Item factors
  *     if init_params['V'] is None:             # <<<<<<<<<<<<<<
@@ -2101,7 +2101,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
     goto __pyx_L4;
   }
 
-  /* "cornac/models/pmf/cython/pmf.pyx":46
+  /* "pmf.pyx":46
  *         V = np.random.normal(loc=0.0, scale=0.001, size=d*k).reshape(d,k)
  *     else:
  *         V = init_params['V']             # <<<<<<<<<<<<<<
@@ -2116,7 +2116,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   }
   __pyx_L4:;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":50
+  /* "pmf.pyx":50
  *     #Optimization
  * 
  *     for epoch in range(n_epochs):             # <<<<<<<<<<<<<<
@@ -2168,7 +2168,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
     __Pyx_XDECREF_SET(__pyx_v_epoch, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":51
+    /* "pmf.pyx":51
  * 
  *     for epoch in range(n_epochs):
  *         for u_, i_, val in X:             # <<<<<<<<<<<<<<
@@ -2274,7 +2274,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_XDECREF_SET(__pyx_v_val, __pyx_t_13);
       __pyx_t_13 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":52
+      /* "pmf.pyx":52
  *     for epoch in range(n_epochs):
  *         for u_, i_, val in X:
  *             u_, i_ = int(u_), int(i_)             # <<<<<<<<<<<<<<
@@ -2290,7 +2290,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF_SET(__pyx_v_i_, __pyx_t_13);
       __pyx_t_13 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":53
+      /* "pmf.pyx":53
  *         for u_, i_, val in X:
  *             u_, i_ = int(u_), int(i_)
  *             e = val - np.dot(U[u_,:], V[i_,:].T)  # Error for the obseved rating u, i, val             # <<<<<<<<<<<<<<
@@ -2382,7 +2382,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_XDECREF_SET(__pyx_v_e, __pyx_t_12);
       __pyx_t_12 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":55
+      /* "pmf.pyx":55
  *             e = val - np.dot(U[u_,:], V[i_,:].T)  # Error for the obseved rating u, i, val
  *             #update user factors
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]             # <<<<<<<<<<<<<<
@@ -2433,7 +2433,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":56
+      /* "pmf.pyx":56
  *             #update user factors
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])             # <<<<<<<<<<<<<<
@@ -2502,7 +2502,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":57
+      /* "pmf.pyx":57
  *             grad_u[u_,:] = e * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
  *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,             # <<<<<<<<<<<<<<
@@ -2583,7 +2583,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":59
+      /* "pmf.pyx":59
  *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor,
  *             #update item factors
  *             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]             # <<<<<<<<<<<<<<
@@ -2634,7 +2634,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":60
+      /* "pmf.pyx":60
  *             #update item factors
  *             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])             # <<<<<<<<<<<<<<
@@ -2703,7 +2703,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":61
+      /* "pmf.pyx":61
  *             grad_v[i_,:] = e * U[u_,:] - lamda * V[i_, :]
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
  *             V[i_,:] += learning_rate * (grad_v[i_,:]/(np.sqrt(cache_v[i_,:])+eps) )  # Update item factor             # <<<<<<<<<<<<<<
@@ -2784,7 +2784,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":62
+      /* "pmf.pyx":62
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
  *             V[i_,:] += learning_rate * (grad_v[i_,:]/(np.sqrt(cache_v[i_,:])+eps) )  # Update item factor
  *             loss[epoch]+= e*e  + lamda * (np.dot(U[u_, :].T, U[u_, :]) + np.dot(V[i_, :].T, V[i_, :]))             # <<<<<<<<<<<<<<
@@ -2974,7 +2974,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
       __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":51
+      /* "pmf.pyx":51
  * 
  *     for epoch in range(n_epochs):
  *         for u_, i_, val in X:             # <<<<<<<<<<<<<<
@@ -2984,7 +2984,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":63
+    /* "pmf.pyx":63
  *             V[i_,:] += learning_rate * (grad_v[i_,:]/(np.sqrt(cache_v[i_,:])+eps) )  # Update item factor
  *             loss[epoch]+= e*e  + lamda * (np.dot(U[u_, :].T, U[u_, :]) + np.dot(V[i_, :].T, V[i_, :]))
  *         print("loss:",loss[epoch])             # <<<<<<<<<<<<<<
@@ -3004,7 +3004,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
     if (__Pyx_PrintOne(0, __pyx_t_12) < 0) __PYX_ERR(0, 63, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":50
+    /* "pmf.pyx":50
  *     #Optimization
  * 
  *     for epoch in range(n_epochs):             # <<<<<<<<<<<<<<
@@ -3014,7 +3014,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":65
+  /* "pmf.pyx":65
  *         print("loss:",loss[epoch])
  * 
  *     res = {'U':U,'V':V,'loss': loss}             # <<<<<<<<<<<<<<
@@ -3029,7 +3029,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_v_res = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":67
+  /* "pmf.pyx":67
  *     res = {'U':U,'V':V,'loss': loss}
  * 
  *     return res             # <<<<<<<<<<<<<<
@@ -3041,7 +3041,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __pyx_r = __pyx_v_res;
   goto __pyx_L0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":24
+  /* "pmf.pyx":24
  * 
  * #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
  * def pmf_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
@@ -3063,7 +3063,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   __Pyx_XDECREF(__pyx_t_18);
   __Pyx_XDECREF(__pyx_t_19);
   __Pyx_XDECREF(__pyx_t_20);
-  __Pyx_AddTraceback("cornac.models.pmf.pmf_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pmf.pmf_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_loss);
@@ -3086,7 +3086,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
   return __pyx_r;
 }
 
-/* "cornac/models/pmf/cython/pmf.pyx":119
+/* "pmf.pyx":119
  * 
  * #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
  * def pmf_non_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
@@ -3095,9 +3095,9 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_pmf_linear(CYTHON_UNUSED PyObject
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cornac_6models_3pmf_3pmf_non_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cornac_6models_3pmf_3pmf_non_linear = {"pmf_non_linear", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6cornac_6models_3pmf_3pmf_non_linear, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cornac_6models_3pmf_3pmf_non_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_3pmf_3pmf_non_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_3pmf_3pmf_non_linear = {"pmf_non_linear", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_3pmf_3pmf_non_linear, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_3pmf_3pmf_non_linear(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_X = 0;
   PyObject *__pyx_v_n_X = 0;
   PyObject *__pyx_v_d_X = 0;
@@ -3234,18 +3234,18 @@ static PyObject *__pyx_pw_6cornac_6models_3pmf_3pmf_non_linear(PyObject *__pyx_s
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("pmf_non_linear", 0, 4, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 119, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("cornac.models.pmf.pmf_non_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pmf.pmf_non_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(__pyx_self, __pyx_v_X, __pyx_v_n_X, __pyx_v_d_X, __pyx_v_k, __pyx_v_n_epochs, __pyx_v_lamda, __pyx_v_learning_rate, __pyx_v_gamma, __pyx_v_init_params);
+  __pyx_r = __pyx_pf_3pmf_2pmf_non_linear(__pyx_self, __pyx_v_X, __pyx_v_n_X, __pyx_v_d_X, __pyx_v_k, __pyx_v_n_epochs, __pyx_v_lamda, __pyx_v_learning_rate, __pyx_v_gamma, __pyx_v_init_params);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params) {
+static PyObject *__pyx_pf_3pmf_2pmf_non_linear(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X, PyObject *__pyx_v_n_X, PyObject *__pyx_v_d_X, PyObject *__pyx_v_k, PyObject *__pyx_v_n_epochs, PyObject *__pyx_v_lamda, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_gamma, PyObject *__pyx_v_init_params) {
   PyObject *__pyx_v_loss = NULL;
   PyObject *__pyx_v_n = NULL;
   PyObject *__pyx_v_d = NULL;
@@ -3289,7 +3289,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   PyObject *__pyx_t_21 = NULL;
   __Pyx_RefNannySetupContext("pmf_non_linear", 0);
 
-  /* "cornac/models/pmf/cython/pmf.pyx":122
+  /* "pmf.pyx":122
  * 
  *     #some useful variables
  *     loss = np.full(n_epochs, 0.0)             # <<<<<<<<<<<<<<
@@ -3349,7 +3349,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_v_loss = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":123
+  /* "pmf.pyx":123
  *     #some useful variables
  *     loss = np.full(n_epochs, 0.0)
  *     n = n_X             # <<<<<<<<<<<<<<
@@ -3359,7 +3359,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __Pyx_INCREF(__pyx_v_n_X);
   __pyx_v_n = __pyx_v_n_X;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":124
+  /* "pmf.pyx":124
  *     loss = np.full(n_epochs, 0.0)
  *     n = n_X
  *     d = d_X             # <<<<<<<<<<<<<<
@@ -3369,7 +3369,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __Pyx_INCREF(__pyx_v_d_X);
   __pyx_v_d = __pyx_v_d_X;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":125
+  /* "pmf.pyx":125
  *     n = n_X
  *     d = d_X
  *     cache_u = np.zeros((n,k))             # <<<<<<<<<<<<<<
@@ -3408,7 +3408,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_v_cache_u = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":126
+  /* "pmf.pyx":126
  *     d = d_X
  *     cache_u = np.zeros((n,k))
  *     cache_v = np.zeros((d,k))             # <<<<<<<<<<<<<<
@@ -3447,7 +3447,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_v_cache_v = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":127
+  /* "pmf.pyx":127
  *     cache_u = np.zeros((n,k))
  *     cache_v = np.zeros((d,k))
  *     grad_u = np.zeros((n,k))             # <<<<<<<<<<<<<<
@@ -3486,7 +3486,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_v_grad_u = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":128
+  /* "pmf.pyx":128
  *     cache_v = np.zeros((d,k))
  *     grad_u = np.zeros((n,k))
  *     grad_v = np.zeros((d,k))             # <<<<<<<<<<<<<<
@@ -3525,7 +3525,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_v_grad_v = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":129
+  /* "pmf.pyx":129
  *     grad_u = np.zeros((n,k))
  *     grad_v = np.zeros((d,k))
  *     eps = 1e-8             # <<<<<<<<<<<<<<
@@ -3534,7 +3534,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
  */
   __pyx_v_eps = 1e-8;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":133
+  /* "pmf.pyx":133
  *     #Parameter initialization
  *     #User factors
  *     if init_params['U'] is None:             # <<<<<<<<<<<<<<
@@ -3548,7 +3548,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_t_7 = (__pyx_t_6 != 0);
   if (__pyx_t_7) {
 
-    /* "cornac/models/pmf/cython/pmf.pyx":134
+    /* "pmf.pyx":134
  *     #User factors
  *     if init_params['U'] is None:
  *         U = np.random.normal(loc=0.0, scale=0.001, size=n*k).reshape(n,k)             # <<<<<<<<<<<<<<
@@ -3626,7 +3626,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
     __pyx_v_U = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":133
+    /* "pmf.pyx":133
  *     #Parameter initialization
  *     #User factors
  *     if init_params['U'] is None:             # <<<<<<<<<<<<<<
@@ -3636,7 +3636,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
     goto __pyx_L3;
   }
 
-  /* "cornac/models/pmf/cython/pmf.pyx":136
+  /* "pmf.pyx":136
  *         U = np.random.normal(loc=0.0, scale=0.001, size=n*k).reshape(n,k)
  *     else:
  *         U = init_params['U']             # <<<<<<<<<<<<<<
@@ -3651,7 +3651,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   }
   __pyx_L3:;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":139
+  /* "pmf.pyx":139
  * 
  *     #Item factors
  *     if init_params['V'] is None:             # <<<<<<<<<<<<<<
@@ -3665,7 +3665,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_t_6 = (__pyx_t_7 != 0);
   if (__pyx_t_6) {
 
-    /* "cornac/models/pmf/cython/pmf.pyx":140
+    /* "pmf.pyx":140
  *     #Item factors
  *     if init_params['V'] is None:
  *         V = np.random.normal(loc=0.0, scale=0.001, size=d*k).reshape(d,k)             # <<<<<<<<<<<<<<
@@ -3743,7 +3743,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
     __pyx_v_V = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":139
+    /* "pmf.pyx":139
  * 
  *     #Item factors
  *     if init_params['V'] is None:             # <<<<<<<<<<<<<<
@@ -3753,7 +3753,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
     goto __pyx_L4;
   }
 
-  /* "cornac/models/pmf/cython/pmf.pyx":142
+  /* "pmf.pyx":142
  *         V = np.random.normal(loc=0.0, scale=0.001, size=d*k).reshape(d,k)
  *     else:
  *         V = init_params['V']             # <<<<<<<<<<<<<<
@@ -3768,7 +3768,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   }
   __pyx_L4:;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":146
+  /* "pmf.pyx":146
  *     #Optimization
  * 
  *     for epoch in range(n_epochs):             # <<<<<<<<<<<<<<
@@ -3820,7 +3820,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
     __Pyx_XDECREF_SET(__pyx_v_epoch, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":147
+    /* "pmf.pyx":147
  * 
  *     for epoch in range(n_epochs):
  *         for u_, i_, val in X:             # <<<<<<<<<<<<<<
@@ -3926,7 +3926,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_XDECREF_SET(__pyx_v_val, __pyx_t_13);
       __pyx_t_13 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":148
+      /* "pmf.pyx":148
  *     for epoch in range(n_epochs):
  *         for u_, i_, val in X:
  *             u_, i_ = int(u_), int(i_)             # <<<<<<<<<<<<<<
@@ -3942,7 +3942,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF_SET(__pyx_v_i_, __pyx_t_13);
       __pyx_t_13 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":149
+      /* "pmf.pyx":149
  *         for u_, i_, val in X:
  *             u_, i_ = int(u_), int(i_)
  *             sg = sigmoid(np.dot(U[u_,:], V[i_,:].T))             # <<<<<<<<<<<<<<
@@ -4030,9 +4030,9 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       __pyx_t_17 = __pyx_PyFloat_AsDouble(__pyx_t_13); if (unlikely((__pyx_t_17 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 149, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-      __pyx_v_sg = __pyx_f_6cornac_6models_3pmf_sigmoid(__pyx_t_17);
+      __pyx_v_sg = __pyx_f_3pmf_sigmoid(__pyx_t_17);
 
-      /* "cornac/models/pmf/cython/pmf.pyx":150
+      /* "pmf.pyx":150
  *             u_, i_ = int(u_), int(i_)
  *             sg = sigmoid(np.dot(U[u_,:], V[i_,:].T))
  *             e = (val - sg)      #Error for the obseved rating u, i, val             # <<<<<<<<<<<<<<
@@ -4047,7 +4047,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_XDECREF_SET(__pyx_v_e, __pyx_t_12);
       __pyx_t_12 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":151
+      /* "pmf.pyx":151
  *             sg = sigmoid(np.dot(U[u_,:], V[i_,:].T))
  *             e = (val - sg)      #Error for the obseved rating u, i, val
  *             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val             # <<<<<<<<<<<<<<
@@ -4068,7 +4068,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_XDECREF_SET(__pyx_v_we, __pyx_t_16);
       __pyx_t_16 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":152
+      /* "pmf.pyx":152
  *             e = (val - sg)      #Error for the obseved rating u, i, val
  *             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]             # <<<<<<<<<<<<<<
@@ -4119,7 +4119,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":153
+      /* "pmf.pyx":153
  *             we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])             # <<<<<<<<<<<<<<
@@ -4188,7 +4188,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":154
+      /* "pmf.pyx":154
  *             grad_u[u_,:] = we * V[i_,:]- lamda * U[u_, :]
  *             cache_u[u_,:] = gamma * cache_u[u_,:] + (1 - gamma) * (grad_u[u_,:]*grad_u[u_,:])
  *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user             # <<<<<<<<<<<<<<
@@ -4269,7 +4269,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":156
+      /* "pmf.pyx":156
  *             U[u_,:] += learning_rate * (grad_u[u_,:]/(np.sqrt(cache_u[u_,:])+eps) ) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
  *             #update item factors
  *             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]             # <<<<<<<<<<<<<<
@@ -4320,7 +4320,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
       __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":157
+      /* "pmf.pyx":157
  *             #update item factors
  *             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])             # <<<<<<<<<<<<<<
@@ -4389,7 +4389,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":158
+      /* "pmf.pyx":158
  *             grad_v[i_,:] = we * U[u_,:] - lamda * V[i_, :]
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
  *             V[i_,:] += learning_rate * (grad_v[i_,:]/(np.sqrt(cache_v[i_,:])+eps) )  # Update item factor             # <<<<<<<<<<<<<<
@@ -4470,7 +4470,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":159
+      /* "pmf.pyx":159
  *             cache_v[i_,:] = gamma * cache_v[i_,:] + (1 - gamma) * (grad_v[i_,:]*grad_v[i_,:])
  *             V[i_,:] += learning_rate * (grad_v[i_,:]/(np.sqrt(cache_v[i_,:])+eps) )  # Update item factor
  *             loss[epoch]+= e*e  + lamda * (np.dot(U[u_, :].T, U[u_, :]) + np.dot(V[i_, :].T, V[i_, :]))             # <<<<<<<<<<<<<<
@@ -4660,7 +4660,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
       __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-      /* "cornac/models/pmf/cython/pmf.pyx":147
+      /* "pmf.pyx":147
  * 
  *     for epoch in range(n_epochs):
  *         for u_, i_, val in X:             # <<<<<<<<<<<<<<
@@ -4670,7 +4670,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":160
+    /* "pmf.pyx":160
  *             V[i_,:] += learning_rate * (grad_v[i_,:]/(np.sqrt(cache_v[i_,:])+eps) )  # Update item factor
  *             loss[epoch]+= e*e  + lamda * (np.dot(U[u_, :].T, U[u_, :]) + np.dot(V[i_, :].T, V[i_, :]))
  *         print('epoch %i, loss: %f' % (epoch, loss[epoch]))             # <<<<<<<<<<<<<<
@@ -4693,7 +4693,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
     if (__Pyx_PrintOne(0, __pyx_t_1) < 0) __PYX_ERR(0, 160, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "cornac/models/pmf/cython/pmf.pyx":146
+    /* "pmf.pyx":146
  *     #Optimization
  * 
  *     for epoch in range(n_epochs):             # <<<<<<<<<<<<<<
@@ -4703,7 +4703,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":161
+  /* "pmf.pyx":161
  *             loss[epoch]+= e*e  + lamda * (np.dot(U[u_, :].T, U[u_, :]) + np.dot(V[i_, :].T, V[i_, :]))
  *         print('epoch %i, loss: %f' % (epoch, loss[epoch]))
  *     res = {'U':U,'V':V,'loss': loss}             # <<<<<<<<<<<<<<
@@ -4718,7 +4718,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_v_res = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":163
+  /* "pmf.pyx":163
  *     res = {'U':U,'V':V,'loss': loss}
  * 
  *     return res             # <<<<<<<<<<<<<<
@@ -4730,7 +4730,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __pyx_r = __pyx_v_res;
   goto __pyx_L0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":119
+  /* "pmf.pyx":119
  * 
  * #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
  * def pmf_non_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
@@ -4752,7 +4752,7 @@ static PyObject *__pyx_pf_6cornac_6models_3pmf_2pmf_non_linear(CYTHON_UNUSED PyO
   __Pyx_XDECREF(__pyx_t_19);
   __Pyx_XDECREF(__pyx_t_20);
   __Pyx_XDECREF(__pyx_t_21);
-  __Pyx_AddTraceback("cornac.models.pmf.pmf_non_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pmf.pmf_non_linear", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_loss);
@@ -4829,7 +4829,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_cache_u, __pyx_k_cache_u, sizeof(__pyx_k_cache_u), 0, 0, 1, 1},
   {&__pyx_n_s_cache_v, __pyx_k_cache_v, sizeof(__pyx_k_cache_v), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
-  {&__pyx_n_s_cornac_models_pmf, __pyx_k_cornac_models_pmf, sizeof(__pyx_k_cornac_models_pmf), 0, 0, 1, 1},
   {&__pyx_kp_s_cornac_models_pmf_cython_pmf_pyx, __pyx_k_cornac_models_pmf_cython_pmf_pyx, sizeof(__pyx_k_cornac_models_pmf_cython_pmf_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_d, __pyx_k_d, sizeof(__pyx_k_d), 0, 0, 1, 1},
   {&__pyx_n_s_d_X, __pyx_k_d_X, sizeof(__pyx_k_d_X), 0, 0, 1, 1},
@@ -4861,6 +4860,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_normal, __pyx_k_normal, sizeof(__pyx_k_normal), 0, 0, 1, 1},
   {&__pyx_n_s_np, __pyx_k_np, sizeof(__pyx_k_np), 0, 0, 1, 1},
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
+  {&__pyx_n_s_pmf, __pyx_k_pmf, sizeof(__pyx_k_pmf), 0, 0, 1, 1},
   {&__pyx_n_s_pmf_linear, __pyx_k_pmf_linear, sizeof(__pyx_k_pmf_linear), 0, 0, 1, 1},
   {&__pyx_n_s_pmf_non_linear, __pyx_k_pmf_non_linear, sizeof(__pyx_k_pmf_non_linear), 0, 0, 1, 1},
   {&__pyx_n_s_print, __pyx_k_print, sizeof(__pyx_k_print), 0, 0, 1, 1},
@@ -4890,7 +4890,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "cornac/models/pmf/cython/pmf.pyx":53
+  /* "pmf.pyx":53
  *         for u_, i_, val in X:
  *             u_, i_ = int(u_), int(i_)
  *             e = val - np.dot(U[u_,:], V[i_,:].T)  # Error for the obseved rating u, i, val             # <<<<<<<<<<<<<<
@@ -4901,7 +4901,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_slice_);
   __Pyx_GIVEREF(__pyx_slice_);
 
-  /* "cornac/models/pmf/cython/pmf.pyx":24
+  /* "pmf.pyx":24
  * 
  * #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
  * def pmf_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
@@ -4913,7 +4913,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__2);
   __pyx_codeobj__3 = (PyObject*)__Pyx_PyCode_New(9, 0, 25, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__2, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_pmf_cython_pmf_pyx, __pyx_n_s_pmf_linear, 24, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__3)) __PYX_ERR(0, 24, __pyx_L1_error)
 
-  /* "cornac/models/pmf/cython/pmf.pyx":119
+  /* "pmf.pyx":119
  * 
  * #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
  * def pmf_non_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
@@ -5177,14 +5177,14 @@ if (!__Pyx_RefNanny) {
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_cornac__models__pmf) {
+  if (__pyx_module_is_main_pmf) {
     if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name, __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "cornac.models.pmf")) {
-      if (unlikely(PyDict_SetItemString(modules, "cornac.models.pmf", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "pmf")) {
+      if (unlikely(PyDict_SetItemString(modules, "pmf", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -5205,7 +5205,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "cornac/models/pmf/cython/pmf.pyx":5
+  /* "pmf.pyx":5
  * @author: Aghiles Salah
  * """
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -5217,31 +5217,31 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":24
+  /* "pmf.pyx":24
  * 
  * #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
  * def pmf_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
  * 
  *     #some useful variables
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cornac_6models_3pmf_1pmf_linear, NULL, __pyx_n_s_cornac_models_pmf); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_3pmf_1pmf_linear, NULL, __pyx_n_s_pmf); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pmf_linear, __pyx_t_1) < 0) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":119
+  /* "pmf.pyx":119
  * 
  * #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
  * def pmf_non_linear(X,n_X,d_X,k, n_epochs = 100, lamda = 0.001,learning_rate=0.001,gamma = 0.9, init_params = None):             # <<<<<<<<<<<<<<
  * 
  *     #some useful variables
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cornac_6models_3pmf_3pmf_non_linear, NULL, __pyx_n_s_cornac_models_pmf); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_3pmf_3pmf_non_linear, NULL, __pyx_n_s_pmf); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pmf_non_linear, __pyx_t_1) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cornac/models/pmf/cython/pmf.pyx":1
+  /* "pmf.pyx":1
  * # -*- coding: utf-8 -*-             # <<<<<<<<<<<<<<
  * """
  * @author: Aghiles Salah
@@ -5258,11 +5258,11 @@ if (!__Pyx_RefNanny) {
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init cornac.models.pmf", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init pmf", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_CLEAR(__pyx_m);
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init cornac.models.pmf");
+    PyErr_SetString(PyExc_ImportError, "init pmf");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
