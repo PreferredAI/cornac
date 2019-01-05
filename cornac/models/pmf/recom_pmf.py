@@ -188,7 +188,7 @@ class PMF(Recommender):
             return ranked_item_ids
         else:
             num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.ones(num_items) * self.default_score() # use min_rating to shift unk items to the end
+            user_pref_scores = np.ones(num_items) * self.train_set.min_rating
             user_pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = user_pref_scores.argsort()[::-1]

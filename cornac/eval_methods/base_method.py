@@ -88,9 +88,11 @@ class BaseMethod:
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
+        num_eval_users = len(self.test_set.get_users())
         for i, user_id in enumerate(self.test_set.get_users()):
-            if self.verbose and i % 1000 == 0:
-                print(i, "users processed")
+            if self.verbose:
+                if i % 1000 == 0 or (i+1) == num_eval_users:
+                    print(i, "users evaluated")
 
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
