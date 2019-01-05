@@ -29,8 +29,8 @@ extensions = [
     Extension(name='pmf',
               sources=['cornac/models/pmf/cython/pmf' + ext],
               language='c++'),
-    Extension(name='cornac.models.mf.recom_mf',
-              sources=['cornac/models/mf/recom_mf' + ext],
+    Extension(name='mf',
+              sources=['cornac/models/mf/cython/mf' + ext],
               include_dirs=[numpy.get_include()],
               language='c++')
 ]
