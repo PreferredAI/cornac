@@ -70,8 +70,6 @@ class MF(Recommender):
         Recommender.fit(self, train_set)
 
         (rid, cid, val) = sp.find(train_set.matrix)
-        rid = np.asarray(rid, dtype=np.int)
-        cid = np.asarray(cid, dtype=np.int)
 
         self.u_factors, self.i_factors, self.u_biases, self.i_biases = mf.sgd(rid=rid, cid=cid, val=val,
                                                                               num_users=train_set.num_users,
