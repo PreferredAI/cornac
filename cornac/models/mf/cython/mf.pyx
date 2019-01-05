@@ -5,17 +5,18 @@
 """
 
 import numpy as np
+cimport numpy as np
 
 cimport cython
-cimport numpy as np
 
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 @cython.wraparound(False)  # turn off negative index wrapping for entire function
-def sgd(data, num_users, num_items, num_factors, max_iter, learning_rate,
-        lambda_reg, global_mean, use_bias, early_stop, verbose):
+def sgd(np.ndarray[np.int_t] rid, np.ndarray[np.int_t] cid, np.ndarray[DTYPE_t] val,
+        int num_users, int num_items, int num_factors, int max_iter,
+        double lr, double reg, double mu, use_bias, early_stop, verbose):
     """Fit the model with SGD
     """
 
@@ -31,20 +32,18 @@ def sgd(data, num_users, num_items, num_factors, max_iter, learning_rate,
 
     cdef double loss = 0
     cdef double last_loss = 0
-    cdef double lr = learning_rate
-    cdef double reg = lambda_reg
-    cdef double mu = global_mean
     cdef double r, r_pred, error, u_f, i_f, delta_loss
-    cdef int u, i, factor
-    cdef int k = num_factors
+    cdef int u, i, factor, j
 
     for iter in range(1, max_iter + 1):
         last_loss = loss
         loss = 0
 
-        for u, i, r in data:
+        for j in range(val.shape[0]):
+            u, i, r = rid[j], cid[j], val[j]
+
             r_pred = 0
-            for factor in range(k):
+            for factor in range(num_factors):
                 r_pred += u_factors[u, factor] * i_factors[i, factor]
             if use_bias:
                 r_pred += mu + u_biases[u] + i_biases[i]
@@ -52,7 +51,7 @@ def sgd(data, num_users, num_items, num_factors, max_iter, learning_rate,
             error = r - r_pred
             loss += error * error
 
-            for factor in range(k):
+            for factor in range(num_factors):
                 u_f = u_factors[u, factor]
                 i_f = i_factors[i, factor]
                 u_factors[u, factor] += lr * (error * i_f - reg * u_f)

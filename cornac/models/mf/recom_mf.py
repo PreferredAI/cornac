@@ -70,16 +70,17 @@ class MF(Recommender):
         Recommender.fit(self, train_set)
 
         (rid, cid, val) = sp.find(train_set.matrix)
-        data = [(u, i, r) for u, i, r in zip(rid, cid, val)]
+        rid = np.asarray(rid, dtype=np.int)
+        cid = np.asarray(cid, dtype=np.int)
 
-        self.u_factors, self.i_factors, self.u_biases, self.i_biases = mf.sgd(data=data,
+        self.u_factors, self.i_factors, self.u_biases, self.i_biases = mf.sgd(rid=rid, cid=cid, val=val,
                                                                               num_users=train_set.num_users,
                                                                               num_items=train_set.num_items,
                                                                               num_factors=self.k,
                                                                               max_iter=self.max_iter,
-                                                                              learning_rate=self.learning_rate,
-                                                                              lambda_reg=self.lambda_reg,
-                                                                              global_mean=train_set.global_mean,
+                                                                              lr=self.learning_rate,
+                                                                              reg=self.lambda_reg,
+                                                                              mu=train_set.global_mean,
                                                                               use_bias=self.use_bias,
                                                                               early_stop=self.early_stop,
                                                                               verbose=self.verbose)
