@@ -8,24 +8,21 @@ import numpy as np
 cimport numpy as np
 
 cimport cython
+from libcpp cimport bool
 
 @cython.boundscheck(False)  # turn off bounds-checking for entire function
 @cython.wraparound(False)  # turn off negative index wrapping for entire function
-cpdef sgd(int[:] rid, int[:] cid, double[:] val,
-        int num_users, int num_items, int num_factors, int max_iter,
-        double lr, double reg, double mu, use_bias, early_stop, verbose):
+cpdef sgd(const int[:] rid, const int[:] cid, const double[:] val,
+        const int num_users, const int num_items, const int num_factors, const int max_iter,
+        double lr, const double reg, const double mu,
+        const bool use_bias, const bool early_stop, const bool verbose):
     """Fit the model with SGD
     """
 
-    cdef double[:,:] u_factors
-    cdef double[:,:] i_factors
-    cdef double[:] u_biases
-    cdef double[:] i_biases
-
-    u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01)
-    i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01)
-    u_biases = np.zeros([num_users])
-    i_biases = np.zeros([num_items])
+    cdef double[:, :] u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01)
+    cdef double[:, :] i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01)
+    cdef double[:] u_biases = np.zeros([num_users])
+    cdef double[:] i_biases = np.zeros([num_items])
 
     cdef double loss = 0
     cdef double last_loss = 0
@@ -56,14 +53,14 @@ cpdef sgd(int[:] rid, int[:] cid, double[:] val,
 
         loss = 0.5 * loss
 
-        delta_loss = np.abs(loss - last_loss)
-        if early_stop and delta_loss < 1e-5:
+        delta_loss = loss - last_loss
+        if early_stop and np.abs(delta_loss) < 1e-5:
             if verbose:
                 print('Early stopping, delta_loss = {}'.format(delta_loss))
             break
 
         if verbose:
-            print('Iter {}, loss = {}'.format(iter, loss))
+            print('Iter {}, loss = {:.2f}'.format(iter, loss))
 
     if verbose:
         print('Optimization finished!')
