@@ -6,6 +6,8 @@
 
 from ..data import MatrixTrainSet, TestSet
 from ..utils.generic_utils import validate_data_format
+from ..metrics.rating import RatingMetric
+from ..metrics.ranking import RankingMetric
 from collections import OrderedDict
 import numpy as np
 
@@ -56,9 +58,20 @@ class BaseMethod:
             print('Rating threshold = {:.1f}'.format(rating_threshold))
             print('exclude_unknowns = {}'.format(exclude_unknowns))
 
+    def _organize_metrics(self, metrics):
+        if isinstance(metrics, dict):
+            rating_metrics = metrics.get('rating', [])
+            ranking_metrics = metrics.get('ranking', [])
+        elif isinstance(metrics, list):
+            rating_metrics = [mt for mt in metrics if isinstance(mt, RatingMetric)]
+            ranking_metrics = [mt for mt in metrics if isinstance(mt, RankingMetric)]
+        else:
+            raise ValueError('Type of metrics has to be either dict or list!')
+
+        return rating_metrics, ranking_metrics
+
     def evaluate(self, model, metrics, user_based):
-        rating_metrics = metrics.get('rating', [])
-        ranking_metrics = metrics.get('ranking', [])
+        rating_metrics, ranking_metrics = self._organize_metrics(metrics)
 
         if self.train_set is None:
             raise ValueError('train_set is required but None!')

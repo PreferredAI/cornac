@@ -82,7 +82,6 @@ class CrossValidation(BaseMethod):
             print('Total items = {}'.format(self.total_items))
 
     def evaluate(self, model, metrics, user_based):
-
         per_fold_avg_res = {}
         per_fold_user_res = {}
         if self.partition is None:
