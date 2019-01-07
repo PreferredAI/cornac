@@ -47,6 +47,33 @@ class TrainSet:
     def get_raw_iid_list(self):
         return self._iid_map.keys()
 
+    def idx_iter(self, idx_range, batch_size=1, shuffle=False):
+        """ Create an iterator over batch of indices
+
+        Parameters
+        ----------
+        batch_size : int, optional, default = 1
+        shuffle : bool, optional
+            If True, orders of triplets will be randomized. If False, default orders kept
+
+        Returns
+        -------
+        iterator : batch of indices (array of np.int)
+        """
+
+        indices = np.arange(idx_range)
+        if shuffle:
+            np.random.shuffle(indices)
+
+        n_batches = int(np.ceil(len(indices) / batch_size))
+        for b in range(n_batches):
+            start_offset = batch_size * b
+            end_offset = batch_size * b + batch_size
+            end_offset = min(end_offset, len(indices))
+
+            batch_ids = indices[start_offset:end_offset]
+            yield batch_ids
+
 
 class MatrixTrainSet(TrainSet):
 
@@ -144,21 +171,10 @@ class MatrixTrainSet(TrainSet):
         iterator : batch of users (array of np.int), batch of items (array of np.int),
             batch of ratings (array of np.float)
         """
-
         if self.triplets is None:
             self.triplets = find(self.matrix)
 
-        indices = np.arange(self.triplets[0].shape[0])
-        if shuffle:
-            np.random.shuffle(indices)
-
-        n_batches = int(np.ceil(len(indices) / batch_size))
-        for b in range(n_batches):
-            start_offset = batch_size * b
-            end_offset = batch_size * b + batch_size
-            end_offset = min(end_offset, len(indices))
-
-            batch_ids = indices[start_offset:end_offset]
+        for batch_ids in self.idx_iter(len(self.triplets[0]), batch_size, shuffle):
             batch_users = self.triplets[0][batch_ids]
             batch_items = self.triplets[1][batch_ids]
             batch_ratings = self.triplets[2][batch_ids]
@@ -179,21 +195,10 @@ class MatrixTrainSet(TrainSet):
         iterator : batch of users (array of np.int), batch of positive items (array of np.int),
             batch of negative items (array of np.int)
         """
-
         if self.triplets is None:
             self.triplets = find(self.matrix)
 
-        indices = np.arange(self.triplets[0].shape[0])
-        if shuffle:
-            np.random.shuffle(indices)
-
-        n_batches = int(np.ceil(len(indices) / batch_size))
-        for b in range(n_batches):
-            start_offset = batch_size * b
-            end_offset = batch_size * b + batch_size
-            end_offset = min(end_offset, len(indices))
-
-            batch_ids = indices[start_offset:end_offset]
+        for batch_ids in self.idx_iter(len(self.triplets[0]), batch_size, shuffle):
             batch_users = self.triplets[0][batch_ids]
             batch_pos_items = self.triplets[1][batch_ids]
             batch_pos_ratings = self.triplets[2][batch_ids]
