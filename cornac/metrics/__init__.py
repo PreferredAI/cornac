@@ -9,12 +9,5 @@ from .rating import MAE
 from .rating import RMSE
 from .rating import MSE
 
-__all__ = ['NDCG',
-           'NCRR',
-           'MRR',
-           'Precision',
-           'Recall',
-           'FMeasure',
-           'MAE',
-           'RMSE',
-           'MSE']
+__all__ = ['NDCG', 'NCRR', 'MRR', 'Precision', 'Recall', 'FMeasure',
+           'MAE', 'RMSE', 'MSE']
