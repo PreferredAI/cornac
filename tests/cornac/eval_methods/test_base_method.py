@@ -34,7 +34,7 @@ def test_testset_none():
 
 
 def test_from_provided():
-    data_file = './tests/cornac/data/data.txt'
+    data_file = './tests/data.txt'
     data = Reader.read_uir_triplets(data_file)
 
     try:
