@@ -6,9 +6,13 @@
 
 import numpy as np
 
+from cornac.metrics.rating import RatingMetric
+from cornac.metrics import RMSE
+from cornac.metrics import MAE
+from cornac.metrics import MSE
+
 
 def test_rating_metric():
-    from ..rating import RatingMetric
     metric = RatingMetric()
 
     assert metric.type == 'rating'
@@ -21,7 +25,6 @@ def test_rating_metric():
 
 
 def test_mae():
-    from ..rating import MAE
     mae = MAE()
 
     assert mae.type == 'rating'
@@ -33,7 +36,6 @@ def test_mae():
 
 
 def test_mse():
-    from ..rating import MSE
     mse = MSE()
 
     assert mse.type == 'rating'
@@ -45,7 +47,6 @@ def test_mse():
 
 
 def test_rmse():
-    from ..rating import RMSE
     rmse = RMSE()
 
     assert rmse.type == 'rating'
