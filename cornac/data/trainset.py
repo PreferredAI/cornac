@@ -47,7 +47,8 @@ class TrainSet:
     def get_raw_iid_list(self):
         return self._iid_map.keys()
 
-    def idx_iter(self, idx_range, batch_size=1, shuffle=False):
+    @staticmethod
+    def idx_iter(idx_range, batch_size=1, shuffle=False):
         """ Create an iterator over batch of indices
 
         Parameters
