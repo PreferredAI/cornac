@@ -74,8 +74,9 @@ class MF(Recommender):
         Recommender.fit(self, train_set)
 
         (rid, cid, val) = sp.find(train_set.matrix)
+
         self._fit_sgd(rid=rid, cid=cid, val=val)
-        self.fitted = True
+
 
     @cython.boundscheck(False)  # turn off bounds-checking for entire function
     @cython.wraparound(False)  # turn off negative index wrapping for entire function
@@ -145,6 +146,8 @@ class MF(Recommender):
         self.i_factors = i_factors
         self.u_biases = u_biases
         self.i_biases = i_biases
+
+        self.fitted = True
 
 
     def score(self, user_id, item_id):
