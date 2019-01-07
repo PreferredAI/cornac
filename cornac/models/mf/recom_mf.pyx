@@ -4,13 +4,17 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-import numpy as np
 import scipy.sparse as sp
 from cornac.models.recommender import Recommender
 from cornac.utils.generic_utils import intersects
 from cornac.exception import ScoreException
-import mf
 
+import numpy as np
+
+cimport numpy as np
+cimport cython
+from libcpp cimport bool
+from libc.math cimport abs
 
 class MF(Recommender):
     """Matrix Factorization.
@@ -70,19 +74,78 @@ class MF(Recommender):
         Recommender.fit(self, train_set)
 
         (rid, cid, val) = sp.find(train_set.matrix)
-
-        self.u_factors, self.i_factors, self.u_biases, self.i_biases = mf.sgd(rid=rid, cid=cid, val=val,
-                                                                              num_users=train_set.num_users,
-                                                                              num_items=train_set.num_items,
-                                                                              num_factors=self.k,
-                                                                              max_iter=self.max_iter,
-                                                                              lr=self.learning_rate,
-                                                                              reg=self.lambda_reg,
-                                                                              mu=train_set.global_mean,
-                                                                              use_bias=self.use_bias,
-                                                                              early_stop=self.early_stop,
-                                                                              verbose=self.verbose)
+        self._fit_sgd(rid=rid, cid=cid, val=val)
         self.fitted = True
+
+    @cython.boundscheck(False)  # turn off bounds-checking for entire function
+    @cython.wraparound(False)  # turn off negative index wrapping for entire function
+    def _fit_sgd(self, const int[:] rid, const int[:] cid, const double[:] val):
+        """Fit the model with SGD
+        """
+        cdef int num_users = self.train_set.num_users
+        cdef int num_items = self.train_set.num_items
+        cdef int num_factors = self.k
+        cdef int max_iter = self.max_iter
+
+        cdef double reg = self.lambda_reg
+        cdef double mu = self.train_set.global_mean
+
+        cdef bool use_bias = self.use_bias
+        cdef bool early_stop = self.early_stop
+        cdef bool verbose = self.verbose
+
+        cdef double[:, :] u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01)
+        cdef double[:, :] i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01)
+        cdef double[:] u_biases = np.zeros([num_users])
+        cdef double[:] i_biases = np.zeros([num_items])
+
+        cdef double lr = self.learning_rate
+        cdef double loss = 0
+        cdef double last_loss = 0
+        cdef double r, r_pred, error, u_f, i_f, delta_loss
+        cdef int u, i, factor, j
+
+        for iter in range(1, max_iter + 1):
+            last_loss = loss
+            loss = 0
+
+            for j in range(val.shape[0]):
+                u, i, r = rid[j], cid[j], val[j]
+
+                r_pred = 0
+                if use_bias:
+                    r_pred += mu + u_biases[u] + i_biases[i]
+                for factor in range(num_factors):
+                    r_pred += u_factors[u, factor] * i_factors[i, factor]
+
+                error = r - r_pred
+                loss += error * error
+
+                for factor in range(num_factors):
+                    u_f = u_factors[u, factor]
+                    i_f = i_factors[i, factor]
+                    u_factors[u, factor] += lr * (error * i_f - reg * u_f)
+                    i_factors[i, factor] += lr * (error * u_f - reg * i_f)
+
+            loss = 0.5 * loss
+
+            delta_loss = loss - last_loss
+            if early_stop and abs(delta_loss) < 1e-5:
+                if self.verbose:
+                    print('Early stopping, delta_loss = {}'.format(delta_loss))
+                break
+
+            if verbose:
+                print('Iter {}, loss = {:.2f}'.format(iter, loss))
+
+        if verbose:
+            print('Optimization finished!')
+
+        self.u_factors = u_factors
+        self.i_factors = i_factors
+        self.u_biases = u_biases
+        self.i_biases = i_biases
+
 
     def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
