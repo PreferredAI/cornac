@@ -6,8 +6,16 @@
 
 import numpy as np
 
+from cornac.metrics.ranking import RankingMetric
+from cornac.metrics.ranking import MeasureAtK
+from cornac.metrics import NDCG
+from cornac.metrics import NCRR
+from cornac.metrics import MRR
+from cornac.metrics import Precision
+from cornac.metrics import Recall
+from cornac.metrics import FMeasure
+
 def test_ranking_metric():
-    from ..ranking import RankingMetric
     metric = RankingMetric()
 
     assert metric.type == 'ranking'
@@ -21,7 +29,6 @@ def test_ranking_metric():
 
 
 def test_ndcg():
-    from ..ranking import NDCG
     ndcg = NDCG()
 
     assert ndcg.type == 'ranking'
@@ -42,7 +49,6 @@ def test_ndcg():
 
 
 def test_ncrr():
-    from ..ranking import NCRR
     ncrr = NCRR()
 
     assert ncrr.type == 'ranking'
@@ -67,7 +73,6 @@ def test_ncrr():
 
 
 def test_mrr():
-    from ..ranking import MRR
     mrr = MRR()
 
     assert mrr.type == 'ranking'
@@ -92,7 +97,6 @@ def test_mrr():
 
 
 def test_measure_at_k():
-    from ..ranking import MeasureAtK
     measure_at_k = MeasureAtK()
 
     assert measure_at_k.type == 'ranking'
@@ -113,7 +117,6 @@ def test_measure_at_k():
 
 
 def test_precision():
-    from ..ranking import Precision
     prec = Precision()
 
     assert prec.type == 'ranking'
@@ -138,7 +141,6 @@ def test_precision():
 
 
 def test_recall():
-    from ..ranking import Recall
     rec = Recall()
 
     assert rec.type == 'ranking'
@@ -163,7 +165,6 @@ def test_recall():
 
 
 def test_f_measure():
-    from ..ranking import FMeasure
     f1 = FMeasure()
 
     assert f1.type == 'ranking'

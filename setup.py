@@ -59,8 +59,6 @@ setup(
     url='https://cornac.preferred.ai/',
     download_url='https://github.com/PreferredAI/cornac/archive/v0.1.0.tar.gz',
     keywords=['recommender', 'recommendation', 'factorization', 'multimodal'],
-    zip_safe=False,
-    cmdclass=cmdclass,
     ext_modules=extensions,
     install_requires=[
         'numpy',
@@ -69,6 +67,13 @@ setup(
         'tensorflow>=1.2.1',
         'torch>=0.4.1'
     ],
+    extras_require={
+        'tests': ['pytest',
+                    'pytest-pep8',
+                    'pytest-xdist',
+                    'pytest-cov']
+    },
+    cmdclass=cmdclass,
     dependency_links=[torch_dl],
     packages=find_packages(),
     classifiers=(

@@ -4,14 +4,14 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ...data.reader import Reader
-from ...eval_methods import RatioSplit
-from ...models import PMF
-from ...metrics import MAE, RMSE, Recall, FMeasure
-from ..experiment import Experiment
+from cornac.data.reader import Reader
+from cornac.eval_methods import RatioSplit
+from cornac.models import PMF
+from cornac.metrics import MAE, RMSE, Recall, FMeasure
+from cornac.experiment.experiment import Experiment
 
 def test_with_ratio_split():
-    data = Reader.read_uir_triplets('./cornac/data/tests/data.txt')
+    data = Reader.read_uir_triplets('./tests/cornac/data/data.txt')
     exp = Experiment(eval_method=RatioSplit(data, verbose=True),
                      models=[PMF(1, 0)],
                      metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
