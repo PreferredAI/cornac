@@ -42,7 +42,7 @@ install:
   - pip install -e .[tests]
 
 test_script:
-  - python -m pytest
+  - python -m pytest --cov=cornac
 
 after_test:
   - python setup.py bdist_wheel
