@@ -7,6 +7,7 @@ from .ranking import FMeasure
 
 from .rating import MAE
 from .rating import RMSE
+from .rating import MSE
 
 __all__ = ['NDCG',
            'NCRR',
@@ -15,4 +16,5 @@ __all__ = ['NDCG',
            'Recall',
            'FMeasure',
            'MAE',
-           'RMSE']
+           'RMSE',
+           'MSE']

@@ -10,6 +10,6 @@ exclude_lines =
 
 show_missing = True
 include =
-    cornac/*
+    */cornac/*
 omit =
-    cornac/models/*
+    */cornac/models/*

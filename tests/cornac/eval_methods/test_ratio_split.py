@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..ratio_split import RatioSplit
+from cornac.eval_methods import RatioSplit
 
 
 def test_validate_size():

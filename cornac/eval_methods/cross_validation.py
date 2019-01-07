@@ -51,7 +51,6 @@ class CrossValidation(BaseMethod):
 
     # Partition ratings into n_folds
     def _get_partition(self):
-
         n_fold_partition = np.random.choice(self.n_folds, size=self.n_ratings, replace=True,
                                             p=None)
 
@@ -61,7 +60,6 @@ class CrossValidation(BaseMethod):
         return n_fold_partition
 
     def _get_next_train_test_sets(self):
-
         if self.verbose:
             print('Fold: {}'.format(self.current_fold + 1))
 
@@ -73,9 +71,6 @@ class CrossValidation(BaseMethod):
 
         if self.data_format == 'UIR':
             self._build_from_uir_format(train_data=train_data, test_data=test_data)
-
-        # self.current_split = Split(self.data, rating_threshold=self.rating_threshold, index_train=index_train,
-        #                           index_test=index_test)
 
         if self.current_fold < self.n_folds - 1:
             self.current_fold = self.current_fold + 1
