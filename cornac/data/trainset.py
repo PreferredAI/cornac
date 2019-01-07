@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, find
 from collections import OrderedDict
 import numpy as np
 
@@ -15,44 +15,34 @@ class TrainSet:
         self._uid_map = uid_map
         self._iid_map = iid_map
 
-
     @property
     def num_users(self):
         return len(self._uid_map)
-
 
     @property
     def num_items(self):
         return len(self._iid_map)
 
-
     def is_unk_user(self, mapped_uid):
         return mapped_uid >= self.num_users
-
 
     def is_unk_item(self, mapped_iid):
         return mapped_iid >= self.num_items
 
-
     def get_uid(self, raw_uid):
         return self._uid_map[raw_uid]
-
 
     def get_iid(self, raw_iid):
         return self._iid_map[raw_iid]
 
-
     def get_uid_list(self):
         return self._uid_map.values()
-
 
     def get_raw_uid_list(self):
         return self._uid_map.keys()
 
-
     def get_iid_list(self):
         return self._iid_map.values()
-
 
     def get_raw_iid_list(self):
         return self._iid_map.keys()
@@ -67,17 +57,15 @@ class MatrixTrainSet(TrainSet):
         self.min_rating = min_rating
         self.global_mean = global_mean
         self.item_ppl_rank = self._rank_items_by_popularity(matrix)
-
+        self.triplets = None
 
     @property
     def num_users(self):
         return self.matrix.shape[0]
 
-
     @property
     def num_items(self):
         return self.matrix.shape[1]
-
 
     @staticmethod
     def _rank_items_by_popularity(rating_matrix):
@@ -108,7 +96,7 @@ class MatrixTrainSet(TrainSet):
         min_rating = float('inf')
 
         for raw_uid, raw_iid, rating in triplet_data:
-            if (raw_uid, raw_iid) in pre_ui_set: # duplicate rating
+            if (raw_uid, raw_iid) in pre_ui_set:  # duplicate rating
                 continue
             pre_ui_set.add((raw_uid, raw_iid))
 
@@ -119,7 +107,7 @@ class MatrixTrainSet(TrainSet):
 
             rating = float(rating)
             rating_sum += rating
-            rating_count +=1
+            rating_count += 1
             if rating > max_rating:
                 max_rating = rating
             if rating < min_rating:
@@ -141,3 +129,80 @@ class MatrixTrainSet(TrainSet):
             print('Global mean = {:.1f}'.format(global_mean))
 
         return cls(csr_mat, max_rating, min_rating, global_mean, uid_map, iid_map)
+
+    def uir_iter(self, batch_size=1, shuffle=False):
+        """ Create an iterator over data yielding batch of users, items, and rating values
+
+        Parameters
+        ----------
+        batch_size : int, optional, default = 1
+        shuffle : bool, optional
+            If True, orders of triplets will be randomized. If False, default orders kept
+
+        Returns
+        -------
+        iterator : batch of users (array of np.int), batch of items (array of np.int),
+            batch of ratings (array of np.float)
+        """
+
+        if self.triplets is None:
+            self.triplets = find(self.matrix)
+
+        indices = np.arange(self.triplets[0].shape[0])
+        if shuffle:
+            np.random.shuffle(indices)
+
+        n_batches = int(np.ceil(len(indices) / batch_size))
+        for b in range(n_batches):
+            start_offset = batch_size * b
+            end_offset = batch_size * b + batch_size
+            end_offset = min(end_offset, len(indices))
+
+            batch_ids = indices[start_offset:end_offset]
+            batch_users = self.triplets[0][batch_ids]
+            batch_items = self.triplets[1][batch_ids]
+            batch_ratings = self.triplets[2][batch_ids]
+
+            yield batch_users, batch_items, batch_ratings
+
+    def uij_iter(self, batch_size=1, shuffle=False):
+        """ Create an iterator over data yielding batch of users, positive items, and negative items
+
+        Parameters
+        ----------
+        batch_size : int, optional, default = 1
+        shuffle : bool, optional
+            If True, orders of triplets will be randomized. If False, default orders kept
+
+        Returns
+        -------
+        iterator : batch of users (array of np.int), batch of positive items (array of np.int),
+            batch of negative items (array of np.int)
+        """
+
+        if self.triplets is None:
+            self.triplets = find(self.matrix)
+
+        indices = np.arange(self.triplets[0].shape[0])
+        if shuffle:
+            np.random.shuffle(indices)
+
+        n_batches = int(np.ceil(len(indices) / batch_size))
+        for b in range(n_batches):
+            start_offset = batch_size * b
+            end_offset = batch_size * b + batch_size
+            end_offset = min(end_offset, len(indices))
+
+            batch_ids = indices[start_offset:end_offset]
+            batch_users = self.triplets[0][batch_ids]
+            batch_pos_items = self.triplets[1][batch_ids]
+            batch_pos_ratings = self.triplets[2][batch_ids]
+
+            batch_neg_items = np.zeros_like(batch_pos_items)
+            for i, user, pos_rating in enumerate(zip(batch_users, batch_pos_ratings)):
+                neg_item = np.random.randint(0, self.num_items - 1)
+                while self.matrix[user, neg_item] >= pos_rating:
+                    neg_item = np.random.randint(0, self.num_items - 1)
+                batch_neg_items[i] = neg_item
+
+            yield batch_users, batch_pos_items, batch_neg_items
