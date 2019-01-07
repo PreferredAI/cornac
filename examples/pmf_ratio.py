@@ -14,7 +14,7 @@ from cornac.models import PMF
 # Load the MovieLens 100K dataset
 ml_100k = MovieLens100K.load_data()
 
-# Instantiate an evaluation strategy.
+# Instantiate an evaluation method.
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
 
 # Instantiate a PMF recommender model.
@@ -32,3 +32,5 @@ exp = cornac.Experiment(eval_method=ratio_split,
                         metrics=[mae, rmse, rec_20, pre_20],
                         user_based=True)
 exp.run()
+
+print(exp.avg_results)
