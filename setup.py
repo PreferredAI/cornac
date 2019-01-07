@@ -69,9 +69,9 @@ setup(
     ],
     extras_require={
         'tests': ['pytest',
-                    'pytest-pep8',
-                    'pytest-xdist',
-                    'pytest-cov']
+                  'pytest-pep8',
+                  'pytest-xdist',
+                  'pytest-cov']
     },
     cmdclass=cmdclass,
     dependency_links=[torch_dl],
