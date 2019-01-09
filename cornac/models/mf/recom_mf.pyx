@@ -12,8 +12,6 @@ from cornac.exception import ScoreException
 import numpy as np
 cimport numpy as np
 
-from numpy.linalg import solve
-
 cimport cython
 from cython cimport floating, integral
 from libcpp cimport bool
