@@ -5170,7 +5170,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss             # <<<<<<<<<<<<<<
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  */
     __pyx_v_delta_loss = (__pyx_v_loss - __pyx_v_last_loss);
 
@@ -5178,7 +5178,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     __pyx_t_34 = (__pyx_v_early_stop != 0);
@@ -5195,19 +5195,16 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
       /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_28 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_28 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_28 = (__pyx_v_verbose != 0);
       if (__pyx_t_28) {
 
         /* "cornac/models/mf/recom_mf.pyx":142
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)             # <<<<<<<<<<<<<<
  *                 break
  * 
@@ -5223,14 +5220,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
       }
 
       /* "cornac/models/mf/recom_mf.pyx":143
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break             # <<<<<<<<<<<<<<
  * 
@@ -5242,7 +5239,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     }
@@ -6168,7 +6165,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss             # <<<<<<<<<<<<<<
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  */
     __pyx_v_delta_loss = (__pyx_v_loss - __pyx_v_last_loss);
 
@@ -6176,7 +6173,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     __pyx_t_34 = (__pyx_v_early_stop != 0);
@@ -6193,19 +6190,16 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
       /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_28 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_28 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_28 = (__pyx_v_verbose != 0);
       if (__pyx_t_28) {
 
         /* "cornac/models/mf/recom_mf.pyx":142
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)             # <<<<<<<<<<<<<<
  *                 break
  * 
@@ -6221,14 +6215,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
       }
 
       /* "cornac/models/mf/recom_mf.pyx":143
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break             # <<<<<<<<<<<<<<
  * 
@@ -6240,7 +6234,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     }
@@ -7166,7 +7160,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss             # <<<<<<<<<<<<<<
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  */
     __pyx_v_delta_loss = (__pyx_v_loss - __pyx_v_last_loss);
 
@@ -7174,7 +7168,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     __pyx_t_34 = (__pyx_v_early_stop != 0);
@@ -7191,19 +7185,16 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
       /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_28 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_28 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_28 = (__pyx_v_verbose != 0);
       if (__pyx_t_28) {
 
         /* "cornac/models/mf/recom_mf.pyx":142
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)             # <<<<<<<<<<<<<<
  *                 break
  * 
@@ -7219,14 +7210,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
       }
 
       /* "cornac/models/mf/recom_mf.pyx":143
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break             # <<<<<<<<<<<<<<
  * 
@@ -7238,7 +7229,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     }
@@ -8164,7 +8155,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss             # <<<<<<<<<<<<<<
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  */
     __pyx_v_delta_loss = (__pyx_v_loss - __pyx_v_last_loss);
 
@@ -8172,7 +8163,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     __pyx_t_34 = (__pyx_v_early_stop != 0);
@@ -8189,19 +8180,16 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
       /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_28 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_28 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_28 = (__pyx_v_verbose != 0);
       if (__pyx_t_28) {
 
         /* "cornac/models/mf/recom_mf.pyx":142
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)             # <<<<<<<<<<<<<<
  *                 break
  * 
@@ -8217,14 +8205,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
       }
 
       /* "cornac/models/mf/recom_mf.pyx":143
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break             # <<<<<<<<<<<<<<
  * 
@@ -8236,7 +8224,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     }
@@ -9162,7 +9150,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss             # <<<<<<<<<<<<<<
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  */
     __pyx_v_delta_loss = (__pyx_v_loss - __pyx_v_last_loss);
 
@@ -9170,7 +9158,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     __pyx_t_34 = (__pyx_v_early_stop != 0);
@@ -9187,19 +9175,16 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
       /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_28 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_28 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_28 = (__pyx_v_verbose != 0);
       if (__pyx_t_28) {
 
         /* "cornac/models/mf/recom_mf.pyx":142
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)             # <<<<<<<<<<<<<<
  *                 break
  * 
@@ -9215,14 +9200,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
       }
 
       /* "cornac/models/mf/recom_mf.pyx":143
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break             # <<<<<<<<<<<<<<
  * 
@@ -9234,7 +9219,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     }
@@ -10160,7 +10145,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_20_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss             # <<<<<<<<<<<<<<
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  */
     __pyx_v_delta_loss = (__pyx_v_loss - __pyx_v_last_loss);
 
@@ -10168,7 +10153,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_20_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     __pyx_t_34 = (__pyx_v_early_stop != 0);
@@ -10185,19 +10170,16 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_20_fit_sgd(CYTHON_UN
       /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_verbose); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_28 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_28 < 0)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_28 = (__pyx_v_verbose != 0);
       if (__pyx_t_28) {
 
         /* "cornac/models/mf/recom_mf.pyx":142
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)             # <<<<<<<<<<<<<<
  *                 break
  * 
@@ -10213,14 +10195,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_20_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":141
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:
- *                 if self.verbose:             # <<<<<<<<<<<<<<
+ *                 if verbose:             # <<<<<<<<<<<<<<
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break
  */
       }
 
       /* "cornac/models/mf/recom_mf.pyx":143
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  *                 break             # <<<<<<<<<<<<<<
  * 
@@ -10232,7 +10214,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_20_fit_sgd(CYTHON_UN
  * 
  *             delta_loss = loss - last_loss
  *             if early_stop and abs(delta_loss) < 1e-5:             # <<<<<<<<<<<<<<
- *                 if self.verbose:
+ *                 if verbose:
  *                     print('Early stopping, delta_loss = %.4f' % delta_loss)
  */
     }
