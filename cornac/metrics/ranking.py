@@ -185,7 +185,7 @@ class Precision(MeasureAtK):
     """
 
     def __init__(self, k=-1):
-        MeasureAtK.__init__(self, name="Precision@{}".format(k), k=k)
+        super().__init__(name="Precision@{}".format(k), k=k)
 
     # Compute Precision@K for a single user i
     def compute(self, ground_truth, rec_list):
@@ -210,7 +210,7 @@ class Recall(MeasureAtK):
     """
 
     def __init__(self, k=-1):
-        MeasureAtK.__init__(self, name="Recall@{}".format(k), k=k)
+        super().__init__(name="Recall@{}".format(k), k=k)
 
     # Compute Precision@K for a single user i
     def compute(self, ground_truth, rec_list):
@@ -235,7 +235,7 @@ class FMeasure(MeasureAtK):
     """
 
     def __init__(self, k=-1):
-        MeasureAtK.__init__(self, name="F1@{}".format(k), k=k)
+        super().__init__(name="F1@{}".format(k), k=k)
 
     # Compute Precision@K for a single user i
     def compute(self, ground_truth, rec_list):
