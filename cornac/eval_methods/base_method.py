@@ -55,7 +55,7 @@ class BaseMethod:
         self.verbose = verbose
 
         if verbose:
-            print('Rating threshold = {:.1f}'.format(rating_threshold))
+            print('rating_threshold = {:.1f}'.format(rating_threshold))
             print('exclude_unknowns = {}'.format(exclude_unknowns))
 
     def _organize_metrics(self, metrics):
@@ -80,12 +80,10 @@ class BaseMethod:
             raise ValueError('test_set is required but None!')
 
         if self.total_users is None:
-            self.total_users = len(set(self.train_set.get_uid_list() +
-                                       self.test_set.get_uid_list()))
+            self.total_users = len(set(self.train_set.get_uid_list() + self.test_set.get_uid_list()))
 
         if self.total_items is None:
-            self.total_items = len(set(self.train_set.get_iid_list() +
-                                       self.test_set.get_iid_list()))
+            self.total_items = len(set(self.train_set.get_iid_list() + self.test_set.get_iid_list()))
 
         if self.verbose:
             print("Training started!")
@@ -118,7 +116,7 @@ class BaseMethod:
                 candidate_item_ids = None  # all known items
             else:
                 u_ranking_gts = np.zeros(self.total_items)
-                candidate_item_ids = range(self.total_items)
+                candidate_item_ids = np.arange(self.total_items)
 
             for item_id, rating in self.test_set.get_ratings(user_id):
                 # ignore unknown items when self.exclude_unknown
@@ -137,13 +135,13 @@ class BaseMethod:
                 if rating >= self.rating_threshold:
                     u_ranking_gts[item_id] = 1
 
-            # per user evaluation for rating metrics
+            # per user evaluation of rating metrics
             if len(rating_metrics) > 0 and len(u_rating_gts) > 0:
                 for mt in rating_metrics:
                     mt_score = mt.compute(np.asarray(u_rating_gts), np.asarray(u_rating_pds))
                     metric_user_results[mt.name][user_id] = mt_score
 
-            # per user evaluation for ranking metrics
+            # evaluation of ranking metrics
             if len(ranking_metrics) > 0 and u_ranking_gts.sum() > 0:
                 u_ranking_pds = model.rank(user_id, candidate_item_ids)
                 for mt in ranking_metrics:
