@@ -88,6 +88,7 @@ class MF(Recommender):
         cdef integral num_items = self.train_set.num_items
         cdef integral num_factors = self.k
         cdef integral max_iter = self.max_iter
+        cdef integral num_ratings = val.shape[0]
 
         cdef floating reg = self.lambda_reg
         cdef floating mu = self.train_set.global_mean
@@ -114,7 +115,7 @@ class MF(Recommender):
             last_loss = loss
             loss = 0
 
-            for j in range(val.shape[0]):
+            for j in range(num_ratings):
                 u, i, r = rid[j], cid[j], val[j]
                 user, item = &u_factors[u, 0], &i_factors[i, 0]
 
@@ -123,7 +124,7 @@ class MF(Recommender):
                     r_pred = mu + u_biases[u] + i_biases[i]
 
                 for factor in range(num_factors):
-                    r_pred = r_pred + user[factor] * item[factor]
+                    r_pred += user[factor] * item[factor]
 
                 error = r - r_pred
                 loss += error * error
@@ -137,7 +138,7 @@ class MF(Recommender):
 
             delta_loss = loss - last_loss
             if early_stop and abs(delta_loss) < 1e-5:
-                if self.verbose:
+                if verbose:
                     print('Early stopping, delta_loss = %.4f' % delta_loss)
                 break
 
