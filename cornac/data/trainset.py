@@ -205,7 +205,7 @@ class MatrixTrainSet(TrainSet):
             batch_pos_ratings = self.triplets[2][batch_ids]
 
             batch_neg_items = np.zeros_like(batch_pos_items)
-            for i, user, pos_rating in enumerate(zip(batch_users, batch_pos_ratings)):
+            for i, (user, pos_rating) in enumerate(zip(batch_users, batch_pos_ratings)):
                 neg_item = np.random.randint(0, self.num_items - 1)
                 while self.matrix[user, neg_item] >= pos_rating:
                     neg_item = np.random.randint(0, self.num_items - 1)

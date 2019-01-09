@@ -105,17 +105,26 @@ def test_matrix_trainset_uir_iter():
     users = [batch_users for batch_users, _, _ in train_set.uir_iter()]
     assert all([a == b for a, b in zip(users, range(10))])
 
-    users = [batch_users for batch_users, _, _ in train_set.uir_iter(shuffle=True)]
-    assert np.any([a != b for a, b in zip(users, range(10))])
-
     items = [batch_items for _, batch_items, _ in train_set.uir_iter()]
     assert all([a == b for a, b in zip(items, range(10))])
-
-    items = [batch_items for _, batch_items, _ in train_set.uir_iter(shuffle=True)]
-    assert np.any([a == b for a, b in zip(items, range(10))])
 
     ratings = [batch_ratings for _, _, batch_ratings in train_set.uir_iter()]
     assert all([a == b for a, b in zip(ratings, [4, 4, 4, 4, 3, 4, 4, 5, 3, 4])])
 
-    ratings = [batch_ratings for _, _, batch_ratings in train_set.uir_iter(shuffle=True)]
-    assert np.any([a != b for a, b in zip(ratings, [4, 4, 4, 4, 3, 4, 4, 5, 3, 4])])
+
+
+def test_matrix_trainset_uij_iter():
+    data_file = './tests/data.txt'
+    triplet_data = Reader.read_uir_triplets(data_file)
+
+    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, pre_uid_map={}, pre_iid_map={},
+                                                 pre_ui_set=set(), verbose=True)
+
+    users = [batch_users for batch_users, _, _ in train_set.uij_iter()]
+    assert all([a == b for a, b in zip(users, range(10))])
+
+    pos_items = [batch_pos_items for _, batch_pos_items, _ in train_set.uij_iter()]
+    assert all([a == b for a, b in zip(pos_items, range(10))])
+
+    neg_items = [batch_neg_items for _, _, batch_neg_items in train_set.uij_iter()]
+    assert all([a != b for a, b in zip(neg_items, range(10))])
