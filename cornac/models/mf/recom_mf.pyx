@@ -10,9 +10,12 @@ from cornac.utils.generic_utils import intersects
 from cornac.exception import ScoreException
 
 import numpy as np
-
 cimport numpy as np
+
+from numpy.linalg import solve
+
 cimport cython
+from cython cimport floating, integral
 from libcpp cimport bool
 from libc.math cimport abs
 
@@ -75,36 +78,39 @@ class MF(Recommender):
 
         (rid, cid, val) = sp.find(train_set.matrix)
 
-        self._fit_sgd(rid=rid, cid=cid, val=val)
+        self._fit_sgd(rid=rid, cid=cid, val=val.astype(np.float32))
 
 
-    @cython.boundscheck(False)  # turn off bounds-checking for entire function
-    @cython.wraparound(False)  # turn off negative index wrapping for entire function
-    def _fit_sgd(self, const int[:] rid, const int[:] cid, const double[:] val):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def _fit_sgd(self, integral[:] rid, integral[:] cid, floating[:] val):
         """Fit the model with SGD
         """
-        cdef int num_users = self.train_set.num_users
-        cdef int num_items = self.train_set.num_items
-        cdef int num_factors = self.k
-        cdef int max_iter = self.max_iter
+        cdef integral num_users = self.train_set.num_users
+        cdef integral num_items = self.train_set.num_items
+        cdef integral num_factors = self.k
+        cdef integral max_iter = self.max_iter
 
-        cdef double reg = self.lambda_reg
-        cdef double mu = self.train_set.global_mean
+        cdef floating reg = self.lambda_reg
+        cdef floating mu = self.train_set.global_mean
 
         cdef bool use_bias = self.use_bias
         cdef bool early_stop = self.early_stop
         cdef bool verbose = self.verbose
 
-        cdef double[:, :] u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01)
-        cdef double[:, :] i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01)
-        cdef double[:] u_biases = np.zeros([num_users])
-        cdef double[:] i_biases = np.zeros([num_items])
+        cdef floating[:, :] u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01).astype(np.float32)
+        cdef floating[:, :] i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01).astype(np.float32)
+        cdef floating[:] u_biases = np.zeros([num_users], dtype=np.float32)
+        cdef floating[:] i_biases = np.zeros([num_items], dtype=np.float32)
 
-        cdef double lr = self.learning_rate
-        cdef double loss = 0
-        cdef double last_loss = 0
-        cdef double r, r_pred, error, u_f, i_f, delta_loss
-        cdef int u, i, factor, j
+        cdef floating lr = self.learning_rate
+        cdef floating loss = 0
+        cdef floating last_loss = 0
+        cdef floating r, r_pred, error, u_f, i_f, delta_loss
+        cdef integral u, i, factor, j
+
+        cdef floating * user
+        cdef floating * item
 
         for iter in range(1, max_iter + 1):
             last_loss = loss
@@ -112,32 +118,33 @@ class MF(Recommender):
 
             for j in range(val.shape[0]):
                 u, i, r = rid[j], cid[j], val[j]
+                user, item = &u_factors[u, 0], &i_factors[i, 0]
 
                 r_pred = 0
                 if use_bias:
-                    r_pred += mu + u_biases[u] + i_biases[i]
+                    r_pred = mu + u_biases[u] + i_biases[i]
+
                 for factor in range(num_factors):
-                    r_pred += u_factors[u, factor] * i_factors[i, factor]
+                    r_pred = r_pred + user[factor] * item[factor]
 
                 error = r - r_pred
                 loss += error * error
 
                 for factor in range(num_factors):
-                    u_f = u_factors[u, factor]
-                    i_f = i_factors[i, factor]
-                    u_factors[u, factor] += lr * (error * i_f - reg * u_f)
-                    i_factors[i, factor] += lr * (error * u_f - reg * i_f)
+                    u_f, i_f = user[factor], item[factor]
+                    user[factor] += lr * (error * i_f - reg * u_f)
+                    item[factor] += lr * (error * u_f - reg * i_f)
 
             loss = 0.5 * loss
 
             delta_loss = loss - last_loss
             if early_stop and abs(delta_loss) < 1e-5:
                 if self.verbose:
-                    print('Early stopping, delta_loss = {}'.format(delta_loss))
+                    print('Early stopping, delta_loss = %.4f' % delta_loss)
                 break
 
             if verbose:
-                print('Iter {}, loss = {:.2f}'.format(iter, loss))
+                print('Iter %d, loss = %.4f' % (iter, loss))
 
         if verbose:
             print('Optimization finished!')
