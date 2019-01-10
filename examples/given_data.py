@@ -13,9 +13,9 @@ from cornac.utils.download_utils import DownloadItem
 
 # Download MovieLens 100K provided training and test splits
 train_path = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-100k/u1.base',
-                          relative_path='u1.base', sub_dir='datasets/ml_100k').download_if_needed(True)
+                          relative_path='datasets/ml_100k/u1.base').maybe_download(True)
 test_path = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-100k/u1.test',
-                         relative_path='u1.test', sub_dir='datasets/ml_100k').download_if_needed(True)
+                         relative_path='datasets/ml_100k/u1.test').maybe_download(True)
 
 # Load data using Reader
 train_data = Reader.read_uir_triplets(train_path)
