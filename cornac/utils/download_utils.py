@@ -27,12 +27,11 @@ def urlretrieve(url, fpath):
 
 class DownloadItem:
 
-    def __init__(self, url, relative_path, unzip=False, cache_dir=None, sub_dir='datasets'):
+    def __init__(self, url, relative_path, unzip=False, cache_dir=None):
         self.url = url
         self.rel_path = relative_path
         self.unzip = unzip
         self.cache_dir = cache_dir
-        self.sub_dir = sub_dir
 
     def _get_download_dir(self):
         if self.cache_dir is None:
@@ -42,13 +41,12 @@ class DownloadItem:
         if not os.access(base_dir, os.W_OK):
             base_dir = os.path.join('/tmp', '.cornac')
 
-        download_dir = os.path.join(base_dir, self.sub_dir)
-        if not os.path.exists(download_dir):
-            os.makedirs(download_dir)
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir)
 
-        return download_dir
+        return base_dir
 
-    def download_if_needed(self, verbose=False):
+    def maybe_download(self, verbose=False):
         download_dir = self._get_download_dir()
         fpath = os.path.join(download_dir, self.rel_path)
 
