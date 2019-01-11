@@ -87,7 +87,7 @@ cpdef pf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
 
 
 #Hierarchical Poisson factorization
-cpdef pf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
+cpdef hpf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     
     n   = n_X
     d   = d_X
@@ -140,13 +140,13 @@ cpdef pf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     #L_r = sp.csc_matrix(L_r,dtype=np.float64)  
   
 
-    #  K_r = c1/b_ + a*rowSums(G_s/G_r)
-    #  T_r = c1/d_ + a*rowSums(L_s/L_r)
-    K_r = np.repeat(1.0,n)
-    T_r = np.repeat(1.0,d)
+    K_r = a_ / b_ + np.sum(G_s / G_r, 1)
+    T_r = c_ / d_ + np.sum(L_s / L_r, 1)
+    #K_r = np.repeat(1.0,n)
+    #T_r = np.repeat(1.0,d)
 
     print('Learning...')    
-    pf_cpp(X, k, G_s, G_r, L_s, L_r, K_r, T_r, iter_max)
+    hpf_cpp(X, k, G_s, G_r, L_s, L_r, K_r, T_r, iter_max)
     print('Learning completed!')
 
 
