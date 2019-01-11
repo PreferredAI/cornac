@@ -9,7 +9,7 @@ void update_kappa_r(dVec &K_r,  Mat &G_s, Mat &G_r,double a_,double b_)
     for(int i = 0; i<K_r.size(); ++i)
     {
         double Sk = 0.0;
-        for(int k = 0;k<G_s[0].cols();++k)
+        for(int k = 0;k<G_s[0].size();++k)
         {
           //if(G_r.coeff(i,k)!=0.0)
           Sk += G_s[i][k]/G_r[i][k];
