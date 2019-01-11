@@ -227,7 +227,13 @@ void hpf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, 
 	SpMat Lt(n,g);
 	SpMat Lb(d,g);
   
-  
+  	//Update Kappa_R
+    update_kappa_r(K_r,G_s,G_r,a_,c_);
+    
+	//Update Tau_R
+	update_kappa_r(T_r,L_s,L_r,b_,c_);
+    
+    
 	//Learning 
 	for(int iter = 0;iter<maxiter;++iter){
     
