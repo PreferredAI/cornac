@@ -101,8 +101,6 @@ cpdef hpf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     c1 = 1.
     b_ = 1
     d_ = 1
-    k_s = a + k*a
-    t_s = a + k*c
     
     #Declare C++ variables
     cdef:
@@ -140,10 +138,8 @@ cpdef hpf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
     #L_r = sp.csc_matrix(L_r,dtype=np.float64)  
   
 
-    K_r = a_ / b_ + np.sum(G_s / G_r, 1)
-    T_r = c_ / d_ + np.sum(L_s / L_r, 1)
-    #K_r = np.repeat(1.0,n)
-    #T_r = np.repeat(1.0,d)
+    K_r = np.repeat(1.0,n)
+    T_r = np.repeat(1.0,d)
 
     print('Learning...')    
     hpf_cpp(X, k, G_s, G_r, L_s, L_r, K_r, T_r, iter_max)
