@@ -9,7 +9,7 @@ void update_kappa_r(dVec &K_r,  Mat &G_s, Mat &G_r,double a_,double b_)
     for(int i = 0; i<K_r.size(); ++i)
     {
         double Sk = 0.0;
-        for(int k = 0;k<G_s.cols();++k)
+        for(int k = 0;k<G_s[0].cols();++k)
         {
           //if(G_r.coeff(i,k)!=0.0)
           Sk += G_s[i][k]/G_r[i][k];
@@ -31,7 +31,7 @@ void update_gamma_r(Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, double k_s, double 
 		}
 		for(int i = 0;i<G_r.size();++i)
 		{
-			G_r[i][k] = k_s + Sk;
+			G_r[i][k] = k_s/K_r[i] + Sk;
 		}   
 	}
 }
@@ -146,6 +146,75 @@ void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, d
     SpMat X = triplet_to_csc_sparse(tX,n,d);
   
 	//Hyper parameter setting
+	double a_  = 0.3;
+	double att = 1.;
+	double c_  = 0.3;
+	double b_ = 1.0;
+	double d_ = 1.0;
+	double k_s = a_;
+	double t_s = c_;
+	//double k_s = a_ + g*a;
+	//double t_s = a_ + g*c;
+	//double eps = pow(2.0,-52);
+	
+	//Util variables declaration
+	SpMat Lt(n,g);
+	SpMat Lb(d,g);
+  
+  
+	//Learning 
+	for(int iter = 0;iter<maxiter;++iter){
+    
+		Lt = E_SpMat_logGamma(G_s,G_r);
+		Lt.coeffs() = Lt.coeffs().exp();
+    
+		Lb = E_SpMat_logGamma(L_s,L_r);
+		Lb.coeffs() = Lb.coeffs().exp();
+    
+		//Update user related parameters
+		
+		//updare Gamma_S
+		set_coeffs_to(G_s,a_);
+		update_gamma_s(G_s,X,Lt,Lb);
+    
+		//update Gamma_R
+		update_gamma_r(G_r,L_s,L_r,K_r,k_s,att);
+    
+		//Update Kappa_R
+    	//update_kappa_r(K_r,G_s,G_r,a_,b_);
+    
+    
+		///Update item related parameters///
+    
+		//updare Lambda_S
+		set_coeffs_to(L_s,c_);
+		update_lambda_s(L_s,X,Lt,Lb);
+    
+		//update Lambda_R
+		update_gamma_r(L_r,G_s,G_r,T_r,t_s,att);
+    
+		//Update Tau_R
+		//update_kappa_r(T_r,L_s,L_r,c_,d_);
+    
+		// End of learning 
+    
+	}
+
+}
+
+
+
+
+void hpf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, dVec &T_r, int maxiter){
+  
+	//data shape
+    int n  = G_s.size();
+    int d  = L_s.size();
+	
+	//create sparse matrices from triplet
+    SpMat X = triplet_to_csc_sparse(tX,n,d);
+  
+	//Hyper parameter setting
 	double a  = 0.3;
 	double a_ = 3.;
 	double att = 1.;
@@ -153,10 +222,8 @@ void pf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, d
 	double c_ = 2.;
 	double b_ = 1.0;
 	double d_ = 1.0;
-	double k_s = a ;
-	double t_s = c;
-	//double k_s = a_ + g*a;
-	//double t_s = a_ + g*c;
+	double k_s = a + g*a;
+	double t_s = c + g*c;
 	//double eps = pow(2.0,-52);
 	
 	//Util variables declaration
