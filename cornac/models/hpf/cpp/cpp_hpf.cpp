@@ -218,7 +218,7 @@ void hpf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, 
 	double a_  = 0.3;
 	double att = 1.;
 	double b_ = 0.3;
-	double d = 1.;
+	double c_ = 1.;
 	double k_s = a_ + g*a_;
 	double t_s = b_ + g*b_;
 	//double eps = pow(2.0,-52);
@@ -247,7 +247,7 @@ void hpf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, 
 		update_gamma_r(G_r,L_s,L_r,K_r,k_s,att);
     
 		//Update Kappa_R
-    	update_kappa_r(K_r,G_s,G_r,a_,d);
+    	update_kappa_r(K_r,G_s,G_r,a_,c_);
     
     
 		///Update item related parameters///
@@ -260,7 +260,7 @@ void hpf_cpp(Mat const&tX, int const&g, Mat &G_s, Mat &G_r, Mat &L_s, Mat &L_r, 
 		update_gamma_r(L_r,G_s,G_r,T_r,t_s,att);
     
 		//Update Tau_R
-		update_kappa_r(T_r,L_s,L_r,b_,d);
+		update_kappa_r(T_r,L_s,L_r,b_,c_);
     
 		// End of learning 
     
