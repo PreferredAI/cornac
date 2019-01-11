@@ -98,7 +98,10 @@ class PMF(Recommender):
             val = np.array(val, dtype='float32')
             if self.variant == 'non_linear':  # need to map the ratings to [0,1]
                 if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                    val = map_to(val, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
+                    if self.train_set.min_rating == self.train_set.max_rating:
+                        val = map_to(val, 0., 1., 0., self.train_set.max_rating)
+                    else:
+                        val = map_to(val, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
             rid = np.array(rid, dtype='int32')
             cid = np.array(cid, dtype='int32')
             tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
