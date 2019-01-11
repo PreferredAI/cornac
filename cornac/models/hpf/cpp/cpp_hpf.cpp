@@ -2,6 +2,22 @@
 #include "./cpp_hpf.h"
 
 
+
+//Update Kappa_R, can be user to update Tau_r as well
+void update_kappa_r(dVec &K_r,  Mat &G_s, Mat &G_r,double a_,double b_)
+{  
+    for(int i = 0; i<K_r.size(); ++i)
+    {
+        double Sk = 0.0;
+        for(int k = 0;k<G_s.cols();++k)
+        {
+          //if(G_r.coeff(i,k)!=0.0)
+          Sk += G_s[i][k]/G_r[i][k];
+        }
+        K_r[i] = a_/b_ + Sk;
+    }  
+}
+
 //update the Gamma rate parameter, can be used to update Lambda rate parameter as well 
 void update_gamma_r(Mat &G_r, Mat &L_s, Mat &L_r, dVec &K_r, double k_s, double att)
 {
