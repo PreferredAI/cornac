@@ -185,16 +185,16 @@ class PMF(Recommender):
 
         known_item_scores = self.V.dot(self.U[user_id, :])
 
-        if self.variant == "non_linear":
-            known_item_scores = sigmoid(known_item_scores)
-            known_item_scores = map_to(known_item_scores, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+        #if self.variant == "non_linear":
+        #    known_item_scores = sigmoid(known_item_scores)
+        #    known_item_scores = map_to(known_item_scores, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
         if candidate_item_ids is None:
             ranked_item_ids = known_item_scores.argsort()[::-1]
             return ranked_item_ids
         else:
             num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.ones(num_items) * self.default_score() # use min_rating to shift unk items to the end
+            user_pref_scores = np.zeros(num_items) # you can use default score if any: user_pref_scores = np.ones(num_items) * self.default_score()
             user_pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = user_pref_scores.argsort()[::-1]
