@@ -154,7 +154,10 @@ class PMF(Recommender):
 
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
-            user_pred = map_to(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+            if self.train_set.min_rating == self.train_set.max_rating:
+                user_pred = map_to(user_pred, 0., self.train_set.max_rating, 0., 1.)
+            else:
+                user_pred = map_to(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
         return user_pred
 
