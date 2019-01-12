@@ -94,13 +94,17 @@ cpdef hpf(Mat &X, int n_X, int d_X, int &k, int &iter_max, init_param = None):
 
     #Hyper parameter setting
     a  = 0.3
-    a_ = 0.3
+    #a_ = 0.3
+    a_ = 100.
     a1 = 2.
     c  = 0.3
-    c_ = 0.3
+    #c_ = 0.3
+    c_ = 100.
     c1 = 1.
-    b_ = 1
-    d_ = 1
+    #b_ = 1
+    b_ = 0.3
+    #d_ = 1
+    d_ = 0.3
     
     #Declare C++ variables
     cdef:
