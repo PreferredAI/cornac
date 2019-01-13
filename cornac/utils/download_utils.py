@@ -37,18 +37,21 @@ class DownloadItem:
         if self.cache_dir is None:
             self.cache_dir = os.path.join(os.path.expanduser('~'), '.cornac')
 
-        base_dir = os.path.expanduser(self.cache_dir)
-        if not os.access(base_dir, os.W_OK):
-            base_dir = os.path.join('/tmp', '.cornac')
+        download_dir = os.path.expanduser(self.cache_dir)
+        download_path = os.path.join(download_dir, self.rel_path)
 
-        if not os.path.exists(base_dir):
-            os.makedirs(base_dir)
+        if not os.access(download_dir, os.W_OK):
+            self.cache_dir = os.path.join('/tmp', '.cornac')
+            download_path = os.path.join(self.cache_dir, self.rel_path)
+            download_dir = os.path.dirname(download_path)
 
-        return base_dir
+        if not os.path.exists(download_dir):
+            os.makedirs(download_dir)
+
+        return download_dir, download_path
 
     def maybe_download(self, verbose=False):
-        download_dir = self._get_download_dir()
-        fpath = os.path.join(download_dir, self.rel_path)
+        download_dir, fpath = self._get_download_dir()
 
         if os.path.exists(fpath):
             return fpath
