@@ -40,6 +40,11 @@ Spherical k-means (Skmeans)
 .. automodule:: cornac.models.skm.recom_skmeans
    :members:
    
+Collaborative Deep Learning (CDL)
+---------------------------------------
+.. automodule:: cornac.models.cdl.recom_cdl
+   :members:
+   
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
@@ -54,9 +59,3 @@ Probabilitic Matrix Factorization (PMF)
 -----------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
-   
-   
-
-   
-   
-   

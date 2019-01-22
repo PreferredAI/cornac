@@ -6,7 +6,7 @@
 
 from ..utils.download_utils import DownloadItem
 from ..utils.generic_utils import validate_data_format
-from ..data import reader
+from ..data.reader import Reader
 
 
 class MovieLens:
@@ -25,7 +25,7 @@ class MovieLens100K(MovieLens):
 
         format = validate_data_format(format)
         if format == 'UIR':
-            return reader.txt_to_uir_triplets(fpath)
+            return Reader.read_uir_triplets(fpath)
 
 
 class MovieLens1M(MovieLens):
@@ -38,4 +38,4 @@ class MovieLens1M(MovieLens):
 
         format = validate_data_format(format)
         if format == 'UIR':
-            return reader.txt_to_uir_triplets(fpath, sep='::')
+            return Reader.read_uir_triplets(fpath, sep='::')
