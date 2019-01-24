@@ -35,7 +35,7 @@ def sample_triplet(X, batch_size):
         #if ratingi > min_rating:
         j = random.randint(0, X.shape[1] - 1)
 
-        while u_row[:, j] >= ratingi:
+        while (u_row[:, j] > ratingi) or (u_row[:, j] == ratingi):
             j = random.randint(0, X.shape[1] - 1)
 
         sampled_data[count, :] = [u, i, j]
