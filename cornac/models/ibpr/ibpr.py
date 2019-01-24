@@ -27,38 +27,37 @@ def sample_triplet(X, batch_size):
         u = random.randint(0, X.shape[0] - 1)
         u_row = X.getrow(u)
         _, u_nz = u_row.nonzero()
-        min_rating = u_row[:, u_nz].todense().min()
+        #min_rating = u_row[:, u_nz].todense().min()
 
         i = u_nz[random.randint(0, len(u_nz) - 1)]
         ratingi = u_row[:, i]
 
-        if ratingi > min_rating:
-            j = u_nz[random.randint(0, len(u_nz) - 1)]
+        #if ratingi > min_rating:
+        j = random.randint(0, X.shape[1] - 1)
 
-            while u_row[:, j] >= ratingi:
-                j = u_nz[random.randint(0, len(u_nz) - 1)]
+        while u_row[:, j] >= ratingi:
+            j = random.randint(0, X.shape[1] - 1)
 
-            sampled_data[count, :] = [u, i, j]
-            count += 1
+        sampled_data[count, :] = [u, i, j]
+        count += 1
 
-    print("Done sampling")
     return sampled_data
 
 
-def ibpr(X, k, lamda=0.005, n_epochs=150, learning_rate=0.001, batch_size=100, init_params=None):
+def ibpr(X, k, lamda=0.001, n_epochs=150, learning_rate=0.05, batch_size=100, init_params=None):
     # X = sp.csr_matrix(X)
     # Data = Dataset(data)
 
     # Initial user factors
     if init_params['U'] is None:
-        U = torch.randn(X.shape[0], k, requires_grad=True, device="cuda")
+        U = torch.randn(X.shape[0], k, requires_grad=True)
     else:
         U = init_params['U']
         U = torch.from_numpy(U)
 
     # Initial item factors
     if init_params['V'] is None:
-        V = torch.randn(X.shape[1], k, requires_grad=True, device="cuda")
+        V = torch.randn(X.shape[1], k, requires_grad=True)
     else:
         V = init_params['V']
         V = torch.from_numpy(V)
