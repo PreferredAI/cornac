@@ -30,8 +30,15 @@ def test_partition_data():
 
 def test_validate_partition():
 
+    
+    data_file = './tests/data.txt'
+    data = Reader.read_uir_triplets(data_file)
+
+    nfolds = 5
+    cv = CrossValidation(data = data, n_folds= nfolds)
+    
     try:
-        RatioSplit._validate_sizes(-1, 0.2, 10)
+        cv._validate_partition(-1, 0.2, 10)
     except ValueError:
         assert True
 
