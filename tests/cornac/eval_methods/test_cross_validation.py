@@ -6,37 +6,29 @@
 
 from cornac.eval_methods import CrossValidation
 from cornac.data import Reader
+import numpy as np
 
 
-data_file = './tests/data.txt'
-data = Reader.read_uir_triplets(data_file)
 
-cv = CrossValidation(data = data, n_folds=5, rating_threshold = 3.5, partition = None)
-cv.
+def test_partition_data():
+    data_file = './tests/data.txt'
+    data = Reader.read_uir_triplets(data_file)
+    
+    nfolds = 5
+    cv = CrossValidation(data = data, n_folds= nfolds)
+    
+    ref_set = set(range(nfolds))
+    res_set = set(cv.partition)
+    fold_sizes = np.unique(cv.partition, return_counts = True)[1]
+    
+    assert len(data) == len(cv.partition)
+    assert res_set == ref_set  
+    assert np.all(fold_sizes == 2)
+    
+    
+    
 
-def test_partition():
-    cv = CrossValidation(data = mat_office, n_folds=5, rating_threshold = 3.5, partition = None)
-
-def test_validate_size():
-    train_size, val_size, test_size = RatioSplit._validate_sizes(0.1, 0.2, 10)
-    assert 7 == train_size
-    assert 1 == val_size
-    assert 2 == test_size
-
-    train_size, val_size, test_size = RatioSplit._validate_sizes(None, 0.5, 10)
-    assert 5 == train_size
-    assert 0 == val_size
-    assert 5 == test_size
-
-    train_size, val_size, test_size = RatioSplit._validate_sizes(None, None, 10)
-    assert 10 == train_size
-    assert 0 == val_size
-    assert 0 == test_size
-
-    train_size, val_size, test_size = RatioSplit._validate_sizes(2, 2, 10)
-    assert 6 == train_size
-    assert 2 == val_size
-    assert 2 == test_size
+def test_validate_partition():
 
     try:
         RatioSplit._validate_sizes(-1, 0.2, 10)

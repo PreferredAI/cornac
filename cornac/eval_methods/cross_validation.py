@@ -49,7 +49,7 @@ class CrossValidation(BaseMethod):
         self.n_ratings = len(self._data)
         
         if partition is None:
-            self.partition()
+            self.partition_data()
         else:
             self.partition = self._validate_partition(partition)
 
@@ -59,11 +59,11 @@ class CrossValidation(BaseMethod):
         fold_size = int(self.n_ratings/self.n_folds)
         remain_size = self.n_ratings - fold_size*self.n_folds
         
-        fold_partition = np.repeat(np.arange(self.n_folds),fold_size)
+        self.partition = np.repeat(np.arange(self.n_folds),fold_size)
         
         if remain_size > 0:
             remain_partition = np.random.choice(self.n_folds, size=remain_size, replace=True, p=None)
-            self.partition = np.concatenate((fold_partition, remain_partition))
+            self.partition = np.concatenate((self.partition, remain_partition))
             
         np.random.shuffle(self.partition)
         
