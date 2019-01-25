@@ -44,10 +44,14 @@ class CrossValidation(BaseMethod):
         BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
                             exclude_unknowns=exclude_unknowns, verbose=verbose)
         self.n_folds = n_folds
-        self.partition = partition
         self.current_fold = 0
         self.current_split = None
         self.n_ratings = len(self._data)
+        
+        if partition is None:
+            self.partition()
+        else:
+            self.partition = self.validate_partition(partition)
 
     # Partition ratings into n_folds
     def partition(self):
@@ -63,11 +67,14 @@ class CrossValidation(BaseMethod):
             
         np.random.shuffle(self.partition)
         
+
     def validate_partition(self):
         if len(self.partition) != self.n_ratings:
             raise Exception('The partition length must be equal to the number of ratings')
         elif len(set(self.partition)) != self.n_folds:
             raise Exception('Number of folds in given partition different from: ',self.n_folds)
+        return self.parition
+
 
     def _get_next_train_test_sets(self):
         if self.verbose:
@@ -95,10 +102,6 @@ class CrossValidation(BaseMethod):
     def evaluate(self, model, metrics, user_based):
         per_fold_avg_res = {}
         per_fold_user_res = {}
-        if self.partition is None:
-            self.partition()
-        elif len(self.partition) != self.n_ratings:
-            raise Exception('The partition length must be equal to the number of ratings')
 
         for fold in range(self.n_folds):
             self._get_next_train_test_sets()
