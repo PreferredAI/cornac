@@ -4,8 +4,11 @@
 @author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
-from cornac.eval_methods import RatioSplit
+from cornac.eval_methods import CrossValidation
 
+
+def test_partition():
+    cv = CrossValidation(data = mat_office, n_folds=5, rating_threshold = 3.5, partition = None)
 
 def test_validate_size():
     train_size, val_size, test_size = RatioSplit._validate_sizes(0.1, 0.2, 10)
