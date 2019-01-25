@@ -28,7 +28,7 @@
 
 Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:
 
-- **From PyPI (you may need a C compiler):**
+- **From PyPI (you may need a C++ compiler):**
 
 ```sh
 pip3 install cornac
@@ -71,15 +71,17 @@ from cornac.datasets import MovieLens100K
 ml_100k = MovieLens100K.load_data()
 ```
 
-- Instantiate an evaluation strategy.
+- Instantiate an evaluation method. Here we split the data based on ratio.
 ```python
-from cornac.eval_strategies import RatioSplit
+from cornac.eval_methods import RatioSplit
 
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
 ```
 
 - Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
 ```python
+import cornac
+
 pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 ```
 
@@ -93,7 +95,7 @@ pre_20 = cornac.metrics.Precision(k=20)
 
 - Instantiate and then run an experiment.
 ```python
-exp = cornac.Experiment(eval_strategy=ratio_split,
+exp = cornac.Experiment(eval_method=ratio_split,
                         models=[pmf],
                         metrics=[mae, rmse, rec_20, pre_20],
                         user_based=True)
