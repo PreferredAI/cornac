@@ -68,13 +68,13 @@ class CrossValidation(BaseMethod):
         np.random.shuffle(self.partition)
         
 
-    def _validate_partition(self):
-        if len(self.partition) != self.n_ratings:
+    def _validate_partition(self, partition):
+        if len(partition) != self.n_ratings:
             raise Exception('The partition length must be equal to the number of ratings')
-        elif len(set(self.partition)) != self.n_folds:
+        elif len(set(partition)) != self.n_folds:
             raise Exception('Number of folds in given partition different from: ',self.n_folds)
             
-        return self.parition
+        return partition
 
 
     def _get_next_train_test_sets(self):
