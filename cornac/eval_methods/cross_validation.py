@@ -91,7 +91,7 @@ class CrossValidation(BaseMethod):
         per_fold_avg_res = {}
         per_fold_user_res = {}
         if self.partition is None:
-            self.partition = self._get_partition()
+            self.partition()
         elif len(self.partition) != self.n_ratings:
             raise Exception('The partition length must be equal to the number of ratings')
 
