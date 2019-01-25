@@ -51,13 +51,19 @@ class CrossValidation(BaseMethod):
 
     # Partition ratings into n_folds
     def _get_partition(self):
-        n_fold_partition = np.random.choice(self.n_folds, size=self.n_ratings, replace=True,
-                                            p=None)
+        
+        fold_size = int(self.n_ratings/self.n_folds)
+        remain_size = self.n_ratings - fold_size*self.n_folds
+        
+        fold_partition = np.repeat(np.arange(self.n_folds),fold_size)
+        
+        if remain_size > 0:
+            remain_partition = np.random.choice(self.n_folds, size=remain_size, replace=True, p=None)
+            fold_partition = np.concatenate((fold_partition, remain_partition))
+            
+        np.random.shuffle(fold_partition)
 
-        while len(set(n_fold_partition)) != self.n_folds:  # just in case some fold is empty
-            n_fold_partition = np.random.choice(self.n_folds, size=self.n_ratings, replace=True, p=None)
-
-        return n_fold_partition
+        return fold_partition
 
     def _get_next_train_test_sets(self):
         if self.verbose:
