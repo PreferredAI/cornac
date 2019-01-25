@@ -50,7 +50,7 @@ class CrossValidation(BaseMethod):
         self.n_ratings = len(self._data)
 
     # Partition ratings into n_folds
-    def _get_partition(self):
+    def partition(self):
         
         fold_size = int(self.n_ratings/self.n_folds)
         remain_size = self.n_ratings - fold_size*self.n_folds
@@ -59,11 +59,11 @@ class CrossValidation(BaseMethod):
         
         if remain_size > 0:
             remain_partition = np.random.choice(self.n_folds, size=remain_size, replace=True, p=None)
-            fold_partition = np.concatenate((fold_partition, remain_partition))
+            self.partition = np.concatenate((fold_partition, remain_partition))
             
-        np.random.shuffle(fold_partition)
-
-        return fold_partition
+        np.random.shuffle(self.partition)
+        
+    
 
     def _get_next_train_test_sets(self):
         if self.verbose:
