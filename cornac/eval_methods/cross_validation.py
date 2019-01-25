@@ -51,7 +51,7 @@ class CrossValidation(BaseMethod):
         if partition is None:
             self.partition()
         else:
-            self.partition = self.validate_partition(partition)
+            self.partition = self._validate_partition(partition)
 
     # Partition ratings into n_folds
     def partition(self):
@@ -68,7 +68,7 @@ class CrossValidation(BaseMethod):
         np.random.shuffle(self.partition)
         
 
-    def validate_partition(self):
+    def _validate_partition(self):
         if len(self.partition) != self.n_ratings:
             raise Exception('The partition length must be equal to the number of ratings')
         elif len(set(self.partition)) != self.n_folds:
