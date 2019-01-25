@@ -38,21 +38,11 @@ def test_validate_partition():
     cv = CrossValidation(data = data, n_folds= nfolds)
     
     try:
-        cv._validate_partition(-1, 0.2, 10)
+        cv._validate_partition([0,0,1,1])
     except ValueError:
         assert True
 
     try:
-        RatioSplit._validate_sizes(11, 0.2, 10)
-    except ValueError:
-        assert True
-
-    try:
-        RatioSplit._validate_sizes(0, 11, 10)
-    except ValueError:
-        assert True
-
-    try:
-        RatioSplit._validate_sizes(3, 8, 10)
+        cv._validate_partition([0,0,1,1,2,2,2,2,3,3])
     except ValueError:
         assert True
