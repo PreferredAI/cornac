@@ -54,7 +54,7 @@ class CrossValidation(BaseMethod):
             self.partition = self._validate_partition(partition)
 
     # Partition ratings into n_folds
-    def partition(self):
+    def partition_data(self):
         
         fold_size = int(self.n_ratings/self.n_folds)
         remain_size = self.n_ratings - fold_size*self.n_folds
