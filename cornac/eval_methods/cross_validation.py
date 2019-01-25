@@ -47,7 +47,7 @@ class CrossValidation(BaseMethod):
         self.partition = partition
         self.current_fold = 0
         self.current_split = None
-        self.n_ratings = self._data.shape[0]
+        self.n_ratings = len(self._data)
 
     # Partition ratings into n_folds
     def _get_partition(self):
