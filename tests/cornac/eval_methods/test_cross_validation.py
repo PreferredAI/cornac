@@ -39,10 +39,10 @@ def test_validate_partition():
     
     try:
         cv._validate_partition([0,0,1,1])
-    except ValueError:
+    except:
         assert True
 
     try:
         cv._validate_partition([0,0,1,1,2,2,2,2,3,3])
-    except ValueError:
+    except:
         assert True
