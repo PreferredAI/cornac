@@ -12,7 +12,7 @@ data_file = './tests/data.txt'
 data = Reader.read_uir_triplets(data_file)
 
 cv = CrossValidation(data = data, n_folds=5, rating_threshold = 3.5, partition = None)
-
+cv.
 
 def test_partition():
     cv = CrossValidation(data = mat_office, n_folds=5, rating_threshold = 3.5, partition = None)
