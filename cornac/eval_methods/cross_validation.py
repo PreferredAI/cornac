@@ -73,6 +73,7 @@ class CrossValidation(BaseMethod):
             raise Exception('The partition length must be equal to the number of ratings')
         elif len(set(self.partition)) != self.n_folds:
             raise Exception('Number of folds in given partition different from: ',self.n_folds)
+            
         return self.parition
 
 
