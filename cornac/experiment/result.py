@@ -43,7 +43,6 @@ class Result:
 
     def _add_model_res(self, res, model_name):
         #self.per_model[model_name] = res
-        res._organize
         self.avg.append(res.avg)
         self.per_user[model_name] = res.per_user[model_name]
 
