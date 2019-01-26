@@ -34,7 +34,7 @@ class Result:
     Parameters
     ----------
     """
-    def __init__(self, per_model_results = {}, avg_results = []):
+    def __init__(self, per_model_results = {}, avg_results = None):
         #self.per_model = per_model_results
         self.avg = avg_results
         self.per_user = {}
@@ -42,8 +42,11 @@ class Result:
 
     def _add_model_res(self, res, model_name):
         #self.per_model[model_name] = res
-        self.avg.append(res.avg)
         self.per_user[model_name] = res.per_user
+        if self.avg is None:
+            self.avg = res.avg
+        else:
+            self.avg.append(res.avg)
 
     def show(self):
         print(self.avg)
