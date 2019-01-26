@@ -7,6 +7,7 @@
 
 import numpy as np
 import pandas as pd
+from .result import Result
 
 
 class Experiment:
@@ -43,11 +44,11 @@ class Experiment:
         self.user_based = user_based
         self.verbose = verbose
 
-        self.res = None
-        self.std_result = None
-        self.avg_results = []
-        self.user_results = {}
-        self.fold_avg_results = {}
+        #self.std_result = None
+        #self.avg_results = []
+        #self.user_results = {}
+        #self.fold_avg_results = {}
+        self.results = Result()
 
 
     @staticmethod
