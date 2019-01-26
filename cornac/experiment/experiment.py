@@ -111,7 +111,7 @@ class Experiment:
 
             model_res = self.eval_method.evaluate(model=model, metrics=organized_metrics, user_based=self.user_based)
             model_res._organize_avg_res(model_name=model.name, metric_names=metric_names)
-            self.results._add_model_res(res=model_res, model_name= model.name)
+            self.results._add_model_res(res=model_res, model_name=model.name)
             
             #if self.dict_depth(metric_avg_results) == 1:
             #    self.avg_results.append([metric_avg_results.get(mt_name, np.nan) for mt_name in metric_names])

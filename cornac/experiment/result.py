@@ -46,7 +46,11 @@ class Result:
         if self.avg is None:
             self.avg = res.avg
         else:
-            self.avg.append(res.avg)
+            print("I am here as well")
+            print(self.avg)
+            print(res.avg)
+            self.avg = self.avg.append(res.avg)
+            print(self.avg)
 
     def show(self):
         print(self.avg)
