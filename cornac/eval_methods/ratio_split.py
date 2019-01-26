@@ -8,6 +8,7 @@ from ..utils.generic_utils import safe_indexing, validate_data_format
 from math import ceil
 from .base_method import BaseMethod
 from ..data import MatrixTrainSet, TestSet
+from ..experiment.result import SingleModelResults
 import numpy as np
 
 
