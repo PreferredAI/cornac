@@ -105,32 +105,37 @@ class Experiment:
 
             model_names.append(model.name)
 
-            metric_avg_results, self.user_results[model.name] = self.eval_method.evaluate(model=model,
-                                                                                          metrics=organized_metrics,
-                                                                                          user_based=self.user_based)
+            #metric_avg_results, self.user_results[model.name] = self.eval_method.evaluate(model=model,
+            #                                                                              metrics=organized_metrics,
+            #                                                                              user_based=self.user_based)
+
+            model_res = self.eval_method.evaluate(model=model, metrics=organized_metrics, user_based=self.user_based)
+            model_res._organize_avg_res(model_name=model.name, metric_names=metric_names)
+            self.results._add_model_res(res=model_res, model_name= model.name)
             
-            if self.dict_depth(metric_avg_results) == 1:
-                self.avg_results.append([metric_avg_results.get(mt_name, np.nan) for mt_name in metric_names])
+            #if self.dict_depth(metric_avg_results) == 1:
+            #    self.avg_results.append([metric_avg_results.get(mt_name, np.nan) for mt_name in metric_names])
                 
-            elif self.dict_depth(metric_avg_results) == 2:
-                for f in metric_avg_results:
-                    if f not in self.fold_avg_results:
-                        self.fold_avg_results[f] = []
-                    self.fold_avg_results[f].append([metric_avg_results[f].get(mt_name, np.nan) for mt_name in metric_names]) 
+            #elif self.dict_depth(metric_avg_results) == 2:
+            #    for f in metric_avg_results:
+            #        if f not in self.fold_avg_results:
+            #            self.fold_avg_results[f] = []
+            #        self.fold_avg_results[f].append([metric_avg_results[f].get(mt_name, np.nan) for mt_name in metric_names])
            
             
-        if len(self.fold_avg_results) > 0:
-            for f in self.fold_avg_results:
-                self.fold_avg_results[f] = pd.DataFrame(data=np.asarray(self.fold_avg_results[f]), index=model_names, columns=metric_names)
+        #if len(self.fold_avg_results) > 0:
+        #    for f in self.fold_avg_results:
+        #        self.fold_avg_results[f] = pd.DataFrame(data=np.asarray(self.fold_avg_results[f]), index=model_names, columns=metric_names)
                 
-        if len(self.avg_results) > 0:
-            self.avg_results = pd.DataFrame(data=np.asarray(self.avg_results), index=model_names, columns=metric_names)
+        #if len(self.avg_results) > 0:
+        #    self.avg_results = pd.DataFrame(data=np.asarray(self.avg_results), index=model_names, columns=metric_names)
         
-        elif len(self.fold_avg_results) > 0:
-            n_folds = 0
-            s = 0
-            for f in self.fold_avg_results:
-                s += self.fold_avg_results[f]
-                n_folds += 1
-            self.avg_results = s/n_folds
+        #elif len(self.fold_avg_results) > 0:
+        #    n_folds = 0
+        #    s = 0
+        #    for f in self.fold_avg_results:
+        #        s += self.fold_avg_results[f]
+        #        n_folds += 1
+        #    self.avg_results = s/n_folds
         #print(self.fold_avg_results)
+        self.results.show()
