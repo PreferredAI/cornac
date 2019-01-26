@@ -8,7 +8,7 @@ from ..utils.generic_utils import safe_indexing, validate_data_format
 from math import ceil
 from .base_method import BaseMethod
 from ..data import MatrixTrainSet, TestSet
-from ..experiment.result import SingleModelResults
+from ..experiment.result import SingleModelResult
 import numpy as np
 
 
@@ -129,4 +129,4 @@ class RatioSplit(BaseMethod):
     def evaluate(self, model, metrics, user_based):
         self.split()
         metric_avg_results, per_user_results = BaseMethod.evaluate(self, model, metrics, user_based)
-        return SingleModelResults(metric_avg_results, per_user_results)
+        return SingleModelResult(metric_avg_results, per_user_results)

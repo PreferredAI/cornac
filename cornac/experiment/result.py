@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-class SingleModelResults:
+class SingleModelResult:
     """ Result class for a single model
 
     Parameters
@@ -28,7 +28,7 @@ class SingleModelResults:
 
 
 
-class Results:
+class Result:
     """ Result Class
 
     Parameters
