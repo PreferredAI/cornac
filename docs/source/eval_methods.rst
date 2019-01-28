@@ -1,23 +1,23 @@
-evaluation strategies
+evaluation methods
 ======================
 
-.. automodule:: cornac.eval_strategies
+.. automodule:: cornac.eval_methods
 
 
 
 Base Strategy
 --------------
-.. automodule:: cornac.eval_strategies.base_strategy
+.. automodule:: cornac.eval_methods.base_strategy
    :members:
    
 
 Ratio Split
 --------------
-.. automodule:: cornac.eval_strategies.ratio_split
+.. automodule:: cornac.eval_methods.ratio_split
    :members:
 
    
 Cross Validation
 ------------------
-.. automodule:: cornac.eval_strategies.cross_validation
+.. automodule:: cornac.eval_methods.cross_validation
    :members:
