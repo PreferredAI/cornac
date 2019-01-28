@@ -7,7 +7,7 @@ evaluation methods
 
 Base Strategy
 --------------
-.. automodule:: cornac.eval_methods.base_strategy
+.. automodule:: cornac.eval_methods.base_method
    :members:
    
 
