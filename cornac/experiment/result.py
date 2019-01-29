@@ -77,6 +77,14 @@ class CVSingleModelResult(SingleModelResult):
             for mt in self.per_fold_avg[f]:
                 self.avg[mt] += self.per_fold_avg[f][mt]/len(self.per_fold_avg)
 
+    def _add_model_res(self, res, model_name):
+        #self.per_model[model_name] = res
+        self.per_user[model_name] = res.per_user
+        if self.avg is None:
+            self.avg = res.avg
+        else:
+            self.avg = self.avg.append(res.avg)
+
 
 class CVResult(Result):
     """ Cross Validation Result Class
