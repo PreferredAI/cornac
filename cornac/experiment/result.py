@@ -22,8 +22,8 @@ class SingleModelResult:
     def _organize_avg_res(self, model_name, metric_names):
         self.avg = [self.avg.get(mt_name, np.nan) for mt_name in metric_names]
         self.avg = np.asarray(self.avg)
-        self.avg = self.avg.reshape(1,len(metric_names))
-        self.avg = pd.DataFrame(data= self.avg, index= np.asarray([model_name]), columns= np.asarray(metric_names))
+        self.avg = self.avg.reshape(1, len(metric_names))
+        self.avg = pd.DataFrame(data=self.avg, index=np.asarray([model_name]), columns=np.asarray(metric_names))
 
 
 
