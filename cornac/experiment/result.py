@@ -54,6 +54,24 @@ class Result:
 
 
 
+class CVSingleModelResult(SingleModelResult):
+    """ Cross Validation Result Class for a single model
+
+    Parameters
+    ----------
+    """
+
+    def __init__(self, metric_avg_results, metric_user_results = None):
+        self.avg = metric_avg_results
+        self.per_user = metric_user_results
+
+    def _organize_avg_res(self, model_name, metric_names):
+        self.avg = [self.avg.get(mt_name, np.nan) for mt_name in metric_names]
+        self.avg = np.asarray(self.avg)
+        self.avg = self.avg.reshape(1, len(metric_names))
+        self.avg = pd.DataFrame(data=self.avg, index=np.asarray([model_name]), columns=np.asarray(metric_names))
+
+
 
 class CVResult(Result):
     """ Cross Validation Result Class
