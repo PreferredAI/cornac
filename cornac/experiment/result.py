@@ -98,7 +98,7 @@ class CVResult(Result):
     Parameters
     ----------
     """
-    def __init__(self, per_model_results = {}, n_folds, avg_results=None):
+    def __init__(self, n_folds, per_model_results = {}, avg_results=None):
         #self.per_model = per_model_results
         self.avg = avg_results
         self.per_fold_avg = {}
