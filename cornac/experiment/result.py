@@ -61,14 +61,19 @@ class CVSingleModelResult(SingleModelResult):
     ----------
     """
 
-    def __init__(self, metric_avg_results, n_folds):
-        self.n_folds = n_folds
+    def __init__(self, metric_avg_results=None):
         self.avg = metric_avg_results
         self.per_fold_avg = {}
 
     def _add_fold_res(self, fold, res):
+        #think to organize the results first
+        self.per_fold_avg[fold] = res.avg
 
-        self.per_fold_avg[fold] = res
+    def _compute_avg_res(self):
+        avg = 0.0
+        for f in self.per_fold_avg:
+            avg += self.per_fold_avg[f]
+        self.avg = avg/len(self.per_fold_avg)
 
 
     def _organize_avg_res(self, model_name, metric_names):
