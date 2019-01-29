@@ -112,6 +112,6 @@ class CrossValidation(BaseMethod):
             #fold_name = 'fold:' + str(self.current_fold)
             #per_fold_avg_res[fold_name] = avg_res
             #per_fold_user_res[fold_name] = per_user_res
-            result._add_fold_res(fold=fold, res=avg_res)
+            result._add_fold_res(fold=fold, metric_avg_results=avg_res)
 
-        return per_fold_avg_res, per_fold_user_res
+        return result
