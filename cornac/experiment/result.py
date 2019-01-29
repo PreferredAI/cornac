@@ -15,7 +15,7 @@ class SingleModelResult:
     ----------
     """
 
-    def __init__(self, metric_avg_results, metric_user_results = None):
+    def __init__(self, metric_avg_results, metric_user_results=None):
         self.avg = metric_avg_results
         self.per_user = metric_user_results
 
@@ -64,24 +64,18 @@ class CVSingleModelResult(SingleModelResult):
     def __init__(self, metric_avg_results=None):
         self.avg = metric_avg_results
         self.per_fold_avg = {}
+        self.avg = {}
 
-    def _add_fold_res(self, fold, res):
+    def _add_fold_res(self, fold, metric_avg_results):
         #think to organize the results first
-        self.per_fold_avg[fold] = res.avg
+        self.per_fold_avg[fold] = metric_avg_results
 
     def _compute_avg_res(self):
-        avg = 0.0
+        for mt in self.per_fold_avg[0]:
+            self.avg[mt] = 0.0
         for f in self.per_fold_avg:
-            avg += self.per_fold_avg[f]
-        self.avg = avg/len(self.per_fold_avg)
-
-
-    def _organize_avg_res(self, model_name, metric_names):
-        self.avg = [self.avg.get(mt_name, np.nan) for mt_name in metric_names]
-        self.avg = np.asarray(self.avg)
-        self.avg = self.avg.reshape(1, len(metric_names))
-        self.avg = pd.DataFrame(data=self.avg, index=np.asarray([model_name]), columns=np.asarray(metric_names))
-
+            for mt in self.per_fold_avg[f]:
+                self.avg[mt] += self.per_fold_avg[f][mt]/len(self.per_fold_avg)
 
 
 class CVResult(Result):
@@ -93,16 +87,13 @@ class CVResult(Result):
     def __init__(self, per_model_results = {}, avg_results=None):
         #self.per_model = per_model_results
         self.avg = avg_results
-        self.per_user = {}
+        self.per_fold_avg = {}
 
 
     def _add_model_res(self, res, model_name):
-        #self.per_model[model_name] = res
-        self.per_user[model_name] = res.per_user
+
         if self.avg is None:
             self.avg = res.avg
         else:
             self.avg = self.avg.append(res.avg)
 
-    def show(self):
-        print(self.avg)
