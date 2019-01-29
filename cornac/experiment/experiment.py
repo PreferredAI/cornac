@@ -8,6 +8,7 @@
 import numpy as np
 import pandas as pd
 from .result import Result
+from .result import CVResult
 
 
 class Experiment:
@@ -48,7 +49,8 @@ class Experiment:
         #self.avg_results = []
         #self.user_results = {}
         #self.fold_avg_results = {}
-        self.results = Result()
+        #self.results = Result()
+        self.results = CVResult()
 
 
     @staticmethod
