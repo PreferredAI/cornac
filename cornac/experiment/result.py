@@ -9,7 +9,7 @@ import pandas as pd
 
 
 class SingleModelResult:
-    """ Result class for a single model
+    """ Result Class for a single model
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ class Result:
     Parameters
     ----------
     """
-    def __init__(self, per_model_results = {}, avg_results = None):
+    def __init__(self, per_model_results = {}, avg_results=None):
         #self.per_model = per_model_results
         self.avg = avg_results
         self.per_user = {}
