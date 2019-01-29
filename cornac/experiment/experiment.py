@@ -82,7 +82,7 @@ class Experiment:
         return valid_metrics
     
     # Check depth of dictionary
-    def dict_depth(self,d):
+    def dict_depth(self, d):
         if isinstance(d, dict):
             return 1 + (max(map(self.dict_depth, d.values())) if d else 0)
         return 0
