@@ -100,7 +100,6 @@ class BaseMethod:
             metric_user_results[mt.name] = {}
 
         num_eval_users = len(self.test_set.get_users())
-        compteur = 0
         for i, user_id in enumerate(self.test_set.get_users()):
             if self.verbose:
                 if i % 1000 == 0 or (i+1) == num_eval_users:
@@ -148,8 +147,7 @@ class BaseMethod:
                 for mt in ranking_metrics:
                     mt_score = mt.compute(u_ranking_gts, u_ranking_pds)
                     metric_user_results[mt.name][user_id] = mt_score
-                compteur = compteur + 1
-        print(compteur)
+
         metric_avg_results = {}
 
         # avg results of rating metrics
