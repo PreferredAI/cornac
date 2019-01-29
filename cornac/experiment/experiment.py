@@ -50,7 +50,7 @@ class Experiment:
         #self.user_results = {}
         #self.fold_avg_results = {}
         #self.results = Result()
-        self.results = CVResult()
+        self.results = CVResult(eval_method.n_folds)
 
 
     @staticmethod
