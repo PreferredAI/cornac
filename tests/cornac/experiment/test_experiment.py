@@ -21,7 +21,7 @@ def test_with_ratio_split():
                      verbose=True)
     exp.run()
 
-    assert (1, 4) == exp.avg_results.shape
+    assert (1, 4) == exp.results.avg.shape
 
     assert 1 == len(exp.user_results)
     assert 4 == len(exp.user_results['PMF'])
