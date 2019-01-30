@@ -49,7 +49,6 @@ class Experiment:
         elif isinstance(eval_method, CrossValidation):
             self.results = CVResult(eval_method.n_folds)
 
-
     @staticmethod
     def _validate_models(input_models):
         if not hasattr(input_models, "__len__"):
@@ -63,7 +62,6 @@ class Experiment:
                 valid_models.append(model)
 
         return valid_models
-
 
     @staticmethod
     def _validate_metrics(input_metrics):
@@ -79,19 +77,18 @@ class Experiment:
                 valid_metrics.append(metric)
 
         return valid_metrics
-    
+
     # Check depth of dictionary
     def dict_depth(self, d):
         if isinstance(d, dict):
             return 1 + (max(map(self.dict_depth, d.values())) if d else 0)
         return 0
 
-
     # modify this function to accommodate several models
     def run(self):
         model_names = []
         metric_names = []
-        organized_metrics = {'ranking':[], 'rating':[]}
+        organized_metrics = {'ranking': [], 'rating': []}
 
         # Organize metrics into "rating" and "ranking" for efficiency purposes
         for mt in self.metrics:

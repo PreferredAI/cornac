@@ -28,7 +28,7 @@ class CrossValidation(BaseMethod):
     partition: array-like, shape (n_observed_ratings,), optional, default: None
         The partition of ratings into n_folds (fold label of each rating) \
         If None, random partitioning is performed to assign each rating into a fold.
-		
+
     rating_threshold: float, optional, default: 1.
         The minimum value that is considered to be a good rating used for ranking, \
         e.g, if the ratings are in {1, ..., 5}, then rating_threshold = 4.
@@ -48,7 +48,7 @@ class CrossValidation(BaseMethod):
         self.current_fold = 0
         self.current_split = None
         self.n_ratings = len(self._data)
-        
+
         if partition is None:
             self.partition_data()
         else:
@@ -56,27 +56,25 @@ class CrossValidation(BaseMethod):
 
     # Partition ratings into n_folds
     def partition_data(self):
-        
-        fold_size = int(self.n_ratings/self.n_folds)
-        remain_size = self.n_ratings - fold_size*self.n_folds
-        
-        self.partition = np.repeat(np.arange(self.n_folds),fold_size)
-        
+
+        fold_size = int(self.n_ratings / self.n_folds)
+        remain_size = self.n_ratings - fold_size * self.n_folds
+
+        self.partition = np.repeat(np.arange(self.n_folds), fold_size)
+
         if remain_size > 0:
             remain_partition = np.random.choice(self.n_folds, size=remain_size, replace=True, p=None)
             self.partition = np.concatenate((self.partition, remain_partition))
-            
+
         np.random.shuffle(self.partition)
-        
 
     def _validate_partition(self, partition):
         if len(partition) != self.n_ratings:
             raise Exception('The partition length must be equal to the number of ratings')
         elif len(set(partition)) != self.n_folds:
-            raise Exception('Number of folds in given partition different from %s' %(self.n_folds))
-            
-        return partition
+            raise Exception('Number of folds in given partition different from %s' % (self.n_folds))
 
+        return partition
 
     def _get_next_train_test_sets(self):
         if self.verbose:
@@ -100,7 +98,6 @@ class CrossValidation(BaseMethod):
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
 
-
     def evaluate(self, model, metrics, user_based):
         per_fold_avg_res = {}
         per_fold_user_res = {}
@@ -109,9 +106,9 @@ class CrossValidation(BaseMethod):
         for fold in range(self.n_folds):
             self._get_next_train_test_sets()
             avg_res, per_user_res = BaseMethod.evaluate(self, model, metrics, user_based)
-            #fold_name = 'fold:' + str(self.current_fold)
-            #per_fold_avg_res[fold_name] = avg_res
-            #per_fold_user_res[fold_name] = per_user_res
+            # fold_name = 'fold:' + str(self.current_fold)
+            # per_fold_avg_res[fold_name] = avg_res
+            # per_fold_user_res[fold_name] = per_user_res
             result._add_fold_res(fold=fold, metric_avg_results=avg_res)
         result._compute_avg_res()
         return result

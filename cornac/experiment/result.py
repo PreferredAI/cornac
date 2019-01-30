@@ -36,10 +36,10 @@ class Result:
     Parameters
     ----------
     """
+
     def __init__(self, avg_results=None):
         self.avg = avg_results
         self.per_user = {}
-
 
     def _add_model_res(self, res, model_name):
         self.per_user[model_name] = res.per_user
