@@ -6,8 +6,11 @@
 
 import numpy as np
 from ..recommender import Recommender
-from .hpf import *
+#from .hpf import *
 from ...exception import ScoreException
+import hpf
+import scipy.sparse as sp
+
 
 
 # HierarchicalPoissonFactorization: Hpf
@@ -31,6 +34,9 @@ class HPF(Recommender):
         
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
+        
+    hierarchical: boolean, optional, default: True
+        When False, PF is used instead of HPF.
 
     init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}
         List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}, \
@@ -51,7 +57,7 @@ class HPF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, name="HPF", trainable=True,
-                 verbose=False, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
+                 verbose=False, hierarchical = True, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose = verbose)
         self.k = k
         self.init_params = init_params
@@ -61,6 +67,7 @@ class HPF(Recommender):
         self.etp_r = np.full(max_iter, 0)
         self.etp_c = np.full(max_iter, 0)
         self.eps = 0.000000001
+        self.hierarchical  = hierarchical
         self.Theta = None  # matrix of user factors
         self.Beta = None  # matrix of item factors
 
@@ -78,10 +85,22 @@ class HPF(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        X = self.train_set.matrix
+        X = sp.csc_matrix(self.train_set.matrix)
+        
+        # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
+        (rid, cid, val) = sp.find(X)
+        val = np.array(val, dtype='float32')
+        rid = np.array(rid, dtype='int32')
+        cid = np.array(cid, dtype='int32')
+        tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
+        del rid, cid, val
+        
 
         if self.trainable:
-            res = pf(X, k=self.k, max_iter=self.max_iter, init_param=self.init_params)
+            if self.hierarchical:
+                res = hpf.hpf(tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params)
+            else:
+                res = hpf.pf(tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params)
             self.Theta = np.asarray(res['Z'])
             self.Beta = np.asarray(res['W'])
         elif self.verbose:
