@@ -58,7 +58,6 @@ class RatioSplit(BaseMethod):
         self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(self._data))
         self._split_ran = False
 
-
     @staticmethod
     def _validate_sizes(val_size, test_size, num_ratings):
         if val_size is None:
@@ -90,7 +89,6 @@ class RatioSplit(BaseMethod):
         train_size = num_ratings - (val_size + test_size)
 
         return int(train_size), int(val_size), int(test_size)
-
 
     def split(self):
         if self._split_ran:
@@ -124,7 +122,6 @@ class RatioSplit(BaseMethod):
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
-
 
     def evaluate(self, model, metrics, user_based):
         self.split()
