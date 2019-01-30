@@ -40,14 +40,12 @@ class Result:
     Parameters
     ----------
     """
-    def __init__(self, per_model_results = {}, avg_results=None):
-        #self.per_model = per_model_results
+    def __init__(self, avg_results=None):
         self.avg = avg_results
         self.per_user = {}
 
 
     def _add_model_res(self, res, model_name):
-        #self.per_model[model_name] = res
         self.per_user[model_name] = res.per_user
         if self.avg is None:
             self.avg = res.avg
