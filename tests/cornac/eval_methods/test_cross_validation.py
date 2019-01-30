@@ -41,3 +41,7 @@ def test_validate_partition():
         cv._validate_partition([0, 0, 1, 1, 2, 2, 2, 2, 3, 3])
     except:
         assert True
+
+
+def test_get_next_train_test_sets():
+    
