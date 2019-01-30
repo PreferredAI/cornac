@@ -99,16 +99,11 @@ class CrossValidation(BaseMethod):
             print('Total items = {}'.format(self.total_items))
 
     def evaluate(self, model, metrics, user_based):
-        per_fold_avg_res = {}
-        per_fold_user_res = {}
         result = CVSingleModelResult()
 
         for fold in range(self.n_folds):
             self._get_next_train_test_sets()
             avg_res, per_user_res = BaseMethod.evaluate(self, model, metrics, user_based)
-            # fold_name = 'fold:' + str(self.current_fold)
-            # per_fold_avg_res[fold_name] = avg_res
-            # per_fold_user_res[fold_name] = per_user_res
             result._add_fold_res(fold=fold, metric_avg_results=avg_res)
         result._compute_avg_res()
         return result
