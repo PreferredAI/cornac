@@ -6,7 +6,7 @@
 """
 
 from .result import Result
-from .result import CVResult
+from .cv_result import CVResult
 
 
 class Experiment:
