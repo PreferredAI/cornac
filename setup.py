@@ -62,7 +62,7 @@ elif os.name == 'posix':
 
 setup(
     name='cornac',
-    version='0.1.0.post4',
+    version='0.1.0.post5',
     author='Aghiles Salah',
     author_email='asalah@smu.edu.sg',
     description='A collection of recommendation algorithms and comparisons',

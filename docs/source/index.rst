@@ -19,9 +19,8 @@ Cornac: a collection of recommendation algorithms and comparisons
 
    models
    metrics
+   eval_methods
    experiment
-   eval_strategies
-   
    
 
    
