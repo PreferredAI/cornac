@@ -33,6 +33,3 @@ This example will show you how to run your very first experiment using Cornac. I
 			 metrics=[mae, rmse, rec_20, pre_20], 
 			 user_based=True)
 	exp.run()
-	
-	# Get average results.
-	exp.avg_results
