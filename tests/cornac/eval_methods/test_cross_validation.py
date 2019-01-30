@@ -44,4 +44,14 @@ def test_validate_partition():
 
 
 def test_get_next_train_test_sets():
+    data_file = './tests/data.txt'
+    data = Reader.read_uir_triplets(data_file)
+
+    nfolds = 5
+    cv = CrossValidation(data=data, n_folds=nfolds)
     
+    for n in range(cv.n_folds):
+        assert cv.current_fold == n
+        assert cv.train_set.matrix.shape == (8, 8)
+        cv._get_next_train_test_sets()
+        
