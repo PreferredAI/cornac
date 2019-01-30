@@ -20,10 +20,6 @@ class SingleModelResult:
         self.per_user = metric_user_results
 
     def _organize_avg_res(self, model_name, metric_names):
-        #self.avg = [self.avg.get(mt_name, np.nan) for mt_name in metric_names]
-        #self.avg = np.asarray(self.avg)
-        #self.avg = self.avg.reshape(1, len(metric_names))
-        #self.avg = pd.DataFrame(data=self.avg, index=np.asarray([model_name]), columns=np.asarray(metric_names))
         self.avg = self._get_data_frame(avg_res=self.avg, model_name=model_name, metric_names=metric_names)
 
     def _get_data_frame(self, avg_res, model_name, metric_names):
