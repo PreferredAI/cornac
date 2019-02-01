@@ -76,7 +76,7 @@ class CrossValidation(BaseMethod):
 
         return partition
 
-    def _get_next_train_test_sets(self):
+    def _get_train_test_sets(self):
         if self.verbose:
             print('Fold: {}'.format(self.current_fold + 1))
 
@@ -89,26 +89,23 @@ class CrossValidation(BaseMethod):
         if self.data_format == 'UIR':
             self._build_from_uir_format(train_data=train_data, test_data=test_data)
 
-        if self.current_fold < self.n_folds - 1:
-            self.current_fold = self.current_fold + 1
-        else:
-            self.current_fold = 0
-
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
+            
+    def _next_fold(self):
+        if self.current_fold < self.n_folds - 1:
+            self.current_fold = self.current_fold + 1
+        else:
+            self.current_fold = 0        
 
     def evaluate(self, model, metrics, user_based):
-        per_fold_avg_res = {}
-        per_fold_user_res = {}
         result = CVSingleModelResult()
 
         for fold in range(self.n_folds):
-            self._get_next_train_test_sets()
+            self._get_train_test_sets()
             avg_res, per_user_res = BaseMethod.evaluate(self, model, metrics, user_based)
-            # fold_name = 'fold:' + str(self.current_fold)
-            # per_fold_avg_res[fold_name] = avg_res
-            # per_fold_user_res[fold_name] = per_user_res
             result._add_fold_res(fold=fold, metric_avg_results=avg_res)
+            self._next_fold()
         result._compute_avg_res()
         return result
