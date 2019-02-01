@@ -41,3 +41,18 @@ def test_validate_partition():
         cv._validate_partition([0, 0, 1, 1, 2, 2, 2, 2, 3, 3])
     except:
         assert True
+
+
+def test_get_train_test_sets_next_fold():
+    data_file = './tests/data.txt'
+    data = Reader.read_uir_triplets(data_file)
+
+    nfolds = 5
+    cv = CrossValidation(data=data, n_folds=nfolds)
+    
+    for n in range(cv.n_folds):
+        cv._get_train_test_sets()
+        assert cv.current_fold == n
+        assert cv.train_set.matrix.shape == (8, 8)
+        cv._next_fold()
+        
