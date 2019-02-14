@@ -126,32 +126,27 @@ class CDL(Recommender):
             print('%s is trained already (trainable = False)' % (self.name))
         
                 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
         
-        if item_indexes is None: 
-            user_pred = self.U[user_index, :].dot(self.V.T)
-        else:
-            user_pred = self.U[user_index,:].dot(self.V[item_indexes,:].T)
-        # transform user_pred to a flatten array, but keep thinking about another possible format
-        user_pred = np.array(user_pred, dtype='float64').flatten()
-
+        user_pred = self.U[user_id,:].dot(self.V[item_id,:])
         return user_pred
+    
+    
 
 
 
