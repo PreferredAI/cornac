@@ -136,26 +136,49 @@ class PCRL(Recommender):
         return user_pred            
         
     
-    def rank(self, user_index, known_items = None):
+    def rank(self, user_id, candidate_item_ids = None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
+
+        candidate_item_ids: 1d array, optional, default: None
+            A list of item indices to be ranked by the user.
+            If `None`, list of ranked known item indices will be returned
 
         Returns
         -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
+        Numpy 1d array
+            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        """ 
         
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+        if self.train_set.is_unk_user(user_id):
+            u_representation = np.ones(self.k)
+        else:
+            u_representation =  self.Theta[user_id, :]
 
-        return rank_item_list
+        known_item_scores = self.Beta.dot(u_representation)
+        known_item_scores = np.array(known_item_scores, dtype='float64').flatten()
+        
+        if candidate_item_ids is None:
+            ranked_item_ids = known_item_scores.argsort()[::-1]
+            return ranked_item_ids
+        else:
+            n_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
+            user_pref_scores = np.ones(n_items) * np.sum(u_representation)
+            user_pref_scores[:self.train_set.num_items] = known_item_scores
+
+            ranked_item_ids = user_pref_scores.argsort()[::-1]
+            mask = np.in1d(ranked_item_ids, candidate_item_ids)
+            ranked_item_ids = ranked_item_ids[mask]
+
+            return ranked_item_ids   
+    
+    
+    
+    
+    
+    
+    
