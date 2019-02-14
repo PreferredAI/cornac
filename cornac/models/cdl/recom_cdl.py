@@ -6,6 +6,9 @@
 
 from ..recommender import Recommender
 from .cdl import *
+import scipy.sparse as sp
+from ...exception import ScoreException
+
 
 class CDL(Recommender):
     """Collaborative Deep Learning.
@@ -76,8 +79,8 @@ class CDL(Recommender):
     * Hao Wang, Naiyan Wang, Dit-Yan Yeung. CDL: Collaborative Deep Learning for Recommender Systems. In : SIGKDD. 2015. p. 1235-1244.
     """
     
-    def __init__(self, k=50, text_information = None, autoencoder_structure = None ,lambda_u = 0.1, lambda_v = 0.01,lambda_w = 0.01, lambda_n = 0.01, a = 1, b = 0.01, autoencoder_corruption = 0.3, learning_rate=0.001, keep_prob = 1.0, batch_size = 100, max_iter=100, name = "CDL",trainable = True, init_params = None):
-        Recommender.__init__(self,name=name, trainable = trainable)
+    def __init__(self, k=50, text_information = None, autoencoder_structure = None ,lambda_u = 0.1, lambda_v = 0.01,lambda_w = 0.01, lambda_n = 0.01, a = 1, b = 0.01, autoencoder_corruption = 0.3, learning_rate=0.001, keep_prob = 1.0, batch_size = 100, max_iter=100, name = "CDL",trainable = True, verbose=False, init_params = None):
+        Recommender.__init__(self,name=name, trainable = trainable, verbose=verbose)
         self.k = k
         self.text_information = text_information
         self.lambda_u = lambda_u
@@ -99,23 +102,27 @@ class CDL(Recommender):
         self.V = init_params['V']  # matrix of item factors
         
     #fit the recommender model to the traning data    
-    def fit(self,X):
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (training data), in a scipy sparse format\
-            (e.g., csc_matrix).
-
-        (e.g., csc_matrix).
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
+
+        Recommender.fit(self, train_set)
+        X = self.train_set.matrix
+        X = sp.csr_matrix(X)
+        
         if self.trainable:
             res = cdl(X, self.text_information, self.autoencoder_structure, k = self.k, lambda_u = self.lambda_u, lambda_v = self.lambda_v, lambda_w = self.lambda_w, lambda_n = self.lambda_n , a = self.a, b = self.b, autoencoder_corruption = self.autoencoder_corruption, n_epochs=self.max_iter, learning_rate= self.learning_rate, keep_prob = self.keep_prob, batch_size = self.batch_size, init_params = self.init_params)
             self.U = res['U']
             self.V = res['V']
             print('Learning completed')
-        else:
+        elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
         
                 

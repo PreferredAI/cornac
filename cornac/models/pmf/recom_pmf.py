@@ -89,7 +89,6 @@ class PMF(Recommender):
         """
 
         Recommender.fit(self, train_set)
-
         X = self.train_set.matrix
 
         if self.trainable:
