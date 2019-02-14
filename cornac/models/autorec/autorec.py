@@ -7,11 +7,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import pdb
 
-
-def autorec(X, data, k, lamda=0.01, n_epochs=100, learning_rate=0.001, batch_size=5, g_act="Sigmoid", f_act="Identity", init_params=None):
+def autorec(train_set, data, k, lamda=0.01, n_epochs=100, learning_rate=0.001, batch_size=50, g_act="Sigmoid", f_act="Identity", init_params=None):
 
     # user base autorec
+    X = train_set.matrix
+
     d = X.shape[1]
     n = X.shape[0]
     rating = torch.sparse.FloatTensor(torch.LongTensor([X.tocoo().row, X.tocoo().col]), torch.FloatTensor(X.data), torch.Size([n, d]))
@@ -22,13 +24,21 @@ def autorec(X, data, k, lamda=0.01, n_epochs=100, learning_rate=0.001, batch_siz
         V = torch.randn(k, d, requires_grad=True)
     else:
         V = init_params['V']
-        V = torch.from_numpy(V)
+        newV = np.zeros((k, d))
+        for oldidx, newidx in train_set._iid_map.items():
+            newV[:, newidx]=V[:, int(oldidx)]
+        # V = torch.from_numpy(newV).float()
+        V = torch.tensor(newV, dtype=torch.float32, requires_grad=True)
 
     if init_params['W'] is None:
         W = torch.randn(d, k, requires_grad=True)
     else:
         W = init_params['W']
-        W = torch.from_numpy(W)
+        newW = np.zeros((d, k))
+        for oldidx, newidx in train_set._iid_map.items():
+            newW[newidx, :]=W[int(oldidx), :]
+        # W = torch.from_numpy(newW).float()
+        W = torch.tensor(newW, dtype=torch.float32, requires_grad=True)
 
     if init_params['mu'] is None:
         mu = torch.ones(k, 1, requires_grad=False)
@@ -84,10 +94,10 @@ def autorec(X, data, k, lamda=0.01, n_epochs=100, learning_rate=0.001, batch_siz
             loss.backward()
             optimizer.step()
 
-        # H = f_act(W.mm(g_act(V.mm(torch.t(rating).to_dense()) + mu.repeat(1, n))) + b.repeat(1, n))
-        # H = torch.t(H)
-        # L = ((H - rating.to_dense()) * (M.to_dense())).pow(2).sum() + lamda * (V.norm().pow(2) + W.norm().pow(2))
-        print('epoch:', epoch, 'loss:', loss)
+        H = f_act(W.mm(g_act(V.mm(torch.t(rating).to_dense()) + mu.repeat(1, n))) + b.repeat(1, n))
+        H = torch.t(H)
+        L = ((H - rating.to_dense()) * (M.to_dense())).pow(2).sum() + lamda * (V.norm().pow(2) + W.norm().pow(2))
+        print('epoch:', epoch, 'loss:', L)
 
     E = V.mm(torch.t(rating).to_dense()).data.numpy()
     W = W.data.numpy()

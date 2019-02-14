@@ -66,7 +66,7 @@ class Autorec(Recommender):
     In Proceedings of the 24th International Conference on World Wide Web, WWW ’15 Companion, pages 111–112, New York, NY, USA, 2015. ACM.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate=0.001, lamda=0.01, batch_size=50, name="autorec",
+    def __init__(self, k=10, max_iter=100, learning_rate=0.001, lamda=0.01, batch_size=50, name="autorec",
                  trainable=True, g_act="Sigmoid", f_act="Identity", init_params={'V': None, 'mu': None,'W': None,'b': None,'E': None}):
         Recommender.__init__(self, name=name, trainable=trainable)
         self.k = k
@@ -85,6 +85,11 @@ class Autorec(Recommender):
 
         self.g_act = g_act
         self.f_act = f_act
+
+        if (self.V is None) & (self.W is None):
+            print("random initialize parameters")
+        elif (self.V.shape[0]!=self.W.shape[1]) | (self.V.shape[1]!=self.W.shape[0]) | (self.V.shape[0]!=k):
+            raise ValueError('initial parameters dimension error')
 
     # fit the recommender model to the traning data
     def fit(self, train_set):
@@ -112,7 +117,7 @@ class Autorec(Recommender):
 
             if self.verbose:
                 print('Learning...')
-            res = autorec(X, data, k=self.k, n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
+            res = autorec(train_set, data, k=self.k, n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
                           batch_size=self.batch_size, g_act=self.g_act, f_act=self.f_act, init_params=self.init_params)
             self.V = res['V']
             self.W = res['W']
