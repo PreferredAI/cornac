@@ -21,14 +21,14 @@ def test_with_ratio_split():
                      verbose=True)
     exp.run()
 
-    assert (1, 4) == exp.avg_results.shape
+    assert (1, 4) == exp.results.avg.shape
 
-    assert 1 == len(exp.user_results)
-    assert 4 == len(exp.user_results['PMF'])
-    assert 2 == len(exp.user_results['PMF']['MAE'])
-    assert 2 == len(exp.user_results['PMF']['RMSE'])
-    assert 2 == len(exp.user_results['PMF']['Recall@1'])
-    assert 2 == len(exp.user_results['PMF']['F1@1'])
+    assert 1 == len(exp.results.per_user)
+    assert 4 == len(exp.results.per_user['PMF'])
+    assert 2 == len(exp.results.per_user['PMF']['MAE'])
+    assert 2 == len(exp.results.per_user['PMF']['RMSE'])
+    assert 2 == len(exp.results.per_user['PMF']['Recall@1'])
+    assert 2 == len(exp.results.per_user['PMF']['F1@1'])
 
     try:
         Experiment(None, None, None)
