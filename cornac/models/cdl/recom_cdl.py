@@ -7,7 +7,10 @@
 from ..recommender import Recommender
 from .cdl import *
 import scipy.sparse as sp
+import numpy as np
 from ...exception import ScoreException
+from ...utils.generic_utils import intersects
+
 
 
 class CDL(Recommender):
@@ -143,6 +146,9 @@ class CDL(Recommender):
             The estimated score (e.g., rating) for the user and item of interest
         """
         
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+        
         user_pred = self.U[user_id,:].dot(self.V[item_id,:])
         return user_pred
     
@@ -150,26 +156,38 @@ class CDL(Recommender):
 
 
 
-    def rank(self, user_index, known_items = None):
+    def rank(self, user_id, candidate_item_ids=None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
+
+        candidate_item_ids: 1d array, optional, default: None
+            A list of item indices to be ranked by the user.
+            If `None`, list of ranked known item indices will be returned
 
         Returns
         -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
-        
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
+        Numpy 1d array
+            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        """
 
-        return rank_item_list
+        if self.train_set.is_unk_user(user_id):
+            return self.default_rank(candidate_item_ids)
+
+        known_item_scores = self.V.dot(self.U[user_id, :])
+
+        if candidate_item_ids is None:
+            ranked_item_ids = known_item_scores.argsort()[::-1]
+            return ranked_item_ids
+        else:
+            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
+            user_pref_scores = np.zeros(num_items) # you can use default score if any: user_pref_scores = np.ones(num_items) * self.default_score()
+            user_pref_scores[:self.train_set.num_items] = known_item_scores
+
+            ranked_item_ids = user_pref_scores.argsort()[::-1]
+            ranked_item_ids = intersects(ranked_item_ids, candidate_item_ids, assume_unique=True)
+
+            return ranked_item_ids
