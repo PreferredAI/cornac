@@ -130,45 +130,36 @@ class C2PF(Recommender):
         
         
 
-    def score(self, user_index, item_indexes = None):
+    def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_index: int, required
+        user_id: int, required
             The index of the user for whom to perform score predictions.
             
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        item_id: int, required
+            The index of the item to be scored by the user.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        A scalar
+            The estimated score (e.g., rating) for the user and item of interest
         """
 
+        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+            
         if self.variant == 'c2pf' or self.variant == 'tc2pf':
-            if item_indexes is None:
-                user_pred = self.Beta * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T
-            else:
-                user_pred = self.Beta[item_indexes,:] * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T
+            user_pred = self.Beta[item_id,:].dot(self.Theta[user_id,:]) + self.Xi[item_id,:].dot(self.Theta[user_id,:])
         elif self.variant == 'rc2pf':
-            if item_indexes is None:
-                user_pred = self.Xi * self.Theta[user_index, :].T
-            else:
-                user_pred = self.Xi[item_indexes,] * self.Theta[user_index, :].T
+            user_pred = self.Xi[item_id,:].dot(self.Theta[user_id,:])
         else:
-            if item_indexes is None:
-                user_pred = self.Beta * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T
-            else:
-                user_pred = self.Beta[item_indexes,:] * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T            
-        # transform user_pred to a flatten array,
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+            user_pred = self.Beta[item_id,:].dot(self.Theta[user_id, :]) + self.Xi[item_id,:].dot(self.Theta[user_id,:])            
 
-        return user_pred
-    
-    
+        user_pred = np.array(user_pred, dtype='float64').flatten()[0]
+
+        return user_pred    
 
 
     def rank(self, user_index, known_items = None):
