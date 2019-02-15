@@ -36,7 +36,7 @@ void update_gamma_s_context_r(Mat &G_s, SpMat const& X, SpMat const&Lt, SpMat co
             {
                 dk += Lt.coeff(x_.row(),k)*Lb2.coeff(x_.col(),k);           
             } 
-            for(int k = 0;k<G_s.size();++k)
+            for(int k = 0;k<G_s[0].size();++k)
             {
                 G_s[x_.row()][k] += Lt.coeff(x_.row(),k)*Lb2.coeff(x_.col(),k)*X.coeff(x_.row(),x_.col())/dk;
                 //L_s.coeffRef(i_.col(),k) += Lt.coeff(i_.row(),k)*Lb.coeff(i_.col(),k)*X.coeff(i_.row(),i_.col())/dk;

@@ -5,8 +5,8 @@
          Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-import numpy as np
-import pandas as pd
+from .result import Result
+from .cv_result import CVResult
 
 
 class Experiment:
@@ -42,13 +42,12 @@ class Experiment:
         self.metrics = self._validate_metrics(metrics)
         self.user_based = user_based
         self.verbose = verbose
-
-        self.res = None
-        self.std_result = None
-        self.avg_results = []
-        self.user_results = {}
-        self.fold_avg_results = {}
-
+        from ..eval_methods.ratio_split import RatioSplit
+        from ..eval_methods.cross_validation import CrossValidation
+        if isinstance(eval_method, RatioSplit):
+            self.results = Result()
+        elif isinstance(eval_method, CrossValidation):
+            self.results = CVResult(eval_method.n_folds)
 
     @staticmethod
     def _validate_models(input_models):
@@ -64,7 +63,6 @@ class Experiment:
 
         return valid_models
 
-
     @staticmethod
     def _validate_metrics(input_metrics):
         if not hasattr(input_metrics, "__len__"):
@@ -79,19 +77,18 @@ class Experiment:
                 valid_metrics.append(metric)
 
         return valid_metrics
-    
+
     # Check depth of dictionary
-    def dict_depth(self,d):
+    def dict_depth(self, d):
         if isinstance(d, dict):
             return 1 + (max(map(self.dict_depth, d.values())) if d else 0)
         return 0
-
 
     # modify this function to accommodate several models
     def run(self):
         model_names = []
         metric_names = []
-        organized_metrics = {'ranking':[], 'rating':[]}
+        organized_metrics = {'ranking': [], 'rating': []}
 
         # Organize metrics into "rating" and "ranking" for efficiency purposes
         for mt in self.metrics:
@@ -103,33 +100,8 @@ class Experiment:
                 print(model.name)
 
             model_names.append(model.name)
+            model_res = self.eval_method.evaluate(model=model, metrics=organized_metrics, user_based=self.user_based)
+            model_res._organize_avg_res(model_name=model.name, metric_names=metric_names)
+            self.results._add_model_res(res=model_res, model_name=model.name)
 
-            metric_avg_results, self.user_results[model.name] = self.eval_method.evaluate(model=model,
-                                                                                          metrics=organized_metrics,
-                                                                                          user_based=self.user_based)
-            
-            if self.dict_depth(metric_avg_results) == 1:
-                self.avg_results.append([metric_avg_results.get(mt_name, np.nan) for mt_name in metric_names])
-                
-            elif self.dict_depth(metric_avg_results) == 2:
-                for f in metric_avg_results:
-                    if f not in self.fold_avg_results:
-                        self.fold_avg_results[f] = []
-                    self.fold_avg_results[f].append([metric_avg_results[f].get(mt_name, np.nan) for mt_name in metric_names]) 
-           
-            
-        if len(self.fold_avg_results) > 0:
-            for f in self.fold_avg_results:
-                self.fold_avg_results[f] = pd.DataFrame(data=np.asarray(self.fold_avg_results[f]), index=model_names, columns=metric_names)
-                
-        if len(self.avg_results) > 0:
-            self.avg_results = pd.DataFrame(data=np.asarray(self.avg_results), index=model_names, columns=metric_names)
-        
-        elif len(self.fold_avg_results) > 0:
-            n_folds = 0
-            s = 0
-            for f in self.fold_avg_results:
-                s += self.fold_avg_results[f]
-                n_folds += 1
-            self.avg_results = s/n_folds
-        #print(self.fold_avg_results)
+        self.results.show()

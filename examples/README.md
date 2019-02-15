@@ -13,3 +13,5 @@
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
 
 [pmf_ratio.py](pmf_ratio.py) - Probabilistic Matrix Factorization (PMF) with RatioSplit.
+
+[ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
