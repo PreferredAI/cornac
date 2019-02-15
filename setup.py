@@ -13,6 +13,7 @@ else:
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
+
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
 extensions = [
@@ -29,6 +30,17 @@ extensions = [
     Extension(name='pmf',
               sources=['cornac/models/pmf/cython/pmf' + ext],
               language='c++'),
+	
+	Extension('hpf',
+              sources=['cornac/models/hpf/cython/hpf' + ext,
+                       'cornac/models/hpf/cpp/cpp_hpf.cpp'],
+			  include_dirs=[
+                  'cornac/models/hpf/cpp/',
+                  'cornac/utils/external/eigen/Eigen',
+                  'cornac/utils/external/eigen/unsupported/Eigen/'
+              ],
+			  language='c++'),
+	
     Extension(name='cornac.models.mf.recom_mf',
               sources=['cornac/models/mf/recom_mf' + ext],
               include_dirs=[numpy.get_include()],
@@ -50,7 +62,7 @@ elif os.name == 'posix':
 
 setup(
     name='cornac',
-    version='0.1.0.post4',
+    version='0.1.0.post5',
     author='Aghiles Salah',
     author_email='asalah@smu.edu.sg',
     description='A collection of recommendation algorithms and comparisons',
