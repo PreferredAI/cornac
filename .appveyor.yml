@@ -4,9 +4,6 @@ environment:
   PYPI_PASSWORD:
     secure: cTOEFT9KZZBMDVJgZzi9IpUKnJVxzESacNbQbFraRIA=
 
-  global:
-      REQUIREMENTS: "numpy scipy pandas pytorch-cpu=1.0.0"
-
   matrix:
     - PYTHON_VERSION: "3.5"
       MINICONDA: "C:\\Miniconda3-x64"
@@ -29,7 +26,8 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - "conda create -q -n test-environment -c pytorch python=%PYTHON_VERSION% numpy scipy pandas"
+#  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas"
+  - "conda create -q -n test-environment -c pytorch python=%PYTHON_VERSION% numpy scipy pandas pytorch-cpu=1.0.0"
   - activate test-environment
   - python -m pip install --upgrade pip
   - pip install wheel twine pytest
