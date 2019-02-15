@@ -27,30 +27,30 @@ def urlretrieve(url, fpath):
 
 class DownloadItem:
 
-    def __init__(self, url, relative_path, unzip=False, cache_dir=None, sub_dir='datasets'):
+    def __init__(self, url, relative_path, unzip=False, cache_dir=None):
         self.url = url
         self.rel_path = relative_path
         self.unzip = unzip
         self.cache_dir = cache_dir
-        self.sub_dir = sub_dir
 
-    def _get_download_dir(self):
+    def _get_download_path(self):
         if self.cache_dir is None:
             self.cache_dir = os.path.join(os.path.expanduser('~'), '.cornac')
 
-        base_dir = os.path.expanduser(self.cache_dir)
-        if not os.access(base_dir, os.W_OK):
-            base_dir = os.path.join('/tmp', '.cornac')
+        self.cache_dir = os.path.expanduser(self.cache_dir)
+        download_path = os.path.join(self.cache_dir, self.rel_path)
 
-        download_dir = os.path.join(base_dir, self.sub_dir)
-        if not os.path.exists(download_dir):
-            os.makedirs(download_dir)
+        if not os.access(self.cache_dir, os.W_OK):
+            self.cache_dir = os.path.join('/tmp', '.cornac')
+            download_path = os.path.join(self.cache_dir, self.rel_path)
 
-        return download_dir
+        if not os.path.exists(os.path.dirname(download_path)):
+            os.makedirs(os.path.dirname(download_path))
 
-    def download_if_needed(self, verbose=False):
-        download_dir = self._get_download_dir()
-        fpath = os.path.join(download_dir, self.rel_path)
+        return download_path
+
+    def maybe_download(self, verbose=False):
+        fpath = self._get_download_path()
 
         if os.path.exists(fpath):
             return fpath
@@ -59,13 +59,13 @@ class DownloadItem:
         print('and save to', fpath)
 
         if self.unzip:
-            tmp_path = os.path.join(download_dir, 'tmp.zip')
+            tmp_path = os.path.join(self.cache_dir, 'tmp.zip')
             urlretrieve(self.url, tmp_path)
 
             if verbose:
                 print('Unziping...')
             with zipfile.ZipFile(tmp_path, 'r') as tmp_zip:
-                tmp_zip.extractall(download_dir)
+                tmp_zip.extractall(self.cache_dir)
             os.remove(tmp_path)
         else:
             urlretrieve(self.url, fpath)

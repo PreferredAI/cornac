@@ -8,7 +8,7 @@ environment:
     - PYTHON_VERSION: "3.5"
       MINICONDA: "C:\\Miniconda3-x64"
       PYTHON_ARCH: "64"
-    - PYTHON_VERSION: "3.6"
+    - PYTHON_VERSION: "3.6.7"
       MINICONDA: "C:\\Miniconda3-x64"
       PYTHON_ARCH: "64"
 
@@ -26,7 +26,8 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas"
+#  - "conda create -q -n test-environment python=%PYTHON_VERSION% numpy scipy pandas"
+  - "conda create -q -n test-environment -c pytorch python=%PYTHON_VERSION% numpy scipy pandas tensorflow=1.10.0 pytorch-cpu=1.0.0"
   - activate test-environment
   - python -m pip install --upgrade pip
   - pip install wheel twine pytest
@@ -35,9 +36,9 @@ install:
   - python -c "import struct; print(struct.calcsize('P') * 8)"
   
   # Install TensorFlow CPU version.
-  - ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp36-cp36m-win_amd64.whl }
+#  - ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-1.12.0-cp36-cp36m-win_amd64.whl }
   # Install PyTorch CPU version.
-  - ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl }
+  #- ps: if ($env:PYTHON_VERSION -eq "3.5") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-win_amd64.whl } elseif ($env:PYTHON_VERSION -eq "3.6") { pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-win_amd64.whl }
 
   - pip install -e .[tests]
 
