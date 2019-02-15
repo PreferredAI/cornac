@@ -24,5 +24,3 @@ exp = cornac.Experiment(eval_method=ratio_split,
                         metrics=[ndcg, rec_20],
                         user_based=True)
 exp.run()
-
-print(exp.avg_results)
