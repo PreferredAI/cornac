@@ -102,7 +102,7 @@ class BaseMethod:
         num_eval_users = len(self.test_set.get_users())
         for i, user_id in enumerate(self.test_set.get_users()):
             if self.verbose:
-                if i % 1000 == 0 or (i+1) == num_eval_users:
+                if i % 1000 == 0 or (i + 1) == num_eval_users:
                     print(i, "users evaluated")
 
             # ignore unknown users when self.exclude_unknown

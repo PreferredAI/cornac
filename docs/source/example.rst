@@ -7,7 +7,7 @@ This example will show you how to run your very first experiment using Cornac. I
 	# Importing required modules from Cornac.
 	from cornac.models import PMF
 	from cornac import Experiment
-	from cornac.eval_strategies import RatioSplit
+	from cornac.eval_methods import RatioSplit
 	from cornac.datasets import MovieLens100K
 	from cornac import metrics 
 	
@@ -33,6 +33,3 @@ This example will show you how to run your very first experiment using Cornac. I
 			 metrics=[mae, rmse, rec_20, pre_20], 
 			 user_based=True)
 	exp.run()
-	
-	# Get average results.
-	exp.avg_results

@@ -98,7 +98,10 @@ class PMF(Recommender):
             val = np.array(val, dtype='float32')
             if self.variant == 'non_linear':  # need to map the ratings to [0,1]
                 if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                    val = map_to(val, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
+                    if self.train_set.min_rating == self.train_set.max_rating:
+                        val = map_to(val, 0., 1., 0., self.train_set.max_rating)
+                    else:
+                        val = map_to(val, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
             rid = np.array(rid, dtype='int32')
             cid = np.array(cid, dtype='int32')
             tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
@@ -151,7 +154,10 @@ class PMF(Recommender):
 
         if self.variant == "non_linear":
             user_pred = sigmoid(user_pred)
-            user_pred = map_to(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+            if self.train_set.min_rating == self.train_set.max_rating:
+                user_pred = map_to(user_pred, 0., self.train_set.max_rating, 0., 1.)
+            else:
+                user_pred = map_to(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
         return user_pred
 
@@ -179,16 +185,16 @@ class PMF(Recommender):
 
         known_item_scores = self.V.dot(self.U[user_id, :])
 
-        if self.variant == "non_linear":
-            known_item_scores = sigmoid(known_item_scores)
-            known_item_scores = map_to(known_item_scores, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+        #if self.variant == "non_linear":
+        #    known_item_scores = sigmoid(known_item_scores)
+        #    known_item_scores = map_to(known_item_scores, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
         if candidate_item_ids is None:
             ranked_item_ids = known_item_scores.argsort()[::-1]
             return ranked_item_ids
         else:
             num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.ones(num_items) * self.train_set.min_rating
+            user_pref_scores = np.zeros(num_items) # you can use default score if any: user_pref_scores = np.ones(num_items) * self.default_score()
             user_pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = user_pref_scores.argsort()[::-1]
