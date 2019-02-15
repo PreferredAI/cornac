@@ -20,7 +20,7 @@ class MovieLens100K(MovieLens):
     @staticmethod
     def load_data(format='UIR', verbose=False):
         download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
-                                     relative_path='datasets/ml_100k/u.data')
+                                     relative_path='ml-100k/u.data')
         fpath = download_item.maybe_download(verbose)
 
         format = validate_data_format(format)
@@ -33,7 +33,7 @@ class MovieLens1M(MovieLens):
     @staticmethod
     def load_data(format='UIR', verbose=False):
         download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
-                                     relative_path='datasets/ml_1m/ml-1m/ratings.dat', unzip=True)
+                                     relative_path='ml-1m/ratings.dat', unzip=True)
         fpath = download_item.maybe_download(verbose)
 
         format = validate_data_format(format)

@@ -10,7 +10,7 @@ from cornac.utils.download_utils import DownloadItem
 
 def test_download_normal_file():
     download_item = DownloadItem(url='https://static.preferred.ai/cornac/hello_world.txt',
-                                 relative_path='hello_word.txt')
+                                 relative_path='hello_world.txt')
     fpath = download_item.maybe_download(verbose=True)
 
     assert os.path.exists(fpath)
