@@ -139,14 +139,14 @@ class MF(Recommender):
             delta_loss = loss - last_loss
             if early_stop and abs(delta_loss) < 1e-5:
                 if verbose:
-                    print('Early stopping, delta_loss = %.4f' % delta_loss)
+                    print('[MF] Early stopping, delta_loss = %.4f' % delta_loss)
                 break
 
             if verbose:
-                print('Iter %d, loss = %.4f' % (iter, loss))
+                print('[MF] Iteration %d: loss = %.4f' % (iter, loss))
 
         if verbose:
-            print('Optimization finished!')
+            print('[MF] Optimization finished!')
 
         self.u_factors = u_factors
         self.i_factors = i_factors
