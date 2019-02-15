@@ -10,8 +10,8 @@ from cornac.utils.download_utils import DownloadItem
 
 def test_download_normal_file():
     download_item = DownloadItem(url='https://static.preferred.ai/cornac/hello_world.txt',
-                                 relative_path='hello_word.txt', sub_dir='')
-    fpath = download_item.download_if_needed(verbose=True)
+                                 relative_path='hello_world.txt')
+    fpath = download_item.maybe_download(verbose=True)
 
     assert os.path.exists(fpath)
 
@@ -21,8 +21,8 @@ def test_download_normal_file():
 
 def test_download_zip_file():
     download_item = DownloadItem(url='https://static.preferred.ai/cornac/dummy.zip',
-                                 relative_path='dummy/hello_world.txt', unzip=True, sub_dir='')
-    fpath = download_item.download_if_needed(verbose=True)
+                                 relative_path='dummy/hello_world.txt', unzip=True)
+    fpath = download_item.maybe_download(verbose=True)
 
     assert os.path.exists(fpath)
 
