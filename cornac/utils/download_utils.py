@@ -62,6 +62,8 @@ class DownloadItem:
         self.cache_dir = cache_dir
 
     def _get_download_path(self):
+        """Return the absolute path to the download data file
+        """
         if self.cache_dir is None:
             self.cache_dir = os.path.join(os.path.expanduser('~'), '.cornac')
 
