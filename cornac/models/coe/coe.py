@@ -4,10 +4,10 @@
 """
 
 import numpy as np
-import scipy.sparse as sp
 import random
-import torch
-from ...utils.data_utils import Dataset
+
+from ...utils import tryimport
+torch = tryimport('torch')
 
 """Firstly, we define a helper function to generate\sample training ordinal triplets:
    Step 1:  
