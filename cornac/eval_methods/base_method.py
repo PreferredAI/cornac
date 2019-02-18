@@ -17,9 +17,11 @@ class BaseMethod:
 
     Parameters
     ----------
+    data: array-like
+        The original data.
 
-    train_set: :obj:`TrainSet<cornac.data.TrainSet>`, optional, default: None
-        The training data.
+    data_format: str, default: 'UIR'
+        The format of given data.
 
     test_set: :obj:`TestSet<cornac.data.TestSet>`, optional, default: None
         The test data.
@@ -59,6 +61,14 @@ class BaseMethod:
             print('exclude_unknowns = {}'.format(exclude_unknowns))
 
     def _organize_metrics(self, metrics):
+        """Organize metrics according to their types (rating or raking)
+
+        Parameters
+        ----------
+        metrics: :obj:`iterable`
+            List of metrics.
+
+        """
         if isinstance(metrics, dict):
             rating_metrics = metrics.get('rating', [])
             ranking_metrics = metrics.get('ranking', [])
@@ -71,6 +81,20 @@ class BaseMethod:
         return rating_metrics, ranking_metrics
 
     def evaluate(self, model, metrics, user_based):
+        """Evaluate given models according to given metrics
+
+        Parameters
+        ----------
+        model: :obj:`cornac.models.Recommender`
+            Recommender model to be evaluated.
+
+        metrics: :obj:`iterable`
+            List of metrics.
+
+        user_based: bool
+            Evaluation mode. Whether results are averaging based on number of users or number of ratings.
+
+        """
         rating_metrics, ranking_metrics = self._organize_metrics(metrics)
 
         if self.train_set is None:
@@ -198,6 +222,37 @@ class BaseMethod:
     @classmethod
     def from_provided(cls, train_data, test_data, val_data=None, data_format='UIR',
                       rating_threshold=1.0, exclude_unknowns=False, verbose=False):
+        """Constructing evaluation method given data.
+
+        Parameters
+        ----------
+        train_data: array-like
+            Training data
+
+        test_data: array-like
+            Test data
+
+        val_data: array-like
+            Validation data
+
+        data_format: str, default: 'UIR'
+            The format of given data.
+
+        rating_threshold: float, default: 1.0
+            Threshold to decide positive or negative preferences.
+
+        exclude_unknowns: bool, default: False
+            Whether to exclude unknown users/items in evaluation.
+
+        verbose: bool, default: False
+            The verbosity flag.
+
+        Returns
+        -------
+        method: :obj:`<cornac.eval_methods.BaseMethod>`
+            Evaluation method object.
+
+        """
         method = cls(data_format=data_format, rating_threshold=rating_threshold,
                      exclude_unknowns=exclude_unknowns, verbose=verbose)
         if method.data_format == 'UIR':
