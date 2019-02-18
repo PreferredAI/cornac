@@ -13,6 +13,31 @@ class Reader:
 
     @staticmethod
     def read_uir_triplets(path_to_data_file, u_col=0, i_col=1, r_col=2, sep='\t', skip_lines=0):
+        """Read data in the form of triplets (user, item, rating).
+
+        Parameters
+        ----------
+
+        path_to_data_file : str
+            Path to the data file.
+
+        u_col : int
+            Index of the user column (default: 0).
+
+        i_col : int
+            Index of the item column (default: 0).
+
+        r_col : int
+            Index of the rating column (default: 0).
+
+        sep : str
+            The delimiter string (default: \t).
+
+        skip_lines : int
+            Number of first lines to skip (default: 0).
+
+        """
+
         max_index = max(u_col, i_col, r_col)
         uir_triplets = []
 
