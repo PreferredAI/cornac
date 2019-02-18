@@ -9,15 +9,7 @@ from ..utils.generic_utils import validate_data_format
 from ..data.reader import Reader
 
 
-class MovieLens:
-
-    @property
-    def base_url(self):
-        """Return the base url of the MovieLens datasets"""
-        return 'http://files.grouplens.org/datasets/movielens'
-
-
-class MovieLens100K(MovieLens):
+class MovieLens100K:
 
     @staticmethod
     def load_data(format='UIR', verbose=False):
@@ -37,7 +29,7 @@ class MovieLens100K(MovieLens):
             Data in the form of a list of tuples depending on the given data format.
 
         """
-        download_item = DownloadItem(url='{}/ml-100k/u.data'.format(MovieLens.base_url),
+        download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
                                      relative_path='ml-100k/u.data')
         fpath = download_item.maybe_download(verbose)
 
@@ -46,7 +38,7 @@ class MovieLens100K(MovieLens):
             return Reader.read_uir_triplets(fpath)
 
 
-class MovieLens1M(MovieLens):
+class MovieLens1M:
 
     @staticmethod
     def load_data(format='UIR', verbose=False):
@@ -66,7 +58,7 @@ class MovieLens1M(MovieLens):
             Data in the form of a list of tuples depending on the given data format.
 
         """
-        download_item = DownloadItem(url='{}/ml-1m.zip'.format(MovieLens),
+        download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
                                      relative_path='ml-1m/ratings.dat', unzip=True)
         fpath = download_item.maybe_download(verbose)
 
