@@ -13,7 +13,6 @@ else:
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
 extensions = [
@@ -30,17 +29,15 @@ extensions = [
     Extension(name='pmf',
               sources=['cornac/models/pmf/cython/pmf' + ext],
               language='c++'),
-	
-	Extension('hpf',
+    Extension('hpf',
               sources=['cornac/models/hpf/cython/hpf' + ext,
                        'cornac/models/hpf/cpp/cpp_hpf.cpp'],
-			  include_dirs=[
+              include_dirs=[
                   'cornac/models/hpf/cpp/',
                   'cornac/utils/external/eigen/Eigen',
                   'cornac/utils/external/eigen/unsupported/Eigen/'
               ],
-			  language='c++'),
-	
+              language='c++'),
     Extension(name='cornac.models.mf.recom_mf',
               sources=['cornac/models/mf/recom_mf' + ext],
               include_dirs=[numpy.get_include()],
