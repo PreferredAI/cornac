@@ -108,17 +108,40 @@ class C2PF(Recommender):
         
         
         if self.trainable:
+            # align auxiliary information with training data
+            raw_iid = train_set.get_raw_iid_list()
+            map_iid = train_set._iid_map
+            c_iid = []
+            c_cid = []
+            c_val = []
+
+            for i, j, _ in self.aux_info:
+                if (not i in raw_iid) or (not j in raw_iid):
+                    continue
+                c_iid.append(map_iid[i])
+                c_cid.append(map_iid[j])
+                c_val.append(1.0)
+
+            c_val = np.array(c_val,dtype='float32')
+            c_iid = np.array(c_iid,dtype='int32')
+            c_cid = np.array(c_cid,dtype='int32')
+
+            train_aux_info = np.concatenate((np.concatenate(([c_iid], [c_cid]), axis=0).T,c_val.reshape((len(c_val),1))),axis = 1)
+            del c_iid, c_cid, c_val
+
+            
+            
             if self.variant == 'c2pf':
-                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                             self.init_params)
             elif self.variant == 'tc2pf':
-                res = c2pf.t_c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+                res = c2pf.t_c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                               self.init_params)
             elif self.variant == 'rc2pf':
-                res = c2pf.r_c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+                res = c2pf.r_c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                               self.init_params)
             else:
-                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                             self.init_params)
 
             self.Theta = sp.csc_matrix(res['Z']).todense()
@@ -182,7 +205,7 @@ class C2PF(Recommender):
         if self.train_set.is_unk_user(user_id):
             u_representation = np.ones(self.k)
         else:
-            u_representation =  self.Theta[user_id, :]
+            u_representation =  self.Theta[user_id, :].T
                         
         if self.variant == 'c2pf' or self.variant == 'tc2pf':
             known_item_scores = self.Beta.dot(u_representation) + self.Xi.dot(u_representation)
