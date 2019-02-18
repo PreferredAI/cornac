@@ -17,27 +17,27 @@ class Reader:
 
         Parameters
         ----------
-        path_to_data_file : str
+        path_to_data_file: str
             Path to the data file
 
-        u_col : int, default: 0
+        u_col: int, default: 0
             Index of the user column
 
-        i_col : int, default: 1
+        i_col: int, default: 1
             Index of the item column
 
-        r_col : int, default: 2
+        r_col: int, default: 2
             Index of the rating column
 
-        sep : str, default: \t
+        sep: str, default: \t
             The delimiter string.
 
-        skip_lines : int, default: 0
+        skip_lines: int, default: 0
             Number of first lines to skip
 
         Returns
         -------
-        uir_triplets : array, shape: [n_examples, 3]
+        uir_triplets: :obj:`list`
             Data in the form of list of tuples of (user, item, rating).
 
         """
