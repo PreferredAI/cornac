@@ -29,15 +29,19 @@ class TestSet:
         self._iid_map = iid_map
 
     def get_users(self):
+        """Return a list of users"""
         return self._user_ratings.keys()
 
     def get_ratings(self, mapped_uid):
+        """Return a list of tuples of (item, rating) of given mapped user id"""
         return self._user_ratings.get(mapped_uid, [])
 
     def get_uid(self, raw_uid):
+        """Return the mapped id of a user given a raw id"""
         return self._uid_map[raw_uid]
 
     def get_iid(self, raw_iid):
+        """Return the mapped id of an item given a raw id"""
         return self._iid_map[raw_iid]
 
     @classmethod
@@ -64,7 +68,7 @@ class TestSet:
         Returns
         -------
         test_set: :obj:`<cornac.data.TestSet>`
-            Test set object.
+            TestSet object.
 
         """
 
