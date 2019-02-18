@@ -37,7 +37,7 @@ class Reader:
 
         Returns
         -------
-        uir_triplets: :obj:`list`
+        uir_triplets: :obj:`iterable`
             Data in the form of list of tuples of (user, item, rating).
 
         """
