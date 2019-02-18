@@ -17,7 +17,6 @@ class Reader:
 
         Parameters
         ----------
-
         path_to_data_file : str
             Path to the data file.
 
@@ -35,6 +34,11 @@ class Reader:
 
         skip_lines : int
             Number of first lines to skip (default: 0).
+
+        Returns
+        -------
+        uir_triplets : array (n_examples, 3)
+            Data in the form of list of tuples of (user, item, rating).
 
         """
 
