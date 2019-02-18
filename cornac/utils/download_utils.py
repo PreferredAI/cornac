@@ -10,6 +10,17 @@ from urllib import request
 
 
 def urlretrieve(url, fpath):
+    """Retrieve data from given url
+
+    Parameters
+    ----------
+    url: str
+        The url to the data.
+
+    fpath: str
+        The path to file where data is stored.
+
+    """
     headers = {
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -26,6 +37,23 @@ def urlretrieve(url, fpath):
 
 
 class DownloadItem:
+    """Item to be downloaded
+
+    Parameters
+    ----------
+    url: str
+        The url to the data.
+
+    relative_path: str
+        Relative path to the data file after finishing the download.
+
+    unzip: bool, optional, default: False
+        Whether the data is a zip file and going to be unzipped after the download.
+
+    cache_dir: bool, optional, default: None
+        The path to cache folder. If `None`, either ~/.cornac or /tmp/.cornac will be used.
+
+    """
 
     def __init__(self, url, relative_path, unzip=False, cache_dir=None):
         self.url = url
@@ -50,6 +78,8 @@ class DownloadItem:
         return download_path
 
     def maybe_download(self, verbose=False):
+        """Download data if not appearing in cache folder
+        """
         fpath = self._get_download_path()
 
         if os.path.exists(fpath):
