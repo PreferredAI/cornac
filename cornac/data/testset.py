@@ -63,7 +63,7 @@ class TestSet:
 
         Returns
         -------
-        test_set: :obj:`<cornac.data.testset.TestSet>`
+        test_set: :obj:`<cornac.data.TestSet>`
             Test set object.
 
         """
