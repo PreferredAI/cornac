@@ -11,7 +11,7 @@ class DummyModule(ModuleType):
         return None
     __all__ = []   # support wildcard imports
 
-def tryimport(name, globals=None, locals=None, fromlist=[], level=0):
+def tryimport(name, globals=None, locals=None, fromlist=(), level=0):
     try:
         return __import__(name, globals, locals, fromlist, level)
     except ImportError:
