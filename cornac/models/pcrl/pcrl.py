@@ -4,11 +4,12 @@
 """
 
 import numpy as np
-import tensorflow as tf
 import scipy.sparse as sp
 import scipy as sc
 from ...utils.data_utils import Dataset
 
+from ...utils import tryimport
+tf = tryimport('tensorflow')
 
 class PCRL_:
     def __init__(self, cf_data, aux_data, k=100, z_dims=[300], n_epoch=300, batch_size=300, learning_rate=0.001, B=1,
