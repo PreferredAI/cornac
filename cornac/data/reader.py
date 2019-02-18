@@ -18,26 +18,26 @@ class Reader:
         Parameters
         ----------
         path_to_data_file : str
-            Path to the data file.
+            Path to the data file
 
-        u_col : int
-            Index of the user column (default: 0).
+        u_col : int, default: 0
+            Index of the user column
 
-        i_col : int
-            Index of the item column (default: 0).
+        i_col : int, default: 1
+            Index of the item column
 
-        r_col : int
-            Index of the rating column (default: 0).
+        r_col : int, default: 2
+            Index of the rating column
 
-        sep : str
-            The delimiter string (default: \t).
+        sep : str, default: \t
+            The delimiter string.
 
-        skip_lines : int
-            Number of first lines to skip (default: 0).
+        skip_lines : int, default: 0
+            Number of first lines to skip
 
         Returns
         -------
-        uir_triplets : array (n_examples, 3)
+        uir_triplets : array, shape: [n_examples, 3]
             Data in the form of list of tuples of (user, item, rating).
 
         """
