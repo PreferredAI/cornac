@@ -4,9 +4,9 @@
 """
 
 import numpy as np
-import scipy.sparse as sp
-import random
-import torch
+
+from ...utils import tryimport
+torch = tryimport('torch')
 
 
 def online_ibpr(triplets, k, lamda=0.005, n_epochs=150, learning_rate=0.001, batch_size=100, init_params=None):
