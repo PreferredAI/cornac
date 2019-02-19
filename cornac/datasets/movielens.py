@@ -5,59 +5,50 @@
 """
 
 from ..utils.download import DownloadItem
-from ..utils.common import validate_data_format
-from ..data.reader import Reader
+from ..data import reader
 
 
-class MovieLens100K:
+def load_100k(format='UIR', verbose=False):
+    """Load the MovieLens 100K dataset
 
-    @staticmethod
-    def load_data(format='UIR', verbose=False):
-        """Load the MovieLens 100K dataset
+    Parameters
+    ----------
+    format: str, default: 'UIR'
+        Data format to be returned.
 
-        Parameters
-        ----------
-        format: str, default: 'UIR'
-            Data format to be returned.
+    verbose: bool, default: False
+        The verbosity flag.
 
-        verbose: bool, default: False
-            The verbosity flag.
+    Returns
+    -------
+    data: array-like
+        Data in the form of a list of tuples depending on the given data format.
 
-        Returns
-        -------
-        data: array-like
-            Data in the form of a list of tuples depending on the given data format.
-
-        """
-        download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
-                                     relative_path='ml-100k/u.data')
-        fpath = download_item.maybe_download(verbose)
-        if format == 'UIR':
-            return Reader.read_uir_triplets(fpath)
+    """
+    fpath = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
+                         relative_path='ml-100k/u.data').maybe_download(verbose)
+    if format == 'UIR':
+        return reader.read_uir(fpath)
 
 
-class MovieLens1M:
+def load_1m(format='UIR', verbose=False):
+    """Load the MovieLens 1M dataset
 
-    @staticmethod
-    def load_data(format='UIR', verbose=False):
-        """Load the MovieLens 1M dataset
+    Parameters
+    ----------
+    format: str, default: 'UIR'
+        Data format to be returned.
 
-        Parameters
-        ----------
-        format: str, default: 'UIR'
-            Data format to be returned.
+    verbose: bool, default: False
+        The verbosity flag.
 
-        verbose: bool, default: False
-            The verbosity flag.
+    Returns
+    -------
+    data: array-like
+        Data in the form of a list of tuples depending on the given data format.
 
-        Returns
-        -------
-        data: array-like
-            Data in the form of a list of tuples depending on the given data format.
-
-        """
-        download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
-                                     relative_path='ml-1m/ratings.dat', unzip=True)
-        fpath = download_item.maybe_download(verbose)
-        if format == 'UIR':
-            return Reader.read_uir_triplets(fpath, sep='::')
+    """
+    fpath = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
+                         relative_path='ml-1m/ratings.dat', unzip=True).maybe_download(verbose)
+    if format == 'UIR':
+        return reader.read_uir(fpath, sep='::')

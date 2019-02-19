@@ -6,12 +6,12 @@
 """
 
 import cornac
-from cornac.datasets import MovieLens1M
+from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 from cornac.models import IBPR
 
 # Load the MovieLens 1M dataset
-ml_1m = MovieLens1M.load_data()
+ml_1m = movielens.load_1m()
 
 # Instantiate an evaluation method.
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, rating_threshold=1.0, exclude_unknowns=True)
