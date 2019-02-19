@@ -5,14 +5,14 @@
 """
 
 import numpy as np
-from cornac.utils.generic_utils import which_
-from cornac.utils.generic_utils import sigmoid
-from cornac.utils.generic_utils import safe_indexing
-from cornac.utils.generic_utils import validate_data_format
-from cornac.utils.generic_utils import map_to
-from cornac.utils.generic_utils import clipping
-from cornac.utils.generic_utils import excepts
-from cornac.utils.generic_utils import intersects
+from cornac.utils.common import which_
+from cornac.utils.common import sigmoid
+from cornac.utils.common import safe_indexing
+from cornac.utils.common import validate_data_format
+from cornac.utils.common import map_to
+from cornac.utils.common import clipping
+from cornac.utils.common import excepts
+from cornac.utils.common import intersects
 
 
 def test_which_():

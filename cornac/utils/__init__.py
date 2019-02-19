@@ -1,4 +1,4 @@
-from .download_utils import DownloadItem
-from .import_utils import tryimport
+from .download import DownloadItem
+from .dummy_import import tryimport
 
 __all__ = ['DownloadItem', 'tryimport']
