@@ -4,7 +4,7 @@ This directory includes the implementation of all the models (listed below) supp
 Additional dependencies (CPU versions) for each model are also listed accordingly.
 
 | Model | Additional Dependencies |
-| :--- | :---: |
+| --- | :---: |
 | [Bayesian Personalized Ranking (BPR)](bpr) | [requirements.txt](bpr/requirements.txt) |
 | [Collaborative Context Poisson Factorization (C2PF)](c2pf)| N/A |
 | [Collaborative Deep Learning (CDL)](cdl) | [requirements.txt](cdl/requirements.txt) |
