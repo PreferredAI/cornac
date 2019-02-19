@@ -36,17 +36,17 @@ install:
   - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest --quiet
   
   # Install TensorFlow CPU version.
-  - pip install tensorflow==1.12.0 --quiet
+#  - pip install tensorflow==1.12.0 --quiet
   
   # Install PyTorch CPU version.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      pip install torch==1.0.0;
-    elif [[ "$PYTHON_VERSION" == "3.5" ]]; then
-      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-linux_x86_64.whl;
-    elif [[ "$PYTHON_VERSION" == "3.6" ]]; then
-      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl;
-    fi
-  
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+#      pip install torch==1.0.0;
+#    elif [[ "$PYTHON_VERSION" == "3.5" ]]; then
+#      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp35-cp35m-linux_x86_64.whl;
+#    elif [[ "$PYTHON_VERSION" == "3.6" ]]; then
+#      pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl;
+#    fi
+
   - pip install -e .[tests]
 
 script: python -m pytest --cov=cornac
