@@ -84,7 +84,6 @@ class TrainSet:
         iterator : batch of indices (array of np.int)
 
         """
-
         indices = np.arange(idx_range)
         if shuffle:
             np.random.shuffle(indices)
@@ -94,7 +93,6 @@ class TrainSet:
             start_offset = batch_size * b
             end_offset = batch_size * b + batch_size
             end_offset = min(end_offset, len(indices))
-
             batch_ids = indices[start_offset:end_offset]
             yield batch_ids
 
@@ -257,7 +255,6 @@ class MatrixTrainSet(TrainSet):
             batch_users = self.triplets[0][batch_ids]
             batch_items = self.triplets[1][batch_ids]
             batch_ratings = self.triplets[2][batch_ids]
-
             yield batch_users, batch_items, batch_ratings
 
     def uij_iter(self, batch_size=1, shuffle=False):
@@ -283,12 +280,10 @@ class MatrixTrainSet(TrainSet):
             batch_users = self.triplets[0][batch_ids]
             batch_pos_items = self.triplets[1][batch_ids]
             batch_pos_ratings = self.triplets[2][batch_ids]
-
             batch_neg_items = np.zeros_like(batch_pos_items)
             for i, (user, pos_rating) in enumerate(zip(batch_users, batch_pos_ratings)):
                 neg_item = np.random.randint(0, self.num_items - 1)
                 while self.matrix[user, neg_item] >= pos_rating:
                     neg_item = np.random.randint(0, self.num_items - 1)
                 batch_neg_items[i] = neg_item
-
             yield batch_users, batch_pos_items, batch_neg_items
