@@ -1,5 +1,4 @@
 from setuptools import Extension, setup, find_packages
-import os
 import numpy
 
 try:
@@ -51,12 +50,6 @@ if USE_CYTHON:
     extensions = cythonize(extensions)
     cmdclass.update({'build_ext': build_ext})
 
-# Handling PyTorch dependency
-if os.name == 'nt':
-    torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl'
-elif os.name == 'posix':
-    torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl'
-
 setup(
     name='cornac',
     version='0.1.0.post5',
@@ -72,9 +65,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'pandas',
-        'tensorflow>=1.2.1',
-        'torch>=0.4.1'
+        'pandas'
     ],
     extras_require={
         'tests': ['pytest',
@@ -83,7 +74,6 @@ setup(
                   'pytest-cov']
     },
     cmdclass=cmdclass,
-    dependency_links=[torch_dl],
     packages=find_packages(),
     classifiers=(
         'Development Status :: 3 - Alpha',
