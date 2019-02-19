@@ -1,8 +1,7 @@
 from .trainset import TrainSet, MatrixTrainSet
 from .testset import TestSet
-from .reader import Reader
+from . import reader
 
 __all__ = ['TrainSet',
            'MatrixTrainSet',
-           'TestSet',
-           'Reader']
+           'TestSet']

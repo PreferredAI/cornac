@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from cornac.data import Reader
+from cornac.data import reader
 from cornac.data import TrainSet
 from cornac.data import MatrixTrainSet
 
@@ -48,15 +48,7 @@ def test_trainset_idx_iter():
 
 def test_matrix_trainset():
     """Test MatrixTrainSet"""
-
-    data_file = './tests/data.txt'
-    u_col = 0
-    i_col = 1
-    r_col = 2
-    sep = '\t'
-
-    triplet_data = Reader.read_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
-
+    triplet_data = reader.read_uir('./tests/data.txt')
     train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={}, global_ui_set=set(),
                                                  verbose=True)
 
@@ -96,9 +88,7 @@ def test_matrix_trainset():
 
 
 def test_matrix_trainset_uir_iter():
-    data_file = './tests/data.txt'
-    triplet_data = Reader.read_uir_triplets(data_file)
-
+    triplet_data = reader.read_uir('./tests/data.txt')
     train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
                                                  global_ui_set=set(), verbose=True)
 
@@ -114,9 +104,7 @@ def test_matrix_trainset_uir_iter():
 
 
 def test_matrix_trainset_uij_iter():
-    data_file = './tests/data.txt'
-    triplet_data = Reader.read_uir_triplets(data_file)
-
+    triplet_data = reader.read_uir('./tests/data.txt')
     train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
                                                  global_ui_set=set(), verbose=True)
 

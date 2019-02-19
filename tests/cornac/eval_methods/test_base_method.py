@@ -5,7 +5,7 @@
 """
 
 from cornac.eval_methods import BaseMethod
-from cornac.data import Reader
+from cornac.data import reader
 
 
 def test_init():
@@ -34,8 +34,7 @@ def test_testset_none():
 
 
 def test_from_provided():
-    data_file = './tests/data.txt'
-    data = Reader.read_uir_triplets(data_file)
+    data = reader.read_uir('./tests/data.txt')
 
     try:
         BaseMethod.from_provided(train_data=None, test_data=None)
@@ -48,6 +47,5 @@ def test_from_provided():
         assert True
 
     bm = BaseMethod.from_provided(train_data=data, test_data=data)
-
     assert bm.total_users == 10
     assert bm.total_items == 10

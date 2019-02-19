@@ -5,13 +5,12 @@
 """
 
 from cornac.eval_methods import CrossValidation
-from cornac.data import Reader
+from cornac.data import reader
 import numpy as np
 
 
 def test_partition_data():
-    data_file = './tests/data.txt'
-    data = Reader.read_uir_triplets(data_file)
+    data = reader.read_uir('./tests/data.txt')
 
     nfolds = 5
     cv = CrossValidation(data=data, n_folds=nfolds)
@@ -26,8 +25,7 @@ def test_partition_data():
 
 
 def test_validate_partition():
-    data_file = './tests/data.txt'
-    data = Reader.read_uir_triplets(data_file)
+    data = reader.read_uir('./tests/data.txt')
 
     nfolds = 5
     cv = CrossValidation(data=data, n_folds=nfolds)
@@ -44,8 +42,7 @@ def test_validate_partition():
 
 
 def test_get_train_test_sets_next_fold():
-    data_file = './tests/data.txt'
-    data = Reader.read_uir_triplets(data_file)
+    data = reader.read_uir('./tests/data.txt')
 
     nfolds = 5
     cv = CrossValidation(data=data, n_folds=nfolds)
