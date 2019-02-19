@@ -94,7 +94,7 @@ def safe_indexing(X, indices):
         return [X[idx] for idx in indices]
 
 
-def validate_data_format(data_format):
+def validate_data_format(data_format, valid_formats):
     """Check the input data format is supported or not
         - UIR: (user, item, rating) triplet data
         - UIRT: (user, item , rating, timestamp) quadruplet data
@@ -102,7 +102,8 @@ def validate_data_format(data_format):
     :raise ValueError if not supported
     """
     data_format = str(data_format).upper()
-    if not data_format in ['UIR', 'UIRT']:
-        raise ValueError('{} data format is not supported!'.format(data_format))
+    valid_formats = [str(fmt).upper() for fmt in valid_formats]
+    if not data_format in valid_formats:
+        raise ValueError('{} data format is not in valid formats ({})'.format(data_format, valid_formats))
 
     return data_format

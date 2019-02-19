@@ -47,7 +47,7 @@ class BaseMethod:
                  total_users=None, total_items=None, rating_threshold=1.0,
                  exclude_unknowns=False, verbose=False):
         self._data = data
-        self.data_format = validate_data_format(data_format)
+        self.data_format = validate_data_format(data_format, self.valid_data_formats)
         self.train_set = train_set
         self.test_set = test_set
         self.total_users = total_users
@@ -59,6 +59,10 @@ class BaseMethod:
         if verbose:
             print('rating_threshold = {:.1f}'.format(rating_threshold))
             print('exclude_unknowns = {}'.format(exclude_unknowns))
+
+    @property
+    def valid_data_formats(self):
+        return ['UIR', 'UIRT']
 
     def _organize_metrics(self, metrics):
         """Organize metrics according to their types (rating or raking)

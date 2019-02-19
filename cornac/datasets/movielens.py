@@ -32,8 +32,6 @@ class MovieLens100K:
         download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
                                      relative_path='ml-100k/u.data')
         fpath = download_item.maybe_download(verbose)
-
-        format = validate_data_format(format)
         if format == 'UIR':
             return Reader.read_uir_triplets(fpath)
 
@@ -61,7 +59,5 @@ class MovieLens1M:
         download_item = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
                                      relative_path='ml-1m/ratings.dat', unzip=True)
         fpath = download_item.maybe_download(verbose)
-
-        format = validate_data_format(format)
         if format == 'UIR':
             return Reader.read_uir_triplets(fpath, sep='::')
