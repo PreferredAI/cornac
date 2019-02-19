@@ -49,7 +49,7 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     
     #Parameters Initialization
     if init_param['G_s'] is None:
-        G_s = np.random.gamma(100,scale=0.3/100,size=n*k).reshape(n,k)
+        G_s = np.random.gamma(50,scale=0.3/50,size=n*k).reshape(n,k)
     else:
         G_s = init_param['G_s']
 
@@ -57,14 +57,14 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
   
     # rate gamma_uk matrix
     if init_param['G_r'] is None:
-        G_r = np.random.gamma(100,scale=0.3/100, size=n*k).reshape(n,k)
+        G_r = np.random.gamma(50,scale=0.3/50, size=n*k).reshape(n,k)
     else:
         G_r = init_param['G_r']
     #G_r = sp.csc_matrix(G_r,dtype=np.float64)
   
     ## shape lamda_ik matrix (dgCMatrix)
     if init_param['L_s'] is None:
-        L_s = np.random.gamma(100,scale=0.3/100, size=d*k).reshape(d,k)
+        L_s = np.random.gamma(50,scale=0.3/50, size=d*k).reshape(d,k)
                 
     else:
         L_s = init_param['L_s']
@@ -72,27 +72,27 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
   
     #rate lamda_ik matrix (dgCMatrix)
     if init_param['L_r'] is None: 
-        L_r = np.random.gamma(100,scale=0.3/100, size=d*k).reshape(d,k)
+        L_r = np.random.gamma(50,scale=0.3/50, size=d*k).reshape(d,k)
     else:
         L_r = init_param['L_r']
     #L_r = sp.csc_matrix(L_r,dtype=np.float64)
     
     if init_param['L2_s'] is None:
-        L2_s = np.random.gamma(100,scale=0.3/100, size=d2*k).reshape(d2,k)
+        L2_s = np.random.gamma(50,scale=0.3/50, size=d2*k).reshape(d2,k)
     else:
         L2_s = init_param['L2_s']
     #L_s = sp.csc_matrix(L_s,dtype=np.float64)
   
     #rate lamda_ik matrix (dgCMatrix)
     if init_param['L2_r'] is None: 
-        L2_r = np.random.gamma(100,scale=0.3/100, size=d2*k).reshape(d2,k)
+        L2_r = np.random.gamma(50,scale=0.3/50, size=d2*k).reshape(d2,k)
     else:
         L2_r = init_param['L2_r']
     #L2_r = sp.csc_matrix(L_r,dtype=np.float64)
     #shape kappa_ij matrix
     if init_param['L3_s'] is None:
         tmp = np.copy(C)
-        tmp[:,2] = np.random.gamma(100,scale=0.5/100, size= C.shape[0])
+        tmp[:,2] = np.random.gamma(50,scale=0.5/50, size= C.shape[0])
         L3_s = tmp
         del(tmp)
     else:
@@ -154,7 +154,7 @@ cpdef t_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
     
     #Parameters Initialization
     if init_param['G_s'] is None:
-        G_s = np.random.gamma(100,scale=0.3/100,size=n*k).reshape(n,k)
+        G_s = np.random.gamma(50,scale=0.3/50,size=n*k).reshape(n,k)
     else:
         G_s = init_param['G_s']
 
@@ -162,14 +162,14 @@ cpdef t_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
   
     # rate gamma_uk matrix
     if init_param['G_r'] is None:
-        G_r = np.random.gamma(100,scale=0.3/100, size=n*k).reshape(n,k)
+        G_r = np.random.gamma(50,scale=0.3/50, size=n*k).reshape(n,k)
     else:
         G_r = init_param['G_r']
     #G_r = sp.csc_matrix(G_r,dtype=np.float64)
   
     ## shape lamda_ik matrix (dgCMatrix)
     if init_param['L_s'] is None:
-        L_s = np.random.gamma(100,scale=0.3/100, size=d*k).reshape(d,k)
+        L_s = np.random.gamma(50,scale=0.3/50, size=d*k).reshape(d,k)
                 
     else:
         L_s = init_param['L_s']
@@ -177,7 +177,7 @@ cpdef t_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
   
     #rate lamda_ik matrix (dgCMatrix)
     if init_param['L_r'] is None: 
-        L_r = np.random.gamma(100,scale=0.3/100, size=d*k).reshape(d,k)
+        L_r = np.random.gamma(50,scale=0.3/50, size=d*k).reshape(d,k)
     else:
         L_r = init_param['L_r']
     #L_r = sp.csc_matrix(L_r,dtype=np.float64)
@@ -185,7 +185,7 @@ cpdef t_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
     #shape kappa_ij matrix
     if init_param['L3_s'] is None: 
         L3_s = np.copy(C)
-        L3_s[:,2] = np.random.gamma(100,scale=0.5/100, size= C.shape[0])
+        L3_s[:,2] = np.random.gamma(50,scale=0.5/50, size= C.shape[0])
     else:
         L3_s = init_param['L3_s']
 
@@ -244,7 +244,7 @@ cpdef r_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
     
     #Parameters Initialization
     if init_param['G_s'] is None:
-        G_s = np.random.gamma(100,scale=0.3/100,size=n*k).reshape(n,k)
+        G_s = np.random.gamma(50,scale=0.3/50,size=n*k).reshape(n,k)
     else:
         G_s = init_param['G_s']
 
@@ -252,20 +252,20 @@ cpdef r_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
   
     # rate gamma_uk matrix
     if init_param['G_r'] is None:
-        G_r = np.random.gamma(100,scale=0.3/100, size=n*k).reshape(n,k)
+        G_r = np.random.gamma(50,scale=0.3/50, size=n*k).reshape(n,k)
     else:
         G_r = init_param['G_r']
     #G_r = sp.csc_matrix(G_r,dtype=np.float64)
     
     if init_param['L2_s'] is None:
-        L2_s = np.random.gamma(100,scale=0.3/100, size=d2*k).reshape(d2,k)
+        L2_s = np.random.gamma(50,scale=0.3/50, size=d2*k).reshape(d2,k)
     else:
         L2_s = init_param['L2_s']
     #L_s = sp.csc_matrix(L_s,dtype=np.float64)
   
     #rate lamda_ik matrix (dgCMatrix)
     if init_param['L2_r'] is None: 
-        L2_r = np.random.gamma(100,scale=0.3/100, size=d2*k).reshape(d2,k)
+        L2_r = np.random.gamma(50,scale=0.3/50, size=d2*k).reshape(d2,k)
     else:
         L2_r = init_param['L2_r']
     #L2_r = sp.csc_matrix(L_r,dtype=np.float64)
