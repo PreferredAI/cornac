@@ -24,13 +24,15 @@ def which_(a, op, x):
     return i[ops[op](a, x)]
 
 
-# Sigmoid function
 def sigmoid(x):
+    """Sigmoid function"""
     return 1. / (1. + np.exp(-x))
 
 
-# Map the value of a numpy array "x" from o_min, o_max into a range[t_min,t_max]
 def map_to(x, t_min, t_max, o_min=None, o_max=None):
+    """Map the value of a numpy array "x"
+    from o_min, o_max into a range[t_min,t_max]
+    """
     if o_min is None:
         o_min = np.min(x)
     if o_max is None:
@@ -39,20 +41,26 @@ def map_to(x, t_min, t_max, o_min=None, o_max=None):
     return ((x - o_min) / (o_max - o_min)) * (t_max - t_min) + t_min
 
 
-# Perform clipping to enforce values to lie in a specific range [min_,max_]
 def clipping(x, min_, max_):
+    """Perform clipping to enforce values to lie
+    in a specific range [min_,max_]
+    """
     x = np.where(x > max_, max_, x)
     x = np.where(x < min_, min_, x)
     return x
 
 
 def intersects(x, y, assume_unique=False):
+    """Return the intersection of given two arrays
+    """
     mask = np.in1d(x, y, assume_unique=assume_unique)
     x_intersects_y = x[mask]
     return x_intersects_y
 
 
 def excepts(x, y, assume_unique=False):
+    """Removing elements in array y from array x
+    """
     mask = np.in1d(x, y, assume_unique=assume_unique, invert=True)
     x_excepts_y = x[mask]
     return x_excepts_y
