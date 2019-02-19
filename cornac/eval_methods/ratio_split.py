@@ -55,11 +55,11 @@ class RatioSplit(BaseMethod):
 
         self._shuffle = shuffle
         self._random_state = random_state
-        self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(self._data))
+        self._train_size, self._val_size, self._test_size = self.validate_size(val_size, test_size, len(self._data))
         self._split_ran = False
 
     @staticmethod
-    def _validate_sizes(val_size, test_size, num_ratings):
+    def validate_size(val_size, test_size, num_ratings):
         if val_size is None:
             val_size = 0.0
         elif val_size < 0:

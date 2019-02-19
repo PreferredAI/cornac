@@ -17,8 +17,8 @@ test_path = DownloadItem(url='http://files.grouplens.org/datasets/movielens/ml-1
                          relative_path='datasets/ml_100k/u1.test').maybe_download(True)
 
 # Load data using Reader
-train_data = cn.data.Reader.read_uir_triplets(train_path)
-test_data = cn.data.Reader.read_uir_triplets(test_path)
+train_data = cn.data.reader.read_uir(train_path)
+test_data = cn.data.reader.read_uir(test_path)
 
 # Construct base evaluation method with given data
 eval_method = BaseMethod.from_provided(train_data=train_data, test_data=test_data,
