@@ -77,15 +77,15 @@ def test_safe_indexing():
 
 
 def test_validate_data_format():
-    assert 'UIR' == validate_data_format('UIR')
-    assert 'UIR' == validate_data_format('uir')
-    assert 'UIR' == validate_data_format('uIr')
+    assert 'UIR' == validate_data_format('UIR', ['UIR'])
+    assert 'UIR' == validate_data_format('uir', ['UIR'])
+    assert 'UIR' == validate_data_format('uIr', ['UIR'])
 
-    assert 'UIRT' == validate_data_format('UIRT')
-    assert 'UIRT' == validate_data_format('uirt')
-    assert 'UIRT' == validate_data_format('uIrT')
+    assert 'UIRT' == validate_data_format('UIRT', ['UIRT'])
+    assert 'UIRT' == validate_data_format('uirt', ['UIRT'])
+    assert 'UIRT' == validate_data_format('uIrT', ['UIRT'])
 
     try:
-        validate_data_format('iur')
+        validate_data_format('iur', ['UIR'])
     except ValueError:
         assert True
