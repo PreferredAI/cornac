@@ -6,7 +6,7 @@ Created on Wed Dec 13 21:18:14 2017
 """
 
 from ..exception import ScoreException
-from ..utils.generic_utils import intersects, excepts, clipping
+from ..utils.common import intersects, excepts, clipping
 import numpy as np
 
 

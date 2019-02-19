@@ -6,7 +6,7 @@
 
 import scipy.sparse as sp
 from cornac.models.recommender import Recommender
-from cornac.utils.generic_utils import intersects
+from cornac.utils.common import intersects
 from cornac.exception import ScoreException
 
 import numpy as np

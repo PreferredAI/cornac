@@ -5,7 +5,7 @@
 """
 
 import os
-from cornac.utils.download_utils import DownloadItem
+from cornac.utils.download import DownloadItem
 
 
 def test_download_normal_file():

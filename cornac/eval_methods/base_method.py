@@ -5,7 +5,7 @@
 """
 
 from ..data import MatrixTrainSet, TestSet
-from ..utils.generic_utils import validate_data_format
+from ..utils.common import validate_data_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from collections import OrderedDict

@@ -2606,6 +2606,7 @@ static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
 static const char __pyx_k_candidate_item_ids[] = "candidate_item_ids";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
+static const char __pyx_k_cornac_utils_common[] = "cornac.utils.common";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_MF_Iteration_d_loss_4f[] = "[MF] Iteration %d: loss = %.4f";
@@ -2617,7 +2618,6 @@ static const char __pyx_k_MF_Optimization_finished[] = "[MF] Optimization finish
 static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %d: %d.";
 static const char __pyx_k_cornac_models_mf_recom_mf[] = "cornac.models.mf.recom_mf";
 static const char __pyx_k_cornac_models_recommender[] = "cornac.models.recommender";
-static const char __pyx_k_cornac_utils_generic_utils[] = "cornac.utils.generic_utils";
 static const char __pyx_k_No_matching_signature_found[] = "No matching signature found";
 static const char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
@@ -2717,7 +2717,7 @@ static PyObject *__pyx_n_s_cornac_exception;
 static PyObject *__pyx_n_s_cornac_models_mf_recom_mf;
 static PyObject *__pyx_kp_s_cornac_models_mf_recom_mf_pyx;
 static PyObject *__pyx_n_s_cornac_models_recommender;
-static PyObject *__pyx_n_s_cornac_utils_generic_utils;
+static PyObject *__pyx_n_s_cornac_utils_common;
 static PyObject *__pyx_n_s_default_rank;
 static PyObject *__pyx_n_s_defaults;
 static PyObject *__pyx_n_s_delta_loss;
@@ -27536,7 +27536,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_cornac_models_mf_recom_mf, __pyx_k_cornac_models_mf_recom_mf, sizeof(__pyx_k_cornac_models_mf_recom_mf), 0, 0, 1, 1},
   {&__pyx_kp_s_cornac_models_mf_recom_mf_pyx, __pyx_k_cornac_models_mf_recom_mf_pyx, sizeof(__pyx_k_cornac_models_mf_recom_mf_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_cornac_models_recommender, __pyx_k_cornac_models_recommender, sizeof(__pyx_k_cornac_models_recommender), 0, 0, 1, 1},
-  {&__pyx_n_s_cornac_utils_generic_utils, __pyx_k_cornac_utils_generic_utils, sizeof(__pyx_k_cornac_utils_generic_utils), 0, 0, 1, 1},
+  {&__pyx_n_s_cornac_utils_common, __pyx_k_cornac_utils_common, sizeof(__pyx_k_cornac_utils_common), 0, 0, 1, 1},
   {&__pyx_n_s_default_rank, __pyx_k_default_rank, sizeof(__pyx_k_default_rank), 0, 0, 1, 1},
   {&__pyx_n_s_defaults, __pyx_k_defaults, sizeof(__pyx_k_defaults), 0, 0, 1, 1},
   {&__pyx_n_s_delta_loss, __pyx_k_delta_loss, sizeof(__pyx_k_delta_loss), 0, 0, 1, 1},
@@ -28530,7 +28530,7 @@ if (!__Pyx_RefNanny) {
  * 
  * import scipy.sparse as sp             # <<<<<<<<<<<<<<
  * from cornac.models.recommender import Recommender
- * from cornac.utils.generic_utils import intersects
+ * from cornac.utils.common import intersects
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -28547,7 +28547,7 @@ if (!__Pyx_RefNanny) {
  * 
  * import scipy.sparse as sp
  * from cornac.models.recommender import Recommender             # <<<<<<<<<<<<<<
- * from cornac.utils.generic_utils import intersects
+ * from cornac.utils.common import intersects
  * from cornac.exception import ScoreException
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 8, __pyx_L1_error)
@@ -28567,7 +28567,7 @@ if (!__Pyx_RefNanny) {
   /* "cornac/models/mf/recom_mf.pyx":9
  * import scipy.sparse as sp
  * from cornac.models.recommender import Recommender
- * from cornac.utils.generic_utils import intersects             # <<<<<<<<<<<<<<
+ * from cornac.utils.common import intersects             # <<<<<<<<<<<<<<
  * from cornac.exception import ScoreException
  * 
  */
@@ -28576,7 +28576,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_intersects);
   __Pyx_GIVEREF(__pyx_n_s_intersects);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_intersects);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_cornac_utils_generic_utils, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_cornac_utils_common, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_intersects); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
@@ -28587,7 +28587,7 @@ if (!__Pyx_RefNanny) {
 
   /* "cornac/models/mf/recom_mf.pyx":10
  * from cornac.models.recommender import Recommender
- * from cornac.utils.generic_utils import intersects
+ * from cornac.utils.common import intersects
  * from cornac.exception import ScoreException             # <<<<<<<<<<<<<<
  * 
  * import numpy as np
