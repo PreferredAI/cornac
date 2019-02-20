@@ -5,7 +5,7 @@
 """
 
 from ..data import MatrixTrainSet, TestSet
-from ..utils.common import validate_data_format
+from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from collections import OrderedDict
@@ -47,7 +47,7 @@ class BaseMethod:
                  total_users=None, total_items=None, rating_threshold=1.0,
                  exclude_unknowns=False, verbose=False):
         self._data = data
-        self.data_format = validate_data_format(data_format, self.valid_data_formats)
+        self.data_format = validate_format(data_format, self.valid_data_formats)
         self.train_set = train_set
         self.test_set = test_set
         self.total_users = total_users
@@ -193,7 +193,7 @@ class BaseMethod:
 
         return metric_avg_results, metric_user_results
 
-    def _build_from_uir_format(self, train_data, test_data, val_data=None):
+    def _build_uir(self, train_data, test_data, val_data=None):
         global_uid_map = OrderedDict()
         global_iid_map = OrderedDict()
         global_ui_set = set()  # avoid duplicate ratings in the data
@@ -260,6 +260,6 @@ class BaseMethod:
         method = cls(data_format=data_format, rating_threshold=rating_threshold,
                      exclude_unknowns=exclude_unknowns, verbose=verbose)
         if method.data_format == 'UIR':
-            method._build_from_uir_format(train_data, test_data, val_data)
+            method._build_uir(train_data, test_data, val_data)
 
         return method

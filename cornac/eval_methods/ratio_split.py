@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..utils.common import safe_indexing, validate_data_format
+from ..utils.common import safe_indexing, validate_format
 from math import ceil
 from .base_method import BaseMethod
 from ..data import MatrixTrainSet, TestSet
@@ -115,7 +115,7 @@ class RatioSplit(BaseMethod):
         val_data = safe_indexing(self._data, val_idx)
 
         if self.data_format == 'UIR':
-            self._build_from_uir_format(train_data=train_data, test_data=test_data, val_data=val_data)
+            self._build_uir(train_data=train_data, test_data=test_data, val_data=val_data)
 
         self._split_ran = True
 

@@ -66,9 +66,9 @@ This example will show you how to run your very first experiment.
 
 - Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
 ```python
-from cornac.datasets import MovieLens100K
+from cornac.datasets import movielens
 
-ml_100k = MovieLens100K.load_data()
+ml_100k = movielens.load_100k()
 ```
 
 - Instantiate an evaluation method. Here we split the data based on ratio.

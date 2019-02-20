@@ -8,7 +8,7 @@ import numpy as np
 from cornac.utils.common import which_
 from cornac.utils.common import sigmoid
 from cornac.utils.common import safe_indexing
-from cornac.utils.common import validate_data_format
+from cornac.utils.common import validate_format
 from cornac.utils.common import map_to
 from cornac.utils.common import clipping
 from cornac.utils.common import excepts
@@ -76,16 +76,11 @@ def test_safe_indexing():
                                        [2, 1])])
 
 
-def test_validate_data_format():
-    assert 'UIR' == validate_data_format('UIR', ['UIR'])
-    assert 'UIR' == validate_data_format('uir', ['UIR'])
-    assert 'UIR' == validate_data_format('uIr', ['UIR'])
-
-    assert 'UIRT' == validate_data_format('UIRT', ['UIRT'])
-    assert 'UIRT' == validate_data_format('uirt', ['UIRT'])
-    assert 'UIRT' == validate_data_format('uIrT', ['UIRT'])
+def test_validate_format():
+    assert 'UIR' == validate_format('UIR', ['UIR'])
+    assert 'UIRT' == validate_format('UIRT', ['UIRT'])
 
     try:
-        validate_data_format('iur', ['UIR'])
+        validate_format('iur', ['UIR'])
     except ValueError:
         assert True
