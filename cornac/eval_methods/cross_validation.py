@@ -87,7 +87,7 @@ class CrossValidation(BaseMethod):
         test_data = safe_indexing(self._data, test_idx)
 
         if self.data_format == 'UIR':
-            self._build_from_uir_format(train_data=train_data, test_data=test_data)
+            self._build_uir(train_data=train_data, test_data=test_data)
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
