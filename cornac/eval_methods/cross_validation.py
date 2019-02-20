@@ -76,7 +76,7 @@ class CrossValidation(BaseMethod):
 
         return partition
 
-    def _get_train_test_sets(self):
+    def _get_train_test(self):
         if self.verbose:
             print('Fold: {}'.format(self.current_fold + 1))
 
@@ -85,9 +85,7 @@ class CrossValidation(BaseMethod):
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
-
-        if self.data_format == 'UIR':
-            self._build_uir(train_data=train_data, test_data=test_data)
+        self.build(train_data=train_data, test_data=test_data)
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
@@ -103,7 +101,7 @@ class CrossValidation(BaseMethod):
         result = CVSingleModelResult()
 
         for fold in range(self.n_folds):
-            self._get_train_test_sets()
+            self._get_train_test()
             avg_res, per_user_res = BaseMethod.evaluate(self, model, metrics, user_based)
             result._add_fold_res(fold=fold, metric_avg_results=avg_res)
             self._next_fold()
