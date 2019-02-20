@@ -43,18 +43,22 @@ class BaseMethod:
         Output running log
     """
 
-    def __init__(self, data=None, data_format='UIR', train_set=None, test_set=None,
-                 total_users=None, total_items=None, rating_threshold=1.0,
-                 exclude_unknowns=False, verbose=False):
+    def __init__(self, data=None,
+                 data_format='UIR',
+                 train_set=None,
+                 test_set=None,
+                 rating_threshold=1.0,
+                 exclude_unknowns=False,
+                 verbose=False):
         self._data = data
         self.data_format = validate_format(data_format, self.valid_data_formats)
         self.train_set = train_set
         self.test_set = test_set
-        self.total_users = total_users
-        self.total_items = total_items
         self.rating_threshold = rating_threshold
         self.exclude_unknowns = exclude_unknowns
         self.verbose = verbose
+        self.global_uid_map = OrderedDict()
+        self.global_iid_map = OrderedDict()
 
         if verbose:
             print('rating_threshold = {:.1f}'.format(rating_threshold))
@@ -63,6 +67,14 @@ class BaseMethod:
     @property
     def valid_data_formats(self):
         return ['UIR', 'UIRT']
+
+    @property
+    def total_users(self):
+        return len(self.global_uid_map)
+
+    @property
+    def total_items(self):
+        return len(self.global_iid_map)
 
     def _organize_metrics(self, metrics):
         """Organize metrics according to their types (rating or raking)
@@ -105,11 +117,6 @@ class BaseMethod:
             raise ValueError('train_set is required but None!')
         if self.test_set is None:
             raise ValueError('test_set is required but None!')
-
-        if self.total_users is None:
-            self.total_users = len(set(self.train_set.get_uid_list() + self.test_set.get_uid_list()))
-        if self.total_items is None:
-            self.total_items = len(set(self.train_set.get_iid_list() + self.test_set.get_iid_list()))
 
         if self.verbose:
             print("\nTraining started!")
@@ -192,38 +199,36 @@ class BaseMethod:
         return metric_avg_results, metric_user_results
 
     def _build_uir(self, train_data, test_data, val_data=None):
-        global_uid_map = OrderedDict()
-        global_iid_map = OrderedDict()
-        global_ui_set = set()  # avoid duplicate ratings in the data
-
         if train_data is None:
             raise ValueError('train_data is required but None!')
         if test_data is None:
             raise ValueError('test_data is required but None!')
 
+        global_ui_set = set()  # avoid duplicate ratings in the data
+
         if self.verbose:
             print('Building training set')
         self.train_set = MatrixTrainSet.from_uir(
-            train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+            train_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
 
         if self.verbose:
             print('Building test set')
         self.test_set = TestSet.from_uir(
-            test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
+            test_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
 
         if not val_data is None:
             if self.verbose:
                 print('Building validation set')
             self.val_set = TestSet.from_uir(
-                val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        self.total_users = len(global_uid_map)
-        self.total_items = len(global_iid_map)
+                val_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
 
     def build(self, train_data, test_data, val_data=None):
+        self.global_uid_map.clear()
+        self.global_iid_map.clear()
+
         if self.data_format == 'UIR':
             self._build_uir(train_data, test_data, val_data)
-            
+
 
     @classmethod
     def from_provided(cls, train_data, test_data, val_data=None, data_format='UIR',
