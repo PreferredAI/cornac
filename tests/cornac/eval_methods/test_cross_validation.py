@@ -48,7 +48,7 @@ def test_get_train_test_sets_next_fold():
     cv = CrossValidation(data=data, n_folds=nfolds)
     
     for n in range(cv.n_folds):
-        cv._get_train_test_sets()
+        cv._get_train_test()
         assert cv.current_fold == n
         assert cv.train_set.matrix.shape == (8, 8)
         cv._next_fold()
