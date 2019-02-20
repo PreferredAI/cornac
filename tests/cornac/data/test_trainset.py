@@ -49,8 +49,8 @@ def test_trainset_idx_iter():
 def test_matrix_trainset():
     """Test MatrixTrainSet"""
     triplet_data = reader.read_uir('./tests/data.txt')
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={}, global_ui_set=set(),
-                                                 verbose=True)
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={}, global_ui_set=set(),
+                                        verbose=True)
 
     assert train_set.matrix.shape == (10, 10)
     assert train_set.min_rating == 3
@@ -81,16 +81,16 @@ def test_matrix_trainset():
     assert all([a == b for a, b in zip(train_set.get_raw_iid_list(),
                                        ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])])
 
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
-                                                 global_ui_set=set([('76', '93')]), verbose=True)
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+                                        global_ui_set=set([('76', '93')]), verbose=True)
     assert train_set.num_users == 9
     assert train_set.num_items == 9
 
 
 def test_matrix_trainset_uir_iter():
     triplet_data = reader.read_uir('./tests/data.txt')
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
-                                                 global_ui_set=set(), verbose=True)
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+                                        global_ui_set=set(), verbose=True)
 
     users = [batch_users for batch_users, _, _ in train_set.uir_iter()]
     assert all([a == b for a, b in zip(users, range(10))])
@@ -105,8 +105,8 @@ def test_matrix_trainset_uir_iter():
 
 def test_matrix_trainset_uij_iter():
     triplet_data = reader.read_uir('./tests/data.txt')
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
-                                                 global_ui_set=set(), verbose=True)
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+                                        global_ui_set=set(), verbose=True)
 
     users = [batch_users for batch_users, _, _ in train_set.uij_iter()]
     assert all([a == b for a, b in zip(users, range(10))])
