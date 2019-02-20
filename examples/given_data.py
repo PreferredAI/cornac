@@ -21,8 +21,8 @@ train_data = cn.data.reader.read_uir(train_path)
 test_data = cn.data.reader.read_uir(test_path)
 
 # Construct base evaluation method with given data
-eval_method = BaseMethod.from_provided(train_data=train_data, test_data=test_data,
-                                       exclude_unknowns=False, verbose=True)
+eval_method = BaseMethod.from_splits(train_data=train_data, test_data=test_data,
+                                     exclude_unknowns=False, verbose=True)
 
 # Model
 mf = cn.models.MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,
