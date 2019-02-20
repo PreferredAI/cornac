@@ -206,18 +206,18 @@ class BaseMethod:
 
         if self.verbose:
             print('Building training set')
-        self.train_set = MatrixTrainSet.from_uir_triplets(
+        self.train_set = MatrixTrainSet.from_uir(
             train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
 
         if self.verbose:
             print('Building test set')
-        self.test_set = TestSet.from_uir_triplets(
+        self.test_set = TestSet.from_uir(
             test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
 
         if not val_data is None:
             if self.verbose:
                 print('Building validation set')
-            self.val_set = TestSet.from_uir_triplets(
+            self.val_set = TestSet.from_uir(
                 val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
 
         self.total_users = len(global_uid_map)
