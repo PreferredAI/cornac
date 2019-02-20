@@ -103,23 +103,21 @@ class BaseMethod:
 
         if self.train_set is None:
             raise ValueError('train_set is required but None!')
-
         if self.test_set is None:
             raise ValueError('test_set is required but None!')
 
         if self.total_users is None:
             self.total_users = len(set(self.train_set.get_uid_list() + self.test_set.get_uid_list()))
-
         if self.total_items is None:
             self.total_items = len(set(self.train_set.get_iid_list() + self.test_set.get_iid_list()))
 
         if self.verbose:
-            print("Training started!")
+            print("\nTraining started!")
 
         model.fit(self.train_set)
 
         if self.verbose:
-            print("Evaluation started!")
+            print("\nEvaluation started!")
 
         all_rating_gts = []
         all_rating_pds = []
@@ -131,7 +129,7 @@ class BaseMethod:
         for i, user_id in enumerate(self.test_set.get_users()):
             if self.verbose:
                 if i % 1000 == 0 or (i + 1) == num_eval_users:
-                    print(i, "users evaluated")
+                    print("[{}]".format(model.name), i, "users evaluated")
 
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
@@ -200,7 +198,6 @@ class BaseMethod:
 
         if train_data is None:
             raise ValueError('train_data is required but None!')
-
         if test_data is None:
             raise ValueError('test_data is required but None!')
 
@@ -222,6 +219,11 @@ class BaseMethod:
 
         self.total_users = len(global_uid_map)
         self.total_items = len(global_iid_map)
+
+    def build(self, train_data, test_data, val_data=None):
+        if self.data_format == 'UIR':
+            self._build_uir(train_data, test_data, val_data)
+            
 
     @classmethod
     def from_provided(cls, train_data, test_data, val_data=None, data_format='UIR',
@@ -259,7 +261,5 @@ class BaseMethod:
         """
         method = cls(data_format=data_format, rating_threshold=rating_threshold,
                      exclude_unknowns=exclude_unknowns, verbose=verbose)
-        if method.data_format == 'UIR':
-            method._build_uir(train_data, test_data, val_data)
-
+        method.build(train_data=train_data, test_data=test_data, val_data=val_data)
         return method
