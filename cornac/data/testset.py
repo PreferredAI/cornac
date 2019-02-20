@@ -45,7 +45,7 @@ class TestSet:
         return self._iid_map[raw_iid]
 
     @classmethod
-    def from_uir_triplets(self, triplet_data, global_uid_map, global_iid_map, global_ui_set, verbose=False):
+    def from_uir(self, triplet_data, global_uid_map, global_iid_map, global_ui_set, verbose=False):
         """Constructing TestSet from triplet data.
 
         Parameters
