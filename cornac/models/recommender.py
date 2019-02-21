@@ -13,36 +13,27 @@ import numpy as np
 class Recommender:
     """Generic class for a recommender model. All recommendation models should inherit from this class 
     
-    Input Parameters
+    Parameters
     ----------------
     name: char, required
         The name of the recommender model
 
-    trainable:boolean, optional, default: True
-        When False, the model is not trained
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable
 
-    Other attributes
-    ----------------
-    perfomance: dictionary, optional, default: None
-        A collection of recommender models
     """
 
     def __init__(self, name, trainable=True, verbose=False):
         self.name = name
         self.trainable = trainable
-
         self.train_set = None
         self.verbose = verbose
-        self.perfomance = None
 
     def fit(self, train_set):
         """Fit the model with training data, should be called before each implementation of any recommender model's class
 
         """
-
         self.train_set = train_set
-
-        return self
 
     def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
