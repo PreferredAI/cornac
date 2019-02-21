@@ -5,22 +5,20 @@
 """
 
 import os
-from cornac.utils.download import DownloadItem
+from cornac.utils.download import cache
 
 
 def test_download_normal_file():
-    download_item = DownloadItem(url='https://static.preferred.ai/cornac/hello_world.txt',
-                                 relative_path='hello_world.txt')
-    fpath = download_item.maybe_download(verbose=True)
+    fpath = cache(url='https://static.preferred.ai/cornac/hello_world.txt',
+                  relative_path='hello_world.txt')
     assert os.path.exists(fpath)
     with open(fpath, 'r') as f:
         assert "I'm Cornac!" == f.read().strip()
 
 
 def test_download_zip_file():
-    download_item = DownloadItem(url='https://static.preferred.ai/cornac/dummy.zip',
-                                 relative_path='dummy/hello_world.txt', unzip=True)
-    fpath = download_item.maybe_download(verbose=True)
+    fpath = cache(url='https://static.preferred.ai/cornac/dummy.zip',
+                  unzip=True, relative_path='dummy/hello_world.txt')
     assert os.path.exists(fpath)
     with open(fpath, 'r') as f:
         assert "I'm Cornac!" == f.read().strip()

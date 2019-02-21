@@ -36,73 +36,58 @@ def urlretrieve(url, fpath):
         f.write(response.read())
 
 
-class DownloadItem:
-    """Item to be downloaded
+def get_cache_path(relative_path, cache_dir=None):
+    """Return the absolute path to the cached data file
+    """
+    if cache_dir is None:
+        cache_dir = os.path.join(os.path.expanduser('~'), '.cornac')
+    if not os.access(cache_dir, os.W_OK):
+        cache_dir = os.path.join('/tmp', '.cornac')
+    cache_path = os.path.join(cache_dir, relative_path)
+
+    if not os.path.exists(os.path.dirname(cache_path)):
+        os.makedirs(os.path.dirname(cache_path))
+
+    return cache_path, cache_dir
+
+
+def cache(url, unzip=False, relative_path=None, cache_dir=None):
+    """Download the data and cache to file
 
     Parameters
     ----------
     url: str
         The url to the data.
 
-    relative_path: str
-        Relative path to the data file after finishing the download.
-
     unzip: bool, optional, default: False
         Whether the data is a zip file and going to be unzipped after the download.
+
+    relative_path: str
+        Relative path to the data file after finishing the download.
+        If unzip=True, relative_path is the path to unzipped file.
 
     cache_dir: bool, optional, default: None
         The path to cache folder. If `None`, either ~/.cornac or /tmp/.cornac will be used.
 
     """
+    if relative_path is None:
+        relative_path = url.split('/')[-1]
+    cache_path, cache_dir = get_cache_path(relative_path, cache_dir)
+    if os.path.exists(cache_path):
+        return cache_path
 
-    def __init__(self, url, relative_path, unzip=False, cache_dir=None):
-        self.url = url
-        self.rel_path = relative_path
-        self.unzip = unzip
-        self.cache_dir = cache_dir
+    print('Data from', url)
+    print('will be cached into', cache_path)
 
-    def _get_download_path(self):
-        """Return the absolute path to the download data file
-        """
-        if self.cache_dir is None:
-            self.cache_dir = os.path.join(os.path.expanduser('~'), '.cornac')
+    if unzip:
+        tmp_path = os.path.join(cache_dir, 'tmp.zip')
+        urlretrieve(url, tmp_path)
+        print('Unziping...')
+        with zipfile.ZipFile(tmp_path, 'r') as tmp_zip:
+            tmp_zip.extractall(cache_dir)
+        os.remove(tmp_path)
+    else:
+        urlretrieve(url, cache_path)
 
-        self.cache_dir = os.path.expanduser(self.cache_dir)
-        download_path = os.path.join(self.cache_dir, self.rel_path)
-
-        if not os.access(self.cache_dir, os.W_OK):
-            self.cache_dir = os.path.join('/tmp', '.cornac')
-            download_path = os.path.join(self.cache_dir, self.rel_path)
-
-        if not os.path.exists(os.path.dirname(download_path)):
-            os.makedirs(os.path.dirname(download_path))
-
-        return download_path
-
-    def maybe_download(self, verbose=False):
-        """Download data if not appearing in cache folder
-        """
-        fpath = self._get_download_path()
-
-        if os.path.exists(fpath):
-            return fpath
-
-        print('Downloading data from', self.url)
-        print('and save to', fpath)
-
-        if self.unzip:
-            tmp_path = os.path.join(self.cache_dir, 'tmp.zip')
-            urlretrieve(self.url, tmp_path)
-
-            if verbose:
-                print('Unziping...')
-            with zipfile.ZipFile(tmp_path, 'r') as tmp_zip:
-                tmp_zip.extractall(self.cache_dir)
-            os.remove(tmp_path)
-        else:
-            urlretrieve(self.url, fpath)
-
-        if verbose:
-            print('Downloading finished!')
-
-        return fpath
+    print('File cached!')
+    return cache_path
