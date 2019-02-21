@@ -41,9 +41,9 @@ class CrossValidation(BaseMethod):
     """
 
     def __init__(self, data, data_format='UIR', n_folds=5, rating_threshold=1., partition=None,
-                 exclude_unknowns=True, verbose=False):
+                 exclude_unknowns=True, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
-                            exclude_unknowns=exclude_unknowns, verbose=verbose)
+                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
         self.n_folds = n_folds
         self.current_fold = 0
         self.current_split = None
