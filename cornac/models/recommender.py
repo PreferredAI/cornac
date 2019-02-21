@@ -36,7 +36,7 @@ class Recommender:
         self.perfomance = None
 
     def fit(self, train_set):
-        """Fit the model to the training data, should be called before each implemention of any recommender model's class
+        """Fit the model with training data, should be called before each implementation of any recommender model's class
 
         """
 
