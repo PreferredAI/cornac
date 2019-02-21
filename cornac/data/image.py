@@ -49,6 +49,8 @@ class ImageModule:
         self.__data_image = input_image
 
     def _build_feature(self, ordered_ids):
+        """Build data_feature matrix based on provided list of ordered ids
+        """
         if len(self._id_feature) == 0:
             return
         self.data_feature = np.zeros((len(ordered_ids), self.feature_dim))
@@ -58,13 +60,19 @@ class ImageModule:
         self._id_feature.clear()
 
     def build(self, ordered_ids):
+        """Build the model based on provided list of ordered ids
+        """
         self._build_feature(ordered_ids)
 
     def batch_feature(self, batch_ids):
+        """Return a matrix (batch of feature vectors) corresponding to provided batch_ids
+        """
         return self.data_feature[batch_ids]
 
     def batch_image(self, batch_ids,
                     target_size=(256, 256),
                     color_mode='rgb',
                     interpolation='nearest'):
+        """Return batch of images corresponding to provided batch_ids
+        """
         pass
