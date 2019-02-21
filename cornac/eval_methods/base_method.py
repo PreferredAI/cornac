@@ -4,7 +4,11 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..data import MatrixTrainSet, TestSet
+from ..data import TextModule
+from ..data import ImageModule
+from ..data import GraphModule
+from ..data import MultimodalTrainSet
+from ..data import MultimodalTestSet
 from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
@@ -22,9 +26,6 @@ class BaseMethod:
 
     data_format: str, default: 'UIR'
         The format of given data.
-
-    test_set: :obj:`TestSet<cornac.data.TestSet>`, optional, default: None
-        The test data.
 
     total_users: int, optional, default: None
         Total number of unique users in the data including train, val, and test sets
@@ -45,20 +46,27 @@ class BaseMethod:
 
     def __init__(self, data=None,
                  data_format='UIR',
-                 train_set=None,
-                 test_set=None,
                  rating_threshold=1.0,
                  exclude_unknowns=False,
-                 verbose=False):
+                 verbose=False,
+                 **kwargs):
         self._data = data
         self.data_format = validate_format(data_format, self.valid_data_formats)
-        self.train_set = train_set
-        self.test_set = test_set
+        self.train_set = None
+        self.test_set = None
+        self.val_set = None
         self.rating_threshold = rating_threshold
         self.exclude_unknowns = exclude_unknowns
         self.verbose = verbose
         self.global_uid_map = OrderedDict()
         self.global_iid_map = OrderedDict()
+
+        self.user_text = kwargs.get('user_text', None)
+        self.user_image = kwargs.get('user_image', None)
+        self.user_graph = kwargs.get('user_graph', None)
+        self.item_text = kwargs.get('item_text', None)
+        self.item_image = kwargs.get('item_image', None)
+        self.item_graph = kwargs.get('item_graph', None)
 
         if verbose:
             print('rating_threshold = {:.1f}'.format(rating_threshold))
@@ -75,6 +83,66 @@ class BaseMethod:
     @property
     def total_items(self):
         return len(self.global_iid_map)
+
+    @property
+    def user_text(self):
+        return self.__user_text
+
+    @user_text.setter
+    def user_text(self, input_module):
+        if input_module is not None and not isinstance(input_module, TextModule):
+            raise ValueError('input_module has to be instance of TextModule but {}'.format(type(input_module)))
+        self.__user_text = input_module
+
+    @property
+    def user_image(self):
+        return self.__user_image
+
+    @user_image.setter
+    def user_image(self, input_module):
+        if input_module is not None and not isinstance(input_module, ImageModule):
+            raise ValueError('input_module has to be instance of ImageModule but {}'.format(type(input_module)))
+        self.__user_image = input_module
+
+    @property
+    def user_graph(self):
+        return self.__user_graph
+
+    @user_graph.setter
+    def user_graph(self, input_module):
+        if input_module is not None and not isinstance(input_module, GraphModule):
+            raise ValueError('input_module has to be instance of GraphModule but {}'.format(type(input_module)))
+        self.__user_graph = input_module
+
+    @property
+    def item_text(self):
+        return self.__item_text
+
+    @item_text.setter
+    def item_text(self, input_module):
+        if input_module is not None and not isinstance(input_module, TextModule):
+            raise ValueError('input_module has to be instance of TextModule but {}'.format(type(input_module)))
+        self.__item_text = input_module
+
+    @property
+    def item_image(self):
+        return self.__item_image
+
+    @item_image.setter
+    def item_image(self, input_module):
+        if input_module is not None and not isinstance(input_module, ImageModule):
+            raise ValueError('input_module has to be instance of ImageModule but {}'.format(type(input_module)))
+        self.__item_image = input_module
+
+    @property
+    def item_graph(self):
+        return self.__item_graph
+
+    @item_graph.setter
+    def item_graph(self, input_module):
+        if input_module is not None and not isinstance(input_module, GraphModule):
+            raise ValueError('input_module has to be instance of GraphModule but {}'.format(type(input_module)))
+        self.__item_graph = input_module
 
     def _organize_metrics(self, metrics):
         """Organize metrics according to their types (rating or raking)
@@ -95,6 +163,57 @@ class BaseMethod:
             raise ValueError('Type of metrics has to be either dict or list!')
 
         return rating_metrics, ranking_metrics
+
+    def _build_uir(self, train_data, test_data, val_data=None):
+        if train_data is None:
+            raise ValueError('train_data is required but None!')
+        if test_data is None:
+            raise ValueError('test_data is required but None!')
+
+        global_ui_set = set()  # avoid duplicate ratings in the data
+
+        if self.verbose:
+            print('Building training set')
+        self.train_set = MultimodalTrainSet.from_uir(
+            train_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building test set')
+        self.test_set = MultimodalTestSet.from_uir(
+            test_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+
+        if val_data is not None:
+            if self.verbose:
+                print('Building validation set')
+            self.val_set = MultimodalTestSet.from_uir(
+                val_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+
+    def _build_modules(self):
+        for user_module in [self.user_text, self.user_image, self.user_graph]:
+            if user_module is None: continue
+            user_module.build(ordered_ids=self.global_uid_map.keys())
+
+        for item_module in [self.item_text, self.item_image, self.item_graph]:
+            if item_module is None: continue
+            item_module.build(ordered_ids=self.global_iid_map.keys())
+
+        for data_set in [self.train_set, self.test_set, self.val_set]:
+            if data_set is None: continue
+            data_set.add_modules(user_text=self.user_text,
+                                 user_image=self.user_image,
+                                 user_graph=self.user_graph,
+                                 item_text=self.item_text,
+                                 item_image=self.item_image,
+                                 item_graph=self.item_graph)
+
+    def build(self, train_data, test_data, val_data=None):
+        self.global_uid_map.clear()
+        self.global_iid_map.clear()
+
+        if self.data_format == 'UIR':
+            self._build_uir(train_data, test_data, val_data)
+
+        self._build_modules()
 
     def evaluate(self, model, metrics, user_based):
         """Evaluate given models according to given metrics
@@ -198,41 +317,9 @@ class BaseMethod:
 
         return metric_avg_results, metric_user_results
 
-    def _build_uir(self, train_data, test_data, val_data=None):
-        if train_data is None:
-            raise ValueError('train_data is required but None!')
-        if test_data is None:
-            raise ValueError('test_data is required but None!')
-
-        global_ui_set = set()  # avoid duplicate ratings in the data
-
-        if self.verbose:
-            print('Building training set')
-        self.train_set = MatrixTrainSet.from_uir(
-            train_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
-
-        if self.verbose:
-            print('Building test set')
-        self.test_set = TestSet.from_uir(
-            test_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
-
-        if not val_data is None:
-            if self.verbose:
-                print('Building validation set')
-            self.val_set = TestSet.from_uir(
-                val_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
-
-    def build(self, train_data, test_data, val_data=None):
-        self.global_uid_map.clear()
-        self.global_iid_map.clear()
-
-        if self.data_format == 'UIR':
-            self._build_uir(train_data, test_data, val_data)
-
-
     @classmethod
-    def from_provided(cls, train_data, test_data, val_data=None, data_format='UIR',
-                      rating_threshold=1.0, exclude_unknowns=False, verbose=False):
+    def from_splits(cls, train_data, test_data, val_data=None, data_format='UIR',
+                    rating_threshold=1.0, exclude_unknowns=False, verbose=False):
         """Constructing evaluation method given data.
 
         Parameters
