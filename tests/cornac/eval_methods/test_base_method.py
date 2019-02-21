@@ -33,19 +33,19 @@ def test_testset_none():
         assert True
 
 
-def test_from_provided():
+def test_from_splits():
     data = reader.read_uir('./tests/data.txt')
 
     try:
-        BaseMethod.from_provided(train_data=None, test_data=None)
+        BaseMethod.from_splits(train_data=None, test_data=None)
     except ValueError:
         assert True
 
     try:
-        BaseMethod.from_provided(train_data=data, test_data=None)
+        BaseMethod.from_splits(train_data=data, test_data=None)
     except ValueError:
         assert True
 
-    bm = BaseMethod.from_provided(train_data=data, test_data=data)
+    bm = BaseMethod.from_splits(train_data=data, test_data=data)
     assert bm.total_users == 10
     assert bm.total_items == 10
