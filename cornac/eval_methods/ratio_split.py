@@ -49,9 +49,9 @@ class RatioSplit(BaseMethod):
     """
 
     def __init__(self, data, data_format='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0, shuffle=True,
-                 random_state=None, exclude_unknowns=False, verbose=False):
+                 random_state=None, exclude_unknowns=False, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
-                            exclude_unknowns=exclude_unknowns, verbose=verbose)
+                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
 
         self._shuffle = shuffle
         self._random_state = random_state
@@ -112,7 +112,9 @@ class RatioSplit(BaseMethod):
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
-        val_data = safe_indexing(self._data, val_idx)
+        val_data = None
+        if len(val_idx) > 0:
+            val_data = safe_indexing(self._data, val_idx)
 
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
         self._split_ran = True
