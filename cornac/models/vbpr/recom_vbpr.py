@@ -5,10 +5,12 @@
 """
 
 from ..recommender import Recommender
+from ...exception import CornacException
 import numpy as np
 
 from ...utils.common import intersects
 from ...utils import tryimport
+
 torch = tryimport('torch')
 tqdm = tryimport('tqdm')
 
@@ -18,10 +20,10 @@ class VBPR(Recommender):
 
     Parameters
     ----------
-    k: int, optional, default: 5
+    k: int, optional, default: 10
         The dimension of the gamma latent factors.
 
-    d: int, optional, default: 5
+    d2: int, optional, default: 10
         The dimension of the theta latent factors.
 
     n_epochs: int, optional, default: 20
@@ -33,14 +35,17 @@ class VBPR(Recommender):
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD.
 
-    lambda_t: float, optional, default: 0.01
-        The lambda theta regularization hyper-parameter.
+    lambda_w: float, optional, default: 0.01
+        The regularization hyper-parameter for latent factor weights.
 
     lambda_b: float, optional, default: 0.01
-        The lambda beta regularization hyper-parameter.
+        The regularization hyper-parameter for biases.
 
     lambda_e: float, optional, default: 0.0
-        The regularization hyper-parameter for embedding matrix E.
+        The regularization hyper-parameter for embedding matrix E and beta prime vector.
+
+    use_gpu: boolean, optional, default: True
+        Whether or not to use GPU to speed up training.
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
@@ -52,17 +57,17 @@ class VBPR(Recommender):
     """
 
     def __init__(self,
-                 k=10, d=10,
+                 k=10, k2=10,
                  n_epochs=20, batch_size=100, learning_rate=0.001,
-                 lambda_t=0.01, lambda_b=0.01, lambda_e=0.0,
+                 lambda_w=0.01, lambda_b=0.01, lambda_e=0.0,
                  use_gpu=False, trainable=True, **kwargs):
         Recommender.__init__(self, name='VBPR', trainable=trainable)
         self.k = k
-        self.d = d
+        self.k2 = k2
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.lambda_t = lambda_t
+        self.lambda_w = lambda_w
         self.lambda_b = lambda_b
         self.lambda_e = lambda_e
 
@@ -90,9 +95,9 @@ class VBPR(Recommender):
         Bi = self._load_or_randn((n_items), init_values=self.beta_item)
         Gu = self._load_or_randn((n_users, self.k), init_values=self.gamma_user)
         Gi = self._load_or_randn((n_items, self.k), init_values=self.gamma_item)
-        Tu = self._load_or_randn((n_users, self.d), init_values=self.theta_user)
-        E = self._load_or_randn((feature_dim, self.d), init_values=self.emb_matrix)
-        Bp = self._load_or_randn((n_users, feature_dim), init_values=self.beta_prime)
+        Tu = self._load_or_randn((n_users, self.k2), init_values=self.theta_user)
+        E = self._load_or_randn((feature_dim, self.k2), init_values=self.emb_matrix)
+        Bp = self._load_or_randn((feature_dim, 1), init_values=self.beta_prime)
 
         return Bi, Gu, Gi, Tu, E, Bp
 
@@ -117,61 +122,61 @@ class VBPR(Recommender):
             print('%s is trained already (trainable = False)' % (self.name))
             return
 
+        if train_set.item_image is None:
+            raise CornacException('item_image module is required but None.')
+
         # Item visual feature from CNN
         self.item_feature = train_set.item_image.data_feature[:self.train_set.num_items]
         F = torch.from_numpy(self.item_feature).float().to(self.device)
 
         # Learned parameters
         Bi, Gu, Gi, Tu, E, Bp = self._init_params(n_users=train_set.num_users,
-                                                      n_items=train_set.num_items,
-                                                      feature_dim=train_set.item_image.feature_dim)
+                                                  n_items=train_set.num_items,
+                                                  feature_dim=train_set.item_image.feature_dim)
         optimizer = torch.optim.Adam([Bi, Gu, Gi, Tu, E, Bp], lr=self.learning_rate)
 
         for epoch in range(1, self.n_epochs + 1):
-            pbar = tqdm.tqdm(total=train_set.num_batches(self.batch_size),
-                             desc='Epoch {}/{}'.format(epoch, self.n_epochs))
+            progress_bar = tqdm.tqdm(total=train_set.num_batches(self.batch_size),
+                                     desc='Epoch {}/{}'.format(epoch, self.n_epochs))
             for batch_u, batch_i, batch_j in train_set.uij_iter(self.batch_size, shuffle=True):
-                gamma_u = Gu[batch_u]
-                theta_u = Tu[batch_u]
-                beta_prime = Bp[batch_u]
-
                 beta_i = Bi[batch_i]
                 beta_j = Bi[batch_j]
+                gamma_u = Gu[batch_u]
                 gamma_i = Gi[batch_i]
                 gamma_j = Gi[batch_j]
-                feature_i = F[batch_i]
-                feature_j = F[batch_j]
+                theta_u = Tu[batch_u]
+                feat_i = F[batch_i]
+                feat_j = F[batch_j]
+                feat_diff = feat_i - feat_j
 
-                Xui = beta_i \
-                      + torch.sum(gamma_u * gamma_i, dim=1) \
-                      + torch.sum(theta_u * (feature_i.mm(E)), dim=1) \
-                      + torch.sum(beta_prime * feature_i, dim=1)
+                Xuij = beta_i - beta_j \
+                       + torch.sum(gamma_u * (gamma_i - gamma_j), dim=1) \
+                       + torch.sum(theta_u * feat_diff.mm(E), dim=1) \
+                       + feat_diff.mm(Bp)
 
-                Xuj = beta_j \
-                      + torch.sum(gamma_u * gamma_j, dim=1) \
-                      + torch.sum(theta_u * (feature_j.mm(E)), dim=1) \
-                      + torch.sum(beta_prime * feature_j, dim=1)
+                reg = self.lambda_w * self._l2_loss(gamma_u, gamma_i, gamma_j, theta_u) \
+                      + self.lambda_b * self._l2_loss(beta_i) \
+                      + self.lambda_b / 10 * self._l2_loss(beta_j) \
+                      + self.lambda_e * self._l2_loss(E, Bp)
 
-                reg = self.lambda_t * self._l2_loss(theta_u, gamma_u, gamma_i, gamma_j) \
-                      + self.lambda_b * self._l2_loss(beta_prime) \
-                      + self.lambda_e * self._l2_loss(E)
-
-                loss = - torch.log(torch.sigmoid(Xui - Xuj) + 1e-10).sum() + reg / 2
+                loss = - torch.log(torch.sigmoid(Xuij) + 1e-10).sum() + reg
 
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                pbar.update(1)
-            pbar.close()
-            print('Training loss: {:.5f}\n'.format(loss.data.item()))
+
+                progress_bar.set_postfix(loss=loss.data.item())
+                progress_bar.update(1)
+            progress_bar.close()
 
         self.beta_item = Bi.data.cpu().numpy()
         self.gamma_user = Gu.data.cpu().numpy()
         self.gamma_item = Gi.data.cpu().numpy()
         self.theta_user = Tu.data.cpu().numpy()
         self.emb_matrix = E.data.cpu().numpy()
-        self.beta_prime = Bp.cpu().data.numpy()
-        self.theta_item = F.mm(E).data.cpu().numpy() # pre-computed projections for faster evaluation
+        # pre-computed for faster evaluation
+        self.theta_item = F.mm(E).data.cpu().numpy()
+        self.visual_bias = F.mm(Bp).data.cpu().numpy().ravel()
 
         print('Optimization finished!')
 
@@ -192,18 +197,17 @@ class VBPR(Recommender):
         Numpy 1d array
             Array of item indices sorted (in decreasing order) relative to some user preference scores.
         """
-        known_item_scores = self.beta_item
+        known_item_scores = np.add(self.beta_item, self.visual_bias)
         if not self.train_set.is_unk_user(user_id):
             known_item_scores += np.dot(self.gamma_item, self.gamma_user[user_id])
             known_item_scores += np.dot(self.theta_item, self.theta_user[user_id])
-            known_item_scores += np.dot(self.item_feature, self.beta_prime[user_id])
 
         if candidate_item_ids is None:
             ranked_item_ids = known_item_scores.argsort()[::-1]
             return ranked_item_ids
         else:
             num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            pref_scores = np.ones(num_items) * self.train_set.min_rating  # use min_rating to shift unk items to the end
+            pref_scores = np.zeros(num_items)
             pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = pref_scores.argsort()[::-1]
