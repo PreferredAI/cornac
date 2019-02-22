@@ -139,7 +139,7 @@ class MatrixTrainSet(TrainSet):
     @uir_tuple.setter
     def uir_tuple(self, input_tuple):
         if input_tuple is not None and len(input_tuple) != 3:
-            raise ValueError('input_tuple has to be a tuple of three arrays (U, I, R)')
+            raise ValueError('input_tuple required to be size 3 but size {}'.format(len(input_tuple)))
         self.__uir_tuples = input_tuple
 
     @staticmethod
@@ -290,9 +290,9 @@ class MatrixTrainSet(TrainSet):
             batch_pos_ratings = self.uir_tuple[2][batch_ids]
             batch_neg_items = np.zeros_like(batch_pos_items)
             for i, (user, pos_rating) in enumerate(zip(batch_users, batch_pos_ratings)):
-                neg_item = np.random.randint(0, self.num_items - 1)
+                neg_item = np.random.randint(0, self.num_items)
                 while self.matrix[user, neg_item] >= pos_rating:
-                    neg_item = np.random.randint(0, self.num_items - 1)
+                    neg_item = np.random.randint(0, self.num_items)
                 batch_neg_items[i] = neg_item
             yield batch_users, batch_pos_items, batch_neg_items
 
