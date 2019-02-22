@@ -4,15 +4,13 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from . import Module
-
-class GraphModule(Module):
-    """Graph module
+class Module:
+    """Module
 
     """
 
     def __init__(self):
-        super().__init__()
+        pass
 
     def build(self, ordered_ids):
         pass
