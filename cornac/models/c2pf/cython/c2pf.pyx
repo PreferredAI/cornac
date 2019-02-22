@@ -92,7 +92,7 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     #shape kappa_ij matrix
     if init_param['L3_s'] is None:
         tmp = np.copy(C)
-        tmp[:,2] = np.random.gamma(100,scale=0.5/100, size= C.shape[0])
+        tmp[:,2] = np.random.gamma(50,scale=0.5/100, size= C.shape[0])
         L3_s = tmp
         del(tmp)
     else:
@@ -101,7 +101,7 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     ## rate kappa_ij matrix (dgCMatrix)
     if init_param['L3_r'] is None: 
         tmp = np.copy(C)
-        tmp[:,2] = np.random.gamma(100,scale=0.5/100, size= C.shape[0])
+        tmp[:,2] = np.random.gamma(50,scale=0.5/100, size= C.shape[0])
         L3_r = tmp
         del(tmp)
     else:
@@ -115,7 +115,7 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
 
     print('Learning...')    
     c2pf_cpp(X, C, k, G_s, G_r, L_s, L_r, L2_s, L2_r, L3_s, L3_r, T3_r, col_sum_c, util_sum, iter_max,1e15,1e15)
-    c2pf_cpp(X, C, k, G_s, G_r, L_s, L_r, L2_s, L2_r, L3_s, L3_r, T3_r, col_sum_c, util_sum, int(0.2*iter_max),2.,5.)
+    #c2pf_cpp(X, C, k, G_s, G_r, L_s, L_r, L2_s, L2_r, L3_s, L3_r, T3_r, col_sum_c, util_sum, int(0.2*iter_max),2.,5.)
     print('Learning completed!')
     
     
