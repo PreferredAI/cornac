@@ -23,7 +23,7 @@ class VBPR(Recommender):
     k: int, optional, default: 10
         The dimension of the gamma latent factors.
 
-    d2: int, optional, default: 10
+    k2: int, optional, default: 10
         The dimension of the theta latent factors.
 
     n_epochs: int, optional, default: 20
