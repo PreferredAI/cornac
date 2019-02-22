@@ -4,13 +4,16 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-class TextModule:
+from . import Module
+
+
+class TextModule(Module):
     """Text module
 
     """
 
     def __init__(self):
-        pass
+        super().__init__()
 
     def build(self, ordered_ids):
         pass

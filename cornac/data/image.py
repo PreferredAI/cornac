@@ -4,15 +4,17 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
+from . import Module
 import numpy as np
 
 
-class ImageModule:
+class ImageModule(Module):
     """Image module
 
     """
 
     def __init__(self, **kwargs):
+        super().__init__()
         self._id_feature = kwargs.get('id_feature', None)
         self._id_image = kwargs.get('id_image', None)
         self._id_path = kwargs.get('id_path', None)
@@ -51,12 +53,11 @@ class ImageModule:
     def _build_feature(self, ordered_ids):
         """Build data_feature matrix based on provided list of ordered ids
         """
-        if len(self._id_feature) == 0:
+        if self._id_feature is None:
             return
         self.data_feature = np.zeros((len(ordered_ids), self.feature_dim))
         for idx, id in enumerate(ordered_ids):
             self.data_feature[idx] = self._id_feature[id]
-            del self._id_feature[id]
         self._id_feature.clear()
 
     def build(self, ordered_ids):
