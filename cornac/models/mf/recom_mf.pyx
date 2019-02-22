@@ -59,7 +59,6 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
-        self.fitted = False
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -169,9 +168,6 @@ class MF(Recommender):
         A scalar
             The estimated score (e.g., rating) for the user and item of interest
         """
-        if not self.fitted:
-            raise ValueError('You need to fit the model first!')
-
         unk_user = self.train_set.is_unk_user(user_id)
         unk_item = self.train_set.is_unk_item(item_id)
 
@@ -191,44 +187,28 @@ class MF(Recommender):
 
         return score_pred
 
-    def rank(self, user_id, candidate_item_ids=None):
-        """Rank all test items for a given user.
+    def score_all(self, user_id):
+        """Predict the scores/ratings of a user for the list of known items.
 
         Parameters
         ----------
         user_id: int, required
-            The index of the user for whom to perform item raking.
-
-        candidate_item_ids: 1d array, optional, default: None
-            A list of item indices to be ranked by the user.
-            If `None`, list of ranked known item indices will be returned
+            The index of the user for whom to perform score predictions.
 
         Returns
         -------
-        Numpy 1d array
-            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        A numpy array
+            A relative score that the user gives to the list of known items
         """
-        if not self.fitted:
-            raise ValueError('You need to fit the model first!')
 
         known_item_scores = 0
         if self.use_bias: # item bias + global bias
             known_item_scores = np.add(self.i_biases, self.train_set.global_mean)
 
-        if not self.train_set.is_unk_user(user_id):
-            known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
-            if self.use_bias: # user bias
-                known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
+        if self.train_set.is_unk_user(user_id):
+            return known_item_scores
 
-        if candidate_item_ids is None:
-            ranked_item_ids = known_item_scores.argsort()[::-1]
-            return ranked_item_ids
-        else:
-            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            pref_scores = np.zeros(num_items)
-            pref_scores[:self.train_set.num_items] = known_item_scores
-
-            ranked_item_ids = pref_scores.argsort()[::-1]
-            ranked_item_ids = intersects(ranked_item_ids, candidate_item_ids, assume_unique=True)
-
-            return ranked_item_ids
+        known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
+        if self.use_bias: # user bias
+            known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
+        return known_item_scores
