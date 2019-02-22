@@ -141,10 +141,8 @@ class MF(Recommender):
                 if verbose:
                     print('[MF] Early stopping, delta_loss = %.4f' % delta_loss)
                 break
-
             if verbose:
                 print('[MF] Iteration %d: loss = %.4f' % (iter, loss))
-
         if verbose:
             print('[MF] Optimization finished!')
 
@@ -152,7 +150,6 @@ class MF(Recommender):
         self.i_factors = i_factors
         self.u_biases = u_biases
         self.i_biases = i_biases
-
         self.fitted = True
 
 
@@ -190,7 +187,6 @@ class MF(Recommender):
         else:
             if unk_user or unk_item:
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-
             score_pred = np.dot(self.u_factors[user_id], self.i_factors[item_id])
 
         return score_pred
@@ -215,20 +211,21 @@ class MF(Recommender):
         if not self.fitted:
             raise ValueError('You need to fit the model first!')
 
-        if self.train_set.is_unk_user(user_id):
-            if self.use_bias:
-                known_item_scores = self.i_biases
-            else:
-                return self.default_rank(candidate_item_ids)
-        else:
-            known_item_scores = np.dot(self.i_factors, self.u_factors[user_id])
+        known_item_scores = 0
+        if self.use_bias: # item bias + global bias
+            known_item_scores = np.add(self.i_biases, self.train_set.global_mean)
+
+        if not self.train_set.is_unk_user(user_id):
+            known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
+            if self.use_bias: # user bias
+                known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
 
         if candidate_item_ids is None:
             ranked_item_ids = known_item_scores.argsort()[::-1]
             return ranked_item_ids
         else:
             num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            pref_scores = np.ones(num_items) * self.train_set.min_rating  # use min_rating to shift unk items to the end
+            pref_scores = np.zeros(num_items)
             pref_scores[:self.train_set.num_items] = known_item_scores
 
             ranked_item_ids = pref_scores.argsort()[::-1]
