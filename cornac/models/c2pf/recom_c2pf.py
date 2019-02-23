@@ -117,67 +117,40 @@ class C2PF(Recommender):
         self.Xi = sp.csc_matrix(res['Q']).todense()
 
 
-    def score(self, user_index, item_indexes = None):
-        """Predict the scores/ratings of a user for a list of items.
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_index: int, required
-            The index of the user for whom to perform score predictions.
-            
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        user_id: int, required
+            The index of the user for whom to perform score prediction.
+
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
-        """
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
 
+        """
         if self.variant == 'c2pf' or self.variant == 'tc2pf':
-            if item_indexes is None:
-                user_pred = self.Beta * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T
+            if item_id is None:
+                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[item_id, :].T
             else:
-                user_pred = self.Beta[item_indexes,:] * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T
+                user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
         elif self.variant == 'rc2pf':
-            if item_indexes is None:
-                user_pred = self.Xi * self.Theta[user_index, :].T
+            if item_id is None:
+                user_pred = self.Xi * self.Theta[user_id, :].T
             else:
-                user_pred = self.Xi[item_indexes,] * self.Theta[user_index, :].T
+                user_pred = self.Xi[item_id,] * self.Theta[user_id, :].T
         else:
-            if item_indexes is None:
-                user_pred = self.Beta * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T
+            if item_id is None:
+                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
             else:
-                user_pred = self.Beta[item_indexes,:] * self.Theta[user_index, :].T + self.Xi * self.Theta[user_index, :].T            
+                user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
         # transform user_pred to a flatten array,
         user_pred = np.array(user_pred, dtype='float64').flatten()
 
         return user_pred
-    
-    
-
-
-    def rank(self, user_index, known_items = None):
-        """Rank all test items for a given user.
-
-        Parameters
-        ----------
-        user_index: int, required
-            The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
-
-        Returns
-        -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
-        
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
-
-        return rank_item_list
