@@ -265,19 +265,19 @@ class BaseMethod:
             u_pd_ratings = []
             u_gt_ratings = []
 
-            u_train_ratings = self.train_set.matrix[user_id].A.ravel()
-            u_train_neg = np.ones_like(u_train_ratings, dtype=np.int)
-            u_train_neg[u_train_ratings >= self.rating_threshold] = 0
-
             if self.exclude_unknowns:
                 u_gt_pos = np.zeros(self.train_set.num_items, dtype=np.int)
-                u_gt_neg = u_train_neg
                 item_ids = None  # all known items
             else:
                 u_gt_pos = np.zeros(self.total_items, dtype=np.int)
-                u_gt_neg = np.ones(self.total_items, dtype=np.int)
-                u_gt_neg[:len(u_train_neg)] = u_train_neg
                 item_ids = np.arange(self.total_items)
+
+            u_gt_neg = np.ones_like(u_gt_pos, dtype=np.int)
+            if not self.train_set.is_unk_user(user_id):
+                u_train_ratings = self.train_set.matrix[user_id].A.ravel()
+                u_train_neg = np.ones_like(u_train_ratings, dtype=np.int)
+                u_train_neg[u_train_ratings >= self.rating_threshold] = 0
+                u_gt_neg[:len(u_train_neg)] = u_train_neg
 
             for item_id, rating in self.test_set.get_ratings(user_id):
                 # ignore unknown items when self.exclude_unknown
