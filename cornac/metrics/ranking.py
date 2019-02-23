@@ -378,15 +378,19 @@ class FMeasure(MeasureAtK):
 
 
 class AUC(RankingMetric):
-    """Area Under the Curve (AUC).
+    """Area Under the ROC Curve (AUC).
+
+    References
+    ----------
+    https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf
 
     """
 
     def __init__(self):
         RankingMetric.__init__(self, name='AUC')
 
-    def compute(self, pd_scores, gt_pos, gt_neg, **kwargs):
-        """Compute Area Under the Curve (AUC).
+    def compute(self, pd_scores, gt_pos, gt_neg=None, **kwargs):
+        """Compute Area Under the ROC Curve (AUC).
 
         Parameters
         ----------
@@ -396,8 +400,9 @@ class AUC(RankingMetric):
         gt_pos: Numpy array
             Binary vector of positive items.
 
-        gt_neg: Numpy array
+        gt_neg: Numpy array, optional
             Binary vector of negative items.
+            If None, negation of gt_pos will be used.
 
         **kwargs: For compatibility
 
@@ -407,11 +412,19 @@ class AUC(RankingMetric):
             AUC score.
 
         """
-        pos_scores = pd_scores[gt_pos.astype(bool)]
-        neg_scores = pd_scores[gt_neg.astype(bool)]
+        gt_pos = gt_pos.astype(bool)
+        if gt_neg is None:
+            gt_neg = np.logical_not(gt_pos)
 
-        auc = []
-        for pos_score in pos_scores:
-            auc.append(np.sum(pos_score > neg_scores) / len(neg_scores))
+        pos_scores = pd_scores[gt_pos]
+        neg_scores = pd_scores[gt_neg]
+        ui_scores = np.repeat(pos_scores, len(neg_scores))
+        uj_scores = np.tile(neg_scores, len(pos_scores))
 
-        return np.mean(auc)
+        return (ui_scores > uj_scores).sum() / len(uj_scores)
+
+        # auc = []
+        # for pos_score in pos_scores:
+        #     auc.append(np.sum(pos_score > neg_scores) / len(neg_scores))
+        #
+        # return np.mean(auc)
