@@ -23,7 +23,7 @@ def test_ranking_metric():
     assert metric.k == -1
 
     try:
-        metric.compute(None, None)
+        metric.compute()
     except NotImplementedError:
         assert True
 
@@ -103,17 +103,17 @@ def test_measure_at_k():
     assert measure_at_k.name is None
     assert measure_at_k.k == -1
 
-    measure_at_k.compute(np.asarray([1]), np.asarray([0]))
-    assert 1 == measure_at_k.tp
-    assert 1 == measure_at_k.tp_fn
-    assert 1 == measure_at_k.tp_fp
+    tp, tp_fn, tp_fp = measure_at_k.compute(np.asarray([1]), np.asarray([0]))
+    assert 1 == tp
+    assert 1 == tp_fn
+    assert 1 == tp_fp
 
     ground_truth = np.asarray([1, 0, 1]) # [1, 0, 1]
     rec_list = np.asarray([0, 2, 1]) # [1, 1, 1]
-    measure_at_k.compute(ground_truth, rec_list)
-    assert 2 == measure_at_k.tp
-    assert 2 == measure_at_k.tp_fn
-    assert 3 == measure_at_k.tp_fp
+    tp, tp_fn, tp_fp = measure_at_k.compute(ground_truth, rec_list)
+    assert 2 == tp
+    assert 2 == tp_fn
+    assert 3 == tp_fp
 
 
 def test_precision():
