@@ -9,11 +9,12 @@ from cornac.utils.download import cache
 
 
 def test_download_normal_file():
-    fpath = cache(url='https://static.preferred.ai/cornac/hello_world.txt',
-                  relative_path='hello_world.txt')
+    fpath = cache(url='https://static.preferred.ai/cornac/hello_world.txt')
     assert os.path.exists(fpath)
     with open(fpath, 'r') as f:
         assert "I'm Cornac!" == f.read().strip()
+
+    cache(url='https://static.preferred.ai/cornac/hello_world.txt')
 
 
 def test_download_zip_file():
