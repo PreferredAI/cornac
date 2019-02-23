@@ -12,8 +12,8 @@ class TextModule(Module):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def build(self, ordered_ids):
         pass
