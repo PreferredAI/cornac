@@ -126,7 +126,7 @@ class HPF(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if user_id is None:
+        if item_id is None:
             if self.train_set.is_unk_user(user_id):
                 u_representation = np.ones(self.k)
             else:
