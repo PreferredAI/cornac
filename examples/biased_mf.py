@@ -18,10 +18,9 @@ mf = cornac.models.MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,
 
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
-rec_50 = cornac.metrics.Recall(50)
 
 exp = cornac.Experiment(eval_method=ratio_split,
                         models=[mf],
-                        metrics=[mae, rmse, rec_50],
+                        metrics=[mae, rmse],
                         user_based=True)
 exp.run()
