@@ -102,71 +102,33 @@ class COE(Recommender):
     #get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     #predictions are not stored for the same efficiency reasons"""
 
-    def score(self, user_id, item_id):
-        """Predict the scores/ratings of a user for a list of items.
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
         user_id: int, required
-            The index of the user for whom to perform score predictions.
-            
-        item_id: int, required
-            The index of the item to be scored by the user.
+            The index of the user for whom to perform score prediction.
+
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        A scalar
-            The estimated score (e.g., rating) for the user and item of interest
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
         """
-        
-        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
-            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-        
+        if item_id is None:
+            if self.train_set.is_unk_user(user_id):
+                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-        user_pred = np.sum(np.abs(self.V[item_id,:] - self.U[user_id, :])**2,axis=-1)**(1./2) 
-
-
-        return user_pred
-    
-    
- 
-    
-    def rank(self, user_id, candidate_item_ids=None):
-        """Rank all test items for a given user.
-
-        Parameters
-        ----------
-        user_id: int, required
-            The index of the user for whom to perform item raking.
-
-        candidate_item_ids: 1d array, optional, default: None
-            A list of item indices to be ranked by the user.
-            If `None`, list of ranked known item indices will be returned
-
-        Returns
-        -------
-        Numpy 1d array
-            Array of item indices sorted (in decreasing order) relative to some user preference scores.
-        """ 
-        
-        if self.train_set.is_unk_user(user_id):
-            if candidate_item_ids is None:
-                return np.arange(self.train_set.num_items)
-            return candidate_item_ids
-        
-        
-        known_item_scores = np.sum(np.abs(self.V - self.U[user_id, :])**2,axis=-1)**(1./2)
-        
-        if candidate_item_ids is None:
-            ranked_item_ids = known_item_scores.argsort()[::-1]
-            return ranked_item_ids
+            known_item_scores = np.sum(np.abs(self.V - self.U[user_id, :]) ** 2, axis=-1) ** (1. / 2)
+            return known_item_scores
         else:
-            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.ones(num_items) * self.default_score()
-            user_pref_scores[:self.train_set.num_items] = known_item_scores
+            if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-            ranked_item_ids = user_pref_scores.argsort()[::-1]
-            mask = np.in1d(ranked_item_ids, candidate_item_ids)
-            ranked_item_ids = ranked_item_ids[mask]
-
-            return ranked_item_ids 
+            user_pred = np.sum(np.abs(self.V[item_id,:] - self.U[user_id, :])**2,axis=-1)**(1./2)
+            return user_pred

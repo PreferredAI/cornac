@@ -7,11 +7,10 @@ Example for Bayesian Personalized Ranking
 """
 
 import cornac
-from cornac.datasets import MovieLens100K
+from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 
-data = MovieLens100K.load_data()
-
+data = movielens.load_100k()
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=False, verbose=True)
 
 bpr = cornac.models.BPR(k=10, max_iter=100)

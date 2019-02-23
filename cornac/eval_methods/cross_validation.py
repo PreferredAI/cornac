@@ -6,7 +6,7 @@
 
 import numpy as np
 from .base_method import BaseMethod
-from ..utils.generic_utils import safe_indexing
+from ..utils.common import safe_indexing
 from ..experiment.cv_result import CVSingleModelResult
 
 
@@ -41,9 +41,9 @@ class CrossValidation(BaseMethod):
     """
 
     def __init__(self, data, data_format='UIR', n_folds=5, rating_threshold=1., partition=None,
-                 exclude_unknowns=True, verbose=False):
+                 exclude_unknowns=True, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
-                            exclude_unknowns=exclude_unknowns, verbose=verbose)
+                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
         self.n_folds = n_folds
         self.current_fold = 0
         self.current_split = None
@@ -76,7 +76,7 @@ class CrossValidation(BaseMethod):
 
         return partition
 
-    def _get_train_test_sets(self):
+    def _get_train_test(self):
         if self.verbose:
             print('Fold: {}'.format(self.current_fold + 1))
 
@@ -85,9 +85,7 @@ class CrossValidation(BaseMethod):
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
-
-        if self.data_format == 'UIR':
-            self._build_from_uir_format(train_data=train_data, test_data=test_data)
+        self.build(train_data=train_data, test_data=test_data)
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
@@ -103,7 +101,7 @@ class CrossValidation(BaseMethod):
         result = CVSingleModelResult()
 
         for fold in range(self.n_folds):
-            self._get_train_test_sets()
+            self._get_train_test()
             avg_res, per_user_res = BaseMethod.evaluate(self, model, metrics, user_based)
             result._add_fold_res(fold=fold, metric_avg_results=avg_res)
             self._next_fold()

@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from cornac.data import Reader
+from cornac.data import reader
 from cornac.data import TrainSet
 from cornac.data import MatrixTrainSet
 
@@ -48,17 +48,9 @@ def test_trainset_idx_iter():
 
 def test_matrix_trainset():
     """Test MatrixTrainSet"""
-
-    data_file = './tests/data.txt'
-    u_col = 0
-    i_col = 1
-    r_col = 2
-    sep = '\t'
-
-    triplet_data = Reader.read_uir_triplets(data_file, u_col, i_col, r_col, sep, skip_lines=0)
-
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={}, global_ui_set=set(),
-                                                 verbose=True)
+    triplet_data = reader.read_uir('./tests/data.txt')
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={}, global_ui_set=set(),
+                                        verbose=True)
 
     assert train_set.matrix.shape == (10, 10)
     assert train_set.min_rating == 3
@@ -89,18 +81,16 @@ def test_matrix_trainset():
     assert all([a == b for a, b in zip(train_set.get_raw_iid_list(),
                                        ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])])
 
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
-                                                 global_ui_set=set([('76', '93')]), verbose=True)
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+                                        global_ui_set=set([('76', '93')]), verbose=True)
     assert train_set.num_users == 9
     assert train_set.num_items == 9
 
 
 def test_matrix_trainset_uir_iter():
-    data_file = './tests/data.txt'
-    triplet_data = Reader.read_uir_triplets(data_file)
-
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
-                                                 global_ui_set=set(), verbose=True)
+    triplet_data = reader.read_uir('./tests/data.txt')
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+                                        global_ui_set=set(), verbose=True)
 
     users = [batch_users for batch_users, _, _ in train_set.uir_iter()]
     assert all([a == b for a, b in zip(users, range(10))])
@@ -114,11 +104,9 @@ def test_matrix_trainset_uir_iter():
 
 
 def test_matrix_trainset_uij_iter():
-    data_file = './tests/data.txt'
-    triplet_data = Reader.read_uir_triplets(data_file)
-
-    train_set = MatrixTrainSet.from_uir_triplets(triplet_data, global_uid_map={}, global_iid_map={},
-                                                 global_ui_set=set(), verbose=True)
+    triplet_data = reader.read_uir('./tests/data.txt')
+    train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+                                        global_ui_set=set(), verbose=True)
 
     users = [batch_users for batch_users, _, _ in train_set.uij_iter()]
     assert all([a == b for a, b in zip(users, range(10))])
@@ -128,3 +116,19 @@ def test_matrix_trainset_uij_iter():
 
     neg_items = [batch_neg_items for _, _, batch_neg_items in train_set.uij_iter()]
     assert all([a != b for a, b in zip(neg_items, range(10))])
+
+
+def test_uir_tuple():
+    triplet_data = reader.read_uir('./tests/data.txt')
+    train_set = MatrixTrainSet.from_uir(triplet_data,
+                                        global_uid_map=None,
+                                        global_iid_map=None,
+                                        global_ui_set=None,
+                                        verbose=True)
+
+    try:
+        train_set.uir_tuple = ([], [])
+    except ValueError:
+        assert True
+
+    assert 2 == train_set.num_batches(batch_size=5)

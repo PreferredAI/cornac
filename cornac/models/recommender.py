@@ -6,87 +6,84 @@ Created on Wed Dec 13 21:18:14 2017
 """
 
 from ..exception import ScoreException
-from ..utils.generic_utils import intersects, excepts, clipping
+from ..utils.common import intersects, excepts, clip
 import numpy as np
 
 
 class Recommender:
     """Generic class for a recommender model. All recommendation models should inherit from this class 
     
-    Input Parameters
+    Parameters
     ----------------
     name: char, required
         The name of the recommender model
 
-    trainable:boolean, optional, default: True
-        When False, the model is not trained
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable
 
-    Other attributes
-    ----------------
-    perfomance: dictionary, optional, default: None
-        A collection of recommender models
     """
 
     def __init__(self, name, trainable=True, verbose=False):
         self.name = name
         self.trainable = trainable
-
-        self.train_set = None
         self.verbose = verbose
-        self.perfomance = None
+        self.train_set = None
 
     def fit(self, train_set):
-        """Fit the model to the training data, should be called before each implemention of any recommender model's class
+        """Fit the model with training data, should be called before each implementation of any recommender model's class
 
         """
-
         self.train_set = train_set
 
-        return self
-
-    def score(self, user_id, item_id):
-        """Predict the scores/ratings of a user for a list of items.
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
         user_id: int, required
-            The index of the user for whom to perform score predictions.
+            The index of the user for whom to perform score prediction.
             
-        item_id: int, required
-            The index of the item for that to perform score predictions.
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        A scalar
-            A relative score that the user gives to the item
-        """
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
 
+        """
         raise NotImplementedError('The algorithm is not able to make score prediction!')
 
     def default_score(self):
         """Overwrite this function if your algorithm has special treatment for cold-start problem
 
         """
-
         return self.train_set.global_mean
 
-    def default_rank(self, candidate_item_ids=None):
+    def default_rank(self, item_ids=None):
         """Overwrite this function if your algorithm has special treatment for cold-start problem
 
         """
-
         known_item_rank = self.train_set.item_ppl_rank
+        known_item_scores = self.train_set.item_ppl_scores
 
-        if candidate_item_ids is None:
-            rank_item_ids = known_item_rank
+        if item_ids is None:
+            item_rank = known_item_rank
+            item_scores = known_item_scores
         else:
-            known_candidate_items = intersects(known_item_rank, candidate_item_ids, assume_unique=True)
-            unk_candidate_items = excepts(known_candidate_items, candidate_item_ids, assume_unique=True)
-            rank_item_ids = np.concatenate((known_candidate_items, unk_candidate_items))
+            known_item_ids = intersects(known_item_rank, item_ids, assume_unique=True)
+            unk_item_ids = excepts(known_item_rank, item_ids, assume_unique=True)
+            item_rank = np.concatenate((known_item_ids, unk_item_ids))
 
-        return rank_item_ids
+            num_items = max(self.train_set.num_items, max(item_ids) + 1)
+            item_scores = np.ones(num_items) * np.min(known_item_scores)
+            item_scores[:self.train_set.num_items] = known_item_scores
+            item_scores = item_scores[item_ids]
 
-    def rate(self, user_id, item_id, clip=True):
+        return item_rank, item_scores
+
+    def rate(self, user_id, item_id, clipping=True):
         """Give a rating score between pair of user and item
 
         Parameters
@@ -97,38 +94,57 @@ class Recommender:
         item_id: int, required
             The index of the item to be rated by the user.
 
+        clipping: bool, default: True
+            Whether to clip the predicted rating value.
+
         Returns
         -------
         A scalar
             A rating score of the user for the item
         """
-
         try:
             rating_pred = self.score(user_id, item_id)
         except ScoreException:
             rating_pred = self.default_score()
 
-        if clip:
-            rating_pred = clipping(rating_pred, self.train_set.min_rating, self.train_set.max_rating)
+        if clipping:
+            rating_pred = clip(values=rating_pred,
+                               lower_bound=self.train_set.min_rating,
+                               upper_bound=self.train_set.max_rating)
 
         return rating_pred
 
-    def rank(self, user_id, candidate_item_ids=None):
-        """Rank all test items for a given user. To be re-implemented in each recommender model's class
+    def rank(self, user_id, item_ids=None):
+        """Rank all test items for a given user.
 
         Parameters
         ----------
         user_id: int, required
             The index of the user for whom to perform item raking.
 
-        candidate_item_ids: 1d array, optional, default: None
-            A list of item indices to be ranked by the user.
-            If `None`, list of ranked known item indices will be returned
+        item_ids: 1d array, optional, default: None
+            A list of candidate item indices to be ranked by the user.
+            If `None`, list of ranked known item indices and their scores will be returned
 
         Returns
         -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores.
-        """
+        Tuple of `item_rank`, and `item_scores`. The order of values
+        in item_scores are corresponding to the order of their ids in item_ids
 
-        raise NotImplementedError('The algorithm is not able to rank items!')
+        """
+        try:
+            known_item_scores = self.score(user_id)
+        except ScoreException:
+            known_item_scores = np.ones(self.train_set.num_items) * self.default_score()
+
+        if item_ids is None:
+            item_scores = known_item_scores
+            item_rank = item_scores.argsort()[::-1]
+        else:
+            num_items = max(self.train_set.num_items, max(item_ids) + 1)
+            item_scores = np.ones(num_items) * np.min(known_item_scores)
+            item_scores[:self.train_set.num_items] = known_item_scores
+            item_rank = item_scores.argsort()[::-1]
+            item_rank = intersects(item_rank, item_ids, assume_unique=True)
+            item_scores = item_scores[item_ids]
+        return item_rank, item_scores
