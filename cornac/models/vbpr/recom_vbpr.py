@@ -8,7 +8,6 @@ from ..recommender import Recommender
 from ...exception import CornacException
 import numpy as np
 
-from ...utils.common import intersects
 from ...utils import tryimport
 
 torch = tryimport('torch')
@@ -136,36 +135,46 @@ class VBPR(Recommender):
         optimizer = torch.optim.Adam([Bi, Gu, Gi, Tu, E, Bp], lr=self.learning_rate)
 
         for epoch in range(1, self.n_epochs + 1):
+            sum_loss = 0.
+            count = 0
             progress_bar = tqdm.tqdm(total=train_set.num_batches(self.batch_size),
                                      desc='Epoch {}/{}'.format(epoch, self.n_epochs))
             for batch_u, batch_i, batch_j in train_set.uij_iter(self.batch_size, shuffle=True):
+                gamma_u = Gu[batch_u]
+                theta_u = Tu[batch_u]
+
                 beta_i = Bi[batch_i]
                 beta_j = Bi[batch_j]
-                gamma_u = Gu[batch_u]
                 gamma_i = Gi[batch_i]
                 gamma_j = Gi[batch_j]
-                theta_u = Tu[batch_u]
                 feat_i = F[batch_i]
                 feat_j = F[batch_j]
+
+                gamma_diff = gamma_i - gamma_j
                 feat_diff = feat_i - feat_j
 
                 Xuij = beta_i - beta_j \
-                       + torch.sum(gamma_u * (gamma_i - gamma_j), dim=1) \
+                       + torch.sum(gamma_u * gamma_diff, dim=1) \
                        + torch.sum(theta_u * feat_diff.mm(E), dim=1) \
                        + feat_diff.mm(Bp)
+
+                log_likelihood = torch.log(torch.sigmoid(Xuij) + 1e-10).sum()
 
                 reg = self.lambda_w * self._l2_loss(gamma_u, gamma_i, gamma_j, theta_u) \
                       + self.lambda_b * self._l2_loss(beta_i) \
                       + self.lambda_b / 10 * self._l2_loss(beta_j) \
                       + self.lambda_e * self._l2_loss(E, Bp)
 
-                loss = - torch.log(torch.sigmoid(Xuij) + 1e-10).sum() + reg
+                loss = - log_likelihood + reg
 
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
-                progress_bar.set_postfix(loss=loss.data.item())
+                sum_loss += loss.data.item()
+                count += len(batch_u)
+                if count % (self.batch_size * 10) == 0:
+                    progress_bar.set_postfix(loss=(sum_loss / count))
                 progress_bar.update(1)
             progress_bar.close()
 
@@ -180,37 +189,35 @@ class VBPR(Recommender):
 
         print('Optimization finished!')
 
-    def rank(self, user_id, candidate_item_ids=None):
-        """Rank all test items for a given user.
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
         user_id: int, required
-            The index of the user for whom to perform item raking.
+            The index of the user for whom to perform score prediction.
 
-        candidate_item_ids: 1d array, optional, default: None
-            A list of item indices to be ranked by the user.
-            If `None`, list of ranked known item indices will be returned
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        Numpy 1d array
-            Array of item indices sorted (in decreasing order) relative to some user preference scores.
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
         """
-        known_item_scores = np.add(self.beta_item, self.visual_bias)
-        if not self.train_set.is_unk_user(user_id):
-            known_item_scores += np.dot(self.gamma_item, self.gamma_user[user_id])
-            known_item_scores += np.dot(self.theta_item, self.theta_user[user_id])
+        if item_id is None:
+            known_item_scores = np.add(self.beta_item, self.visual_bias)
+            if not self.train_set.is_unk_user(user_id):
+                known_item_scores += np.dot(self.gamma_item, self.gamma_user[user_id])
+                known_item_scores += np.dot(self.theta_item, self.theta_user[user_id])
 
-        if candidate_item_ids is None:
-            ranked_item_ids = known_item_scores.argsort()[::-1]
-            return ranked_item_ids
+            return known_item_scores
         else:
-            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            pref_scores = np.zeros(num_items)
-            pref_scores[:self.train_set.num_items] = known_item_scores
+            item_score = np.add(self.beta_item[item_id], self.visual_bias[item_id])
+            if not self.train_set.is_unk_user(user_id):
+                item_score += np.dot(self.gamma_item[item_id], self.gamma_user[user_id])
+                item_score += np.dot(self.theta_item[item_id], self.theta_user[user_id])
 
-            ranked_item_ids = pref_scores.argsort()[::-1]
-            ranked_item_ids = intersects(ranked_item_ids, candidate_item_ids, assume_unique=True)
-
-            return ranked_item_ids
+            return item_score
