@@ -6,7 +6,7 @@ Created on Wed Dec 13 21:18:14 2017
 """
 
 from ..exception import ScoreException
-from ..utils.common import intersects, excepts, clipping
+from ..utils.common import intersects, excepts, clip
 import numpy as np
 
 
@@ -83,7 +83,7 @@ class Recommender:
 
         return item_rank, item_scores
 
-    def rate(self, user_id, item_id, clip=True):
+    def rate(self, user_id, item_id, clipping=True):
         """Give a rating score between pair of user and item
 
         Parameters
@@ -93,6 +93,9 @@ class Recommender:
 
         item_id: int, required
             The index of the item to be rated by the user.
+
+        clipping: bool, default: True
+            Whether to clip the predicted rating value.
 
         Returns
         -------
@@ -104,8 +107,10 @@ class Recommender:
         except ScoreException:
             rating_pred = self.default_score()
 
-        if clip:
-            rating_pred = clipping(rating_pred, self.train_set.min_rating, self.train_set.max_rating)
+        if clipping:
+            rating_pred = clip(values=rating_pred,
+                               lower_bound=self.train_set.min_rating,
+                               upper_bound=self.train_set.max_rating)
 
         return rating_pred
 
