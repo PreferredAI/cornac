@@ -119,55 +119,30 @@ class CDL(Recommender):
             print('%s is trained already (trainable = False)' % (self.name))
         
                 
-    def score(self, user_index, item_indexes = None):
-        """Predict the scores/ratings of a user for a list of items.
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_index: int, required
-            The index of the user for whom to perform score predictions.
-            
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        user_id: int, required
+            The index of the user for whom to perform score prediction.
+
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
         """
         
-        if item_indexes is None: 
-            user_pred = self.U[user_index, :].dot(self.V.T)
+        if item_id is None:
+            user_pred = self.U[user_id, :].dot(self.V.T)
         else:
-            user_pred = self.U[user_index,:].dot(self.V[item_indexes,:].T)
+            user_pred = self.U[user_id,:].dot(self.V[user_id,:].T)
         # transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred, dtype='float64').flatten()
 
         return user_pred
-
-
-
-    def rank(self, user_index, known_items = None):
-        """Rank all test items for a given user.
-
-        Parameters
-        ----------
-        user_index: int, required
-            The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
-
-        Returns
-        -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
-        
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
-
-        return rank_item_list
