@@ -10,5 +10,5 @@ def test_tryimport():
     dummy = tryimport('this_module_could_not_exist_bla_bla')
     try:
         dummy.some_attribute
-    except ModuleNotFoundError:
+    except ImportError:
         assert True
