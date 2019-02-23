@@ -16,6 +16,7 @@ import numpy as np
 import gzip
 import json
 import struct
+from collections import Counter
 
 def read_image_feature(path, item_ids):
     print('Reading image feature...')
@@ -23,8 +24,8 @@ def read_image_feature(path, item_ids):
     f = open(path, 'rb')
     count = 0
     while True:
-        if count % 35807 == 0:
-            print('{}%'.format(int(count / 358079 * 100)))
+        if count % 35808 == 0 or count == 358078:
+            print('{}%'.format(int(count / 358078 * 100)))
         count += 1
         asin = f.read(10).decode('ascii').strip()
         if asin == '':
@@ -39,16 +40,24 @@ def read_image_feature(path, item_ids):
     return item_feature
 
 def read_user_data(path):
-    triplet_data = []
-    item_ids = set()
+    feedback_pairs = set()
+    user_count = Counter()
     for line in gzip.open(path, 'r').readlines():
         json_acceptable_str = line.decode('ascii').replace("'", "\"")
         json_obj = json.loads(json_acceptable_str)
         uid = json_obj['uid']
         for action in ['bought', 'want']:
             for iid in json_obj['lists'][action]:
-                triplet_data.append([uid, iid, 1])
-                item_ids.add(iid)
+                feedback_pairs.add((uid, iid))
+                user_count[uid] += 1
+    # discard user with less than 5 feedback
+    triplet_data = []
+    item_ids = set()
+    for uid, iid in feedback_pairs:
+        if user_count[uid] < 5:
+            continue
+        triplet_data.append([uid, iid, 1])
+        item_ids.add(iid)
     return triplet_data, item_ids
 
 # Download purchase user data
@@ -58,19 +67,22 @@ triplet_data, item_ids = read_user_data(user_data_path)
 # Download visual feature (BIG file)
 visual_feature_path = cache(url='http://jmcauley.ucsd.edu/data/tradesy/image_features_tradesy.b')
 item_feature = read_image_feature(visual_feature_path, item_ids)
-item_image_module = ImageModule(id_feature=item_feature)
+item_image_module = ImageModule(id_feature=item_feature, normalized=True)
 
 ratio_split = RatioSplit(data=triplet_data,
-                         test_size=0.2,
+                         test_size=0.01,
+                         rating_threshold=0.5,
                          exclude_unknowns=True,
                          verbose=True,
                          item_image=item_image_module)
 
-vbpr = cornac.models.VBPR(k=10, d=10, n_epochs=20, batch_size=100, learning_rate=0.001,
-                          lambda_t=0.1, lambda_b=0.01, lambda_e=0.0, use_gpu=True)
-rec_20 = cornac.metrics.Recall(k=20)
+vbpr = cornac.models.VBPR(k=10, k2=20, n_epochs=50, batch_size=100, learning_rate=0.005,
+                          lambda_w=1, lambda_b=0.01, lambda_e=0.0, use_gpu=True)
+
+auc = cornac.metrics.AUC()
+rec_50 = cornac.metrics.Recall(k=50)
 
 exp = cornac.Experiment(eval_method=ratio_split,
                         models=[vbpr],
-                        metrics=[rec_20])
+                        metrics=[auc, rec_50])
 exp.run()
