@@ -35,7 +35,7 @@ class Recommender:
         """
         self.train_set = train_set
 
-    def score(self, user_id, item_id):
+    def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
@@ -43,42 +43,28 @@ class Recommender:
         user_id: int, required
             The index of the user for whom to perform score prediction.
             
-        item_id: int, required
+        item_id: int, optional, default: None
             The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
-        :raise:NotImplementedError
+        Returns
+        -------
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
         """
-
         raise NotImplementedError('The algorithm is not able to make score prediction!')
 
     def default_score(self):
         """Overwrite this function if your algorithm has special treatment for cold-start problem
 
         """
-
         return self.train_set.global_mean
-
-    def score_all(self, user_id):
-        """Predict the scores/ratings of a user for the list of known items.
-
-        Parameters
-        ----------
-        user_id: int, required
-            The index of the user for whom to perform score predictions.
-
-        Returns
-        -------
-        A numpy array
-            A relative score that the user gives to the list of known items
-        """
-
-        raise NotImplementedError('The algorithm is not able to make score prediction!')
 
     def default_rank(self, item_ids=None):
         """Overwrite this function if your algorithm has special treatment for cold-start problem
 
         """
-
         known_item_rank = self.train_set.item_ppl_rank
         known_item_scores = self.train_set.item_ppl_scores
 
@@ -113,7 +99,6 @@ class Recommender:
         A scalar
             A rating score of the user for the item
         """
-
         try:
             rating_pred = self.score(user_id, item_id)
         except ScoreException:
@@ -142,9 +127,8 @@ class Recommender:
         in item_scores are corresponding to the order of their ids in item_ids
 
         """
-
         try:
-            known_item_scores = self.score_all(user_id)
+            known_item_scores = self.score(user_id)
         except ScoreException:
             known_item_scores = np.ones(self.train_set.num_items) * self.default_score()
 
