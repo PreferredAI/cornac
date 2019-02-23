@@ -14,6 +14,7 @@ from cornac.metrics import MRR
 from cornac.metrics import Precision
 from cornac.metrics import Recall
 from cornac.metrics import FMeasure
+from cornac.metrics import AUC
 
 def test_ranking_metric():
     metric = RankingMetric()
@@ -190,3 +191,26 @@ def test_f_measure():
     ground_truth = np.asarray([1, 0, 0]) # [1, 0, 0]
     rec_list = np.asarray([1, 2]) # [0, 1, 1]
     assert 0 == f1_2.compute(ground_truth, rec_list)
+
+
+def test_auc():
+    auc = AUC()
+
+    assert auc.type == 'ranking'
+    assert auc.name == 'AUC'
+
+    gt_pos = np.array([0, 0, 1, 1])
+    pd_scores = np.array([0.1, 0.4, 0.35, 0.8])
+    auc_score = auc.compute(pd_scores, gt_pos)
+    assert 0.75 == auc_score
+
+    gt_pos = np.array([0, 1, 0, 1])
+    pd_scores = np.array([0.1, 0.4, 0.35, 0.8])
+    auc_score = auc.compute(pd_scores, gt_pos)
+    assert 1.0 == auc_score
+
+    gt_pos = np.array([0, 1, 0, 0])
+    gt_neg = np.array([0, 0, 1, 1])
+    pd_scores = np.array([0.1, 0.4, 0.35, 0.8])
+    auc_score = auc.compute(pd_scores, gt_pos, gt_neg)
+    assert 0.5 == auc_score
