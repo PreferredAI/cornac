@@ -116,3 +116,19 @@ def test_matrix_trainset_uij_iter():
 
     neg_items = [batch_neg_items for _, _, batch_neg_items in train_set.uij_iter()]
     assert all([a != b for a, b in zip(neg_items, range(10))])
+
+
+def test_uir_tuple():
+    triplet_data = reader.read_uir('./tests/data.txt')
+    train_set = MatrixTrainSet.from_uir(triplet_data,
+                                        global_uid_map=None,
+                                        global_iid_map=None,
+                                        global_ui_set=None,
+                                        verbose=True)
+
+    try:
+        train_set.uir_tuple = ([], [])
+    except ValueError:
+        assert True
+
+    assert 2 == train_set.num_batches(batch_size=5)
