@@ -19,7 +19,7 @@ def test_rating_metric():
     assert metric.name is None
 
     try:
-        metric.compute(None, None)
+        metric.compute()
     except NotImplementedError:
         assert True
 
