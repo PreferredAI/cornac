@@ -127,7 +127,7 @@ class MatrixTrainSet(TrainSet):
         self.max_rating = max_rating
         self.min_rating = min_rating
         self.global_mean = global_mean
-        self.item_ppl_rank = self._rank_items_by_popularity(matrix)
+        self.item_ppl_rank, self.item_ppl_scores = self._rank_items_by_popularity(matrix)
         self.uir_tuple = None
 
     @property
@@ -157,9 +157,9 @@ class MatrixTrainSet(TrainSet):
         Ranked matrix according to item popularity.
 
         """
-        item_ppl_scores = rating_matrix.sum(axis=0)
-        item_rank = np.argsort(item_ppl_scores.A1)[::-1]
-        return item_rank
+        item_scores = rating_matrix.sum(axis=0)
+        item_rank = np.argsort(item_scores.A1)[::-1]
+        return item_rank, item_scores
 
     def num_batches(self, batch_size):
         return int(np.ceil(len(self.uir_tuple[0]) / batch_size))
