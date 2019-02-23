@@ -28,6 +28,14 @@ class Module:
     def data_feature(self, input_feature):
         self.__data_feature = input_feature
 
+    @property
+    def feature_dim(self):
+        return self.__feature_dim
+
+    @feature_dim.setter
+    def feature_dim(self, input_dim):
+        self.__feature_dim = input_dim
+
     def _build_feature(self, ordered_ids):
         """Build data_feature matrix based on provided list of ordered ids
         """

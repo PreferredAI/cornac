@@ -21,14 +21,6 @@ class ImageModule(Module):
         self.data_path = None
 
     @property
-    def feature_dim(self):
-        return self.__feature_dim
-
-    @feature_dim.setter
-    def feature_dim(self, input_dim):
-        self.__feature_dim = input_dim
-
-    @property
     def data_image(self):
         return self.__data_image
 
@@ -36,12 +28,10 @@ class ImageModule(Module):
     def data_image(self, input_image):
         self.__data_image = input_image
 
-
     def build(self, ordered_ids):
         """Build the model based on provided list of ordered ids
         """
         super().build(ordered_ids)
-
 
     def batch_image(self, batch_ids,
                     target_size=(256, 256),
