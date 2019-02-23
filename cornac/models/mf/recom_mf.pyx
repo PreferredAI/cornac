@@ -152,63 +152,50 @@ class MF(Recommender):
         self.fitted = True
 
 
-    def score(self, user_id, item_id):
-        """Predict the scores/ratings of a user for a list of items.
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
         user_id: int, required
-            The index of the user for whom to perform score predictions.
+            The index of the user for whom to perform score prediction.
 
-        item_id: int, required
-            The index of the item to be scored by the user.
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        A scalar
-            The estimated score (e.g., rating) for the user and item of interest
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
         """
         unk_user = self.train_set.is_unk_user(user_id)
-        unk_item = self.train_set.is_unk_item(item_id)
 
-        if self.use_bias:
-            score_pred = self.train_set.global_mean
+        if item_id is None:
+            known_item_scores = 0
+            if self.use_bias: # item bias + global bias
+                known_item_scores = np.add(self.i_biases, self.train_set.global_mean)
             if not unk_user:
-                score_pred += self.u_biases[user_id]
-            if not unk_item:
-                score_pred += self.i_biases[item_id]
+                known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
+                if self.use_bias: # user bias
+                    known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
 
-            if not unk_user and not unk_item:
-                score_pred += np.dot(self.u_factors[user_id], self.i_factors[item_id])
-        else:
-            if unk_user or unk_item:
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            score_pred = np.dot(self.u_factors[user_id], self.i_factors[item_id])
-
-        return score_pred
-
-    def score_all(self, user_id):
-        """Predict the scores/ratings of a user for the list of known items.
-
-        Parameters
-        ----------
-        user_id: int, required
-            The index of the user for whom to perform score predictions.
-
-        Returns
-        -------
-        A numpy array
-            A relative score that the user gives to the list of known items
-        """
-
-        known_item_scores = 0
-        if self.use_bias: # item bias + global bias
-            known_item_scores = np.add(self.i_biases, self.train_set.global_mean)
-
-        if self.train_set.is_unk_user(user_id):
             return known_item_scores
+        else:
+            unk_item = self.train_set.is_unk_item(item_id)
 
-        known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
-        if self.use_bias: # user bias
-            known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
-        return known_item_scores
+            if self.use_bias:
+                item_score = self.train_set.global_mean
+                if not unk_user:
+                    item_score += self.u_biases[user_id]
+                if not unk_item:
+                    item_score += self.i_biases[item_id]
+                if not unk_user and not unk_item:
+                    item_score += np.dot(self.u_factors[user_id], self.i_factors[item_id])
+            else:
+                if unk_user or unk_item:
+                    raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+                item_score = np.dot(self.u_factors[user_id], self.i_factors[item_id])
+
+            return item_score
