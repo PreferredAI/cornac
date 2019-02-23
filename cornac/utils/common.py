@@ -29,25 +29,66 @@ def sigmoid(x):
     return 1. / (1. + np.exp(-x))
 
 
-def map_to(x, t_min, t_max, o_min=None, o_max=None):
-    """Map the value of a numpy array "x"
-    from o_min, o_max into a range[t_min,t_max]
+def scale(values, target_min, target_max, source_min=None, source_max=None):
+    """Scale the value of a numpy array "values"
+    from source_min, source_max into a range [target_min, target_max]
+
+    Parameters
+    ----------
+    values : Numpy array, required
+        Values to be clipped.
+
+    target_min : scalar, required
+        Target minimum value.
+
+    target_max : scalar, required
+        Target maximum value.
+
+    source_min : scalar, required, default: None
+        Source minimum value if desired. If None, it will be the minimum of values.
+
+    source_max : scalar, required, default: None
+        Source minimum value if desired. If None, it will be the maximum of values.
+
+    Returns
+    -------
+    res: Numpy array
+        Output values mapped into range [target_min, target_max]
     """
-    if o_min is None:
-        o_min = np.min(x)
-    if o_max is None:
-        o_max = np.max(x)
+    if source_min is None:
+        source_min = np.min(values)
+    if source_max is None:
+        source_max = np.max(values)
 
-    return ((x - o_min) / (o_max - o_min)) * (t_max - t_min) + t_min
+    values = (values - source_min) / (source_max - source_min)
+    values = values * (target_max - target_min) + target_min
+    return values
 
 
-def clipping(x, min_, max_):
+def clip(values, lower_bound, upper_bound):
     """Perform clipping to enforce values to lie
-    in a specific range [min_,max_]
+    in a specific range [lower_bound, upper_bound]
+
+    Parameters
+    ----------
+    values : Numpy array, required
+        Values to be clipped.
+
+    lower_bound : scalar, required
+        Lower bound of the output.
+
+    upper_bound : scalar, required
+        Upper bound of the output.
+
+    Returns
+    -------
+    res: Numpy array
+        Clipped values in range [lower_bound, upper_bound]
     """
-    x = np.where(x > max_, max_, x)
-    x = np.where(x < min_, min_, x)
-    return x
+    values = np.where(values > upper_bound, upper_bound, values)
+    values = np.where(values < lower_bound, lower_bound, values)
+
+    return values
 
 
 def intersects(x, y, assume_unique=False):
@@ -55,6 +96,7 @@ def intersects(x, y, assume_unique=False):
     """
     mask = np.in1d(x, y, assume_unique=assume_unique)
     x_intersects_y = x[mask]
+
     return x_intersects_y
 
 
@@ -63,6 +105,7 @@ def excepts(x, y, assume_unique=False):
     """
     mask = np.in1d(x, y, assume_unique=assume_unique, invert=True)
     x_excepts_y = x[mask]
+
     return x_excepts_y
 
 
