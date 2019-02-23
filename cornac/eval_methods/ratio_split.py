@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..utils.generic_utils import safe_indexing, validate_data_format
+from ..utils.common import safe_indexing, validate_format
 from math import ceil
 from .base_method import BaseMethod
 from ..data import MatrixTrainSet, TestSet
@@ -41,6 +41,9 @@ class RatioSplit(BaseMethod):
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
 
+    seed: bool, optional, default: None
+        Random seed.
+
     exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
 
@@ -49,17 +52,17 @@ class RatioSplit(BaseMethod):
     """
 
     def __init__(self, data, data_format='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0, shuffle=True,
-                 random_state=None, exclude_unknowns=False, verbose=False):
+                 seed=None, exclude_unknowns=False, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
-                            exclude_unknowns=exclude_unknowns, verbose=verbose)
+                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
 
         self._shuffle = shuffle
-        self._random_state = random_state
-        self._train_size, self._val_size, self._test_size = self._validate_sizes(val_size, test_size, len(self._data))
+        self._seed = seed
+        self._train_size, self._val_size, self._test_size = self.validate_size(val_size, test_size, len(self._data))
         self._split_ran = False
 
     @staticmethod
-    def _validate_sizes(val_size, test_size, num_ratings):
+    def validate_size(val_size, test_size, num_ratings):
         if val_size is None:
             val_size = 0.0
         elif val_size < 0:
@@ -102,8 +105,8 @@ class RatioSplit(BaseMethod):
         data_idx = np.arange(len(self._data))
 
         if self._shuffle:
-            if not self._random_state is None:
-                np.random.set_state(self._random_state)
+            if self._seed is not None:
+                np.random.seed(self._seed)
             data_idx = np.random.permutation(data_idx)
 
         train_idx = data_idx[:self._train_size]
@@ -112,11 +115,11 @@ class RatioSplit(BaseMethod):
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
-        val_data = safe_indexing(self._data, val_idx)
+        val_data = None
+        if len(val_idx) > 0:
+            val_data = safe_indexing(self._data, val_idx)
 
-        if self.data_format == 'UIR':
-            self._build_from_uir_format(train_data=train_data, test_data=test_data, val_data=val_data)
-
+        self.build(train_data=train_data, test_data=test_data, val_data=val_data)
         self._split_ran = True
 
         if self.verbose:

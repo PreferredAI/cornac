@@ -45,7 +45,7 @@ class TestSet:
         return self._iid_map[raw_iid]
 
     @classmethod
-    def from_uir_triplets(self, triplet_data, global_uid_map, global_iid_map, global_ui_set, verbose=False):
+    def from_uir(self, triplet_data, global_uid_map, global_iid_map, global_ui_set, verbose=False):
         """Constructing TestSet from triplet data.
 
         Parameters
@@ -103,3 +103,32 @@ class TestSet:
             print('Number of unknown items = {}'.format(unk_item_count))
 
         return self(user_ratings, uid_map, iid_map)
+
+
+class MultimodalTestSet(TestSet):
+    """Test Set
+
+    Parameters
+    ----------
+    user_ratings: :obj:`defaultdict` of :obj:`list`
+        The dictionary containing lists of tuples of the form (item, rating). The keys are user ids.
+
+    uid_map: :obj:`defaultdict`
+        The dictionary containing mapping from original ids to mapped ids of users.
+
+    iid_map: :obj:`defaultdict`
+        The dictionary containing mapping from original ids to mapped ids of items.
+
+    """
+
+    def __init__(self, user_ratings, uid_map, iid_map, **kwargs):
+        super().__init__(user_ratings, uid_map, iid_map)
+        self.add_modules(**kwargs)
+
+    def add_modules(self, **kwargs):
+        self.user_text = kwargs.get('user_text', None)
+        self.item_text = kwargs.get('item_text', None)
+        self.user_image = kwargs.get('user_image', None)
+        self.item_image = kwargs.get('item_image', None)
+        self.user_graph = kwargs.get('user_graph', None)
+        self.item_graph = kwargs.get('item_graph', None)

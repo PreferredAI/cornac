@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 @author: Guo Jingyao <jyguo@smu.edu.sg>
+         Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from .vbpr import *
 from ..recommender import Recommender
+from ...exception import CornacException
+import numpy as np
+
+from ...utils import tryimport
+
+torch = tryimport('torch')
+tqdm = tryimport('tqdm')
 
 
 class VBPR(Recommender):
@@ -12,159 +19,205 @@ class VBPR(Recommender):
 
     Parameters
     ----------
-    k: int, optional, default: 5
-        The dimension of the latent factors.
+    k: int, optional, default: 10
+        The dimension of the gamma latent factors.
 
-    d: int, optional, default: 5
-        The dimension of the latent factors.
+    k2: int, optional, default: 10
+        The dimension of the theta latent factors.
 
-    max_iter: int, optional, default: 100
-        Maximum number of iterations or the number of epochs for SGD.
-
-    aux_info：ndarray, shape (n_items, feature dimension), optional, default:None
-        Image features of items
-
-    learning_rate: float, optional, default: 0.001
-        The learning rate for SGD.
-
-    lamda: float, optional, default: 0.01
-        The regularization parameter.
+    n_epochs: int, optional, default: 20
+        Maximum number of epochs for SGD.
 
     batch_size: int, optional, default: 100
         The batch size for SGD.
 
-    name: string, optional, default: 'BRP'
-        The name of the recommender model.
+    learning_rate: float, optional, default: 0.001
+        The learning rate for SGD.
+
+    lambda_w: float, optional, default: 0.01
+        The regularization hyper-parameter for latent factor weights.
+
+    lambda_b: float, optional, default: 0.01
+        The regularization hyper-parameter for biases.
+
+    lambda_e: float, optional, default: 0.0
+        The regularization hyper-parameter for embedding matrix E and beta prime vector.
+
+    use_gpu: boolean, optional, default: True
+        Whether or not to use GPU to speed up training.
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
-
-    init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
-        please see below the definition of U and V.
-
-    U: ndarray, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
-
-    V: ndarray, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
-
-    E: ndarray, shape (d, feature dimension)
-        The matrix embedding deep CNN feature, optional initialization via init_params.
-
-    Ue: ndarray, shape (n_users, d)
-        The visual factors of users, optional initialization via init_params.
 
     References
     ----------
     * HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.
     """
 
-    def __init__(self, k=10, d=10, max_iter=100, aux_info=None, learning_rate=0.001, lamda=0.01, batch_size=100,
-                 name="vbpr", trainable=True,
-                 init_params=None):
-        Recommender.__init__(self, name=name, trainable=trainable)
+    def __init__(self,
+                 k=10, k2=10,
+                 n_epochs=20, batch_size=100, learning_rate=0.001,
+                 lambda_w=0.01, lambda_b=0.01, lambda_e=0.0,
+                 use_gpu=False, trainable=True, **kwargs):
+        Recommender.__init__(self, name='VBPR', trainable=trainable)
         self.k = k
-        self.d = d
-        self.init_params = init_params
-        self.aux_info = aux_info
-        self.max_iter = max_iter
-        self.name = name
-        self.learning_rate = learning_rate
-        self.lamda = lamda
+        self.k2 = k2
+        self.n_epochs = n_epochs
         self.batch_size = batch_size
+        self.learning_rate = learning_rate
+        self.lambda_w = lambda_w
+        self.lambda_b = lambda_b
+        self.lambda_e = lambda_e
 
-        self.U = init_params['U']  # matrix of user factors
-        self.V = init_params['V']  # matrix of item factors
-        self.E = init_params['E']  # matrix embedding deep CNN feature
-        self.Ue = init_params['Ue']  # visual factors of users
+        # Initial params
+        self.beta_item = kwargs.get('beta_item', None)
+        self.gamma_user = kwargs.get('gamma_user', None)
+        self.gamma_item = kwargs.get('gamma_item', None)
+        self.theta_user = kwargs.get('theta_user', None)
+        self.emb_matrix = kwargs.get('emb_matrix', None)
+        self.beta_prime = kwargs.get('beta_prime', None)
 
-    # fit the recommender model to the traning data
-    def fit(self, X):
-        """Fit the model to observations.
+        if use_gpu and torch.cuda.is_available():
+            self.device = torch.device("cuda:0")
+        else:
+            self.device = torch.device("cpu")
+
+    def _load_or_randn(self, size, init_values=None):
+        if init_values is None:
+            tensor = torch.randn(size, requires_grad=True, device=self.device)
+        else:
+            tensor = torch.tensor(init_values, requires_grad=True, device=self.device)
+        return tensor
+
+    def _init_params(self, n_users, n_items, feature_dim):
+        Bi = self._load_or_randn((n_items), init_values=self.beta_item)
+        Gu = self._load_or_randn((n_users, self.k), init_values=self.gamma_user)
+        Gi = self._load_or_randn((n_items, self.k), init_values=self.gamma_item)
+        Tu = self._load_or_randn((n_users, self.k2), init_values=self.theta_user)
+        E = self._load_or_randn((feature_dim, self.k2), init_values=self.emb_matrix)
+        Bp = self._load_or_randn((feature_dim, 1), init_values=self.beta_prime)
+
+        return Bi, Gu, Gi, Tu, E, Bp
+
+    def _l2_loss(self, *tensors):
+        l2_loss = 0
+        for tensor in tensors:
+            l2_loss += torch.sum(tensor ** 2) / 2
+        return l2_loss
+
+    def fit(self, train_set):
+        """Fit the model.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
-        """
-        if self.trainable:
-            # change the data to original user Id item Id and rating format
-            cooX = X.tocoo()
-            data = np.ndarray(shape=(len(cooX.data), 3), dtype=float)
-            data[:, 0] = cooX.row
-            data[:, 1] = cooX.col
-            data[:, 2] = cooX.data
+        train_set: :obj:`cornac.data.MultimodalTrainSet`
+            Multimodal training set.
 
-            print('Learning...')
-            res = vbpr(X, data, k=self.k, d=self.d, aux_info=self.aux_info, n_epochs=self.max_iter, lamda=self.lamda,
-                       learning_rate=self.learning_rate,
-                       batch_size=self.batch_size, init_params=self.init_params)
-            self.U = res['U']
-            self.V = res['V']
-            self.Ue = res['Ue']
-            self.E = res['E']
-            print('Learning completed')
-        else:
+        """
+        Recommender.fit(self, train_set)
+
+        if not self.trainable:
             print('%s is trained already (trainable = False)' % (self.name))
+            return
 
+        if train_set.item_image is None:
+            raise CornacException('item_image module is required but None.')
 
+        # Item visual feature from CNN
+        self.item_feature = train_set.item_image.data_feature[:self.train_set.num_items]
+        F = torch.from_numpy(self.item_feature).float().to(self.device)
 
+        # Learned parameters
+        Bi, Gu, Gi, Tu, E, Bp = self._init_params(n_users=train_set.num_users,
+                                                  n_items=train_set.num_items,
+                                                  feature_dim=train_set.item_image.feature_dim)
+        optimizer = torch.optim.Adam([Bi, Gu, Gi, Tu, E, Bp], lr=self.learning_rate)
 
-    def score(self, user_index, item_indexes = None):
-        """Predict the scores/ratings of a user for a list of items.
+        for epoch in range(1, self.n_epochs + 1):
+            sum_loss = 0.
+            count = 0
+            progress_bar = tqdm.tqdm(total=train_set.num_batches(self.batch_size),
+                                     desc='Epoch {}/{}'.format(epoch, self.n_epochs))
+            for batch_u, batch_i, batch_j in train_set.uij_iter(self.batch_size, shuffle=True):
+                gamma_u = Gu[batch_u]
+                theta_u = Tu[batch_u]
+
+                beta_i = Bi[batch_i]
+                beta_j = Bi[batch_j]
+                gamma_i = Gi[batch_i]
+                gamma_j = Gi[batch_j]
+                feat_i = F[batch_i]
+                feat_j = F[batch_j]
+
+                gamma_diff = gamma_i - gamma_j
+                feat_diff = feat_i - feat_j
+
+                Xuij = beta_i - beta_j \
+                       + torch.sum(gamma_u * gamma_diff, dim=1) \
+                       + torch.sum(theta_u * feat_diff.mm(E), dim=1) \
+                       + feat_diff.mm(Bp)
+
+                log_likelihood = torch.log(torch.sigmoid(Xuij) + 1e-10).sum()
+
+                reg = self.lambda_w * self._l2_loss(gamma_u, gamma_i, gamma_j, theta_u) \
+                      + self.lambda_b * self._l2_loss(beta_i) \
+                      + self.lambda_b / 10 * self._l2_loss(beta_j) \
+                      + self.lambda_e * self._l2_loss(E, Bp)
+
+                loss = - log_likelihood + reg
+
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+                sum_loss += loss.data.item()
+                count += len(batch_u)
+                if count % (self.batch_size * 10) == 0:
+                    progress_bar.set_postfix(loss=(sum_loss / count))
+                progress_bar.update(1)
+            progress_bar.close()
+
+        self.beta_item = Bi.data.cpu().numpy()
+        self.gamma_user = Gu.data.cpu().numpy()
+        self.gamma_item = Gi.data.cpu().numpy()
+        self.theta_user = Tu.data.cpu().numpy()
+        self.emb_matrix = E.data.cpu().numpy()
+        # pre-computed for faster evaluation
+        self.theta_item = F.mm(E).data.cpu().numpy()
+        self.visual_bias = F.mm(Bp).data.cpu().numpy().ravel()
+
+        print('Optimization finished!')
+
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_index: int, required
-            The index of the user for whom to perform score predictions.
-            
-        item_indexes: 1d array, optional, default: None
-            A list of item indexes for which to predict the rating score.\
-            When "None", score prediction is performed for all test items of the given user. 
+        user_id: int, required
+            The index of the user for whom to perform score prediction.
+
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        Numpy 1d array 
-            Array containing the predicted values for the items of interest
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
         """
+        if item_id is None:
+            known_item_scores = np.add(self.beta_item, self.visual_bias)
+            if not self.train_set.is_unk_user(user_id):
+                known_item_scores += np.dot(self.gamma_item, self.gamma_user[user_id])
+                known_item_scores += np.dot(self.theta_item, self.theta_user[user_id])
 
-        if item_indexes is None:
-            user_pred = self.U[user_index, :].dot(self.V.T) + self.Ue[user_index, :].dot(self.E).dot(self.aux_info.T)
-            # user_pred = self.U[index_user, :].dot(self.V.T) + self.Ue[index_user, :]*self.E.dot(self.aux_info.T)
+            return known_item_scores
         else:
-            user_pred = self.U[user_index, :].dot(self.V[item_indexes,:].T) + self.Ue[user_index, :].dot(self.E).dot(self.aux_info[item_indexes,:].T)
-            
-        # transform user_pred to a flatten array, but keep thinking about another possible format
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+            item_score = np.add(self.beta_item[item_id], self.visual_bias[item_id])
+            if not self.train_set.is_unk_user(user_id):
+                item_score += np.dot(self.gamma_item[item_id], self.gamma_user[user_id])
+                item_score += np.dot(self.theta_item[item_id], self.theta_user[user_id])
 
-        return user_pred
-
-
-
-
-    def rank(self, user_index, known_items = None):
-        """Rank all test items for a given user.
-
-        Parameters
-        ----------
-        user_index: int, required
-            The index of the user for whom to perform item raking.
-        known_items: 1d array, optional, default: None
-            A list of item indices already known by the user
-
-        Returns
-        -------
-        Numpy 1d array 
-            Array of item indices sorted (in decreasing order) relative to some user preference scores. 
-        """  
-        
-        u_pref_score = np.array(self.score(user_index))
-        if known_items is not None:
-            u_pref_score[known_items] = None
-            
-        rank_item_list = (-u_pref_score).argsort()  # ordering the items (in decreasing order) according to the preference score
-
-        return rank_item_list
+            return item_score

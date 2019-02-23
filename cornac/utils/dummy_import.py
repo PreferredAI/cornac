@@ -8,7 +8,7 @@ from types import ModuleType
 
 class DummyModule(ModuleType):
     def __getattr__(self, key):
-        raise ModuleNotFoundError('{} is required but not found!'.format(self.__name__))
+        raise ImportError('{} is required but not found!'.format(self.__name__))
     __all__ = []   # support wildcard imports
 
 def tryimport(name, globals=None, locals=None, fromlist=(), level=0):
