@@ -41,6 +41,9 @@ class RatioSplit(BaseMethod):
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
 
+    seed: bool, optional, default: None
+        Random seed.
+
     exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
 
@@ -49,12 +52,12 @@ class RatioSplit(BaseMethod):
     """
 
     def __init__(self, data, data_format='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0, shuffle=True,
-                 random_state=None, exclude_unknowns=False, verbose=False, **kwargs):
+                 seed=None, exclude_unknowns=False, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
                             exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
 
         self._shuffle = shuffle
-        self._random_state = random_state
+        self._seed = seed
         self._train_size, self._val_size, self._test_size = self.validate_size(val_size, test_size, len(self._data))
         self._split_ran = False
 
@@ -102,8 +105,8 @@ class RatioSplit(BaseMethod):
         data_idx = np.arange(len(self._data))
 
         if self._shuffle:
-            if not self._random_state is None:
-                np.random.set_state(self._random_state)
+            if self._seed is not None:
+                np.random.seed(self._seed)
             data_idx = np.random.permutation(data_idx)
 
         train_idx = data_idx[:self._train_size]
