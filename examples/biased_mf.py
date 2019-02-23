@@ -7,11 +7,10 @@ Example for Matrix Factorization with biases
 """
 
 import cornac
-from cornac.datasets import MovieLens100K
+from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 
-data = MovieLens100K.load_data()
-
+data = movielens.load_100k()
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=False, verbose=True)
 
 mf = cornac.models.MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,

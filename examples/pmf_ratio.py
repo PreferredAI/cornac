@@ -7,12 +7,12 @@ Example to run Probabilistic Matrix Factorization (PMF) model with Ratio Split e
 """
 
 import cornac
-from cornac.datasets import MovieLens100K
+from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 from cornac.models import PMF
 
 # Load the MovieLens 100K dataset
-ml_100k = MovieLens100K.load_data()
+ml_100k = movielens.load_100k()
 
 # Instantiate an evaluation method.
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
