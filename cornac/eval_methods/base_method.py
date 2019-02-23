@@ -245,8 +245,9 @@ class BaseMethod:
         if self.verbose:
             print("\nEvaluation started!")
 
-        all_rating_gts = []
-        all_rating_pds = []
+        all_pd_ratings = []
+        all_gt_ratings = []
+
         metric_user_results = {}
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
@@ -261,14 +262,22 @@ class BaseMethod:
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue
 
-            u_rating_gts = []
-            u_rating_pds = []
+            u_pd_ratings = []
+            u_gt_ratings = []
+
+            u_train_ratings = self.train_set.matrix[user_id].A.ravel()
+            u_train_neg = np.ones_like(u_train_ratings, dtype=np.int)
+            u_train_neg[u_train_ratings >= self.rating_threshold] = 0
+
             if self.exclude_unknowns:
-                u_ranking_gts = np.zeros(self.train_set.num_items)
-                candidate_item_ids = None  # all known items
+                u_gt_pos = np.zeros(self.train_set.num_items, dtype=np.int)
+                u_gt_neg = u_train_neg
+                item_ids = None  # all known items
             else:
-                u_ranking_gts = np.zeros(self.total_items)
-                candidate_item_ids = np.arange(self.total_items)
+                u_gt_pos = np.zeros(self.total_items, dtype=np.int)
+                u_gt_neg = np.ones(self.total_items, dtype=np.int)
+                u_gt_neg[:len(u_train_neg)] = u_train_neg
+                item_ids = np.arange(self.total_items)
 
             for item_id, rating in self.test_set.get_ratings(user_id):
                 # ignore unknown items when self.exclude_unknown
@@ -276,28 +285,33 @@ class BaseMethod:
                     continue
 
                 if len(rating_metrics) > 0:
-                    all_rating_gts.append(rating)
-                    u_rating_gts.append(rating)
+                    all_gt_ratings.append(rating)
+                    u_gt_ratings.append(rating)
 
                     rating_pred = model.rate(user_id, item_id)
-                    all_rating_pds.append(rating_pred)
-                    u_rating_pds.append(rating_pred)
+                    all_pd_ratings.append(rating_pred)
+                    u_pd_ratings.append(rating_pred)
 
                 # constructing ranking ground-truth
                 if rating >= self.rating_threshold:
-                    u_ranking_gts[item_id] = 1
+                    u_gt_pos[item_id] = 1
+                    u_gt_neg[item_id] = 0
 
             # per user evaluation of rating metrics
-            if len(rating_metrics) > 0 and len(u_rating_gts) > 0:
+            if len(rating_metrics) > 0 and len(u_gt_ratings) > 0:
                 for mt in rating_metrics:
-                    mt_score = mt.compute(np.asarray(u_rating_gts), np.asarray(u_rating_pds))
+                    mt_score = mt.compute(gt_ratings=np.asarray(u_gt_ratings),
+                                          pd_ratings=np.asarray(u_pd_ratings))
                     metric_user_results[mt.name][user_id] = mt_score
 
             # evaluation of ranking metrics
-            if len(ranking_metrics) > 0 and u_ranking_gts.sum() > 0:
-                u_ranking_pds = model.rank(user_id, candidate_item_ids)
+            if len(ranking_metrics) > 0 and u_gt_pos.sum() > 0:
+                item_rank, item_scores = model.rank(user_id, item_ids)
                 for mt in ranking_metrics:
-                    mt_score = mt.compute(u_ranking_gts, u_ranking_pds)
+                    mt_score = mt.compute(gt_pos=u_gt_pos,
+                                          gt_neg=u_gt_neg,
+                                          pd_rank=item_rank,
+                                          pd_scores=item_scores)
                     metric_user_results[mt.name][user_id] = mt_score
 
         metric_avg_results = {}
@@ -306,14 +320,15 @@ class BaseMethod:
         for mt in rating_metrics:
             if user_based:  # averaging over users
                 user_results = list(metric_user_results[mt.name].values())
-                metric_avg_results[mt.name] = np.asarray(user_results).mean()
+                metric_avg_results[mt.name] = np.mean(user_results)
             else:  # averaging over ratings
-                metric_avg_results[mt.name] = mt.compute(np.asarray(all_rating_gts), np.asarray(all_rating_pds))
+                metric_avg_results[mt.name] = mt.compute(gt_ratings=np.asarray(all_gt_ratings),
+                                                         pd_ratings=np.asarray(all_pd_ratings))
 
         # avg results of ranking metrics
         for mt in ranking_metrics:
             user_results = list(metric_user_results[mt.name].values())
-            metric_avg_results[mt.name] = np.asarray(user_results).mean()
+            metric_avg_results[mt.name] = np.mean(user_results)
 
         return metric_avg_results, metric_user_results
 
