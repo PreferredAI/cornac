@@ -422,9 +422,3 @@ class AUC(RankingMetric):
         uj_scores = np.tile(neg_scores, len(pos_scores))
 
         return (ui_scores > uj_scores).sum() / len(uj_scores)
-
-        # auc = []
-        # for pos_score in pos_scores:
-        #     auc.append(np.sum(pos_score > neg_scores) / len(neg_scores))
-        #
-        # return np.mean(auc)
