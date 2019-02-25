@@ -2,7 +2,7 @@
 
 """
 Example for Visual Bayesian Personalized Ranking
-Data: http://jmcauley.ucsd.edu/data/tradesy/
+Original data: http://jmcauley.ucsd.edu/data/tradesy/
 
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
