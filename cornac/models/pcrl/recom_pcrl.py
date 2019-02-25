@@ -80,16 +80,10 @@ class PCRL(Recommender):
         self.learning_rate = learning_rate
         self.init_params = init_params
         self.w_determinist = w_determinist
-
-<<<<<<< HEAD
         
         
     #fit the recommender model to the traning data    
     def fit(self, train_set):
-=======
-    # fit the recommender model to the traning data
-    def fit(self, X):
->>>>>>> upstream/master
         """Fit the model to observations.
 
         Parameters
