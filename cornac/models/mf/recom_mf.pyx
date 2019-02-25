@@ -6,7 +6,6 @@
 
 import scipy.sparse as sp
 from cornac.models.recommender import Recommender
-from cornac.utils.generic_utils import intersects
 from cornac.exception import ScoreException
 
 import numpy as np
@@ -40,8 +39,8 @@ class MF(Recommender):
     early_stop: boolean, optional, default: False
         When True, delta loss will be checked after each iteration to stop learning earlier.
 
-    verbose: boolean, optional, default: False
-        When True, some running logs are displayed.
+    verbose: boolean, optional, default: True
+        When True, running logs are displayed.
 
     References
     ----------
@@ -50,7 +49,7 @@ class MF(Recommender):
     """
 
     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 verbose=False):
+                 verbose=True):
         Recommender.__init__(self, name='MF', verbose=verbose)
 
         self.k = k
@@ -59,7 +58,6 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
-        self.fitted = False
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -139,99 +137,64 @@ class MF(Recommender):
             delta_loss = loss - last_loss
             if early_stop and abs(delta_loss) < 1e-5:
                 if verbose:
-                    print('Early stopping, delta_loss = %.4f' % delta_loss)
+                    print('[MF] Early stopping, delta_loss = %.4f' % delta_loss)
                 break
-
             if verbose:
-                print('Iter %d, loss = %.4f' % (iter, loss))
-
+                print('[MF] Iteration %d: loss = %.4f' % (iter, loss))
         if verbose:
-            print('Optimization finished!')
+            print('[MF] Optimization finished!')
 
         self.u_factors = u_factors
         self.i_factors = i_factors
         self.u_biases = u_biases
         self.i_biases = i_biases
-
         self.fitted = True
 
 
-    def score(self, user_id, item_id):
-        """Predict the scores/ratings of a user for a list of items.
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
         user_id: int, required
-            The index of the user for whom to perform score predictions.
+            The index of the user for whom to perform score prediction.
 
-        item_id: int, required
-            The index of the item to be scored by the user.
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        A scalar
-            The estimated score (e.g., rating) for the user and item of interest
-        """
-        if not self.fitted:
-            raise ValueError('You need to fit the model first!')
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
 
+        """
         unk_user = self.train_set.is_unk_user(user_id)
-        unk_item = self.train_set.is_unk_item(item_id)
 
-        if self.use_bias:
-            score_pred = self.train_set.global_mean
+        if item_id is None:
+            known_item_scores = 0
+            if self.use_bias: # item bias + global bias
+                known_item_scores = np.add(self.i_biases, self.train_set.global_mean)
             if not unk_user:
-                score_pred += self.u_biases[user_id]
-            if not unk_item:
-                score_pred += self.i_biases[item_id]
+                known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
+                if self.use_bias: # user bias
+                    known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
 
-            if not unk_user and not unk_item:
-                score_pred += np.dot(self.u_factors[user_id], self.i_factors[item_id])
+            return known_item_scores
         else:
-            if unk_user or unk_item:
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+            unk_item = self.train_set.is_unk_item(item_id)
 
-            score_pred = np.dot(self.u_factors[user_id], self.i_factors[item_id])
-
-        return score_pred
-
-    def rank(self, user_id, candidate_item_ids=None):
-        """Rank all test items for a given user.
-
-        Parameters
-        ----------
-        user_id: int, required
-            The index of the user for whom to perform item raking.
-
-        candidate_item_ids: 1d array, optional, default: None
-            A list of item indices to be ranked by the user.
-            If `None`, list of ranked known item indices will be returned
-
-        Returns
-        -------
-        Numpy 1d array
-            Array of item indices sorted (in decreasing order) relative to some user preference scores.
-        """
-        if not self.fitted:
-            raise ValueError('You need to fit the model first!')
-
-        if self.train_set.is_unk_user(user_id):
             if self.use_bias:
-                known_item_scores = self.i_biases
+                item_score = self.train_set.global_mean
+                if not unk_user:
+                    item_score += self.u_biases[user_id]
+                if not unk_item:
+                    item_score += self.i_biases[item_id]
+                if not unk_user and not unk_item:
+                    item_score += np.dot(self.u_factors[user_id], self.i_factors[item_id])
             else:
-                return self.default_rank(candidate_item_ids)
-        else:
-            known_item_scores = np.dot(self.i_factors, self.u_factors[user_id])
+                if unk_user or unk_item:
+                    raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+                item_score = np.dot(self.u_factors[user_id], self.i_factors[item_id])
 
-        if candidate_item_ids is None:
-            ranked_item_ids = known_item_scores.argsort()[::-1]
-            return ranked_item_ids
-        else:
-            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            pref_scores = np.ones(num_items) * self.train_set.min_rating  # use min_rating to shift unk items to the end
-            pref_scores[:self.train_set.num_items] = known_item_scores
-
-            ranked_item_ids = pref_scores.argsort()[::-1]
-            ranked_item_ids = intersects(ranked_item_ids, candidate_item_ids, assume_unique=True)
-
-            return ranked_item_ids
+            return item_score

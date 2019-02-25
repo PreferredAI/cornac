@@ -3,8 +3,6 @@
 @author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
-
-
 import numpy as np
 from ..recommender import Recommender
 from .pcrl import PCRL_
@@ -13,7 +11,8 @@ from ...exception import ScoreException
 
 
 
-#Recommender class for Probabilistic Collaborative Representation Learning (PCRL)
+
+# Recommender class for Probabilistic Collaborative Representation Learning (PCRL)
 class PCRL(Recommender):
     """Probabilistic Collaborative Representation Learning.
 
@@ -66,26 +65,39 @@ class PCRL(Recommender):
     ----------
     * Salah, Aghiles, and Hady W. Lauw. Probabilistic Collaborative Representation Learning for Personalized Item Recommendation. \
     In UAI 2018.
-    """    
+    """
 
+<<<<<<< HEAD
     def __init__(self, k=100, z_dims = [300], max_iter=300, batch_size = 300,learning_rate = 0.001,aux_info = None, name = "pcrl", trainable = True,
                  verbose=False, w_determinist = True, init_params = {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
+=======
+    def __init__(self, k=100, z_dims=[300], max_iter=300, batch_size=300, learning_rate=0.001, aux_info=None,
+                 name="pcrl", trainable=True, w_determinist=True,
+                 init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
 
-        self.aux_info = aux_info 
+        Recommender.__init__(self, name=name, trainable=trainable)
+>>>>>>> upstream/master
+
+        self.aux_info = aux_info
         self.k = k
-        self.z_dims = z_dims                #the dimension of the second hidden layer (we consider a 2-layers PCRL)
+        self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.init_params = init_params
         self.w_determinist = w_determinist
 
+<<<<<<< HEAD
         
         
     #fit the recommender model to the traning data    
     def fit(self, train_set):
+=======
+    # fit the recommender model to the traning data
+    def fit(self, X):
+>>>>>>> upstream/master
         """Fit the model to observations.
 
         Parameters
@@ -100,9 +112,12 @@ class PCRL(Recommender):
         X = sp.csc_matrix(self.train_set.matrix)
         
         if self.trainable:
-            #intanciate pcrl
-            pcrl_ = PCRL_(cf_data = X, aux_data = self.aux_info, k =self.k, z_dims = self.z_dims, n_epoch=self.max_iter, batch_size = self.batch_size, learning_rate = self.learning_rate, B = 1, w_determinist = self.w_determinist, init_params = self.init_params)
+            # intanciate pcrl
+            pcrl_ = PCRL_(cf_data=X, aux_data=self.aux_info, k=self.k, z_dims=self.z_dims, n_epoch=self.max_iter,
+                          batch_size=self.batch_size, learning_rate=self.learning_rate, B=1,
+                          w_determinist=self.w_determinist, init_params=self.init_params)
             pcrl_.learn()
+<<<<<<< HEAD
                         
             self.Theta = np.array(pcrl_.Gs)/np.array(pcrl_.Gr)
             self.Beta = np.array(pcrl_.Ls)/np.array(pcrl_.Lr)
@@ -112,10 +127,21 @@ class PCRL(Recommender):
       
     def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
+=======
+
+            self.Theta = np.array(pcrl_.Gs) / np.array(pcrl_.Gr)
+            self.Beta = np.array(pcrl_.Ls) / np.array(pcrl_.Lr)
+        else:
+            print('%s is trained already (trainable = False)' % (self.name))
+
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
+>>>>>>> upstream/master
 
         Parameters
         ----------
         user_id: int, required
+<<<<<<< HEAD
             The index of the user for whom to perform score predictions.
             
         item_id: int, required
@@ -182,3 +208,26 @@ class PCRL(Recommender):
     
     
     
+=======
+            The index of the user for whom to perform score prediction.
+
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
+
+        Returns
+        -------
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
+        """
+
+        if item_id is None:
+            user_pred = self.Beta * self.Theta[user_id, :].T
+        else:
+            user_pred = self.Beta[item_id, :] * self.Theta[user_id, :].T
+        # transform user_pred to a flatten array
+        user_pred = np.array(user_pred, dtype='float64').flatten()
+
+        return user_pred
+>>>>>>> upstream/master

@@ -17,10 +17,13 @@ jobs:
           command: |
             sudo pip install --upgrade pip
             sudo pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov
+
             # Install TensorFlow CPU version.
-            sudo pip install tensorflow==1.12.0
+            #sudo pip install tensorflow==1.12.0
+
             # Install PyTorch CPU version.
-            sudo pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
+            #sudo pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
+
             sudo pip install -e .[tests]
       - save_cache:
           key: deps9-{{ .Branch }}

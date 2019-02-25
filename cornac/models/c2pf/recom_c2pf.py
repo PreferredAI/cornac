@@ -152,12 +152,18 @@ class C2PF(Recommender):
         
         
 
+<<<<<<< HEAD
     def score(self, user_id, item_id):
         """Predict the scores/ratings of a user for a list of items.
+=======
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
+>>>>>>> upstream/master
 
         Parameters
         ----------
         user_id: int, required
+<<<<<<< HEAD
             The index of the user for whom to perform score predictions.
             
         item_id: int, required
@@ -229,3 +235,36 @@ class C2PF(Recommender):
             ranked_item_ids = ranked_item_ids[mask]
 
             return ranked_item_ids    
+=======
+            The index of the user for whom to perform score prediction.
+
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
+
+        Returns
+        -------
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
+        """
+        if self.variant == 'c2pf' or self.variant == 'tc2pf':
+            if item_id is None:
+                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[item_id, :].T
+            else:
+                user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
+        elif self.variant == 'rc2pf':
+            if item_id is None:
+                user_pred = self.Xi * self.Theta[user_id, :].T
+            else:
+                user_pred = self.Xi[item_id,] * self.Theta[user_id, :].T
+        else:
+            if item_id is None:
+                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
+            else:
+                user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
+        # transform user_pred to a flatten array,
+        user_pred = np.array(user_pred, dtype='float64').flatten()
+
+        return user_pred
+>>>>>>> upstream/master
