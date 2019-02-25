@@ -39,8 +39,8 @@ class MF(Recommender):
     early_stop: boolean, optional, default: False
         When True, delta loss will be checked after each iteration to stop learning earlier.
 
-    verbose: boolean, optional, default: False
-        When True, some running logs are displayed.
+    verbose: boolean, optional, default: True
+        When True, running logs are displayed.
 
     References
     ----------
@@ -49,7 +49,7 @@ class MF(Recommender):
     """
 
     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 verbose=False):
+                 verbose=True):
         Recommender.__init__(self, name='MF', verbose=verbose)
 
         self.k = k
