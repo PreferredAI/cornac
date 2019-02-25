@@ -65,7 +65,8 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'pandas'
+        'pandas',
+        'tqdm>=4.19'
     ],
     extras_require={
         'tests': ['pytest',
