@@ -42,4 +42,5 @@ def load_feature():
     """
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/tradesy/item_feature.pkl',
                   relative_path='tradesy/item_feature.pkl')
-    return pickle.load(fpath)
+    with open(fpath, 'rb') as f:
+        return pickle.load(f)
