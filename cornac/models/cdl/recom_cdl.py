@@ -9,7 +9,6 @@ from .cdl import *
 import scipy.sparse as sp
 import numpy as np
 from ...exception import ScoreException
-from ...utils.generic_utils import intersects
 
 
 
