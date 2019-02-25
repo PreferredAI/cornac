@@ -153,7 +153,6 @@ class CDL(Recommender):
             user_pred = self.U[user_id, :].dot(self.V.T)
         else:
             user_pred = self.U[user_id,:].dot(self.V[user_id,:].T)
-        # transform user_pred to a flatten array, but keep thinking about another possible format
         user_pred = np.array(user_pred, dtype='float64').flatten()
 
         return user_pred
