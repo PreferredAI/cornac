@@ -102,9 +102,7 @@ class PCRL(Recommender):
             pcrl_ = PCRL_(cf_data=X, aux_data=self.aux_info, k=self.k, z_dims=self.z_dims, n_epoch=self.max_iter,
                           batch_size=self.batch_size, learning_rate=self.learning_rate, B=1,
                           w_determinist=self.w_determinist, init_params=self.init_params)
-            pcrl_.learn()
-<<<<<<< HEAD
-                        
+            pcrl_.learn()                      
             self.Theta = np.array(pcrl_.Gs)/np.array(pcrl_.Gr)
             self.Beta = np.array(pcrl_.Ls)/np.array(pcrl_.Lr)
         elif self.verbose:
