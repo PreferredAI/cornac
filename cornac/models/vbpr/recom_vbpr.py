@@ -106,6 +106,9 @@ class VBPR(Recommender):
             l2_loss += torch.sum(tensor ** 2) / 2
         return l2_loss
 
+    def _inner(self, a, b):
+        return torch.sum(a * b, dim=1)
+
     def fit(self, train_set):
         """Fit the model.
 
@@ -154,8 +157,8 @@ class VBPR(Recommender):
                 feat_diff = feat_i - feat_j
 
                 Xuij = beta_i - beta_j \
-                       + torch.sum(gamma_u * gamma_diff, dim=1) \
-                       + torch.sum(theta_u * feat_diff.mm(E), dim=1) \
+                       + self._inner(gamma_u, gamma_diff) \
+                       + self._inner(theta_u, feat_diff.mm(E)) \
                        + feat_diff.mm(Bp)
 
                 log_likelihood = torch.log(torch.sigmoid(Xuij) + 1e-10).sum()
