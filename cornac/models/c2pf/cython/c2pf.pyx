@@ -93,7 +93,7 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     if init_param['L3_s'] is None:
         tmp = np.copy(C)
         tmp[:,2] = np.random.gamma(100,scale=0.5/100, size= C.shape[0])
-        L3_s = tmp
+        L3_s = np.copy(tmp)
         del(tmp)
     else:
         L3_s = init_param['L3_s']
@@ -102,7 +102,7 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     if init_param['L3_r'] is None: 
         tmp = np.copy(C)
         tmp[:,2] = np.random.gamma(100,scale=0.5/100, size= C.shape[0])
-        L3_r = tmp
+        L3_r = np.copy(tmp)
         del(tmp)
     else:
         L3_r = init_param['L3_r']
