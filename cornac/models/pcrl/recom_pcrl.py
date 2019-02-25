@@ -67,18 +67,10 @@ class PCRL(Recommender):
     In UAI 2018.
     """
 
-<<<<<<< HEAD
     def __init__(self, k=100, z_dims = [300], max_iter=300, batch_size = 300,learning_rate = 0.001,aux_info = None, name = "pcrl", trainable = True,
                  verbose=False, w_determinist = True, init_params = {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
-=======
-    def __init__(self, k=100, z_dims=[300], max_iter=300, batch_size=300, learning_rate=0.001, aux_info=None,
-                 name="pcrl", trainable=True, w_determinist=True,
-                 init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
-
-        Recommender.__init__(self, name=name, trainable=trainable)
->>>>>>> upstream/master
 
         self.aux_info = aux_info
         self.k = k
