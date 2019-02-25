@@ -16,6 +16,9 @@ from collections import OrderedDict
 import numpy as np
 
 
+VALID_DATA_FORMATS = ['UIR', 'UIRT']
+
+
 class BaseMethod:
     """Base Evaluation Method
 
@@ -51,7 +54,7 @@ class BaseMethod:
                  verbose=False,
                  **kwargs):
         self._data = data
-        self.data_format = validate_format(data_format, self.valid_data_formats)
+        self.data_format = validate_format(data_format, VALID_DATA_FORMATS)
         self.train_set = None
         self.test_set = None
         self.val_set = None
@@ -71,10 +74,6 @@ class BaseMethod:
         if verbose:
             print('rating_threshold = {:.1f}'.format(rating_threshold))
             print('exclude_unknowns = {}'.format(exclude_unknowns))
-
-    @property
-    def valid_data_formats(self):
-        return ['UIR', 'UIRT']
 
     @property
     def total_users(self):
@@ -275,8 +274,7 @@ class BaseMethod:
             u_gt_neg = np.ones_like(u_gt_pos, dtype=np.int)
             if not self.train_set.is_unk_user(user_id):
                 u_train_ratings = self.train_set.matrix[user_id].A.ravel()
-                u_train_neg = np.ones_like(u_train_ratings, dtype=np.int)
-                u_train_neg[u_train_ratings >= self.rating_threshold] = 0
+                u_train_neg = np.where(u_train_ratings < self.rating_threshold, 1, 0)
                 u_gt_neg[:len(u_train_neg)] = u_train_neg
 
             for item_id, rating in self.test_set.get_ratings(user_id):
