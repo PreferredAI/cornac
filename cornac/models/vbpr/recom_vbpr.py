@@ -7,11 +7,11 @@
 from ..recommender import Recommender
 from ...exception import CornacException
 import numpy as np
+from tqdm import tqdm
 
 from ...utils import tryimport
 
 torch = tryimport('torch')
-tqdm = tryimport('tqdm')
 
 
 class VBPR(Recommender):
@@ -137,8 +137,8 @@ class VBPR(Recommender):
         for epoch in range(1, self.n_epochs + 1):
             sum_loss = 0.
             count = 0
-            progress_bar = tqdm.tqdm(total=train_set.num_batches(self.batch_size),
-                                     desc='Epoch {}/{}'.format(epoch, self.n_epochs))
+            progress_bar = tqdm(total=train_set.num_batches(self.batch_size),
+                                desc='Epoch {}/{}'.format(epoch, self.n_epochs))
             for batch_u, batch_i, batch_j in train_set.uij_iter(self.batch_size, shuffle=True):
                 gamma_u = Gu[batch_u]
                 theta_u = Tu[batch_u]
