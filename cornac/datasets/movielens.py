@@ -19,9 +19,6 @@ def load_100k(data_format='UIR'):
     data_format: str, default: 'UIR'
         Data format to be returned.
 
-    verbose: bool, default: False
-        The verbosity flag.
-
     Returns
     -------
     data: array-like
@@ -42,9 +39,6 @@ def load_1m(data_format='UIR'):
     ----------
     data_format: str, default: 'UIR'
         Data format to be returned.
-
-    verbose: bool, default: False
-        The verbosity flag.
 
     Returns
     -------
