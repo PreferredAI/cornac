@@ -7,6 +7,7 @@
 import scipy.sparse as sp
 from cornac.models.recommender import Recommender
 from cornac.exception import ScoreException
+import tqdm
 
 import numpy as np
 cimport numpy as np
@@ -49,7 +50,7 @@ class MF(Recommender):
     """
 
     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 verbose=True):
+                 verbose=True, **kwargs):
         Recommender.__init__(self, name='MF', verbose=verbose)
 
         self.k = k
@@ -73,7 +74,6 @@ class MF(Recommender):
         Recommender.fit(self, train_set)
 
         (rid, cid, val) = sp.find(train_set.matrix)
-
         self._fit_sgd(rid=rid, cid=cid, val=val.astype(np.float32))
 
 
@@ -109,46 +109,47 @@ class MF(Recommender):
         cdef floating * user
         cdef floating * item
 
-        for iter in range(1, max_iter + 1):
-            last_loss = loss
-            loss = 0
+        with tqdm.tqdm(total=self.max_iter, disable=not self.verbose) as progress:
+            for epoch in range(self.max_iter):
+                last_loss = loss
+                loss = 0
 
-            for j in range(num_ratings):
-                u, i, r = rid[j], cid[j], val[j]
-                user, item = &u_factors[u, 0], &i_factors[i, 0]
+                for j in range(num_ratings):
+                    u, i, r = rid[j], cid[j], val[j]
+                    user, item = &u_factors[u, 0], &i_factors[i, 0]
 
-                r_pred = 0
-                if use_bias:
-                    r_pred = mu + u_biases[u] + i_biases[i]
+                    r_pred = 0
+                    if use_bias:
+                        r_pred = mu + u_biases[u] + i_biases[i]
 
-                for factor in range(num_factors):
-                    r_pred += user[factor] * item[factor]
+                    for factor in range(num_factors):
+                        r_pred += user[factor] * item[factor]
 
-                error = r - r_pred
-                loss += error * error
+                    error = r - r_pred
+                    loss += error * error
 
-                for factor in range(num_factors):
-                    u_f, i_f = user[factor], item[factor]
-                    user[factor] += lr * (error * i_f - reg * u_f)
-                    item[factor] += lr * (error * u_f - reg * i_f)
+                    for factor in range(num_factors):
+                        u_f, i_f = user[factor], item[factor]
+                        user[factor] += lr * (error * i_f - reg * u_f)
+                        item[factor] += lr * (error * u_f - reg * i_f)
 
-            loss = 0.5 * loss
+                loss = 0.5 * loss
+                progress.update(1)
+                progress.set_postfix({"loss": "%.2f%%" % loss})
 
-            delta_loss = loss - last_loss
-            if early_stop and abs(delta_loss) < 1e-5:
-                if verbose:
-                    print('[MF] Early stopping, delta_loss = %.4f' % delta_loss)
-                break
-            if verbose:
-                print('[MF] Iteration %d: loss = %.4f' % (iter, loss))
+                delta_loss = loss - last_loss
+                if early_stop and abs(delta_loss) < 1e-5:
+                    if verbose:
+                        print('Early stopping, delta_loss = %.4f' % delta_loss)
+                    break
+
         if verbose:
-            print('[MF] Optimization finished!')
+            print('Optimization finished!')
 
         self.u_factors = u_factors
         self.i_factors = i_factors
         self.u_biases = u_biases
         self.i_biases = i_biases
-        self.fitted = True
 
 
     def score(self, user_id, item_id=None):
