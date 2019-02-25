@@ -209,8 +209,8 @@ def test_auc():
     auc_score = auc.compute(pd_scores, gt_pos)
     assert 1.0 == auc_score
 
-    gt_pos = np.array([0, 1, 0, 0])
-    gt_neg = np.array([0, 0, 1, 1])
+    gt_pos = np.array([0, 0, 1, 0])
+    gt_neg = np.array([1, 1, 0, 0])
     pd_scores = np.array([0.1, 0.4, 0.35, 0.8])
     auc_score = auc.compute(pd_scores, gt_pos, gt_neg)
     assert 0.5 == auc_score
