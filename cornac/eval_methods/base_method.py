@@ -4,12 +4,19 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..data import MatrixTrainSet, TestSet
-from ..utils.generic_utils import validate_data_format
+from ..data import TextModule
+from ..data import ImageModule
+from ..data import GraphModule
+from ..data import MultimodalTrainSet
+from ..data import MultimodalTestSet
+from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from collections import OrderedDict
 import numpy as np
+
+
+VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
 
 class BaseMethod:
@@ -17,12 +24,11 @@ class BaseMethod:
 
     Parameters
     ----------
+    data: array-like
+        The original data.
 
-    train_set: :obj:`TrainSet<cornac.data.TrainSet>`, optional, default: None
-        The training data.
-
-    test_set: :obj:`TestSet<cornac.data.TestSet>`, optional, default: None
-        The test data.
+    data_format: str, default: 'UIR'
+        The format of given data.
 
     total_users: int, optional, default: None
         Total number of unique users in the data including train, val, and test sets
@@ -41,24 +47,111 @@ class BaseMethod:
         Output running log
     """
 
-    def __init__(self, data=None, data_format='UIR', train_set=None, test_set=None,
-                 total_users=None, total_items=None, rating_threshold=1.0,
-                 exclude_unknowns=False, verbose=False):
+    def __init__(self, data=None,
+                 data_format='UIR',
+                 rating_threshold=1.0,
+                 exclude_unknowns=False,
+                 verbose=False,
+                 **kwargs):
         self._data = data
-        self.data_format = validate_data_format(data_format)
-        self.train_set = train_set
-        self.test_set = test_set
-        self.total_users = total_users
-        self.total_items = total_items
+        self.data_format = validate_format(data_format, VALID_DATA_FORMATS)
+        self.train_set = None
+        self.test_set = None
+        self.val_set = None
         self.rating_threshold = rating_threshold
         self.exclude_unknowns = exclude_unknowns
         self.verbose = verbose
+        self.global_uid_map = OrderedDict()
+        self.global_iid_map = OrderedDict()
+
+        self.user_text = kwargs.get('user_text', None)
+        self.user_image = kwargs.get('user_image', None)
+        self.user_graph = kwargs.get('user_graph', None)
+        self.item_text = kwargs.get('item_text', None)
+        self.item_image = kwargs.get('item_image', None)
+        self.item_graph = kwargs.get('item_graph', None)
 
         if verbose:
             print('rating_threshold = {:.1f}'.format(rating_threshold))
             print('exclude_unknowns = {}'.format(exclude_unknowns))
 
+    @property
+    def total_users(self):
+        return len(self.global_uid_map)
+
+    @property
+    def total_items(self):
+        return len(self.global_iid_map)
+
+    @property
+    def user_text(self):
+        return self.__user_text
+
+    @user_text.setter
+    def user_text(self, input_module):
+        if input_module is not None and not isinstance(input_module, TextModule):
+            raise ValueError('input_module has to be instance of TextModule but {}'.format(type(input_module)))
+        self.__user_text = input_module
+
+    @property
+    def user_image(self):
+        return self.__user_image
+
+    @user_image.setter
+    def user_image(self, input_module):
+        if input_module is not None and not isinstance(input_module, ImageModule):
+            raise ValueError('input_module has to be instance of ImageModule but {}'.format(type(input_module)))
+        self.__user_image = input_module
+
+    @property
+    def user_graph(self):
+        return self.__user_graph
+
+    @user_graph.setter
+    def user_graph(self, input_module):
+        if input_module is not None and not isinstance(input_module, GraphModule):
+            raise ValueError('input_module has to be instance of GraphModule but {}'.format(type(input_module)))
+        self.__user_graph = input_module
+
+    @property
+    def item_text(self):
+        return self.__item_text
+
+    @item_text.setter
+    def item_text(self, input_module):
+        if input_module is not None and not isinstance(input_module, TextModule):
+            raise ValueError('input_module has to be instance of TextModule but {}'.format(type(input_module)))
+        self.__item_text = input_module
+
+    @property
+    def item_image(self):
+        return self.__item_image
+
+    @item_image.setter
+    def item_image(self, input_module):
+        if input_module is not None and not isinstance(input_module, ImageModule):
+            raise ValueError('input_module has to be instance of ImageModule but {}'.format(type(input_module)))
+        self.__item_image = input_module
+
+    @property
+    def item_graph(self):
+        return self.__item_graph
+
+    @item_graph.setter
+    def item_graph(self, input_module):
+        if input_module is not None and not isinstance(input_module, GraphModule):
+            raise ValueError('input_module has to be instance of GraphModule but {}'.format(type(input_module)))
+        self.__item_graph = input_module
+
     def _organize_metrics(self, metrics):
+        """Organize metrics according to their types (rating or raking)
+
+        Parameters
+        ----------
+        metrics: :obj:`iterable`
+            List of metrics.
+
+        """
         if isinstance(metrics, dict):
             rating_metrics = metrics.get('rating', [])
             ranking_metrics = metrics.get('ranking', [])
@@ -70,31 +163,90 @@ class BaseMethod:
 
         return rating_metrics, ranking_metrics
 
+    def _build_uir(self, train_data, test_data, val_data=None):
+        if train_data is None:
+            raise ValueError('train_data is required but None!')
+        if test_data is None:
+            raise ValueError('test_data is required but None!')
+
+        global_ui_set = set()  # avoid duplicate ratings in the data
+
+        if self.verbose:
+            print('Building training set')
+        self.train_set = MultimodalTrainSet.from_uir(
+            train_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+
+        if self.verbose:
+            print('Building test set')
+        self.test_set = MultimodalTestSet.from_uir(
+            test_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+
+        if val_data is not None:
+            if self.verbose:
+                print('Building validation set')
+            self.val_set = MultimodalTestSet.from_uir(
+                val_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+
+    def _build_modules(self):
+        for user_module in [self.user_text, self.user_image, self.user_graph]:
+            if user_module is None: continue
+            user_module.build(ordered_ids=self.global_uid_map.keys())
+
+        for item_module in [self.item_text, self.item_image, self.item_graph]:
+            if item_module is None: continue
+            item_module.build(ordered_ids=self.global_iid_map.keys())
+
+        for data_set in [self.train_set, self.test_set, self.val_set]:
+            if data_set is None: continue
+            data_set.add_modules(user_text=self.user_text,
+                                 user_image=self.user_image,
+                                 user_graph=self.user_graph,
+                                 item_text=self.item_text,
+                                 item_image=self.item_image,
+                                 item_graph=self.item_graph)
+
+    def build(self, train_data, test_data, val_data=None):
+        self.global_uid_map.clear()
+        self.global_iid_map.clear()
+
+        if self.data_format == 'UIR':
+            self._build_uir(train_data, test_data, val_data)
+
+        self._build_modules()
+
     def evaluate(self, model, metrics, user_based):
+        """Evaluate given models according to given metrics
+
+        Parameters
+        ----------
+        model: :obj:`cornac.models.Recommender`
+            Recommender model to be evaluated.
+
+        metrics: :obj:`iterable`
+            List of metrics.
+
+        user_based: bool
+            Evaluation mode. Whether results are averaging based on number of users or number of ratings.
+
+        """
         rating_metrics, ranking_metrics = self._organize_metrics(metrics)
 
         if self.train_set is None:
             raise ValueError('train_set is required but None!')
-
         if self.test_set is None:
             raise ValueError('test_set is required but None!')
 
-        if self.total_users is None:
-            self.total_users = len(set(self.train_set.get_uid_list() + self.test_set.get_uid_list()))
-
-        if self.total_items is None:
-            self.total_items = len(set(self.train_set.get_iid_list() + self.test_set.get_iid_list()))
-
         if self.verbose:
-            print("Training started!")
+            print("\nTraining started!")
 
         model.fit(self.train_set)
 
         if self.verbose:
-            print("Evaluation started!")
+            print("\nEvaluation started!")
 
-        all_rating_gts = []
-        all_rating_pds = []
+        all_pd_ratings = []
+        all_gt_ratings = []
+
         metric_user_results = {}
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
@@ -103,20 +255,27 @@ class BaseMethod:
         for i, user_id in enumerate(self.test_set.get_users()):
             if self.verbose:
                 if i % 1000 == 0 or (i + 1) == num_eval_users:
-                    print(i, "users evaluated")
+                    print("[{}]".format(model.name), i, "users evaluated")
 
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue
 
-            u_rating_gts = []
-            u_rating_pds = []
+            u_pd_ratings = []
+            u_gt_ratings = []
+
             if self.exclude_unknowns:
-                u_ranking_gts = np.zeros(self.train_set.num_items)
-                candidate_item_ids = None  # all known items
+                u_gt_pos = np.zeros(self.train_set.num_items, dtype=np.int)
+                item_ids = None  # all known items
             else:
-                u_ranking_gts = np.zeros(self.total_items)
-                candidate_item_ids = np.arange(self.total_items)
+                u_gt_pos = np.zeros(self.total_items, dtype=np.int)
+                item_ids = np.arange(self.total_items)
+
+            u_gt_neg = np.ones_like(u_gt_pos, dtype=np.int)
+            if not self.train_set.is_unk_user(user_id):
+                u_train_ratings = self.train_set.matrix[user_id].A.ravel()
+                u_train_neg = np.where(u_train_ratings < self.rating_threshold, 1, 0)
+                u_gt_neg[:len(u_train_neg)] = u_train_neg
 
             for item_id, rating in self.test_set.get_ratings(user_id):
                 # ignore unknown items when self.exclude_unknown
@@ -124,28 +283,33 @@ class BaseMethod:
                     continue
 
                 if len(rating_metrics) > 0:
-                    all_rating_gts.append(rating)
-                    u_rating_gts.append(rating)
+                    all_gt_ratings.append(rating)
+                    u_gt_ratings.append(rating)
 
                     rating_pred = model.rate(user_id, item_id)
-                    all_rating_pds.append(rating_pred)
-                    u_rating_pds.append(rating_pred)
+                    all_pd_ratings.append(rating_pred)
+                    u_pd_ratings.append(rating_pred)
 
                 # constructing ranking ground-truth
                 if rating >= self.rating_threshold:
-                    u_ranking_gts[item_id] = 1
+                    u_gt_pos[item_id] = 1
+                    u_gt_neg[item_id] = 0
 
             # per user evaluation of rating metrics
-            if len(rating_metrics) > 0 and len(u_rating_gts) > 0:
+            if len(rating_metrics) > 0 and len(u_gt_ratings) > 0:
                 for mt in rating_metrics:
-                    mt_score = mt.compute(np.asarray(u_rating_gts), np.asarray(u_rating_pds))
+                    mt_score = mt.compute(gt_ratings=np.asarray(u_gt_ratings),
+                                          pd_ratings=np.asarray(u_pd_ratings))
                     metric_user_results[mt.name][user_id] = mt_score
 
             # evaluation of ranking metrics
-            if len(ranking_metrics) > 0 and u_ranking_gts.sum() > 0:
-                u_ranking_pds = model.rank(user_id, candidate_item_ids)
+            if len(ranking_metrics) > 0 and u_gt_pos.sum() > 0:
+                item_rank, item_scores = model.rank(user_id, item_ids)
                 for mt in ranking_metrics:
-                    mt_score = mt.compute(u_ranking_gts, u_ranking_pds)
+                    mt_score = mt.compute(gt_pos=u_gt_pos,
+                                          gt_neg=u_gt_neg,
+                                          pd_rank=item_rank,
+                                          pd_scores=item_scores)
                     metric_user_results[mt.name][user_id] = mt_score
 
         metric_avg_results = {}
@@ -154,53 +318,53 @@ class BaseMethod:
         for mt in rating_metrics:
             if user_based:  # averaging over users
                 user_results = list(metric_user_results[mt.name].values())
-                metric_avg_results[mt.name] = np.asarray(user_results).mean()
+                metric_avg_results[mt.name] = np.mean(user_results)
             else:  # averaging over ratings
-                metric_avg_results[mt.name] = mt.compute(np.asarray(all_rating_gts), np.asarray(all_rating_pds))
+                metric_avg_results[mt.name] = mt.compute(gt_ratings=np.asarray(all_gt_ratings),
+                                                         pd_ratings=np.asarray(all_pd_ratings))
 
         # avg results of ranking metrics
         for mt in ranking_metrics:
             user_results = list(metric_user_results[mt.name].values())
-            metric_avg_results[mt.name] = np.asarray(user_results).mean()
+            metric_avg_results[mt.name] = np.mean(user_results)
 
         return metric_avg_results, metric_user_results
 
-    def _build_from_uir_format(self, train_data, test_data, val_data=None):
-        global_uid_map = OrderedDict()
-        global_iid_map = OrderedDict()
-        global_ui_set = set()  # avoid duplicate ratings in the data
-
-        if train_data is None:
-            raise ValueError('train_data is required but None!')
-
-        if test_data is None:
-            raise ValueError('test_data is required but None!')
-
-        if self.verbose:
-            print('Building training set')
-        self.train_set = MatrixTrainSet.from_uir_triplets(
-            train_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        if self.verbose:
-            print('Building test set')
-        self.test_set = TestSet.from_uir_triplets(
-            test_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        if not val_data is None:
-            if self.verbose:
-                print('Building validation set')
-            self.val_set = TestSet.from_uir_triplets(
-                val_data, global_uid_map, global_iid_map, global_ui_set, self.verbose)
-
-        self.total_users = len(global_uid_map)
-        self.total_items = len(global_iid_map)
-
     @classmethod
-    def from_provided(cls, train_data, test_data, val_data=None, data_format='UIR',
-                      rating_threshold=1.0, exclude_unknowns=False, verbose=False):
+    def from_splits(cls, train_data, test_data, val_data=None, data_format='UIR',
+                    rating_threshold=1.0, exclude_unknowns=False, verbose=False):
+        """Constructing evaluation method given data.
+
+        Parameters
+        ----------
+        train_data: array-like
+            Training data
+
+        test_data: array-like
+            Test data
+
+        val_data: array-like
+            Validation data
+
+        data_format: str, default: 'UIR'
+            The format of given data.
+
+        rating_threshold: float, default: 1.0
+            Threshold to decide positive or negative preferences.
+
+        exclude_unknowns: bool, default: False
+            Whether to exclude unknown users/items in evaluation.
+
+        verbose: bool, default: False
+            The verbosity flag.
+
+        Returns
+        -------
+        method: :obj:`<cornac.eval_methods.BaseMethod>`
+            Evaluation method object.
+
+        """
         method = cls(data_format=data_format, rating_threshold=rating_threshold,
                      exclude_unknowns=exclude_unknowns, verbose=verbose)
-        if method.data_format == 'UIR':
-            method._build_from_uir_format(train_data, test_data, val_data)
-
+        method.build(train_data=train_data, test_data=test_data, val_data=val_data)
         return method

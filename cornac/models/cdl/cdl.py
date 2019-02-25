@@ -4,10 +4,12 @@
 @author: Trieu Thi Ly Ly 
 """
 
-import numpy as np 
-import tensorflow as tf 
 import numpy as np
 from ...utils.data_utils import Dataset
+
+from ...utils import tryimport
+tf = tryimport('tensorflow')
+
 
 # Stacked Denoising Autoencoder
 def sdae(text_information_corrupted, autoencoder_structure, W, b, batch_size, cdl_keep_prob):

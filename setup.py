@@ -1,5 +1,4 @@
 from setuptools import Extension, setup, find_packages
-import os
 import numpy
 
 try:
@@ -12,7 +11,6 @@ else:
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
-
 
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
@@ -30,18 +28,16 @@ extensions = [
     Extension(name='pmf',
               sources=['cornac/models/pmf/cython/pmf' + ext],
               language='c++'),
-	
-	Extension('hpf',
+    Extension('hpf',
               sources=['cornac/models/hpf/cython/hpf' + ext,
                        'cornac/models/hpf/cpp/cpp_hpf.cpp'],
-			  include_dirs=[
+              include_dirs=[
                   'cornac/models/hpf/cpp/',
                   'cornac/utils/external/eigen/Eigen',
                   'cornac/utils/external/eigen/unsupported/Eigen/'
               ],
-			  language='c++'),
-	
-    Extension(name='cornac.models.mf.recom_mf',
+              language='c++'),
+    Extension(name='recom_mf',
               sources=['cornac/models/mf/recom_mf' + ext],
               include_dirs=[numpy.get_include()],
               language='c++')
@@ -53,12 +49,6 @@ cmdclass = {}
 if USE_CYTHON:
     extensions = cythonize(extensions)
     cmdclass.update({'build_ext': build_ext})
-
-# Handling PyTorch dependency
-if os.name == 'nt':
-    torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-win_amd64.whl'
-elif os.name == 'posix':
-    torch_dl = 'http://download.pytorch.org/whl/cpu/torch-0.4.1-cp36-cp36m-linux_x86_64.whl'
 
 setup(
     name='cornac',
@@ -75,9 +65,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'pandas',
-        'tensorflow>=1.2.1',
-        'torch>=0.4.1'
+        'pandas'
     ],
     extras_require={
         'tests': ['pytest',
@@ -86,7 +74,6 @@ setup(
                   'pytest-cov']
     },
     cmdclass=cmdclass,
-    dependency_links=[torch_dl],
     packages=find_packages(),
     classifiers=(
         'Development Status :: 3 - Alpha',

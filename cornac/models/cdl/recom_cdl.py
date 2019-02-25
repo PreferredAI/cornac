@@ -128,66 +128,32 @@ class CDL(Recommender):
         elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
         
-                
-    def score(self, user_id, item_id):
-        """Predict the scores/ratings of a user for a list of items.
+    
+
+    def score(self, user_id, item_id=None):
+        """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
         user_id: int, required
-            The index of the user for whom to perform score predictions.
-            
-        item_id: int, required
-            The index of the item to be scored by the user.
+            The index of the user for whom to perform score prediction.
+
+        item_id: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
 
         Returns
         -------
-        A scalar
-            The estimated score (e.g., rating) for the user and item of interest
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+
         """
         
-        if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
-            raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-        
-        user_pred = self.U[user_id,:].dot(self.V[item_id,:])
-        return user_pred
-    
-    
-
-
-
-    def rank(self, user_id, candidate_item_ids=None):
-        """Rank all test items for a given user.
-
-        Parameters
-        ----------
-        user_id: int, required
-            The index of the user for whom to perform item raking.
-
-        candidate_item_ids: 1d array, optional, default: None
-            A list of item indices to be ranked by the user.
-            If `None`, list of ranked known item indices will be returned
-
-        Returns
-        -------
-        Numpy 1d array
-            Array of item indices sorted (in decreasing order) relative to some user preference scores.
-        """
-
-        if self.train_set.is_unk_user(user_id):
-            return self.default_rank(candidate_item_ids)
-
-        known_item_scores = self.V.dot(self.U[user_id, :])
-
-        if candidate_item_ids is None:
-            ranked_item_ids = known_item_scores.argsort()[::-1]
-            return ranked_item_ids
+        if item_id is None:
+            user_pred = self.U[user_id, :].dot(self.V.T)
         else:
-            num_items = max(self.train_set.num_items, max(candidate_item_ids) + 1)
-            user_pref_scores = np.zeros(num_items) # you can use default score if any: user_pref_scores = np.ones(num_items) * self.default_score()
-            user_pref_scores[:self.train_set.num_items] = known_item_scores
+            user_pred = self.U[user_id,:].dot(self.V[user_id,:].T)
+        # transform user_pred to a flatten array, but keep thinking about another possible format
+        user_pred = np.array(user_pred, dtype='float64').flatten()
 
-            ranked_item_ids = user_pref_scores.argsort()[::-1]
-            ranked_item_ids = intersects(ranked_item_ids, candidate_item_ids, assume_unique=True)
-
-            return ranked_item_ids
+        return user_pred

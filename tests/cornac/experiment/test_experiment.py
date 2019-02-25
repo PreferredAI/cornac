@@ -4,9 +4,8 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-import os
-from cornac.data.reader import Reader
-from cornac.eval_methods import RatioSplit
+from cornac.data import reader
+from cornac.eval_methods import RatioSplit, CrossValidation
 from cornac.models import PMF
 from cornac.metrics import MAE, RMSE, Recall, FMeasure
 from cornac.experiment.experiment import Experiment
@@ -14,7 +13,7 @@ from cornac.experiment.experiment import Experiment
 
 def test_with_ratio_split():
     data_file = './tests/data.txt'
-    data = Reader.read_uir_triplets(data_file)
+    data = reader.read_uir(data_file)
     exp = Experiment(eval_method=RatioSplit(data, verbose=True),
                      models=[PMF(1, 0)],
                      metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
@@ -39,3 +38,13 @@ def test_with_ratio_split():
         Experiment(None, [PMF(1, 0)], None)
     except ValueError:
         assert True
+
+
+def test_with_cross_validation():
+    data_file = './tests/data.txt'
+    data = reader.read_uir(data_file)
+    exp = Experiment(eval_method=CrossValidation(data),
+                     models=[PMF(1, 0)],
+                     metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
+                     verbose=True)
+    exp.run()
