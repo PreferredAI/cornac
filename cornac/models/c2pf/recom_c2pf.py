@@ -173,7 +173,7 @@ class C2PF(Recommender):
         """
         if self.variant == 'c2pf' or self.variant == 'tc2pf':
             if item_id is None:
-                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[item_id, :].T
+                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
             else:
                 user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
         elif self.variant == 'rc2pf':
