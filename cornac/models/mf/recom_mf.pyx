@@ -95,61 +95,60 @@ class MF(Recommender):
         cdef bool early_stop = self.early_stop
         cdef bool verbose = self.verbose
 
-        cdef floating[:, :] u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01).astype(np.float32)
-        cdef floating[:, :] i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01).astype(np.float32)
-        cdef floating[:] u_biases = np.zeros([num_users], dtype=np.float32)
-        cdef floating[:] i_biases = np.zeros([num_items], dtype=np.float32)
+        cdef floating[:, :] U = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01).astype(np.float32)
+        cdef floating[:, :] V = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01).astype(np.float32)
+        cdef floating[:] Bu = np.zeros([num_users], dtype=np.float32)
+        cdef floating[:] Bi = np.zeros([num_items], dtype=np.float32)
 
         cdef floating lr = self.learning_rate
         cdef floating loss = 0
         cdef floating last_loss = 0
         cdef floating r, r_pred, error, u_f, i_f, delta_loss
-        cdef integral u, i, factor, j
+        cdef integral u, i, f, j
 
-        cdef floating * user
-        cdef floating * item
+        cdef floating * u_factors
+        cdef floating * i_factors
 
-        with tqdm.tqdm(total=self.max_iter, disable=not self.verbose) as progress:
-            for epoch in range(self.max_iter):
-                last_loss = loss
-                loss = 0
+        progress = tqdm.trange(self.max_iter, disable=not self.verbose)
+        for epoch in progress:
+            last_loss = loss
+            loss = 0
 
-                for j in range(num_ratings):
-                    u, i, r = rid[j], cid[j], val[j]
-                    user, item = &u_factors[u, 0], &i_factors[i, 0]
+            for j in range(num_ratings):
+                u, i, r = rid[j], cid[j], val[j]
+                u_factors, i_factors = &U[u, 0], &V[i, 0]
 
-                    r_pred = 0
-                    if use_bias:
-                        r_pred = mu + u_biases[u] + i_biases[i]
+                r_pred = 0
+                if use_bias:
+                    r_pred = mu + Bu[u] + Bi[i]
 
-                    for factor in range(num_factors):
-                        r_pred += user[factor] * item[factor]
+                for f in range(num_factors):
+                    r_pred += u_factors[f] * i_factors[f]
 
-                    error = r - r_pred
-                    loss += error * error
+                error = r - r_pred
+                loss += error * error
 
-                    for factor in range(num_factors):
-                        u_f, i_f = user[factor], item[factor]
-                        user[factor] += lr * (error * i_f - reg * u_f)
-                        item[factor] += lr * (error * u_f - reg * i_f)
+                for f in range(num_factors):
+                    u_f, i_f = u_factors[f], u_factors[f]
+                    u_factors[f] += lr * (error * i_f - reg * u_f)
+                    i_factors[f] += lr * (error * u_f - reg * i_f)
 
-                loss = 0.5 * loss
-                progress.update(1)
-                progress.set_postfix({"loss": "%.2f%%" % loss})
+            loss = 0.5 * loss
+            progress.set_postfix({"loss": "%.2f%%" % loss})
 
-                delta_loss = loss - last_loss
-                if early_stop and abs(delta_loss) < 1e-5:
-                    if verbose:
-                        print('Early stopping, delta_loss = %.4f' % delta_loss)
-                    break
+            delta_loss = loss - last_loss
+            if early_stop and abs(delta_loss) < 1e-5:
+                if verbose:
+                    print('Early stopping, delta_loss = %.4f' % delta_loss)
+                break
 
         if verbose:
             print('Optimization finished!')
 
-        self.u_factors = u_factors
-        self.i_factors = i_factors
-        self.u_biases = u_biases
-        self.i_biases = i_biases
+        self.u_factors = U
+        self.i_factors = V
+        self.u_biases = Bu
+        self.i_biases = Bi
 
 
     def score(self, user_id, item_id=None):
