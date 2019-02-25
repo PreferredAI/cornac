@@ -10,7 +10,6 @@ from cornac.exception import ScoreException
 import tqdm
 
 import numpy as np
-cimport numpy as np
 
 cimport cython
 from cython cimport floating, integral
@@ -106,35 +105,36 @@ class MF(Recommender):
         cdef floating r, r_pred, error, u_f, i_f, delta_loss
         cdef integral u, i, f, j
 
-        cdef floating * u_factors
-        cdef floating * i_factors
+        cdef floating * user
+        cdef floating * item
 
-        progress = tqdm.trange(self.max_iter, disable=not self.verbose)
+        progress = tqdm.trange(max_iter, disable=not verbose)
         for epoch in progress:
             last_loss = loss
             loss = 0
 
             for j in range(num_ratings):
                 u, i, r = rid[j], cid[j], val[j]
-                u_factors, i_factors = &U[u, 0], &V[i, 0]
+                user, item = &U[u, 0], &V[i, 0]
 
                 r_pred = 0
                 if use_bias:
                     r_pred = mu + Bu[u] + Bi[i]
 
                 for f in range(num_factors):
-                    r_pred += u_factors[f] * i_factors[f]
+                    r_pred += user[f] * item[f]
 
                 error = r - r_pred
                 loss += error * error
 
                 for f in range(num_factors):
-                    u_f, i_f = u_factors[f], u_factors[f]
-                    u_factors[f] += lr * (error * i_f - reg * u_f)
-                    i_factors[f] += lr * (error * u_f - reg * i_f)
+                    u_f, i_f = user[f], item[f]
+                    user[f] += lr * (error * i_f - reg * u_f)
+                    item[f] += lr * (error * u_f - reg * i_f)
 
             loss = 0.5 * loss
-            progress.set_postfix({"loss": "%.2f%%" % loss})
+            progress.update(1)
+            progress.set_postfix({"loss": "%.2f" % loss})
 
             delta_loss = loss - last_loss
             if early_stop and abs(delta_loss) < 1e-5:
