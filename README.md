@@ -51,7 +51,7 @@ python3 setup.py install
 
 **Note:** 
 
-Some installed dependencies are CPU versions. If you want to utilize your GPU, you might consider:
+Additional dependencies required by some models are listed [here](cornac/models/README.md). If you want to utilize your GPU, you might consider:
 
 - [TensorFlow installation instructions](https://www.tensorflow.org/install/).
 - [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
@@ -66,9 +66,9 @@ This example will show you how to run your very first experiment.
 
 - Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
 ```python
-from cornac.datasets import MovieLens100K
+from cornac.datasets import movielens
 
-ml_100k = MovieLens100K.load_data()
+ml_100k = movielens.load_100k()
 ```
 
 - Instantiate an evaluation method. Here we split the data based on ratio.
@@ -110,6 +110,18 @@ PMF  0.760277  0.919413   0.081803        0.0462
 ```
 
 For more details, please take a look at our [examples](examples).
+
+## Models
+
+The recommender models supported by Cornac are listed [here](cornac/models/README.md). Why don't you join us to lengthen the list?
+
+## Support
+
+Your contributions at any level of the library are welcome. If you intend to contribute, please:
+- Fork the Cornac repository to your own account.
+- Make changes and create pull requests.
+
+You can also post bug reports and feature requests in [GitHub issues](https://github.com/PreferredAI/cornac/issues).
 
 ## License
 
