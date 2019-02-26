@@ -14,6 +14,7 @@ from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from collections import OrderedDict
 import numpy as np
+import tqdm
 
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
@@ -251,12 +252,7 @@ class BaseMethod:
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
-        num_eval_users = len(self.test_set.get_users())
-        for i, user_id in enumerate(self.test_set.get_users()):
-            if self.verbose:
-                if i % 1000 == 0 or (i + 1) == num_eval_users:
-                    print("[{}]".format(model.name), i, "users evaluated")
-
+        for user_id in tqdm.tqdm(self.test_set.get_users(), disable=not self.verbose):
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue
