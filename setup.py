@@ -54,12 +54,12 @@ else:
     compile_args = ['-Wno-unused-function', '-Wno-maybe-uninitialized', '-O3', '-ffast-math']
 
     if 'darwin' in platform.platform().lower():
+        compile_args.append("-std=libc++")
+        link_args.append("-std=libc++")
+
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
-
-            compile_args.append("-std=libc++")
-            link_args.append("-std=libc++")
         else:
             USE_OPENMP = False
             print('No GCC available. Install gcc from Homebrew '
