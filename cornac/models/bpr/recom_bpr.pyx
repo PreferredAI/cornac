@@ -11,7 +11,6 @@ import numpy as np
 cimport cython
 from cython cimport floating, integral
 import multiprocessing
-import random
 import tqdm
 
 from cython.parallel import parallel, prange

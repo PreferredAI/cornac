@@ -38,20 +38,6 @@ def extract_gcc_binaries():
         return None
 
 
-# Try to use GCC on OSX for OpenMP support.
-if 'darwin' in platform.platform().lower():
-    gcc = extract_gcc_binaries()
-
-    if gcc is not None:
-        os.environ["CC"] = gcc
-        os.environ["CXX"] = gcc
-
-    else:
-        USE_OPENMP = False
-        print('No GCC available. Install gcc from Homebrew '
-              'using brew install gcc.')
-
-
 if sys.platform.startswith("win"):
     # compile args from
     # https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx
@@ -66,6 +52,19 @@ else:
         link_args = []
 
     compile_args = ['-Wno-unused-function', '-Wno-maybe-uninitialized', '-O3', '-ffast-math']
+
+    if 'darwin' in platform.platform().lower():
+        if gcc is not None:
+            os.environ["CC"] = gcc
+            os.environ["CXX"] = gcc
+
+            compile_args.append("-std=libc++")
+            link_args.append("-std=libc++")
+        else:
+            USE_OPENMP = False
+            print('No GCC available. Install gcc from Homebrew '
+                  'using brew install gcc.')
+
     if USE_OPENMP:
         compile_args.append("-fopenmp")
         link_args.append("-fopenmp")
