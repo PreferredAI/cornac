@@ -190,14 +190,18 @@ class PCRL_:
     # The inference network (or encoder)
     def inference_net(self, C, reuse=None):
         # input
-        h = tf.nn.relu(tf.sparse_matmul(C, self.inference_params[0], a_is_sparse=True))
+        #h = tf.nn.relu(tf.sparse_matmul(C, self.inference_params[0], a_is_sparse=True))
+        h = tf.nn.relu(tf.matmul(C, self.inference_params[0]))
         # intermediate hidden layer
         for l in range(1, self.L):
-            h = tf.nn.relu(tf.sparse_matmul(h, self.inference_params[l], a_is_sparse=True))
+            #h = tf.nn.relu(tf.sparse_matmul(h, self.inference_params[l], a_is_sparse=True))
+            h = tf.nn.relu(tf.matmul(h, self.inference_params[l]))
 
         # output
-        beta = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L], a_is_sparse=True)) + 0.3
-        alpha = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L + 1], a_is_sparse=True)) + 0.3
+        #beta = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L], a_is_sparse=True)) + 0.3
+        #alpha = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L + 1], a_is_sparse=True)) + 0.3
+        beta = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L])) + 0.3
+        alpha = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L + 1])) + 0.3
 
         return alpha, beta
 
@@ -208,8 +212,10 @@ class PCRL_:
         if self.w_determinist:
             h2 = tf.nn.relu(tf.matmul(Z, self.generator_params[0]))
             for l in range(1, self.L):
-                h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l], a_is_sparse=True))
-            d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L], a_is_sparse=True))
+                #h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l], a_is_sparse=True))
+                h2 = tf.nn.relu(tf.matmul(h2, self.generator_params[l]))
+            #d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L], a_is_sparse=True))
+            d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L]))
         else:
             e = tf.random_normal(tf.shape(self.generator_params[0]), dtype=tf.float32, mean=0., stddev=1.0,
                                  name='epsilon')
@@ -217,10 +223,12 @@ class PCRL_:
             for l in range(1, self.L):
                 e = tf.random_normal(tf.shape(self.generator_params[l]), dtype=tf.float32, mean=0., stddev=1.0,
                                      name='epsilon')
-                h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l] + 0.01 * e, a_is_sparse=True))
+                #h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l] + 0.01 * e, a_is_sparse=True))
+                h2 = tf.nn.relu(tf.matmul(h2, self.generator_params[l] + 0.01 * e))
             e = tf.random_normal(tf.shape(self.generator_params[self.L]), dtype=tf.float32, mean=0., stddev=1.0,
                                  name='epsilon')
-            d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L] + 0.01 * e, a_is_sparse=True))
+            #d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L] + 0.01 * e, a_is_sparse=True))
+            d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L] + 0.01 * e))
         return d_x
 
         # The loss function
