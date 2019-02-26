@@ -9,9 +9,11 @@ matrix:
       env: DISTRIB="trusty" PYTHON_VERSION="3.6"
     - os: osx
       language: generic
+      osx_image: xcode9.3
       env: DISTRIB="conda" PYTHON_VERSION="3.5"
     - os: osx
       language: generic
+      osx_image: xcode9.3
       env: DISTRIB="conda" PYTHON_VERSION="3.6"
 
 install:  
