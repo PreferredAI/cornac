@@ -7,11 +7,11 @@
 from ..recommender import Recommender
 from ...exception import CornacException
 import numpy as np
+from tqdm import tqdm
 
 from ...utils import tryimport
 
 torch = tryimport('torch')
-tqdm = tryimport('tqdm')
 
 
 class VBPR(Recommender):
@@ -106,6 +106,9 @@ class VBPR(Recommender):
             l2_loss += torch.sum(tensor ** 2) / 2
         return l2_loss
 
+    def _inner(self, a, b):
+        return torch.sum(a * b, dim=1)
+
     def fit(self, train_set):
         """Fit the model.
 
@@ -137,8 +140,8 @@ class VBPR(Recommender):
         for epoch in range(1, self.n_epochs + 1):
             sum_loss = 0.
             count = 0
-            progress_bar = tqdm.tqdm(total=train_set.num_batches(self.batch_size),
-                                     desc='Epoch {}/{}'.format(epoch, self.n_epochs))
+            progress_bar = tqdm(total=train_set.num_batches(self.batch_size),
+                                desc='Epoch {}/{}'.format(epoch, self.n_epochs))
             for batch_u, batch_i, batch_j in train_set.uij_iter(self.batch_size, shuffle=True):
                 gamma_u = Gu[batch_u]
                 theta_u = Tu[batch_u]
@@ -154,8 +157,8 @@ class VBPR(Recommender):
                 feat_diff = feat_i - feat_j
 
                 Xuij = beta_i - beta_j \
-                       + torch.sum(gamma_u * gamma_diff, dim=1) \
-                       + torch.sum(theta_u * feat_diff.mm(E), dim=1) \
+                       + self._inner(gamma_u, gamma_diff) \
+                       + self._inner(theta_u, feat_diff.mm(E)) \
                        + feat_diff.mm(Bp)
 
                 log_likelihood = torch.log(torch.sigmoid(Xuij) + 1e-10).sum()

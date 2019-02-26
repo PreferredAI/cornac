@@ -43,7 +43,7 @@ conda install cornac -c qttruong -c pytorch
 - **From the GitHub source (for latest updates):**
 
 ```sh
-pip3 install cython
+pip3 install Cython
 git clone https://github.com/PreferredAI/cornac.git
 cd cornac
 python3 setup.py install
@@ -51,7 +51,15 @@ python3 setup.py install
 
 **Note:** 
 
-Additional dependencies required by some models are listed [here](cornac/models/README.md). If you want to utilize your GPU, you might consider:
+Additional dependencies required by models are listed [here](cornac/models/README.md).
+
+Some of the algorithms use `OpenMP` to speed up the training with parallelism. For OSX users, in order to run those algorithms, you might need to install `gcc` from Homebrew to have an OpenMP compiler:
+
+```sh
+brew install gcc
+```
+
+If you want to utilize your GPU, you might consider:
 
 - [TensorFlow installation instructions](https://www.tensorflow.org/install/).
 - [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
