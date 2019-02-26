@@ -124,7 +124,6 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://cornac.preferred.ai/',
-    download_url='https://github.com/PreferredAI/cornac/archive/v0.1.0.tar.gz',
     keywords=['recommender', 'recommendation', 'factorization', 'multimodal'],
     ext_modules=extensions,
     install_requires=[
