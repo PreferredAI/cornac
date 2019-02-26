@@ -1,5 +1,4 @@
 from setuptools import Extension, setup, find_packages
-import numpy
 import sys
 import platform
 import glob
@@ -39,6 +38,20 @@ def extract_gcc_binaries():
         return None
 
 
+# Try to use GCC on OSX for OpenMP support.
+if 'darwin' in platform.platform().lower():
+    gcc = extract_gcc_binaries()
+
+    if gcc is not None:
+        os.environ["CC"] = gcc
+        os.environ["CXX"] = gcc
+
+    else:
+        USE_OPENMP = False
+        print('No GCC available. Install gcc from Homebrew '
+              'using brew install gcc.')
+
+
 if sys.platform.startswith("win"):
     # compile args from
     # https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx
@@ -59,6 +72,7 @@ else:
 
     compile_args.append("-std=c++11")
     link_args.append("-std=c++11")
+
 
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
@@ -93,26 +107,6 @@ extensions = [
               language='c++',
               extra_compile_args=compile_args, extra_link_args=link_args)
 ]
-
-
-def set_gcc():
-    """Try to use GCC on OSX for OpenMP support."""
-    # For macports and homebrew
-    if 'darwin' in platform.platform().lower():
-        gcc = extract_gcc_binaries()
-
-        if gcc is not None:
-            os.environ["CC"] = gcc
-            os.environ["CXX"] = gcc
-
-        else:
-            global use_openmp
-            use_openmp = False
-            print('No GCC available. Install gcc from Homebrew '
-                  'using brew install gcc.')
-
-
-set_gcc()
 
 cmdclass = {}
 
