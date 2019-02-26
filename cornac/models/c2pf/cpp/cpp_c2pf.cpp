@@ -589,7 +589,7 @@ void c2pf_cpp(Mat const&tX, Mat const&tC, int const&g, Mat &G_s, Mat &G_r, Mat &
     //Hyper parameter setting
     double att = 1.0;
     double aa   = 0.3;
-    double a_  = 6.;
+    //double a_  = 6.;
     double a1_ = 5.;
     double a_t = at;
     double b_t = bt;
