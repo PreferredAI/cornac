@@ -5,12 +5,12 @@ Additional dependencies (CPU versions) for each model are also listed accordingl
 
 | Model | Additional Dependencies |
 | --- | :---: |
-| [Bayesian Personalized Ranking (BPR)](bpr) | [requirements.txt](bpr/requirements.txt) |
+| [Bayesian Personalized Ranking (BPR)](bpr) | N/A |
 | [Collaborative Context Poisson Factorization (C2PF)](c2pf)| N/A |
 | [Collaborative Deep Learning (CDL)](cdl) | [requirements.txt](cdl/requirements.txt) |
 | [Collaborative Ordinal Embedding (COE)](coe) | [requirements.txt](coe/requirements.txt) |
 | [Hierarchical Poisson Factorization (HPF)](hpf) | N/A |
-| [Indexable Bayesian Personalized Ranking (IBPR)](ibpr) | [requirements.txt](bpr/requirements.txt) |
+| [Indexable Bayesian Personalized Ranking (IBPR)](ibpr) | [requirements.txt](ibpr/requirements.txt) |
 | [Matrix Factorization (MF)](mf) | N/A |
 | [Online Indexable Bayesian Personalized Ranking (Online IBPR)](online_ibpr) | [requirements.txt](online_ibpr/requirements.txt) |
 | [Probabilistic Collaborative Representation Learning (PCRL)](pcrl) | [requirements.txt](pcrl/requirements.txt) |
