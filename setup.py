@@ -54,8 +54,8 @@ else:
     compile_args = ['-Wno-unused-function', '-Wno-maybe-uninitialized', '-O3', '-ffast-math']
 
     if 'darwin' in platform.platform().lower():
-        compile_args.append("-std=libc++")
-        link_args.append("-std=libc++")
+        compile_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
+        link_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
 
         if gcc is not None:
             os.environ["CC"] = gcc
