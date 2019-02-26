@@ -109,7 +109,7 @@ class PCRL(Recommender):
             print('%s is trained already (trainable = False)' % (self.name))             
 
       
-    def score(self, user_id, item_id):
+    def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
