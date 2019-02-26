@@ -39,6 +39,9 @@ class MF(Recommender):
     early_stop: boolean, optional, default: False
         When True, delta loss will be checked after each iteration to stop learning earlier.
 
+    trainable: boolean, optional, default: True
+        When False, the model will not be re-trained, and input of pre-trained parameters are required.
+
     verbose: boolean, optional, default: True
         When True, running logs are displayed.
 
@@ -49,7 +52,7 @@ class MF(Recommender):
     """
 
     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 verbose=True, **kwargs):
+                 trainable=True, verbose=True, **kwargs):
         Recommender.__init__(self, name='MF', verbose=verbose)
 
         self.k = k
@@ -58,6 +61,11 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
+
+        self.u_factors = kwargs.get('u_factors', None)  # matrix of user factors
+        self.i_factors = kwargs.get('i_factors', None)  # matrix of item factors
+        self.u_biases = kwargs.get('u_biases', None)  # vector of user biases
+        self.i_biases = kwargs.get('i_biases', None)  # vector of item biases
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -71,10 +79,18 @@ class MF(Recommender):
         """
         Recommender.fit(self, train_set)
 
-        self.u_factors = np.random.normal(size=[train_set.num_users, self.k], loc=0., scale=0.01).astype(np.float32)
-        self.i_factors = np.random.normal(size=[train_set.num_items, self.k], loc=0., scale=0.01).astype(np.float32)
-        self.u_biases = np.zeros(train_set.num_users).astype(np.float32)
-        self.i_biases = np.zeros(train_set.num_items).astype(np.float32)
+        if not self.trainable:
+            print('%s is trained already (trainable = False)' % (self.name))
+            return
+
+        if self.u_factors is None:
+            self.u_factors = np.random.normal(size=[train_set.num_users, self.k], loc=0., scale=0.01).astype(np.float32)
+        if self.i_factors is None:
+            self.i_factors = np.random.normal(size=[train_set.num_items, self.k], loc=0., scale=0.01).astype(np.float32)
+        if self.u_biases is None:
+            self.u_biases = np.zeros(train_set.num_users).astype(np.float32)
+        if self.i_biases is None:
+            self.i_biases = np.zeros(train_set.num_items).astype(np.float32)
 
         self.global_mean = self.train_set.global_mean if self.use_bias else 0.
 
