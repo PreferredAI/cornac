@@ -114,20 +114,25 @@ class C2PF(Recommender):
             c_iid = []
             c_cid = []
             c_val = []
-
+            
+            train_aux_info = []
+            
             for i, j, _ in self.aux_info:
-                if (not i in raw_iid) or (not j in raw_iid):
+                if (i not in raw_iid) or (j not in raw_iid):
                     continue
-                c_iid.append(map_iid[i])
-                c_cid.append(map_iid[j])
-                c_val.append(1.0)
+               # c_iid.append(map_iid[i])
+              #  c_cid.append(map_iid[j])
+             #   c_val.append(1.0)
+                train_aux_info.append([map_iid[i], map_iid[j], 1.0])
 
-            c_val = np.array(c_val,dtype='float32')
-            c_iid = np.array(c_iid,dtype='int32')
-            c_cid = np.array(c_cid,dtype='int32')
+            #c_val = np.array(c_val,dtype='float32')
+            #c_iid = np.array(c_iid,dtype='int32')
+            #c_cid = np.array(c_cid,dtype='int32')
 
-            train_aux_info = np.concatenate((np.concatenate(([c_iid], [c_cid]), axis=0).T,c_val.reshape((len(c_val),1))),axis = 1)
-            del c_iid, c_cid, c_val
+           # train_aux_info = np.concatenate((np.concatenate(([c_iid], [c_cid]), axis=0).T,c_val.reshape((len(c_val),1))),axis = 1)
+            train_aux_info = np.asarray(train_aux_info)
+
+       #     del c_iid, c_cid, c_val
 
             
             
