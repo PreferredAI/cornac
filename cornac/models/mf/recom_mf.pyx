@@ -69,17 +69,26 @@ class MF(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
-
         Recommender.fit(self, train_set)
 
+        self.u_factors = np.random.normal(size=[train_set.num_users, self.k], loc=0., scale=0.01).astype(np.float32)
+        self.i_factors = np.random.normal(size=[train_set.num_items, self.k], loc=0., scale=0.01).astype(np.float32)
+        self.u_biases = np.zeros(train_set.num_users).astype(np.float32)
+        self.i_biases = np.zeros(train_set.num_items).astype(np.float32)
+
+        self.global_mean = self.train_set.global_mean if self.use_bias else 0.
+
         (rid, cid, val) = sp.find(train_set.matrix)
-        self._fit_sgd(rid=rid, cid=cid, val=val.astype(np.float32))
+
+        self._fit_sgd(rid, cid, val.astype(np.float32),
+                      self.u_factors, self.i_factors, self.u_biases, self.i_biases)
 
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def _fit_sgd(self, integral[:] rid, integral[:] cid, floating[:] val):
-        """Fit the model with SGD
+    def _fit_sgd(self, integral[:] rid, integral[:] cid, floating[:] val,
+                 floating[:, :] U, floating[:, :] V, floating[:] Bu, floating[:] Bi):
+        """Fit the model parameters (U, V, Bu, Bi) with SGD
         """
         cdef integral num_users = self.train_set.num_users
         cdef integral num_items = self.train_set.num_items
@@ -88,16 +97,11 @@ class MF(Recommender):
         cdef integral num_ratings = val.shape[0]
 
         cdef floating reg = self.lambda_reg
-        cdef floating mu = self.train_set.global_mean
+        cdef floating mu = self.global_mean
 
         cdef bool use_bias = self.use_bias
         cdef bool early_stop = self.early_stop
         cdef bool verbose = self.verbose
-
-        cdef floating[:, :] U = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01).astype(np.float32)
-        cdef floating[:, :] V = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01).astype(np.float32)
-        cdef floating[:] Bu = np.zeros([num_users], dtype=np.float32)
-        cdef floating[:] Bi = np.zeros([num_items], dtype=np.float32)
 
         cdef floating lr = self.learning_rate
         cdef floating loss = 0
@@ -108,7 +112,7 @@ class MF(Recommender):
         cdef floating * user
         cdef floating * item
 
-        progress = tqdm.trange(max_iter, disable=not verbose)
+        progress = tqdm.trange(max_iter, disable=not self.verbose)
         for epoch in progress:
             last_loss = loss
             loss = 0
@@ -117,20 +121,24 @@ class MF(Recommender):
                 u, i, r = rid[j], cid[j], val[j]
                 user, item = &U[u, 0], &V[i, 0]
 
-                r_pred = 0
-                if use_bias:
-                    r_pred = mu + Bu[u] + Bi[i]
-
+                # predict rating
+                r_pred = mu + Bu[u] + Bi[i]
                 for f in range(num_factors):
                     r_pred += user[f] * item[f]
 
                 error = r - r_pred
                 loss += error * error
 
+                # update factors
                 for f in range(num_factors):
                     u_f, i_f = user[f], item[f]
                     user[f] += lr * (error * i_f - reg * u_f)
                     item[f] += lr * (error * u_f - reg * i_f)
+
+                # update biases
+                if use_bias:
+                    Bu[u] += lr * (error - reg * Bu[u])
+                    Bi[i] += lr * (error - reg * Bi[i])
 
             loss = 0.5 * loss
             progress.update(1)
@@ -144,11 +152,6 @@ class MF(Recommender):
 
         if verbose:
             print('Optimization finished!')
-
-        self.u_factors = U
-        self.i_factors = V
-        self.u_biases = Bu
-        self.i_biases = Bi
 
 
     def score(self, user_id, item_id=None):
@@ -172,20 +175,17 @@ class MF(Recommender):
         unk_user = self.train_set.is_unk_user(user_id)
 
         if item_id is None:
-            known_item_scores = 0
-            if self.use_bias: # item bias + global bias
-                known_item_scores = np.add(self.i_biases, self.train_set.global_mean)
+            known_item_scores = np.add(self.i_biases, self.global_mean)
             if not unk_user:
+                known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
                 known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
-                if self.use_bias: # user bias
-                    known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
 
             return known_item_scores
         else:
             unk_item = self.train_set.is_unk_item(item_id)
 
             if self.use_bias:
-                item_score = self.train_set.global_mean
+                item_score = self.global_mean
                 if not unk_user:
                     item_score += self.u_biases[user_id]
                 if not unk_item:
