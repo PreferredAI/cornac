@@ -12,7 +12,7 @@
 
 ## Examples by Algorithm
 
-[bpr.py](bpr.py) - Example to run Bayesian Personalized Ranking (BPR).
+[bpr_netflix.py](bpr_netflix.py) - Example to run Bayesian Personalized Ranking (BPR) with Netflix dataset.
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
 
