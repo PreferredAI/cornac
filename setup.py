@@ -54,9 +54,6 @@ else:
     compile_args = ['-Wno-unused-function', '-Wno-maybe-uninitialized', '-O3', '-ffast-math']
 
     if 'darwin' in platform.platform().lower():
-        compile_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
-        link_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
-
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
@@ -64,6 +61,9 @@ else:
             USE_OPENMP = False
             print('No GCC available. Install gcc from Homebrew '
                   'using brew install gcc.')
+            # required arguments for default gcc of OSX
+            compile_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
+            link_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
 
     if USE_OPENMP:
         compile_args.append("-fopenmp")
