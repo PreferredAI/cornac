@@ -13,4 +13,4 @@ def test_load_data():
     random.seed(time.time())
     if random.random() > 0.8:
         data = tradesy.load_data()
-        assert len(data) == 396636
+        assert len(data) == 394421
