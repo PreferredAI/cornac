@@ -13,6 +13,30 @@ from ..data import reader
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
 
+def _load(data_file, data_format='UIR'):
+    """Load the Netflix dataset
+
+    Parameters
+    ----------
+    data_file: str, required
+        Data file name.
+
+    data_format: str, default: 'UIR'
+        Data format to be returned.
+
+    Returns
+    -------
+    data: array-like
+        Data in the form of a list of tuples depending on the given data format.
+
+    """
+    data_format = validate_format(data_format, VALID_DATA_FORMATS)
+    fpath = cache(url='https://static.preferred.ai/cornac/datasets/netflix/{}.zip'.format(data_file),
+                  unzip=True, relative_path='netflix/{}.csv'.format(data_file))
+    if data_format == 'UIR':
+        return reader.read_uir(fpath, sep=',')
+
+
 def load_data(data_format='UIR'):
     """Load the Netflix entire dataset
         - Number of ratings: 100,480,507
@@ -30,11 +54,7 @@ def load_data(data_format='UIR'):
         Data in the form of a list of tuples depending on the given data format.
 
     """
-    data_format = validate_format(data_format, VALID_DATA_FORMATS)
-    fpath = cache(url='https://static.preferred.ai/cornac/datasets/netflix/data.zip',
-                  unzip=True, relative_path='netflix/data.csv')
-    if data_format == 'UIR':
-        return reader.read_uir(fpath, sep=',')
+    return _load('data', data_format)
 
 
 def load_data_small(data_format='UIR'):
@@ -55,8 +75,4 @@ def load_data_small(data_format='UIR'):
         Data in the form of a list of tuples depending on the given data format.
 
     """
-    data_format = validate_format(data_format, VALID_DATA_FORMATS)
-    fpath = cache(url='https://static.preferred.ai/cornac/datasets/netflix/data_small.zip',
-                  unzip=True, relative_path='netflix/data_small.csv')
-    if data_format == 'UIR':
-        return reader.read_uir(fpath, sep=',')
+    return _load('data_small', data_format)
