@@ -53,13 +53,13 @@ python3 setup.py install
 
 Additional dependencies required by models are listed [here](cornac/models/README.md).
 
-Some of the algorithms use `OpenMP` to speed up the training with parallelism. For OSX users, in order to run those algorithms, you might need to install `gcc` from Homebrew to have an OpenMP compiler:
+Some of the algorithms use `OpenMP` to speed up training with multithreading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler and install Cornac from source:
 
 ```sh
-brew install gcc
+brew install gcc | brew link gcc
 ```
 
-If you want to utilize your GPU, you might consider:
+If you want to utilize your GPUs, you might consider:
 
 - [TensorFlow installation instructions](https://www.tensorflow.org/install/).
 - [PyTorch installation instructions](https://pytorch.org/get-started/locally/).

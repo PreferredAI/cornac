@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 
 """
-Example for Bayesian Personalized Ranking
+Example for Bayesian Personalized Ranking with Netflix dataset (subset)
 
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
 import cornac
-from cornac.datasets import movielens
+from cornac.datasets import netflix
 from cornac.eval_methods import RatioSplit
 
 
-ratio_split = RatioSplit(data=movielens.load_100k(),
+ratio_split = RatioSplit(data=netflix.load_data_small(),
                          test_size=0.1,
+                         rating_threshold=1.0,
                          exclude_unknowns=True,
                          verbose=True)
 
