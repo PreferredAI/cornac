@@ -132,15 +132,15 @@ class MatrixTrainSet(TrainSet):
 
     @property
     def uir_tuple(self):
-        if not self.__uir_tuples:
-            self.__uir_tuples = find(self.matrix)
-        return self.__uir_tuples
+        if not self.__uir_tuple:
+            self.__uir_tuple = find(self.matrix)
+        return self.__uir_tuple
 
     @uir_tuple.setter
     def uir_tuple(self, input_tuple):
         if input_tuple is not None and len(input_tuple) != 3:
             raise ValueError('input_tuple required to be size 3 but size {}'.format(len(input_tuple)))
-        self.__uir_tuples = input_tuple
+        self.__uir_tuple = input_tuple
 
     @staticmethod
     def _rank_items_by_popularity(rating_matrix):
@@ -244,7 +244,14 @@ class MatrixTrainSet(TrainSet):
             print('Min rating = {:.1f}'.format(min_rating))
             print('Global mean = {:.1f}'.format(global_mean))
 
-        return cls(csr_mat, max_rating, min_rating, global_mean, uid_map, iid_map)
+        train_set = cls(csr_mat, max_rating, min_rating, global_mean, uid_map, iid_map)
+
+        # since we have triplet arrays, let's construct uir_tuple for the train_set
+        train_set.uir_tuple = (np.asarray(u_indices, dtype=np.int),
+                               np.asarray(i_indices, dtype=np.int),
+                               np.asarray(r_values, dtype=np.float))
+
+        return train_set
 
     def uir_iter(self, batch_size=1, shuffle=False):
         """Create an iterator over data yielding batch of users, items, and rating values
