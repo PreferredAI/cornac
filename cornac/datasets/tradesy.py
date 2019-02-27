@@ -7,7 +7,7 @@ Original data: http://jmcauley.ucsd.edu/data/tradesy/
 This data is used in the VBPR paper:
 - Number of users: 92835
 - Number of items: 166526
-- Number of feedback: 396636 (410186 is reported but there are duplicates)
+- Number of feedback: 394421 (410186 is reported but there are duplicates)
 
 """
 
