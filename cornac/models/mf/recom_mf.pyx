@@ -4,7 +4,6 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-import scipy.sparse as sp
 from cornac.models.recommender import Recommender
 from cornac.exception import ScoreException
 import tqdm
@@ -92,9 +91,9 @@ class MF(Recommender):
         if self.i_biases is None:
             self.i_biases = np.zeros(train_set.num_items).astype(np.float32)
 
-        self.global_mean = self.train_set.global_mean if self.use_bias else 0.
+        self.global_mean = train_set.global_mean if self.use_bias else 0.
 
-        (rid, cid, val) = sp.find(train_set.matrix)
+        (rid, cid, val) = train_set.uir_tuple
 
         self._fit_sgd(rid, cid, val.astype(np.float32),
                       self.u_factors, self.i_factors, self.u_biases, self.i_biases)

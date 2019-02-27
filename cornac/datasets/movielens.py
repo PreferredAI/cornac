@@ -2,6 +2,8 @@
 
 """
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
+
+MovieLens: https://grouplens.org/datasets/movielens/
 """
 
 from ..utils import validate_format
