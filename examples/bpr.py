@@ -13,10 +13,11 @@ from cornac.eval_methods import RatioSplit
 
 ratio_split = RatioSplit(data=movielens.load_100k(),
                          test_size=0.1,
+                         rating_threshold=1.0,
                          exclude_unknowns=True,
                          verbose=True)
 
-bpr = cornac.models.BPR(k=10, max_iter=200, learning_rate=0.01, lambda_reg=0.01)
+bpr = cornac.models.BPR(k=10, max_iter=500, learning_rate=0.01, lambda_reg=0.01)
 
 auc = cornac.metrics.AUC()
 rec_20 = cornac.metrics.Recall(k=20)
