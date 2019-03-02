@@ -6,6 +6,7 @@
 
 from . import Module
 import scipy.sparse as sp
+import numpy as np
 
 class GraphModule(Module):
     """Graph module
@@ -39,6 +40,12 @@ class GraphModule(Module):
     def get_train_triplet(self, train_row_ids, train_col_ids):
         """Get the training tuples
         """
+        train_triplet = []
+        for i, j, val in self.map_data:
+                if (i not in train_row_ids) or (j not in train_col_ids):
+                    continue      
+                self.train_triplet.append([i,j, val])
+        return  np.asarray(train_triplet)  
         
 
     def build(self, ordered_ids):
