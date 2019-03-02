@@ -35,6 +35,10 @@ class GraphModule(Module):
         n_cols = max(triplet[:,1]) + 1
         self.matrix = sp.csc_matrix((triplet[:,2], (triplet[:,0], triplet[:,1])), shape=(len(n_rows), len(n_cols)))
 
+
+    def get_train_triplet(self, train_row_ids, train_col_ids):
+        """Get the training tuples
+        """
         
 
     def build(self, ordered_ids):
