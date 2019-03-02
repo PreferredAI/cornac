@@ -4,12 +4,11 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-import scipy.sparse as sp
 from cornac.models.recommender import Recommender
 from cornac.exception import ScoreException
+import tqdm
 
 import numpy as np
-cimport numpy as np
 
 cimport cython
 from cython cimport floating, integral
@@ -39,6 +38,9 @@ class MF(Recommender):
     early_stop: boolean, optional, default: False
         When True, delta loss will be checked after each iteration to stop learning earlier.
 
+    trainable: boolean, optional, default: True
+        When False, the model will not be re-trained, and input of pre-trained parameters are required.
+
     verbose: boolean, optional, default: True
         When True, running logs are displayed.
 
@@ -49,7 +51,7 @@ class MF(Recommender):
     """
 
     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 verbose=True):
+                 trainable=True, verbose=True, **kwargs):
         Recommender.__init__(self, name='MF', verbose=verbose)
 
         self.k = k
@@ -58,6 +60,11 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
+
+        self.u_factors = kwargs.get('u_factors', None)  # matrix of user factors
+        self.i_factors = kwargs.get('i_factors', None)  # matrix of item factors
+        self.u_biases = kwargs.get('u_biases', None)  # vector of user biases
+        self.i_biases = kwargs.get('i_biases', None)  # vector of item biases
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -69,18 +76,34 @@ class MF(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
-
         Recommender.fit(self, train_set)
 
-        (rid, cid, val) = sp.find(train_set.matrix)
+        if not self.trainable:
+            print('%s is trained already (trainable = False)' % (self.name))
+            return
 
-        self._fit_sgd(rid=rid, cid=cid, val=val.astype(np.float32))
+        if self.u_factors is None:
+            self.u_factors = np.random.normal(size=[train_set.num_users, self.k], loc=0., scale=0.01).astype(np.float32)
+        if self.i_factors is None:
+            self.i_factors = np.random.normal(size=[train_set.num_items, self.k], loc=0., scale=0.01).astype(np.float32)
+        if self.u_biases is None:
+            self.u_biases = np.zeros(train_set.num_users).astype(np.float32)
+        if self.i_biases is None:
+            self.i_biases = np.zeros(train_set.num_items).astype(np.float32)
+
+        self.global_mean = train_set.global_mean if self.use_bias else 0.
+
+        (rid, cid, val) = train_set.uir_tuple
+
+        self._fit_sgd(rid, cid, val.astype(np.float32),
+                      self.u_factors, self.i_factors, self.u_biases, self.i_biases)
 
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def _fit_sgd(self, integral[:] rid, integral[:] cid, floating[:] val):
-        """Fit the model with SGD
+    def _fit_sgd(self, integral[:] rid, integral[:] cid, floating[:] val,
+                 floating[:, :] U, floating[:, :] V, floating[:] Bu, floating[:] Bi):
+        """Fit the model parameters (U, V, Bu, Bi) with SGD
         """
         cdef integral num_users = self.train_set.num_users
         cdef integral num_items = self.train_set.num_items
@@ -89,66 +112,61 @@ class MF(Recommender):
         cdef integral num_ratings = val.shape[0]
 
         cdef floating reg = self.lambda_reg
-        cdef floating mu = self.train_set.global_mean
+        cdef floating mu = self.global_mean
 
         cdef bool use_bias = self.use_bias
         cdef bool early_stop = self.early_stop
         cdef bool verbose = self.verbose
 
-        cdef floating[:, :] u_factors = np.random.normal(size=[num_users, num_factors], loc=0., scale=0.01).astype(np.float32)
-        cdef floating[:, :] i_factors = np.random.normal(size=[num_items, num_factors], loc=0., scale=0.01).astype(np.float32)
-        cdef floating[:] u_biases = np.zeros([num_users], dtype=np.float32)
-        cdef floating[:] i_biases = np.zeros([num_items], dtype=np.float32)
-
         cdef floating lr = self.learning_rate
         cdef floating loss = 0
         cdef floating last_loss = 0
         cdef floating r, r_pred, error, u_f, i_f, delta_loss
-        cdef integral u, i, factor, j
+        cdef integral u, i, f, j
 
         cdef floating * user
         cdef floating * item
 
-        for iter in range(1, max_iter + 1):
+        progress = tqdm.trange(max_iter, disable=not self.verbose)
+        for epoch in progress:
             last_loss = loss
             loss = 0
 
             for j in range(num_ratings):
                 u, i, r = rid[j], cid[j], val[j]
-                user, item = &u_factors[u, 0], &i_factors[i, 0]
+                user, item = &U[u, 0], &V[i, 0]
 
-                r_pred = 0
-                if use_bias:
-                    r_pred = mu + u_biases[u] + i_biases[i]
-
-                for factor in range(num_factors):
-                    r_pred += user[factor] * item[factor]
+                # predict rating
+                r_pred = mu + Bu[u] + Bi[i]
+                for f in range(num_factors):
+                    r_pred += user[f] * item[f]
 
                 error = r - r_pred
                 loss += error * error
 
-                for factor in range(num_factors):
-                    u_f, i_f = user[factor], item[factor]
-                    user[factor] += lr * (error * i_f - reg * u_f)
-                    item[factor] += lr * (error * u_f - reg * i_f)
+                # update factors
+                for f in range(num_factors):
+                    u_f, i_f = user[f], item[f]
+                    user[f] += lr * (error * i_f - reg * u_f)
+                    item[f] += lr * (error * u_f - reg * i_f)
+
+                # update biases
+                if use_bias:
+                    Bu[u] += lr * (error - reg * Bu[u])
+                    Bi[i] += lr * (error - reg * Bi[i])
 
             loss = 0.5 * loss
+            progress.update(1)
+            progress.set_postfix({"loss": "%.2f" % loss})
 
             delta_loss = loss - last_loss
             if early_stop and abs(delta_loss) < 1e-5:
                 if verbose:
-                    print('[MF] Early stopping, delta_loss = %.4f' % delta_loss)
+                    print('Early stopping, delta_loss = %.4f' % delta_loss)
                 break
-            if verbose:
-                print('[MF] Iteration %d: loss = %.4f' % (iter, loss))
-        if verbose:
-            print('[MF] Optimization finished!')
 
-        self.u_factors = u_factors
-        self.i_factors = i_factors
-        self.u_biases = u_biases
-        self.i_biases = i_biases
-        self.fitted = True
+        if verbose:
+            print('Optimization finished!')
 
 
     def score(self, user_id, item_id=None):
@@ -172,20 +190,17 @@ class MF(Recommender):
         unk_user = self.train_set.is_unk_user(user_id)
 
         if item_id is None:
-            known_item_scores = 0
-            if self.use_bias: # item bias + global bias
-                known_item_scores = np.add(self.i_biases, self.train_set.global_mean)
+            known_item_scores = np.add(self.i_biases, self.global_mean)
             if not unk_user:
+                known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
                 known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
-                if self.use_bias: # user bias
-                    known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
 
             return known_item_scores
         else:
             unk_item = self.train_set.is_unk_item(item_id)
 
             if self.use_bias:
-                item_score = self.train_set.global_mean
+                item_score = self.global_mean
                 if not unk_user:
                     item_score += self.u_biases[user_id]
                 if not unk_item:
