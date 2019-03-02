@@ -7,7 +7,7 @@
 import os
 import zipfile
 from urllib import request
-
+from tqdm import tqdm
 
 def urlretrieve(url, fpath):
     """Retrieve data from given url
@@ -21,19 +21,15 @@ def urlretrieve(url, fpath):
         The path to file where data is stored.
 
     """
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-        'Accept-Encoding': 'none',
-        'Accept-Language': 'en-US,en;q=0.8',
-        'Connection': 'keep-alive'}
+    opener = request.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
-    req = request.Request(url, headers=headers)
-
-    response = request.urlopen(req)
-    with open(fpath, 'wb') as f:
-        f.write(response.read())
+    with tqdm(unit='B', unit_scale=True) as progress:
+        def report(chunk, chunksize, total):
+            progress.total = total
+            progress.update(chunksize)
+        request.install_opener(opener)
+        request.urlretrieve(url, fpath, reporthook=report)
 
 
 def get_cache_path(relative_path, cache_dir=None):
@@ -82,7 +78,7 @@ def cache(url, unzip=False, relative_path=None, cache_dir=None):
     if unzip:
         tmp_path = os.path.join(cache_dir, 'tmp.zip')
         urlretrieve(url, tmp_path)
-        print('Unziping...')
+        print('Unzipping...')
         with zipfile.ZipFile(tmp_path, 'r') as tmp_zip:
             tmp_zip.extractall(cache_dir)
         os.remove(tmp_path)

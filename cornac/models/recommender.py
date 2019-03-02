@@ -15,7 +15,7 @@ class Recommender:
     
     Parameters
     ----------------
-    name: char, required
+    name: str, required
         The name of the recommender model
 
     trainable: boolean, optional, default: True

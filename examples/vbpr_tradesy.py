@@ -13,15 +13,12 @@ from cornac.data import ImageModule
 from cornac.eval_methods import RatioSplit
 
 
-feedback = tradesy.load_data()
 item_feature = tradesy.load_feature() # BIG file
 item_image_module = ImageModule(id_feature=item_feature, normalized=True)
 
-ratio_split = RatioSplit(data=feedback,
-                         test_size=0.01,
-                         rating_threshold=0.5,
-                         exclude_unknowns=True,
-                         verbose=True,
+ratio_split = RatioSplit(data=tradesy.load_data(),
+                         test_size=0.1, rating_threshold=0.5,
+                         exclude_unknowns=True, verbose=True,
                          item_image=item_image_module)
 
 vbpr = cornac.models.VBPR(k=10, k2=20, n_epochs=50, batch_size=100, learning_rate=0.005,
