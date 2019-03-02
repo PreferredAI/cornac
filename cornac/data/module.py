@@ -43,7 +43,7 @@ class Module:
             return
 
         self.data_feature = np.zeros((len(ordered_ids), self.feature_dim))
-        for map_id, raw_id in enumerate(ordered_ids):
+        for map_id, raw_id in enumerate(ordered_ids.keys()):
             self.data_feature[map_id] = self._id_feature[raw_id]
         if self._normalized:
             self.data_feature = self.data_feature - np.min(self.data_feature)
