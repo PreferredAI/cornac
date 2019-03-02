@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-@author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
+@author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
 from . import Module
