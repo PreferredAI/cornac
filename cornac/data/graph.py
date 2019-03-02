@@ -49,7 +49,7 @@ class GraphModule(Module):
         
 
     def build(self, ordered_ids):
-        self._build_triplet(self,ordered_ids) 
+        self._build_triplet(ordered_ids) 
         self._build__build_sparse_matrix(self.map_data)
         
         
