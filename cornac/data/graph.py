@@ -25,6 +25,7 @@ class GraphModule(Module):
         
         for i, j, val in self.raw_data:
             self.map_data.append([ordered_ids[i], ordered_ids[j], val])
+        self.map_data = np.asanyarray(self.map_data)
         self.raw_data = None
        
 
