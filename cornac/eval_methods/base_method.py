@@ -131,7 +131,7 @@ class BaseMethod:
     @item_image.setter
     def item_image(self, input_module):
         if input_module is not None and not isinstance(input_module, ImageModule):
-            raise ValueError('input_module has to be instance of ImageModule but {}'.format(type(input_module)))
+            raise ValueError('Input_module has to be instance of ImageModule but {}'.format(type(input_module)))
         self.__item_image = input_module
 
     @property
