@@ -21,11 +21,11 @@ test_data = reader.read_uir(test_path)
 eval_method = BaseMethod.from_splits(train_data=train_data, test_data=test_data,
                                      exclude_unknowns=False, verbose=True)
 
-rec_mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,
+mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,
         use_bias=True, early_stop=True, verbose=True)
 
 # Evaluation
-avg_results, _ = eval_method.evaluate(model=rec_mf,
+avg_results, _ = eval_method.evaluate(model=mf,
                                       metrics=[MAE(), RMSE()],
                                       user_based=True)
 print(avg_results)

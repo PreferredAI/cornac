@@ -1,5 +1,8 @@
 from setuptools import Extension, setup, find_packages
-import numpy
+import sys
+import platform
+import glob
+import os
 
 try:
     from Cython.Build import cythonize
@@ -11,6 +14,64 @@ else:
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
+
+USE_OPENMP = True
+
+
+def extract_gcc_binaries():
+    """Try to find GCC on OSX for OpenMP support."""
+    patterns = ['/opt/local/bin/g++-mp-[0-9].[0-9]',
+                '/opt/local/bin/g++-mp-[0-9]',
+                '/usr/local/bin/g++-[0-9].[0-9]',
+                '/usr/local/bin/g++-[0-9]']
+    if 'darwin' in platform.platform().lower():
+        gcc_binaries = []
+        for pattern in patterns:
+            gcc_binaries += glob.glob(pattern)
+        gcc_binaries.sort()
+        if gcc_binaries:
+            _, gcc = os.path.split(gcc_binaries[-1])
+            return gcc
+        else:
+            return None
+    else:
+        return None
+
+
+if sys.platform.startswith("win"):
+    # compile args from
+    # https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx
+    compile_args = ['/O2', '/openmp']
+    link_args = []
+else:
+    gcc = extract_gcc_binaries()
+    if gcc is not None:
+        rpath = '/usr/local/opt/gcc/lib/gcc/' + gcc[-1] + '/'
+        link_args = ['-Wl,-rpath,' + rpath]
+    else:
+        link_args = []
+
+    compile_args = ['-Wno-unused-function', '-Wno-maybe-uninitialized', '-O3', '-ffast-math']
+
+    if 'darwin' in platform.platform().lower():
+        if gcc is not None:
+            os.environ["CC"] = gcc
+            os.environ["CXX"] = gcc
+        else:
+            USE_OPENMP = False
+            print('No GCC available. Install gcc from Homebrew '
+                  'using brew install gcc.')
+            # required arguments for default gcc of OSX
+            compile_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
+            link_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
+
+    if USE_OPENMP:
+        compile_args.append("-fopenmp")
+        link_args.append("-fopenmp")
+
+    compile_args.append("-std=c++11")
+    link_args.append("-std=c++11")
+
 
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
@@ -39,8 +100,11 @@ extensions = [
               language='c++'),
     Extension(name='recom_mf',
               sources=['cornac/models/mf/recom_mf' + ext],
-              include_dirs=[numpy.get_include()],
-              language='c++')
+              language='c++'),
+    Extension(name='recom_bpr',
+              sources=['cornac/models/bpr/recom_bpr' + ext],
+              language='c++',
+              extra_compile_args=compile_args, extra_link_args=link_args)
 ]
 
 cmdclass = {}
@@ -59,13 +123,13 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://cornac.preferred.ai/',
-    download_url='https://github.com/PreferredAI/cornac/archive/v0.1.0.tar.gz',
     keywords=['recommender', 'recommendation', 'factorization', 'multimodal'],
     ext_modules=extensions,
     install_requires=[
         'numpy',
         'scipy',
-        'pandas'
+        'pandas',
+        'tqdm>=4.19'
     ],
     extras_require={
         'tests': ['pytest',

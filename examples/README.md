@@ -6,9 +6,13 @@
 
 [given_data.py](given_data.py) - You wish to evaluate the models with your own splits of data.
 
+[vbpr_tradesy.py](vbpr_tradesy.py) - Your data comes with (item) image features.
+
 ----
 
 ## Examples by Algorithm
+
+[bpr_netflix.py](bpr_netflix.py) - Example to run Bayesian Personalized Ranking (BPR) with Netflix dataset.
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
 

@@ -34,7 +34,7 @@ install:
   - source activate test-environment
 
   - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest --quiet
-  
+
   # Install TensorFlow CPU version.
 #  - pip install tensorflow==1.12.0 --quiet
   
