@@ -25,7 +25,7 @@ class GraphModule(Module):
         
         for i, j, val in self.raw_data:
             self.map_data.append([ordered_ids[i], ordered_ids[j], val])
-        self.raw_data.clear()
+        self.raw_data = None
        
 
     def _build_sparse_matrix(self, triplet):
@@ -50,7 +50,7 @@ class GraphModule(Module):
 
     def build(self, ordered_ids):
         self._build_triplet(ordered_ids) 
-        self._build__build_sparse_matrix(self.map_data)
+        self._build_sparse_matrix(self.map_data)
         
         
     def batch(self, batch_ids):
