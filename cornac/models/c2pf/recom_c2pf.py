@@ -112,7 +112,7 @@ class C2PF(Recommender):
             #raw_iid = train_set.get_raw_iid_list()
             #map_iid = train_set._iid_map
             map_iid = train_set.get_iid_list()
-            train_aux_info = train_set.item_grap.get_train_triplet(map_iid,map_iid)
+            train_aux_info = train_set.item_graph.get_train_triplet(map_iid,map_iid)
             #train_aux_info = []
             #for i, j, _ in self.aux_info:
             #    if (i not in raw_iid) or (j not in raw_iid):
