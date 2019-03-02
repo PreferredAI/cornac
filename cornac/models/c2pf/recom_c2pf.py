@@ -116,7 +116,7 @@ class C2PF(Recommender):
                 if (i not in raw_iid) or (j not in raw_iid):
                     continue
                 train_aux_info.append([map_iid[i], map_iid[j], 1.0])
-                train_aux_info = np.asarray(train_aux_info)            
+            train_aux_info = np.asarray(train_aux_info)            
             
             if self.variant == 'c2pf':
                 res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
