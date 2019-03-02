@@ -45,7 +45,8 @@ class GraphModule(Module):
         for i, j, val in self.map_data:
                 if (i not in train_row_ids) or (j not in train_col_ids):
                     continue      
-                self.get_train_triplet.append([i,j, val])
+                self.train_triplet.append([i,j, val])
+                
         return  np.asarray(train_triplet)  
         
 
