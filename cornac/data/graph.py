@@ -52,3 +52,20 @@ class GraphModule(Module):
         self._build_triplet(self,ordered_ids) 
         self._build__build_sparse_matrix(self.map_data)
         
+        
+    def batch(self, batch_ids):
+
+        """Collaborative Context Poisson Factorization.
+
+        Parameters
+        ----------
+        batch_ids: array, required
+            An array conting the ids of rows to be returned from the sparse adjacency matrix.        
+        """
+        
+        return self.matrix[batch_ids]
+    
+    
+    
+    
+    
