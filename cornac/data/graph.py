@@ -42,10 +42,13 @@ class GraphModule(Module):
         """Get the training tuples
         """
         train_triplet = []
+        #this makes operations much more efficient
+        train_row_ids = np.asanyarray(list(train_row_ids))
+        train_col_ids = np.asanyarray(list(train_col_ids))
         for i, j, val in self.map_data:
-                if (i not in train_row_ids) or (j not in train_col_ids):
-                    continue      
-                train_triplet.append([i,j, val])
+            if (i not in train_row_ids) or (j not in train_col_ids):
+                continue      
+            train_triplet.append([i,j, val])
                 
         return  np.asarray(train_triplet)  
         
