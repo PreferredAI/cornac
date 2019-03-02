@@ -111,9 +111,6 @@ class C2PF(Recommender):
             # align auxiliary information with training data
             raw_iid = train_set.get_raw_iid_list()
             map_iid = train_set._iid_map
-            c_iid = []
-            c_cid = []
-            c_val = []
             
             train_aux_info = []
             
