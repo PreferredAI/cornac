@@ -111,9 +111,7 @@ class C2PF(Recommender):
             # align auxiliary information with training data
             raw_iid = train_set.get_raw_iid_list()
             map_iid = train_set._iid_map
-            
             train_aux_info = []
-            
             for i, j, _ in self.aux_info:
                 if (i not in raw_iid) or (j not in raw_iid):
                     continue
