@@ -106,20 +106,20 @@ class C2PF(Recommender):
         tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
         del rid, cid, val
         
-        
         if self.trainable:
             # align auxiliary information with training data
             #raw_iid = train_set.get_raw_iid_list()
             #map_iid = train_set._iid_map
             map_iid = train_set.get_iid_list()
             train_aux_info = train_set.item_graph.get_train_triplet(map_iid,map_iid)
-            #train_aux_info = []
+            #train_aux_info2 = []
+            #map_iid = train_set._iid_map
             #for i, j, _ in self.aux_info:
             #    if (i not in raw_iid) or (j not in raw_iid):
             #        continue
-            #    train_aux_info.append([map_iid[i], map_iid[j], 1.0])
-            #train_aux_info = np.asarray(train_aux_info)            
-            
+            #    train_aux_info2.append([map_iid[i], map_iid[j], 1.0])
+            #train_aux_info2 = np.asarray(train_aux_info2)     
+
             if self.variant == 'c2pf':
                 res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                             self.init_params)
