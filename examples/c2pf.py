@@ -19,12 +19,16 @@ office_ratings = np.loadtxt("path to office ratings")
 # load office item context information in triplet format (item_id, context_iterm_id, value), see C2PF paper for details
 office_context = np.loadtxt("path to office content data")
 
+
 item_graph_module = GraphModule(data=office_context)
 
-ratio_split = RatioSplit(data=office_ratings, test_size=0.2, rating_threshold=3.5, shuffle=True, exclude_unknowns=True,
+ratio_split = RatioSplit(data=office_ratings,
+                         test_size=0.2, rating_threshold=3.5,
+                         shuffle=True, exclude_unknowns=True,
                          verbose=True, item_graph=item_graph_module)
 
-rec_c2pf = C2PF(k=100, max_iter=1, variant="c2pf")
+
+rec_c2pf = C2PF(k=100, max_iter=80, variant='c2pf')
 
 # Evaluation metrics
 nDgc = metrics.NDCG(k=-1)
@@ -33,5 +37,7 @@ rec = metrics.Recall(k=20)
 pre = metrics.Precision(k=20)
 
 # Instantiate and run your experiment
-exp = Experiment(ratio_split, [rec_c2pf], metrics=[nDgc, mrr, rec, pre], user_based=True)
+exp = Experiment(eval_method=ratio_split,
+                 models=[rec_c2pf],
+                 metrics=[nDgc, mrr, rec, pre])
 exp.run()
