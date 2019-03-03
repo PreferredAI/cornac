@@ -73,7 +73,7 @@ def test_with_modules():
     assert bm.item_graph is None
 
     bm.user_text = TextModule()
-    bm.item_graph = GraphModule()
+    #bm.item_graph = GraphModule()
     bm._build_modules()
 
     try:
