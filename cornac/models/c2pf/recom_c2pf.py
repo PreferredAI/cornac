@@ -23,10 +23,6 @@ class C2PF(Recommender):
     max_iter: int, optional, default: 100
         Maximum number of iterations for variational C2PF.
 
-    aux_info: array, required, shape (n_context_items,3)
-        The item-context matrix, noted C in the original paper, \
-        in the triplet sparse format: (row_id, col_id, value).
-
     variant: string, optional, default: 'c2pf'
         C2pf's variant: c2pf: 'c2pf', 'tc2pf' (tied-c2pf) or 'rc2pf' (reduced-c2pf). \
         Please refer to the original paper for details.
@@ -63,7 +59,7 @@ class C2PF(Recommender):
     In IJCAI, pp. 2667-2674. 2018.
     """
 
-    def __init__(self, k=100, max_iter=100, aux_info=None, variant='c2pf', name=None, trainable=True, verbose=False,
+    def __init__(self, k=100, max_iter=100, variant='c2pf', name=None, trainable=True, verbose=False,
                  init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None, 'L2_s': None, 'L2_r': None,
                               'L3_s': None, 'L3_r': None}):
         if name is None:
@@ -80,7 +76,7 @@ class C2PF(Recommender):
         self.Theta = None  # user factors
         self.Beta = None  # item factors
         self.Xi = None  # context factors Xi multiplied by context effects Kappa
-        self.aux_info = aux_info  # item-context matrix in the triplet sparse format: (row_id, col_id, value)
+        #self.aux_info = aux_info  # item-context matrix in the triplet sparse format: (row_id, col_id, value)
         self.variant = variant
 
     #fit the recommender model to the traning data    
