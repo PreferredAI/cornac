@@ -28,8 +28,7 @@ class SingleModelResult:
         avg_res = avg_res.reshape(1, len(metric_names))
         avg_res = pd.DataFrame(data=avg_res, index=np.asarray([model_name]), columns=np.asarray(metric_names))
         return avg_res
-    
-    
+
 
 class CVSingleModelResult(SingleModelResult):
     """ Cross Validation Result Class for a single model
@@ -82,9 +81,9 @@ class Result:
             self.avg = self.avg.append(res.avg)
 
     def show(self):
-        print(self.avg)        
-        
-        
+        print(self.avg)
+
+
 class CVResult(Result):
     """ Cross Validation Result Class
 
