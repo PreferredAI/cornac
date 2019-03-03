@@ -7,7 +7,7 @@
 import numpy as np
 from .base_method import BaseMethod
 from ..utils.common import safe_indexing
-from ..experiment.cv_result import CVSingleModelResult
+from ..experiment.result import CVSingleModelResult
 
 
 class CrossValidation(BaseMethod):
