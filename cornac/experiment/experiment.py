@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-@author: Aghiles Salah
+@author: Aghiles Salah <asalah@smu.edu.sg>
          Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
