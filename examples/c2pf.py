@@ -18,14 +18,12 @@ office_ratings = np.loadtxt("path to office ratings")
 # load office item context information in triplet format (item_id, context_iterm_id, value), see C2PF paper for details
 office_context = np.loadtxt("path to office content data")
 
-
 item_graph_module = GraphModule(data=office_context)
 
 ratio_split = RatioSplit(data=office_ratings,
                          test_size=0.2, rating_threshold=3.5,
                          shuffle=True, exclude_unknowns=True,
                          verbose=True, item_graph=item_graph_module)
-
 
 rec_c2pf = C2PF(k=100, max_iter=80, variant='c2pf')
 
