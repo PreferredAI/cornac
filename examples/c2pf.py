@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Fit to and evaluate C2PF on the office Amzon dataset
+Fit to and evaluate C2PF on the Office Amazon dataset
 
 @author: Aghiles Salah <asalah@smu.edu.sg>
 """
