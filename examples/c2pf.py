@@ -10,7 +10,6 @@ from cornac.eval_methods import RatioSplit
 from cornac.experiment import Experiment
 from cornac import metrics
 from cornac.models import C2PF
-
 import numpy as np
 
 # load office rating data in triplet format (uid, iid, rating)
