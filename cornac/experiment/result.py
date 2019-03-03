@@ -28,6 +28,39 @@ class SingleModelResult:
         avg_res = avg_res.reshape(1, len(metric_names))
         avg_res = pd.DataFrame(data=avg_res, index=np.asarray([model_name]), columns=np.asarray(metric_names))
         return avg_res
+    
+    
+
+class CVSingleModelResult(SingleModelResult):
+    """ Cross Validation Result Class for a single model
+
+    Parameters
+    ----------
+    """
+
+    def __init__(self, metric_avg_results=None):
+        self.avg = metric_avg_results
+        self.per_fold_avg = {}
+        self.avg = {}
+
+    def _add_fold_res(self, fold, metric_avg_results):
+        # think to organize the results first
+        self.per_fold_avg[fold] = metric_avg_results
+
+    def _compute_avg_res(self):
+        for mt in self.per_fold_avg[0]:
+            self.avg[mt] = 0.0
+        for f in self.per_fold_avg:
+            for mt in self.per_fold_avg[f]:
+                self.avg[mt] += self.per_fold_avg[f][mt] / len(self.per_fold_avg)
+
+    def _organize_avg_res(self, model_name, metric_names):
+        # global avg
+        self.avg = self._get_data_frame(avg_res=self.avg, model_name=model_name, metric_names=metric_names)
+        # per_fold avg
+        for f in self.per_fold_avg:
+            self.per_fold_avg[f] = self._get_data_frame(avg_res=self.per_fold_avg[f], model_name=model_name,
+                                                        metric_names=metric_names)
 
 
 class Result:
