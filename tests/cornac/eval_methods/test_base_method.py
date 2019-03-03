@@ -81,20 +81,20 @@ def test_with_modules():
     except ValueError:
         assert True
 
-    try:
-        bm.item_text = GraphModule()
-    except ValueError:
-        assert True
+    #try:
+    #    bm.item_text = GraphModule()
+    #except ValueError:
+    #    assert True
 
     try:
         bm.user_image = TextModule()
     except ValueError:
         assert True
 
-    try:
-        bm.item_image = GraphModule()
-    except ValueError:
-        assert True
+    #try:
+    #    bm.item_image = GraphModule()
+    #except ValueError:
+    #    assert True
 
     try:
         bm.user_graph = TextModule()
