@@ -6,6 +6,8 @@
 
 from cornac.data import Module
 import numpy as np
+from collections import OrderedDict
+
 
 def test_init():
     md = Module()
@@ -14,7 +16,10 @@ def test_init():
 
     id_feature = {'a': np.zeros(10)}
     md = Module(id_feature=id_feature, normalized=True)
-    md.build(ordered_ids=['a'])
+
+    global_iid_map = OrderedDict()
+    global_iid_map.setdefault('a', len(global_iid_map))
+    md.build(ordered_ids=global_iid_map)
 
     assert md.data_feature.shape[0] == 1
     assert md.data_feature.shape[1] == 10
@@ -25,7 +30,10 @@ def test_init():
 def test_batch_feature():
     id_feature = {'a': np.zeros(10)}
     md = Module(id_feature=id_feature, normalized=True)
-    md.build(ordered_ids=['a'])
+
+    global_iid_map = OrderedDict()
+    global_iid_map.setdefault('a', len(global_iid_map))
+    md.build(ordered_ids=global_iid_map)
 
     b = md.batch_feature(batch_ids=[0])
     assert b.shape[0] == 1
