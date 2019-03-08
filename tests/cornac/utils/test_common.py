@@ -5,7 +5,6 @@
 """
 
 import numpy as np
-from cornac.utils.common import which_
 from cornac.utils.common import sigmoid
 from cornac.utils.common import safe_indexing
 from cornac.utils.common import validate_format
@@ -13,16 +12,6 @@ from cornac.utils.common import scale
 from cornac.utils.common import clip
 from cornac.utils.common import excepts
 from cornac.utils.common import intersects
-
-
-def test_which_():
-    a = np.asarray([5, 4, 1, 2, 3, 0, 0])
-
-    assert all([a == b for a, b in zip(which_(a, '>', 1), np.asarray([0, 1, 3, 4]))])
-    assert all([a == b for a, b in zip(which_(a, '<', 3), np.asarray([2, 3, 5, 6]))])
-    assert all([a == b for a, b in zip(which_(a, '>=', 2), np.asarray([0, 1, 3, 4]))])
-    assert all([a == b for a, b in zip(which_(a, '<=', 4), np.asarray([1, 2, 3, 4, 5, 6]))])
-    assert all([a == b for a, b in zip(which_(a, '!=', 0), np.asarray([0, 1, 2, 3, 4]))])
 
 
 def test_sigmoid():
@@ -58,6 +47,7 @@ def test_intersects():
 
     assert all([a == b for a, b in zip(intersects(np.asarray([3, 2, 1]), np.asarray([1, 2])),
                                        np.asarray([2, 1]))])
+
 
 def test_excepts():
     assert 1 == len(excepts(np.asarray([1]), np.asarray(2)))
