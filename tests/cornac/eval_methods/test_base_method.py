@@ -73,7 +73,7 @@ def test_with_modules():
     assert bm.item_graph is None
 
     bm.user_text = TextModule()
-    bm.item_graph = GraphModule()
+    #bm.item_graph = GraphModule()
     bm._build_modules()
 
     try:
@@ -81,20 +81,20 @@ def test_with_modules():
     except ValueError:
         assert True
 
-    try:
-        bm.item_text = GraphModule()
-    except ValueError:
-        assert True
+    #try:
+    #    bm.item_text = GraphModule()
+    #except ValueError:
+    #    assert True
 
     try:
         bm.user_image = TextModule()
     except ValueError:
         assert True
 
-    try:
-        bm.item_image = GraphModule()
-    except ValueError:
-        assert True
+    #try:
+    #    bm.item_image = GraphModule()
+    #except ValueError:
+    #    assert True
 
     try:
         bm.user_graph = TextModule()

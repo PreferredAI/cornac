@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 """
-@author: Aghiles Salah
+@author: Aghiles Salah <asalah@smu.edu.sg>
          Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
 from .result import Result
-from .cv_result import CVResult
+from .result import CVResult
 
 
 class Experiment:

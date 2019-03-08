@@ -190,12 +190,14 @@ class BaseMethod:
 
     def _build_modules(self):
         for user_module in [self.user_text, self.user_image, self.user_graph]:
-            if user_module is None: continue
-            user_module.build(ordered_ids=self.global_uid_map.keys())
+            if user_module is None: 
+                continue
+            user_module.build(ordered_ids=self.global_uid_map)
 
         for item_module in [self.item_text, self.item_image, self.item_graph]:
-            if item_module is None: continue
-            item_module.build(ordered_ids=self.global_iid_map.keys())
+            if item_module is None: 
+                continue
+            item_module.build(ordered_ids=self.global_iid_map)
 
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None: continue

@@ -7,6 +7,8 @@ import numpy as np
 import scipy.sparse as sp
 from ..recommender import Recommender
 import c2pf
+from ...exception import ScoreException
+
 
 
 # Recommender class for Collaborative Context Poisson Factorization (C2PF)
@@ -20,10 +22,6 @@ class C2PF(Recommender):
 
     max_iter: int, optional, default: 100
         Maximum number of iterations for variational C2PF.
-
-    aux_info: array, required, shape (n_context_items,3)
-        The item-context matrix, noted C in the original paper, \
-        in the triplet sparse format: (row_id, col_id, value).
 
     variant: string, optional, default: 'c2pf'
         C2pf's variant: c2pf: 'c2pf', 'tc2pf' (tied-c2pf) or 'rc2pf' (reduced-c2pf). \
@@ -61,13 +59,13 @@ class C2PF(Recommender):
     In IJCAI, pp. 2667-2674. 2018.
     """
 
-    def __init__(self, k=100, max_iter=100, aux_info=None, variant='c2pf', name=None, trainable=True,
+    def __init__(self, k=100, max_iter=100, variant='c2pf', name=None, trainable=True, verbose=False,
                  init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None, 'L2_s': None, 'L2_r': None,
                               'L3_s': None, 'L3_r': None}):
         if name is None:
-            Recommender.__init__(self, name=variant.upper(), trainable=trainable)
+            Recommender.__init__(self, name=variant.upper(), trainable=trainable, verbose=verbose)
         else:
-            Recommender.__init__(self, name=name, trainable=trainable)
+            Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
         self.k = k
         self.init_params = init_params
@@ -78,19 +76,24 @@ class C2PF(Recommender):
         self.Theta = None  # user factors
         self.Beta = None  # item factors
         self.Xi = None  # context factors Xi multiplied by context effects Kappa
-        self.aux_info = aux_info  # item-context matrix in the triplet sparse format: (row_id, col_id, value)
+        #self.aux_info = aux_info  # item-context matrix in the triplet sparse format: (row_id, col_id, value)
         self.variant = variant
 
-    # fit the recommender model to the traning data
-    def fit(self, X):
+    #fit the recommender model to the traning data    
+    def fit(self, train_set):
         """Fit the model to observations.
 
         Parameters
         ----------
-        X: scipy sparse matrix, required
-            the user-item preference matrix (traning data), in a scipy sparse format\
-            (e.g., csc_matrix).
+        train_set: object of type TrainSet, required
+            An object contraining the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
         """
+
+        Recommender.fit(self, train_set)
+        X = sp.csc_matrix(self.train_set.matrix)
+        
         # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
         (rid, cid, val) = sp.find(X)
         val = np.array(val, dtype='float32')
@@ -98,23 +101,41 @@ class C2PF(Recommender):
         cid = np.array(cid, dtype='int32')
         tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
         del rid, cid, val
+        
+        if self.trainable:
+            # align auxiliary information with training data
+            #raw_iid = train_set.get_raw_iid_list()
+            #map_iid = train_set._iid_map
+            map_iid = train_set.get_iid_list()
+            train_aux_info = train_set.item_graph.get_train_triplet(map_iid,map_iid)
+            #train_aux_info2 = []
+            #map_iid = train_set._iid_map
+            #for i, j, _ in self.aux_info:
+            #    if (i not in raw_iid) or (j not in raw_iid):
+            #        continue
+            #    train_aux_info2.append([map_iid[i], map_iid[j], 1.0])
+            #train_aux_info2 = np.asarray(train_aux_info2)     
 
-        if self.variant == 'c2pf':
-            res = c2pf.c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+            if self.variant == 'c2pf':
+                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                             self.init_params)
-        elif self.variant == 'tc2pf':
-            res = c2pf.t_c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+            elif self.variant == 'tc2pf':
+                res = c2pf.t_c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                               self.init_params)
-        elif self.variant == 'rc2pf':
-            res = c2pf.r_c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+            elif self.variant == 'rc2pf':
+                res = c2pf.r_c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                               self.init_params)
-        else:
-            res = c2pf.c2pf(tX, X.shape[0], X.shape[1], self.aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
+            else:
+                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k, self.max_iter,
                             self.init_params)
 
-        self.Theta = sp.csc_matrix(res['Z']).todense()
-        self.Beta = sp.csc_matrix(res['W']).todense()
-        self.Xi = sp.csc_matrix(res['Q']).todense()
+            self.Theta = sp.csc_matrix(res['Z']).todense()
+            self.Beta = sp.csc_matrix(res['W']).todense()
+            self.Xi = sp.csc_matrix(res['Q']).todense()
+        elif self.verbose:
+            print('%s is trained already (trainable = False)' % (self.name))        
+        
+        
 
 
     def score(self, user_id, item_id=None):
@@ -137,7 +158,7 @@ class C2PF(Recommender):
         """
         if self.variant == 'c2pf' or self.variant == 'tc2pf':
             if item_id is None:
-                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[item_id, :].T
+                user_pred = self.Beta * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
             else:
                 user_pred = self.Beta[item_id,:] * self.Theta[user_id, :].T + self.Xi * self.Theta[user_id, :].T
         elif self.variant == 'rc2pf':
