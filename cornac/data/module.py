@@ -37,25 +37,25 @@ class Module:
     def feature_dim(self, input_dim):
         self.__feature_dim = input_dim
 
-    def _build_feature(self, ordered_ids):
+    def _build_feature(self, global_id_map):
         """Build data_feature matrix based on provided list of ordered ids
         """
         if self._id_feature is None:
             return
 
-        self.data_feature = np.zeros((len(ordered_ids), self.feature_dim))
-        for map_id, raw_id in enumerate(ordered_ids.keys()):
-            self.data_feature[map_id] = self._id_feature[raw_id]
+        self.data_feature = np.zeros((len(global_id_map), self.feature_dim))
+        for mapped_id, raw_id in enumerate(global_id_map.keys()):
+            self.data_feature[mapped_id] = self._id_feature[raw_id]
         if self._normalized:
             self.data_feature = self.data_feature - np.min(self.data_feature)
             self.data_feature = self.data_feature / (np.max(self.data_feature) + 1e-10)
 
         self._id_feature.clear()
 
-    def build(self, ordered_ids):
+    def build(self, global_id_map):
         """Build the model based on provided list of ordered ids
         """
-        self._build_feature(ordered_ids)
+        self._build_feature(global_id_map)
 
     def batch_feature(self, batch_ids):
         """Return a matrix (batch of feature vectors) corresponding to provided batch_ids
