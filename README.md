@@ -6,6 +6,8 @@
 
 [Website](https://cornac.preferred.ai/) |
 [Documentation](https://cornac.readthedocs.io/en/latest/index.html) |
+[Models](https://github.com/PreferredAI/cornac/tree/master/cornac/models#models) |
+[Examples](https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory) |
 [Preferred.AI](https://preferred.ai/)
 
 [![TravisCI](https://img.shields.io/travis/PreferredAI/cornac/master.svg?logo=travis)](https://www.travis-ci.org/PreferredAI/cornac)
