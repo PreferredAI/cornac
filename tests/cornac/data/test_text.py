@@ -8,4 +8,4 @@ from cornac.data import TextModule
 
 def test_init():
     md = TextModule()
-    md.build(ordered_ids=None)
+    md.build(global_id_map=None)
