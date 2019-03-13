@@ -133,7 +133,18 @@ class MatrixTrainSet(TrainSet):
     @property
     def uir_tuple(self):
         if not self.__uir_tuple:
-            self.__uir_tuple = find(self.matrix)
+            # rating matrix is assumed in the CSR format
+            if not self.matrix.has_sorted_indices:
+                self.matrix.sort_indices()
+
+            num_users, num_items = self.matrix.shape
+
+            # this basically calculates the 'row' attribute of a COO matrix
+            # without requiring us to get the whole COO matrix
+            user_counts = np.ediff1d(self.matrix.indptr)
+            user_ids = np.repeat(np.arange(num_users), user_counts).astype(self.matrix.indices.dtype)
+
+            self.__uir_tuple = (user_ids, self.matrix.indices, self.matrix.data)
         return self.__uir_tuple
 
     @uir_tuple.setter
