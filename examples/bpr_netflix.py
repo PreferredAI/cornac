@@ -17,7 +17,7 @@ ratio_split = RatioSplit(data=netflix.load_data_small(),
                          exclude_unknowns=True,
                          verbose=True)
 
-bpr = cornac.models.BPR(k=10, max_iter=200, learning_rate=0.01, lambda_reg=0.01)
+bpr = cornac.models.BPR(k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01)
 
 auc = cornac.metrics.AUC()
 rec_20 = cornac.metrics.Recall(k=20)
