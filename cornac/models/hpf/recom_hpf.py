@@ -7,7 +7,7 @@
 import numpy as np
 from ..recommender import Recommender
 from ...exception import ScoreException
-from cornac.models.hpf import hpf
+import hpf
 import scipy.sparse as sp
 
 

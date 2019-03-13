@@ -6,7 +6,7 @@
 import numpy as np
 import scipy.sparse as sp
 from ..recommender import Recommender
-from cornac.models.c2pf import c2pf
+import c2pf
 
 
 
