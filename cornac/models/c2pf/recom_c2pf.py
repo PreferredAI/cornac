@@ -6,8 +6,7 @@
 import numpy as np
 import scipy.sparse as sp
 from ..recommender import Recommender
-import c2pf
-from ...exception import ScoreException
+from cornac.models.c2pf import c2pf
 
 
 
