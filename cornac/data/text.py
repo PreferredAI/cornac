@@ -15,5 +15,5 @@ class TextModule(Module):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def build(self, ordered_ids):
+    def build(self, global_id_map):
         pass

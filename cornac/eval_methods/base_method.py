@@ -192,12 +192,12 @@ class BaseMethod:
         for user_module in [self.user_text, self.user_image, self.user_graph]:
             if user_module is None: 
                 continue
-            user_module.build(ordered_ids=self.global_uid_map)
+            user_module.build(global_id_map=self.global_uid_map)
 
         for item_module in [self.item_text, self.item_image, self.item_graph]:
             if item_module is None: 
                 continue
-            item_module.build(ordered_ids=self.global_iid_map)
+            item_module.build(global_id_map=self.global_iid_map)
 
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None: continue
@@ -254,7 +254,7 @@ class BaseMethod:
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
-        for user_id in tqdm.tqdm(self.test_set.get_users(), disable=not self.verbose):
+        for user_id in tqdm.tqdm(self.test_set.users, disable=not self.verbose):
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue

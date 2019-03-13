@@ -19,12 +19,12 @@ class GraphModule(Module):
         self.matrix = None
         self.map_data = []
 
-    def _build_triplet(self, ordered_ids):
-        """Build adjacency matrix in sparse triplet format using maped ids
+    def _build_triplet(self, global_id_map):
+        """Build adjacency matrix in sparse triplet format using mapped ids
         """
 
         for i, j, val in self.raw_data:
-            self.map_data.append([ordered_ids[i], ordered_ids[j], val])
+            self.map_data.append([global_id_map[i], global_id_map[j], val])
         self.map_data = np.asanyarray(self.map_data)
         self.raw_data = None
 
@@ -50,18 +50,17 @@ class GraphModule(Module):
 
         return np.asarray(train_triplet)
 
-    def build(self, ordered_ids):
-        self._build_triplet(ordered_ids)
+    def build(self, global_id_map):
+        self._build_triplet(global_id_map)
         self._build_sparse_matrix(self.map_data)
 
     def batch(self, batch_ids):
-
-        """Collaborative Context Poisson Factorization.
+        """Return batch of vectors from the sparse adjacency matrix corresponding to provided batch_ids.
 
         Parameters
         ----------
         batch_ids: array, required
-            An array conting the ids of rows to be returned from the sparse adjacency matrix.        
+            An array contains the ids of rows to be returned from the sparse adjacency matrix.
         """
 
         return self.matrix[batch_ids]
