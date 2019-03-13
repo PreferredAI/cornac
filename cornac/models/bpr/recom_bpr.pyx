@@ -171,6 +171,7 @@ class BPR(Recommender):
         """Fit the model parameters (U, V, B) with SGD
         """
         cdef long num_samples = len(user_ids), s, i_index, j_index, correct, skipped
+        cdef long num_items = self.train_set.num_items
         cdef integral f, i_id, j_id, thread_id
         cdef floating z, score, temp
 
@@ -183,7 +184,8 @@ class BPR(Recommender):
         cdef floating * item_i
         cdef floating * item_j
 
-        cdef RNGVector rng = RNGVector(num_threads, num_samples - 1)
+        cdef RNGVector rng_i = RNGVector(num_threads, num_samples - 1)
+        cdef RNGVector rng_j = RNGVector(num_threads, num_items - 1)
 
         progress = tqdm.trange(self.max_iter, disable=not self.verbose)
         for epoch in progress:
@@ -194,10 +196,10 @@ class BPR(Recommender):
 
                 thread_id = get_thread_num()
                 for s in prange(num_samples, schedule='guided'):
-                    i_index = rng.generate(thread_id)
+                    i_index = rng_i.generate(thread_id)
                     i_id = item_ids[i_index]
 
-                    j_index = rng.generate(thread_id)
+                    j_index = rng_j.generate(thread_id)
                     j_id = item_ids[j_index]
 
                     # if the user has liked the item j, skip this for now
