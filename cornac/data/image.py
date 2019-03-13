@@ -28,10 +28,10 @@ class ImageModule(Module):
     def data_image(self, input_image):
         self.__data_image = input_image
 
-    def build(self, ordered_ids):
+    def build(self, global_id_map):
         """Build the model based on provided list of ordered ids
         """
-        super().build(ordered_ids)
+        Module.build(self, global_id_map)
 
     def batch_image(self, batch_ids,
                     target_size=(256, 256),
