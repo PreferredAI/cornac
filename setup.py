@@ -76,7 +76,7 @@ else:
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
 extensions = [
-    Extension(name='c2pf',
+    Extension(name='cornac.models.c2pf.c2pf',
               sources=[
                   'cornac/models/c2pf/cython/c2pf' + ext,
                   'cornac/models/c2pf/cpp/cpp_c2pf.cpp'],
@@ -86,10 +86,10 @@ extensions = [
                   'cornac/utils/external/eigen/unsupported/Eigen/'
               ],
               language='c++'),
-    Extension(name='pmf',
+    Extension(name='cornac.models.pmf.pmf',
               sources=['cornac/models/pmf/cython/pmf' + ext],
               language='c++'),
-    Extension('hpf',
+    Extension('cornac.models.hpf.hpf',
               sources=['cornac/models/hpf/cython/hpf' + ext,
                        'cornac/models/hpf/cpp/cpp_hpf.cpp'],
               include_dirs=[
@@ -98,10 +98,10 @@ extensions = [
                   'cornac/utils/external/eigen/unsupported/Eigen/'
               ],
               language='c++'),
-    Extension(name='recom_mf',
+    Extension(name='cornac.models.mf.recom_mf',
               sources=['cornac/models/mf/recom_mf' + ext],
               language='c++'),
-    Extension(name='recom_bpr',
+    Extension(name='cornac.models.bpr.recom_bpr',
               sources=['cornac/models/bpr/recom_bpr' + ext],
               language='c++',
               extra_compile_args=compile_args, extra_link_args=link_args)
