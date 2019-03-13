@@ -254,7 +254,7 @@ class BaseMethod:
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
-        for user_id in tqdm.tqdm(self.test_set.get_users(), disable=not self.verbose):
+        for user_id in tqdm.tqdm(self.test_set.users, disable=not self.verbose):
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue

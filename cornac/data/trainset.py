@@ -35,6 +35,26 @@ class TrainSet:
         """Return the number of items"""
         return len(self._iid_map)
 
+    @property
+    def uid_list(self):
+        """Return the list of mapped user ids"""
+        return self._uid_map.values()
+
+    @property
+    def raw_uid_list(self):
+        """Return the list of raw user ids"""
+        return self._uid_map.keys()
+
+    @property
+    def iid_list(self):
+        """Return the list of mapped item ids"""
+        return self._iid_map.values()
+
+    @property
+    def raw_iid_list(self):
+        """Return the list of raw item ids"""
+        return self._iid_map.keys()
+
     def is_unk_user(self, mapped_uid):
         """Return whether or not a user is unknown given the mapped id"""
         return mapped_uid >= self.num_users
@@ -51,21 +71,6 @@ class TrainSet:
         """Return the mapped id of an item given a raw id"""
         return self._iid_map[raw_iid]
 
-    def get_uid_list(self):
-        """Return the list of mapped user ids"""
-        return self._uid_map.values()
-
-    def get_raw_uid_list(self):
-        """Return the list of raw user ids"""
-        return self._uid_map.keys()
-
-    def get_iid_list(self):
-        """Return the list of mapped item ids"""
-        return self._iid_map.values()
-
-    def get_raw_iid_list(self):
-        """Return the list of raw item ids"""
-        return self._iid_map.keys()
 
     @staticmethod
     def idx_iter(idx_range, batch_size=1, shuffle=False):
