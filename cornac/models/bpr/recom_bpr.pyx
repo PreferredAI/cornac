@@ -199,8 +199,7 @@ class BPR(Recommender):
                     i_index = rng_i.generate(thread_id)
                     i_id = item_ids[i_index]
 
-                    j_index = rng_j.generate(thread_id)
-                    j_id = item_ids[j_index]
+                    j_id = rng_j.generate(thread_id)
 
                     # if the user has liked the item j, skip this for now
                     if has_non_zero(indptr, item_ids, user_ids[i_index], j_id):
