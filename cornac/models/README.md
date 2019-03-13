@@ -1,7 +1,7 @@
 # Models
 
-This directory includes the implementation of all the models (listed below) supported in Cornac. 
-Additional dependencies (CPU versions) for each model are also listed accordingly.
+This directory includes the implementation of all the models supported in Cornac. 
+Additional dependencies (CPU versions) and examples for each model are also listed accordingly.
 
 | Model and paper | Additional dependencies | Examples |
 | --- | :---: | :---: |
