@@ -8,7 +8,7 @@
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Image features associate with items/users.
 
-[c2pf_ex.py](c2pf_ex.py) - Items/users networks as graph modules.
+[c2pf_example.py](c2pf_example.py) - Items/users networks as graph modules.
 
 ----
 
@@ -24,4 +24,4 @@
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR).
 
-[c2pf_ex.py](c2pf_ex.py) - Collaborative Context Poisson Factorization (C2PF).
+[c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF).
