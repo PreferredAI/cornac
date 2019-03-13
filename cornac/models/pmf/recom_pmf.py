@@ -10,7 +10,6 @@ import pmf
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
-from ...utils.common import intersects
 from ...exception import ScoreException
 
 
