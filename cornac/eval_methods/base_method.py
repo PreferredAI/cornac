@@ -32,30 +32,28 @@ class BaseMethod:
         The format of given data.
 
     total_users: int, optional, default: None
-        Total number of unique users in the data including train, val, and test sets
+        Total number of unique users in the data including train, val, and test sets.
 
     total_users: int, optional, default: None
-        Total number of unique items in the data including train, val, and test sets
+        Total number of unique items in the data including train, val, and test sets.
 
-    rating_threshold: float, optional, default: 1
-        The minimum value that is considered to be a good rating used for ranking, \
-        e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
+    rating_threshold: float, optional, default: 1.0
+        The threshold to convert ratings into positive or negative feedback for ranking metrics.
 
     exclude_unknowns: bool, optional, default: False
-        Ignore unknown users and items (cold-start) during evaluation and testing
+        Ignore unknown users and items (cold-start) during evaluation.
 
     verbose: bool, optional, default: False
         Output running log
     """
-
     def __init__(self, data=None,
-                 data_format='UIR',
+                 fmt='UIR',
                  rating_threshold=1.0,
                  exclude_unknowns=False,
                  verbose=False,
                  **kwargs):
         self._data = data
-        self.data_format = validate_format(data_format, VALID_DATA_FORMATS)
+        self.data_format = validate_format(fmt, VALID_DATA_FORMATS)
         self.train_set = None
         self.test_set = None
         self.val_set = None

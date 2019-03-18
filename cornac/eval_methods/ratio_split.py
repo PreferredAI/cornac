@@ -4,10 +4,9 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..utils.common import safe_indexing, validate_format
+from ..utils.common import safe_indexing
 from math import ceil
 from .base_method import BaseMethod
-from ..data import MatrixTrainSet, TestSet
 from ..experiment.result import SingleModelResult
 import numpy as np
 
@@ -21,7 +20,7 @@ class RatioSplit(BaseMethod):
     data: ..., required
         The input data in the form of triplets (user, item, rating).
 
-    data_format: str, optional, default: "UIR"
+    fmt: str, optional, default: "UIR"
         The format of input data:
         - UIR: (user, item, rating) triplet data
         - UIRT: (user, item , rating, timestamp) quadruplet data
@@ -51,11 +50,10 @@ class RatioSplit(BaseMethod):
         Output running log
     """
 
-    def __init__(self, data, data_format='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0, shuffle=True,
+    def __init__(self, data, fmt='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0, shuffle=True,
                  seed=None, exclude_unknowns=False, verbose=False, **kwargs):
-        BaseMethod.__init__(self, data=data, data_format=data_format, rating_threshold=rating_threshold,
+        BaseMethod.__init__(self, data=data, fmt=fmt, rating_threshold=rating_threshold,
                             exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
-
         self._shuffle = shuffle
         self._seed = seed
         self._train_size, self._val_size, self._test_size = self.validate_size(val_size, test_size, len(self._data))
