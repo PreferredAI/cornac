@@ -12,10 +12,8 @@ from cornac import metrics
 from cornac.models import C2PF
 import numpy as np
 
-# load office rating data in triplet format (uid, iid, rating)
+# Load office ratings and item contexts, see C2PF paper for details
 office_ratings = np.loadtxt("path to office ratings")
-
-# load office item context information in triplet format (item_id, context_iterm_id, value), see C2PF paper for details
 office_context = np.loadtxt("path to office content data")
 
 item_graph_module = GraphModule(data=office_context)

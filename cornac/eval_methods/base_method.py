@@ -32,30 +32,28 @@ class BaseMethod:
         The format of given data.
 
     total_users: int, optional, default: None
-        Total number of unique users in the data including train, val, and test sets
+        Total number of unique users in the data including train, val, and test sets.
 
     total_users: int, optional, default: None
-        Total number of unique items in the data including train, val, and test sets
+        Total number of unique items in the data including train, val, and test sets.
 
-    rating_threshold: float, optional, default: 1
-        The minimum value that is considered to be a good rating used for ranking, \
-        e.g, if the ratings are in {1, ..., 5}, then good_rating = 4.
+    rating_threshold: float, optional, default: 1.0
+        The threshold to convert ratings into positive or negative feedback for ranking metrics.
 
     exclude_unknowns: bool, optional, default: False
-        Ignore unknown users and items (cold-start) during evaluation and testing
+        Ignore unknown users and items (cold-start) during evaluation.
 
     verbose: bool, optional, default: False
         Output running log
     """
-
     def __init__(self, data=None,
-                 data_format='UIR',
+                 fmt='UIR',
                  rating_threshold=1.0,
                  exclude_unknowns=False,
                  verbose=False,
                  **kwargs):
         self._data = data
-        self.data_format = validate_format(data_format, VALID_DATA_FORMATS)
+        self.data_format = validate_format(fmt, VALID_DATA_FORMATS)
         self.train_set = None
         self.test_set = None
         self.val_set = None
@@ -192,12 +190,12 @@ class BaseMethod:
         for user_module in [self.user_text, self.user_image, self.user_graph]:
             if user_module is None: 
                 continue
-            user_module.build(ordered_ids=self.global_uid_map)
+            user_module.build(global_id_map=self.global_uid_map)
 
         for item_module in [self.item_text, self.item_image, self.item_graph]:
             if item_module is None: 
                 continue
-            item_module.build(ordered_ids=self.global_iid_map)
+            item_module.build(global_id_map=self.global_iid_map)
 
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None: continue
@@ -254,7 +252,7 @@ class BaseMethod:
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
-        for user_id in tqdm.tqdm(self.test_set.get_users(), disable=not self.verbose):
+        for user_id in tqdm.tqdm(self.test_set.users, disable=not self.verbose):
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue

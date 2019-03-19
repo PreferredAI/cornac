@@ -31,11 +31,11 @@ def test_trainset():
     assert train_set.get_uid('b') == 1
     assert train_set.get_iid('y') == 1
 
-    assert all([a == b for a, b in zip(train_set.get_uid_list(), [0, 1])])
-    assert all([a == b for a, b in zip(train_set.get_raw_uid_list(), ['a', 'b'])])
+    assert all([a == b for a, b in zip(train_set.uid_list, [0, 1])])
+    assert all([a == b for a, b in zip(train_set.raw_uid_list, ['a', 'b'])])
 
-    assert all([a == b for a, b in zip(train_set.get_iid_list(), [0, 1, 2])])
-    assert all([a == b for a, b in zip(train_set.get_raw_iid_list(), ['x', 'y', 'z'])])
+    assert all([a == b for a, b in zip(train_set.iid_list, [0, 1, 2])])
+    assert all([a == b for a, b in zip(train_set.raw_iid_list, ['x', 'y', 'z'])])
 
 
 def test_trainset_idx_iter():
@@ -73,12 +73,12 @@ def test_matrix_trainset():
     assert train_set.get_uid('768') == 1
     assert train_set.get_iid('195') == 7
 
-    assert all([a == b for a, b in zip(train_set.get_uid_list(), range(10))])
-    assert all([a == b for a, b in zip(train_set.get_raw_uid_list(),
+    assert all([a == b for a, b in zip(train_set.uid_list, range(10))])
+    assert all([a == b for a, b in zip(train_set.raw_uid_list,
                                        ['76', '768', '642', '930', '329', '633', '716', '871', '543', '754'])])
 
-    assert all([a == b for a, b in zip(train_set.get_iid_list(), range(10))])
-    assert all([a == b for a, b in zip(train_set.get_raw_iid_list(),
+    assert all([a == b for a, b in zip(train_set.iid_list, range(10))])
+    assert all([a == b for a, b in zip(train_set.raw_iid_list,
                                        ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])])
 
     train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
