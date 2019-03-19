@@ -4,9 +4,11 @@
 
 [pmf_ratio.py](pmf_ratio.py) - Splitting data into train/val/test sets based on provided sizes (RatioSplit).
 
-[given_data.py](given_data.py) - You wish to evaluate the models with your own splits of data.
+[given_data.py](given_data.py) - Evaluate the models with your own data splits.
 
-[vbpr_tradesy.py](vbpr_tradesy.py) - Your data comes with (item) image features.
+[vbpr_tradesy.py](vbpr_tradesy.py) - Image features associate with items/users.
+
+[c2pf_example.py](c2pf_example.py) - Items/users networks as graph modules.
 
 ----
 
@@ -21,3 +23,5 @@
 [ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR).
+
+[c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF).

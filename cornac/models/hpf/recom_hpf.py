@@ -6,7 +6,6 @@
 
 import numpy as np
 from ..recommender import Recommender
-#from .hpf import *
 from ...exception import ScoreException
 import hpf
 import scipy.sparse as sp
