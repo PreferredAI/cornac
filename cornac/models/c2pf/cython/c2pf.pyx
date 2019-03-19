@@ -122,7 +122,6 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     
     M3 = sp.csc_matrix((np.array(L3_s)[:,2]/np.array(L3_r)[:,2], (np.array(L3_s)[:,0], np.array(L3_s)[:,1])), shape=(d, d2))
     Q = M3*(np.array(L2_s)/np.array(L2_r))
-    print(Q)
     
     res = {'Z':np.array(G_s)/np.array(G_r),'W':np.array(L_s)/np.array(L_r),'ll': None, 'Q':Q}
     
@@ -276,14 +275,12 @@ cpdef r_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
     else:
         L2_r = init_param['L2_r']
     #L2_r = sp.csc_matrix(L_r,dtype=np.float64)
-    print("I am here")
     #shape kappa_ij matrix
     if init_param['L3_s'] is None: 
         L3_s = np.copy(C)
         L3_s[:,2] = np.random.gamma(100,scale=0.5/100, size= C.shape[0])
     else:
         L3_s = init_param['L3_s']
-    print("But not here")
 
     ## rate kappa_ij matrix (dgCMatrix)
     if init_param['L3_r'] is None: 
@@ -305,7 +302,6 @@ cpdef r_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
     
     M3 = sp.csc_matrix((np.array(L3_s)[:,2]/np.array(L3_r)[:,2], (np.array(L3_s)[:,0], np.array(L3_s)[:,1])), shape=(d, d2))
     Q = M3*(np.array(L2_s)/np.array(L2_r))
-    print(Q.shape)
     
     res = {'Z':np.array(G_s)/np.array(G_r),'W':Q,'ll': None, 'Q':Q}
     
