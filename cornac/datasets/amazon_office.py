@@ -31,4 +31,4 @@ def load_rating(data_format='UIR'):
     fpath = cache(url='',
                   relative_path='amazon_office/rating.txt')
     if data_format == 'UIR':
-        return reader.read_uir(fpath)
+        return reader.read_uir(fpath,sep=' ')
