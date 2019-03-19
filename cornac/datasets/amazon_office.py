@@ -28,7 +28,7 @@ def load_rating(data_format='UIR'):
     """
 
     data_format = validate_format(data_format, VALID_DATA_FORMATS)
-    fpath = cache(url='',
+    fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/rating.txt',
                   relative_path='amazon_office/rating.txt')
     if data_format == 'UIR':
         return reader.read_uir(fpath,sep=' ')
