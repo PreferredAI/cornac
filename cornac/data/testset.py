@@ -28,7 +28,8 @@ class TestSet:
         self._uid_map = uid_map
         self._iid_map = iid_map
 
-    def get_users(self):
+    @property
+    def users(self):
         """Return a list of users"""
         return self._user_ratings.keys()
 
@@ -45,12 +46,12 @@ class TestSet:
         return self._iid_map[raw_iid]
 
     @classmethod
-    def from_uir(self, triplet_data, global_uid_map, global_iid_map, global_ui_set, verbose=False):
+    def from_uir(self, data, global_uid_map, global_iid_map, global_ui_set, verbose=False):
         """Constructing TestSet from triplet data.
 
         Parameters
         ----------
-        triplet_data: array-like, shape: [n_examples, 3]
+        data: array-like, shape: [n_examples, 3]
             Data in the form of triplets (user, item, rating)
 
         global_uid_map: :obj:`defaultdict`
@@ -79,7 +80,7 @@ class TestSet:
         unk_user_count = 0
         unk_item_count = 0
 
-        for raw_uid, raw_iid, rating in triplet_data:
+        for raw_uid, raw_iid, rating in data:
             if (raw_uid, raw_iid) in global_ui_set:  # duplicate rating
                 continue
             global_ui_set.add((raw_uid, raw_iid))

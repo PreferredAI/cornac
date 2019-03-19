@@ -7,7 +7,6 @@ import numpy as np
 import scipy.sparse as sp
 from ..recommender import Recommender
 import c2pf
-from ...exception import ScoreException
 
 
 # Recommender class for Collaborative Context Poisson Factorization (C2PF)
@@ -106,6 +105,7 @@ class C2PF(Recommender):
 
         if self.trainable:
             # align auxiliary information with training data
+<<<<<<< HEAD
             # raw_iid = train_set.get_raw_iid_list()
             # map_iid = train_set._iid_map
             map_iid = train_set.get_iid_list()
@@ -113,6 +113,15 @@ class C2PF(Recommender):
             # train_aux_info2 = []
             # map_iid = train_set._iid_map
             # for i, j, _ in self.aux_info:
+=======
+            #raw_iid = train_set.get_raw_iid_list()
+            #map_iid = train_set._iid_map
+            map_iid = train_set.iid_list
+            train_aux_info = train_set.item_graph.get_train_triplet(map_iid,map_iid)
+            #train_aux_info2 = []
+            #map_iid = train_set._iid_map
+            #for i, j, _ in self.aux_info:
+>>>>>>> upstream/master
             #    if (i not in raw_iid) or (j not in raw_iid):
             #        continue
             #    train_aux_info2.append([map_iid[i], map_iid[j], 1.0])
