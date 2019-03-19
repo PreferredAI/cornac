@@ -32,3 +32,24 @@ def load_rating(data_format='UIR'):
                   relative_path='amazon_office/rating.txt')
     if data_format == 'UIR':
         return reader.read_uir(fpath,sep=' ')
+
+
+def load_context(data_format='UIR'):
+    """Load the item-item interactions
+
+    Parameters
+    ----------
+    data_format: str, default: 'UIR'
+        Data format to be returned.
+
+    Returns
+    -------
+    data: array-like
+        Data in the form of a list of tuples depending on the specified data format.
+    """
+
+    data_format = validate_format(data_format, VALID_DATA_FORMATS)
+    fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/context.txt',
+                  relative_path='amazon_office/context.txt')
+    if data_format == 'UIR':
+        return reader.read_uir(fpath,sep=' ')
