@@ -13,8 +13,8 @@ from cornac.models import C2PF
 import numpy as np
 
 # Load office ratings and item contexts, see C2PF paper for details
-office_ratings = np.loadtxt("path to office ratings")
-office_context = np.loadtxt("path to office content data")
+ratings = office.load_rating()
+contexts = office.load_context()
 
 item_graph_module = GraphModule(data=office_context)
 
