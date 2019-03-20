@@ -71,28 +71,39 @@ class TestTextModule(unittest.TestCase):
         self.id_text = {'u1': 'a b c',
                         'u2': 'b c d d',
                         'u3': 'c b e c f'}
-        # tokens ranked by freq: c:4 > b:5 > d:6 > a:7 > e:8 > f:9
+
         self.module = TextModule(self.id_text)
         self.id_map = OrderedDict({'u1': 0, 'u2': 1, 'u3': 2})
         self.module.build(self.id_map)
+        self.token_ids = (self.module.vocab.tok2idx[tok] for tok in self.tokens)
+
 
     def test_init(self):
         self.assertCountEqual(self.module.vocab.idx2tok,
                               SPECIAL_TOKENS + self.tokens)
 
     def test_sequences(self):
+        (a, b, c, d, e, f) = self.token_ids
+
         self.assertListEqual(self.module.sequences,
-                             [[7, 5, 4],
-                              [5, 4, 6, 6],
-                              [4, 5, 8, 4, 9]])
+                             [[a, b, c],
+                              [b, c, d, d],
+                              [c, b, e, c, f]])
 
     def test_batch_seq(self):
+        (a, b, c, d, e, f) = self.token_ids
+
         batch_seqs = self.module.batch_seq([2, 1])
         self.assertEqual((2, 5), batch_seqs.shape)
         np.testing.assert_array_equal(batch_seqs,
-                                      np.asarray([[4, 5, 8, 4, 9],
-                                                  [5, 4, 6, 6, 0]]))
+                                      np.asarray([[c, b, e, c, f],
+                                                  [b, c, d, d, 0]]))
 
+        batch_seqs = self.module.batch_seq([0, 2], max_length=4)
+        self.assertEqual((2, 4), batch_seqs.shape)
+        np.testing.assert_array_equal(batch_seqs,
+                                      np.asarray([[a, b, c, 0],
+                                                  [c, b, e, c]]))
 
 if __name__ == '__main__':
     unittest.main()
