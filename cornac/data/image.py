@@ -4,19 +4,19 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from . import Module
+from . import FeatureModule
 
 
-class ImageModule(Module):
+class ImageModule(FeatureModule):
     """Image module
 
     """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
         self._id_image = kwargs.get('id_image', None)
         self._id_path = kwargs.get('id_path', None)
-
         self.data_image = None
         self.data_path = None
 
@@ -31,7 +31,7 @@ class ImageModule(Module):
     def build(self, global_id_map):
         """Build the model based on provided list of ordered ids
         """
-        Module.build(self, global_id_map)
+        FeatureModule.build(self, global_id_map)
 
     def batch_image(self, batch_ids,
                     target_size=(256, 256),
