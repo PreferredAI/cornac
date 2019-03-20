@@ -4,10 +4,10 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from . import Module
+from . import FeatureModule
 
 
-class TextModule(Module):
+class TextModule(FeatureModule):
     """Text module
 
     """
