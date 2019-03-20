@@ -1,4 +1,4 @@
-from .module import Module
+from .module import FeatureModule
 from .text import TextModule
 from .image import ImageModule
 from .graph import GraphModule
@@ -9,7 +9,7 @@ from .testset import TestSet
 from .testset import MultimodalTestSet
 from . import reader
 
-__all__ = ['Module',
+__all__ = ['FeatureModule',
            'TextModule',
            'ImageModule',
            'GraphModule',
