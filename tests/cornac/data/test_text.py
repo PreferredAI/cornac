@@ -60,8 +60,8 @@ class TestVocabulary(unittest.TestCase):
 
     def test_from_tokens(self):
         from_tokens_vocab = Vocabulary.from_tokens(self.tokens)
-        self.assertListEqual(SPECIAL_TOKENS + self.vocab.idx2tok,
-                             from_tokens_vocab.idx2tok)
+        self.assertCountEqual(SPECIAL_TOKENS + self.vocab.idx2tok,
+                              from_tokens_vocab.idx2tok)
 
 
 class TestTextModule(unittest.TestCase):
