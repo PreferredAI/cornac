@@ -88,7 +88,7 @@ class Vocabulary():
         """
         Convert a list of `tokens` to their integer indices.
         """
-        return [self.tok2idx[tok] for tok in tokens]
+        return [self.tok2idx.get(tok, 1) for tok in tokens] # 1 is <UNK> idx
 
     def to_text(self, indices: List[int], sep=' ') -> List[str]:
         """
@@ -151,7 +151,7 @@ class TextModule(FeatureModule):
         if self.tokenizer is None:
             self.tokenizer = BaseTokenizer()
 
-        # Tokenize texts and map to new integer ids
+        # Tokenize texts
         self.sequences = []
         mapped2raw = {mapped_id: raw_id for raw_id, mapped_id in global_id_map.items()}
         for mapped_id in range(len(global_id_map)):
@@ -164,6 +164,10 @@ class TextModule(FeatureModule):
         if self.vocab is None:
             self.vocab = Vocabulary.from_tokens(tokens=list(itertools.chain(*self.sequences)),
                                                 max_vocab=self.max_vocab)
+
+        # Map tokens into integer ids
+        for i, seq in enumerate(self.sequences):
+            self.sequences[i] = self.vocab.to_idx(seq)
 
     def build(self, global_id_map):
         """Build the model based on provided list of ordered ids
@@ -183,7 +187,7 @@ class TextModule(FeatureModule):
 
         seq_mat = np.zeros((len(batch_ids), max_length), dtype=np.int)
         for i, mapped_id in enumerate(batch_ids):
-            idx_seq = self.vocab.to_idx(self.sequences[mapped_id][:max_length])
+            idx_seq = self.sequences[mapped_id][:max_length]
             for j, idx in enumerate(idx_seq):
                 seq_mat[i, j] = idx
 
