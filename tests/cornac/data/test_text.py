@@ -71,7 +71,7 @@ class TestTextModule(unittest.TestCase):
         self.id_text = {'u1': 'a b c',
                         'u2': 'b c d d',
                         'u3': 'c b e c f'}
-        # tokens ranked by freq: c > b > d > a > e > f
+        # tokens ranked by freq: c:4 > b:5 > d:6 > a:7 > e:8 > f:9
         self.module = TextModule(self.id_text)
         self.id_map = OrderedDict({'u1': 0, 'u2': 1, 'u3': 2})
         self.module.build(self.id_map)
@@ -79,10 +79,12 @@ class TestTextModule(unittest.TestCase):
     def test_init(self):
         self.assertCountEqual(self.module.vocab.idx2tok,
                               SPECIAL_TOKENS + self.tokens)
+
+    def test_sequences(self):
         self.assertListEqual(self.module.sequences,
-                             [['a', 'b', 'c'],
-                              ['b', 'c', 'd', 'd'],
-                              ['c', 'b', 'e', 'c', 'f']])
+                             [[7, 5, 4],
+                              [5, 4, 6, 6],
+                              [4, 5, 8, 4, 9]])
 
     def test_batch_seq(self):
         batch_seqs = self.module.batch_seq([2, 1])
