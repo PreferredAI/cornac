@@ -119,7 +119,6 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     c2pf_cpp(X, C, k, G_s, G_r, L_s, L_r, L2_s, L2_r, L3_s, L3_r, T3_r, col_sum_c, util_sum, int(0.2*iter_max),2.,5.)
     print('Learning completed!')
     
-    
     M3 = sp.csc_matrix((np.array(L3_s)[:,2]/np.array(L3_r)[:,2], (np.array(L3_s)[:,0], np.array(L3_s)[:,1])), shape=(d, d2))
     Q = M3*(np.array(L2_s)/np.array(L2_r))
     
