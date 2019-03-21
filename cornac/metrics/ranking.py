@@ -291,7 +291,7 @@ class Precision(MeasureAtK):
             Precision score.
 
         """
-        tp, tp_fn, tp_fp = MeasureAtK.compute(self, gt_pos, pd_rank, **kwargs)
+        tp, _, tp_fp = MeasureAtK.compute(self, gt_pos, pd_rank, **kwargs)
         return tp / tp_fp
 
 
@@ -328,7 +328,7 @@ class Recall(MeasureAtK):
             Recall score.
 
         """
-        tp, tp_fn, tp_fp = MeasureAtK.compute(self, gt_pos, pd_rank, **kwargs)
+        tp, tp_fn, _ = MeasureAtK.compute(self, gt_pos, pd_rank, **kwargs)
         return tp / tp_fn
 
 
