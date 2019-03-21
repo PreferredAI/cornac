@@ -91,9 +91,9 @@ class Experiment:
         organized_metrics = {'ranking': [], 'rating': []}
 
         # Organize metrics into "rating" and "ranking" for efficiency purposes
-        #for mt in self.metrics:
-        #    organized_metrics[mt.type].append(mt)
-        #    metric_names.append(mt.name)
+        for mt in self.metrics:
+            organized_metrics[mt.type].append(mt)
+            metric_names.append(mt.name)
 
         for model in self.models:
             if self.verbose:
