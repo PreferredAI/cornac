@@ -54,7 +54,7 @@ python3 setup.py install
 
 Additional dependencies required by models are listed [here](cornac/models/README.md).
 
-Some of the algorithms use `OpenMP` to speed up training with multithreading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler and install Cornac from source:
+Some of the algorithms use `OpenMP` to speed up training with multithreading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler, and install Cornac from the source:
 
 ```sh
 brew install gcc | brew link gcc
@@ -74,6 +74,7 @@ If you want to utilize your GPUs, you might consider:
 This example will show you how to run your very first experiment.
 
   - Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
+  
 ```python
 from cornac.datasets import movielens
 
@@ -81,6 +82,7 @@ ml_100k = movielens.load_100k()
 ```
 
   - Instantiate an evaluation method. Here we split the data based on ratio.
+  
 ```python
 from cornac.eval_methods import RatioSplit
 
@@ -88,6 +90,7 @@ ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, excl
 ```
 
   - Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
+  
 ```python
 import cornac
 
@@ -95,6 +98,7 @@ pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 ```
 
   - Instantiate evaluation metrics.
+  
 ```python
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
@@ -103,6 +107,7 @@ pre_20 = cornac.metrics.Precision(k=20)
 ```
 
   - Instantiate and then run an experiment.
+  
 ```python
 exp = cornac.Experiment(eval_method=ratio_split,
                         models=[pmf],
