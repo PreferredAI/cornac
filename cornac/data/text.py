@@ -109,7 +109,8 @@ class Vocabulary():
         self.idx2tok = self._add_special_tokens(idx2tok)
         self.tok2idx = defaultdict(int, {tok: idx for idx, tok in enumerate(self.idx2tok)})
 
-    def _add_special_tokens(self, idx2tok: List[str]) -> List[str]:
+    @staticmethod
+    def _add_special_tokens(idx2tok: List[str]) -> List[str]:
         for tok in reversed(SPECIAL_TOKENS):  # <PAD>:0, '<UNK>':1, '<BOS>':2, '<EOS>':3
             if tok in idx2tok:
                 idx2tok.remove(tok)
