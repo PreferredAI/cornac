@@ -5,13 +5,15 @@
 """
 
 from . import FeatureModule
-from typing import List, Dict
+from typing import List, Dict, Callable
 from collections import defaultdict, Counter
 import pickle
 import numpy as np
 import itertools
+import re
 
-SPECIAL_TOKENS = ['<PAD>', '<UNK>', '<BOS>', '<EOS>']
+PAD, UNK, BOS, EOS = '<PAD>', '<UNK>', '<BOS>', '<EOS>'
+SPECIAL_TOKENS = [PAD, UNK, BOS, EOS]
 
 
 class Tokenizer():
@@ -41,13 +43,35 @@ class Tokenizer():
         raise NotImplementedError
 
 
+def rm_dup_spaces(t: str) -> str:
+    """
+    Remove duplicate spaces in `t`.
+    """
+    return re.sub(' {2,}', ' ', t)
+
+
+def lower(tokens: List[str]) -> List[str]:
+    """
+    Lowercase all characters of every token in `tokens`.
+    """
+    return [t.lower() for t in tokens]
+
+
+DEFAULT_PRE_RULES = [rm_dup_spaces]
+DEFAULT_POST_RULES = [lower]
+
+
 class BaseTokenizer(Tokenizer):
     """
     A base tokenizer use a provided delimiter `sep` to split text.
     """
 
-    def __init__(self, sep=' '):
+    def __init__(self, sep=' ',
+                 pre_rules: List[Callable[[str], str]] = None,
+                 post_rules: List[Callable[[str], List[str]]] = None):
         self.sep = sep
+        self.pre_rules = DEFAULT_PRE_RULES if pre_rules is None else pre_rules
+        self.post_rules = DEFAULT_POST_RULES if post_rules is None else post_rules
 
     def tokenize(self, t: str) -> List[str]:
         """
@@ -57,7 +81,12 @@ class BaseTokenizer(Tokenizer):
         -------
         tokens : ``List[str]``
         """
-        return t.split(self.sep)
+        for rule in self.pre_rules:
+            t = rule(t)
+        tokens = t.split(self.sep)
+        for rule in self.post_rules:
+            tokens = rule(tokens)
+        return tokens
 
     # TODO: this function can be parallelized
     def batch_tokenize(self, texts: List[str]) -> List[List[str]]:
@@ -77,8 +106,15 @@ class Vocabulary():
     """
 
     def __init__(self, idx2tok: List[str]):
-        self.idx2tok = idx2tok
+        self.idx2tok = self._add_special_tokens(idx2tok)
         self.tok2idx = defaultdict(int, {tok: idx for idx, tok in enumerate(self.idx2tok)})
+
+    def _add_special_tokens(self, idx2tok: List[str]) -> List[str]:
+        for tok in reversed(SPECIAL_TOKENS):  # <PAD>:0, '<UNK>':1, '<BOS>':2, '<EOS>':3
+            if tok in idx2tok:
+                idx2tok.remove(tok)
+            idx2tok.insert(0, tok)
+        return idx2tok
 
     @property
     def size(self):
@@ -88,7 +124,7 @@ class Vocabulary():
         """
         Convert a list of `tokens` to their integer indices.
         """
-        return [self.tok2idx.get(tok, 1) for tok in tokens] # 1 is <UNK> idx
+        return [self.tok2idx.get(tok, 1) for tok in tokens]  # 1 is <UNK> idx
 
     def to_text(self, indices: List[int], sep=' ') -> List[str]:
         """
@@ -109,10 +145,6 @@ class Vocabulary():
         """
         freq = Counter(tokens)
         idx2tok = [tok for tok, cnt in freq.most_common(max_vocab) if cnt >= min_freq]
-        for tok in reversed(SPECIAL_TOKENS):  # <PAD>:0, '<UNK>':1, '<BOS>':2, '<EOS>':3
-            if tok in idx2tok:
-                idx2tok.remove(tok)
-            idx2tok.insert(0, tok)
         return cls(idx2tok)
 
     @classmethod
@@ -126,20 +158,42 @@ class Vocabulary():
 class TextModule(FeatureModule):
     """Text module
 
+    Parameters
+    ----------
+    id_text: Dict, optional, default = None
+        A dictionary contains mapping between user/item id to their text.
+
+    tokenizer: Tokenizer, optional, default = None
+        Tokenizer for text splitting. If None, the BaseTokenizer will be used.
+
+    vocab: Vocabulary, optional, default = None
+        Vocabulary of tokens. It contains mapping between tokens to their
+        integer ids and vice versa.
+
+    max_vocab: int, optional, default = None
+        The maximum size of the vocabulary.
+        If vocab is provided, this will be ignored.
+
+    min_freq: int, default = 1
+        The minimum frequency of tokens to be included into vocabulary.
+        If vocab is provided, this will be ignored.
+
     """
 
     def __init__(self,
                  id_text: Dict = None,
-                 vocab: List[str] = None,
-                 max_vocab: int = None,
                  tokenizer: Tokenizer = None,
+                 vocab: Vocabulary = None,
+                 max_vocab: int = None,
+                 min_freq: int = 1,
                  **kwargs):
         super().__init__(**kwargs)
 
         self._id_text = id_text
+        self.tokenizer = tokenizer
         self.vocab = vocab
         self.max_vocab = max_vocab
-        self.tokenizer = tokenizer
+        self.min_freq = min_freq
         self.sequences = None
 
     def _build_text(self, global_id_map: Dict):
@@ -163,7 +217,8 @@ class TextModule(FeatureModule):
 
         if self.vocab is None:
             self.vocab = Vocabulary.from_tokens(tokens=list(itertools.chain(*self.sequences)),
-                                                max_vocab=self.max_vocab)
+                                                max_vocab=self.max_vocab,
+                                                min_freq=self.min_freq)
 
         # Map tokens into integer ids
         for i, seq in enumerate(self.sequences):

@@ -9,8 +9,8 @@ import unittest
 from cornac.data import TextModule
 from cornac.data.text import BaseTokenizer
 from cornac.data.text import Vocabulary
-from cornac.data.text import SPECIAL_TOKENS
-from collections import OrderedDict
+from cornac.data.text import SPECIAL_TOKENS, DEFAULT_PRE_RULES, DEFAULT_POST_RULES
+from collections import OrderedDict, defaultdict
 import numpy as np
 
 
@@ -32,19 +32,29 @@ class TestBaseTokenizer(unittest.TestCase):
         self.assertListEqual(token_list, [['a', 'b', 'c'],
                                           ['d', 'e', 'f']])
 
+    def test_default_rules(self):
+        tok = BaseTokenizer(pre_rules=DEFAULT_PRE_RULES, post_rules=DEFAULT_POST_RULES)
+        token_list = tok.tokenize('a B  C   d E')
+        self.assertListEqual(token_list, ['a', 'b', 'c', 'd', 'e'])
+
 
 class TestVocabulary(unittest.TestCase):
 
     def setUp(self):
         self.tokens = ['a', 'b', 'c']
         self.vocab = Vocabulary(self.tokens)
+        (a, b, c) = (self.vocab.tok2idx[tok] for tok in self.tokens[-3:])
         self.tok_seq = ['a', 'a', 'b', 'c']
-        self.idx_seq = [0, 0, 1, 2]
+        self.idx_seq = [a, a, b, c]
 
     def test_init(self):
-        self.assertEqual(self.vocab.size, 3)
-        self.assertListEqual(self.vocab.idx2tok, ['a', 'b', 'c'])
-        self.assertDictEqual(self.vocab.tok2idx, {'a': 0, 'b': 1, 'c': 2})
+        self.assertEqual(self.vocab.size, len(SPECIAL_TOKENS) + 3)
+        self.assertListEqual(self.vocab.idx2tok, SPECIAL_TOKENS + ['a', 'b', 'c'])
+
+        tok2idx = defaultdict()
+        for tok in SPECIAL_TOKENS + self.tokens:
+            tok2idx.setdefault(tok, len(tok2idx))
+        self.assertDictEqual(self.vocab.tok2idx, tok2idx)
 
     def test_to_idx(self):
         self.assertEqual(self.vocab.to_idx(self.tok_seq), self.idx_seq)
@@ -60,8 +70,7 @@ class TestVocabulary(unittest.TestCase):
 
     def test_from_tokens(self):
         from_tokens_vocab = Vocabulary.from_tokens(self.tokens)
-        self.assertCountEqual(SPECIAL_TOKENS + self.vocab.idx2tok,
-                              from_tokens_vocab.idx2tok)
+        self.assertCountEqual(self.vocab.idx2tok, from_tokens_vocab.idx2tok)
 
 
 class TestTextModule(unittest.TestCase):
