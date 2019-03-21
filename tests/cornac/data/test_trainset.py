@@ -5,14 +5,13 @@
 """
 
 import unittest
+import numpy as np
+import numpy.testing as npt
+from collections import OrderedDict
 
 from cornac.data import reader
 from cornac.data import TrainSet
 from cornac.data import MatrixTrainSet
-
-from collections import OrderedDict
-import numpy as np
-import numpy.testing as npt
 
 
 class TestTrainSet(unittest.TestCase):
@@ -131,6 +130,13 @@ class TestMatrixTrainSet(unittest.TestCase):
                                             global_iid_map=None,
                                             global_ui_set=None,
                                             verbose=True)
+
+        self.assertEqual(len(train_set.uir_tuple), 3)
+        self.assertEqual(len(train_set.uir_tuple[0]), 10)
+
+        train_set.uir_tuple = None
+        self.assertEqual(len(train_set.uir_tuple[1]), 10)
+        self.assertEqual(len(train_set.uir_tuple[2]), 10)
 
         try:
             train_set.uir_tuple = ([], [])

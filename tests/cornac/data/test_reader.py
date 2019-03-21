@@ -10,6 +10,14 @@ from cornac.data import reader
 
 class TestReader(unittest.TestCase):
 
+    def test_read_ui(self):
+        data_file = './tests/data.txt'
+        triplets = reader.read_ui(data_file, value=2.0)
+
+        self.assertEqual(len(triplets), 30)
+        self.assertEqual(triplets[0][1], '93')
+        self.assertEqual(triplets[1][2], 2.0)
+
     def test_read_uir(self):
         data_file = './tests/data.txt'
         triplet_data = reader.read_uir(data_file)
