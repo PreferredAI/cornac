@@ -46,10 +46,11 @@ class CVSingleModelResult(SingleModelResult):
     ----------
     """
 
-    def __init__(self, metric_avg_results=None):
-        self.avg = metric_avg_results
+    def __init__(self, model_name, metrics, metric_avg_results={}):
+        SingleModelResult.__init__(self, model_name, metrics, metric_avg_results)
+        #self.avg = metric_avg_results
         self.per_fold_avg = {}
-        self.avg = {}
+        #self.avg = {}
 
     def _add_fold_res(self, fold, metric_avg_results):
         # think to organize the results first
@@ -61,14 +62,14 @@ class CVSingleModelResult(SingleModelResult):
         for f in self.per_fold_avg:
             for mt in self.per_fold_avg[f]:
                 self.avg[mt] += self.per_fold_avg[f][mt] / len(self.per_fold_avg)
+        self._organize_avg_res()
 
-    def _organize_avg_res(self, model_name, metric_names):
+    def _organize_avg_res(self):
         # global avg
-        self.avg = self._get_data_frame(avg_res=self.avg, model_name=model_name, metric_names=metric_names)
+        self.avg = self._get_data_frame(avg_res=self.avg)
         # per_fold avg
         for f in self.per_fold_avg:
-            self.per_fold_avg[f] = self._get_data_frame(avg_res=self.per_fold_avg[f], model_name=model_name,
-                                                        metric_names=metric_names)
+            self.per_fold_avg[f] = self._get_data_frame(avg_res=self.per_fold_avg[f])
 
 
 class Result:
