@@ -86,7 +86,6 @@ class TestTextModule(unittest.TestCase):
         self.module.build(self.id_map)
         self.token_ids = (self.module.vocab.tok2idx[tok] for tok in self.tokens)
 
-
     def test_init(self):
         self.assertCountEqual(self.module.vocab.idx2tok,
                               SPECIAL_TOKENS + self.tokens)
@@ -113,6 +112,13 @@ class TestTextModule(unittest.TestCase):
         np.testing.assert_array_equal(batch_seqs,
                                       np.asarray([[a, b, c, 0],
                                                   [c, b, e, c]]))
+
+        self.module.sequences = None
+        try:
+            self.module.batch_seq([0])
+        except ValueError:
+            assert True
+
 
 if __name__ == '__main__':
     unittest.main()
