@@ -98,7 +98,7 @@ class CrossValidation(BaseMethod):
             self.current_fold = 0        
 
     def evaluate(self, model, metrics, user_based):
-        result = CVSingleModelResult()
+        result = CVSingleModelResult(model.name, metrics)
 
         for fold in range(self.n_folds):
             self._get_train_test()
