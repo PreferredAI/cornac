@@ -103,7 +103,7 @@ class CrossValidation(BaseMethod):
         for fold in range(self.n_folds):
             self._get_train_test()
             avg_res, per_user_res = BaseMethod.evaluate(self, model, metrics, user_based)
-            result._add_fold_res(fold=fold, metric_avg_results=avg_res)
+            result.add_fold_res(fold=fold, metric_avg_results=avg_res)
             self._next_fold()
         result._compute_avg_res()
         return result

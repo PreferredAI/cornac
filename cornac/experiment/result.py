@@ -20,9 +20,8 @@ class SingleModelResult:
         self.metric_names = self._get_metric_names(metrics)
         self.avg = metric_avg_results
         self.per_user = metric_user_results
-        self._organize_avg_res()
 
-    def _organize_avg_res(self):
+    def organize_avg_res(self):
         self.avg = self._get_data_frame(avg_res=self.avg)
 
     def _get_data_frame(self, avg_res):
@@ -52,7 +51,7 @@ class CVSingleModelResult(SingleModelResult):
         self.per_fold_avg = {}
         #self.avg = {}
 
-    def _add_fold_res(self, fold, metric_avg_results):
+    def add_fold_res(self, fold, metric_avg_results):
         # think to organize the results first
         self.per_fold_avg[fold] = metric_avg_results
 
