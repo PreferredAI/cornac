@@ -51,7 +51,7 @@ class TestTrainSet(unittest.TestCase):
 
 class TestMatrixTrainSet(unittest.TestCase):
 
-    def test_init(self):
+  def test_init(self):
         triplet_data = reader.read_uir('./tests/data.txt')
         train_set = MatrixTrainSet.from_uir(triplet_data,
                                             global_uid_map=OrderedDict(),
