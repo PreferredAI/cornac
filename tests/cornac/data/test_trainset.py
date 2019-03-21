@@ -35,15 +35,11 @@ class TestTrainSet(unittest.TestCase):
         self.assertEqual(train_set.get_uid('b'), 1)
         self.assertEqual(train_set.get_iid('y'), 1)
 
-        self.assertListEqual([x for x in train_set.uid_list],
-                             [y for y in uid_map.values()])
-        self.assertListEqual([x for x in train_set.raw_uid_list],
-                             [y for y in uid_map.keys()])
+        self.assertListEqual(train_set.uid_list, list(uid_map.values()))
+        self.assertListEqual(train_set.raw_uid_list, list(uid_map.keys()))
 
-        self.assertListEqual([x for x in train_set.iid_list],
-                             [y for y in iid_map.values()])
-        self.assertListEqual([x for x in train_set.raw_iid_list],
-                             [y for y in iid_map.keys()])
+        self.assertListEqual(train_set.iid_list, list(iid_map.values()))
+        self.assertListEqual(train_set.raw_iid_list, list(iid_map.keys()))
 
     def test_idx_iter(self):
         ids = [batch_ids for batch_ids in TrainSet.idx_iter(idx_range=10, batch_size=1, shuffle=False)]
@@ -83,12 +79,12 @@ class TestMatrixTrainSet(unittest.TestCase):
         self.assertEqual(train_set.get_uid('768'), 1)
         self.assertEqual(train_set.get_iid('195'), 7)
 
-        self.assertSequenceEqual([x for x in train_set.uid_list], range(10))
-        self.assertListEqual([x for x in train_set.raw_uid_list],
+        self.assertSequenceEqual(train_set.uid_list, range(10))
+        self.assertListEqual(train_set.raw_uid_list,
                              ['76', '768', '642', '930', '329', '633', '716', '871', '543', '754'])
 
-        self.assertSequenceEqual([x for x in train_set.iid_list], range(10))
-        self.assertListEqual([x for x in train_set.raw_iid_list],
+        self.assertSequenceEqual(train_set.iid_list, range(10))
+        self.assertListEqual(train_set.raw_iid_list,
                              ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])
 
         train_set = MatrixTrainSet.from_uir(triplet_data,
