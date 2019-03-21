@@ -31,7 +31,7 @@ class TestSet:
     @property
     def users(self):
         """Return a list of users"""
-        return self._user_ratings.keys()
+        return list(self._user_ratings.keys())
 
     def get_ratings(self, mapped_uid):
         """Return a list of tuples of (item, rating) of given mapped user id"""
