@@ -91,16 +91,16 @@ class Experiment:
         organized_metrics = {'ranking': [], 'rating': []}
 
         # Organize metrics into "rating" and "ranking" for efficiency purposes
-        for mt in self.metrics:
-            organized_metrics[mt.type].append(mt)
-            metric_names.append(mt.name)
+        #for mt in self.metrics:
+        #    organized_metrics[mt.type].append(mt)
+        #    metric_names.append(mt.name)
 
         for model in self.models:
             if self.verbose:
                 print(model.name)
 
             model_names.append(model.name)
-            model_res = self.eval_method.evaluate(model=model, metrics=organized_metrics, user_based=self.user_based)
+            model_res = self.eval_method.evaluate(model=model, metrics=self.metrics, user_based=self.user_based)
             model_res._organize_avg_res(model_name=model.name, metric_names=metric_names)
             self.results._add_model_res(res=model_res, model_name=model.name)
 
