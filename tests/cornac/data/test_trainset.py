@@ -5,14 +5,13 @@
 """
 
 import unittest
+import numpy as np
+import numpy.testing as npt
+from collections import OrderedDict
 
 from cornac.data import reader
 from cornac.data import TrainSet
 from cornac.data import MatrixTrainSet
-
-from collections import OrderedDict
-import numpy as np
-import numpy.testing as npt
 
 
 class TestTrainSet(unittest.TestCase):
@@ -51,7 +50,7 @@ class TestTrainSet(unittest.TestCase):
 
 class TestMatrixTrainSet(unittest.TestCase):
 
-  def test_init(self):
+    def test_init(self):
         triplet_data = reader.read_uir('./tests/data.txt')
         train_set = MatrixTrainSet.from_uir(triplet_data,
                                             global_uid_map=OrderedDict(),
