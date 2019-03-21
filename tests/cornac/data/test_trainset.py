@@ -132,6 +132,13 @@ class TestMatrixTrainSet(unittest.TestCase):
                                             global_ui_set=None,
                                             verbose=True)
 
+        self.assertEqual(len(train_set.uir_tuple), 3)
+        self.assertEqual(len(train_set.uir_tuple[0]), 10)
+
+        train_set.uir_tuple = None
+        self.assertEqual(len(train_set.uir_tuple[1]), 10)
+        self.assertEqual(len(train_set.uir_tuple[2]), 10)
+
         try:
             train_set.uir_tuple = ([], [])
         except ValueError:

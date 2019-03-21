@@ -65,7 +65,7 @@ class TestBaseMethod(unittest.TestCase):
         self.assertIsNone(bm.item_graph)
 
         bm.user_text = TextModule()
-        # bm.item_graph = GraphModule()
+        bm.item_image = ImageModule()
         bm._build_modules()
 
         try:
@@ -73,20 +73,20 @@ class TestBaseMethod(unittest.TestCase):
         except ValueError:
             assert True
 
-        # try:
-        #    bm.item_text = GraphModule()
-        # except ValueError:
-        #    assert True
+        try:
+           bm.item_text = ImageModule()
+        except ValueError:
+           assert True
 
         try:
             bm.user_image = TextModule()
         except ValueError:
             assert True
 
-        # try:
-        #    bm.item_image = GraphModule()
-        # except ValueError:
-        #    assert True
+        try:
+           bm.item_image = TextModule()
+        except ValueError:
+           assert True
 
         try:
             bm.user_graph = TextModule()
