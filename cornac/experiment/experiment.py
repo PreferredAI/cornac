@@ -44,7 +44,7 @@ class Experiment:
         self.verbose = verbose
         from ..eval_methods.ratio_split import RatioSplit
         from ..eval_methods.cross_validation import CrossValidation
-        if isinstance(eval_method, RatioSplit):
+        if isinstance(self.eval_method, RatioSplit):
             self.results = Result()
         elif isinstance(eval_method, CrossValidation):
             self.results = CVResult(eval_method.n_folds)
@@ -86,7 +86,6 @@ class Experiment:
 
     # modify this function to accommodate several models
     def run(self):
-        model_names = []
         metric_names = []
         organized_metrics = {'ranking': [], 'rating': []}
 
@@ -98,10 +97,7 @@ class Experiment:
         for model in self.models:
             if self.verbose:
                 print(model.name)
-
-            model_names.append(model.name)
-            model_res = self.eval_method.evaluate(model=model, metrics=organized_metrics, user_based=self.user_based)
-            model_res._organize_avg_res(model_name=model.name, metric_names=metric_names)
+            model_res = self.eval_method.evaluate(model=model, metrics=self.metrics, user_based=self.user_based)
             self.results._add_model_res(res=model_res, model_name=model.name)
 
         self.results.show()
