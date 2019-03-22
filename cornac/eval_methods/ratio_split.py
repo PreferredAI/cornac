@@ -93,8 +93,6 @@ class RatioSplit(BaseMethod):
 
     def split(self):
         if self._split_ran:
-            if self.verbose:
-                print('Data is already split!')
             return
 
         if self.verbose:

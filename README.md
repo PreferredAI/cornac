@@ -25,24 +25,23 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-
 ## Installation
 
 Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:
 
-- **From PyPI (you may need a C++ compiler):**
+  - **From PyPI (you may need a C++ compiler):**
 
 ```sh
 pip3 install cornac
 ```
 
-- **From Anaconda:**
+  - **From Anaconda:**
 
 ```sh
 conda install cornac -c qttruong -c pytorch
 ```
 
-- **From the GitHub source (for latest updates):**
+  - **From the GitHub source (for latest updates):**
 
 ```sh
 pip3 install Cython
@@ -55,7 +54,7 @@ python3 setup.py install
 
 Additional dependencies required by models are listed [here](cornac/models/README.md).
 
-Some of the algorithms use `OpenMP` to speed up training with multithreading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler and install Cornac from source:
+Some of the algorithms use `OpenMP` to speed up training with multithreading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler, and install Cornac from the source:
 
 ```sh
 brew install gcc | brew link gcc
@@ -63,9 +62,9 @@ brew install gcc | brew link gcc
 
 If you want to utilize your GPUs, you might consider:
 
-- [TensorFlow installation instructions](https://www.tensorflow.org/install/).
-- [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
-- [cuDNN](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/) (for Nvidia GPUs).
+  - [TensorFlow installation instructions](https://www.tensorflow.org/install/).
+  - [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
+  - [cuDNN](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/) (for Nvidia GPUs).
 
 ## Getting started: your first Cornac experiment
 
@@ -74,28 +73,32 @@ If you want to utilize your GPUs, you might consider:
 
 This example will show you how to run your very first experiment.
 
-- Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
+  - Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
+  
 ```python
 from cornac.datasets import movielens
 
 ml_100k = movielens.load_100k()
 ```
 
-- Instantiate an evaluation method. Here we split the data based on ratio.
+  - Instantiate an evaluation method. Here we split the data based on ratio.
+  
 ```python
 from cornac.eval_methods import RatioSplit
 
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
 ```
 
-- Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
+  - Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
+  
 ```python
 import cornac
 
 pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 ```
 
-- Instantiate evaluation metrics.
+  - Instantiate evaluation metrics.
+  
 ```python
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
@@ -103,7 +106,8 @@ rec_20 = cornac.metrics.Recall(k=20)
 pre_20 = cornac.metrics.Precision(k=20)
 ```
 
-- Instantiate and then run an experiment.
+  - Instantiate and then run an experiment.
+  
 ```python
 exp = cornac.Experiment(eval_method=ratio_split,
                         models=[pmf],
@@ -128,8 +132,8 @@ The recommender models supported by Cornac are listed [here](cornac/models/READM
 ## Support
 
 Your contributions at any level of the library are welcome. If you intend to contribute, please:
-- Fork the Cornac repository to your own account.
-- Make changes and create pull requests.
+  - Fork the Cornac repository to your own account.
+  - Make changes and create pull requests.
 
 You can also post bug reports and feature requests in [GitHub issues](https://github.com/PreferredAI/cornac/issues).
 

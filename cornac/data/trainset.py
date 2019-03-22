@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from scipy.sparse import csr_matrix, find
+from scipy.sparse import csr_matrix
 from collections import OrderedDict
 import numpy as np
 
@@ -38,22 +38,22 @@ class TrainSet:
     @property
     def uid_list(self):
         """Return the list of mapped user ids"""
-        return self._uid_map.values()
+        return list(self._uid_map.values())
 
     @property
     def raw_uid_list(self):
         """Return the list of raw user ids"""
-        return self._uid_map.keys()
+        return list(self._uid_map.keys())
 
     @property
     def iid_list(self):
         """Return the list of mapped item ids"""
-        return self._iid_map.values()
+        return list(self._iid_map.values())
 
     @property
     def raw_iid_list(self):
         """Return the list of raw item ids"""
-        return self._iid_map.keys()
+        return list(self._iid_map.keys())
 
     def is_unk_user(self, mapped_uid):
         """Return whether or not a user is unknown given the mapped id"""
@@ -142,10 +142,9 @@ class MatrixTrainSet(TrainSet):
             if not self.matrix.has_sorted_indices:
                 self.matrix.sort_indices()
 
-            num_users, num_items = self.matrix.shape
-
             # this basically calculates the 'row' attribute of a COO matrix
             # without requiring us to get the whole COO matrix
+            num_users = self.matrix.shape[0]
             user_counts = np.ediff1d(self.matrix.indptr)
             user_ids = np.repeat(np.arange(num_users), user_counts).astype(self.matrix.indices.dtype)
 
