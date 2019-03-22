@@ -14,6 +14,9 @@ class TestGraphModule(unittest.TestCase):
     def load_data(self):
         self.data = reader.read_uir('./tests/data.txt')
 
+    def test_init(self):
+        gmd = GraphModule(data=data)
+        gmd.build(global_id_map=None)
 
 if __name__ == '__main__':
     unittest.main()

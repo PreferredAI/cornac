@@ -37,4 +37,10 @@ exp = Experiment(eval_method=ratio_split,
                  metrics=[nDgc, mrr, rec, pre])
 exp.run()
 
+import unittest
 
+            unittest.TestCase.assertEqual(self,len(ratings), 53282)
+            self.assertEqual(len(contexts), 108466)
+            
+            
+item_graph_module.build(global_id_map = None)

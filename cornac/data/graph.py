@@ -26,7 +26,7 @@ class GraphModule(FeatureModule):
         for i, j, val in self.raw_data:
             self.map_data.append([global_id_map[i], global_id_map[j], val])
         self.map_data = np.asanyarray(self.map_data)
-        self.raw_data = None
+        #self.raw_data = None
 
     def _build_sparse_matrix(self, triplet):
         """Build sparse adjacency matrix
