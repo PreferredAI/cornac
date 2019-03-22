@@ -10,22 +10,20 @@ from cornac.eval_methods import RatioSplit
 from cornac.experiment import Experiment
 from cornac import metrics
 from cornac.models import C2PF
-import numpy as np
+from cornac.datasets import amazon_office as office
 
-# load office rating data in triplet format (uid, iid, rating)
-office_ratings = np.loadtxt("path to office ratings")
+# Load office ratings and item contexts, see C2PF paper for details
+ratings = office.load_rating()
+contexts = office.load_context()
 
-# load office item context information in triplet format (item_id, context_iterm_id, value), see C2PF paper for details
-office_context = np.loadtxt("path to office content data")
+item_graph_module = GraphModule(data=contexts)
 
-item_graph_module = GraphModule(data=office_context)
-
-ratio_split = RatioSplit(data=office_ratings,
+ratio_split = RatioSplit(data=ratings,
                          test_size=0.2, rating_threshold=3.5,
                          shuffle=True, exclude_unknowns=True,
                          verbose=True, item_graph=item_graph_module)
 
-rec_c2pf = C2PF(k=100, max_iter=80, variant='c2pf')
+c2pf = C2PF(k=100, max_iter=80, variant='c2pf')
 
 # Evaluation metrics
 nDgc = metrics.NDCG(k=-1)
@@ -35,6 +33,6 @@ pre = metrics.Precision(k=20)
 
 # Instantiate and run your experiment
 exp = Experiment(eval_method=ratio_split,
-                 models=[rec_c2pf],
+                 models=[c2pf],
                  metrics=[nDgc, mrr, rec, pre])
 exp.run()
