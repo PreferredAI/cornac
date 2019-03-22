@@ -12,7 +12,7 @@ from cornac.data import reader
 class TestGraphModule(unittest.TestCase):
 
     def load_data(self):
-        self.data = reader.read_uir('./tests/graph_data.txt')
+        self.data = reader.read_uir('./tests/graph_data.txt',sep=' ')
 
     def test_init(self):
         gmd = GraphModule(data=data)
