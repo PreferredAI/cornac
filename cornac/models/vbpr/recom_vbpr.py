@@ -90,13 +90,13 @@ class VBPR(Recommender):
             tensor = torch.tensor(init_values, requires_grad=True, device=self.device)
         return tensor
 
-    def _init_params(self, n_users, n_items, feature_dim):
+    def _init_params(self, n_users, n_items, feat_dim):
         Bi = self._load_or_randn((n_items), init_values=self.beta_item)
         Gu = self._load_or_randn((n_users, self.k), init_values=self.gamma_user)
         Gi = self._load_or_randn((n_items, self.k), init_values=self.gamma_item)
         Tu = self._load_or_randn((n_users, self.k2), init_values=self.theta_user)
-        E = self._load_or_randn((feature_dim, self.k2), init_values=self.emb_matrix)
-        Bp = self._load_or_randn((feature_dim, 1), init_values=self.beta_prime)
+        E = self._load_or_randn((feat_dim, self.k2), init_values=self.emb_matrix)
+        Bp = self._load_or_randn((feat_dim, 1), init_values=self.beta_prime)
 
         return Bi, Gu, Gi, Tu, E, Bp
 
@@ -128,13 +128,13 @@ class VBPR(Recommender):
             raise CornacException('item_image module is required but None.')
 
         # Item visual feature from CNN
-        self.item_feature = train_set.item_image.data_feature[:self.train_set.num_items]
+        self.item_feature = train_set.item_image.features[:self.train_set.num_items]
         F = torch.from_numpy(self.item_feature).float().to(self.device)
 
         # Learned parameters
         Bi, Gu, Gi, Tu, E, Bp = self._init_params(n_users=train_set.num_users,
                                                   n_items=train_set.num_items,
-                                                  feature_dim=train_set.item_image.feature_dim)
+                                                  feat_dim=train_set.item_image.feat_dim)
         optimizer = torch.optim.Adam([Bi, Gu, Gi, Tu, E, Bp], lr=self.learning_rate)
 
         for epoch in range(1, self.n_epochs + 1):
