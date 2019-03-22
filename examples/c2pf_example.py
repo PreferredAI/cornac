@@ -23,7 +23,7 @@ ratio_split = RatioSplit(data=ratings,
                          shuffle=True, exclude_unknowns=True,
                          verbose=True, item_graph=item_graph_module)
 
-c2pf = C2PF(k=100, max_iter=0, variant='c2pf')
+c2pf = C2PF(k=100, max_iter=1, variant='c2pf')
 
 # Evaluation metrics
 nDgc = metrics.NDCG(k=-1)
@@ -36,11 +36,3 @@ exp = Experiment(eval_method=ratio_split,
                  models=[c2pf],
                  metrics=[nDgc, mrr, rec, pre])
 exp.run()
-
-import unittest
-
-            unittest.TestCase.assertEqual(self,len(ratings), 53282)
-            self.assertEqual(len(contexts), 108466)
-            
-            
-item_graph_module.build(global_id_map = None)
