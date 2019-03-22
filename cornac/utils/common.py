@@ -5,9 +5,6 @@
          Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-
-
-import operator
 import numpy as np
 
 

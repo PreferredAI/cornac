@@ -4,12 +4,12 @@
 @author: Aghiles Salah <asalah@smu.edu.sg>
 """
 
-from . import Module
+from . import FeatureModule
 import scipy.sparse as sp
 import numpy as np
 
 
-class GraphModule(Module):
+class GraphModule(FeatureModule):
     """Graph module
     """
 
