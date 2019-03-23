@@ -25,7 +25,5 @@ mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,
         use_bias=True, early_stop=True, verbose=True)
 
 # Evaluation
-avg_results, _ = eval_method.evaluate(model=mf,
-                                      metrics=[MAE(), RMSE()],
-                                      user_based=True)
-print(avg_results)
+result = eval_method.evaluate(model=mf, metrics=[MAE(), RMSE()], user_based=True)
+print(result)
