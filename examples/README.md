@@ -2,6 +2,8 @@
 
 ## Basic usage
 
+[first_example.py](first_example.py) - Your very first example with Cornac.
+
 [pmf_ratio.py](pmf_ratio.py) - Splitting data into train/val/test sets based on provided sizes (RatioSplit).
 
 [given_data.py](given_data.py) - Evaluate the models with your own data splits.
