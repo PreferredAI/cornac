@@ -13,9 +13,10 @@ from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from ..experiment.result import Result
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import numpy as np
 import tqdm
+import time
 
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
@@ -241,15 +242,21 @@ class BaseMethod:
         if self.verbose:
             print("\nTraining started!")
 
+        start = time.time()
+
         model.fit(self.train_set)
+
+        train_time = time.time() - start
 
         if self.verbose:
             print("\nEvaluation started!")
 
+        start = time.time()
+
         all_pd_ratings = []
         all_gt_ratings = []
 
-        metric_user_results = {}
+        metric_user_results = defaultdict()
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
@@ -309,7 +316,7 @@ class BaseMethod:
                                           pd_scores=item_scores)
                     metric_user_results[mt.name][user_id] = mt_score
 
-        metric_avg_results = {}
+        metric_avg_results = OrderedDict()
 
         # avg results of rating metrics
         for mt in rating_metrics:
@@ -324,6 +331,11 @@ class BaseMethod:
         for mt in ranking_metrics:
             user_results = list(metric_user_results[mt.name].values())
             metric_avg_results[mt.name] = np.mean(user_results)
+
+        test_time = time.time() - start
+
+        metric_avg_results['Train (s)'] = train_time
+        metric_avg_results['Test (s)'] = test_time
 
         return Result(model.name, metric_avg_results, metric_user_results)
 
