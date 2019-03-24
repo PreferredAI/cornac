@@ -13,10 +13,10 @@ from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from ..experiment.result import Result
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import numpy as np
 import tqdm
-
+import time
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
@@ -47,6 +47,7 @@ class BaseMethod:
     verbose: bool, optional, default: False
         Output running log
     """
+
     def __init__(self, data=None,
                  fmt='UIR',
                  rating_threshold=1.0,
@@ -189,12 +190,12 @@ class BaseMethod:
 
     def _build_modules(self):
         for user_module in [self.user_text, self.user_image, self.user_graph]:
-            if user_module is None: 
+            if user_module is None:
                 continue
             user_module.build(global_id_map=self.global_uid_map)
 
         for item_module in [self.item_text, self.item_image, self.item_graph]:
-            if item_module is None: 
+            if item_module is None:
                 continue
             item_module.build(global_id_map=self.global_iid_map)
 
@@ -238,22 +239,22 @@ class BaseMethod:
         if self.test_set is None:
             raise ValueError('test_set is required but None!')
 
-        if self.verbose:
-            print("\nTraining started!")
-
+        print('\n[{}] Training started!'.format(model.name))
+        start = time.time()
         model.fit(self.train_set)
+        train_time = time.time() - start
 
-        if self.verbose:
-            print("\nEvaluation started!")
+        print('\n[{}] Evaluation started!'.format(model.name))
+        start = time.time()
 
         all_pd_ratings = []
         all_gt_ratings = []
 
-        metric_user_results = {}
+        metric_user_results = defaultdict()
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
-        for user_id in tqdm.tqdm(self.test_set.users, disable=not self.verbose):
+        for user_id in tqdm.tqdm(self.test_set.users):
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue
@@ -309,7 +310,7 @@ class BaseMethod:
                                           pd_scores=item_scores)
                     metric_user_results[mt.name][user_id] = mt_score
 
-        metric_avg_results = {}
+        metric_avg_results = OrderedDict()
 
         # avg results of rating metrics
         for mt in rating_metrics:
@@ -324,6 +325,11 @@ class BaseMethod:
         for mt in ranking_metrics:
             user_results = list(metric_user_results[mt.name].values())
             metric_avg_results[mt.name] = np.mean(user_results)
+
+        test_time = time.time() - start
+
+        metric_avg_results['Train (s)'] = train_time
+        metric_avg_results['Test (s)'] = test_time
 
         return Result(model.name, metric_avg_results, metric_user_results)
 

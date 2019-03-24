@@ -87,8 +87,6 @@ class Experiment:
             metric_names.append(mt.name)
 
         for model in self.models:
-            if self.verbose:
-                print(model.name)
             model_result = self.eval_method.evaluate(model=model, metrics=self.metrics, user_based=self.user_based)
             result.append(model_result)
 

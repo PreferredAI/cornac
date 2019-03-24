@@ -71,7 +71,7 @@ If you want to utilize your GPUs, you might consider:
 ![](exp-flow.jpg)
 <p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
-This example will show you how to run your very first experiment.
+This [example](examples/first_example.py) will show you how to run your very first experiment.
 
   - Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
   
@@ -81,46 +81,53 @@ from cornac.datasets import movielens
 ml_100k = movielens.load_100k()
 ```
 
-  - Instantiate an evaluation method. Here we split the data based on ratio.
+  - Split the data based on ratio.
   
 ```python
 from cornac.eval_methods import RatioSplit
 
-ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)
+ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
 ```
 
-  - Instantiate models that we want to evaluate. Here we use `Probabilistic Matrix Factorization (PMF)` as an example.
+  - Here we are comparing `Biased MF`, `PMF`, and `BPR`.
   
 ```python
-import cornac
+from cornac.models import MF, PMF, BPR
 
-pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
+mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True)
+pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
+bpr = BPR(k=10, max_iter=200, learning_rate=0.01, lambda_reg=0.01)
 ```
 
-  - Instantiate evaluation metrics.
+  - Define metrics used to evaluate the models.
   
 ```python
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
 rec_20 = cornac.metrics.Recall(k=20)
-pre_20 = cornac.metrics.Precision(k=20)
+ndcg_20 = cornac.metrics.NDCG(k=20)
+auc = cornac.metrics.AUC()
 ```
 
-  - Instantiate and then run an experiment.
+  - Put it together into an experiment and run.
   
 ```python
-exp = cornac.Experiment(eval_method=ratio_split,
-                        models=[pmf],
-                        metrics=[mae, rmse, rec_20, pre_20],
-                        user_based=True)
+from cornac import Experiment
+
+exp = Experiment(eval_method=ratio_split,
+                 models=[mf, pmf, bpr],
+                 metrics=[mae, rmse, rec_20, ndcg_20, auc],
+                 user_based=True)
 exp.run()
 ```
 
 **Output:**
 
 ```
-          MAE      RMSE  Recall@20  Precision@20
-PMF  0.760277  0.919413   0.081803        0.0462
+        MAE    RMSE  Recall@20  NDCG@20     AUC  Train (s)  Test (s)
+MF   0.7441  0.9007     0.0622   0.0534  0.2952     0.0736    8.1187
+PMF  0.7493  0.9084     0.0835   0.0673  0.4749   358.7642    8.4184
+BPR  1.5595  1.8864     0.0744   0.0657  0.5932     2.5395    8.5734
 ```
 
 For more details, please take a look at our [examples](examples).
