@@ -44,6 +44,12 @@ class MF(Recommender):
     verbose: boolean, optional, default: True
         When True, running logs are displayed.
 
+    init_params: dictionary, optional, default: None
+        Initial parameters, e.g., init_params = {'U': user_factors,
+                                                 'V': item_factors,
+                                                 'Bu': user_biases,
+                                                 'Bi': item_biases}
+
     References
     ----------
     * Koren, Y., Bell, R., & Volinsky, C. Matrix factorization techniques for recommender systems. \
@@ -51,7 +57,7 @@ class MF(Recommender):
     """
 
     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 trainable=True, verbose=True, **kwargs):
+                 trainable=True, verbose=True, init_params=None, **kwargs):
         Recommender.__init__(self, name='MF', verbose=verbose)
 
         self.k = k
@@ -60,11 +66,7 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
-
-        self.u_factors = kwargs.get('u_factors', None)  # matrix of user factors
-        self.i_factors = kwargs.get('i_factors', None)  # matrix of item factors
-        self.u_biases = kwargs.get('u_biases', None)  # vector of user biases
-        self.i_biases = kwargs.get('i_biases', None)  # vector of item biases
+        self.init_params = {} if init_params is None else init_params
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -82,6 +84,11 @@ class MF(Recommender):
             print('%s is trained already (trainable = False)' % (self.name))
             return
 
+        self.u_factors = self.init_params.get('U', None)
+        self.i_factors = self.init_params.get('V', None)
+        self.u_biases = self.init_params.get('Bu', None)
+        self.i_biases = self.init_params.get('Bi', None)
+
         if self.u_factors is None:
             self.u_factors = np.random.normal(size=[train_set.num_users, self.k], loc=0., scale=0.01).astype(np.float32)
         if self.i_factors is None:
@@ -94,7 +101,6 @@ class MF(Recommender):
         self.global_mean = train_set.global_mean if self.use_bias else 0.
 
         (rid, cid, val) = train_set.uir_tuple
-
         self._fit_sgd(rid, cid, val.astype(np.float32),
                       self.u_factors, self.i_factors, self.u_biases, self.i_biases)
 
