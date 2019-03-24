@@ -50,6 +50,15 @@ class VBPR(Recommender):
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
 
+    init_params: dictionary, optional, default: None
+        Initial parameters, e.g., init_params = {'Bi': beta_item,
+                                                 'Gu': gamma_user,
+                                                 'Gi': gamma_item,
+                                                 'Tu': theta_user,
+                                                 'E': emb_matrix,
+                                                 'Bp': beta_prime}
+
+
     References
     ----------
     * HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.
@@ -59,7 +68,7 @@ class VBPR(Recommender):
                  k=10, k2=10,
                  n_epochs=20, batch_size=100, learning_rate=0.001,
                  lambda_w=0.01, lambda_b=0.01, lambda_e=0.0,
-                 use_gpu=False, trainable=True, **kwargs):
+                 use_gpu=False, trainable=True, init_params=None, **kwargs):
         Recommender.__init__(self, name='VBPR', trainable=trainable)
         self.k = k
         self.k2 = k2
@@ -69,14 +78,7 @@ class VBPR(Recommender):
         self.lambda_w = lambda_w
         self.lambda_b = lambda_b
         self.lambda_e = lambda_e
-
-        # Initial params
-        self.beta_item = kwargs.get('beta_item', None)
-        self.gamma_user = kwargs.get('gamma_user', None)
-        self.gamma_item = kwargs.get('gamma_item', None)
-        self.theta_user = kwargs.get('theta_user', None)
-        self.emb_matrix = kwargs.get('emb_matrix', None)
-        self.beta_prime = kwargs.get('beta_prime', None)
+        self.init_params = {} if init_params is None else init_params
 
         if use_gpu and torch.cuda.is_available():
             self.device = torch.device("cuda:0")
@@ -91,12 +93,12 @@ class VBPR(Recommender):
         return tensor
 
     def _init_params(self, n_users, n_items, feat_dim):
-        Bi = self._load_or_randn((n_items), init_values=self.beta_item)
-        Gu = self._load_or_randn((n_users, self.k), init_values=self.gamma_user)
-        Gi = self._load_or_randn((n_items, self.k), init_values=self.gamma_item)
-        Tu = self._load_or_randn((n_users, self.k2), init_values=self.theta_user)
-        E = self._load_or_randn((feat_dim, self.k2), init_values=self.emb_matrix)
-        Bp = self._load_or_randn((feat_dim, 1), init_values=self.beta_prime)
+        Bi = self._load_or_randn((n_items), init_values=self.init_params.get('Bi', None))
+        Gu = self._load_or_randn((n_users, self.k), init_values=self.init_params.get('Gu', None))
+        Gi = self._load_or_randn((n_items, self.k), init_values=self.init_params.get('Gi', None))
+        Tu = self._load_or_randn((n_users, self.k2), init_values=self.init_params.get('Tu', None))
+        E = self._load_or_randn((feat_dim, self.k2), init_values=self.init_params.get('E', None))
+        Bp = self._load_or_randn((feat_dim, 1), init_values=self.init_params.get('Bp', None))
 
         return Bi, Gu, Gi, Tu, E, Bp
 
