@@ -74,21 +74,12 @@ class Experiment:
             return CVExperimentResult()
         return ExperimentResult()
 
-    # modify this function to accommodate several models
     def run(self):
         result = self._create_result()
-
-        metric_names = []
-        organized_metrics = {'ranking': [], 'rating': []}
-
-        # Organize metrics into "rating" and "ranking" for efficiency purposes
-        for mt in self.metrics:
-            organized_metrics[mt.type].append(mt)
-            metric_names.append(mt.name)
-
         for model in self.models:
-            model_result = self.eval_method.evaluate(model=model, metrics=self.metrics, user_based=self.user_based)
+            model_result = self.eval_method.evaluate(model=model,
+                                                     metrics=self.metrics,
+                                                     user_based=self.user_based)
             result.append(model_result)
-
         print('\n{}'.format(result))
         return result
