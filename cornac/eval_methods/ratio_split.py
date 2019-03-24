@@ -7,7 +7,7 @@
 from ..utils.common import safe_indexing
 from math import ceil
 from .base_method import BaseMethod
-from ..experiment.result import SingleModelResult
+from ..experiment.result import Result
 import numpy as np
 
 
@@ -124,7 +124,4 @@ class RatioSplit(BaseMethod):
 
     def evaluate(self, model, metrics, user_based):
         self.split()
-        metric_avg_results, per_user_results = BaseMethod.evaluate(self, model, metrics, user_based)
-        res = SingleModelResult(model.name, metrics, metric_avg_results, per_user_results)
-        res.organize_avg_res()
-        return res
+        return BaseMethod.evaluate(self, model, metrics, user_based)
