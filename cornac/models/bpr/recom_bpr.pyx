@@ -87,6 +87,11 @@ class BPR(Recommender):
     verbose: boolean, optional, default: True
         When True, some running logs are displayed.
 
+    init_params: dictionary, optional, default: None
+        Initial parameters, e.g., init_params = {'U': user_factors,
+                                                 'V': item_factors,
+                                                 'Bi': item_biases}
+
     References
     ----------
     * Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, and Lars Schmidt-Thieme. \
@@ -94,21 +99,18 @@ class BPR(Recommender):
     """
 
     def __init__(self, k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01, num_threads=0,
-                 trainable=True, verbose=True, **kwargs):
+                 trainable=True, verbose=True, init_params=None, **kwargs):
         Recommender.__init__(self, name='BPR', trainable=trainable, verbose=verbose)
         self.factors = k
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
+        self.init_params = {} if init_params is None else init_params
 
         if num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
-
-        self.u_factors = kwargs.get('u_factors', None)  # matrix of user factors
-        self.i_factors = kwargs.get('i_factors', None)  # matrix of item factors
-        self.i_biases = kwargs.get('i_biases', None)  # vector of item biases
 
     @cython.cdivision(True)
     @cython.boundscheck(False)
@@ -139,6 +141,10 @@ class BPR(Recommender):
         # without requiring us to get the whole COO matrix
         user_counts = np.ediff1d(X.indptr)
         user_ids = np.repeat(np.arange(num_users), user_counts).astype(X.indices.dtype)
+
+        self.u_factors = self.init_params.get('U', None)  # matrix of user factors
+        self.i_factors = self.init_params.get('V', None)  # matrix of item factors
+        self.i_biases = self.init_params.get('Bi', None)  # vector of item biases
 
         # create factors if not already created.
         if self.u_factors is None:
