@@ -14,6 +14,6 @@ Additional dependencies (CPU versions) and examples for each model are also list
 | [Matrix Factorization (MF)](mf), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | N/A | [biased_mf.py](../../examples/biased_mf.py), [given_data.py](../../examples/given_data.py)
 | [Online Indexable Bayesian Personalized Ranking (Online IBPR)](online_ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | [requirements.txt](online_ibpr/requirements.txt) |
 | [Probabilistic Collaborative Representation Learning (PCRL)](pcrl), [paper](http://www.hadylauw.com/publications/uai18.pdf) | [requirements.txt](pcrl/requirements.txt) |
-| [Probabilistic Matrix Factorization (PMF)](pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | N/A |
+| [Probabilistic Matrix Factorization (PMF)](pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | N/A | [pmf_ratio.py](../../examples/pmf_ratio.py)
 | [Spherical K-means (SKM)](skm), [paper](https://www.sciencedirect.com/science/article/pii/S092523121501509X) | N/A |
 | [Visual Bayesian Personalized Ranking (VBPR)](vbpr), [paper](https://arxiv.org/pdf/1510.01784.pdf) | [requirements.txt](vbpr/requirements.txt) | [vbpr_tradesy.py](../../examples/vbpr_tradesy.py)
