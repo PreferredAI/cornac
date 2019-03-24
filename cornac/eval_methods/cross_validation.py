@@ -7,7 +7,7 @@
 import numpy as np
 from .base_method import BaseMethod
 from ..utils.common import safe_indexing
-from ..experiment.result import CVSingleModelResult
+from ..experiment.result import CVResult
 
 
 class CrossValidation(BaseMethod):
@@ -98,12 +98,11 @@ class CrossValidation(BaseMethod):
             self.current_fold = 0        
 
     def evaluate(self, model, metrics, user_based):
-        result = CVSingleModelResult(model.name, metrics)
-
+        result = CVResult(model.name)
         for fold in range(self.n_folds):
             self._get_train_test()
-            avg_res, per_user_res = BaseMethod.evaluate(self, model, metrics, user_based)
-            result.add_fold_res(fold=fold, metric_avg_results=avg_res)
+            fold_result = BaseMethod.evaluate(self, model, metrics, user_based)
+            result.append(fold_result)
             self._next_fold()
-        result._compute_avg_res()
+        result.organize()
         return result

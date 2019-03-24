@@ -23,14 +23,6 @@ class TestExperiment(unittest.TestCase):
                          verbose=True)
         exp.run()
 
-        self.assertSequenceEqual(exp.results.avg.shape, (1, 4))
-        self.assertEqual(len(exp.results.per_user), 1)
-        self.assertEqual(len(exp.results.per_user['PMF']), 4)
-        self.assertEqual(len(exp.results.per_user['PMF']['MAE']), 2)
-        self.assertEqual(len(exp.results.per_user['PMF']['RMSE']), 2)
-        self.assertEqual(len(exp.results.per_user['PMF']['Recall@1']), 2)
-        self.assertEqual(len(exp.results.per_user['PMF']['F1@1']), 2)
-
         try:
             Experiment(None, None, None)
         except ValueError:

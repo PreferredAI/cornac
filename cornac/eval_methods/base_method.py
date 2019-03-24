@@ -12,6 +12,7 @@ from ..data import MultimodalTestSet
 from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
+from ..experiment.result import Result
 from collections import OrderedDict
 import numpy as np
 import tqdm
@@ -324,7 +325,7 @@ class BaseMethod:
             user_results = list(metric_user_results[mt.name].values())
             metric_avg_results[mt.name] = np.mean(user_results)
 
-        return metric_avg_results, metric_user_results
+        return Result(model.name, metric_avg_results, metric_user_results)
 
     @classmethod
     def from_splits(cls, train_data, test_data, val_data=None, data_format='UIR',
