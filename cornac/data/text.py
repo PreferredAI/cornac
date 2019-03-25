@@ -43,6 +43,14 @@ class Tokenizer():
         raise NotImplementedError
 
 
+def rm_tags(t: str) -> str:
+    """
+    Remove html tags.
+    e,g, rm_tags("<i>Hello</i> <b>World</b>!") -> "Hello World".
+    """
+    return re.sub('<([^>]+)>', '', t)
+
+
 def rm_dup_spaces(t: str) -> str:
     """
     Remove duplicate spaces in `t`.
@@ -57,7 +65,7 @@ def lower(tokens: List[str]) -> List[str]:
     return [t.lower() for t in tokens]
 
 
-DEFAULT_PRE_RULES = [rm_dup_spaces]
+DEFAULT_PRE_RULES = [rm_tags, rm_dup_spaces]
 DEFAULT_POST_RULES = [lower]
 
 
