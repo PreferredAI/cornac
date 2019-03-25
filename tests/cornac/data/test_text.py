@@ -175,10 +175,20 @@ class TestTextModule(unittest.TestCase):
             assert True
 
     def test_counts(self):
-        npt.assert_array_equal(self.module.counts.A,
-                               np.asarray([[1, 1, 0, 1, 0, 0],
-                                           [1, 1, 2, 0, 0, 0],
-                                           [2, 1, 0, 0, 1, 1]]))
+        (a, b, c, d, e, f) = self.token_ids
+        shift = len(SPECIAL_TOKENS)
+        expected_counts = np.zeros_like(self.module.counts.A)
+        expected_counts[0, a - shift] = 1
+        expected_counts[0, b - shift] = 1
+        expected_counts[0, c - shift] = 1
+        expected_counts[1, b - shift] = 1
+        expected_counts[1, c - shift] = 1
+        expected_counts[1, d - shift] = 2
+        expected_counts[2, b - shift] = 1
+        expected_counts[2, c - shift] = 2
+        expected_counts[2, e - shift] = 1
+        expected_counts[2, f - shift] = 1
+        npt.assert_array_equal(self.module.counts.A, expected_counts)
 
     def test_batch_bow(self):
         (a, b, c, d, e, f) = self.token_ids
