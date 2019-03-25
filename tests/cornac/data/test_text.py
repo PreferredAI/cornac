@@ -34,7 +34,7 @@ class TestBaseTokenizer(unittest.TestCase):
 
     def test_default_rules(self):
         tok = BaseTokenizer(pre_rules=DEFAULT_PRE_RULES, post_rules=DEFAULT_POST_RULES)
-        token_list = tok.tokenize('a B  C   d E')
+        token_list = tok.tokenize('<t>a</t> B |{ C ]?&$  d123 E')
         self.assertListEqual(token_list, ['a', 'b', 'c', 'd', 'e'])
 
 
