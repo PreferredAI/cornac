@@ -47,7 +47,7 @@ def rm_dup_spaces(t: str) -> str:
     """
     Remove duplicate spaces in `t`.
     """
-    return re.sub(' {2,}', ' ', t)
+    return re.sub('(\s)+', ' ', t)
 
 
 def lower(tokens: List[str]) -> List[str]:
