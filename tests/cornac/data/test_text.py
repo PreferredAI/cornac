@@ -9,7 +9,7 @@ import unittest
 from cornac.data import TextModule
 from cornac.data.text import BaseTokenizer
 from cornac.data.text import Vocabulary
-from cornac.data.text import SPECIAL_TOKENS, DEFAULT_PRE_RULES, DEFAULT_POST_RULES
+from cornac.data.text import SPECIAL_TOKENS, DEFAULT_PRE_RULES
 from collections import OrderedDict, defaultdict
 import numpy as np
 
@@ -33,7 +33,7 @@ class TestBaseTokenizer(unittest.TestCase):
                                           ['d', 'e', 'f']])
 
     def test_default_rules(self):
-        tok = BaseTokenizer(pre_rules=DEFAULT_PRE_RULES, post_rules=DEFAULT_POST_RULES)
+        tok = BaseTokenizer(pre_rules=DEFAULT_PRE_RULES)
         token_list = tok.tokenize('<t>a</t> B |{ C ]?&$  d123 E')
         self.assertListEqual(token_list, ['a', 'b', 'c', 'd', 'e'])
 

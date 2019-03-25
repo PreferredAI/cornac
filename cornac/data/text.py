@@ -73,18 +73,7 @@ def rm_dup_spaces(t: str) -> str:
     return re.sub('(\s)+', ' ', t)
 
 
-def lower(tokens: List[str]) -> List[str]:
-    """
-    Lowercase all characters of every token in `tokens`.
-    """
-    return [t.lower() for t in tokens]
-
-
-DEFAULT_PRE_RULES = [rm_tags,
-                     rm_numeric,
-                     rm_punctuation,
-                     rm_dup_spaces]
-DEFAULT_POST_RULES = [lower]
+DEFAULT_PRE_RULES = [lambda t: t.lower(), rm_tags, rm_numeric, rm_punctuation, rm_dup_spaces]
 
 
 class BaseTokenizer(Tokenizer):
@@ -92,12 +81,9 @@ class BaseTokenizer(Tokenizer):
     A base tokenizer use a provided delimiter `sep` to split text.
     """
 
-    def __init__(self, sep=' ',
-                 pre_rules: List[Callable[[str], str]] = None,
-                 post_rules: List[Callable[[str], List[str]]] = None):
+    def __init__(self, sep=' ', pre_rules: List[Callable[[str], str]] = None):
         self.sep = sep
         self.pre_rules = DEFAULT_PRE_RULES if pre_rules is None else pre_rules
-        self.post_rules = DEFAULT_POST_RULES if post_rules is None else post_rules
 
     def tokenize(self, t: str) -> List[str]:
         """
@@ -110,8 +96,6 @@ class BaseTokenizer(Tokenizer):
         for rule in self.pre_rules:
             t = rule(t)
         tokens = t.split(self.sep)
-        for rule in self.post_rules:
-            tokens = rule(tokens)
         return tokens
 
     # TODO: this function can be parallelized
