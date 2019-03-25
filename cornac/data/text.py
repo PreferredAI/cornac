@@ -52,6 +52,13 @@ def rm_tags(t: str) -> str:
     return re.sub('<([^>]+)>', '', t)
 
 
+def rm_numeric(t: str) -> str:
+    """
+    Remove digits from `t`.
+    """
+    return re.sub('[0-9]+', ' ', t)
+
+
 def rm_punctuation(t: str) -> str:
     """
     Remove "!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~" from t.
@@ -73,7 +80,10 @@ def lower(tokens: List[str]) -> List[str]:
     return [t.lower() for t in tokens]
 
 
-DEFAULT_PRE_RULES = [rm_tags, rm_punctuation, rm_dup_spaces]
+DEFAULT_PRE_RULES = [rm_tags,
+                     rm_numeric,
+                     rm_punctuation,
+                     rm_dup_spaces]
 DEFAULT_POST_RULES = [lower]
 
 
