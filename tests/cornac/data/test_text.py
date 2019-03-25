@@ -50,11 +50,11 @@ class TestVocabulary(unittest.TestCase):
         self.idx_seq = [a, a, b, c]
 
     def test_init(self):
-        self.assertEqual(self.vocab.size, len(SPECIAL_TOKENS) + 3)
-        self.assertListEqual(self.vocab.idx2tok, SPECIAL_TOKENS + ['a', 'b', 'c'])
+        self.assertEqual(self.vocab.size, 3)
+        self.assertListEqual(self.vocab.idx2tok, ['a', 'b', 'c'])
 
         tok2idx = defaultdict()
-        for tok in SPECIAL_TOKENS + self.tokens:
+        for tok in self.tokens:
             tok2idx.setdefault(tok, len(tok2idx))
         self.assertDictEqual(self.vocab.tok2idx, tok2idx)
 
@@ -73,6 +73,22 @@ class TestVocabulary(unittest.TestCase):
     def test_from_tokens(self):
         from_tokens_vocab = Vocabulary.from_tokens(self.tokens)
         self.assertCountEqual(self.vocab.idx2tok, from_tokens_vocab.idx2tok)
+
+    def test_from_sequences(self):
+        from_sequences_vocab = Vocabulary.from_sequences([self.tokens])
+        self.assertCountEqual(self.vocab.idx2tok, from_sequences_vocab.idx2tok)
+
+    def test_special_tokens(self):
+        tokens = ['a', 'b', 'c', SPECIAL_TOKENS[1]]
+        vocab = Vocabulary(tokens, use_special_tokens=True)
+
+        self.assertEqual(vocab.size, len(SPECIAL_TOKENS) + 3)
+        self.assertListEqual(vocab.idx2tok, SPECIAL_TOKENS + ['a', 'b', 'c'])
+
+        tok2idx = defaultdict()
+        for tok in SPECIAL_TOKENS + tokens:
+            tok2idx.setdefault(tok, len(tok2idx))
+        self.assertDictEqual(vocab.tok2idx, tok2idx)
 
 
 class TestCountVectorizer(unittest.TestCase):
@@ -165,17 +181,27 @@ class TestTextModule(unittest.TestCase):
                                            [2, 1, 0, 0, 1, 1]]))
 
     def test_batch_bow(self):
+        (a, b, c, d, e, f) = self.token_ids
+        shift = len(SPECIAL_TOKENS)
+
         batch_bows = self.module.batch_bow([2, 1])
         self.assertEqual((2, self.module.max_vocab), batch_bows.shape)
-        npt.assert_array_equal(batch_bows.A,
-                               np.asarray([[2, 1, 0, 0, 1, 1],
-                                           [1, 1, 2, 0, 0, 0]]))
+        expected_bows = np.zeros_like(batch_bows.A)
+        expected_bows[0, b - shift] = 1
+        expected_bows[0, c - shift] = 2
+        expected_bows[0, e - shift] = 1
+        expected_bows[0, f - shift] = 1
+        expected_bows[1, b - shift] = 1
+        expected_bows[1, c - shift] = 1
+        expected_bows[1, d - shift] = 2
+        npt.assert_array_equal(batch_bows.A, expected_bows)
 
         batch_bows = self.module.batch_bow([0, 2], binary=True)
         self.assertEqual((2, 6), batch_bows.shape)
-        npt.assert_array_equal(batch_bows.A,
-                               np.asarray([[1, 1, 0, 1, 0, 0],
-                                           [1, 1, 0, 0, 1, 1]]))
+        expected_bows = np.zeros_like(batch_bows.A)
+        expected_bows[0, np.asarray([a, b, c]) - shift] = 1
+        expected_bows[1, np.asarray([b, c, e, f]) - shift] = 1
+        npt.assert_array_equal(batch_bows.A, expected_bows)
 
         self.module.counts = None
         try:
