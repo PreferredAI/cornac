@@ -9,9 +9,11 @@ import unittest
 from cornac.data import TextModule
 from cornac.data.text import BaseTokenizer
 from cornac.data.text import Vocabulary
+from cornac.data.text import CountVectorizer
 from cornac.data.text import SPECIAL_TOKENS, DEFAULT_PRE_RULES
 from collections import OrderedDict, defaultdict
 import numpy as np
+import numpy.testing as npt
 
 
 class TestBaseTokenizer(unittest.TestCase):
@@ -73,16 +75,53 @@ class TestVocabulary(unittest.TestCase):
         self.assertCountEqual(self.vocab.idx2tok, from_tokens_vocab.idx2tok)
 
 
+class TestCountVectorizer(unittest.TestCase):
+
+    def setUp(self):
+        self.docs = ['a b c',
+                     'b c d d',
+                     'c b e c f']
+
+    def test_arguments(self):
+        try:
+            CountVectorizer(max_doc_freq=-1)
+        except ValueError:
+            assert True
+
+        try:
+            CountVectorizer(max_features=-1)
+        except ValueError:
+            assert True
+
+    def test_bad_freq_arguments(self):
+        vectorizer = CountVectorizer(max_doc_freq=2, min_freq=3)
+        try:
+            vectorizer.fit(self.docs)
+        except ValueError:
+            assert True
+
+    def test_transform(self):
+        vectorizer = CountVectorizer(max_doc_freq=2, min_freq=1, max_features=1)
+        vectorizer.fit(self.docs)
+        sequences, X = vectorizer.transform(self.docs)
+        npt.assert_array_equal(X.A, np.asarray([[0], [2], [0]]))
+
+        vectorizer.binary = True
+        _, X1 = vectorizer.fit_transform(self.docs)
+        _, X2 = vectorizer.transform(self.docs)
+        npt.assert_array_equal(X1.A, X2.A)
+
+
 class TestTextModule(unittest.TestCase):
 
     def setUp(self):
         self.tokens = ['a', 'b', 'c', 'd', 'e', 'f']
+        self.id_map = OrderedDict({'u1': 0, 'u2': 1, 'u3': 2})
         self.id_text = {'u1': 'a b c',
                         'u2': 'b c d d',
                         'u3': 'c b e c f'}
-
-        self.module = TextModule(self.id_text)
-        self.id_map = OrderedDict({'u1': 0, 'u2': 1, 'u3': 2})
+        # frequency ranking: c > b > d > a > e > f
+        self.module = TextModule(self.id_text, max_vocab=6)
         self.module.build(self.id_map)
         self.token_ids = (self.module.vocab.tok2idx[tok] for tok in self.tokens)
 
@@ -103,19 +142,44 @@ class TestTextModule(unittest.TestCase):
 
         batch_seqs = self.module.batch_seq([2, 1])
         self.assertEqual((2, 5), batch_seqs.shape)
-        np.testing.assert_array_equal(batch_seqs,
-                                      np.asarray([[c, b, e, c, f],
-                                                  [b, c, d, d, 0]]))
+        npt.assert_array_equal(batch_seqs,
+                               np.asarray([[c, b, e, c, f],
+                                           [b, c, d, d, 0]]))
 
         batch_seqs = self.module.batch_seq([0, 2], max_length=4)
         self.assertEqual((2, 4), batch_seqs.shape)
-        np.testing.assert_array_equal(batch_seqs,
-                                      np.asarray([[a, b, c, 0],
-                                                  [c, b, e, c]]))
+        npt.assert_array_equal(batch_seqs,
+                               np.asarray([[a, b, c, 0],
+                                           [c, b, e, c]]))
 
         self.module.sequences = None
         try:
             self.module.batch_seq([0])
+        except ValueError:
+            assert True
+
+    def test_counts(self):
+        npt.assert_array_equal(self.module.counts.A,
+                               np.asarray([[1, 1, 0, 1, 0, 0],
+                                           [1, 1, 2, 0, 0, 0],
+                                           [2, 1, 0, 0, 1, 1]]))
+
+    def test_batch_bow(self):
+        batch_bows = self.module.batch_bow([2, 1])
+        self.assertEqual((2, self.module.max_vocab), batch_bows.shape)
+        npt.assert_array_equal(batch_bows.A,
+                               np.asarray([[2, 1, 0, 0, 1, 1],
+                                           [1, 1, 2, 0, 0, 0]]))
+
+        batch_bows = self.module.batch_bow([0, 2], binary=True)
+        self.assertEqual((2, 6), batch_bows.shape)
+        npt.assert_array_equal(batch_bows.A,
+                               np.asarray([[1, 1, 0, 1, 0, 0],
+                                           [1, 1, 0, 0, 1, 1]]))
+
+        self.module.counts = None
+        try:
+            self.module.batch_bow([0])
         except ValueError:
             assert True
 
