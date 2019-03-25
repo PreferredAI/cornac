@@ -54,7 +54,7 @@ python3 setup.py install
 
 Additional dependencies required by models are listed [here](cornac/models/README.md).
 
-Some of the algorithms use `OpenMP` to speed up training with multithreading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler, and install Cornac from the source:
+Some of the algorithms use `OpenMP` to support multi-threading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler:
 
 ```sh
 brew install gcc | brew link gcc
@@ -71,25 +71,23 @@ If you want to utilize your GPUs, you might consider:
 ![](exp-flow.jpg)
 <p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
-This [example](examples/first_example.py) will show you how to run your very first experiment.
+Load the built-in [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be downloaded if not cached):
 
-  - Load the [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be automatically downloaded if not cached).
-  
 ```python
 from cornac.datasets import movielens
 
 ml_100k = movielens.load_100k()
 ```
 
-  - Split the data based on ratio.
-  
+Split the data based on ratio:
+
 ```python
 from cornac.eval_methods import RatioSplit
 
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
 ```
 
-  - Here we are comparing `Biased MF`, `PMF`, and `BPR`.
+Here we are comparing `Biased MF`, `PMF`, and `BPR`:
   
 ```python
 from cornac.models import MF, PMF, BPR
@@ -99,7 +97,7 @@ pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
 bpr = BPR(k=10, max_iter=200, learning_rate=0.01, lambda_reg=0.01)
 ```
 
-  - Define metrics used to evaluate the models.
+Define metrics used to evaluate the models:
   
 ```python
 mae = cornac.metrics.MAE()
@@ -109,7 +107,7 @@ ndcg_20 = cornac.metrics.NDCG(k=20)
 auc = cornac.metrics.AUC()
 ```
 
-  - Put it together into an experiment and run.
+Put everything together into an experiment and run it:
   
 ```python
 from cornac import Experiment
