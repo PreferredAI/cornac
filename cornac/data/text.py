@@ -11,6 +11,7 @@ import pickle
 import numpy as np
 import itertools
 import re
+import string
 
 PAD, UNK, BOS, EOS = '<PAD>', '<UNK>', '<BOS>', '<EOS>'
 SPECIAL_TOKENS = [PAD, UNK, BOS, EOS]
@@ -43,22 +44,36 @@ class Tokenizer():
         raise NotImplementedError
 
 
+def rm_tags(t: str) -> str:
+    """
+    Remove html tags.
+    e,g, rm_tags("<i>Hello</i> <b>World</b>!") -> "Hello World".
+    """
+    return re.sub('<([^>]+)>', '', t)
+
+
+def rm_numeric(t: str) -> str:
+    """
+    Remove digits from `t`.
+    """
+    return re.sub('[0-9]+', ' ', t)
+
+
+def rm_punctuation(t: str) -> str:
+    """
+    Remove "!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~" from t.
+    """
+    return t.translate(str.maketrans('', '', string.punctuation))
+
+
 def rm_dup_spaces(t: str) -> str:
     """
     Remove duplicate spaces in `t`.
     """
-    return re.sub(' {2,}', ' ', t)
+    return re.sub('(\s)+', ' ', t)
 
 
-def lower(tokens: List[str]) -> List[str]:
-    """
-    Lowercase all characters of every token in `tokens`.
-    """
-    return [t.lower() for t in tokens]
-
-
-DEFAULT_PRE_RULES = [rm_dup_spaces]
-DEFAULT_POST_RULES = [lower]
+DEFAULT_PRE_RULES = [lambda t: t.lower(), rm_tags, rm_numeric, rm_punctuation, rm_dup_spaces]
 
 
 class BaseTokenizer(Tokenizer):
@@ -66,12 +81,9 @@ class BaseTokenizer(Tokenizer):
     A base tokenizer use a provided delimiter `sep` to split text.
     """
 
-    def __init__(self, sep=' ',
-                 pre_rules: List[Callable[[str], str]] = None,
-                 post_rules: List[Callable[[str], List[str]]] = None):
+    def __init__(self, sep=' ', pre_rules: List[Callable[[str], str]] = None):
         self.sep = sep
         self.pre_rules = DEFAULT_PRE_RULES if pre_rules is None else pre_rules
-        self.post_rules = DEFAULT_POST_RULES if post_rules is None else post_rules
 
     def tokenize(self, t: str) -> List[str]:
         """
@@ -84,8 +96,6 @@ class BaseTokenizer(Tokenizer):
         for rule in self.pre_rules:
             t = rule(t)
         tokens = t.split(self.sep)
-        for rule in self.post_rules:
-            tokens = rule(tokens)
         return tokens
 
     # TODO: this function can be parallelized
