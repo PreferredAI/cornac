@@ -117,8 +117,8 @@ class Vocabulary():
     Vocabulary basically contains mapping between numbers and tokens and vice versa.
     """
 
-    def __init__(self, idx2tok: List[str]):
-        self.idx2tok = self._add_special_tokens(idx2tok)
+    def __init__(self, idx2tok: List[str], use_special_tokens: bool = False):
+        self.idx2tok = self._add_special_tokens(idx2tok) if use_special_tokens else idx2tok
         self.build_tok2idx()
 
     def build_tok2idx(self):
@@ -155,20 +155,29 @@ class Vocabulary():
         pickle.dump(self.idx2tok, open(path, 'wb'))
 
     @classmethod
-    def from_tokens(cls, tokens: List[str], max_vocab: int = None, min_freq: int = 1) -> 'Vocabulary':
+    def from_tokens(cls,
+                    tokens: List[str],
+                    max_vocab: int = None,
+                    min_freq: int = 1,
+                    use_special_tokens: bool = False) -> 'Vocabulary':
         """
         Build a vocabulary from list of tokens.
         """
         freq = Counter(tokens)
         idx2tok = [tok for tok, cnt in freq.most_common(max_vocab) if cnt >= min_freq]
-        return cls(idx2tok)
+        return cls(idx2tok, use_special_tokens)
 
     @classmethod
-    def from_sequences(cls, sequences: List[List[str]], max_vocab: int = None, min_freq: int = 1) -> 'Vocabulary':
+    def from_sequences(cls,
+                       sequences: List[List[str]],
+                       max_vocab: int = None,
+                       min_freq: int = 1,
+                       use_special_tokens: bool = False) -> 'Vocabulary':
         """
         Build a vocabulary from sequences (list of list of tokens).
         """
-        return Vocabulary.from_tokens([tok for seq in sequences for tok in seq], max_vocab, min_freq)
+        return Vocabulary.from_tokens([tok for seq in sequences for tok in seq],
+                                      max_vocab, min_freq, use_special_tokens)
 
     @classmethod
     def load(cls, path):
@@ -262,7 +271,7 @@ class CountVectorizer():
             mask = new_mask
 
         for index in np.sort(np.where(np.logical_not(mask))[0])[::-1]:
-            del self.vocab.idx2tok[index + len(SPECIAL_TOKENS)]
+            del self.vocab.idx2tok[index]
         self.vocab.build_tok2idx()  # rebuild the mapping
 
         kept_indices = np.where(mask)[0]
@@ -283,7 +292,7 @@ class CountVectorizer():
             for token in sequence:
                 if token not in self.vocab.tok2idx.keys():
                     continue
-                idx = self.vocab.tok2idx[token] - len(SPECIAL_TOKENS)  # ignore SPECIAL_TOKENS from count vectors
+                idx = self.vocab.tok2idx[token]
                 feature_counter[idx] += 1
 
             indices.extend(feature_counter.keys())
@@ -295,7 +304,7 @@ class CountVectorizer():
         data = np.asarray(data, dtype=np.int)
 
         X = sp.csr_matrix((data, indices, indptr),
-                          shape=(len(sequences), self.vocab.size - len(SPECIAL_TOKENS)),
+                          shape=(len(sequences), self.vocab.size),
                           dtype=np.int64)
         X.sort_indices()
         return X
@@ -439,7 +448,7 @@ class TextModule(FeatureModule):
                                      max_doc_freq=self.max_doc_freq, min_freq=self.min_freq,
                                      stop_words=None, max_features=self.max_vocab, binary=False)
         self.sequences, self.counts = vectorizer.fit_transform(ordered_texts)
-        self.vocab = vectorizer.vocab
+        self.vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
 
         # Map tokens into integer ids
         for i, seq in enumerate(self.sequences):
