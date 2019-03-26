@@ -16,7 +16,7 @@ jobs:
       - run:
           command: |
             sudo pip install --upgrade pip
-            sudo pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest pytest-cov codecov
+            sudo pip install --only-binary=numpy,scipy numpy scipy pytest pytest-cov codecov
 
             # Install TensorFlow CPU version.
             #sudo pip install tensorflow==1.12.0
