@@ -129,3 +129,10 @@ def validate_format(input_format, valid_formats):
         raise ValueError('{} data format is not in valid formats ({})'.format(input_format, valid_formats))
 
     return input_format
+
+
+def estimate_batches(input_size, batch_size):
+    """
+    Estimate number of batches give `input_size` and `batch_size`
+    """
+    return int(np.ceil(input_size / batch_size))
