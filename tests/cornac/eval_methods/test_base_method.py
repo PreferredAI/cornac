@@ -9,6 +9,7 @@ from cornac.eval_methods import BaseMethod
 from cornac.data import TextModule, ImageModule, GraphModule
 from cornac.data import TrainSet, reader
 from cornac.metrics import MAE, AUC
+from cornac.models import MF
 
 
 class TestBaseMethod(unittest.TestCase):
@@ -110,6 +111,12 @@ class TestBaseMethod(unittest.TestCase):
         except ValueError:
             assert True
 
+    def test_evaluate(self):
+        data = reader.read_uir('./tests/data.txt')
+        bm = BaseMethod.from_splits(train_data=data, test_data=data)
+        model = MF(k=1, max_iter=0)
+        result = bm.evaluate(model, metrics=[MAE()], user_based=False)
+        result.__str__()
 
 if __name__ == '__main__':
     unittest.main()
