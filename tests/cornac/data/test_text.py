@@ -127,6 +127,16 @@ class TestCountVectorizer(unittest.TestCase):
         _, X2 = vectorizer.transform(self.docs)
         npt.assert_array_equal(X1.A, X2.A)
 
+    def test_with_special_tokens(self):
+        vectorizer = CountVectorizer(max_doc_freq=2, min_freq=1, max_features=1)
+        vectorizer.fit(self.docs)
+
+        new_vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
+        vectorizer.vocab = new_vocab
+
+        sequences, X = vectorizer.transform(self.docs)
+        npt.assert_array_equal(X.A, np.asarray([[0], [2], [0]]))
+
 
 class TestTextModule(unittest.TestCase):
 
@@ -174,10 +184,10 @@ class TestTextModule(unittest.TestCase):
         except ValueError:
             assert True
 
-    def test_counts(self):
+    def test_count_matrix(self):
         (a, b, c, d, e, f) = self.token_ids
         shift = len(SPECIAL_TOKENS)
-        expected_counts = np.zeros_like(self.module.counts.A)
+        expected_counts = np.zeros_like(self.module.count_matrix.A)
         expected_counts[0, a - shift] = 1
         expected_counts[0, b - shift] = 1
         expected_counts[0, c - shift] = 1
@@ -188,7 +198,7 @@ class TestTextModule(unittest.TestCase):
         expected_counts[2, c - shift] = 2
         expected_counts[2, e - shift] = 1
         expected_counts[2, f - shift] = 1
-        npt.assert_array_equal(self.module.counts.A, expected_counts)
+        npt.assert_array_equal(self.module.count_matrix.A, expected_counts)
 
     def test_batch_bow(self):
         (a, b, c, d, e, f) = self.token_ids
@@ -213,7 +223,7 @@ class TestTextModule(unittest.TestCase):
         expected_bows[1, np.asarray([b, c, e, f]) - shift] = 1
         npt.assert_array_equal(batch_bows.A, expected_bows)
 
-        self.module.counts = None
+        self.module.count_matrix = None
         try:
             self.module.batch_bow([0])
         except ValueError:
