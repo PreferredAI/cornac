@@ -5,7 +5,7 @@
 """
 
 from . import FeatureModule
-from typing import List, Dict, Callable, Union, Collection
+from typing import List, Dict, Callable, Union
 from collections import defaultdict, Counter
 import pickle
 import numpy as np
@@ -54,7 +54,7 @@ ENGLISH_STOPWORDS = frozenset([
     'yours', 'yourself', 'yourselves'])
 
 
-def _validate_stopwords(stop_words: Union[Collection, str]) -> Union[Collection, None]:
+def _validate_stopwords(stop_words):
     if stop_words == 'english':
         return ENGLISH_STOPWORDS
     elif isinstance(stop_words, str):
@@ -131,7 +131,7 @@ class BaseTokenizer(Tokenizer):
 
     def __init__(self, sep: str = ' ',
                  pre_rules: List[Callable[[str], str]] = None,
-                 stop_words: Union[Collection, str] = None):
+                 stop_words: Union[List, str] = None):
         self.sep = sep
         self.pre_rules = DEFAULT_PRE_RULES if pre_rules is None else pre_rules
         self.stop_words = _validate_stopwords(stop_words)
@@ -280,7 +280,7 @@ class CountVectorizer():
                  max_doc_freq: Union[float, int] = 1.0,
                  min_freq: int = 1,
                  max_features: int = None,
-                 stop_words: Union[Collection, str] = None,
+                 stop_words: Union[List, str] = None,
                  binary: bool = False):
         self.tokenizer = tokenizer
         if tokenizer is None:
@@ -477,7 +477,7 @@ class TextModule(FeatureModule):
                  max_vocab: int = None,
                  max_doc_freq: Union[float, int] = 1.0,
                  min_freq: int = 1,
-                 stop_words: Union[Collection, str] = None,
+                 stop_words: Union[List, str] = None,
                  **kwargs):
         super().__init__(**kwargs)
         self._id_text = id_text
