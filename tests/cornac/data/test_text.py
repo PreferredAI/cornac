@@ -39,6 +39,20 @@ class TestBaseTokenizer(unittest.TestCase):
         token_list = tok.tokenize('<t>a</t> B |{ C ]?&$  d123 E')
         self.assertListEqual(token_list, ['a', 'b', 'c', 'd', 'e'])
 
+    def test_stopwords(self):
+        text = 'this is a nice house'
+
+        tok = BaseTokenizer(stop_words='english')
+        self.assertListEqual(tok.tokenize(text), ['nice', 'house'])
+
+        tok = BaseTokenizer(stop_words=['is', 'a'])
+        self.assertListEqual(tok.tokenize(text), ['this', 'nice', 'house'])
+
+        try:
+            BaseTokenizer(stop_words='vietnamese')
+        except ValueError:
+            assert True
+
 
 class TestVocabulary(unittest.TestCase):
 
