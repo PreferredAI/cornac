@@ -12,6 +12,8 @@
 
 [c2pf_example.py](c2pf_example.py) - Items/users networks as graph modules.
 
+[conv_mf_example.py](conv_mf_example.py) - Text data associate with items/users.
+
 ----
 
 ## Examples by Algorithm
@@ -27,3 +29,5 @@
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR).
 
 [c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF).
+
+[conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF).
