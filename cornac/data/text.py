@@ -13,10 +13,14 @@ import scipy.sparse as sp
 import re
 import string
 
+__all__ = ['Tokenizer',
+           'BaseTokenizer',
+           'Vocabulary',
+           'CountVectorizer',
+           'TextModule']
+
 PAD, UNK, BOS, EOS = '<PAD>', '<UNK>', '<BOS>', '<EOS>'
 SPECIAL_TOKENS = [PAD, UNK, BOS, EOS]
-
-__all__ = ['CountVectorizer']
 
 
 class Tokenizer():
@@ -118,6 +122,7 @@ class Vocabulary():
     """
 
     def __init__(self, idx2tok: List[str], use_special_tokens: bool = False):
+        self.use_special_tokens = use_special_tokens
         self.idx2tok = self._add_special_tokens(idx2tok) if use_special_tokens else idx2tok
         self.build_tok2idx()
 
@@ -244,12 +249,6 @@ class CountVectorizer():
                 raise ValueError("max_features=%r, neither a positive integer nor None" % max_features)
         self.binary = binary
 
-    def _doc_freq(self, X: sp.csr_matrix):
-        """
-        Return number of documents that the terms appear.
-        """
-        return np.bincount(X.indices, minlength=X.shape[1])
-
     def _limit_features(self, X: sp.csr_matrix, max_doc_count: int):
         """Remove too common features.
         Prune features that are non zero in more samples than max_doc_count
@@ -259,14 +258,14 @@ class CountVectorizer():
             return X
 
         # Calculate a mask based on document frequencies
-        doc_frequencies = self._doc_freq(X)
+        doc_freq = np.bincount(X.indices, minlength=X.shape[1])
         term_indices = np.arange(X.shape[1])  # terms are already sorted based on frequency from Vocabulary
-        mask = np.ones(len(doc_frequencies), dtype=bool)
-        mask &= doc_frequencies <= max_doc_count
+        mask = np.ones(len(doc_freq), dtype=bool)
+        mask &= doc_freq <= max_doc_count
 
         if self.max_features is not None and mask.sum() > self.max_features:
             mask_indices = term_indices[mask][:self.max_features]
-            new_mask = np.zeros(len(doc_frequencies), dtype=bool)
+            new_mask = np.zeros(len(doc_freq), dtype=bool)
             new_mask[mask_indices] = True
             mask = new_mask
 
@@ -283,6 +282,7 @@ class CountVectorizer():
     def _count(self, sequences: List[List[str]]):
         """
         Create sparse feature matrix of document term counts
+        Ignore SPECIAL_TOKENS if used from count matrix
         """
         data = []
         indices = []
@@ -293,6 +293,8 @@ class CountVectorizer():
                 if token not in self.vocab.tok2idx.keys():
                     continue
                 idx = self.vocab.tok2idx[token]
+                if self.vocab.use_special_tokens:
+                    idx -= len(SPECIAL_TOKENS)
                 feature_counter[idx] += 1
 
             indices.extend(feature_counter.keys())
@@ -303,8 +305,11 @@ class CountVectorizer():
         indptr = np.asarray(indptr, dtype=np.int)
         data = np.asarray(data, dtype=np.int)
 
+        feature_dim = self.vocab.size
+        if self.vocab.use_special_tokens:
+            feature_dim -= len(SPECIAL_TOKENS)
         X = sp.csr_matrix((data, indices, indptr),
-                          shape=(len(sequences), self.vocab.size),
+                          shape=(len(sequences), feature_dim),
                           dtype=np.int64)
         X.sort_indices()
         return X
@@ -346,19 +351,19 @@ class CountVectorizer():
             self.vocab = Vocabulary.from_sequences(sequences, min_freq=self.min_freq)
 
         X = self._count(sequences)
-
         if self.binary:
             X.data.fill(1)
 
         if not fixed_vocab:
             n_docs = X.shape[0]
-            max_doc_count = (self.max_doc_freq if isinstance(self.max_doc_freq, int)
+            max_doc_count = (self.max_doc_freq
+                             if isinstance(self.max_doc_freq, int)
                              else self.max_doc_freq * n_docs)
             X = self._limit_features(X, max_doc_count)
 
         return sequences, X
 
-    def transform(self, raw_documents):
+    def transform(self, raw_documents: List[str]) -> (List[List[str]], sp.csr_matrix):
         """Transform documents to document-term matrix.
 
         Parameters
@@ -428,7 +433,7 @@ class TextModule(FeatureModule):
         self.max_doc_freq = max_doc_freq
         self.min_freq = min_freq
         self.sequences = None
-        self.counts = None
+        self.count_matrix = None
 
     def _build_text(self, global_id_map: Dict):
         """Build the text based on provided global id map
@@ -447,7 +452,7 @@ class TextModule(FeatureModule):
         vectorizer = CountVectorizer(tokenizer=self.tokenizer, vocab=self.vocab,
                                      max_doc_freq=self.max_doc_freq, min_freq=self.min_freq,
                                      stop_words=None, max_features=self.max_vocab, binary=False)
-        self.sequences, self.counts = vectorizer.fit_transform(ordered_texts)
+        self.sequences, self.count_matrix = vectorizer.fit_transform(ordered_texts)
         self.vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
 
         # Map tokens into integer ids
@@ -481,10 +486,10 @@ class TextModule(FeatureModule):
     def batch_bow(self, batch_ids, binary=False):
         """Return matrix of bag-of-words corresponding to provided batch_ids
         """
-        if self.counts is None:
+        if self.count_matrix is None:
             raise ValueError('self.counts is required but None!')
 
-        bow_mat = self.counts[batch_ids]
+        bow_mat = self.count_matrix[batch_ids]
         if binary:
             bow_mat.data.fill(1)
 
