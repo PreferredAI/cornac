@@ -14,6 +14,7 @@ from cornac.utils.common import scale
 from cornac.utils.common import clip
 from cornac.utils.common import excepts
 from cornac.utils.common import intersects
+from cornac.utils.common import estimate_batches
 
 
 class TestCommon(unittest.TestCase):
@@ -71,6 +72,11 @@ class TestCommon(unittest.TestCase):
             validate_format('iur', ['UIR'])
         except ValueError:
             assert True
+
+    def test_estimate_batches(self):
+        self.assertEqual(estimate_batches(3, 2), 2)
+        self.assertEqual(estimate_batches(4, 2), 2)
+        self.assertEqual(estimate_batches(1, 2), 1)
 
 
 if __name__ == '__main__':
