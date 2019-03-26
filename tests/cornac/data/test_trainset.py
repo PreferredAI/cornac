@@ -50,9 +50,11 @@ class TestTrainSet(unittest.TestCase):
 
 class TestMatrixTrainSet(unittest.TestCase):
 
+    def setUp(self):
+        self.triplet_data = reader.read_uir('./tests/data.txt')
+
     def test_init(self):
-        triplet_data = reader.read_uir('./tests/data.txt')
-        train_set = MatrixTrainSet.from_uir(triplet_data,
+        train_set = MatrixTrainSet.from_uir(self.triplet_data,
                                             global_uid_map=OrderedDict(),
                                             global_iid_map=OrderedDict(),
                                             global_ui_set=set(),
@@ -86,7 +88,7 @@ class TestMatrixTrainSet(unittest.TestCase):
         self.assertListEqual(train_set.raw_iid_list,
                              ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])
 
-        train_set = MatrixTrainSet.from_uir(triplet_data,
+        train_set = MatrixTrainSet.from_uir(self.triplet_data,
                                             global_uid_map=OrderedDict(),
                                             global_iid_map=OrderedDict(),
                                             global_ui_set=set([('76', '93')]),
@@ -96,8 +98,7 @@ class TestMatrixTrainSet(unittest.TestCase):
         self.assertEqual(train_set.num_items, 9)
 
     def test_uir_iter(self):
-        triplet_data = reader.read_uir('./tests/data.txt')
-        train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+        train_set = MatrixTrainSet.from_uir(self.triplet_data, global_uid_map={}, global_iid_map={},
                                             global_ui_set=set(), verbose=True)
 
         users = [batch_users for batch_users, _, _ in train_set.uir_iter()]
@@ -110,8 +111,7 @@ class TestMatrixTrainSet(unittest.TestCase):
         self.assertListEqual(ratings, [4, 4, 4, 4, 3, 4, 4, 5, 3, 4])
 
     def test_uij_iter(self):
-        triplet_data = reader.read_uir('./tests/data.txt')
-        train_set = MatrixTrainSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={},
+        train_set = MatrixTrainSet.from_uir(self.triplet_data, global_uid_map={}, global_iid_map={},
                                             global_ui_set=set(), verbose=True)
 
         users = [batch_users for batch_users, _, _ in train_set.uij_iter()]
@@ -123,9 +123,28 @@ class TestMatrixTrainSet(unittest.TestCase):
         neg_items = [batch_neg_items for _, _, batch_neg_items in train_set.uij_iter()]
         self.assertRaises(AssertionError, self.assertSequenceEqual, neg_items, range(10))
 
+    def test_user_iter(self):
+        train_set = MatrixTrainSet.from_uir(self.triplet_data, global_uid_map={}, global_iid_map={},
+                                            global_ui_set=set(), verbose=True)
+
+        npt.assert_array_equal(np.arange(10).reshape(10, 1),
+                               [u for u in train_set.user_iter()])
+        self.assertRaises(AssertionError, npt.assert_array_equal,
+                          np.arange(10).reshape(10, 1),
+                          [u for u in train_set.user_iter(shuffle=True)])
+
+    def test_item_iter(self):
+        train_set = MatrixTrainSet.from_uir(self.triplet_data, global_uid_map={}, global_iid_map={},
+                                            global_ui_set=set(), verbose=True)
+
+        npt.assert_array_equal(np.arange(10).reshape(10, 1),
+                               [i for i in train_set.item_iter()])
+        self.assertRaises(AssertionError, npt.assert_array_equal,
+                          np.arange(10).reshape(10, 1),
+                          [i for i in train_set.item_iter(shuffle=True)])
+
     def test_uir_tuple(self):
-        triplet_data = reader.read_uir('./tests/data.txt')
-        train_set = MatrixTrainSet.from_uir(triplet_data,
+        train_set = MatrixTrainSet.from_uir(self.triplet_data,
                                             global_uid_map=None,
                                             global_iid_map=None,
                                             global_ui_set=None,

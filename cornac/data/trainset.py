@@ -6,7 +6,9 @@
 
 from scipy.sparse import csr_matrix
 from collections import OrderedDict
+from ..utils import estimate_batches
 import numpy as np
+
 
 class TrainSet:
     """Training Set
@@ -71,7 +73,6 @@ class TrainSet:
         """Return the mapped id of an item given a raw id"""
         return self._iid_map[raw_iid]
 
-
     @staticmethod
     def idx_iter(idx_range, batch_size=1, shuffle=False):
         """Create an iterator over batch of indices
@@ -92,7 +93,7 @@ class TrainSet:
         if shuffle:
             np.random.shuffle(indices)
 
-        n_batches = int(np.ceil(len(indices) / batch_size))
+        n_batches = estimate_batches(len(indices), batch_size)
         for b in range(n_batches):
             start_offset = batch_size * b
             end_offset = batch_size * b + batch_size
@@ -175,9 +176,6 @@ class MatrixTrainSet(TrainSet):
         item_scores = rating_matrix.sum(axis=0)
         item_rank = np.argsort(item_scores.A1)[::-1]
         return item_rank, item_scores
-
-    def num_batches(self, batch_size):
-        return int(np.ceil(len(self.uir_tuple[0]) / batch_size))
 
     @classmethod
     def from_uir(cls, data, global_uid_map=None, global_iid_map=None,
@@ -268,6 +266,9 @@ class MatrixTrainSet(TrainSet):
 
         return train_set
 
+    def num_batches(self, batch_size):
+        return estimate_batches(len(self.uir_tuple[0]), batch_size)
+
     def uir_iter(self, batch_size=1, shuffle=False):
         """Create an iterator over data yielding batch of users, items, and rating values
 
@@ -317,6 +318,42 @@ class MatrixTrainSet(TrainSet):
                     neg_item = np.random.randint(0, self.num_items)
                 batch_neg_items[i] = neg_item
             yield batch_users, batch_pos_items, batch_neg_items
+
+    def user_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over user ids
+
+        Parameters
+        ----------
+        batch_size : int, optional, default = 1
+
+        shuffle : bool, optional
+            If True, orders of triplets will be randomized. If False, default orders kept
+
+        Returns
+        -------
+        iterator : batch of user ids (array of np.int)
+        """
+        user_ids = np.arange(self.num_users)
+        for batch_ids in self.idx_iter(self.num_users, batch_size, shuffle):
+            yield user_ids[batch_ids]
+
+    def item_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over item ids
+
+        Parameters
+        ----------
+        batch_size : int, optional, default = 1
+
+        shuffle : bool, optional
+            If True, orders of triplets will be randomized. If False, default orders kept
+
+        Returns
+        -------
+        iterator : batch of item ids (array of np.int)
+        """
+        item_ids = np.arange(self.num_items)
+        for batch_ids in self.idx_iter(self.num_items, batch_size, shuffle):
+            yield item_ids[batch_ids]
 
 
 class MultimodalTrainSet(MatrixTrainSet):
