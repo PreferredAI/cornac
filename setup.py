@@ -128,7 +128,6 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'pandas',
         'tqdm>=4.19'
     ],
     extras_require={

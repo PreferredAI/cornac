@@ -33,7 +33,7 @@ install:
   - travis_retry conda create -q -n test-environment python=$PYTHON_VERSION
   - source activate test-environment
 
-  - travis_retry pip install --only-binary=numpy,scipy,pandas numpy scipy pandas pytest --quiet
+  - travis_retry pip install --only-binary=numpy,scipy numpy scipy pytest --quiet
 
   # Install TensorFlow CPU version.
 #  - pip install tensorflow==1.12.0 --quiet
