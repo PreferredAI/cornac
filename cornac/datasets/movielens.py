@@ -53,3 +53,21 @@ def load_1m(fmt='UIR'):
                   relative_path='ml-1m/ratings.dat', unzip=True)
     if fmt == 'UIR':
         return reader.read_uir(fpath, sep='::')
+
+
+def load_plot():
+    """Load the plots of movies provided @ http://dm.postech.ac.kr/~cartopy/ConvMF/
+
+    Returns
+    -------
+    movie_plots: Dict
+        A dictionary with keys are movie ids and values are text plots.
+    """
+    movie_plots = {}
+    fpath = cache(url='https://static.preferred.ai/cornac/datasets/movielens/ml_plot.zip',
+                  unzip=True, relative_path='movielens/ml_plot.dat')
+    with open(fpath, 'r') as f:
+        for line in f:
+            movie_id, plot = line.strip().split('::')
+            movie_plots[movie_id] = plot
+    return movie_plots
