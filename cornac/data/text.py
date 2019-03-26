@@ -22,6 +22,48 @@ __all__ = ['Tokenizer',
 PAD, UNK, BOS, EOS = '<PAD>', '<UNK>', '<BOS>', '<EOS>'
 SPECIAL_TOKENS = [PAD, UNK, BOS, EOS]
 
+ENGLISH_STOPWORDS = frozenset([
+    'a', 'about', 'above', 'across', 'after', 'afterwards', 'again', 'against', 'all', 'almost', 'alone',
+    'along', 'already', 'also', 'although', 'always', 'am', 'among', 'amongst', 'amoungst', 'amount',
+    'an', 'and', 'another', 'any', 'anyhow', 'anyone', 'anything', 'anyway', 'anywhere', 'are', 'around',
+    'as', 'at', 'back', 'be', 'became', 'because', 'become', 'becomes', 'becoming', 'been', 'before',
+    'beforehand', 'behind', 'being', 'below', 'beside', 'besides', 'between', 'beyond', 'bill', 'both',
+    'bottom', 'but', 'by', 'call', 'can', 'cannot', 'cant', 'co', 'con', 'could', 'couldnt', 'cry', 'de',
+    'describe', 'detail', 'do', 'done', 'down', 'due', 'during', 'each', 'eg', 'eight', 'either', 'eleven',
+    'else', 'elsewhere', 'empty', 'enough', 'etc', 'even', 'ever', 'every', 'everyone', 'everything',
+    'everywhere', 'except', 'few', 'fifteen', 'fifty', 'fill', 'find', 'fire', 'first', 'five', 'for',
+    'former', 'formerly', 'forty', 'found', 'four', 'from', 'front', 'full', 'further', 'get', 'give',
+    'go', 'had', 'has', 'hasnt', 'have', 'he', 'hence', 'her', 'here', 'hereafter', 'hereby', 'herein',
+    'hereupon', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'however', 'hundred', 'i', 'ie', 'if',
+    'in', 'inc', 'indeed', 'interest', 'into', 'is', 'it', 'its', 'itself', 'keep', 'last', 'latter',
+    'latterly', 'least', 'less', 'ltd', 'made', 'many', 'may', 'me', 'meanwhile', 'might', 'mill', 'mine',
+    'more', 'moreover', 'most', 'mostly', 'move', 'much', 'must', 'my', 'myself', 'name', 'namely',
+    'neither', 'never', 'nevertheless', 'next', 'nine', 'no', 'nobody', 'none', 'noone', 'nor', 'not',
+    'nothing', 'now', 'nowhere', 'of', 'off', 'often', 'on', 'once', 'one', 'only', 'onto', 'or', 'other',
+    'others', 'otherwise', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'part', 'per', 'perhaps',
+    'please', 'put', 'rather', 're', 'same', 'see', 'seem', 'seemed', 'seeming', 'seems', 'serious',
+    'several', 'she', 'should', 'show', 'side', 'since', 'sincere', 'six', 'sixty', 'so', 'some', 'somehow',
+    'someone', 'something', 'sometime', 'sometimes', 'somewhere', 'still', 'such', 'system', 'take', 'ten',
+    'than', 'that', 'the', 'their', 'them', 'themselves', 'then', 'thence', 'there', 'thereafter', 'thereby',
+    'therefore', 'therein', 'thereupon', 'these', 'they', 'thick', 'thin', 'third', 'this', 'those', 'though',
+    'three', 'through', 'throughout', 'thru', 'thus', 'to', 'together', 'too', 'top', 'toward', 'towards',
+    'twelve', 'twenty', 'two', 'un', 'under', 'until', 'up', 'upon', 'us', 'very', 'via', 'was', 'we',
+    'well', 'were', 'what', 'whatever', 'when', 'whence', 'whenever', 'where', 'whereafter', 'whereas',
+    'whereby', 'wherein', 'whereupon', 'wherever', 'whether', 'which', 'while', 'whither', 'who', 'whoever',
+    'whole', 'whom', 'whose', 'why', 'will', 'with', 'within', 'without', 'would', 'yet', 'you', 'your',
+    'yours', 'yourself', 'yourselves'])
+
+
+def _validate_stopwords(stop_words):
+    if stop_words == 'english':
+        return ENGLISH_STOPWORDS
+    elif isinstance(stop_words, str):
+        raise ValueError("Invalid built-in stop-words list: %s" % stop_words)
+    elif stop_words is None:
+        return None
+    else:
+        return frozenset(stop_words)
+
 
 class Tokenizer():
     """
@@ -87,9 +129,12 @@ class BaseTokenizer(Tokenizer):
     A base tokenizer use a provided delimiter `sep` to split text.
     """
 
-    def __init__(self, sep=' ', pre_rules: List[Callable[[str], str]] = None):
+    def __init__(self, sep: str = ' ',
+                 pre_rules: List[Callable[[str], str]] = None,
+                 stop_words: Union[List, str] = None):
         self.sep = sep
         self.pre_rules = DEFAULT_PRE_RULES if pre_rules is None else pre_rules
+        self.stop_words = _validate_stopwords(stop_words)
 
     def tokenize(self, t: str) -> List[str]:
         """
@@ -102,6 +147,8 @@ class BaseTokenizer(Tokenizer):
         for rule in self.pre_rules:
             t = rule(t)
         tokens = t.split(self.sep)
+        if self.stop_words is not None:
+            tokens = [tok for tok in tokens if tok not in self.stop_words]
         return tokens
 
     # TODO: this function can be parallelized
@@ -160,8 +207,7 @@ class Vocabulary():
         pickle.dump(self.idx2tok, open(path, 'wb'))
 
     @classmethod
-    def from_tokens(cls,
-                    tokens: List[str],
+    def from_tokens(cls, tokens: List[str],
                     max_vocab: int = None,
                     min_freq: int = 1,
                     use_special_tokens: bool = False) -> 'Vocabulary':
@@ -173,8 +219,7 @@ class Vocabulary():
         return cls(idx2tok, use_special_tokens)
 
     @classmethod
-    def from_sequences(cls,
-                       sequences: List[List[str]],
+    def from_sequences(cls, sequences: List[List[str]],
                        max_vocab: int = None,
                        min_freq: int = 1,
                        use_special_tokens: bool = False) -> 'Vocabulary':
@@ -192,7 +237,6 @@ class Vocabulary():
         return cls(pickle.load(open(path, 'rb')))
 
 
-# TODO: add stop_words
 class CountVectorizer():
     """Convert a collection of text documents to a matrix of token counts
     This implementation produces a sparse representation of the counts using
@@ -216,12 +260,15 @@ class CountVectorizer():
         The minimum frequency of tokens to be included into vocabulary.
         If `vocab` is not None, this will be ignored.
 
-    stop_words : string {'english'}, list, default: None
-
     max_features : int, default=None
         If not None, build a vocabulary that only consider the top
         `max_features` ordered by term frequency across the corpus.
         If `vocab` is not None, this will be ignored.
+
+    stop_words : Collection, str, default: None
+        Collection of stop words which will be ignored when building `Vocabulary`.
+        If str, it indicates a built-in stop words list. Currently, only
+        `english` is supported.
 
     binary : boolean, default=False
         If True, all non zero counts are set to 1.
@@ -232,21 +279,23 @@ class CountVectorizer():
                  vocab: Vocabulary = None,
                  max_doc_freq: Union[float, int] = 1.0,
                  min_freq: int = 1,
-                 stop_words: Union[str, List] = None,
                  max_features: int = None,
+                 stop_words: Union[List, str] = None,
                  binary: bool = False):
         self.tokenizer = tokenizer
         if tokenizer is None:
-            self.tokenizer = BaseTokenizer()
+            self.tokenizer = BaseTokenizer(stop_words=stop_words)
         self.vocab = vocab
         self.max_doc_freq = max_doc_freq
         self.min_freq = min_freq
         if max_doc_freq < 0 or min_freq < 0:
-            raise ValueError("negative value for max_doc_freq or min_freq")
+            raise ValueError('negative value for max_doc_freq or min_freq')
         self.max_features = max_features
         if max_features is not None:
             if max_features <= 0:
-                raise ValueError("max_features=%r, neither a positive integer nor None" % max_features)
+                raise ValueError('max_features=%r, '
+                                 'neither a positive integer nor None' % max_features)
+        self.stop_words = stop_words
         self.binary = binary
 
     def _limit_features(self, X: sp.csr_matrix, max_doc_count: int):
@@ -414,6 +463,11 @@ class TextModule(FeatureModule):
         The minimum frequency of tokens to be included into vocabulary.
         If `vocab` is not None, this will be ignored.
 
+    stop_words : Collection, str, default: None
+        Collection of stop words which will be ignored when building `Vocabulary`.
+        If str, it indicates a built-in stop words list. Currently, only
+        `english` is supported.
+
     """
 
     def __init__(self,
@@ -423,15 +477,16 @@ class TextModule(FeatureModule):
                  max_vocab: int = None,
                  max_doc_freq: Union[float, int] = 1.0,
                  min_freq: int = 1,
+                 stop_words: Union[List, str] = None,
                  **kwargs):
         super().__init__(**kwargs)
-
         self._id_text = id_text
         self.tokenizer = tokenizer
         self.vocab = vocab
         self.max_vocab = max_vocab
         self.max_doc_freq = max_doc_freq
         self.min_freq = min_freq
+        self.stop_words = stop_words
         self.sequences = None
         self.count_matrix = None
 
@@ -451,7 +506,8 @@ class TextModule(FeatureModule):
 
         vectorizer = CountVectorizer(tokenizer=self.tokenizer, vocab=self.vocab,
                                      max_doc_freq=self.max_doc_freq, min_freq=self.min_freq,
-                                     stop_words=None, max_features=self.max_vocab, binary=False)
+                                     stop_words=self.stop_words, max_features=self.max_vocab,
+                                     binary=False)
         self.sequences, self.count_matrix = vectorizer.fit_transform(ordered_texts)
         self.vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
 
