@@ -17,3 +17,4 @@ Additional dependencies (CPU versions) and examples for each model are also list
 | [Probabilistic Matrix Factorization (PMF)](pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | N/A | [pmf_ratio.py](../../examples/pmf_ratio.py)
 | [Spherical K-means (SKM)](skm), [paper](https://www.sciencedirect.com/science/article/pii/S092523121501509X) | N/A |
 | [Visual Bayesian Personalized Ranking (VBPR)](vbpr), [paper](https://arxiv.org/pdf/1510.01784.pdf) | [requirements.txt](vbpr/requirements.txt) | [vbpr_tradesy.py](../../examples/vbpr_tradesy.py)
+| [Convolutional Matrix Factorization (ConvMF)](conv_mf), [paper](http://uclab.khu.ac.kr/resources/publication/C_351.pdf) | [requirements.txt](conv_mf/requirements.txt) | [conv_mf_example.py](../../examples/conv_mf_example.py)
