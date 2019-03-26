@@ -45,11 +45,9 @@ class ConvMF(Recommender):
     give_item_weight: boolean, optional, default: True
         When True, each item will be weighted base on the number of user who have rated this item
 
-    init_W: [max_len x emb_dim] matrix, default: None
-        Initial weight for the embedding layer
 
-    init_params: dict, optional, default: {'U':None. 'V':None}
-        Initial U and V weight
+    init_params: dict, optional, default: {'U':None, 'V':None, 'W': None}
+        Initial U and V matrix and initial weight for embedding layer W
  
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
@@ -66,7 +64,7 @@ Pages 233-240
             n_epochs=50, lambda_u=1, lambda_v=100, k=50,
             name="convmf", trainable=True,
             verbose=False, dropout_rate=0.2, emb_dim=200,
-            max_len=300, num_kernel_per_ws=100, **kwargs):
+            max_len=300, num_kernel_per_ws=100, init_params=None):
 
         Recommender.__init__(self, name='CONVMF', trainable=trainable)
 
@@ -81,10 +79,7 @@ Pages 233-240
         self.num_kernel_per_ws = num_kernel_per_ws
         self.name = name
         self.verbose = verbose
-
-        self.U = kwargs.get('U', None)# matrix of user factors
-        self.V = kwargs.get('V', None)# matrix of item factors
-        self.init_W = kwargs.get('int_W', None)#inital weight for the embedding layer
+        self.init_params = {} if init_params is None else init_params
 
 
     def fit(self, train_set):
@@ -102,46 +97,18 @@ Pages 233-240
             print('%s is trained already (trainable = False)' % (self.name))
             return
 
-        R_user = train_set.matrix
-        train_sequence = train_set.item_text.batch_seq(batch_ids=range(train_set.num_items), max_length=self.max_len)
-        train_user = []
 
-        user_index_list = []
-        user_rating_list = []
-        for i in range(R_user.shape[0]):
-            item_idx = R_user[i].nonzero()[1]
-            rating = R_user[i, item_idx].A[0]
-            user_index_list.append(item_idx)
-            user_rating_list.append(rating)
-
-        train_user.append(user_index_list)
-        train_user.append(user_rating_list)
-
-        R_item = train_set.matrix.tocsc().T
-        train_item=[]
-
-        item_index_list = []
-        item_rating_list = []
-        for i in range(R_item.shape[0]):
-            user_idx = R_item[i].nonzero()[1]
-            rating = R_item[i, user_idx].A[0]
-            item_index_list.append(user_idx)
-            item_rating_list.append(rating)
-
-        train_item.append(item_index_list)
-        train_item.append(item_rating_list)
 
         if self.verbose:
             print('Learning...')
 
         res = convmf(max_iter=self.max_iter,
                     lambda_u=self.lambda_u, lambda_v=self.lambda_v, 
-                    dimension=self.dimension, init_W=self.init_W, 
+                    dimension=self.dimension, init_params=self.init_params,
                     give_item_weight=self.give_item_weight,
                     emb_dim=self.emb_dim, 
                     num_kernel_per_ws=self.num_kernel_per_ws,
-                    train_user=train_user, vocab_size=train_set.item_text.vocab.size,
-                    train_item=train_item, document=train_sequence)
+                    vocab_size=train_set.item_text.vocab.size, train_set=train_set)
 
         self.U = np.asarray(res['U'])
         self.V = np.asarray(res['V'])
