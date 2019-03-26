@@ -6,44 +6,51 @@
 """
 
 import numpy as np
-import pandas as pd
 
-pd.set_option('precision', 4)
+NUM_FMT = '{:.4f}'
+
+
+def _table_format(data, headers=None, index=None, extra_spaces=1, h_bars=None):
+    if headers is not None:
+        data.insert(0, headers)
+    if index is not None:
+        index.insert(0, '')
+        for idx, row in zip(index, data):
+            row.insert(0, idx)
+
+    column_widths = np.asarray([[len(str(v)) for v in row] for row in data]).max(axis=0)
+
+    row_fmt = ' | '.join(['{:>%d}' % (w + extra_spaces) for w in column_widths][1:]) + '\n'
+    if index is not None:
+        row_fmt = '{:<%d} | ' % (column_widths[0] + extra_spaces) + row_fmt
+
+    output = ''
+    for i, row in enumerate(data):
+        if h_bars is not None and i in h_bars:
+            output += row_fmt.format(*['-' * (w + extra_spaces) for w in column_widths]).replace('|', '+')
+        output += row_fmt.format(*row)
+    return output
 
 
 class Result:
-    """ Result Class for a single model
-
-    Parameters
-    ----------
+    """
+    Result Class for a single model
     """
 
     def __init__(self, model_name, metric_avg_results, metric_user_results):
         self.model_name = model_name
+        self.metric_avg_results = metric_avg_results
         self.metric_user_results = metric_user_results
-        self.result_df = self.to_df(metric_avg_results)
 
     def __str__(self):
-        self.result_df.index = [self.model_name]
-        return self.result_df.__str__()
-
-    @staticmethod
-    def to_df(metric_avg_results):
-        metric_names = []
-        metric_scores = []
-        for name, score in metric_avg_results.items():
-            metric_names.append(name)
-            metric_scores.append(score)
-
-        return pd.DataFrame(data=np.asarray([metric_scores]),
-                            columns=np.asarray(metric_names))
+        headers = list(self.metric_avg_results.keys())
+        data = [[NUM_FMT.format(v) for v in self.metric_avg_results.values()]]
+        return _table_format(data, headers, index=[self.model_name], h_bars=[1])
 
 
 class CVResult(list):
-    """ Cross Validation Result Class for a single model
-
-    Parameters
-    ----------
+    """
+    Cross Validation Result Class for a single model
     """
 
     def __init__(self, model_name):
@@ -51,38 +58,41 @@ class CVResult(list):
         self.model_name = model_name
 
     def __str__(self):
-        return '[{}]\n{}'.format(self.model_name, self.result_df.__str__())
+        return '[{}]\n{}'.format(self.model_name, self.table)
 
     def organize(self):
-        self.result_df = pd.concat([r.result_df for r in self])
-        self.result_df.index = ['Fold {}'.format(i + 1) for i in range(self.__len__())]
+        headers = list(self[0].metric_avg_results.keys())
+        data, index = [], []
+        for f, r in enumerate(self):
+            data.append([r.metric_avg_results[m] for m in headers])
+            index.append('Fold %d' % f)
 
-        self.result_df = self.result_df.T
-        mean = self.result_df.mean(axis=1)
-        std = self.result_df.std(axis=1)
-        self.result_df['Mean'] = mean
-        self.result_df['Std'] = std
+        data = np.asarray(data)
+        mean, std = data.mean(axis=0), data.std(axis=0)
+        data = np.vstack([data, mean, std])
+        data = [[NUM_FMT.format(v) for v in row] for row in data]
+        index.extend(['Mean', 'Std'])
+        self.table = _table_format(data, headers, index, h_bars=[1, len(data) - 1])
 
 
 class ExperimentResult(list):
-    """ Result Class
-
-    Parameters
-    ----------
+    """
+    Result Class for an Experiment
     """
 
     def __str__(self):
-        df = pd.concat([r.result_df for r in self])
-        df.index = [r.model_name for r in self]
-        return df.__str__()
+        headers = list(self[0].metric_avg_results.keys())
+        data, index = [], []
+        for r in self:
+            data.append([NUM_FMT.format(r.metric_avg_results[m]) for m in headers])
+            index.append(r.model_name)
+        return _table_format(data, headers, index)
 
 
 class CVExperimentResult(ExperimentResult):
-    """ Cross Validation Result Class
-
-    Parameters
-    ----------
+    """
+    Result Class for a cross-validation Experiment
     """
 
     def __str__(self):
-        return '\n\n'.join([r.__str__() for r in self])
+        return '\n'.join([r.__str__() for r in self])
