@@ -220,7 +220,7 @@ class TestTextModule(unittest.TestCase):
 
         batch_bows = self.module.batch_bow([2, 1])
         self.assertEqual((2, self.module.max_vocab), batch_bows.shape)
-        expected_bows = np.zeros_like(batch_bows.A)
+        expected_bows = np.zeros_like(batch_bows)
         expected_bows[0, b - shift] = 1
         expected_bows[0, c - shift] = 2
         expected_bows[0, e - shift] = 1
@@ -228,9 +228,9 @@ class TestTextModule(unittest.TestCase):
         expected_bows[1, b - shift] = 1
         expected_bows[1, c - shift] = 1
         expected_bows[1, d - shift] = 2
-        npt.assert_array_equal(batch_bows.A, expected_bows)
+        npt.assert_array_equal(batch_bows, expected_bows)
 
-        batch_bows = self.module.batch_bow([0, 2], binary=True)
+        batch_bows = self.module.batch_bow([0, 2], binary=True, keep_sparse=True)
         self.assertEqual((2, 6), batch_bows.shape)
         expected_bows = np.zeros_like(batch_bows.A)
         expected_bows[0, np.asarray([a, b, c]) - shift] = 1
