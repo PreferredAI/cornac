@@ -539,8 +539,21 @@ class TextModule(FeatureModule):
 
         return seq_mat
 
-    def batch_bow(self, batch_ids, binary=False):
+    def batch_bow(self, batch_ids, binary=False, keep_sparse=False):
         """Return matrix of bag-of-words corresponding to provided batch_ids
+
+        Parameters
+        ----------
+        batch_ids: array
+            An array of ids to retrieve the corresponding features.
+
+        binary: bool, default = False
+            If `True`, the feature values will be converted into (0 or 1).
+
+        keep_sparse: bool, default = False
+            If `True`, the return feature matrix will be a `scipy.sparse.csr_matrix`.
+            Otherwise, it will be a dense matrix.
+
         """
         if self.count_matrix is None:
             raise ValueError('self.counts is required but None!')
@@ -549,7 +562,10 @@ class TextModule(FeatureModule):
         if binary:
             bow_mat.data.fill(1)
 
-        return bow_mat
+        if keep_sparse:
+            return bow_mat
+
+        return bow_mat.A
 
     def batch_tfidf(self, batch_ids):
         """Return matrix of TF-IDF features corresponding to provided batch_ids
