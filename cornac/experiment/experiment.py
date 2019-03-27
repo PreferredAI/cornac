@@ -45,6 +45,7 @@ class Experiment:
         self.metrics = self._validate_metrics(metrics)
         self.user_based = user_based
         self.verbose = verbose
+        self.result = None
 
     @staticmethod
     def _validate_models(input_models):
@@ -71,15 +72,15 @@ class Experiment:
     def _create_result(self):
         from ..eval_methods.cross_validation import CrossValidation
         if isinstance(self.eval_method, CrossValidation):
-            return CVExperimentResult()
-        return ExperimentResult()
+            self.result = CVExperimentResult()
+        else:
+            self.result = ExperimentResult()
 
     def run(self):
-        result = self._create_result()
+        self._create_result()
         for model in self.models:
             model_result = self.eval_method.evaluate(model=model,
                                                      metrics=self.metrics,
                                                      user_based=self.user_based)
-            result.append(model_result)
-        print('\n{}'.format(result))
-        return result
+            self.result.append(model_result)
+        print('\n{}'.format(self.result))
