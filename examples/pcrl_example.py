@@ -24,7 +24,8 @@ ratio_split = RatioSplit(data=ratings,
                          shuffle=True, exclude_unknowns=True,
                          verbose=True, item_graph=item_graph_module)
 
-pcrl = PCRL(k=100, z_dims=[300], max_iter=200, learning_rate=0.001,
+pcrl = PCRL(k=100, z_dims=[300],
+            max_iter=200, learning_rate=0.001,
             w_determinist=False)
 
 # Evaluation metrics
