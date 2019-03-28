@@ -1,4 +1,4 @@
-evaluation methods
+Evaluation methods
 ======================
 
 .. automodule:: cornac.eval_methods
