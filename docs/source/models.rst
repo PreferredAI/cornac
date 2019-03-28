@@ -52,7 +52,7 @@ Hierarchical Poisson Factorization (HPF)
 
 Bayesian Personalized Ranking (BPR)
 ----------------------------------------
-.. autoclass:: cornac.models.bpr.recom_bpr
+.. autoclass:: cornac.models.bpr.recom_bpr.BPR
    :members:
 
 Probabilitic Matrix Factorization (PMF)
