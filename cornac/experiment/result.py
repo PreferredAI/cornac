@@ -10,7 +10,7 @@ import numpy as np
 NUM_FMT = '{:.4f}'
 
 
-def _table_format(data, headers=None, index=None, extra_spaces=1, h_bars=None):
+def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
     if headers is not None:
         data.insert(0, headers)
     if index is not None:
@@ -86,7 +86,7 @@ class ExperimentResult(list):
         for r in self:
             data.append([NUM_FMT.format(r.metric_avg_results[m]) for m in headers])
             index.append(r.model_name)
-        return _table_format(data, headers, index)
+        return _table_format(data, headers, index, h_bars=[1])
 
 
 class CVExperimentResult(ExperimentResult):
