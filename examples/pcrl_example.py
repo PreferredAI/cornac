@@ -1,5 +1,5 @@
 """
-Fit to and evaluate PCRL [1] on the Office Amazon dataset
+Fit to and evaluate PCRL [1] on the Office Amazon dataset.
 [1] Salah, Aghiles, and Hady W. Lauw. Probabilistic Collaborative Representation Learning\
     for Personalized Item Recommendation. In UAI 2018.
 
@@ -24,8 +24,8 @@ ratio_split = RatioSplit(data=ratings,
                          shuffle=True, exclude_unknowns=True,
                          verbose=True, item_graph=item_graph_module)
 
-pcrl = PCRL(k=100,z_dims=[300],max_iter=200,learning_rate = 0.001,
-            w_determinist = False)
+pcrl = PCRL(k=100, z_dims=[300], max_iter=200, learning_rate=0.001,
+            w_determinist=False)
 
 # Evaluation metrics
 nDgc = metrics.NDCG(k=-1)
@@ -38,8 +38,3 @@ exp = Experiment(eval_method=ratio_split,
                  models=[pcrl],
                  metrics=[nDgc, mrr, rec, pre])
 exp.run()
-
-
-
-
-
