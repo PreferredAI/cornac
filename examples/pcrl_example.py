@@ -13,7 +13,7 @@ from cornac import metrics
 from cornac.models import PCRL
 from cornac.datasets import amazon_office as office
 
-# Load office ratings and item contexts, see PCRL paper for details
+# Load office ratings and item contexts, see C2PF paper for details
 ratings = office.load_rating()
 contexts = office.load_context()
 
@@ -27,6 +27,7 @@ ratio_split = RatioSplit(data=ratings,
 pcrl = PCRL(k=100, z_dims=[300],
             max_iter=200, learning_rate=0.001,
             w_determinist=False)
+
 
 # Evaluation metrics
 nDgc = metrics.NDCG(k=-1)
