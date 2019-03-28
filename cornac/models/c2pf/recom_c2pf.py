@@ -6,7 +6,7 @@
 import numpy as np
 import scipy.sparse as sp
 from ..recommender import Recommender
-import c2pf
+from cornac.models.c2pf import c2pf
 
 
 # Recommender class for Collaborative Context Poisson Factorization (C2PF)
