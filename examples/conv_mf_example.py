@@ -9,8 +9,8 @@ Example for Convolutional Matrix Factorization
 import cornac
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
-from cornac.data import TextModule
-from cornac.data import BaseTokenizer
+from cornac.data.text import TextModule
+from cornac.data.text import BaseTokenizer
 
 item_text = movielens.load_plot()
 ml_1m = movielens.load_1m()
