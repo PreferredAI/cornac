@@ -34,9 +34,8 @@ class PCRL(Recommender):
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD.
 
-    aux_info: csc sparse matrix, required
-        The item auxiliary information matrix, item-context in the PCRL's paper, \
-        in the scipy csc sparse format.
+    aux_info: see "cornac/examples/pcrl_example.py" in the GitHub repo for an example of how to use \
+        cornac's graph module provide item auxiliary data (e.g., context, text, etc.) for PCRL.
 
     name: string, optional, default: 'PCRL'
         The name of the recommender model.
@@ -67,12 +66,11 @@ class PCRL(Recommender):
     In UAI 2018.
     """
 
-    def __init__(self, k=100, z_dims = [300], max_iter=300, batch_size = 300,learning_rate = 0.001,aux_info = None, name = "pcrl", trainable = True,
+    def __init__(self, k=100, z_dims = [300], max_iter=300, batch_size = 300,learning_rate = 0.001, name = "pcrl", trainable = True,
                  verbose=False, w_determinist = True, init_params = {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
-        self.aux_info = aux_info
         self.k = k
         self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
         self.max_iter = max_iter
@@ -99,7 +97,9 @@ class PCRL(Recommender):
         
         if self.trainable:
             # intanciate pcrl
-            pcrl_ = PCRL_(cf_data=X, aux_data=self.aux_info, k=self.k, z_dims=self.z_dims, n_epoch=self.max_iter,
+
+            train_aux_info = train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
+            pcrl_ = PCRL_(cf_data=X, aux_data=train_aux_info, k=self.k, z_dims=self.z_dims, n_epoch=self.max_iter,
                           batch_size=self.batch_size, learning_rate=self.learning_rate, B=1,
                           w_determinist=self.w_determinist, init_params=self.init_params)
             pcrl_.learn()                      
