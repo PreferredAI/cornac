@@ -161,13 +161,21 @@ class TestTextModule(unittest.TestCase):
                         'u2': 'b c d d',
                         'u3': 'c b e c f'}
         # frequency ranking: c > b > d > a > e > f
-        self.module = TextModule(self.id_text, max_vocab=6)
+        self.module = TextModule(corpus=list(self.id_text.values()),
+                                 ids=list(self.id_map.keys()),
+                                 max_vocab=6)
         self.module.build(self.id_map)
         self.token_ids = (self.module.vocab.tok2idx[tok] for tok in self.tokens)
 
     def test_init(self):
         self.assertCountEqual(self.module.vocab.idx2tok,
                               SPECIAL_TOKENS + self.tokens)
+
+    def test_build(self):
+        TextModule().build()
+        TextModule(corpus=['abc']).build()
+        TextModule(corpus=['abc']).build({'b': 0})
+        TextModule(corpus=['abc'], ids=['a']).build({'b': 0})
 
     def test_sequences(self):
         (a, b, c, d, e, f) = self.token_ids
@@ -242,6 +250,12 @@ class TestTextModule(unittest.TestCase):
             self.module.batch_bow([0])
         except ValueError:
             assert True
+
+    def test_batch_bow_fallback(self):
+        module = TextModule(features=np.asarray([[3, 2, 1], [4, 5, 6]]),
+                            ids=['a', 'b'])
+        module.build()
+        npt.assert_array_equal(np.asarray([[3, 2, 1]]), module.batch_bow(batch_ids=[0]))
 
 
 if __name__ == '__main__':
