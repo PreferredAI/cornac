@@ -115,28 +115,28 @@ class PCRL_:
 
         # shape gamma_uk matrix (dgCMatrix)
         if init_params['G_s'] is None:
-            G_s = np.random.gamma(a_, scale=b_ / a_, size=n * k).reshape(n, k)
+            G_s = np.random.gamma(50,scale=0.3/50, size=n * k).reshape(n, k)
         else:
             G_s = init_params['G_s']
         G_s = sp.csc_matrix(G_s, dtype=np.float64)
 
         ## rate gamma_uk matrix (dgCMatrix)
         if init_params['G_r'] is None:
-            G_r = np.random.gamma(a_, scale=b_ / a_, size=n * k).reshape(n, k)
+            G_r = np.random.gamma(50,scale=0.3/50, size=n * k).reshape(n, k)
         else:
             G_r = init_params['G_r']
         G_r = sp.csc_matrix(G_r, dtype=np.float64)
 
         # shape lamda_ik matrix (dgCMatrix)
         if init_params['L_s'] is None:
-            L_s = np.random.gamma(c_, scale=d_ / c_, size=d * k).reshape(d, k)
+            L_s = np.random.gamma(50,scale=0.3/50, size=d * k).reshape(d, k)
         else:
             L_s = init_params['L_s']
         L_s = sp.csc_matrix(L_s, dtype=np.float64)
 
         ## rate lamda_ik matrix (dgCMatrix)
         if init_params['L_r'] is None:
-            L_r = np.random.gamma(c_, scale=d_ / c_, size=d * k).reshape(d, k)
+            L_r = np.random.gamma(50,scale=0.3/50, size=d * k).reshape(d, k)
         else:
             L_r = init_params['L_r']
         L_r = sp.csc_matrix(L_r, dtype=np.float64)
@@ -262,6 +262,7 @@ class PCRL_:
 
     # fitting PCRL to observed data
     def learn(self):
+        print('new version')
         # placeholders
         C = tf.placeholder(tf.float32, shape=[None, self.c_dim], name='C')
         X_ = tf.placeholder(tf.float32, shape=[None, self.c_dim], name='X_')
