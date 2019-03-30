@@ -47,5 +47,5 @@ Output:
 ---- + ------- + --------- + ------------ + --------- + --------
 pcrl |  0.1922 |    0.0862 |       0.0148 | 2591.4878 |   4.0957
 
-*Results may change slightly from one run to another due to diffirent random initial parameters
+*Results may change slightly from one run to another due to different random initial parameters
 """
