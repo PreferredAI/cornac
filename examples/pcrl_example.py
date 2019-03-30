@@ -25,18 +25,27 @@ ratio_split = RatioSplit(data=ratings,
                          verbose=True, item_graph=item_graph_module)
 
 pcrl = PCRL(k=100, z_dims=[300],
-            max_iter=300, learning_rate=0.001,
-            w_determinist=True)
+            max_iter=300, 
+            learning_rate=0.001)
 
 
 # Evaluation metrics
 nDgc = metrics.NDCG(k=-1)
-mrr = metrics.MRR()
 rec = metrics.Recall(k=20)
 pre = metrics.Precision(k=20)
 
 # Instantiate and run your experiment
 exp = Experiment(eval_method=ratio_split,
                  models=[pcrl],
-                 metrics=[nDgc, mrr, rec, pre])
+                 metrics=[nDgc, rec, pre])
 exp.run()
+
+
+"""
+Output:
+     | NDCG@-1 | Recall@20 | Precision@20 | Train (s) | Test (s)
+---- + ------- + --------- + ------------ + --------- + --------
+pcrl |  0.1922 |    0.0862 |       0.0148 | 2591.4878 |   4.0957
+
+*Results may change slightly from one run to another due to diffirent random initial parameters
+"""
