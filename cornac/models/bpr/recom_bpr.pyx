@@ -88,9 +88,7 @@ class BPR(Recommender):
         When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: None
-        Initial parameters, e.g., init_params = {'U': user_factors,
-                                                 'V': item_factors,
-                                                 'Bi': item_biases}
+        Initial parameters, e.g., init_params = {'U': user_factors, 'V': item_factors, 'Bi': item_biases}
 
     References
     ----------
