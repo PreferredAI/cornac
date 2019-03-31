@@ -104,7 +104,10 @@ extensions = [
     Extension(name='cornac.models.bpr.recom_bpr',
               sources=['cornac/models/bpr/recom_bpr' + ext],
               language='c++',
-              extra_compile_args=compile_args, extra_link_args=link_args)
+              extra_compile_args=compile_args, extra_link_args=link_args),
+    Extension(name='cornac.utils.fast_dot',
+              sources=['cornac/utils/fast_dot' + ext],
+              language='c++'),
 ]
 
 cmdclass = {}
