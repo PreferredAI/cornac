@@ -12,16 +12,19 @@ class TestImageModule(unittest.TestCase):
 
     def test_init(self):
         md = ImageModule()
-        md.build(global_id_map=None)
+        md.build(id_map=None)
 
-        self.assertIsNone(md.data_image)
-        self.assertIsNone(md.data_path)
+        self.assertIsNone(md.images)
+        self.assertIsNone(md.paths)
 
     def batch_image(self):
         md = ImageModule()
-        md.build(global_id_map=None)
-        md.batch_image(batch_ids=None)
+        md.build(id_map=None)
 
+        try:
+            md.batch_image(batch_ids=None)
+        except:
+            raise NotImplementedError
 
 if __name__ == '__main__':
     unittest.main()

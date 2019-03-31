@@ -136,7 +136,7 @@ class VBPR(Recommender):
         # Learned parameters
         Bi, Gu, Gi, Tu, E, Bp = self._init_params(n_users=train_set.num_users,
                                                   n_items=train_set.num_items,
-                                                  feat_dim=train_set.item_image.feat_dim)
+                                                  feat_dim=train_set.item_image.feature_dim)
         optimizer = torch.optim.Adam([Bi, Gu, Gi, Tu, E, Bp], lr=self.learning_rate)
 
         for epoch in range(1, self.n_epochs + 1):
