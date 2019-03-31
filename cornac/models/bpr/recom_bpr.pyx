@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# cython: language_level=3
 
 """
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
@@ -6,13 +7,12 @@
 
 from cornac.exception import ScoreException
 from cornac.models.recommender import Recommender
-
+from cornac.utils import fast_dot
+import multiprocessing
+import tqdm
 import numpy as np
 cimport cython
 from cython cimport floating, integral
-import multiprocessing
-import tqdm
-
 from cython.parallel import parallel, prange
 from libc.math cimport exp
 from libcpp cimport bool
@@ -263,15 +263,12 @@ class BPR(Recommender):
         if item_id is None:
             known_item_scores = self.i_biases
             if not unk_user:
-                known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
-
+                fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
             return known_item_scores
         else:
             if self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-
             item_score = self.i_biases[item_id]
             if not unk_user:
                 item_score += np.dot(self.u_factors[user_id], self.i_factors[item_id])
-
             return item_score
