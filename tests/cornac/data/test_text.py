@@ -11,7 +11,7 @@ from cornac.data.text import BaseTokenizer
 from cornac.data.text import Vocabulary
 from cornac.data.text import CountVectorizer
 from cornac.data.text import SPECIAL_TOKENS, DEFAULT_PRE_RULES
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 import numpy as np
 import numpy.testing as npt
 
@@ -156,18 +156,22 @@ class TestTextModule(unittest.TestCase):
 
     def setUp(self):
         self.tokens = ['a', 'b', 'c', 'd', 'e', 'f']
-        self.id_map = OrderedDict({'u1': 0, 'u2': 1, 'u3': 2})
-        self.id_text = {'u1': 'a b c',
-                        'u2': 'b c d d',
-                        'u3': 'c b e c f'}
+        corpus = ['a b c', 'b c d d', 'c b e c f']
+        ids = ['u1', 'u2', 'u3']
         # frequency ranking: c > b > d > a > e > f
-        self.module = TextModule(self.id_text, max_vocab=6)
-        self.module.build(self.id_map)
+        self.module = TextModule(corpus=corpus, ids=ids, max_vocab=6)
+        self.module.build({'u1': 0, 'u2': 1, 'u3': 2})
         self.token_ids = (self.module.vocab.tok2idx[tok] for tok in self.tokens)
 
     def test_init(self):
         self.assertCountEqual(self.module.vocab.idx2tok,
                               SPECIAL_TOKENS + self.tokens)
+
+    def test_build(self):
+        TextModule().build()
+        TextModule(corpus=['abc']).build()
+        TextModule(corpus=['abc']).build({'b': 0})
+        TextModule(corpus=['abc'], ids=['a']).build({'b': 0})
 
     def test_sequences(self):
         (a, b, c, d, e, f) = self.token_ids
@@ -242,6 +246,12 @@ class TestTextModule(unittest.TestCase):
             self.module.batch_bow([0])
         except ValueError:
             assert True
+
+    def test_batch_bow_fallback(self):
+        module = TextModule(features=np.asarray([[3, 2, 1], [4, 5, 6]]),
+                            ids=['a', 'b'])
+        module.build()
+        npt.assert_array_equal(np.asarray([[3, 2, 1]]), module.batch_bow(batch_ids=[0]))
 
 
 if __name__ == '__main__':

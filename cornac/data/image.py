@@ -14,24 +14,13 @@ class ImageModule(FeatureModule):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.images = kwargs.get('images', None)
+        self.paths = kwargs.get('paths', None)
 
-        self._id_image = kwargs.get('id_image', None)
-        self._id_path = kwargs.get('id_path', None)
-        self.data_image = None
-        self.data_path = None
-
-    @property
-    def data_image(self):
-        return self.__data_image
-
-    @data_image.setter
-    def data_image(self, input_image):
-        self.__data_image = input_image
-
-    def build(self, global_id_map):
+    def build(self, id_map=None):
         """Build the model based on provided list of ordered ids
         """
-        FeatureModule.build(self, global_id_map)
+        super().build(id_map)
 
     def batch_image(self, batch_ids,
                     target_size=(256, 256),
@@ -39,4 +28,4 @@ class ImageModule(FeatureModule):
                     interpolation='nearest'):
         """Return batch of images corresponding to provided batch_ids
         """
-        pass
+        raise NotImplementedError

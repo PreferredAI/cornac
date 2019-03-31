@@ -5,6 +5,7 @@
 """
 
 from . import FeatureModule
+from .module import fallback_feature
 from typing import List, Dict, Callable, Union
 from collections import defaultdict, Counter
 import pickle
@@ -434,14 +435,17 @@ class CountVectorizer():
         return sequences, X
 
 
-# TODO: add stop_words
 class TextModule(FeatureModule):
     """Text module
 
     Parameters
     ----------
-    id_text: Dict, optional, default = None
-        A dictionary contains mapping between user/item id to their text.
+    corpus: List[str], default = None
+        List of user/item texts that the indices are aligned with `ids`.
+
+    ids: List, default = None
+        List of user/item ids that the indices are aligned with `corpus`.
+        If None, the indices of provided `corpus` will be used as `ids`.
 
     tokenizer: Tokenizer, optional, default = None
         Tokenizer for text splitting. If None, the BaseTokenizer will be used.
@@ -471,7 +475,8 @@ class TextModule(FeatureModule):
     """
 
     def __init__(self,
-                 id_text: Dict = None,
+                 corpus: List[str] = None,
+                 ids: List = None,
                  tokenizer: Tokenizer = None,
                  vocab: Vocabulary = None,
                  max_vocab: int = None,
@@ -479,8 +484,8 @@ class TextModule(FeatureModule):
                  min_freq: int = 1,
                  stop_words: Union[List, str] = None,
                  **kwargs):
-        super().__init__(**kwargs)
-        self._id_text = id_text
+        super().__init__(ids=ids, **kwargs)
+        self.corpus = corpus
         self.tokenizer = tokenizer
         self.vocab = vocab
         self.max_vocab = max_vocab
@@ -490,36 +495,41 @@ class TextModule(FeatureModule):
         self.sequences = None
         self.count_matrix = None
 
-    def _build_text(self, global_id_map: Dict):
+    def _swap_text(self, id_map: Dict):
+        if self.ids is None:
+            self.ids = np.arange(len(self.corpus))
+
+        for old_idx, raw_id in enumerate(self.ids):
+            new_idx = id_map.get(raw_id, None)
+            if new_idx is None:
+                continue
+            assert new_idx < len(self.corpus)
+            self.corpus[old_idx], self.corpus[new_idx] = self.corpus[new_idx], self.corpus[old_idx]
+
+    def _build_text(self, id_map: Dict):
         """Build the text based on provided global id map
         """
-        if self._id_text is None:
+        if self.corpus is None:
             return
 
-        ordered_texts = []
-        mapped2raw = {mapped_id: raw_id for raw_id, mapped_id in global_id_map.items()}
-        for mapped_id in range(len(global_id_map)):
-            raw_id = mapped2raw[mapped_id]
-            ordered_texts.append(self._id_text[raw_id])
-            del self._id_text[raw_id]
-        del self._id_text
+        if id_map is not None:
+            self._swap_text(id_map)
 
         vectorizer = CountVectorizer(tokenizer=self.tokenizer, vocab=self.vocab,
                                      max_doc_freq=self.max_doc_freq, min_freq=self.min_freq,
                                      stop_words=self.stop_words, max_features=self.max_vocab,
                                      binary=False)
-        self.sequences, self.count_matrix = vectorizer.fit_transform(ordered_texts)
+        self.sequences, self.count_matrix = vectorizer.fit_transform(self.corpus)
         self.vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
-
         # Map tokens into integer ids
         for i, seq in enumerate(self.sequences):
             self.sequences[i] = self.vocab.to_idx(seq)
 
-    def build(self, global_id_map):
+    def build(self, id_map=None):
         """Build the model based on provided list of ordered ids
         """
-        FeatureModule.build(self, global_id_map)
-        self._build_text(global_id_map)
+        super().build(id_map)
+        self._build_text(id_map)
 
     def batch_seq(self, batch_ids, max_length=None):
         """Return a numpy matrix of text sequences containing token ids with size=(len(batch_ids), max_length).
@@ -539,6 +549,7 @@ class TextModule(FeatureModule):
 
         return seq_mat
 
+    @fallback_feature
     def batch_bow(self, batch_ids, binary=False, keep_sparse=False):
         """Return matrix of bag-of-words corresponding to provided batch_ids
 
@@ -556,7 +567,7 @@ class TextModule(FeatureModule):
 
         """
         if self.count_matrix is None:
-            raise ValueError('self.counts is required but None!')
+            raise ValueError('self.count_matrix is required but None!')
 
         bow_mat = self.count_matrix[batch_ids]
         if binary:
