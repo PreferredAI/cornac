@@ -13,6 +13,7 @@ This data is used in the VBPR paper. After cleaning the data, we have:
 
 from ..utils import cache
 from ..data import reader
+import numpy as np
 
 
 def load_data():
@@ -34,13 +35,16 @@ def load_feature():
 
     Returns
     -------
-    data: dict
-        Item-feature dictionary. Each feature vector is a Numpy array of size 4096.
+    features: numpy.ndarray
+        Feature matrix with shape (n, 4096) with n is the number of items.
 
+    item_ids: List
+        List of item ids aligned with indices in `features`.
     """
-    import pickle
-
-    fpath = cache(url='https://static.preferred.ai/cornac/datasets/tradesy/item_feature.zip',
-                  unzip=True, relative_path='tradesy/item_feature.pkl')
-    with open(fpath, 'rb') as f:
-        return pickle.load(f)
+    features = np.load(cache(url='https://static.preferred.ai/cornac/datasets/tradesy/item_features.zip',
+                             unzip=True, relative_path='tradesy/item_features.npy'))
+    fpath = cache(url='https://static.preferred.ai/cornac/datasets/tradesy/item_ids.zip',
+                  unzip=True, relative_path='tradesy/item_ids.txt')
+    with open(fpath, 'r') as f:
+        item_ids = f.read().splitlines()
+    return features, item_ids
