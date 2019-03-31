@@ -11,7 +11,7 @@ from cornac.data.text import BaseTokenizer
 from cornac.data.text import Vocabulary
 from cornac.data.text import CountVectorizer
 from cornac.data.text import SPECIAL_TOKENS, DEFAULT_PRE_RULES
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 import numpy as np
 import numpy.testing as npt
 
@@ -156,13 +156,11 @@ class TestTextModule(unittest.TestCase):
 
     def setUp(self):
         self.tokens = ['a', 'b', 'c', 'd', 'e', 'f']
-        self.id_map = OrderedDict({'u1': 0, 'u2': 1, 'u3': 2})
         corpus = ['a b c', 'b c d d', 'c b e c f']
+        ids = ['u1', 'u2', 'u3']
         # frequency ranking: c > b > d > a > e > f
-        self.module = TextModule(corpus=corpus,
-                                 ids=list(self.id_map.keys()),
-                                 max_vocab=6)
-        self.module.build(self.id_map)
+        self.module = TextModule(corpus=corpus, ids=ids, max_vocab=6)
+        self.module.build({'u1': 0, 'u2': 1, 'u3': 2})
         self.token_ids = (self.module.vocab.tok2idx[tok] for tok in self.tokens)
 
     def test_init(self):
