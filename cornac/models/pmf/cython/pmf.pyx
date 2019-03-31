@@ -135,13 +135,14 @@ def pmf(X,n_X,d_X,k, n_epochs = 100, lamda = 0.01,learning_rate=0.001, init_para
 
 
 #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
-def pmf_non_linear(double[:,:]X, int n_X, int d_X, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
+def pmf_non_linear(int uid, int iid, float rat, int n_users, int n_items, int n_ratings, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
   
     #some useful variables
     cdef:
         double[:] loss = np.full(n_epochs, 0.0)
-        int n = n_X
-        int d = d_X
+        int n = n_users
+        int d = n_items
+        int nnz = n_ratings
         double[:,:] U
         double[:,:] V
         double[:,:] cache_u = np.zeros((n,k))
@@ -149,7 +150,7 @@ def pmf_non_linear(double[:,:]X, int n_X, int d_X, int k, int n_epochs = 100, fl
         double[:,:] grad_u = np.zeros((n,k))
         double[:,:] grad_v = np.zeros((d,k))
         double eps = 1e-8
-        int u_, i_
+        int u_, i_, j, epoch
         double val, s, e, norm_u, norm_v
   
     #Parameter initialization
@@ -168,8 +169,10 @@ def pmf_non_linear(double[:,:]X, int n_X, int d_X, int k, int n_epochs = 100, fl
     #Optimization
     
     for epoch in range(n_epochs):
-        for u_, i_, val in X:
+        #for u_, i_, val in X:
+        for r in range(nnz):
             #u_, i_ = integral(u_), integral(i_)
+            u_, i_, val = uid[r], iid[r], rat[r]
             
             s = 0.0
             for j in range(k):
