@@ -192,15 +192,16 @@ class BaseMethod:
         for user_module in [self.user_text, self.user_image, self.user_graph]:
             if user_module is None:
                 continue
-            user_module.build(global_id_map=self.global_uid_map)
+            user_module.build(id_map=self.global_uid_map)
 
         for item_module in [self.item_text, self.item_image, self.item_graph]:
             if item_module is None:
                 continue
-            item_module.build(global_id_map=self.global_iid_map)
+            item_module.build(id_map=self.global_iid_map)
 
         for data_set in [self.train_set, self.test_set, self.val_set]:
-            if data_set is None: continue
+            if data_set is None:
+                continue
             data_set.add_modules(user_text=self.user_text,
                                  user_image=self.user_image,
                                  user_graph=self.user_graph,
