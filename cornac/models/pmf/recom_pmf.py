@@ -108,9 +108,9 @@ class PMF(Recommender):
                 print('Learning...')
 
             if self.variant == 'linear':
-                res = pmf.pmf_linear(tX, k=self.k, n_X=X.shape[0], d_X=X.shape[1], n_epochs=self.max_iter,
-                                     lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                                     init_params=self.init_params)
+                res = pmf.pmf_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items, n_ratings = len(rat), n_epochs=self.max_iter,
+                                         lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
+                                         init_params=self.init_params)
             elif self.variant == 'non_linear':
                 res = pmf.pmf_non_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items, n_ratings = len(rat), n_epochs=self.max_iter,
                                          lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
