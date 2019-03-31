@@ -30,8 +30,8 @@ class TestMovieLens(unittest.TestCase):
         # only run data download tests 20% of the time to speed up frequent testing
         random.seed(time.time())
         if random.random() > 0.8:
-            ml_plot = movielens.load_plot()
-            self.assertEqual(len(ml_plot), 10076)
+            plots, ids = movielens.load_plot()
+            self.assertEqual(len(ids), 10076)
 
 
 if __name__ == '__main__':
