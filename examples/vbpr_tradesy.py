@@ -12,9 +12,8 @@ from cornac.datasets import tradesy
 from cornac.data import ImageModule
 from cornac.eval_methods import RatioSplit
 
-
-item_feature = tradesy.load_feature() # BIG file
-item_image_module = ImageModule(id_feature=item_feature, normalized=True)
+features, item_ids = tradesy.load_feature()  # BIG file
+item_image_module = ImageModule(features=features, ids=item_ids, normalized=True)
 
 ratio_split = RatioSplit(data=tradesy.load_data(),
                          test_size=0.1, rating_threshold=0.5,
