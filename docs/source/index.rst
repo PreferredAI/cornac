@@ -17,11 +17,11 @@ Cornac: a collection of recommendation algorithms and comparisons
    :maxdepth: 1
    :caption: API Reference
 
+   data
    models
    metrics
    eval_methods
    experiment
-   
-
+   datasets
    
    
