@@ -21,7 +21,7 @@ cdef float sigmoid(float z):
 
 
 #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
-def pmf_linear(int uid, int iid, float rat, int n_users, int n_items, int n_ratings, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
+def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
   
     #some useful variables
     cdef:
@@ -139,7 +139,7 @@ def pmf(X,n_X,d_X,k, n_epochs = 100, lamda = 0.01,learning_rate=0.001, init_para
 
 
 #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
-def pmf_non_linear(int uid, int iid, float rat, int n_users, int n_items, int n_ratings, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
+def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
   
     #some useful variables
     cdef:
