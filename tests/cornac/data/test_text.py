@@ -157,11 +157,9 @@ class TestTextModule(unittest.TestCase):
     def setUp(self):
         self.tokens = ['a', 'b', 'c', 'd', 'e', 'f']
         self.id_map = OrderedDict({'u1': 0, 'u2': 1, 'u3': 2})
-        self.id_text = {'u1': 'a b c',
-                        'u2': 'b c d d',
-                        'u3': 'c b e c f'}
+        corpus = ['a b c', 'b c d d', 'c b e c f']
         # frequency ranking: c > b > d > a > e > f
-        self.module = TextModule(corpus=list(self.id_text.values()),
+        self.module = TextModule(corpus=corpus,
                                  ids=list(self.id_map.keys()),
                                  max_vocab=6)
         self.module.build(self.id_map)
