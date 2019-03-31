@@ -39,9 +39,9 @@ def _load(fname, fmt='UIR'):
 
 def load_data(fmt='UIR'):
     """Load the Netflix entire dataset
-        - Number of ratings: 100,480,507
-        - Number of users:       480,189
-        - Number of items:        17,770
+    - Number of ratings: 100,480,507
+    - Number of users:       480,189
+    - Number of items:        17,770
 
     Parameters
     ----------
@@ -60,9 +60,9 @@ def load_data(fmt='UIR'):
 def load_data_small(fmt='UIR'):
     """Load a small subset of the Netflix dataset. We draw this subsample such that
     every user has at least 10 items and each item has at least 10 users.
-        - Number of ratings: 607,803
-        - Number of users:    10,000
-        - Number of items:     5,000
+    - Number of ratings: 607,803
+    - Number of users:    10,000
+    - Number of items:     5,000
 
     Parameters
     ----------
