@@ -24,3 +24,8 @@ Amazon Office
 ---------------------------------------------
 .. automodule:: cornac.datasets.amazon_office
    :members:
+
+CiteULike
+-----------------------------------------
+.. automodule:: cornac.datasets.citeulike
+   :members:
