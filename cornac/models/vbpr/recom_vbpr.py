@@ -50,6 +50,9 @@ class VBPR(Recommender):
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U and V are not None).
 
+    verbose: boolean, optional, default: True
+        When True, running logs are displayed.
+
     init_params: dictionary, optional, default: None
         Initial parameters, e.g., init_params = {'Bi': beta_item, 'Gu': gamma_user,
         'Gi': gamma_item, 'Tu': theta_user, 'E': emb_matrix, 'Bp': beta_prime}
@@ -63,8 +66,8 @@ class VBPR(Recommender):
                  k=10, k2=10,
                  n_epochs=20, batch_size=100, learning_rate=0.001,
                  lambda_w=0.01, lambda_b=0.01, lambda_e=0.0,
-                 use_gpu=False, trainable=True, init_params=None, **kwargs):
-        Recommender.__init__(self, name='VBPR', trainable=trainable)
+                 use_gpu=False, trainable=True, verbose=True, init_params=None):
+        Recommender.__init__(self, name='VBPR', trainable=trainable, verbose=verbose)
         self.k = k
         self.k2 = k2
         self.n_epochs = n_epochs
@@ -138,7 +141,8 @@ class VBPR(Recommender):
             sum_loss = 0.
             count = 0
             progress_bar = tqdm(total=train_set.num_batches(self.batch_size),
-                                desc='Epoch {}/{}'.format(epoch, self.n_epochs))
+                                desc='Epoch {}/{}'.format(epoch, self.n_epochs),
+                                disable=not self.verbose)
             for batch_u, batch_i, batch_j in train_set.uij_iter(self.batch_size, shuffle=True):
                 gamma_u = Gu[batch_u]
                 theta_u = Tu[batch_u]
