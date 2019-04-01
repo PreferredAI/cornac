@@ -8,6 +8,7 @@
 from cornac.exception import ScoreException
 from cornac.models.recommender import Recommender
 from cornac.utils import fast_dot
+from cornac.utils.common import scale
 import multiprocessing
 import tqdm
 import numpy as np
@@ -18,7 +19,6 @@ from libc.math cimport exp
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.algorithm cimport binary_search
-
 
 
 cdef extern from "<random>" namespace "std":
@@ -97,7 +97,7 @@ class BPR(Recommender):
     """
 
     def __init__(self, k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01, num_threads=0,
-                 trainable=True, verbose=True, init_params=None, **kwargs):
+                 trainable=True, verbose=False, init_params=None):
         Recommender.__init__(self, name='BPR', trainable=trainable, verbose=verbose)
         self.factors = k
         self.max_iter = max_iter
@@ -271,4 +271,6 @@ class BPR(Recommender):
             item_score = self.i_biases[item_id]
             if not unk_user:
                 item_score += np.dot(self.u_factors[user_id], self.i_factors[item_id])
+            if self.train_set.min_rating != self.train_set.max_rating:
+                item_score = scale(item_score, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
             return item_score

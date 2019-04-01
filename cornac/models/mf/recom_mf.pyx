@@ -56,8 +56,8 @@ class MF(Recommender):
     """
 
     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 trainable=True, verbose=True, init_params=None, **kwargs):
-        Recommender.__init__(self, name='MF', verbose=verbose)
+                 trainable=True, verbose=False, init_params=None):
+        Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
 
         self.k = k
         self.max_iter = max_iter

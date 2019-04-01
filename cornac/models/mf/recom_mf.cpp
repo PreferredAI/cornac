@@ -2420,7 +2420,7 @@ static PyObject *__pyx_n_s_user_id;
 static PyObject *__pyx_n_s_val;
 static PyObject *__pyx_n_s_verbose;
 static PyObject *__pyx_n_s_zeros;
-static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_k, PyObject *__pyx_v_max_iter, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_lambda_reg, PyObject *__pyx_v_use_bias, PyObject *__pyx_v_early_stop, CYTHON_UNUSED PyObject *__pyx_v_trainable, PyObject *__pyx_v_verbose, PyObject *__pyx_v_init_params, CYTHON_UNUSED PyObject *__pyx_v_kwargs); /* proto */
+static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_k, PyObject *__pyx_v_max_iter, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_lambda_reg, PyObject *__pyx_v_use_bias, PyObject *__pyx_v_early_stop, PyObject *__pyx_v_trainable, PyObject *__pyx_v_verbose, PyObject *__pyx_v_init_params); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_2fit(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_train_set); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_4_fit_sgd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_8_fit_sgd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, __Pyx_memviewslice __pyx_v_rid, __Pyx_memviewslice __pyx_v_cid, __Pyx_memviewslice __pyx_v_val, __Pyx_memviewslice __pyx_v_U, __Pyx_memviewslice __pyx_v_V, __Pyx_memviewslice __pyx_v_Bu, __Pyx_memviewslice __pyx_v_Bi); /* proto */
@@ -2534,8 +2534,8 @@ static PyObject *__pyx_codeobj__45;
  *     """
  * 
  *     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,             # <<<<<<<<<<<<<<
- *                  trainable=True, verbose=True, init_params=None, **kwargs):
- *         Recommender.__init__(self, name='MF', verbose=verbose)
+ *                  trainable=True, verbose=False, init_params=None):
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
  */
 
 /* Python wrapper */
@@ -2549,15 +2549,12 @@ static PyObject *__pyx_pw_6cornac_6models_2mf_8recom_mf_2MF_1__init__(PyObject *
   PyObject *__pyx_v_lambda_reg = 0;
   PyObject *__pyx_v_use_bias = 0;
   PyObject *__pyx_v_early_stop = 0;
-  CYTHON_UNUSED PyObject *__pyx_v_trainable = 0;
+  PyObject *__pyx_v_trainable = 0;
   PyObject *__pyx_v_verbose = 0;
   PyObject *__pyx_v_init_params = 0;
-  CYTHON_UNUSED PyObject *__pyx_v_kwargs = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
-  __pyx_v_kwargs = PyDict_New(); if (unlikely(!__pyx_v_kwargs)) return NULL;
-  __Pyx_GOTREF(__pyx_v_kwargs);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_k,&__pyx_n_s_max_iter,&__pyx_n_s_learning_rate,&__pyx_n_s_lambda_reg,&__pyx_n_s_use_bias,&__pyx_n_s_early_stop,&__pyx_n_s_trainable,&__pyx_n_s_verbose,&__pyx_n_s_init_params,0};
     PyObject* values[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -2571,12 +2568,12 @@ static PyObject *__pyx_pw_6cornac_6models_2mf_8recom_mf_2MF_1__init__(PyObject *
     /* "cornac/models/mf/recom_mf.pyx":59
  * 
  *     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
- *                  trainable=True, verbose=True, init_params=None, **kwargs):             # <<<<<<<<<<<<<<
- *         Recommender.__init__(self, name='MF', verbose=verbose)
+ *                  trainable=True, verbose=False, init_params=None):             # <<<<<<<<<<<<<<
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
  * 
  */
     values[7] = ((PyObject *)((PyObject *)Py_True));
-    values[8] = ((PyObject *)((PyObject *)Py_True));
+    values[8] = ((PyObject *)((PyObject *)Py_False));
     values[9] = ((PyObject *)((PyObject *)Py_None));
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -2666,7 +2663,7 @@ static PyObject *__pyx_pw_6cornac_6models_2mf_8recom_mf_2MF_1__init__(PyObject *
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2708,28 +2705,26 @@ static PyObject *__pyx_pw_6cornac_6models_2mf_8recom_mf_2MF_1__init__(PyObject *
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 10, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 58, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
   __Pyx_AddTraceback("cornac.models.mf.recom_mf.MF.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(__pyx_self, __pyx_v_self, __pyx_v_k, __pyx_v_max_iter, __pyx_v_learning_rate, __pyx_v_lambda_reg, __pyx_v_use_bias, __pyx_v_early_stop, __pyx_v_trainable, __pyx_v_verbose, __pyx_v_init_params, __pyx_v_kwargs);
+  __pyx_r = __pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(__pyx_self, __pyx_v_self, __pyx_v_k, __pyx_v_max_iter, __pyx_v_learning_rate, __pyx_v_lambda_reg, __pyx_v_use_bias, __pyx_v_early_stop, __pyx_v_trainable, __pyx_v_verbose, __pyx_v_init_params);
 
   /* "cornac/models/mf/recom_mf.pyx":58
  *     """
  * 
  *     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,             # <<<<<<<<<<<<<<
- *                  trainable=True, verbose=True, init_params=None, **kwargs):
- *         Recommender.__init__(self, name='MF', verbose=verbose)
+ *                  trainable=True, verbose=False, init_params=None):
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
  */
 
   /* function exit code */
-  __Pyx_XDECREF(__pyx_v_kwargs);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_k, PyObject *__pyx_v_max_iter, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_lambda_reg, PyObject *__pyx_v_use_bias, PyObject *__pyx_v_early_stop, CYTHON_UNUSED PyObject *__pyx_v_trainable, PyObject *__pyx_v_verbose, PyObject *__pyx_v_init_params, CYTHON_UNUSED PyObject *__pyx_v_kwargs) {
+static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_k, PyObject *__pyx_v_max_iter, PyObject *__pyx_v_learning_rate, PyObject *__pyx_v_lambda_reg, PyObject *__pyx_v_use_bias, PyObject *__pyx_v_early_stop, PyObject *__pyx_v_trainable, PyObject *__pyx_v_verbose, PyObject *__pyx_v_init_params) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2741,8 +2736,8 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUS
 
   /* "cornac/models/mf/recom_mf.pyx":60
  *     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
- *                  trainable=True, verbose=True, init_params=None, **kwargs):
- *         Recommender.__init__(self, name='MF', verbose=verbose)             # <<<<<<<<<<<<<<
+ *                  trainable=True, verbose=False, init_params=None):
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)             # <<<<<<<<<<<<<<
  * 
  *         self.k = k
  */
@@ -2756,9 +2751,10 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUS
   __Pyx_INCREF(__pyx_v_self);
   __Pyx_GIVEREF(__pyx_v_self);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_self);
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_name, __pyx_n_u_MF) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_trainable, __pyx_v_trainable) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_verbose, __pyx_v_verbose) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
   __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -2768,7 +2764,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUS
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "cornac/models/mf/recom_mf.pyx":62
- *         Recommender.__init__(self, name='MF', verbose=verbose)
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
  * 
  *         self.k = k             # <<<<<<<<<<<<<<
  *         self.max_iter = max_iter
@@ -2845,8 +2841,8 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF___init__(CYTHON_UNUS
  *     """
  * 
  *     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,             # <<<<<<<<<<<<<<
- *                  trainable=True, verbose=True, init_params=None, **kwargs):
- *         Recommender.__init__(self, name='MF', verbose=verbose)
+ *                  trainable=True, verbose=False, init_params=None):
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
  */
 
   /* function exit code */
@@ -24622,14 +24618,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     """
  * 
  *     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,             # <<<<<<<<<<<<<<
- *                  trainable=True, verbose=True, init_params=None, **kwargs):
- *         Recommender.__init__(self, name='MF', verbose=verbose)
+ *                  trainable=True, verbose=False, init_params=None):
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
  */
-  __pyx_tuple__29 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_k, __pyx_n_s_max_iter, __pyx_n_s_learning_rate, __pyx_n_s_lambda_reg, __pyx_n_s_use_bias, __pyx_n_s_early_stop, __pyx_n_s_trainable, __pyx_n_s_verbose, __pyx_n_s_init_params, __pyx_n_s_kwargs); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(10, __pyx_n_s_self, __pyx_n_s_k, __pyx_n_s_max_iter, __pyx_n_s_learning_rate, __pyx_n_s_lambda_reg, __pyx_n_s_use_bias, __pyx_n_s_early_stop, __pyx_n_s_trainable, __pyx_n_s_verbose, __pyx_n_s_init_params); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
-  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(10, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_mf_recom_mf_pyx, __pyx_n_s_init, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 58, __pyx_L1_error)
-  __pyx_tuple__31 = PyTuple_Pack(9, ((PyObject *)__pyx_int_10), ((PyObject *)__pyx_int_20), ((PyObject*)__pyx_float_0_01), ((PyObject*)__pyx_float_0_02), ((PyObject *)Py_True), ((PyObject *)Py_False), ((PyObject *)Py_True), ((PyObject *)Py_True), ((PyObject *)Py_None)); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(10, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_mf_recom_mf_pyx, __pyx_n_s_init, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_tuple__31 = PyTuple_Pack(9, ((PyObject *)__pyx_int_10), ((PyObject *)__pyx_int_20), ((PyObject*)__pyx_float_0_01), ((PyObject*)__pyx_float_0_02), ((PyObject *)Py_True), ((PyObject *)Py_False), ((PyObject *)Py_True), ((PyObject *)Py_False), ((PyObject *)Py_None)); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__31);
   __Pyx_GIVEREF(__pyx_tuple__31);
 
@@ -25189,8 +25185,8 @@ if (!__Pyx_RefNanny) {
  *     """
  * 
  *     def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,             # <<<<<<<<<<<<<<
- *                  trainable=True, verbose=True, init_params=None, **kwargs):
- *         Recommender.__init__(self, name='MF', verbose=verbose)
+ *                  trainable=True, verbose=False, init_params=None):
+ *         Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
  */
   __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6cornac_6models_2mf_8recom_mf_2MF_1__init__, 0, __pyx_n_s_MF___init, NULL, __pyx_n_s_cornac_models_mf_recom_mf, __pyx_d, ((PyObject *)__pyx_codeobj__30)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
