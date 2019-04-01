@@ -87,7 +87,7 @@ class PMF(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        #X = self.train_set.matrix
+        # X = self.train_set.matrix
 
         if self.trainable:
             # converting data to the triplet format (needed for cython function pmf)
@@ -101,20 +101,22 @@ class PMF(Recommender):
                         rat = scale(rat, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
             uid = np.array(uid, dtype='int32')
             iid = np.array(iid, dtype='int32')
-            #tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
-            #del rid, cid, val
+            # tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
+            # del rid, cid, val
 
             if self.verbose:
                 print('Learning...')
 
             if self.variant == 'linear':
-                res = pmf.pmf_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items, n_ratings = len(rat), n_epochs=self.max_iter,
-                                         lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                                         init_params=self.init_params)
+                res = pmf.pmf_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items,
+                                     n_ratings=len(rat), n_epochs=self.max_iter,
+                                     lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
+                                     init_params=self.init_params, verbose=self.verbose)
             elif self.variant == 'non_linear':
-                res = pmf.pmf_non_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items, n_ratings = len(rat), n_epochs=self.max_iter,
+                res = pmf.pmf_non_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users,
+                                         n_items=train_set.num_items, n_ratings=len(rat), n_epochs=self.max_iter,
                                          lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                                         init_params=self.init_params)
+                                         init_params=self.init_params, verbose=self.verbose)
             else:
                 raise ValueError('variant must be one of {"linear","non_linear"}')
 

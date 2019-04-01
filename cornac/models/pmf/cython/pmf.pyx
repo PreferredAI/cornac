@@ -21,7 +21,9 @@ cdef float sigmoid(float z):
 
 
 #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
-def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
+def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings,
+               int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9,
+               init_params = None, verbose = False):
   
     #some useful variables
     cdef:
@@ -64,7 +66,7 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
             for j in range(k):
                 grad_u[u_,j] = e * V[i_,j]- lamda * U[u_,j]
                 cache_u[u_,j] = gamma * cache_u[u_,j] + (1 - gamma) * (grad_u[u_,j]*grad_u[u_,j])
-                U[u_,j] += learning_rate * (grad_u[u_,j]/(sqrt(cache_u[u_,j])+eps)) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user  
+                U[u_,j] += learning_rate * (grad_u[u_,j]/(sqrt(cache_u[u_,j])+eps)) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
             
             # update item factors
             for j in range(k):
@@ -80,7 +82,8 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
             
             loss[epoch]+= e*e  + lamda * (norm_u + norm_v)
 
-        print('epoch %i, loss: %f' % (epoch, loss[epoch]))   
+        if verbose:
+            print('epoch %i, loss: %f' % (epoch, loss[epoch]))
  
     res = {'U':U,'V':V,'loss': loss}
     
@@ -88,7 +91,9 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
 
 
 #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
-def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings, int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9, init_params = None):
+def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings,
+                   int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9,
+                   init_params = None, verbose = False):
   
     #some useful variables
     cdef:
@@ -150,7 +155,9 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
             
             loss[epoch]+= e*e  + lamda * (norm_u + norm_v)
 
-        print('epoch %i, loss: %f' % (epoch, loss[epoch]))
+        if verbose:
+            print('epoch %i, loss: %f' % (epoch, loss[epoch]))
+
     res = {'U':U,'V':V,'loss': loss}
     
     return res
