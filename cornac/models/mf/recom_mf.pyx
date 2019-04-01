@@ -11,6 +11,7 @@ from cornac.utils import fast_dot
 import tqdm
 import numpy as np
 cimport cython
+from cython.parallel import prange
 from cython cimport floating, integral
 from libcpp cimport bool
 from libc.math cimport abs
@@ -110,11 +111,11 @@ class MF(Recommender):
                  floating[:, :] U, floating[:, :] V, floating[:] Bu, floating[:] Bi):
         """Fit the model parameters (U, V, Bu, Bi) with SGD
         """
-        cdef integral num_users = self.train_set.num_users
-        cdef integral num_items = self.train_set.num_items
+        cdef long num_users = self.train_set.num_users
+        cdef long num_items = self.train_set.num_items
+        cdef long num_ratings = val.shape[0]
         cdef integral num_factors = self.k
         cdef integral max_iter = self.max_iter
-        cdef integral num_ratings = val.shape[0]
 
         cdef floating reg = self.lambda_reg
         cdef floating mu = self.global_mean
@@ -137,20 +138,20 @@ class MF(Recommender):
             last_loss = loss
             loss = 0
 
-            for j in range(num_ratings):
+            for j in prange(num_ratings, nogil=True):
                 u, i, r = rid[j], cid[j], val[j]
                 user, item = &U[u, 0], &V[i, 0]
 
                 # predict rating
                 r_pred = mu + Bu[u] + Bi[i]
-                for f in range(num_factors):
+                for f in prange(num_factors):
                     r_pred += user[f] * item[f]
 
                 error = r - r_pred
                 loss += error * error
 
                 # update factors
-                for f in range(num_factors):
+                for f in prange(num_factors):
                     u_f, i_f = user[f], item[f]
                     user[f] += lr * (error * i_f - reg * u_f)
                     item[f] += lr * (error * u_f - reg * i_f)
