@@ -8,7 +8,7 @@ from ..recommender import Recommender
 from ...exception import CornacException
 import numpy as np
 from tqdm import tqdm
-
+from ...utils import fast_dot
 from ...utils import tryimport
 
 torch = tryimport('torch')
@@ -51,13 +51,8 @@ class VBPR(Recommender):
         pre-trained (U and V are not None).
 
     init_params: dictionary, optional, default: None
-        Initial parameters, e.g., init_params = {'Bi': beta_item,
-                                                 'Gu': gamma_user,
-                                                 'Gi': gamma_item,
-                                                 'Tu': theta_user,
-                                                 'E': emb_matrix,
-                                                 'Bp': beta_prime}
-
+        Initial parameters, e.g., init_params = {'Bi': beta_item, 'Gu': gamma_user,
+        'Gi': gamma_item, 'Tu': theta_user, 'E': emb_matrix, 'Bp': beta_prime}
 
     References
     ----------
@@ -215,14 +210,12 @@ class VBPR(Recommender):
         if item_id is None:
             known_item_scores = np.add(self.beta_item, self.visual_bias)
             if not self.train_set.is_unk_user(user_id):
-                known_item_scores += np.dot(self.gamma_item, self.gamma_user[user_id])
-                known_item_scores += np.dot(self.theta_item, self.theta_user[user_id])
-
+                fast_dot(self.gamma_user[user_id], self.gamma_item, known_item_scores)
+                fast_dot(self.theta_user[user_id], self.theta_item, known_item_scores)
             return known_item_scores
         else:
             item_score = np.add(self.beta_item[item_id], self.visual_bias[item_id])
             if not self.train_set.is_unk_user(user_id):
                 item_score += np.dot(self.gamma_item[item_id], self.gamma_user[user_id])
                 item_score += np.dot(self.theta_item[item_id], self.theta_user[user_id])
-
             return item_score
