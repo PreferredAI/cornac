@@ -240,12 +240,14 @@ class BaseMethod:
         if self.test_set is None:
             raise ValueError('test_set is required but None!')
 
-        print('\n[{}] Training started!'.format(model.name))
+        if self.verbose:
+            print('\n[{}] Training started!'.format(model.name))
         start = time.time()
         model.fit(self.train_set)
         train_time = time.time() - start
 
-        print('\n[{}] Evaluation started!'.format(model.name))
+        if self.verbose:
+            print('\n[{}] Evaluation started!'.format(model.name))
         start = time.time()
 
         all_pd_ratings = []
@@ -255,7 +257,7 @@ class BaseMethod:
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
-        for user_id in tqdm.tqdm(self.test_set.users):
+        for user_id in tqdm.tqdm(self.test_set.users, disable=not self.verbose):
             # ignore unknown users when self.exclude_unknown
             if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
                 continue
