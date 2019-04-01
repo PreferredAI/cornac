@@ -11,10 +11,10 @@ Link to the data: http://www.wanghao.in/CDL.htm
 """
 
 from ..utils import cache
-from ..data import reader
+from ..data import Reader
 
 
-def load_data():
+def load_data(reader=None):
     """Load the implicit feedback between users and items
 
     Returns
@@ -25,7 +25,8 @@ def load_data():
     """
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/citeulike/users.zip',
                   relative_path='citeulike/users.dat', unzip=True)
-    return reader.read_ui(fpath, sep=' ', id_inline=True)
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, fmt='UI', sep=' ', id_inline=True)
 
 
 def load_text():

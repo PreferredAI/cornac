@@ -12,11 +12,12 @@ This data is used in the VBPR paper. After cleaning the data, we have:
 """
 
 from ..utils import cache
-from ..data import reader
+from ..data import Reader
+from ..data.reader import read_text
 import numpy as np
 
 
-def load_data():
+def load_data(reader=None):
     """Load the feedback observations
 
     Returns
@@ -27,7 +28,8 @@ def load_data():
     """
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/tradesy/users.zip',
                   unzip=True, relative_path='tradesy/users.csv')
-    return reader.read_ui(fpath, sep=',')
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, fmt='UI', sep=',')
 
 
 def load_feature():
@@ -43,8 +45,6 @@ def load_feature():
     """
     features = np.load(cache(url='https://static.preferred.ai/cornac/datasets/tradesy/item_features.zip',
                              unzip=True, relative_path='tradesy/item_features.npy'))
-    fpath = cache(url='https://static.preferred.ai/cornac/datasets/tradesy/item_ids.zip',
-                  unzip=True, relative_path='tradesy/item_ids.txt')
-    with open(fpath, 'r') as f:
-        item_ids = f.read().splitlines()
+    item_ids = read_text(cache(url='https://static.preferred.ai/cornac/datasets/tradesy/item_ids.zip',
+                               unzip=True, relative_path='tradesy/item_ids.txt'))
     return features, item_ids

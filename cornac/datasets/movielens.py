@@ -8,12 +8,12 @@ MovieLens: https://grouplens.org/datasets/movielens/
 
 from ..utils import validate_format
 from ..utils import cache
-from ..data import reader
+from ..data import Reader
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
 
-def load_100k(fmt='UIR'):
+def load_100k(fmt='UIR', reader=None):
     """Load the MovieLens 100K dataset
 
     Parameters
@@ -30,11 +30,11 @@ def load_100k(fmt='UIR'):
     fmt = validate_format(fmt, VALID_DATA_FORMATS)
     fpath = cache(url='http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
                   relative_path='ml-100k/u.data')
-    if fmt == 'UIR':
-        return reader.read_uir(fpath)
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, fmt)
 
 
-def load_1m(fmt='UIR'):
+def load_1m(fmt='UIR', reader=None):
     """Load the MovieLens 1M dataset
 
     Parameters
@@ -51,8 +51,8 @@ def load_1m(fmt='UIR'):
     fmt = validate_format(fmt, VALID_DATA_FORMATS)
     fpath = cache(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
                   relative_path='ml-1m/ratings.dat', unzip=True)
-    if fmt == 'UIR':
-        return reader.read_uir(fpath, sep='::')
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, fmt, sep='::')
 
 
 def load_plot():

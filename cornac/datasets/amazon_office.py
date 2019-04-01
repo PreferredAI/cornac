@@ -7,10 +7,10 @@ This data is built based on the Amazon datasets provided by Julian McAuley at: h
 """
 
 from ..utils import cache
-from ..data import reader
+from ..data import Reader
 
 
-def load_rating():
+def load_rating(reader=None):
     """Load the user-item ratings
 
     Returns
@@ -19,11 +19,12 @@ def load_rating():
         Data in the form of a list of tuples (user, item, rating).
     """
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/rating.zip',
-                  relative_path='amazon_office/rating.txt', unzip=True)
-    return reader.read_uir(fpath, sep=' ')
+                  unzip=True, relative_path='amazon_office/rating.txt')
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, sep=' ')
 
 
-def load_context():
+def load_context(reader=None):
     """Load the item-item interactions
 
     Returns
@@ -32,5 +33,6 @@ def load_context():
         Data in the form of a list of tuples (item, item, 1).
     """
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/context.zip',
-                  relative_path='amazon_office/context.txt', unzip=True)
-    return reader.read_uir(fpath, sep=' ')
+                  unzip=True, relative_path='amazon_office/context.txt')
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, sep=' ')
