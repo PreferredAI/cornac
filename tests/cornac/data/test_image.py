@@ -26,5 +26,6 @@ class TestImageModule(unittest.TestCase):
         except:
             raise NotImplementedError
 
+
 if __name__ == '__main__':
     unittest.main()

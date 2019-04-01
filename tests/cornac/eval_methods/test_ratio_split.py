@@ -6,12 +6,15 @@
 
 import unittest
 from cornac.eval_methods import RatioSplit
-from cornac.data import reader
+from cornac.data import Reader
 from cornac.models import MF
 from cornac.metrics import MAE, Recall
 
 
 class TestRatioSplit(unittest.TestCase):
+
+    def setUp(self):
+        self.data = Reader().read('./tests/data.txt')
 
     def test_validate_size(self):
         train_size, val_size, test_size = RatioSplit.validate_size(0.1, 0.2, 10)
@@ -60,37 +63,31 @@ class TestRatioSplit(unittest.TestCase):
             assert True
 
     def test_splits(self):
-        data_file = './tests/data.txt'
-        data = reader.read_uir(data_file)
-
-        ratio_split = RatioSplit(data, test_size=0.1, val_size=0.1, seed=123, verbose=True)
+        ratio_split = RatioSplit(self.data, test_size=0.1, val_size=0.1, seed=123, verbose=True)
         ratio_split.split()
         self.assertTrue(ratio_split._split_ran)
         ratio_split.split()
 
     def test_evaluate(self):
-        data_file = './tests/data.txt'
-        data = reader.read_uir(data_file)
-
-        ratio_split = RatioSplit(data, exclude_unknowns=True, verbose=True)
+        ratio_split = RatioSplit(self.data, exclude_unknowns=True, verbose=True)
         ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=False)
 
-        ratio_split = RatioSplit(data, exclude_unknowns=False, verbose=True)
+        ratio_split = RatioSplit(self.data, exclude_unknowns=False, verbose=True)
         ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=False)
 
         users = []
         items = []
-        for u, i, r in data:
+        for u, i, r in self.data:
             users.append(u)
             items.append(i)
         for u in users:
             for i in items:
-                data.append((u, i, 5))
+                self.data.append((u, i, 5))
 
-        ratio_split = RatioSplit(data, exclude_unknowns=True, verbose=True)
+        ratio_split = RatioSplit(self.data, exclude_unknowns=True, verbose=True)
         ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=True)
 
-        ratio_split = RatioSplit(data, exclude_unknowns=False, verbose=True)
+        ratio_split = RatioSplit(self.data, exclude_unknowns=False, verbose=True)
         ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=True)
 
 
