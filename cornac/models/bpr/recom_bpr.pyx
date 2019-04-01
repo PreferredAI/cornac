@@ -129,11 +129,8 @@ class BPR(Recommender):
             print('%s is trained already (trainable = False)' % (self.name))
             return
 
-        X = train_set.matrix.tocsr()
-        if not X.has_sorted_indices:
-            X.sort_indices()
-
-        num_users, num_items = train_set.matrix.shape
+        X = train_set.matrix
+        num_users, num_items = X.shape
 
         # this basically calculates the 'row' attribute of a COO matrix
         # without requiring us to get the whole COO matrix
@@ -197,12 +194,11 @@ class BPR(Recommender):
             skipped = 0
 
             with nogil, parallel(num_threads=num_threads):
-
                 thread_id = get_thread_num()
+
                 for s in prange(num_samples, schedule='guided'):
                     i_index = rng_i.generate(thread_id)
                     i_id = item_ids[i_index]
-
                     j_id = rng_j.generate(thread_id)
 
                     # if the user has liked the item j, skip this for now
@@ -223,7 +219,7 @@ class BPR(Recommender):
                         correct += 1
 
                     # update the factors via sgd.
-                    for f in range(factors):
+                    for f in prange(factors):
                         temp = user[f]
                         user[f] += lr * (z * (item_i[f] - item_j[f]) - reg * user[f])
                         item_i[f] += lr * (z * temp - reg * item_i[f])
