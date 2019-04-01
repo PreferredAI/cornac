@@ -60,18 +60,19 @@ def load_plot():
 
     Returns
     -------
-    plots: List
-        A dictionary with keys are movie ids and values are text plots.
+    texts: List
+        List of text documents, one per item.
 
-    movie_ids: List
-        List of ids aligned with indices in `plots`.
+    ids: List
+        List of item ids aligned with indices in `texts`.
     """
-    plots, movie_ids = [], []
+    texts, ids = [], []
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/movielens/ml_plot.zip',
-                  unzip=True, relative_path='movielens/ml_plot.dat')
+                  relative_path='movielens/ml_plot.dat', unzip=True)
     with open(fpath, 'r') as f:
         for line in f:
             movie_id, plot = line.strip().split('::')
-            movie_ids.append(movie_id)
-            plots.append(plot)
-    return plots, movie_ids
+            texts.append(plot)
+            ids.append(movie_id)
+
+    return texts, ids
