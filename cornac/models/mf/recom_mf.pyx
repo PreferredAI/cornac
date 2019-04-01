@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# cython: language_level=3
 
 """
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
@@ -6,14 +7,14 @@
 
 from cornac.models.recommender import Recommender
 from cornac.exception import ScoreException
+from cornac.utils import fast_dot
 import tqdm
-
 import numpy as np
-
 cimport cython
 from cython cimport floating, integral
 from libcpp cimport bool
 from libc.math cimport abs
+
 
 class MF(Recommender):
     """Matrix Factorization.
@@ -197,12 +198,10 @@ class MF(Recommender):
             known_item_scores = np.add(self.i_biases, self.global_mean)
             if not unk_user:
                 known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
-                known_item_scores += np.dot(self.i_factors, self.u_factors[user_id])
-
+                fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
             return known_item_scores
         else:
             unk_item = self.train_set.is_unk_item(item_id)
-
             if self.use_bias:
                 item_score = self.global_mean
                 if not unk_user:
@@ -215,5 +214,4 @@ class MF(Recommender):
                 if unk_user or unk_item:
                     raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
                 item_score = np.dot(self.u_factors[user_id], self.i_factors[item_id])
-
             return item_score
