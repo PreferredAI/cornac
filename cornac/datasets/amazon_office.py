@@ -18,8 +18,8 @@ def load_rating():
     data: array-like
         Data in the form of a list of tuples (user, item, rating).
     """
-    fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/rating.txt',
-                  relative_path='amazon_office/rating.txt')
+    fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/rating.zip',
+                  relative_path='amazon_office/rating.txt', unzip=True)
     return reader.read_uir(fpath, sep=' ')
 
 
@@ -31,6 +31,6 @@ def load_context():
     data: array-like
         Data in the form of a list of tuples (item, item, 1).
     """
-    fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/context.txt',
-                  relative_path='amazon_office/context.txt')
+    fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_office/context.zip',
+                  relative_path='amazon_office/context.txt', unzip=True)
     return reader.read_uir(fpath, sep=' ')
