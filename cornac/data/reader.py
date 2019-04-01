@@ -44,7 +44,7 @@ def read_uir(fpath, u_col=0, i_col=1, r_col=2, sep='\t', skip_lines=0):
     return triplets
 
 
-def read_ui(fpath, value=1.0, sep='\t', skip_lines=0):
+def read_ui(fpath, value=1.0, sep='\t', skip_lines=0, id_inline=False):
     """Read data in the form of implicit feedback user-items.
     Each line starts with user id followed by multiple of item ids.
 
@@ -62,6 +62,10 @@ def read_ui(fpath, value=1.0, sep='\t', skip_lines=0):
     skip_lines: int, default: 0
         Number of first lines to skip
 
+    id_inline: bool, default: False
+        If `True`, user ids corresponding to the line numbers of the file,
+        where all the ids in each line are item ids.
+
     Returns
     -------
     triplets: :obj:`iterable`
@@ -70,7 +74,10 @@ def read_ui(fpath, value=1.0, sep='\t', skip_lines=0):
     """
     triplets = []
     with open(fpath, 'r') as f:
-        for line in itertools.islice(f, skip_lines, None):
+        for i, line in enumerate(itertools.islice(f, skip_lines, None)):
             tokens = [token.strip() for token in line.split(sep)]
-            triplets.extend([tokens[0], iid, value] for iid in tokens[1:])
+            if id_inline:
+                triplets.extend([str(i + 1), iid, value] for iid in tokens)
+            else:
+                triplets.extend([tokens[0], iid, value] for iid in tokens[1:])
     return triplets
