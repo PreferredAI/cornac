@@ -11,12 +11,6 @@ from ...utils import tryimport
 tf = tryimport('tensorflow')
 
 
-def _build_C(R, a, b):
-    C = np.ones_like(R) * b
-    C[R > 0] = a
-    return C
-
-
 # Collaborative Deep Learning
 def cdl(train_set, layer_sizes, k=50, lambda_u=0.01,
         lambda_v=0.01, lambda_w=0.01, lambda_n=0.01,
@@ -24,7 +18,9 @@ def cdl(train_set, layer_sizes, k=50, lambda_u=0.01,
         lr=0.001, dropout_rate=0.1, batch_size=100,
         vocab_size=8000, init_params=None, verbose=True):
     R = train_set.matrix.A  # rating matrix
-    C = _build_C(R, a, b)
+    C = np.ones_like(R) * b
+    C[R > 0] = a
+    
     n_users = train_set.num_users
     n_items = train_set.num_items
 
