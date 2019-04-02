@@ -67,7 +67,6 @@ class MCF(Recommender):
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.lamda = lamda
-        self.variant = variant
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
