@@ -24,8 +24,8 @@ class Model():
         self.lambda_n = lambda_n
         self.lambda_w = lambda_w
         self.layers = layers
-        self.lr = lr #learning rate
-        self.k = k #latent dimension
+        self.lr = lr  # learning rate
+        self.k = k  # latent dimension
         self.dropout_rate = dropout_rate
         self.init_params = {} if init_params is None else init_params
 
@@ -39,12 +39,10 @@ class Model():
         self.C_input = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="C_input")
 
         with tf.variable_scope("CDL_Variable"):
-            self.U = tf.get_variable(name='U', shape=[self.n_users, self.k], dtype=tf.float32,
-                                     initializer=self.init_params.get('U', None))
-
-            self.V = tf.get_variable(name='V', shape=[self.n_items, self.k], dtype=tf.float32,
-                                     initializer=self.init_params.get('V', None))
-
+            U_init = None if 'U' not in self.init_params else tf.constant_initializer(self.init_params['U'])
+            V_init = None if 'V' not in self.init_params else tf.constant_initializer(self.init_params['V'])
+            self.U = tf.get_variable(name='U', shape=[self.n_users, self.k], dtype=tf.float32, initializer=U_init)
+            self.V = tf.get_variable(name='V', shape=[self.n_items, self.k], dtype=tf.float32, initializer=V_init)
 
         self.cdl_batch = tf.placeholder(dtype=tf.int32)
         real_batch_size = tf.cast(tf.shape(self.text_input)[0], tf.int32)
@@ -131,7 +129,6 @@ def cdl(train_set, layer_sizes, k=50, lambda_u=0.01,
         a=1, b=0.01, corruption_rate=0.3, n_epochs=100,
         lr=0.001, dropout_rate=0.1, batch_size=100,
         vocab_size=8000, init_params=None, verbose=True):
-
     R = train_set.matrix.A  # rating matrix
     C = _build_C(R, a, b)
     n_users = train_set.num_users
@@ -165,12 +162,13 @@ def cdl(train_set, layer_sizes, k=50, lambda_u=0.01,
                     model.cdl_batch: batch_ids
                 }
 
-                sess.run(model.opt1, feed_dict)#train U, V
-                _, _loss = sess.run([model.opt2, model.loss], feed_dict)# train SDAE
+                sess.run(model.opt1, feed_dict)  # train U, V
+                _, _loss = sess.run([model.opt2, model.loss], feed_dict)  # train SDAE
                 loop.set_postfix(loss=_loss)
         U_out, V_out = sess.run([model.U, model.V])
 
     return U_out.astype(np.float32), V_out.astype(np.float32)
+
 
 def _build_C(R, a, b):
     C = np.ones_like(R) * b
