@@ -41,7 +41,7 @@ def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:]
         double[:,:] grad_v = np.zeros((d,k))
         double[:,:] grad_z = np.zeros((d,k))
         double eps = 1e-8
-        int u_, i_, j_, k_, epoch
+        int u_, i_, j_, k_, r, ed, epoch
         double val, s, e, norm_u, norm_v
   
     # Initialize user factors

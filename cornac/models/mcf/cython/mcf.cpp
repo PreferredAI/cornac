@@ -2502,17 +2502,17 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
   int __pyx_v_i_;
   int __pyx_v_j_;
   int __pyx_v_k_;
+  int __pyx_v_r;
+  int __pyx_v_ed;
   int __pyx_v_epoch;
   double __pyx_v_val;
   double __pyx_v_s;
   double __pyx_v_norm_u;
   double __pyx_v_norm_v;
   PyObject *__pyx_v_Z = NULL;
-  int __pyx_v_r;
   double __pyx_v_sg;
   double __pyx_v_err;
   double __pyx_v_werr;
-  int __pyx_v_ed;
   PyObject *__pyx_v_norm_z = NULL;
   PyObject *__pyx_v_res = NULL;
   PyObject *__pyx_r = NULL;
@@ -3113,7 +3113,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
  *         double[:,:] grad_v = np.zeros((d,k))
  *         double[:,:] grad_z = np.zeros((d,k))             # <<<<<<<<<<<<<<
  *         double eps = 1e-8
- *         int u_, i_, j_, k_, epoch
+ *         int u_, i_, j_, k_, r, ed, epoch
  */
   __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
@@ -3188,7 +3188,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
  *         double[:,:] grad_v = np.zeros((d,k))
  *         double[:,:] grad_z = np.zeros((d,k))
  *         double eps = 1e-8             # <<<<<<<<<<<<<<
- *         int u_, i_, j_, k_, epoch
+ *         int u_, i_, j_, k_, r, ed, epoch
  *         double val, s, e, norm_u, norm_v
  */
   __pyx_v_eps = 1e-8;
@@ -19158,7 +19158,7 @@ static int __Pyx_InitCachedConstants(void) {
  *         int n_users, int n_items, int n_ratings, int n_edges, int k, int n_epochs = 100, float lamda = 0.001,
  *         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False):
  */
-  __pyx_tuple__22 = PyTuple_Pack(47, __pyx_n_s_rat_uid, __pyx_n_s_rat_iid, __pyx_n_s_rat_val, __pyx_n_s_net_iid, __pyx_n_s_net_jid, __pyx_n_s_net_val, __pyx_n_s_n_users, __pyx_n_s_n_items, __pyx_n_s_n_ratings, __pyx_n_s_n_edges, __pyx_n_s_k, __pyx_n_s_n_epochs, __pyx_n_s_lamda, __pyx_n_s_learning_rate, __pyx_n_s_gamma, __pyx_n_s_init_params, __pyx_n_s_verbose, __pyx_n_s_loss, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_U, __pyx_n_s_V, __pyx_n_s_cache_u, __pyx_n_s_cache_v, __pyx_n_s_cache_z, __pyx_n_s_grad_u, __pyx_n_s_grad_v, __pyx_n_s_grad_z, __pyx_n_s_eps, __pyx_n_s_u, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k_2, __pyx_n_s_epoch, __pyx_n_s_val, __pyx_n_s_s, __pyx_n_s_e, __pyx_n_s_norm_u, __pyx_n_s_norm_v, __pyx_n_s_Z, __pyx_n_s_r, __pyx_n_s_sg, __pyx_n_s_err, __pyx_n_s_werr, __pyx_n_s_ed, __pyx_n_s_norm_z, __pyx_n_s_res); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 26, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(47, __pyx_n_s_rat_uid, __pyx_n_s_rat_iid, __pyx_n_s_rat_val, __pyx_n_s_net_iid, __pyx_n_s_net_jid, __pyx_n_s_net_val, __pyx_n_s_n_users, __pyx_n_s_n_items, __pyx_n_s_n_ratings, __pyx_n_s_n_edges, __pyx_n_s_k, __pyx_n_s_n_epochs, __pyx_n_s_lamda, __pyx_n_s_learning_rate, __pyx_n_s_gamma, __pyx_n_s_init_params, __pyx_n_s_verbose, __pyx_n_s_loss, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_U, __pyx_n_s_V, __pyx_n_s_cache_u, __pyx_n_s_cache_v, __pyx_n_s_cache_z, __pyx_n_s_grad_u, __pyx_n_s_grad_v, __pyx_n_s_grad_z, __pyx_n_s_eps, __pyx_n_s_u, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k_2, __pyx_n_s_r, __pyx_n_s_ed, __pyx_n_s_epoch, __pyx_n_s_val, __pyx_n_s_s, __pyx_n_s_e, __pyx_n_s_norm_u, __pyx_n_s_norm_v, __pyx_n_s_Z, __pyx_n_s_sg, __pyx_n_s_err, __pyx_n_s_werr, __pyx_n_s_norm_z, __pyx_n_s_res); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
   __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(17, 0, 47, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_mcf_cython_mcf_pyx, __pyx_n_s_mcf, 26, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 26, __pyx_L1_error)
