@@ -64,7 +64,37 @@ def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:]
         Z = init_params['Z']
   
     #Optimization
-    for epoch in range(n_epochs):
+    for epoch in range(n_epochs):   
+        
+        for ed in range(n_edges):
+            i_, j_, val = net_iid[ed], net_jid[ed], net_val[ed]
+            
+            s = 0.0
+            for k_ in range(k):
+                s+= V[i_,k_]*Z[j_,k_]
+            sg = sigmoid(s)
+            err = (val - sg)     #Error for the obseved rating u_, i_, val
+            werr = err*sg*(1.-sg)   #Weighted error
+            
+            # update item factors
+            for k_ in range(k):
+                grad_v[i_,k_] = werr * Z[j_,k_] - lamda * V[i_,k_]
+                cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])            
+                V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))
+                
+            # update Also-Viewed item factors
+            for k_ in range(k):
+                grad_z[j_,k_] = werr * V[i_,k_] - lamda * Z[j_,k_]
+                cache_z[j_,k_] = gamma * cache_z[j_,k_] + (1 - gamma) * (grad_z[j_,k_]*grad_z[j_,k_])            
+                Z[j_,k_] += learning_rate * (grad_z[j_,k_]/(sqrt(cache_z[j_,k_]) + eps))  
+                
+            norm_z = 0.0
+            norm_v = 0.0
+            for k_ in range(k):
+                norm_z += Z[j_,k_]*Z[j_,k_]
+                norm_v += V[i_,k_]*V[i_,k_]
+            
+            loss[epoch]+= err*err  + lamda * (norm_z + norm_v)
         
         for r in range(n_ratings):
             u_, i_, val = rat_uid[r], rat_iid[r], rat_val[r]
@@ -95,36 +125,6 @@ def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:]
                 norm_v += V[i_,k_]*V[i_,k_]
             
             loss[epoch]+= err*err  + lamda * (norm_u + norm_v)
-            
-        for ed in range(n_edges):
-            i_, j_, val = net_iid[ed], net_jid[ed], net_val[ed]
-            
-            s = 0.0
-            for k_ in range(k):
-                s+= V[i_,k_]*Z[j_,k_]
-            sg = sigmoid(s)
-            err = (val - sg)     #Error for the obseved rating u_, i_, val
-            werr = err*sg*(1.-sg)   #Weighted error
-            
-            # update item factors
-            for k_ in range(k):
-                grad_v[i_,k_] = werr * Z[j_,k_] - lamda * V[i_,k_]
-                cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])            
-                V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))
-                
-            # update Also-Viewed item factors
-            for k_ in range(k):
-                grad_z[j_,k_] = werr * V[i_,k_] - lamda * Z[j_,k_]
-                cache_z[j_,k_] = gamma * cache_z[j_,k_] + (1 - gamma) * (grad_z[j_,k_]*grad_z[j_,k_])            
-                Z[j_,k_] += learning_rate * (grad_z[j_,k_]/(sqrt(cache_z[j_,k_]) + eps))  
-                
-            norm_z = 0.0
-            norm_v = 0.0
-            for k_ in range(k):
-                norm_z += Z[j_,k_]*Z[j_,k_]
-                norm_v += V[i_,k_]*V[i_,k_]
-            
-            loss[epoch]+= err*err  + lamda * (norm_z + norm_v)
 
         if verbose:
             print('epoch %i, loss: %f' % (epoch, loss[epoch]))
