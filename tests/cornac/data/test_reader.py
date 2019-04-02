@@ -15,11 +15,20 @@ class TestReader(unittest.TestCase):
         self.data_file = './tests/data.txt'
         self.reader = Reader()
 
+    def test_raise(self):
+        try:
+            self.reader.read(self.data_file, fmt='bla bla')
+        except ValueError:
+            assert True
+
     def test_read_ui(self):
         triplets = self.reader.read(self.data_file, fmt='UI')
         self.assertEqual(len(triplets), 30)
         self.assertEqual(triplets[0][1], '93')
         self.assertEqual(triplets[1][2], 1.0)
+
+        triplets = self.reader.read(self.data_file, fmt='UI', id_inline=True)
+        self.assertEqual(len(triplets), 40)
 
     def test_read_uir(self):
         triplet_data = self.reader.read(self.data_file)
