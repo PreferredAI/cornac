@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-@author:
-Tran Thanh Binh
-Quoc-Tuan Truong <tuantq.vnu@gmail.com>
-Trieu Thi Ly Ly
+@author:Trieu Thi Ly Ly, Tran Thanh Binh
 """
 
 import numpy as np
@@ -174,7 +171,6 @@ def cdl(train_set, layer_sizes, k=50, lambda_u=0.01,
         U_out, V_out = sess.run([model.U, model.V])
 
     return U_out.astype(np.float32), V_out.astype(np.float32)
-
 
 def _build_C(R, a, b):
     C = np.ones_like(R) * b
