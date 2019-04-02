@@ -9,9 +9,11 @@ from ...exception import CornacException
 import numpy as np
 from tqdm import tqdm
 from ...utils import fast_dot
-from ...utils import tryimport
 
-torch = tryimport('torch')
+try:
+    import torch
+except ImportError:
+    torch = None
 
 
 class VBPR(Recommender):

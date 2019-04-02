@@ -6,9 +6,11 @@ import time
 import math
 import numpy as np
 from tqdm import tqdm
-from ...utils import tryimport
 
-tf = tryimport('tensorflow')
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 
 def convmf(train_set, give_item_weight=True,

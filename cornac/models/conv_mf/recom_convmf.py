@@ -7,11 +7,7 @@
 from ..recommender import Recommender
 import numpy as np
 from .convmf import convmf
-
-from ...utils import tryimport
 from ...exception import ScoreException
-
-tf = tryimport('tensorflow')
 
 
 class ConvMF(Recommender):

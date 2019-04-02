@@ -8,8 +8,11 @@ import scipy.sparse as sp
 import scipy as sc
 from ...utils.data_utils import Dataset
 
-from ...utils import tryimport
-tf = tryimport('tensorflow')
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
+
 
 class PCRL_:
     def __init__(self, cf_data, aux_data, k=100, z_dims=[300], n_epoch=300, batch_size=300, learning_rate=0.001, B=1,
@@ -71,7 +74,7 @@ class PCRL_:
     # derivative of h
     def dG(self, epsilon, alpha, beta):
         return ((alpha - 1. / 3) * (3. / tf.sqrt(9. * alpha - 3.)) * (
-                    1. + epsilon / tf.sqrt(9. * alpha - 3.)) ** 2) / beta
+                1. + epsilon / tf.sqrt(9. * alpha - 3.)) ** 2) / beta
 
     # Log density of the proposal distribution r(z) = t(epsilon) * |dG/depsilon|^{-1}
     def log_r(self, epsilon, alpha, beta):
@@ -115,28 +118,28 @@ class PCRL_:
 
         # shape gamma_uk matrix (dgCMatrix)
         if init_params['G_s'] is None:
-            G_s = np.random.gamma(50,scale=0.3/50, size=n * k).reshape(n, k)
+            G_s = np.random.gamma(50, scale=0.3 / 50, size=n * k).reshape(n, k)
         else:
             G_s = init_params['G_s']
         G_s = sp.csc_matrix(G_s, dtype=np.float64)
 
         ## rate gamma_uk matrix (dgCMatrix)
         if init_params['G_r'] is None:
-            G_r = np.random.gamma(50,scale=0.3/50, size=n * k).reshape(n, k)
+            G_r = np.random.gamma(50, scale=0.3 / 50, size=n * k).reshape(n, k)
         else:
             G_r = init_params['G_r']
         G_r = sp.csc_matrix(G_r, dtype=np.float64)
 
         # shape lamda_ik matrix (dgCMatrix)
         if init_params['L_s'] is None:
-            L_s = np.random.gamma(50,scale=0.3/50, size=d * k).reshape(d, k)
+            L_s = np.random.gamma(50, scale=0.3 / 50, size=d * k).reshape(d, k)
         else:
             L_s = init_params['L_s']
         L_s = sp.csc_matrix(L_s, dtype=np.float64)
 
         ## rate lamda_ik matrix (dgCMatrix)
         if init_params['L_r'] is None:
-            L_r = np.random.gamma(50,scale=0.3/50, size=d * k).reshape(d, k)
+            L_r = np.random.gamma(50, scale=0.3 / 50, size=d * k).reshape(d, k)
         else:
             L_r = init_params['L_r']
         L_r = sp.csc_matrix(L_r, dtype=np.float64)
@@ -190,16 +193,16 @@ class PCRL_:
     # The inference network (or encoder)
     def inference_net(self, C, reuse=None):
         # input
-        #h = tf.nn.relu(tf.sparse_matmul(C, self.inference_params[0], a_is_sparse=True))
+        # h = tf.nn.relu(tf.sparse_matmul(C, self.inference_params[0], a_is_sparse=True))
         h = tf.nn.relu(tf.matmul(C, self.inference_params[0]))
         # intermediate hidden layer
         for l in range(1, self.L):
-            #h = tf.nn.relu(tf.sparse_matmul(h, self.inference_params[l], a_is_sparse=True))
+            # h = tf.nn.relu(tf.sparse_matmul(h, self.inference_params[l], a_is_sparse=True))
             h = tf.nn.relu(tf.matmul(h, self.inference_params[l]))
 
         # output
-        #beta = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L], a_is_sparse=True)) + 0.3
-        #alpha = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L + 1], a_is_sparse=True)) + 0.3
+        # beta = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L], a_is_sparse=True)) + 0.3
+        # alpha = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L + 1], a_is_sparse=True)) + 0.3
         beta = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L])) + 0.3
         alpha = tf.nn.softplus(tf.matmul(h, self.inference_params[self.L + 1])) + 0.3
 
@@ -212,9 +215,9 @@ class PCRL_:
         if self.w_determinist:
             h2 = tf.nn.relu(tf.matmul(Z, self.generator_params[0]))
             for l in range(1, self.L):
-                #h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l], a_is_sparse=True))
+                # h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l], a_is_sparse=True))
                 h2 = tf.nn.relu(tf.matmul(h2, self.generator_params[l]))
-            #d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L], a_is_sparse=True))
+            # d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L], a_is_sparse=True))
             d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L]))
         else:
             e = tf.random_normal(tf.shape(self.generator_params[0]), dtype=tf.float32, mean=0., stddev=1.0,
@@ -223,11 +226,11 @@ class PCRL_:
             for l in range(1, self.L):
                 e = tf.random_normal(tf.shape(self.generator_params[l]), dtype=tf.float32, mean=0., stddev=1.0,
                                      name='epsilon')
-                #h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l] + 0.01 * e, a_is_sparse=True))
+                # h2 = tf.nn.relu(tf.sparse_matmul(h2, self.generator_params[l] + 0.01 * e, a_is_sparse=True))
                 h2 = tf.nn.relu(tf.matmul(h2, self.generator_params[l] + 0.01 * e))
             e = tf.random_normal(tf.shape(self.generator_params[self.L]), dtype=tf.float32, mean=0., stddev=1.0,
                                  name='epsilon')
-            #d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L] + 0.01 * e, a_is_sparse=True))
+            # d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L] + 0.01 * e, a_is_sparse=True))
             d_x = tf.nn.sigmoid(tf.matmul(h2, self.generator_params[self.L] + 0.01 * e))
         return d_x
 
