@@ -6,7 +6,7 @@
 
 import numpy as np
 import scipy.sparse as sp
-from cornac.models.pmf import pmf
+from cornac.models.mcf import mcf
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
