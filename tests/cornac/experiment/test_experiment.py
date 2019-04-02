@@ -5,7 +5,7 @@
 """
 
 import unittest
-from cornac.data import reader
+from cornac.data import Reader
 from cornac.eval_methods import RatioSplit, CrossValidation
 from cornac.models import PMF
 from cornac.metrics import MAE, RMSE, Recall, FMeasure
@@ -14,10 +14,11 @@ from cornac.experiment.experiment import Experiment
 
 class TestExperiment(unittest.TestCase):
 
+    def setUp(self):
+        self.data = Reader().read('./tests/data.txt')
+
     def test_with_ratio_split(self):
-        data_file = './tests/data.txt'
-        data = reader.read_uir(data_file)
-        exp = Experiment(eval_method=RatioSplit(data, verbose=True),
+        exp = Experiment(eval_method=RatioSplit(self.data, verbose=True),
                          models=[PMF(1, 0)],
                          metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
                          verbose=True)
@@ -34,9 +35,7 @@ class TestExperiment(unittest.TestCase):
             assert True
 
     def test_with_cross_validation(self):
-        data_file = './tests/data.txt'
-        data = reader.read_uir(data_file)
-        exp = Experiment(eval_method=CrossValidation(data),
+        exp = Experiment(eval_method=CrossValidation(self.data),
                          models=[PMF(1, 0)],
                          metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
                          verbose=True)

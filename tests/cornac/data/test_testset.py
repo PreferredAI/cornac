@@ -5,7 +5,7 @@
 """
 
 import unittest
-from cornac.data import reader
+from cornac.data import Reader
 from cornac.data import TestSet
 from collections import OrderedDict
 
@@ -13,7 +13,7 @@ from collections import OrderedDict
 class TestTestSet(unittest.TestCase):
 
     def test_init(self):
-        triplet_data = reader.read_uir('./tests/data.txt')
+        triplet_data = Reader().read('./tests/data.txt')
         test_set = TestSet.from_uir(triplet_data, global_uid_map={}, global_iid_map={}, global_ui_set=set())
 
         self.assertEqual(test_set.get_uid('768'), 1)

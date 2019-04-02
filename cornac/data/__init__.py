@@ -7,8 +7,7 @@ from .trainset import MatrixTrainSet
 from .trainset import MultimodalTrainSet
 from .testset import TestSet
 from .testset import MultimodalTestSet
-
-from . import reader
+from .reader import Reader
 
 __all__ = ['FeatureModule',
            'TextModule',
@@ -18,4 +17,5 @@ __all__ = ['FeatureModule',
            'MatrixTrainSet',
            'MultimodalTrainSet',
            'TestSet',
-           'MultimodalTestSet']
+           'MultimodalTestSet',
+           'Reader']
