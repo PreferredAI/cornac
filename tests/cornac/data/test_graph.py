@@ -6,14 +6,13 @@
 
 import unittest
 from cornac.data import GraphModule
-from cornac.data import reader
+from cornac.data import Reader
 
 
 class TestGraphModule(unittest.TestCase):
 
     def test_init(self):
-
-        data = reader.read_uir('./tests/graph_data.txt', sep=' ')
+        data = Reader().read('./tests/graph_data.txt', sep=' ')
         gmd = GraphModule(data=data)
         # gmd.build(global_id_map=None)
         self.assertEqual(len(gmd.raw_data), 12)

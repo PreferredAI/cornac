@@ -7,17 +7,14 @@ Example for Convolutional Matrix Factorization
 """
 
 import cornac
+from cornac.data import Reader
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 from cornac.data import TextModule
 from cornac.data.text import BaseTokenizer
 
 plots, movie_ids = movielens.load_plot()
-ml_1m = movielens.load_1m()
-
-# remove items without plot
-ids = set(movie_ids)
-ml_1m = [(u, i, r) for (u, i, r) in ml_1m if i in ids]
+ml_1m = movielens.load_1m(reader=Reader(item_set=movie_ids))
 
 # build text module
 item_text_module = TextModule(corpus=plots, ids=movie_ids,

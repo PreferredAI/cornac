@@ -5,32 +5,49 @@
 """
 
 import unittest
-from cornac.data import reader
+from cornac.data import Reader
+from cornac.data.reader import read_text
 
 
 class TestReader(unittest.TestCase):
 
-    def test_read_ui(self):
-        data_file = './tests/data.txt'
-        triplets = reader.read_ui(data_file, value=2.0)
+    def setUp(self):
+        self.data_file = './tests/data.txt'
+        self.reader = Reader()
 
+    def test_read_ui(self):
+        triplets = self.reader.read(self.data_file, fmt='UI')
         self.assertEqual(len(triplets), 30)
         self.assertEqual(triplets[0][1], '93')
-        self.assertEqual(triplets[1][2], 2.0)
+        self.assertEqual(triplets[1][2], 1.0)
 
     def test_read_uir(self):
-        data_file = './tests/data.txt'
-        triplet_data = reader.read_uir(data_file)
+        triplet_data = self.reader.read(self.data_file)
 
         self.assertEqual(len(triplet_data), 10)
         self.assertEqual(triplet_data[4][2], 3)
         self.assertEqual(triplet_data[6][1], '478')
         self.assertEqual(triplet_data[8][0], '543')
 
-        try:
-            reader.read_uir(data_file, 10)
-        except IndexError:
-            assert True
+    def test_filter(self):
+        reader = Reader(min_user_freq=2)
+        self.assertEqual(len(reader.read(self.data_file)), 0)
+
+        reader = Reader(min_item_freq=2)
+        self.assertEqual(len(reader.read(self.data_file)), 0)
+
+        reader = Reader(user_set=['76'], item_set=['93'])
+        self.assertEqual(len(reader.read(self.data_file)), 1)
+
+        reader = Reader(user_set=['76', '768'])
+        self.assertEqual(len(reader.read(self.data_file)), 2)
+
+        reader = Reader(item_set=['93', '257', '795'])
+        self.assertEqual(len(reader.read(self.data_file)), 3)
+
+    def test_read_text(self):
+        self.assertEqual(len(read_text(self.data_file, sep=None)), 10)
+        self.assertEqual(read_text(self.data_file, sep='\t')[1][0], '76')
 
 
 if __name__ == '__main__':
