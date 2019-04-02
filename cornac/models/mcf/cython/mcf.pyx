@@ -5,7 +5,20 @@
 import numpy as np
 from libc.math cimport exp
 from libc.math cimport sqrt
-from cornac.models.pmf import sigmoid
+
+
+#Sigmoid function
+cdef float sigmoid(float z):
+    cdef float s
+    cdef float MAX_EXP = 6.0
+    if z > MAX_EXP:
+        return 1.0
+    else:
+        if z < -MAX_EXP:
+            return 0.0
+        else:
+            s = 1.0 / (1.0 + exp(-z))
+            return s
 
 
 
