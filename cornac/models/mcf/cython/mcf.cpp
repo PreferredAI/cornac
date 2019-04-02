@@ -4423,7 +4423,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
  * 
  *             # update item factors
  *             for k_ in range(k):             # <<<<<<<<<<<<<<
- *                 grad_v[i_,k_] = werr * Z[u_,k_] - lamda * V[i_,k_]
+ *                 grad_v[i_,k_] = werr * Z[j_,k_] - lamda * V[i_,k_]
  *                 cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])
  */
       __pyx_t_18 = __pyx_v_k;
@@ -4434,11 +4434,11 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
         /* "cornac/models/mcf/cython/mcf.pyx":111
  *             # update item factors
  *             for k_ in range(k):
- *                 grad_v[i_,k_] = werr * Z[u_,k_] - lamda * V[i_,k_]             # <<<<<<<<<<<<<<
+ *                 grad_v[i_,k_] = werr * Z[j_,k_] - lamda * V[i_,k_]             # <<<<<<<<<<<<<<
  *                 cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])
  *                 V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))
  */
-        __pyx_t_87 = __pyx_v_u_;
+        __pyx_t_87 = __pyx_v_j_;
         __pyx_t_88 = __pyx_v_k_;
         __pyx_t_26 = -1;
         if (__pyx_t_87 < 0) {
@@ -4487,7 +4487,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
 
         /* "cornac/models/mcf/cython/mcf.pyx":112
  *             for k_ in range(k):
- *                 grad_v[i_,k_] = werr * Z[u_,k_] - lamda * V[i_,k_]
+ *                 grad_v[i_,k_] = werr * Z[j_,k_] - lamda * V[i_,k_]
  *                 cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])             # <<<<<<<<<<<<<<
  *                 V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))
  * 
@@ -4555,7 +4555,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_v.data + __pyx_t_99 * __pyx_v_cache_v.strides[0]) ) + __pyx_t_100 * __pyx_v_cache_v.strides[1]) )) = ((__pyx_v_gamma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_v.data + __pyx_t_93 * __pyx_v_cache_v.strides[0]) ) + __pyx_t_94 * __pyx_v_cache_v.strides[1]) )))) + ((1.0 - __pyx_v_gamma) * ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_v.data + __pyx_t_95 * __pyx_v_grad_v.strides[0]) ) + __pyx_t_96 * __pyx_v_grad_v.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_v.data + __pyx_t_97 * __pyx_v_grad_v.strides[0]) ) + __pyx_t_98 * __pyx_v_grad_v.strides[1]) ))))));
 
         /* "cornac/models/mcf/cython/mcf.pyx":113
- *                 grad_v[i_,k_] = werr * Z[u_,k_] - lamda * V[i_,k_]
+ *                 grad_v[i_,k_] = werr * Z[j_,k_] - lamda * V[i_,k_]
  *                 cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])
  *                 V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))             # <<<<<<<<<<<<<<
  * 

@@ -108,7 +108,7 @@ def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:]
             
             # update item factors
             for k_ in range(k):
-                grad_v[i_,k_] = werr * Z[u_,k_] - lamda * V[i_,k_]
+                grad_v[i_,k_] = werr * Z[j_,k_] - lamda * V[i_,k_]
                 cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])            
                 V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))
                 
