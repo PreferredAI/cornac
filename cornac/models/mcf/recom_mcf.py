@@ -119,7 +119,7 @@ class MCF(Recommender):
             if self.verbose:
                 print('Learning...')
 
-            res = mcf(rat_uid, rat_iid, rat_val, net_iid, net_jid, net_val, k=self.k, n_users=train_set.num_users,
+            res = mcf.mcf(rat_uid, rat_iid, rat_val, net_iid, net_jid, net_val, k=self.k, n_users=train_set.num_users,
                       n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val), n_epochs=self.max_iter,
                       lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
                       init_params=self.init_params, verbose=self.verbose)
