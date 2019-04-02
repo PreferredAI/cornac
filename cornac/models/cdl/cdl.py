@@ -6,9 +6,11 @@
 
 import numpy as np
 from tqdm import tqdm
-from ...utils import tryimport
 
-tf = tryimport('tensorflow')
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 
 # Collaborative Deep Learning
@@ -82,7 +84,6 @@ class Model:
         self._build_graph()
 
     def _build_graph(self):
-
         self.mask_input = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="mask_input")
         self.text_input = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="text_input")
         self.rating_input = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="rating_input")

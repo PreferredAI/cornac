@@ -6,8 +6,10 @@
 import numpy as np
 import random
 
-from ...utils import tryimport
-torch = tryimport('torch')
+try:
+    import torch
+except ImportError:
+    torch = None
 
 """Firstly, we define a helper function to generate\sample training ordinal triplets:
    Step 1:  
