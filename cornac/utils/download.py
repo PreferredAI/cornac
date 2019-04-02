@@ -5,11 +5,14 @@
 """
 
 import os
+import shutil
 import zipfile
+import tarfile
 from urllib import request
 from tqdm import tqdm
 
-def urlretrieve(url, fpath):
+
+def _urlretrieve(url, fpath):
     """Retrieve data from given url
 
     Parameters
@@ -28,8 +31,33 @@ def urlretrieve(url, fpath):
         def report(chunk, chunksize, total):
             progress.total = total
             progress.update(chunksize)
+
         request.install_opener(opener)
         request.urlretrieve(url, fpath, reporthook=report)
+
+
+def _extract_archive(file_path, extract_path='.'):
+    """Extracts an archive.
+    """
+    for archive_type in ['zip', 'tar']:
+        if archive_type == 'zip':
+            open_fn = zipfile.ZipFile
+            is_match_fn = zipfile.is_zipfile
+        elif archive_type == 'tar':
+            open_fn = tarfile.open
+            is_match_fn = tarfile.is_tarfile
+
+        if is_match_fn(file_path):
+            with open_fn(file_path) as archive:
+                try:
+                    archive.extractall(extract_path)
+                except (tarfile.TarError, RuntimeError, KeyboardInterrupt):
+                    if os.path.exists(extract_path):
+                        if os.path.isfile(extract_path):
+                            os.remove(extract_path)
+                        else:
+                            shutil.rmtree(extract_path)
+                    raise
 
 
 def get_cache_path(relative_path, cache_dir=None):
@@ -62,7 +90,7 @@ def cache(url, unzip=False, relative_path=None, cache_dir=None):
         Relative path to the data file after finishing the download.
         If unzip=True, relative_path is the path to unzipped file.
 
-    cache_dir: bool, optional, default: None
+    cache_dir: str, optional, default: None
         The path to cache folder. If `None`, either ~/.cornac or /tmp/.cornac will be used.
 
     """
@@ -76,14 +104,13 @@ def cache(url, unzip=False, relative_path=None, cache_dir=None):
     print('will be cached into', cache_path)
 
     if unzip:
-        tmp_path = os.path.join(cache_dir, 'tmp.zip')
-        urlretrieve(url, tmp_path)
-        print('Unzipping...')
-        with zipfile.ZipFile(tmp_path, 'r') as tmp_zip:
-            tmp_zip.extractall(cache_dir)
+        tmp_path = os.path.join(cache_dir, 'file.tmp')
+        _urlretrieve(url, tmp_path)
+        print('Unzipping ...')
+        _extract_archive(tmp_path, cache_dir)
         os.remove(tmp_path)
     else:
-        urlretrieve(url, cache_path)
+        _urlretrieve(url, cache_path)
 
     print('File cached!')
     return cache_path
