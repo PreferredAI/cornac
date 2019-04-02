@@ -34,6 +34,7 @@ def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:]
         int d = n_items
         double[:,:] U
         double[:,:] V
+        double[:,:] Z
         double[:,:] cache_u = np.zeros((n,k))
         double[:,:] cache_v = np.zeros((d,k))
         double[:,:] cache_z = np.zeros((d,k))
