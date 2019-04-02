@@ -39,7 +39,7 @@ def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:]
         double[:,:] cache_z = np.zeros((d,k))
         double[:,:] grad_u = np.zeros((n,k))
         double[:,:] grad_v = np.zeros((d,k))
-        double[:,:] grad_z = np.zeros((n,k))
+        double[:,:] grad_z = np.zeros((d,k))
         double eps = 1e-8
         int u_, i_, j, epoch
         double val, s, e, norm_u, norm_v

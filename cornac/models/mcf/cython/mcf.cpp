@@ -2967,7 +2967,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
  *         double[:,:] cache_z = np.zeros((d,k))
  *         double[:,:] grad_u = np.zeros((n,k))             # <<<<<<<<<<<<<<
  *         double[:,:] grad_v = np.zeros((d,k))
- *         double[:,:] grad_z = np.zeros((n,k))
+ *         double[:,:] grad_z = np.zeros((d,k))
  */
   __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
@@ -3042,7 +3042,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
  *         double[:,:] cache_z = np.zeros((d,k))
  *         double[:,:] grad_u = np.zeros((n,k))
  *         double[:,:] grad_v = np.zeros((d,k))             # <<<<<<<<<<<<<<
- *         double[:,:] grad_z = np.zeros((n,k))
+ *         double[:,:] grad_z = np.zeros((d,k))
  *         double eps = 1e-8
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
@@ -3117,7 +3117,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
   /* "cornac/models/mcf/cython/mcf.pyx":42
  *         double[:,:] grad_u = np.zeros((n,k))
  *         double[:,:] grad_v = np.zeros((d,k))
- *         double[:,:] grad_z = np.zeros((n,k))             # <<<<<<<<<<<<<<
+ *         double[:,:] grad_z = np.zeros((d,k))             # <<<<<<<<<<<<<<
  *         double eps = 1e-8
  *         int u_, i_, j, epoch
  */
@@ -3126,7 +3126,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_n); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_k); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -3192,7 +3192,7 @@ static PyObject *__pyx_pf_6cornac_6models_3mcf_3mcf_mcf(CYTHON_UNUSED PyObject *
 
   /* "cornac/models/mcf/cython/mcf.pyx":43
  *         double[:,:] grad_v = np.zeros((d,k))
- *         double[:,:] grad_z = np.zeros((n,k))
+ *         double[:,:] grad_z = np.zeros((d,k))
  *         double eps = 1e-8             # <<<<<<<<<<<<<<
  *         int u_, i_, j, epoch
  *         double val, s, e, norm_u, norm_v
