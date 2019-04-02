@@ -6,14 +6,14 @@
 
 import unittest
 from cornac.eval_methods import CrossValidation
-from cornac.data import reader
+from cornac.data import Reader
 import numpy as np
 
 
 class TestCrossValidation(unittest.TestCase):
 
     def setUp(self):
-        self.data = reader.read_uir('./tests/data.txt')
+        self.data = Reader().read('./tests/data.txt')
         self.n_folds = 5
         self.cv = CrossValidation(data=self.data, n_folds=self.n_folds)
 
