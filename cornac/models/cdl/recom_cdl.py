@@ -6,10 +6,7 @@
 
 from ..recommender import Recommender
 from .cdl import *
-import scipy.sparse as sp
-import numpy as np
 from ...exception import ScoreException
-
 
 
 class CDL(Recommender):
@@ -22,9 +19,6 @@ class CDL(Recommender):
 
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs for SGD.
-
-    text_information：ndarray, shape (n_items, n_vocabularies), optional, default:None
-        Bag-of-words features of items
 
     autoencoder_structure：array, optional, default: [200]
         The number of neurons of encoder/ decoder layer for SDAE
@@ -53,8 +47,8 @@ class CDL(Recommender):
     autoencoder_corruption: float, optional, default: 0.3
         The corruption ratio for SDAE.
 
-    keep_prob: float, optional, default: 1.0
-        The probability that each element is kept in dropout of SDAE.
+    dropout_rate: float, optional, default: 0.1
+        The probability that each element is removed in dropout of SDAE.
 
     batch_size: int, optional, default: 100
         The batch size for SGD.
@@ -67,24 +61,23 @@ class CDL(Recommender):
         pre-trained (U and V are not None).
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V} 
-        please see below the definition of U and V.
-
-    U: ndarray, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
-
-    V: ndarray, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}
+        U: ndarray, shape (n_users,k)
+            The user latent factors, optional initialization via init_params.
+        V: ndarray, shape (n_items,k)
+            The item latent factors, optional initialization via init_params.
 
     References
     ----------
     * Hao Wang, Naiyan Wang, Dit-Yan Yeung. CDL: Collaborative Deep Learning for Recommender Systems. In : SIGKDD. 2015. p. 1235-1244.
     """
-    
-    def __init__(self, k=50, text_information = None, autoencoder_structure = None ,lambda_u = 0.1, lambda_v = 0.01,lambda_w = 0.01, lambda_n = 0.01, a = 1, b = 0.01, autoencoder_corruption = 0.3, learning_rate=0.001, keep_prob = 1.0, batch_size = 100, max_iter=100, name = "CDL",trainable = True, verbose=False, init_params = None):
-        Recommender.__init__(self,name=name, trainable = trainable, verbose=verbose)
+
+    def __init__(self, k=50, autoencoder_structure=None, lambda_u=0.1, lambda_v=100,
+                 lambda_w=0.1, lambda_n=1000, a=1, b=0.01, autoencoder_corruption=0.3, learning_rate=0.001,
+                 dropout_rate=0.1, batch_size=128, max_iter=100, name="CDL", trainable=True, verbose=True,
+                 init_params=None):
+        Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.text_information = text_information
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.lambda_w = lambda_w
@@ -92,18 +85,16 @@ class CDL(Recommender):
         self.a = a
         self.b = b
         self.autoencoder_corruption = autoencoder_corruption
-        self.keep_prob = keep_prob
+        self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.name = name
         self.init_params = init_params
         self.max_iter = max_iter
-        self.autoencoder_structure =  autoencoder_structure
-        self.batch_size = batch_size 
+        self.autoencoder_structure = autoencoder_structure
+        self.batch_size = batch_size
+        self.verbose = verbose
 
-        self.U = init_params['U']  # matrix of user factors
-        self.V = init_params['V']  # matrix of item factors
-        
-    #fit the recommender model to the traning data    
+    # fit the recommender model to the traning data
     def fit(self, train_set):
         """Fit the model to observations.
 
@@ -116,18 +107,21 @@ class CDL(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        X = self.train_set.matrix
-        X = sp.csr_matrix(X)
-        
-        if self.trainable:
-            res = cdl(X, self.text_information, self.autoencoder_structure, k = self.k, lambda_u = self.lambda_u, lambda_v = self.lambda_v, lambda_w = self.lambda_w, lambda_n = self.lambda_n , a = self.a, b = self.b, autoencoder_corruption = self.autoencoder_corruption, n_epochs=self.max_iter, learning_rate= self.learning_rate, keep_prob = self.keep_prob, batch_size = self.batch_size, init_params = self.init_params)
-            self.U = res['U']
-            self.V = res['V']
-            print('Learning completed')
-        elif self.verbose:
+        if not self.trainable:
             print('%s is trained already (trainable = False)' % (self.name))
-        
-    
+            return
+
+        if self.verbose:
+            print('Learning...')
+
+        self.U, self.V = cdl(train_set, self.autoencoder_structure, k=self.k, lambda_u=self.lambda_u,
+                             lambda_v=self.lambda_v, lambda_w=self.lambda_w, lambda_n=self.lambda_n,
+                             a=self.a, b=self.b, corruption_rate=self.autoencoder_corruption,
+                             n_epochs=self.max_iter, lr=self.learning_rate, dropout_rate=self.dropout_rate,
+                             batch_size=self.batch_size, init_params=self.init_params, verbose=self.verbose)
+
+        if self.verbose:
+            print('\nLearning completed')
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
@@ -147,11 +141,16 @@ class CDL(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        
-        if item_id is None:
-            user_pred = self.U[user_id, :].dot(self.V.T)
-        else:
-            user_pred = self.U[user_id,:].dot(self.V[user_id,:].T)
-        user_pred = np.array(user_pred, dtype='float64').flatten()
 
-        return user_pred
+        if item_id is None:
+            if self.train_set.is_unk_user(user_id):
+                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
+
+            known_item_scores = self.V.dot(self.U[user_id, :])
+            return known_item_scores
+        else:
+            if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+            user_pred = self.V[item_id, :].dot(self.U[user_id, :])
+
+            return user_pred

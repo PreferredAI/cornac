@@ -31,3 +31,5 @@
 [c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF).
 
 [conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF).
+
+[cdl_example.py](cdl_example.py) - Collaborative Deep Learning (CDL).
