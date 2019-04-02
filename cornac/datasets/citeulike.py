@@ -12,10 +12,16 @@ Link to the data: http://www.wanghao.in/CDL.htm
 
 from ..utils import cache
 from ..data import Reader
+from typing import List
 
 
-def load_data(reader=None):
+def load_data(reader: Reader = None) -> List:
     """Load the implicit feedback between users and items
+
+    Parameters
+    ----------
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
 
     Returns
     -------

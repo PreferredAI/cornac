@@ -14,11 +14,17 @@ This data is used in the VBPR paper. After cleaning the data, we have:
 from ..utils import cache
 from ..data import Reader
 from ..data.reader import read_text
+from typing import List
 import numpy as np
 
 
-def load_data(reader=None):
+def load_data(reader: Reader = None) -> List:
     """Load the feedback observations
+
+    Parameters
+    ----------
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
 
     Returns
     -------

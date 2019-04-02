@@ -9,11 +9,12 @@ Data: https://www.kaggle.com/netflix-inc/netflix-prize-data/
 from ..utils import validate_format
 from ..utils import cache
 from ..data import Reader
+from typing import List
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
 
-def _load(fname, fmt='UIR', reader=None):
+def _load(fname, fmt='UIR', reader: Reader = None) -> List:
     """Load the Netflix dataset
 
     Parameters
@@ -23,6 +24,9 @@ def _load(fname, fmt='UIR', reader=None):
 
     fmt: str, default: 'UIR'
         Data format to be returned.
+
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
 
     Returns
     -------
@@ -37,7 +41,7 @@ def _load(fname, fmt='UIR', reader=None):
     return reader.read(fpath, fmt, sep=',')
 
 
-def load_data(fmt='UIR', reader=None):
+def load_data(fmt='UIR', reader: Reader = None) -> List:
     """Load the Netflix entire dataset
     - Number of ratings: 100,480,507
     - Number of users:       480,189
@@ -48,6 +52,9 @@ def load_data(fmt='UIR', reader=None):
     fmt: str, default: 'UIR'
         Data format to be returned.
 
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
+
     Returns
     -------
     data: array-like
@@ -57,7 +64,7 @@ def load_data(fmt='UIR', reader=None):
     return _load('data', fmt, reader)
 
 
-def load_data_small(fmt='UIR', reader=None):
+def load_data_small(fmt='UIR', reader: Reader = None) -> List:
     """Load a small subset of the Netflix dataset. We draw this subsample such that
     every user has at least 10 items and each item has at least 10 users.
     - Number of ratings: 607,803
@@ -68,6 +75,9 @@ def load_data_small(fmt='UIR', reader=None):
     ----------
     fmt: str, default: 'UIR'
         Data format to be returned.
+
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
 
     Returns
     -------

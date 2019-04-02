@@ -8,10 +8,16 @@ This data is built based on the Amazon datasets provided by Julian McAuley at: h
 
 from ..utils import cache
 from ..data import Reader
+from typing import List
 
 
-def load_rating(reader=None):
+def load_rating(reader: Reader = None) -> List:
     """Load the user-item ratings
+
+    Parameters
+    ----------
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
 
     Returns
     -------
@@ -24,8 +30,13 @@ def load_rating(reader=None):
     return reader.read(fpath, sep=' ')
 
 
-def load_context(reader=None):
+def load_context(reader: Reader = None) -> List:
     """Load the item-item interactions
+
+    Parameters
+    ----------
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
 
     Returns
     -------

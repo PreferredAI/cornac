@@ -9,6 +9,8 @@ MovieLens: https://grouplens.org/datasets/movielens/
 from ..utils import validate_format
 from ..utils import cache
 from ..data import Reader
+from ..data.reader import read_text
+from typing import List
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
@@ -34,13 +36,16 @@ def load_100k(fmt='UIR', reader=None):
     return reader.read(fpath, fmt)
 
 
-def load_1m(fmt='UIR', reader=None):
+def load_1m(fmt='UIR', reader: Reader = None) -> List:
     """Load the MovieLens 1M dataset
 
     Parameters
     ----------
     fmt: str, default: 'UIR'
         Data format to be returned.
+
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
 
     Returns
     -------
@@ -50,7 +55,7 @@ def load_1m(fmt='UIR', reader=None):
     """
     fmt = validate_format(fmt, VALID_DATA_FORMATS)
     fpath = cache(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
-                  relative_path='ml-1m/ratings.dat', unzip=True)
+                  unzip=True, relative_path='ml-1m/ratings.dat')
     reader = Reader() if reader is None else reader
     return reader.read(fpath, fmt, sep='::')
 
@@ -66,13 +71,7 @@ def load_plot():
     ids: List
         List of item ids aligned with indices in `texts`.
     """
-    texts, ids = [], []
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/movielens/ml_plot.zip',
-                  relative_path='movielens/ml_plot.dat', unzip=True)
-    with open(fpath, 'r') as f:
-        for line in f:
-            movie_id, plot = line.strip().split('::')
-            texts.append(plot)
-            ids.append(movie_id)
-
+                  unzip=True, relative_path='movielens/ml_plot.dat')
+    texts, ids = read_text(fpath, sep='::')
     return texts, ids
