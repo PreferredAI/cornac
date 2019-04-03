@@ -24,6 +24,11 @@ Online Indexable Bayesian Personalized Ranking (OIBPR)
 -------------------------------------------------------
 .. automodule:: cornac.models.online_ibpr.recom_online_ibpr
    :members:
+
+Matrix Co-Factorization (MCF)
+-----------------------------------------
+.. automodule:: cornac.models.mcf.recom_mcf
+   :members:
    
 Collaborative Ordinal Embedding (COE)
 -------------------------------------------------------
