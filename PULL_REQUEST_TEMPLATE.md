@@ -12,3 +12,5 @@
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
 - [ ] I have added tests.
 - [ ] I have updated the documentation accordingly.
+- [ ] I have updated `examples/README.md` (if you are adding a new example).
+- [ ] I have updated `cornac/models/README.md` (if you are adding a new model).

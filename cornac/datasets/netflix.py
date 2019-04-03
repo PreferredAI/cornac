@@ -8,12 +8,13 @@ Data: https://www.kaggle.com/netflix-inc/netflix-prize-data/
 
 from ..utils import validate_format
 from ..utils import cache
-from ..data import reader
+from ..data import Reader
+from typing import List
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
 
-def _load(fname, fmt='UIR'):
+def _load(fname, fmt='UIR', reader: Reader = None) -> List:
     """Load the Netflix dataset
 
     Parameters
@@ -24,6 +25,9 @@ def _load(fname, fmt='UIR'):
     fmt: str, default: 'UIR'
         Data format to be returned.
 
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
+
     Returns
     -------
     data: array-like
@@ -33,11 +37,11 @@ def _load(fname, fmt='UIR'):
     fmt = validate_format(fmt, VALID_DATA_FORMATS)
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/netflix/{}.zip'.format(fname),
                   unzip=True, relative_path='netflix/{}.csv'.format(fname))
-    if fmt == 'UIR':
-        return reader.read_uir(fpath, sep=',')
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, fmt, sep=',')
 
 
-def load_data(fmt='UIR'):
+def load_data(fmt='UIR', reader: Reader = None) -> List:
     """Load the Netflix entire dataset
     - Number of ratings: 100,480,507
     - Number of users:       480,189
@@ -48,16 +52,19 @@ def load_data(fmt='UIR'):
     fmt: str, default: 'UIR'
         Data format to be returned.
 
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
+
     Returns
     -------
     data: array-like
         Data in the form of a list of tuples depending on the given data format.
 
     """
-    return _load('data', fmt)
+    return _load('data', fmt, reader)
 
 
-def load_data_small(fmt='UIR'):
+def load_data_small(fmt='UIR', reader: Reader = None) -> List:
     """Load a small subset of the Netflix dataset. We draw this subsample such that
     every user has at least 10 items and each item has at least 10 users.
     - Number of ratings: 607,803
@@ -69,10 +76,13 @@ def load_data_small(fmt='UIR'):
     fmt: str, default: 'UIR'
         Data format to be returned.
 
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
+
     Returns
     -------
     data: array-like
         Data in the form of a list of tuples depending on the given data format.
 
     """
-    return _load('data_small', fmt)
+    return _load('data_small', fmt, reader)

@@ -7,9 +7,10 @@ import numpy as np
 import random
 from ...utils.data_utils import Dataset
 
-from ...utils import tryimport
-torch = tryimport('torch')
-
+try:
+    import torch
+except ImportError:
+    torch = None
 
 """Firstly, we define a helper function to generate\sample training ordinal triplets:
    Step 1:  
@@ -19,6 +20,7 @@ torch = tryimport('torch')
         [userId itemId_i itemId_j]
    for each user u, he/she prefers item i over item j.
    """
+
 
 def sample_data(X, data):
     sampled_data = np.zeros((data.shape[0], 5), dtype=np.int)
@@ -36,6 +38,7 @@ def sample_data(X, data):
         sampled_data[k, :] = [u, i, j, ratingi, X[u, j]]
 
     return sampled_data
+
 
 def ibpr(X, data, k, lamda=0.001, n_epochs=150, learning_rate=0.05, batch_size=100, init_params=None):
     # X = sp.csr_matrix(X)

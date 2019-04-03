@@ -5,8 +5,10 @@
 
 import numpy as np
 
-from ...utils import tryimport
-torch = tryimport('torch')
+try:
+    import torch
+except ImportError:
+    torch = None
 
 
 def online_ibpr(triplets, k, lamda=0.005, n_epochs=150, learning_rate=0.001, batch_size=100, init_params=None):

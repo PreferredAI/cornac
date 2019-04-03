@@ -26,8 +26,12 @@
 
 [ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
 
-[vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR).
+[vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
-[c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF).
+[c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF) with Amazon Office dataset.
 
-[conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF).
+[conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF) with MovieLens dataset.
+
+[pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
+
+[cdl_example.py](cdl_example.py) - Collaborative Deep Learning (CDL) with CiteULike dataset.

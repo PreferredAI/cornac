@@ -1,144 +1,169 @@
 # -*- coding: utf-8 -*-
 
 """
-@author: Trieu Thi Ly Ly 
+@author:Trieu Thi Ly Ly, Tran Thanh Binh
 """
 
 import numpy as np
-from ...utils.data_utils import Dataset
+from tqdm import tqdm
 
-from ...utils import tryimport
-tf = tryimport('tensorflow')
-
-
-# Stacked Denoising Autoencoder
-def sdae(text_information_corrupted, autoencoder_structure, W, b, batch_size, cdl_keep_prob):
-	L = len(autoencoder_structure)
-	for i in range(L - 1):
-		# The encoder
-		if i <= int(L / 2) -1:
-			if i == 0:
-				# The first layer
-				h_value = tf.nn.sigmoid(tf.add(tf.matmul(text_information_corrupted,W[i]), b[i]))
-			else:
-				h_value = tf.nn.sigmoid(tf.add(tf.matmul(h_value,W[i]), b[i]))
-		# The decoder
-		elif i > int(L / 2) -1:
-			h_value = tf.nn.sigmoid(tf.add(tf.matmul(h_value,W[i]), b[i]))
-		# The dropout for all the layers except the final one
-		if i < (L - 2):
-			h_value = tf.nn.dropout(h_value, cdl_keep_prob)
-		# The encoder output value
-		if i == int(L / 2) -1:
-			encoded_value = h_value
-
-	sdae_value = h_value
-		
-	return sdae_value, encoded_value
-
-
-""" Generate an user-by-item rating matrix R and confidence C
-	if user i has/ likes item j , R[i,j] = 1 and C[i,j] = a
-	otherwise, R[i,j] = 0 and C[i,j] = b
-"""
-
-def formatData(X,n_users, n_items,a,b):
-	X = X.tocoo()
-	row = X.row # user
-	col = X.col # item
-	R = np.zeros((n_users, n_items))
-	C = np.ones((n_users, n_items)) * b
-	for i in range(X.data.shape[0]):
-		user = row[i]
-		item = col[i]
-		
-		R[int(user), int(item)] = 1
-		C[int(user), int(item)] = a
-
-	return R, C
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 
 # Collaborative Deep Learning
-def cdl(X, text_information, autoencoder_structure, k = 50 , lambda_u = 0.01, lambda_v = 0.01,lambda_w = 0.01, lambda_n = 0.01, a = 1, b = 0.01, autoencoder_corruption = 0.3, n_epochs=100, learning_rate=0.001, keep_prob = 0.9,batch_size = 100, init_params=None):
+def cdl(train_set, layer_sizes, k=50, lambda_u=0.01,
+        lambda_v=0.01, lambda_w=0.01, lambda_n=0.01,
+        a=1, b=0.01, corruption_rate=0.3, n_epochs=100,
+        lr=0.001, dropout_rate=0.1, batch_size=100,
+        vocab_size=8000, init_params=None, verbose=True):
+    R = train_set.matrix.A  # rating matrix
+    C = np.ones_like(R) * b
+    C[R > 0] = a
+    
+    n_users = train_set.num_users
+    n_items = train_set.num_items
 
-	n_users = len(set(X.indices))
-	n_items = text_information.shape[0]
-	n_vocabularies = text_information.shape[1]
-	autoencoder_structure = [n_vocabularies] + autoencoder_structure + [k] + autoencoder_structure + [n_vocabularies]
+    text_feature = train_set.item_text.batch_bow(np.arange(n_items))  # bag of word feature
+    text_feature = (text_feature - text_feature.min()) / (text_feature.max() - text_feature.min())  # normalization
 
-	R, C = formatData(X,n_users, n_items, a, b) 
+    layer_sizes = [vocab_size] + layer_sizes + [k] + layer_sizes + [vocab_size]
 
-	#Initial user factors
-	if init_params['U'] is None:
-		U = tf.Variable(tf.random_normal([n_users, k]) ,name="user_factor", dtype=tf.float32)
-	else:
-		U = init_params['U']
+    # Build model
+    model = Model(n_users=n_users, n_items=n_items, n_vocab=vocab_size, k=k, layers=layer_sizes, lambda_u=lambda_u,
+                  lambda_v=lambda_v, lambda_w=lambda_w, lambda_n=lambda_n, lr=lr, dropout_rate=dropout_rate,
+                  init_params=init_params)
 
-	#Initial item factors
-	if init_params['V'] is None:
-		V = tf.Variable(tf.random_normal([n_items, k]), name="item_factor", dtype=tf.float32)
-	else:
-		V = init_params['V']
+    # Training model
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
 
-	cdl_mask_corruption = tf.placeholder(dtype=tf.float32, shape=[None, n_vocabularies], name="cdl_mask_corruption")
-	cdl_text_information = tf.placeholder(dtype=tf.float32, shape=[None, n_vocabularies], name="cdl_text_information")
-	cdl_rating_R = tf.placeholder(dtype=tf.float32, shape=[n_users,None], name="cdl_rating_R")
-	cdl_C = tf.placeholder(dtype=tf.float32, shape=[n_users,None], name="cdl_C")
-	cdl_keep_prob = tf.placeholder(dtype=tf.float32)
-	
-	cdl_batch = tf.placeholder(dtype=tf.int32)
-	V_batch = tf.gather(V, cdl_batch)
-	
-	# The Weight and Bias for each layer in SDAE
-	L = len(autoencoder_structure)
-	W, b = dict(), dict()
-	for i in range(L - 1):
-		W[i] = tf.Variable(tf.random_normal([autoencoder_structure[i],autoencoder_structure[i+1]]))
-		b[i] = tf.Variable(tf.random_normal([autoencoder_structure[i+1]]))
+        loop = tqdm(range(n_epochs), disable=not verbose)
+        for _ in loop:
+            mask_corruption_np = np.random.binomial(1, 1 - corruption_rate,
+                                                    (n_items, vocab_size))
 
-	text_information_corrupted = cdl_text_information + cdl_mask_corruption 
+            for batch_ids in train_set.item_iter(batch_size=batch_size, shuffle=True):
+                feed_dict = {
+                    model.mask_input: mask_corruption_np[batch_ids, :],
+                    model.text_input: text_feature[batch_ids],
+                    model.rating_input: R[:, batch_ids],
+                    model.C_input: C[:, batch_ids],
+                    model.cdl_batch: batch_ids
+                }
 
-	sdae_value, encoded_value = sdae(text_information_corrupted, autoencoder_structure, W, b, batch_size, cdl_keep_prob)
-	mask_corruption_np = np.random.binomial(1, 1-autoencoder_corruption,
-											(n_items, n_vocabularies))
-											
-	# Generate loss function
-	loss_w_b = tf.constant(0, dtype=tf.float32)
-	for i in range(L - 1):
-		loss_w_b = tf.add(loss_w_b, tf.add(tf.nn.l2_loss(W[i]), tf.nn.l2_loss(b[i])))
+                sess.run(model.opt1, feed_dict)  # train U, V
+                _, _loss = sess.run([model.opt2, model.loss], feed_dict)  # train SDAE
+                loop.set_postfix(loss=_loss)
+        U_out, V_out = sess.run([model.U, model.V])
 
-	loss_1 = lambda_u * tf.nn.l2_loss(U) + lambda_w * loss_w_b
-	loss_2 = lambda_v * tf.nn.l2_loss(V_batch - encoded_value)
-	loss_3 = lambda_n * tf.nn.l2_loss(sdae_value - cdl_text_information)
-	loss_4 = tf.reduce_sum(tf.multiply(cdl_C,
-		tf.square(cdl_rating_R - tf.matmul(U, V_batch, transpose_b=True))))
-	
-	loss = loss_1 + loss_2 + loss_3 + loss_4
+    return U_out.astype(np.float32), V_out.astype(np.float32)
 
-	# Generate optimizer
-	optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
-	# optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(loss)
 
-	with tf.Session() as sess:
-		sess.run(tf.global_variables_initializer())
-		for _ in range(n_epochs):
-			Data = Dataset(np.random.permutation(n_items))
-			num_steps = int(Data.data.shape[0] / batch_size)
-			for i in range(1, num_steps + 1):
-				batch, _ = Data.next_batch(batch_size)
-				_, _loss = sess.run(
-					[optimizer, loss],
-					feed_dict = {
-						cdl_mask_corruption: mask_corruption_np[batch,:],
-						cdl_text_information: text_information[batch,:],
-						cdl_rating_R: R[:, batch],
-						cdl_C: C[:, batch],
-						cdl_keep_prob: keep_prob,
-						cdl_batch: batch
-					}
-				)
- 
-		U_out, V_out = sess.run([U, V])
-		res = {'U': U_out, 'V': V_out}
-		
-	return res
+class Model:
+
+    def __init__(self, n_users, n_items, n_vocab, k,
+                 layers, lambda_u, lambda_v, lambda_n, lambda_w,
+                 lr, dropout_rate, init_params=None):
+
+        self.n_vocab = n_vocab
+        self.n_users = n_users
+        self.n_items = n_items
+        self.lambda_u = lambda_u
+        self.lambda_v = lambda_v
+        self.lambda_n = lambda_n
+        self.lambda_w = lambda_w
+        self.layers = layers
+        self.lr = lr  # learning rate
+        self.k = k  # latent dimension
+        self.dropout_rate = dropout_rate
+        self.init_params = {} if init_params is None else init_params
+
+        self._build_graph()
+
+    def _build_graph(self):
+        self.mask_input = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="mask_input")
+        self.text_input = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="text_input")
+        self.rating_input = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="rating_input")
+        self.C_input = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="C_input")
+
+        with tf.variable_scope("CDL_Variable"):
+            U_init = None if 'U' not in self.init_params else tf.constant_initializer(self.init_params['U'])
+            V_init = None if 'V' not in self.init_params else tf.constant_initializer(self.init_params['V'])
+            self.U = tf.get_variable(name='U', shape=[self.n_users, self.k], dtype=tf.float32, initializer=U_init)
+            self.V = tf.get_variable(name='V', shape=[self.n_items, self.k], dtype=tf.float32, initializer=V_init)
+
+        self.cdl_batch = tf.placeholder(dtype=tf.int32)
+        real_batch_size = tf.cast(tf.shape(self.text_input)[0], tf.int32)
+        V_batch = tf.reshape(tf.gather(self.V, self.cdl_batch), shape=[real_batch_size, self.k])
+
+        corrupted_text = tf.multiply(self.text_input, self.mask_input)
+        sdae_value, encoded_value, loss_w = self._sdae(corrupted_text)
+
+        loss_1 = self.lambda_u * tf.nn.l2_loss(self.U) + self.lambda_w * loss_w
+        loss_2 = self.lambda_v * tf.nn.l2_loss(V_batch - encoded_value)
+        loss_3 = self.lambda_n * tf.nn.l2_loss(sdae_value - self.text_input)
+        loss_4 = tf.reduce_sum(tf.multiply(self.C_input,
+                                           tf.square(self.rating_input - tf.matmul(self.U, V_batch, transpose_b=True))))
+
+        self.loss = loss_1 + loss_2 + loss_3 + loss_4
+
+        # Generate optimizer
+        optimizer1 = tf.train.AdamOptimizer(self.lr)
+        optimizer2 = tf.train.AdamOptimizer(self.lr)
+
+        train_var_list1, train_var_list2 = [], []
+
+        for var in tf.trainable_variables():
+            if "CDL_Variable" in var.name:
+                train_var_list1.append(var)
+            elif "SDAE_Variable" in var.name:
+                train_var_list2.append(var)
+
+        gvs = optimizer1.compute_gradients(self.loss, var_list=train_var_list1)
+        capped_gvs = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gvs]
+        self.opt1 = optimizer1.apply_gradients(capped_gvs)
+
+        gvs = optimizer2.compute_gradients(self.loss, var_list=train_var_list2)
+        capped_gvs = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gvs]
+        self.opt2 = optimizer2.apply_gradients(capped_gvs)
+
+    # Stacked Denoising Autoencoder
+    def _sdae(self, X_corrupted):
+        L = len(self.layers)
+        weights, biases = dict(), dict()
+        with tf.variable_scope("SDAE_Variable"):
+            for i in range(L - 1):
+                weights[i] = tf.get_variable(name='W_{}'.format(i), dtype=tf.float32,
+                                             shape=(self.layers[i], self.layers[i + 1]))
+                biases[i] = tf.get_variable(name='b_{}'.format(i), dtype=tf.float32,
+                                            shape=(self.layers[i + 1]),
+                                            initializer=tf.zeros_initializer())
+        for i in range(L - 1):
+            # The encoder
+            if i <= int(L / 2) - 1:
+                if i == 0:
+                    # The first layer
+                    h_value = tf.nn.relu(tf.add(tf.matmul(X_corrupted, weights[i]), biases[i]))
+                else:
+                    h_value = tf.nn.relu(tf.add(tf.matmul(h_value, weights[i]), biases[i]))
+            # The decoder
+            elif i > int(L / 2) - 1:
+                h_value = tf.nn.relu(tf.add(tf.matmul(h_value, weights[i]), biases[i]))
+            # The dropout for all the layers except the final one
+            if i < (L - 2):
+                h_value = tf.nn.dropout(h_value, rate=self.dropout_rate)
+            # The encoder output value
+            if i == int(L / 2) - 1:
+                encoded_value = h_value
+
+        sdae_value = h_value
+
+        # Generate loss function
+        loss_w = tf.constant(0, dtype=tf.float32)
+        for i in range(L - 1):
+            loss_w = tf.add(loss_w, tf.nn.l2_loss(weights[i]))
+
+        return sdae_value, encoded_value, loss_w
