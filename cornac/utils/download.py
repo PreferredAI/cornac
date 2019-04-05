@@ -63,8 +63,11 @@ def _extract_archive(file_path, extract_path='.'):
 def get_cache_path(relative_path, cache_dir=None):
     """Return the absolute path to the cached data file
     """
-    if cache_dir is None:
+    if cache_dir is None and os.access(os.path.expanduser('~'), os.W_OK):
         cache_dir = os.path.join(os.path.expanduser('~'), '.cornac')
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+
     if not os.access(cache_dir, os.W_OK):
         cache_dir = os.path.join('/tmp', '.cornac')
     cache_path = os.path.join(cache_dir, relative_path)
