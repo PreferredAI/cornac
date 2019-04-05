@@ -13,7 +13,7 @@ except ImportError:
 
 
 
-def _load_or_randn(size, init_values=None, device = torch.device("cpu")):
+def _load_or_randn(size, init_values, device):
     if init_values is None:
         tensor = torch.randn(size, requires_grad=True, device=device)
     else:
