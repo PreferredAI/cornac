@@ -1,6 +1,9 @@
-from ..recommender import Recommender
-from ...exception import CornacException
-import numpy as np
+# -*- coding: utf-8 -*-
+
+"""
+@author: Aghiles Salah
+"""
+
 from tqdm import tqdm
 
 try:
