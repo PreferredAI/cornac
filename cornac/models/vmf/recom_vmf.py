@@ -5,7 +5,7 @@
 """
 
 import numpy as np
-from cornac.models.vmf import vmf
+from .vmf import vmf
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
