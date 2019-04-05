@@ -136,11 +136,11 @@ class VMF(Recommender):
                       lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
                       init_params=self.init_params, use_gpu = self.use_gpu, verbose=self.verbose)
 
-            self.U = np.asarray(res['U'])
-            self.V = np.asarray(res['V'])
-            self.P = np.asarray(res['P'])
-            self.E = np.asarray(res['E'])
-            self.Q = np.asarray(res['Q']) 
+            self.U = np.array(res['U'],dtype='float32')
+            self.V = np.array(res['V'],dtype='float32')
+            self.P = np.asarray(res['P'],dtype='float32')
+            self.E = np.asarray(res['E'],dtype='float32')
+            self.Q = np.array(res['Q'],dtype='float32') 
 
             if self.verbose:
                 print('Learning completed')
@@ -170,10 +170,10 @@ class VMF(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            #known_item_scores = self.V.dot(self.U[user_id, :]) + self.Q.dot(self.P[user_id, :])
-            known_item_scores = np.zeros(self.V.shape[0])
-            fast_dot(self.U[user_id], self.V, known_item_scores)
-            fast_dot(self.P[user_id], self.Q, known_item_scores)
+            known_item_scores = self.V.dot(self.U[user_id, :]) + self.Q.dot(self.P[user_id, :])
+            #known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
+            #fast_dot(self.U[user_id], self.V, known_item_scores)
+            #fast_dot(self.P[user_id], self.Q, known_item_scores)
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
