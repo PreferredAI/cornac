@@ -75,7 +75,7 @@ class VMF(Recommender):
      In Proceedings of WWW, pp. 1113-1122. 2017.
     """
 
-    def __init__(self, k=5, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=0.001, lambda_e = 0.001,
+    def __init__(self, k=5, d=None, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=0.001, lambda_e = 0.001,
                  name="VMF", trainable=True, verbose=False, use_gpu = False, init_params={'U': None, 'V': None, 'P': None, 'E': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -95,7 +95,11 @@ class VMF(Recommender):
         self.V = init_params['V']  # item factors
         self.P = init_params['P']  # user visual factors
         self.E = init_params['E']  # Kernel embedding matrix 
-
+        
+        if d is None:
+            self.d = k
+        else:
+            self.d = d
     # fit the recommender model to the traning data
     def fit(self, train_set):
         """Fit the model to observations.
@@ -131,7 +135,7 @@ class VMF(Recommender):
             if self.verbose:
                 print('Learning...')
              
-            res = vmf(self.train_set, self.item_features, k=self.k, n_epochs=self.n_epochs, batch_size = self.batch_size,
+            res = vmf(self.train_set, self.item_features, k=self.k, d = self.d, n_epochs=self.n_epochs, batch_size = self.batch_size,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_p=self.lambda_p,
                       lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
                       init_params=self.init_params, use_gpu = self.use_gpu, verbose=self.verbose)

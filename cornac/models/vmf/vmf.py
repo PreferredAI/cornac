@@ -24,7 +24,7 @@ def _l2_loss(*tensors):
         l2_loss += torch.sum(tensor ** 2) / 2
     return l2_loss
 
-def vmf(train_set, item_feature, k, n_epochs, batch_size, lambda_u, lambda_v,
+def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
           lambda_p, lambda_e, learning_rate, gamma, init_params, use_gpu, verbose):
     
     device = None
@@ -42,8 +42,8 @@ def vmf(train_set, item_feature, k, n_epochs, batch_size, lambda_u, lambda_v,
     # preparing parameters
     U = _load_or_randn((n_users, k), init_values= init_params['U'], device = device)
     V = _load_or_randn((n_items, k), init_values= init_params['V'], device = device)
-    P = _load_or_randn((n_users, k), init_values= init_params['P'], device = device)
-    E = _load_or_randn((f_dim,k), init_values= init_params['E'], device = device)
+    P = _load_or_randn((n_users, d), init_values= init_params['P'], device = device)
+    E = _load_or_randn((f_dim,d), init_values= init_params['E'], device = device)
 
     # optimizer
     optimizer = torch.optim.RMSprop([U, V, P, E], lr= learning_rate)
