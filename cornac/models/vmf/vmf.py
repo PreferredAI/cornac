@@ -67,7 +67,8 @@ def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
 
         Xui = torch.sum(U_u * V_i, dim=1) + torch.sum(P_u * f_i.mm(E), dim = 1) 
         loss = _l2_loss(torch.tensor(batch_r, dtype=torch.float32) - Xui)
-        reg = lambda_u * _l2_loss(U_u) + lambda_v * _l2_loss(V_i) + lambda_p * _l2_loss(P_u)
+        reg = lambda_u * _l2_loss(U_u) + lambda_v * _l2_loss(V_i) \
+              + lambda_p * _l2_loss(P_u) + lambda_p * _l2_loss(E)
         loss += reg
 
         optimizer.zero_grad()
