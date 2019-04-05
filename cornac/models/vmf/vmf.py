@@ -80,4 +80,4 @@ def vmf(train_set, item_feature, k, n_epochs, batch_size, lambda_u, lambda_v,
     
     res = {'U':U.data.cpu().numpy(),'V':V.data.cpu().numpy(), 'P': P.data.cpu().numpy(), 'E': E.data.cpu().numpy(), 'Q': F.mm(E).data.cpu().numpy()}
 
-return res
+    return res
