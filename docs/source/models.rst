@@ -25,6 +25,11 @@ Online Indexable Bayesian Personalized Ranking (OIBPR)
 .. automodule:: cornac.models.online_ibpr.recom_online_ibpr
    :members:
 
+Visual Matrix Factorization (VMF)
+-----------------------------------------
+.. automodule:: cornac.models.vmf.recom_vmf
+   :members:   
+   
 Matrix Co-Factorization (MCF)
 -----------------------------------------
 .. automodule:: cornac.models.mcf.recom_mcf
