@@ -5,7 +5,6 @@
 """
 
 import numpy as np
-from .vmf import vmf
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
@@ -134,7 +133,8 @@ class VMF(Recommender):
 
             if self.verbose:
                 print('Learning...')
-             
+                
+            from .vmf import vmf
             res = vmf(self.train_set, self.item_features, k=self.k, d = self.d, n_epochs=self.n_epochs, batch_size = self.batch_size,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_p=self.lambda_p,
                       lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
