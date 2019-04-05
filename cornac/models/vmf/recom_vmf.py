@@ -10,7 +10,7 @@ from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
-from ...utils import fast_dot
+#from ...utils import fast_dot
 
 
 
@@ -25,8 +25,8 @@ class VMF(Recommender):
     d: int, optional, default: None
        The dimension of the user visual factors. When None, "d" is set to "k"
 
-    max_iter: int, optional, default: 100
-        Maximum number of iterations or the number of epochs for SGD.
+    n_epochs: int, optional, default: 100
+        The number of epochs for SGD.
 
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD_RMSProp.
