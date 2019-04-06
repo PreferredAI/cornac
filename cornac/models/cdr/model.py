@@ -2,21 +2,17 @@
 
 """
 @author:Tran Thanh Binh
-"""
 
-try:
-    import tensorflow as tf
-except ImportError:
-    tf = None
-"""
 Collaborative Deep Ranking model
 """
+
+import tensorflow as tf
 
 
 class Model:
     def __init__(self, n_users, n_items, n_vocab, k,
                  layers, lambda_u, lambda_v, lambda_n, lambda_w,
-                 lr, dropout_rate, loss_func, init_params=None):
+                 lr, dropout_rate, U, V):
 
         self.n_vocab = n_vocab
         self.n_users = n_users
@@ -29,20 +25,18 @@ class Model:
         self.lr = lr  # learning rate
         self.k = k  # latent dimension
         self.dropout_rate = dropout_rate
-        self.init_params = {} if init_params is None else init_params
-        self.loss_func = loss_func
+        self._build_graph(U_init=U, V_init=V)
 
-        self._build_graph()
-
-    def _build_graph(self):
+    def _build_graph(self, U_init, V_init):
         self.mask_input = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="mask_input")
         self.text_input = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="text_input")
 
         with tf.variable_scope("CDR_Variable"):
-            U_init = None if 'U' not in self.init_params else tf.constant_initializer(self.init_params['U'])
-            V_init = None if 'V' not in self.init_params else tf.constant_initializer(self.init_params['V'])
-            self.U = tf.get_variable(name='U', shape=[self.n_users, self.k], dtype=tf.float32, initializer=U_init)
-            self.V = tf.get_variable(name='V', shape=[self.n_items, self.k], dtype=tf.float32, initializer=V_init)
+            self.U = tf.get_variable(name='U', shape=[self.n_users, self.k], dtype=tf.float32,
+                                     initializer=tf.constant_initializer(U_init))
+
+            self.V = tf.get_variable(name='V', shape=[self.n_items, self.k], dtype=tf.float32,
+                                     initializer=tf.constant_initializer(V_init))
 
         self.batch_u = tf.placeholder(dtype=tf.int32)
         self.batch_i = tf.placeholder(dtype=tf.int32)
@@ -68,12 +62,7 @@ class Model:
         uj_score = tf.reduce_sum(tf.multiply(U_batch, J_batch), axis=1)
 
         # loss function for optimizing ranking
-        if self.loss_func == "squared":
-            loss_4 = tf.nn.l2_loss(1 - (ui_score - uj_score))
-        elif self.loss_func == "log":  # log_loss case
-            loss_4 = tf.reduce_sum(tf.log(1 + tf.math.exp(-(ui_score - uj_score))))
-        else:
-            raise ValueError("Not supported loss func {}".format(self.loss_func))
+        loss_4 = tf.nn.l2_loss(1 - (ui_score - uj_score))
 
         self.loss = loss_1 + loss_2 + loss_3 + loss_4
 

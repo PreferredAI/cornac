@@ -6,14 +6,8 @@
 
 from ..recommender import Recommender
 from ...exception import ScoreException
-from .model import Model
 import numpy as np
 from tqdm import tqdm
-
-try:
-    import tensorflow as tf
-except ImportError:
-    tf = None
 
 
 class CDR(Recommender):
@@ -72,13 +66,15 @@ class CDR(Recommender):
         V: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
 
+    Reference: Collaborative Deep Ranking: A Hybrid Pair-Wise Recommendation Algorithm with Implicit Feedback
+    Ying H., Chen L., Xiong Y., Wu J. (2016)
 
     """
 
     def __init__(self, k=50, autoencoder_structure=None, lambda_u=0.1, lambda_v=100,
                  lambda_w=0.1, lambda_n=1000, autoencoder_corruption=0.3, learning_rate=0.001,
                  dropout_rate=0.1, batch_size=128, max_iter=100, name="CDR", trainable=True, verbose=True,
-                 vocab_size=8000, loss_func="squared", init_params=None):
+                 vocab_size=8000, init_params=None):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -86,17 +82,16 @@ class CDR(Recommender):
         self.lambda_v = lambda_v
         self.lambda_w = lambda_w
         self.lambda_n = lambda_n
-        self.autoencoder_corruption = autoencoder_corruption
+        self.ae_corruption = autoencoder_corruption
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.name = name
-        self.init_params = init_params
         self.max_iter = max_iter
-        self.autoencoder_structure = autoencoder_structure
+        self.ae_structure = autoencoder_structure
         self.batch_size = batch_size
         self.verbose = verbose
         self.vocab_size = vocab_size
-        self.loss_func = loss_func
+        self.init_params = init_params if init_params is not None else {}
 
     # fit the recommender model to the traning data
     def fit(self, train_set):
@@ -111,17 +106,59 @@ class CDR(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        if not self.trainable:
-            print('%s is trained already (trainable = False)' % (self.name))
-            return
 
-        if self.verbose:
-            print('Learning...')
+        self.U = self.init_params.get('U', np.random.uniform(size=(train_set.num_users, self.k)))
+        self.V = self.init_params.get('V', np.random.uniform(size=(train_set.num_items, self.k)))
 
-        self._cdr(train_set=train_set)  # Collaborative Deep Ranking
+        if self.trainable:
+            self._cdr(train_set=train_set)  # Collaborative Deep Ranking
+
+    def _cdr(self, train_set):
+
+        import tensorflow as tf
+        from .model import Model
+
+        n_users = self.train_set.num_users
+        n_items = self.train_set.num_items
+
+        text_feature = self.train_set.item_text.batch_bow(np.arange(n_items))  # bag of word feature
+        text_feature = (text_feature - text_feature.min()) / (text_feature.max() - text_feature.min())  # normalization
+
+        layer_sizes = [self.vocab_size] + self.ae_structure + [self.k] + self.ae_structure + [self.vocab_size]
+
+        # Build model
+        model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
+                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w,
+                      lambda_n=self.lambda_n, lr=self.learning_rate, dropout_rate=self.dropout_rate, U=self.U, V=self.V)
+
+        # Training model
+        with tf.Session() as sess:
+            sess.run(tf.global_variables_initializer())
+
+            loop = tqdm(range(self.max_iter), disable=not self.verbose)
+            for _ in loop:
+                mask_corruption_np = np.random.binomial(1, 1 - self.ae_corruption,
+                                                        (n_items, self.vocab_size))
+
+                for batch_u, batch_i, batch_j in train_set.uij_iter(batch_size=self.batch_size, shuffle=True):
+                    feed_dict = {
+                        model.mask_input: mask_corruption_np[batch_i, :],
+                        model.text_input: text_feature[batch_i, :],
+                        model.batch_u: batch_u,
+                        model.batch_i: batch_i,
+                        model.batch_j: batch_j
+                    }
+
+                    sess.run(model.opt1, feed_dict)  # train U, V
+                    _, _loss = sess.run([model.opt2, model.loss], feed_dict)  # train SDAE
+                    loop.set_postfix(loss=_loss)
+
+            self.U, self.V = sess.run([model.U, model.V])
 
         if self.verbose:
             print('\nLearning completed')
+
+        tf.reset_default_graph()
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
@@ -154,48 +191,3 @@ class CDR(Recommender):
             user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
             return user_pred
-
-    def _cdr(self, train_set):
-
-        # get user and item weight
-
-        n_users = self.train_set.num_users
-        n_items = self.train_set.num_items
-
-        text_feature = self.train_set.item_text.batch_bow(np.arange(n_items))  # bag of word feature
-        text_feature = (text_feature - text_feature.min()) / (text_feature.max() - text_feature.min())  # normalization
-
-        layer_sizes = [self.vocab_size] + self.autoencoder_structure + [self.k] + \
-                      self.autoencoder_structure + [self.vocab_size]
-
-        # Build model
-        model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w,
-                      lambda_n=self.lambda_n, lr=self.learning_rate, dropout_rate=self.dropout_rate,
-                      loss_func=self.loss_func, init_params=self.init_params)
-
-        # Training model
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-
-            loop = tqdm(range(self.max_iter), disable=not self.verbose)
-            for _ in loop:
-                mask_corruption_np = np.random.binomial(1, 1 - self.autoencoder_corruption,
-                                                        (n_items, self.vocab_size))
-
-                for batch_u, batch_i, batch_j in train_set.uij_iter(batch_size=self.batch_size, shuffle=True):
-                    feed_dict = {
-                        model.mask_input: mask_corruption_np[batch_i, :],
-                        model.text_input: text_feature[batch_i, :],
-                        model.batch_u: batch_u,
-                        model.batch_i: batch_i,
-                        model.batch_j: batch_j
-                    }
-
-                    sess.run(model.opt1, feed_dict)  # train U, V
-                    _, _loss = sess.run([model.opt2, model.loss], feed_dict)  # train SDAE
-                    loop.set_postfix(loss=_loss)
-
-            self.U, self.V = sess.run([model.U, model.V])
-
-        tf.reset_default_graph()
