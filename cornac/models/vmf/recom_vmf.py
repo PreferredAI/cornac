@@ -140,11 +140,11 @@ class VMF(Recommender):
                       lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
                       init_params=self.init_params, use_gpu = self.use_gpu, verbose=self.verbose)
 
-            self.U = np.array(res['U'],dtype='float32')
-            self.V = np.array(res['V'],dtype='float32')
-            self.P = np.asarray(res['P'],dtype='float32')
-            self.E = np.asarray(res['E'],dtype='float32')
-            self.Q = np.array(res['Q'],dtype='float32') 
+            self.U = res['U']
+            self.V = res['V']
+            self.P = res['P']
+            self.E = res['E']
+            self.Q = res['Q']
 
             if self.verbose:
                 print('Learning completed')
