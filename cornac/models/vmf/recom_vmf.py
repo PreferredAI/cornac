@@ -171,7 +171,6 @@ class VMF(Recommender):
 
         """
         if item_id is None:
-            print ('I am here')
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
