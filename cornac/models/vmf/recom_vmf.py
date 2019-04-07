@@ -142,9 +142,9 @@ class VMF(Recommender):
 
             self.U = res['U']
             self.V = res['V']
-            self.P = res['P']
-            self.E = res['E']
-            self.Q = res['Q']
+            #self.P = res['P']
+            #self.E = res['E']
+            #self.Q = res['Q']
 
             if self.verbose:
                 print('Learning completed')
@@ -171,10 +171,11 @@ class VMF(Recommender):
 
         """
         if item_id is None:
+            print ('I am here')
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            known_item_scores = self.V.dot(self.U[user_id, :]) + self.Q.dot(self.P[user_id, :])
+            known_item_scores = self.V.dot(self.U[user_id, :]) #+ self.Q.dot(self.P[user_id, :])
             #known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
             #fast_dot(self.U[user_id], self.V, known_item_scores)
             #fast_dot(self.P[user_id], self.Q, known_item_scores)
@@ -182,10 +183,9 @@ class VMF(Recommender):
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-
-            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) + self.Q[item_id,:].dot(self.P[user_id, :])
-
+            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) #+ self.Q[item_id,:].dot(self.P[user_id, :])
             user_pred = sigmoid(user_pred)
+            
             if self.train_set.min_rating == self.train_set.max_rating:
                 user_pred = scale(user_pred, 0., self.train_set.max_rating, 0., 1.)
             else:
