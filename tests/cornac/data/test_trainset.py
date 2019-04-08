@@ -66,7 +66,7 @@ class TestMatrixTrainSet(unittest.TestCase):
 
         self.assertEqual(int(train_set.global_mean), int((3 * 2 + 4 * 7 + 5) / 10))
 
-        npt.assert_array_equal(train_set.item_ppl_rank, np.asarray([7, 9, 6, 5, 3, 2, 1, 0, 8, 4]))
+        npt.assert_array_equal(train_set.item_ppl_rank()[0], np.asarray([7, 9, 6, 5, 3, 2, 1, 0, 8, 4]))
 
         self.assertEqual(train_set.num_users, 10)
         self.assertEqual(train_set.num_items, 10)
@@ -153,16 +153,32 @@ class TestMatrixTrainSet(unittest.TestCase):
         self.assertEqual(len(train_set.uir_tuple), 3)
         self.assertEqual(len(train_set.uir_tuple[0]), 10)
 
-        train_set.uir_tuple = None
-        self.assertEqual(len(train_set.uir_tuple[1]), 10)
-        self.assertEqual(len(train_set.uir_tuple[2]), 10)
-
         try:
             train_set.uir_tuple = ([], [])
         except ValueError:
             assert True
 
         self.assertEqual(train_set.num_batches(batch_size=5), 2)
+
+
+    def test_matrix(self):
+        from scipy.sparse import csr_matrix, csc_matrix, dok_matrix
+
+        train_set = MatrixTrainSet.from_uir(self.triplet_data,
+                                            global_uid_map=None,
+                                            global_iid_map=None,
+                                            global_ui_set=None,
+                                            verbose=True)
+
+        self.assertTrue(isinstance(train_set.matrix, csr_matrix))
+        self.assertEqual(train_set.csr_matrix[0, 0], 4)
+        self.assertTrue(train_set.csr_matrix.has_sorted_indices)
+
+        self.assertTrue(isinstance(train_set.csc_matrix, csc_matrix))
+        self.assertEqual(train_set.csc_matrix[4, 4], 3)
+
+        self.assertTrue(isinstance(train_set.dok_matrix, dok_matrix))
+        self.assertEqual(train_set.dok_matrix[7, 7], 5)
 
 
 if __name__ == '__main__':
