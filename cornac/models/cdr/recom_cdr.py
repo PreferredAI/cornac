@@ -100,15 +100,15 @@ class CDR(Recommender):
         Parameters
         ----------
         train_set: object of type TrainSet, required
-            An object contraining the user-item preference in csr scipy sparse format,\
+            An object containing the user-item preference in csr scipy sparse format,\
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
 
         Recommender.fit(self, train_set)
 
-        self.U = self.init_params.get('U', np.random.uniform(size=(train_set.num_users, self.k)))
-        self.V = self.init_params.get('V', np.random.uniform(size=(train_set.num_items, self.k)))
+        self.U = self.init_params.get('U', np.random.normal(loc=0, scale=1, size=(train_set.num_users, self.k)))
+        self.V = self.init_params.get('V', np.random.normal(loc=0, scale=1, size=(train_set.num_users, self.k)))
 
         if self.trainable:
             self._cdr(train_set=train_set)  # Collaborative Deep Ranking
