@@ -112,7 +112,6 @@ class VMF(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        # X = self.train_set.matrix
 
         if self.trainable:
             
@@ -140,11 +139,11 @@ class VMF(Recommender):
                       lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
                       init_params=self.init_params, use_gpu = self.use_gpu, verbose=self.verbose)
 
-            self.U = np.array(res['U'],dtype='float32')
-            self.V = np.array(res['V'],dtype='float32')
-            self.P = np.asarray(res['P'],dtype='float32')
-            self.E = np.asarray(res['E'],dtype='float32')
-            self.Q = np.array(res['Q'],dtype='float32') 
+            self.U = res['U']
+            self.V = res['V']
+            self.P = res['P']
+            self.E = res['E']
+            self.Q = res['Q']
 
             if self.verbose:
                 print('Learning completed')
@@ -182,10 +181,9 @@ class VMF(Recommender):
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-
-            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) + self.Q[item_id,:].dot(self.P[user_id, :])
-
+            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) #+ self.Q[item_id,:].dot(self.P[user_id, :])
             user_pred = sigmoid(user_pred)
+            
             if self.train_set.min_rating == self.train_set.max_rating:
                 user_pred = scale(user_pred, 0., self.train_set.max_rating, 0., 1.)
             else:
