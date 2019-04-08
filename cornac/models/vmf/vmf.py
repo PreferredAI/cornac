@@ -50,38 +50,41 @@ def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
 
     # optimizer
     optimizer = torch.optim.RMSprop([U, V, P, E], lr= learning_rate)
+        
 
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
         count = 0
-        progress_bar = tqdm(total=train_set.num_batches(100),
+        progress_bar = tqdm(total=train_set.num_batches(batch_size),
                             desc='Epoch {}/{}'.format(epoch, n_epochs),
                             disable=not verbose)
         
-    for batch_u, batch_i, batch_r in train_set.uir_iter(batch_size, shuffle=True):
-        U_u = U[batch_u]
-        P_u = P[batch_u]
+        for batch_u, batch_i, batch_r in train_set.uir_iter(batch_size, shuffle=True):
+            U_u = U[batch_u]
+            P_u = P[batch_u]
+            V_i = V[batch_i]
+            f_i = F[batch_i]
+            
+            Rui = torch.tensor(batch_r, dtype=torch.float32)
+            
+            Xui = torch.sigmoid(torch.sum(U_u * V_i, dim=1) + torch.sum(P_u * f_i.mm(E), dim = 1)) 
+            
+            loss = _l2_loss(Rui - Xui)
+            reg = lambda_u * _l2_loss(U_u) + lambda_v * _l2_loss(V_i) \
+                  + lambda_p * _l2_loss(P_u) + lambda_e * _l2_loss(E)
+            loss = loss + reg 
 
-        V_i = V[batch_i]
-        f_i = F[batch_i]
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        Xui = torch.sum(U_u * V_i, dim=1) + torch.sum(P_u * f_i.mm(E), dim = 1) 
-        loss = _l2_loss(torch.tensor(batch_r, dtype=torch.float32) - Xui)
-        reg = lambda_u * _l2_loss(U_u) + lambda_v * _l2_loss(V_i) \
-              + lambda_p * _l2_loss(P_u) + lambda_p * _l2_loss(E)
-        loss += reg
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        sum_loss += loss.data.item()
-        count += len(batch_u)
-        if count % (batch_size * 10) == 0:
-            progress_bar.set_postfix(loss=(sum_loss / count))
-        progress_bar.update(1)
-    progress_bar.close()
-    
+            sum_loss += loss.data.item()
+            count += len(batch_u)
+            if count % (batch_size * 10) == 0:
+                progress_bar.set_postfix(loss=(sum_loss / count))
+            progress_bar.update(1)
+        progress_bar.close()
+        print(sum_loss)
     res = {'U':U.data.cpu().numpy(),'V':V.data.cpu().numpy(), 'P': P.data.cpu().numpy(), 'E': E.data.cpu().numpy(), 'Q': F.mm(E).data.cpu().numpy()}
 
     return res
