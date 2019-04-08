@@ -7,7 +7,6 @@
 from ..recommender import Recommender
 from ...exception import ScoreException
 import numpy as np
-from tqdm import tqdm
 
 
 class CDR(Recommender):
@@ -67,12 +66,11 @@ class CDR(Recommender):
 
     """
 
-    def __init__(self, k=50, autoencoder_structure=None, lambda_u=0.1, lambda_v=100,
+    def __init__(self, name="CDR", k=50, autoencoder_structure=None, lambda_u=0.1, lambda_v=100,
                  lambda_w=0.1, lambda_n=1000, autoencoder_corruption=0.3, learning_rate=0.001,
-                 dropout_rate=0.1, batch_size=128, max_iter=100, name="CDR", trainable=True, verbose=True,
+                 dropout_rate=0.1, batch_size=128, max_iter=100, trainable=True, verbose=True,
                  vocab_size=8000, init_params=None):
-
-        Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
@@ -103,15 +101,17 @@ class CDR(Recommender):
 
         Recommender.fit(self, train_set)
 
-        self.U = self.init_params.get('U', np.random.normal(loc=0, scale=1, size=(train_set.num_users, self.k)))
-        self.V = self.init_params.get('V', np.random.normal(loc=0, scale=1, size=(train_set.num_users, self.k)))
+        from ...utils.init_utils import xavier_uniform
+
+        self.U = xavier_uniform(shape=(train_set.num_users, self.k))
+        self.V = xavier_uniform(shape=(train_set.num_items, self.k))
 
         if self.trainable:
             self._cdr(train_set=train_set)  # Collaborative Deep Ranking
 
     def _cdr(self, train_set):
-
         import tensorflow as tf
+        from tqdm import tqdm
         from .model import Model
 
         n_users = self.train_set.num_users
