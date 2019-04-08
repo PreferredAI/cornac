@@ -10,12 +10,11 @@ from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
-import math
-from cornac.models.sorec import sorec
 
 
-class SOREC(Recommender):
-    """Probabilistic Matrix Factorization.
+class SoRec(Recommender):
+    """Social recommendation using Probabilistic Matrix Factorization.
+
     Parameters
     ----------
     k: int, optional, default: 5
@@ -24,7 +23,6 @@ class SOREC(Recommender):
         Maximum number of iterations or the number of epochs for SGD.
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD_RMSProp.
-
     gamma: float, optional, default: 0.9
         The weight for previous/current gradient in RMSProp.
     lamda: float, optional, default: 0.001
@@ -33,14 +31,12 @@ class SOREC(Recommender):
         The parameter balances the information from the user-item rating matrix and the user social network.
     name: string, optional, default: 'SOREC'
         The name of the recommender model.
-
     variant: {"linear","non_linear"}, optional, default: 'non_linear'
         Pmf variant. If 'non_linear', the Gaussian mean is the output of a Sigmoid function.\
         If 'linear' the Gaussian mean is the output of the identity function.
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U, V and Z are not None).
-
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
     init_params: dictionary, optional, default: {'U':None,'V':None}
@@ -48,13 +44,14 @@ class SOREC(Recommender):
         U: a ndarray of shape (n_users,l), containing the user latent factors. \
         V: a ndarray of shape (n_items,l), containing the item latent factors. \
         Z: a ndarray of shape (n_users,l), containing the social network latent factors. \
+
     References
     ----------
     * H. Ma, H. Yang, M. R. Lyu, and I. King. SoRec:Social recommendation using probabilistic matrix factorization. \
      CIKM ’08, pages 931–940, Napa Valley, USA, 2008.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate=0.001, lamda_C=10, lamda=0.001, gamma=0.9, name="SOREC",
+    def __init__(self, name="SoRec", k=5, max_iter=100, learning_rate=0.001, lamda_C=10, lamda=0.001, gamma=0.9,
                  trainable=True, verbose=False, init_params={'U': None, 'V': None, 'Z': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -95,6 +92,8 @@ class SOREC(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
+        import math
+        from cornac.models.sorec import sorec
 
         Recommender.fit(self, train_set)
 
