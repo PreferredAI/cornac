@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 
 class CDR(Recommender):
-    """Collaborative Deep Learning.
+    """Collaborative Deep Ranking.
 
     Parameters
     ----------
@@ -26,10 +26,6 @@ class CDR(Recommender):
 
     learning_rate: float, optional, default: 0.001
         The learning rate for AdamOptimizer.
-
-    loss_func: string , optional, default: "squared"
-        Loss function name for optimizing ranking.
-        Either "squared" or "log"
 
     lambda_u: float, optional, default: 0.1
         The regularization parameter for users.
