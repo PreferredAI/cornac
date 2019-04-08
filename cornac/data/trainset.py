@@ -4,7 +4,7 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, csc_matrix, dok_matrix
 from collections import OrderedDict
 from ..utils import estimate_batches
 import numpy as np
@@ -107,8 +107,8 @@ class MatrixTrainSet(TrainSet):
 
     Parameters
     ----------
-    matrix: :obj:`scipy.sparse.csr_matrix`
-        Preferences in the form of scipy sparse matrix.
+    uir_tuple: tuple
+        Tuple of 3 numpy arrays (users, items, ratings).
 
     max_rating: float
         Maximum value of the preferences.
@@ -127,29 +127,18 @@ class MatrixTrainSet(TrainSet):
 
     """
 
-    def __init__(self, matrix, max_rating, min_rating, global_mean, uid_map, iid_map):
-        TrainSet.__init__(self, uid_map, iid_map)
-        self.matrix = matrix
+    def __init__(self, uir_tuple, max_rating, min_rating, global_mean, uid_map, iid_map):
+        super().__init__(uid_map, iid_map)
+        self.uir_tuple = uir_tuple
         self.max_rating = max_rating
         self.min_rating = min_rating
         self.global_mean = global_mean
-        self.item_ppl_rank, self.item_ppl_scores = self._rank_items_by_popularity(matrix)
-        self.uir_tuple = None
+        self.__csr_matrix = None
+        self.__csc_matrix = None
+        self.__dok_matrix = None
 
     @property
     def uir_tuple(self):
-        if not self.__uir_tuple:
-            # rating matrix is assumed in the CSR format
-            if not self.matrix.has_sorted_indices:
-                self.matrix.sort_indices()
-
-            # this basically calculates the 'row' attribute of a COO matrix
-            # without requiring us to get the whole COO matrix
-            num_users = self.matrix.shape[0]
-            user_counts = np.ediff1d(self.matrix.indptr)
-            user_ids = np.repeat(np.arange(num_users), user_counts).astype(self.matrix.indices.dtype)
-
-            self.__uir_tuple = (user_ids, self.matrix.indices, self.matrix.data)
         return self.__uir_tuple
 
     @uir_tuple.setter
@@ -158,22 +147,43 @@ class MatrixTrainSet(TrainSet):
             raise ValueError('input_tuple required to be size 3 but size {}'.format(len(input_tuple)))
         self.__uir_tuple = input_tuple
 
-    @staticmethod
-    def _rank_items_by_popularity(rating_matrix):
-        """Rank items by their popularity.
+    @property
+    def matrix(self):
+        return self.csr_matrix
 
-        Parameters
-        ----------
-        rating_matrix: :obj:`scipy.sparse.csr_matrix`
-            Preference matrix.
+    @property
+    def csr_matrix(self):
+        if self.__csr_matrix is None:
+            (u_indices, i_indices, r_values) = self.uir_tuple
+            self.__csr_matrix = csr_matrix((r_values, (u_indices, i_indices)),
+                                           shape=(self.num_users, self.num_items))
+        return self.__csr_matrix
+
+    @property
+    def csc_matrix(self):
+        if self.__csc_matrix is None:
+            (u_indices, i_indices, r_values) = self.uir_tuple
+            self.__csc_matrix = csc_matrix((r_values, (u_indices, i_indices)),
+                                           shape=(self.num_users, self.num_items))
+        return self.__csc_matrix
+
+    @property
+    def dok_matrix(self):
+        if self.__dok_matrix is None:
+            self.__dok_matrix = dok_matrix((self.num_users, self.num_items), dtype=np.float32)
+            for u, i, r in zip(*self.uir_tuple):
+                self.__dok_matrix[u, i] = r
+        return self.__dok_matrix
+
+    def item_ppl_rank(self):
+        """Rank items by their popularity.
 
         Returns
         -------
-        train_set: :obj:`<numpy.matrix>`
-        Ranked matrix according to item popularity.
-
+        item_rank, item_scores: array, array
+            Ranking and scores for all items
         """
-        item_scores = rating_matrix.sum(axis=0)
+        item_scores = self.csc_matrix.sum(axis=0)
         item_rank = np.argsort(item_scores.A1)[::-1]
         return item_rank, item_scores
 
@@ -246,10 +256,11 @@ class MatrixTrainSet(TrainSet):
             i_indices.append(mapped_iid)
             r_values.append(rating)
 
-        # csr_matrix is more efficient for row (user) slicing
-        csr_mat = csr_matrix((r_values, (u_indices, i_indices)), shape=(len(uid_map), len(iid_map)))
         global_mean = rating_sum / rating_count
 
+        uir_tuple = (np.asarray(u_indices, dtype=np.int),
+                     np.asarray(i_indices, dtype=np.int),
+                     np.asarray(r_values, dtype=np.float))
         if verbose:
             print('Number of training users = {}'.format(len(uid_map)))
             print('Number of training items = {}'.format(len(iid_map)))
@@ -257,14 +268,7 @@ class MatrixTrainSet(TrainSet):
             print('Min rating = {:.1f}'.format(min_rating))
             print('Global mean = {:.1f}'.format(global_mean))
 
-        train_set = cls(csr_mat, max_rating, min_rating, global_mean, uid_map, iid_map)
-
-        # since we have triplet arrays, let's construct uir_tuple for the train_set
-        train_set.uir_tuple = (np.asarray(u_indices, dtype=np.int),
-                               np.asarray(i_indices, dtype=np.int),
-                               np.asarray(r_values, dtype=np.float))
-
-        return train_set
+        return cls(uir_tuple, max_rating, min_rating, global_mean, uid_map, iid_map)
 
     def num_batches(self, batch_size):
         return estimate_batches(len(self.uir_tuple[0]), batch_size)
@@ -314,7 +318,7 @@ class MatrixTrainSet(TrainSet):
             batch_neg_items = np.zeros_like(batch_pos_items)
             for i, (user, pos_rating) in enumerate(zip(batch_users, batch_pos_ratings)):
                 neg_item = np.random.randint(0, self.num_items)
-                while self.matrix[user, neg_item] >= pos_rating:
+                while self.dok_matrix[user, neg_item] >= pos_rating:
                     neg_item = np.random.randint(0, self.num_items)
                 batch_neg_items[i] = neg_item
             yield batch_users, batch_pos_items, batch_neg_items
