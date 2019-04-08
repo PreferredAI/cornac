@@ -112,7 +112,6 @@ class VMF(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        # X = self.train_set.matrix
 
         if self.trainable:
             
@@ -142,9 +141,9 @@ class VMF(Recommender):
 
             self.U = res['U']
             self.V = res['V']
-            #self.P = res['P']
-            #self.E = res['E']
-            #self.Q = res['Q']
+            self.P = res['P']
+            self.E = res['E']
+            self.Q = res['Q']
 
             if self.verbose:
                 print('Learning completed')
@@ -174,7 +173,7 @@ class VMF(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            known_item_scores = self.V.dot(self.U[user_id, :]) #+ self.Q.dot(self.P[user_id, :])
+            known_item_scores = self.V.dot(self.U[user_id, :]) + self.Q.dot(self.P[user_id, :])
             #known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
             #fast_dot(self.U[user_id], self.V, known_item_scores)
             #fast_dot(self.P[user_id], self.Q, known_item_scores)
