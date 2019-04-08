@@ -10,6 +10,14 @@ import numpy as np
 
 def sigmoid(x):
     """Sigmoid function"""
+    
+    MAX_EXP = 6.0
+    
+    if x > MAX_EXP:
+        return 1.0
+    if x < -MAX_EXP:
+        return 0.0
+    
     return 1. / (1. + np.exp(-x))
 
 
