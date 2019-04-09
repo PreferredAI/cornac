@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-@author:Trieu Thi Ly Ly, Tran Thanh Binh
+@author: Trieu Thi Ly Ly, Tran Thanh Binh
 """
 
 import tensorflow as tf
