@@ -6,6 +6,7 @@
 
 from tqdm import tqdm
 from ...utils.common import scale
+import numpy as np
 
 
 try:
@@ -17,7 +18,8 @@ except ImportError:
 
 def _load_or_randn(size, init_values, device):
     if init_values is None:
-        tensor = torch.randn(size, requires_grad=True, device=device)
+        tensor = np.random.normal(loc=0.0, scale=0.001, size=size)
+        tensor = torch.tensor(tensor, device=device, requires_grad=True)
     else:
         tensor = torch.tensor(init_values, requires_grad=True, device=device)
     return tensor
