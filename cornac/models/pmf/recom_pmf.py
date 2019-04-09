@@ -87,7 +87,6 @@ class PMF(Recommender):
         """
 
         Recommender.fit(self, train_set)
-        # X = self.train_set.matrix
 
         if self.trainable:
             # converting data to the triplet format (needed for cython function pmf)
@@ -95,14 +94,9 @@ class PMF(Recommender):
             rat = np.array(rat, dtype='float32')
             if self.variant == 'non_linear':  # need to map the ratings to [0,1]
                 if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                    if self.train_set.min_rating == self.train_set.max_rating:
-                        rat = scale(rat, 0., 1., 0., self.train_set.max_rating)
-                    else:
-                        rat = scale(rat, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
+                    rat = scale(rat, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
             uid = np.array(uid, dtype='int32')
             iid = np.array(iid, dtype='int32')
-            # tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
-            # del rid, cid, val
 
             if self.verbose:
                 print('Learning...')
@@ -160,9 +154,6 @@ class PMF(Recommender):
 
             if self.variant == "non_linear":
                 user_pred = sigmoid(user_pred)
-                if self.train_set.min_rating == self.train_set.max_rating:
-                    user_pred = scale(user_pred, 0., self.train_set.max_rating, 0., 1.)
-                else:
-                    user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+                user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
             return user_pred
