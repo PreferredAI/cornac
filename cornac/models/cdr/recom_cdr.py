@@ -20,8 +20,9 @@ class CDR(Recommender):
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs for SGD.
 
-    autoencoder_structure：array, optional, default: [200]
-        The number of neurons of encoder/ decoder layer for SDAE
+    autoencoder_structure: list, default: None
+        The number of neurons of encoder/decoder layer for SDAE.
+        For example, autoencoder_structure = [200], the SDAE structure will be [vocab_size, 200, k, 200, vocab_size]
 
     learning_rate: float, optional, default: 0.001
         The learning rate for AdamOptimizer.
@@ -38,13 +39,13 @@ class CDR(Recommender):
     lambda_n: float, optional, default: 1000
         The regularization parameter for SDAE output.
 
-    autoencoder_corruption: float, optional, default: 0.3
+    corruption_rate: float, optional, default: 0.3
         The corruption ratio for SDAE.
 
     dropout_rate: float, optional, default: 0.1
         The probability that each element is removed in dropout of SDAE.
 
-    batch_size: int, optional, default: 100
+    batch_size: int, optional, default: 128
         The batch size for SGD.
 
     name: string, optional, default: 'CDR'
@@ -61,22 +62,25 @@ class CDR(Recommender):
         V: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
 
+    seed: int, optional, default: None
+        Random seed for weight initialization.
+
     Reference: Collaborative Deep Ranking: A Hybrid Pair-Wise Recommendation Algorithm with Implicit Feedback
     Ying H., Chen L., Xiong Y., Wu J. (2016)
 
     """
 
     def __init__(self, name="CDR", k=50, autoencoder_structure=None, lambda_u=0.1, lambda_v=100,
-                 lambda_w=0.1, lambda_n=1000, autoencoder_corruption=0.3, learning_rate=0.001,
+                 lambda_w=0.1, lambda_n=1000, corruption_rate=0.3, learning_rate=0.001,
                  dropout_rate=0.1, batch_size=128, max_iter=100, trainable=True, verbose=True,
-                 vocab_size=8000, init_params=None):
+                 vocab_size=8000, init_params=None, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.lambda_w = lambda_w
         self.lambda_n = lambda_n
-        self.ae_corruption = autoencoder_corruption
+        self.corruption_rate = corruption_rate
         self.dropout_rate = dropout_rate
         self.learning_rate = learning_rate
         self.name = name
@@ -86,6 +90,7 @@ class CDR(Recommender):
         self.verbose = verbose
         self.vocab_size = vocab_size
         self.init_params = init_params if init_params is not None else {}
+        self.seed = seed
 
     # fit the recommender model to the traning data
     def fit(self, train_set):
@@ -98,21 +103,22 @@ class CDR(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
-
         Recommender.fit(self, train_set)
 
         from ...utils.init_utils import xavier_uniform
 
-        self.U = xavier_uniform(shape=(train_set.num_users, self.k))
-        self.V = xavier_uniform(shape=(train_set.num_items, self.k))
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.seed))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.seed))
 
         if self.trainable:
-            self._cdr(train_set=train_set)  # Collaborative Deep Ranking
+            self._cdr()  # Collaborative Deep Ranking
 
-    def _cdr(self, train_set):
+    def _cdr(self):
         import tensorflow as tf
-        from tqdm import tqdm
+        from tqdm import trange
         from .model import Model
+
+        np.random.seed(self.seed)
 
         n_users = self.train_set.num_users
         n_items = self.train_set.num_items
@@ -128,17 +134,21 @@ class CDR(Recommender):
                       lambda_n=self.lambda_n, lr=self.learning_rate, dropout_rate=self.dropout_rate, U=self.U, V=self.V)
 
         # Training model
-        with tf.Session() as sess:
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
 
-            loop = tqdm(range(self.max_iter), disable=not self.verbose)
+            loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
-                mask_corruption_np = np.random.binomial(1, 1 - self.ae_corruption,
-                                                        (n_items, self.vocab_size))
-
-                for batch_u, batch_i, batch_j in train_set.uij_iter(batch_size=self.batch_size, shuffle=True):
+                corruption_mask = np.random.binomial(1, 1 - self.corruption_rate,
+                                                     (n_items, self.vocab_size))
+                sum_loss = 0
+                count = 0
+                batch_count = 0
+                for batch_u, batch_i, batch_j in self.train_set.uij_iter(batch_size=self.batch_size, shuffle=True):
                     feed_dict = {
-                        model.mask_input: mask_corruption_np[batch_i, :],
+                        model.mask_input: corruption_mask[batch_i, :],
                         model.text_input: text_feature[batch_i, :],
                         model.batch_u: batch_u,
                         model.batch_i: batch_i,
@@ -147,7 +157,12 @@ class CDR(Recommender):
 
                     sess.run(model.opt1, feed_dict)  # train U, V
                     _, _loss = sess.run([model.opt2, model.loss], feed_dict)  # train SDAE
-                    loop.set_postfix(loss=_loss)
+
+                    sum_loss += _loss
+                    count += len(batch_u)
+                    batch_count += 1
+                    if batch_count % 10 == 0:
+                        loop.set_postfix(loss=(sum_loss / count))
 
             self.U, self.V = sess.run([model.U, model.V])
 
