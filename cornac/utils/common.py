@@ -20,7 +20,7 @@ def scale(values, target_min, target_max, source_min=None, source_max=None):
     Parameters
     ----------
     values : Numpy array, required
-        Values to be clipped.
+        Values to be scaled.
 
     target_min : scalar, required
         Target minimum value.
