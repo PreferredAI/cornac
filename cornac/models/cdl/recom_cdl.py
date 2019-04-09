@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-@author: Trieu Thi Ly Ly 
+@author: Trieu Thi Ly Ly, Tran Thanh Binh
 """
 
 from ..recommender import Recommender
@@ -126,8 +126,8 @@ class CDL(Recommender):
 
     def _cdl(self):
         import tensorflow as tf
-        from .cdl import Model
         from tqdm import trange
+        from .cdl import Model
 
         np.random.seed(self.seed)
 
@@ -146,7 +146,9 @@ class CDL(Recommender):
                       lr=self.learning_rate, dropout_rate=self.dropout_rate, U_init=self.U, V_init=self.V)
 
         # Training model
-        with tf.Session() as sess:
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
 
             loop = trange(self.max_iter, disable=not self.verbose)
