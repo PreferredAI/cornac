@@ -31,6 +31,7 @@ class TestCommon(unittest.TestCase):
         self.assertEqual(1, scale(0, 1, 5, 0, 1))
         self.assertEqual(3, scale(0.5, 1, 5, 0, 1))
         self.assertEqual(5, scale(1, 1, 5, 0, 1))
+        self.assertEqual(1, scale(5, 0, 1, 5, 5))
 
         npt.assert_array_equal(scale(np.asarray([0, 0.25, 0.5, 0.75, 1]), 1, 5),
                                np.asarray([1, 2, 3, 4, 5]))
