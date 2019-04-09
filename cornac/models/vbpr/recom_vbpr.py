@@ -55,7 +55,7 @@ class VBPR(Recommender):
 
     References
     ----------
-    * HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.
+    * He, R., & McAuley, J. (2016). VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback.
     """
 
     def __init__(self, name='VBPR', k=10, k2=10,
@@ -88,15 +88,6 @@ class VBPR(Recommender):
         self.theta_item = np.matmul(features, self.emb_matrix)
         self.visual_bias = np.matmul(features, self.beta_prime).ravel()
 
-    def _l2_loss(self, *tensors):
-        l2_loss = 0
-        for tensor in tensors:
-            l2_loss += tensor.pow(2).sum()
-        return l2_loss / 2
-
-    def _inner(self, a, b):
-        return (a * b).sum(dim=1)
-
     def fit(self, train_set):
         """Fit the model.
 
@@ -117,36 +108,44 @@ class VBPR(Recommender):
                            n_items=train_set.num_items,
                            features=train_features)
 
-        if not self.trainable:
-            return
+        if self.trainable:
+            self._fit_torch(train_features)
 
+    def _fit_torch(self, train_features):
         import torch
         from tqdm import tqdm
 
-        if self.use_gpu and torch.cuda.is_available():
-            device = torch.device("cuda:0")
-        else:
-            device = torch.device("cpu")
+        def _l2_loss(*tensors):
+            l2_loss = 0
+            for tensor in tensors:
+                l2_loss += tensor.pow(2).sum()
+            return l2_loss / 2
 
-        F = torch.from_numpy(train_features).float().to(device)
+        def _inner(a, b):
+            return (a * b).sum(dim=1)
 
+        dtype = torch.float
+        device = torch.device("cuda:0") if (self.use_gpu and torch.cuda.is_available()) \
+            else torch.device("cpu")
+
+        F = torch.tensor(train_features, device=device, dtype=dtype)
         # Learned parameters
-        Bi = torch.tensor(self.beta_item, dtype=torch.float32, requires_grad=True, device=device)
-        Gu = torch.tensor(self.gamma_user, dtype=torch.float32, requires_grad=True, device=device)
-        Gi = torch.tensor(self.gamma_item, dtype=torch.float32, requires_grad=True, device=device)
-        Tu = torch.tensor(self.theta_user, dtype=torch.float32, requires_grad=True, device=device)
-        E = torch.tensor(self.emb_matrix, dtype=torch.float32, requires_grad=True, device=device)
-        Bp = torch.tensor(self.beta_prime, dtype=torch.float32, requires_grad=True, device=device)
+        Bi = torch.tensor(self.beta_item, device=device, dtype=dtype, requires_grad=True)
+        Gu = torch.tensor(self.gamma_user, device=device, dtype=dtype, requires_grad=True)
+        Gi = torch.tensor(self.gamma_item, device=device, dtype=dtype, requires_grad=True)
+        Tu = torch.tensor(self.theta_user, device=device, dtype=dtype, requires_grad=True)
+        E = torch.tensor(self.emb_matrix, device=device, dtype=dtype, requires_grad=True)
+        Bp = torch.tensor(self.beta_prime, device=device, dtype=dtype, requires_grad=True)
 
         optimizer = torch.optim.Adam([Bi, Gu, Gi, Tu, E, Bp], lr=self.learning_rate)
 
         for epoch in range(1, self.n_epochs + 1):
             sum_loss = 0.
             count = 0
-            progress_bar = tqdm(total=train_set.num_batches(self.batch_size),
+            progress_bar = tqdm(total=self.train_set.num_batches(self.batch_size),
                                 desc='Epoch {}/{}'.format(epoch, self.n_epochs),
                                 disable=not self.verbose)
-            for batch_u, batch_i, batch_j in train_set.uij_iter(self.batch_size, shuffle=True):
+            for batch_u, batch_i, batch_j in self.train_set.uij_iter(self.batch_size, shuffle=True):
                 gamma_u = Gu[batch_u]
                 theta_u = Tu[batch_u]
 
@@ -161,16 +160,16 @@ class VBPR(Recommender):
                 feat_diff = feat_i - feat_j
 
                 Xuij = beta_i - beta_j \
-                       + self._inner(gamma_u, gamma_diff) \
-                       + self._inner(theta_u, feat_diff.mm(E)) \
+                       + _inner(gamma_u, gamma_diff) \
+                       + _inner(theta_u, feat_diff.mm(E)) \
                        + feat_diff.mm(Bp)
 
                 log_likelihood = torch.nn.functional.logsigmoid(Xuij).sum()
 
-                reg = self.lambda_w * self._l2_loss(gamma_u, gamma_i, gamma_j, theta_u) \
-                      + self.lambda_b * self._l2_loss(beta_i) \
-                      + self.lambda_b / 10 * self._l2_loss(beta_j) \
-                      + self.lambda_e * self._l2_loss(E, Bp)
+                reg = _l2_loss(gamma_u, gamma_i, gamma_j, theta_u) * self.lambda_w \
+                      + _l2_loss(beta_i) * self.lambda_b \
+                      + _l2_loss(beta_j) * self.lambda_b / 10 \
+                      + _l2_loss(E, Bp) * self.lambda_e
 
                 loss = - log_likelihood + reg
 
