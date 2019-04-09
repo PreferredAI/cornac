@@ -7,13 +7,7 @@
 from ..recommender import Recommender
 from ...exception import CornacException
 import numpy as np
-from tqdm import tqdm
 from ...utils import fast_dot
-
-try:
-    import torch
-except ImportError:
-    torch = None
 
 
 class VBPR(Recommender):
@@ -64,12 +58,12 @@ class VBPR(Recommender):
     * HE, Ruining et MCAULEY, Julian. VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback. In : AAAI. 2016. p. 144-150.
     """
 
-    def __init__(self,
-                 k=10, k2=10,
-                 n_epochs=20, batch_size=100, learning_rate=0.001,
+    def __init__(self, name='VBPR', k=10, k2=10,
+                 n_epochs=50, batch_size=100, learning_rate=0.005,
                  lambda_w=0.01, lambda_b=0.01, lambda_e=0.0,
-                 use_gpu=False, trainable=True, verbose=True, init_params=None):
-        Recommender.__init__(self, name='VBPR', trainable=trainable, verbose=verbose)
+                 use_gpu=False, trainable=True, verbose=True,
+                 init_params=None):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.k2 = k2
         self.n_epochs = n_epochs
@@ -78,38 +72,30 @@ class VBPR(Recommender):
         self.lambda_w = lambda_w
         self.lambda_b = lambda_b
         self.lambda_e = lambda_e
+        self.use_gpu = use_gpu
         self.init_params = {} if init_params is None else init_params
 
-        if use_gpu and torch.cuda.is_available():
-            self.device = torch.device("cuda:0")
-        else:
-            self.device = torch.device("cpu")
+    def _init_factors(self, n_users, n_items, features):
+        from ...utils.init_utils import zeros, xavier_uniform
 
-    def _load_or_randn(self, size, init_values=None):
-        if init_values is None:
-            tensor = torch.randn(size, requires_grad=True, device=self.device)
-        else:
-            tensor = torch.tensor(init_values, requires_grad=True, device=self.device)
-        return tensor
-
-    def _init_params(self, n_users, n_items, feat_dim):
-        Bi = self._load_or_randn((n_items), init_values=self.init_params.get('Bi', None))
-        Gu = self._load_or_randn((n_users, self.k), init_values=self.init_params.get('Gu', None))
-        Gi = self._load_or_randn((n_items, self.k), init_values=self.init_params.get('Gi', None))
-        Tu = self._load_or_randn((n_users, self.k2), init_values=self.init_params.get('Tu', None))
-        E = self._load_or_randn((feat_dim, self.k2), init_values=self.init_params.get('E', None))
-        Bp = self._load_or_randn((feat_dim, 1), init_values=self.init_params.get('Bp', None))
-
-        return Bi, Gu, Gi, Tu, E, Bp
+        self.beta_item = self.init_params.get('Bi', zeros(n_items))
+        self.gamma_user = self.init_params.get('Gu', xavier_uniform((n_users, self.k)))
+        self.gamma_item = self.init_params.get('Gi', xavier_uniform((n_items, self.k)))
+        self.theta_user = self.init_params.get('Tu', xavier_uniform((n_users, self.k2)))
+        self.emb_matrix = self.init_params.get('E', xavier_uniform((features.shape[1], self.k2)))
+        self.beta_prime = self.init_params.get('Bp', xavier_uniform((features.shape[1], 1)))
+        # pre-computed for faster evaluation
+        self.theta_item = np.matmul(features, self.emb_matrix)
+        self.visual_bias = np.matmul(features, self.beta_prime).ravel()
 
     def _l2_loss(self, *tensors):
         l2_loss = 0
         for tensor in tensors:
-            l2_loss += torch.sum(tensor ** 2) / 2
-        return l2_loss
+            l2_loss += tensor.pow(2).sum()
+        return l2_loss / 2
 
     def _inner(self, a, b):
-        return torch.sum(a * b, dim=1)
+        return (a * b).sum(dim=1)
 
     def fit(self, train_set):
         """Fit the model.
@@ -122,21 +108,36 @@ class VBPR(Recommender):
         """
         Recommender.fit(self, train_set)
 
-        if not self.trainable:
-            print('%s is trained already (trainable = False)' % (self.name))
-            return
-
         if train_set.item_image is None:
             raise CornacException('item_image module is required but None.')
 
         # Item visual feature from CNN
-        self.item_feature = train_set.item_image.features[:self.train_set.num_items]
-        F = torch.from_numpy(self.item_feature).float().to(self.device)
+        train_features = train_set.item_image.features[:self.train_set.num_items].astype(np.float32)
+        self._init_factors(n_users=train_set.num_users,
+                           n_items=train_set.num_items,
+                           features=train_features)
+
+        if not self.trainable:
+            return
+
+        import torch
+        from tqdm import tqdm
+
+        if self.use_gpu and torch.cuda.is_available():
+            device = torch.device("cuda:0")
+        else:
+            device = torch.device("cpu")
+
+        F = torch.from_numpy(train_features).float().to(device)
 
         # Learned parameters
-        Bi, Gu, Gi, Tu, E, Bp = self._init_params(n_users=train_set.num_users,
-                                                  n_items=train_set.num_items,
-                                                  feat_dim=train_set.item_image.feature_dim)
+        Bi = torch.tensor(self.beta_item, dtype=torch.float32, requires_grad=True, device=device)
+        Gu = torch.tensor(self.gamma_user, dtype=torch.float32, requires_grad=True, device=device)
+        Gi = torch.tensor(self.gamma_item, dtype=torch.float32, requires_grad=True, device=device)
+        Tu = torch.tensor(self.theta_user, dtype=torch.float32, requires_grad=True, device=device)
+        E = torch.tensor(self.emb_matrix, dtype=torch.float32, requires_grad=True, device=device)
+        Bp = torch.tensor(self.beta_prime, dtype=torch.float32, requires_grad=True, device=device)
+
         optimizer = torch.optim.Adam([Bi, Gu, Gi, Tu, E, Bp], lr=self.learning_rate)
 
         for epoch in range(1, self.n_epochs + 1):
@@ -164,7 +165,7 @@ class VBPR(Recommender):
                        + self._inner(theta_u, feat_diff.mm(E)) \
                        + feat_diff.mm(Bp)
 
-                log_likelihood = torch.log(torch.sigmoid(Xuij) + 1e-10).sum()
+                log_likelihood = torch.nn.functional.logsigmoid(Xuij).sum()
 
                 reg = self.lambda_w * self._l2_loss(gamma_u, gamma_i, gamma_j, theta_u) \
                       + self.lambda_b * self._l2_loss(beta_i) \
@@ -184,6 +185,8 @@ class VBPR(Recommender):
                 progress_bar.update(1)
             progress_bar.close()
 
+        print('Optimization finished!')
+
         self.beta_item = Bi.data.cpu().numpy()
         self.gamma_user = Gu.data.cpu().numpy()
         self.gamma_item = Gi.data.cpu().numpy()
@@ -192,8 +195,6 @@ class VBPR(Recommender):
         # pre-computed for faster evaluation
         self.theta_item = F.mm(E).data.cpu().numpy()
         self.visual_bias = F.mm(Bp).data.cpu().numpy().ravel()
-
-        print('Optimization finished!')
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
