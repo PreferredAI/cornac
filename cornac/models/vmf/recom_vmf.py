@@ -117,18 +117,6 @@ class VMF(Recommender):
             
             # Item visual cnn-features
             self.item_features = train_set.item_image.features[:self.train_set.num_items]
-            
-            # User-Item interactions
-            (uid, iid, rat) = train_set.uir_tuple
-            if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                if self.train_set.min_rating == self.train_set.max_rating:
-                    rat = scale(rat, 0., 1., 0., self.train_set.max_rating)
-                else:
-                    rat = scale(rat, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
-            
-            uid = np.array(uid, dtype='int32')
-            iid = np.array(iid, dtype='int32')
-            rat = np.array(rat, dtype='float32')
 
             if self.verbose:
                 print('Learning...')
@@ -184,9 +172,6 @@ class VMF(Recommender):
             user_pred = self.V[item_id, :].dot(self.U[user_id, :]) #+ self.Q[item_id,:].dot(self.P[user_id, :])
             user_pred = sigmoid(user_pred)
             
-            if self.train_set.min_rating == self.train_set.max_rating:
-                user_pred = scale(user_pred, 0., self.train_set.max_rating, 0., 1.)
-            else:
-                user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+            user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
             return user_pred

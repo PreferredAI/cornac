@@ -5,6 +5,8 @@
 """
 
 from tqdm import tqdm
+from ...utils.common import scale
+
 
 try:
     import torch
@@ -65,7 +67,8 @@ def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
             V_i = V[batch_i]
             f_i = F[batch_i]
             
-            Rui = torch.tensor(batch_r, dtype=torch.float32)
+            Rui = scale(batch_r, 0., 1., train_set.min_rating, train_set.max_rating)
+            Rui = torch.tensor(Rui, dtype=torch.float32)
             
             Xui = torch.sigmoid(torch.sum(U_u * V_i, dim=1) + torch.sum(P_u * f_i.mm(E), dim = 1)) 
             
