@@ -9,8 +9,9 @@ from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
-#from ...utils import fast_dot
 
+
+# from ...utils import fast_dot
 
 
 class VMF(Recommender):
@@ -74,8 +75,10 @@ class VMF(Recommender):
      In Proceedings of WWW, pp. 1113-1122. 2017.
     """
 
-    def __init__(self, k=10, d=10, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e = 10.,
-                 name="VMF", trainable=True, verbose=False, use_gpu = False, init_params={'U': None, 'V': None, 'P': None, 'E': None}):
+    def __init__(self, name="VMF", k=10, d=10, n_epochs=100, batch_size=100, learning_rate=0.001, gamma=0.9,
+                 lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e=10.,
+                 trainable=True, verbose=False, use_gpu=False,
+                 init_params={'U': None, 'V': None, 'P': None, 'E': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.d = d
@@ -95,6 +98,7 @@ class VMF(Recommender):
         self.V = init_params['V']  # item factors
         self.P = init_params['P']  # user visual factors
         self.E = init_params['E']  # Kernel embedding matrix 
+
     # fit the recommender model to the traning data
     def fit(self, train_set):
         """Fit the model to observations.
@@ -110,18 +114,19 @@ class VMF(Recommender):
         Recommender.fit(self, train_set)
 
         if self.trainable:
-            
+
             # Item visual cnn-features
             self.item_features = train_set.item_image.features[:self.train_set.num_items]
 
             if self.verbose:
                 print('Learning...')
-                
+
             from .vmf import vmf
-            res = vmf(self.train_set, self.item_features, k=self.k, d = self.d, n_epochs=self.n_epochs, batch_size = self.batch_size,
+            res = vmf(self.train_set, self.item_features, k=self.k, d=self.d, n_epochs=self.n_epochs,
+                      batch_size=self.batch_size,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_p=self.lambda_p,
                       lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
-                      init_params=self.init_params, use_gpu = self.use_gpu, verbose=self.verbose)
+                      init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose)
 
             self.U = res['U']
             self.V = res['V']
@@ -133,8 +138,7 @@ class VMF(Recommender):
                 print('Learning completed')
         elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
-            
-    
+
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
 
@@ -158,16 +162,16 @@ class VMF(Recommender):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
             known_item_scores = self.V.dot(self.U[user_id, :]) + self.Q.dot(self.P[user_id, :])
-            #known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
-            #fast_dot(self.U[user_id], self.V, known_item_scores)
-            #fast_dot(self.P[user_id], self.Q, known_item_scores)
+            # known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
+            # fast_dot(self.U[user_id], self.V, known_item_scores)
+            # fast_dot(self.P[user_id], self.Q, known_item_scores)
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) + self.Q[item_id,:].dot(self.P[user_id, :])
+            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) + self.Q[item_id, :].dot(self.P[user_id, :])
             user_pred = sigmoid(user_pred)
-            
+
             user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
             return user_pred
