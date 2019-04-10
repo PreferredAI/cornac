@@ -18,11 +18,11 @@ class VMF(Recommender):
 
     Parameters
     ----------
-    k: int, optional, default: 5
+    k: int, optional, default: 10
         The dimension of the user and item factors.
         
-    d: int, optional, default: None
-       The dimension of the user visual factors. When None, "d" is set to "k"
+    d: int, optional, default: 10
+       The dimension of the user visual factors.
 
     n_epochs: int, optional, default: 100
         The number of epochs for SGD.
@@ -39,10 +39,10 @@ class VMF(Recommender):
     lambda_v: float, optional, default: 0.001
         The regularization parameter for item factors.
 
-    lambda_p: float, optional, default: 0.001
+    lambda_p: float, optional, default: 1.0
         The regularization parameter for user visual factors.
 
-    lambda_e: float, optional, default: 0.001
+    lambda_e: float, optional, default: 10.
         The regularization parameter for the kernel embedding matrix
         
     lambda_u: float, optional, default: 0.001
@@ -74,10 +74,11 @@ class VMF(Recommender):
      In Proceedings of WWW, pp. 1113-1122. 2017.
     """
 
-    def __init__(self, k=5, d=None, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=0.001, lambda_e = 0.001,
+    def __init__(self, k=10, d=10, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e = 10.,
                  name="VMF", trainable=True, verbose=False, use_gpu = False, init_params={'U': None, 'V': None, 'P': None, 'E': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
+        self.d = d
         self.batch_size = batch_size
         self.init_params = init_params
         self.n_epochs = n_epochs
@@ -94,11 +95,6 @@ class VMF(Recommender):
         self.V = init_params['V']  # item factors
         self.P = init_params['P']  # user visual factors
         self.E = init_params['E']  # Kernel embedding matrix 
-        
-        if d is None:
-            self.d = k
-        else:
-            self.d = d
     # fit the recommender model to the traning data
     def fit(self, train_set):
         """Fit the model to observations.
@@ -117,18 +113,6 @@ class VMF(Recommender):
             
             # Item visual cnn-features
             self.item_features = train_set.item_image.features[:self.train_set.num_items]
-            
-            # User-Item interactions
-            (uid, iid, rat) = train_set.uir_tuple
-            if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                if self.train_set.min_rating == self.train_set.max_rating:
-                    rat = scale(rat, 0., 1., 0., self.train_set.max_rating)
-                else:
-                    rat = scale(rat, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
-            
-            uid = np.array(uid, dtype='int32')
-            iid = np.array(iid, dtype='int32')
-            rat = np.array(rat, dtype='float32')
 
             if self.verbose:
                 print('Learning...')
@@ -181,12 +165,9 @@ class VMF(Recommender):
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) #+ self.Q[item_id,:].dot(self.P[user_id, :])
+            user_pred = self.V[item_id, :].dot(self.U[user_id, :]) + self.Q[item_id,:].dot(self.P[user_id, :])
             user_pred = sigmoid(user_pred)
             
-            if self.train_set.min_rating == self.train_set.max_rating:
-                user_pred = scale(user_pred, 0., self.train_set.max_rating, 0., 1.)
-            else:
-                user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+            user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
 
             return user_pred
