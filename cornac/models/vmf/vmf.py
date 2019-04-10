@@ -19,7 +19,7 @@ except ImportError:
 def _load_or_randn(size, init_values, device):
     if init_values is None:
         tensor = np.random.normal(loc=0.0, scale=0.001, size=size)
-        tensor = torch.tensor(tensor, device=device, requires_grad=True, dtype=torch.float32)
+        tensor = torch.tensor(tensor, device=device, requires_grad=True, dtype=torch.double)
     else:
         tensor = torch.tensor(init_values, requires_grad=True, device=device)
     return tensor
@@ -33,14 +33,15 @@ def _l2_loss(*tensors):
 
 def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
           lambda_p, lambda_e, learning_rate, gamma, init_params, use_gpu, verbose):
-    
+
+    from ...utils.init_utils import xavier_uniform
     device = None
     if use_gpu and torch.cuda.is_available():
         device = torch.device("cuda:0")
     else:
         device = torch.device("cpu")
-        
-    F = torch.from_numpy(item_feature).float().to(device)
+      
+    F = torch.from_numpy(item_feature).double().to(device)
     
     f_dim = train_set.item_image.feature_dim
     n_users = train_set.num_users
@@ -53,9 +54,9 @@ def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
     E = _load_or_randn((f_dim,d), init_values= init_params['E'], device = device)
 
     # optimizer
-    optimizer = torch.optim.RMSprop([U, V, P, E], lr= learning_rate)
+    optimizer = torch.optim.RMSprop([U, V, P, E], lr= learning_rate, alpha=0.9)
         
-
+    print('this is the new one')
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
         count = 0
@@ -70,7 +71,7 @@ def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
             f_i = F[batch_i]
             
             Rui = scale(batch_r, 0., 1., train_set.min_rating, train_set.max_rating)
-            Rui = torch.tensor(Rui, dtype=torch.float32)
+            Rui = torch.tensor(Rui, dtype=torch.double)
             
             Xui = torch.sigmoid(torch.sum(U_u * V_i, dim=1) + torch.sum(P_u * f_i.mm(E), dim = 1)) 
             

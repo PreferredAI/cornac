@@ -39,10 +39,10 @@ class VMF(Recommender):
     lambda_v: float, optional, default: 0.001
         The regularization parameter for item factors.
 
-    lambda_p: float, optional, default: 0.001
+    lambda_p: float, optional, default: 1.0
         The regularization parameter for user visual factors.
 
-    lambda_e: float, optional, default: 0.001
+    lambda_e: float, optional, default: 10.
         The regularization parameter for the kernel embedding matrix
         
     lambda_u: float, optional, default: 0.001
@@ -74,7 +74,7 @@ class VMF(Recommender):
      In Proceedings of WWW, pp. 1113-1122. 2017.
     """
 
-    def __init__(self, k=5, d=None, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=0.001, lambda_e = 0.001,
+    def __init__(self, k=5, d=None, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e = 10.,
                  name="VMF", trainable=True, verbose=False, use_gpu = False, init_params={'U': None, 'V': None, 'P': None, 'E': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -165,7 +165,7 @@ class VMF(Recommender):
             #known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
             #fast_dot(self.U[user_id], self.V, known_item_scores)
             #fast_dot(self.P[user_id], self.Q, known_item_scores)
-            return known_item_scores
+            return sigmoid(known_item_scores)
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
