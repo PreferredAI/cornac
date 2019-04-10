@@ -40,7 +40,7 @@ class MCF(Recommender):
         When False, the model is not trained and Cornac assumes that the model is already \
         pre-trained (U and V are not None).
 
-    item-affinity network: See "cornac/examples/mcf_example.py" for an example of how to use \
+    item-affinity network: See "cornac/examples/mcf_office.py" for an example of how to use \
         cornac's graph module to load and provide the ``item-affinity network'' for MCF.
 
     verbose: boolean, optional, default: False
