@@ -165,7 +165,7 @@ class VMF(Recommender):
             #known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
             #fast_dot(self.U[user_id], self.V, known_item_scores)
             #fast_dot(self.P[user_id], self.Q, known_item_scores)
-            return sigmoid(known_item_scores)
+            return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
