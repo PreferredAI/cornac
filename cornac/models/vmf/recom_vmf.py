@@ -18,7 +18,7 @@ class VMF(Recommender):
 
     Parameters
     ----------
-    k: int, optional, default: 5
+    k: int, optional, default: 10
         The dimension of the user and item factors.
         
     d: int, optional, default: None
@@ -74,7 +74,7 @@ class VMF(Recommender):
      In Proceedings of WWW, pp. 1113-1122. 2017.
     """
 
-    def __init__(self, k=5, d=None, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e = 10.,
+    def __init__(self, k=10, d=None, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e = 10.,
                  name="VMF", trainable=True, verbose=False, use_gpu = False, init_params={'U': None, 'V': None, 'P': None, 'E': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
