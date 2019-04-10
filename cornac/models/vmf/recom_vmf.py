@@ -21,8 +21,8 @@ class VMF(Recommender):
     k: int, optional, default: 10
         The dimension of the user and item factors.
         
-    d: int, optional, default: None
-       The dimension of the user visual factors. When None, "d" is set to "k"
+    d: int, optional, default: 10
+       The dimension of the user visual factors.
 
     n_epochs: int, optional, default: 100
         The number of epochs for SGD.
@@ -74,10 +74,11 @@ class VMF(Recommender):
      In Proceedings of WWW, pp. 1113-1122. 2017.
     """
 
-    def __init__(self, k=10, d=None, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e = 10.,
+    def __init__(self, k=10, d=10, n_epochs=100, batch_size = 100, learning_rate=0.001, gamma=0.9, lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e = 10.,
                  name="VMF", trainable=True, verbose=False, use_gpu = False, init_params={'U': None, 'V': None, 'P': None, 'E': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
+        self.d = d
         self.batch_size = batch_size
         self.init_params = init_params
         self.n_epochs = n_epochs
@@ -94,11 +95,6 @@ class VMF(Recommender):
         self.V = init_params['V']  # item factors
         self.P = init_params['P']  # user visual factors
         self.E = init_params['E']  # Kernel embedding matrix 
-        
-        if d is None:
-            self.d = k
-        else:
-            self.d = d
     # fit the recommender model to the traning data
     def fit(self, train_set):
         """Fit the model to observations.
