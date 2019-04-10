@@ -37,3 +37,4 @@
 [cdl_example.py](cdl_example.py) - Collaborative Deep Learning (CDL) with CiteULike dataset.
 
 [cdr_example.py](cdr_example.py) - Collaborative Deep Ranking (CDR) with CiteULike dataset.
+[mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
