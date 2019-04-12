@@ -104,33 +104,24 @@ class C2PF(Recommender):
         del rid, cid, val
 
         if self.trainable:
-            # align auxiliary information with training data
-            #raw_iid = train_set.get_raw_iid_list()
-            #map_iid = train_set._iid_map
             map_iid = train_set.iid_list
-            train_aux_info = train_set.item_graph.get_train_triplet(map_iid,map_iid)
-            #train_aux_info2 = []
-            #map_iid = train_set._iid_map
-            #for i, j, _ in self.aux_info:
-            #    if (i not in raw_iid) or (j not in raw_iid):
-            #        continue
-            #    train_aux_info2.append([map_iid[i], map_iid[j], 1.0])
-            # train_aux_info2 = np.asarray(train_aux_info2)
+            (rid, cid, val) = train_set.item_graph.get_train_triplet(map_iid,map_iid)
+            context_info = np.hstack((rid.reshape(-1,1),cid.reshape(-1,1),val.reshape(-1,1)))
 
             if self.variant == 'c2pf':
-                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k,
+                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
                                 self.max_iter,
                                 self.init_params)
             elif self.variant == 'tc2pf':
-                res = c2pf.t_c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k,
+                res = c2pf.t_c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
                                   self.max_iter,
                                   self.init_params)
             elif self.variant == 'rc2pf':
-                res = c2pf.r_c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k,
+                res = c2pf.r_c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
                                   self.max_iter,
                                   self.init_params)
             else:
-                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], train_aux_info, X.shape[1], X.shape[1], self.k,
+                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
                                 self.max_iter,
                                 self.init_params)
 
