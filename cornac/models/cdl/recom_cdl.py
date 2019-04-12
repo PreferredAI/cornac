@@ -118,18 +118,17 @@ class CDL(Recommender):
         Recommender.fit(self, train_set)
 
         from ...utils.init_utils import xavier_uniform
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.seed))
+
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), seed=self.seed))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), seed=self.seed))
 
         if self.trainable:
-            self._cdl()
+            self._fit_cdl()
 
-    def _cdl(self):
+    def _fit_cdl(self):
         import tensorflow as tf
         from tqdm import trange
         from .cdl import Model
-
-        np.random.seed(self.seed)
 
         R = self.train_set.csc_matrix  # csc for efficient slicing over items
         n_users, n_items, = self.train_set.num_users, self.train_set.num_items
