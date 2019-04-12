@@ -8,6 +8,7 @@ import numpy as np
 
 from ..recommender import Recommender
 from ...exception import CornacException
+from ...exception import ScoreException
 from ...utils import fast_dot
 
 
@@ -225,6 +226,9 @@ class VBPR(Recommender):
                 fast_dot(self.theta_user[user_id], self.theta_item, known_item_scores)
             return known_item_scores
         else:
+            if self.train_set.is_unk_item(item_id):
+                raise ScoreException("Can't make score prediction for (item_id=%d)" % item_id)
+
             item_score = np.add(self.beta_item[item_id], self.visual_bias[item_id])
             if not self.train_set.is_unk_user(user_id):
                 item_score += np.dot(self.gamma_item[item_id], self.gamma_user[user_id])
