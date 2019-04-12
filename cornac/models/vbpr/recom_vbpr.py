@@ -4,9 +4,11 @@
          Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
+import numpy as np
+
 from ..recommender import Recommender
 from ...exception import CornacException
-import numpy as np
+from ...exception import ScoreException
 from ...utils import fast_dot
 
 
@@ -53,6 +55,9 @@ class VBPR(Recommender):
         Initial parameters, e.g., init_params = {'Bi': beta_item, 'Gu': gamma_user,
         'Gi': gamma_item, 'Tu': theta_user, 'E': emb_matrix, 'Bp': beta_prime}
 
+    seed: int, optional, default: None
+        Random seed for weight initialization.
+
     References
     ----------
     * He, R., & McAuley, J. (2016). VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback.
@@ -62,7 +67,7 @@ class VBPR(Recommender):
                  n_epochs=50, batch_size=100, learning_rate=0.005,
                  lambda_w=0.01, lambda_b=0.01, lambda_e=0.0,
                  use_gpu=False, trainable=True, verbose=True,
-                 init_params=None):
+                 init_params=None, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.k2 = k2
@@ -74,16 +79,17 @@ class VBPR(Recommender):
         self.lambda_e = lambda_e
         self.use_gpu = use_gpu
         self.init_params = {} if init_params is None else init_params
+        self.seed = seed
 
     def _init_factors(self, n_users, n_items, features):
         from ...utils.init_utils import zeros, xavier_uniform
 
         self.beta_item = self.init_params.get('Bi', zeros(n_items))
-        self.gamma_user = self.init_params.get('Gu', xavier_uniform((n_users, self.k)))
-        self.gamma_item = self.init_params.get('Gi', xavier_uniform((n_items, self.k)))
-        self.theta_user = self.init_params.get('Tu', xavier_uniform((n_users, self.k2)))
-        self.emb_matrix = self.init_params.get('E', xavier_uniform((features.shape[1], self.k2)))
-        self.beta_prime = self.init_params.get('Bp', xavier_uniform((features.shape[1], 1)))
+        self.gamma_user = self.init_params.get('Gu', xavier_uniform((n_users, self.k), self.seed))
+        self.gamma_item = self.init_params.get('Gi', xavier_uniform((n_items, self.k), self.seed))
+        self.theta_user = self.init_params.get('Tu', xavier_uniform((n_users, self.k2), self.seed))
+        self.emb_matrix = self.init_params.get('E', xavier_uniform((features.shape[1], self.k2), self.seed))
+        self.beta_prime = self.init_params.get('Bp', xavier_uniform((features.shape[1], 1), self.seed))
         # pre-computed for faster evaluation
         self.theta_item = np.matmul(features, self.emb_matrix)
         self.visual_bias = np.matmul(features, self.beta_prime).ravel()
@@ -220,6 +226,9 @@ class VBPR(Recommender):
                 fast_dot(self.theta_user[user_id], self.theta_item, known_item_scores)
             return known_item_scores
         else:
+            if self.train_set.is_unk_item(item_id):
+                raise ScoreException("Can't make score prediction for (item_id=%d)" % item_id)
+
             item_score = np.add(self.beta_item[item_id], self.visual_bias[item_id])
             if not self.train_set.is_unk_user(user_id):
                 item_score += np.dot(self.gamma_item[item_id], self.gamma_user[user_id])
