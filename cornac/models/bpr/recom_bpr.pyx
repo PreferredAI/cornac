@@ -5,13 +5,6 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from cornac.exception import ScoreException
-from cornac.models.recommender import Recommender
-from cornac.utils import fast_dot
-from cornac.utils.common import scale
-import multiprocessing
-import tqdm
-import numpy as np
 cimport cython
 from cython cimport floating, integral
 from cython.parallel import parallel, prange
@@ -19,6 +12,14 @@ from libc.math cimport exp
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.algorithm cimport binary_search
+
+import numpy as np
+cimport numpy as np
+
+from ..recommender import Recommender
+from ...exception import ScoreException
+from ...utils import fast_dot
+from ...utils.common import scale
 
 
 cdef extern from "<random>" namespace "std":
@@ -48,7 +49,7 @@ cdef class RNGVector(object):
     """ This class creates one c++ rng object per thread, and enables us to randomly sample
     positive/negative items here in a thread safe manner """
     cdef vector[mt19937] rng
-    cdef vector[uniform_int_distribution[long]]  dist
+    cdef vector[uniform_int_distribution[long]] dist
 
     def __init__(self, int num_threads, long rows):
         for i in range(num_threads):
@@ -90,29 +91,31 @@ class BPR(Recommender):
     init_params: dictionary, optional, default: None
         Initial parameters, e.g., init_params = {'U': user_factors, 'V': item_factors, 'Bi': item_biases}
 
+    seed: int, optional, default: None
+        Random seed for weight initialization.
+
     References
     ----------
     * Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, and Lars Schmidt-Thieme. \
     BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.
     """
 
-    def __init__(self, k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01, num_threads=0,
-                 trainable=True, verbose=False, init_params=None):
-        Recommender.__init__(self, name='BPR', trainable=trainable, verbose=verbose)
-        self.factors = k
+    def __init__(self, name='BPR', k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01,
+                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+        self.k = k
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
         self.init_params = {} if init_params is None else init_params
+        self.seed = seed
 
+        import multiprocessing
         if num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
 
-    @cython.cdivision(True)
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
     def fit(self, train_set):
         """Fit the model to observations.
 
@@ -125,43 +128,23 @@ class BPR(Recommender):
         """
         Recommender.fit(self, train_set)
 
-        if not self.trainable:
-            print('%s is trained already (trainable = False)' % (self.name))
-            return
+        n_users, n_items = train_set.num_users, train_set.num_items
 
-        X = train_set.matrix
-        num_users, num_items = X.shape
+        from ...utils.init_utils import zeros, uniform
 
-        # this basically calculates the 'row' attribute of a COO matrix
-        # without requiring us to get the whole COO matrix
-        user_counts = np.ediff1d(X.indptr)
-        user_ids = np.repeat(np.arange(num_users), user_counts).astype(X.indices.dtype)
+        self.u_factors = self.init_params.get('U', (uniform((n_users, self.k), seed=self.seed) - 0.5) / self.k)
+        self.i_factors = self.init_params.get('V', (uniform((n_items, self.k), seed=self.seed) - 0.5) / self.k)
+        self.i_biases = self.init_params.get('Bi', zeros(n_items))
 
-        self.u_factors = self.init_params.get('U', None)  # matrix of user factors
-        self.i_factors = self.init_params.get('V', None)  # matrix of item factors
-        self.i_biases = self.init_params.get('Bi', None)  # vector of item biases
+        if self.trainable:
+            X = train_set.matrix # csr_matrix
+            # this basically calculates the 'row' attribute of a COO matrix
+            # without requiring us to get the whole COO matrix
+            user_counts = np.ediff1d(X.indptr)
+            user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
 
-        # create factors if not already created.
-        if self.u_factors is None:
-            self.u_factors = (np.random.rand(num_users, self.factors).astype(np.float32) - .5)
-            self.u_factors /= self.factors
-
-            # set factors to all zeros for users without any ratings
-            self.u_factors[user_counts == 0] = np.zeros(self.factors)
-
-        if self.i_factors is None:
-            self.i_factors = (np.random.rand(num_items, self.factors).astype(np.float32) - .5)
-            self.i_factors /= self.factors
-
-            # set factors to all zeros for items without any ratings
-            item_counts = np.bincount(X.indices, minlength=num_items)
-            self.i_factors[item_counts == 0] = np.zeros(self.factors)
-
-        if self.i_biases is None:
-            self.i_biases = np.zeros(num_items).astype(np.float32)
-
-        self._fit_sgd(user_ids, X.indices, X.indptr,
-                      self.u_factors, self.i_factors, self.i_biases)
+            self._fit_sgd(user_ids, X.indices, X.indptr,
+                          self.u_factors, self.i_factors, self.i_biases)
 
 
     @cython.cdivision(True)
@@ -178,7 +161,7 @@ class BPR(Recommender):
 
         cdef floating lr = self.learning_rate
         cdef floating reg = self.lambda_reg
-        cdef integral factors = self.factors
+        cdef integral factors = self.k
         cdef integral num_threads = self.num_threads
 
         cdef floating * user
@@ -188,7 +171,8 @@ class BPR(Recommender):
         cdef RNGVector rng_i = RNGVector(num_threads, num_samples - 1)
         cdef RNGVector rng_j = RNGVector(num_threads, num_items - 1)
 
-        progress = tqdm.trange(self.max_iter, disable=not self.verbose)
+        from tqdm import trange
+        progress = trange(self.max_iter, disable=not self.verbose)
         for epoch in progress:
             correct = 0
             skipped = 0
@@ -231,6 +215,7 @@ class BPR(Recommender):
 
             progress.set_postfix({"correct": "%.2f%%" % (100.0 * correct / (num_samples - skipped)),
                                   "skipped": "%.2f%%" % (100.0 * skipped / num_samples)})
+        progress.close()
 
         if self.verbose:
             print('Optimization finished!')
