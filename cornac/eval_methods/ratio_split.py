@@ -4,11 +4,13 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from ..utils.common import safe_indexing
 from math import ceil
-from .base_method import BaseMethod
-from ..experiment.result import Result
+
 import numpy as np
+
+from ..utils import get_rng
+from ..utils.common import safe_indexing
+from .base_method import BaseMethod
 
 
 class RatioSplit(BaseMethod):
@@ -40,8 +42,8 @@ class RatioSplit(BaseMethod):
     shuffle: bool, optional, default: True
         Shuffle the data before splitting.
 
-    seed: bool, optional, default: None
-        Random seed.
+    seed: int, optional, default: None
+        Random seed for reproduce the splitting.
 
     exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
@@ -99,11 +101,8 @@ class RatioSplit(BaseMethod):
             print("Splitting the data")
 
         data_idx = np.arange(len(self._data))
-
         if self._shuffle:
-            if self._seed is not None:
-                np.random.seed(self._seed)
-            data_idx = np.random.permutation(data_idx)
+            data_idx = get_rng(self._seed).permutation(data_idx)
 
         train_idx = data_idx[:self._train_size]
         test_idx = data_idx[-self._test_size:]
