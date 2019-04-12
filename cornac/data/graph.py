@@ -17,7 +17,6 @@ class GraphModule(FeatureModule):
         super().__init__(**kwargs)
         self.raw_data = kwargs.get('data', None)
         self.matrix = None
-        self.map_data = []
         self.map_rid = []
         self.map_cid = []
         self.val = []
@@ -30,10 +29,6 @@ class GraphModule(FeatureModule):
             self.map_rid.append(global_id_map[i])
             self.map_cid.append(global_id_map[j])
             self.val.append(v)
-            
-            #self.map_data = (np.asarray(self.map_rid, dtype=np.int),
-            #                 np.asarray(self.map_cid, dtype=np.int),
-            #                 np.asarray(self.val, dtype=np.float))
             
         self.map_rid = np.asarray(self.map_rid, dtype=np.int)
         self.map_cid = np.asarray(self.map_cid, dtype=np.int)
