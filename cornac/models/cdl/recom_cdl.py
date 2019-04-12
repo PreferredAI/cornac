@@ -123,9 +123,9 @@ class CDL(Recommender):
         self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), seed=self.seed))
 
         if self.trainable:
-            self._cdl()
+            self._fit_cdl()
 
-    def _cdl(self):
+    def _fit_cdl(self):
         import tensorflow as tf
         from tqdm import trange
         from .cdl import Model
