@@ -5,16 +5,20 @@
 @author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
-from cornac.models.recommender import Recommender
-from cornac.exception import ScoreException
-from cornac.utils import fast_dot
-import tqdm
-import numpy as np
+
 cimport cython
 from cython.parallel import prange
 from cython cimport floating, integral
 from libcpp cimport bool
 from libc.math cimport abs
+
+import numpy as np
+cimport numpy as np
+
+from ..recommender import Recommender
+from ...exception import ScoreException
+from ...utils import fast_dot
+
 
 
 class MF(Recommender):
@@ -50,16 +54,18 @@ class MF(Recommender):
         Initial parameters, e.g., init_params = {'U': user_factors, 'V': item_factors,
         'Bu': user_biases, 'Bi': item_biases}
 
+    seed: int, optional, default: None
+        Random seed for weight initialization.
+
     References
     ----------
     * Koren, Y., Bell, R., & Volinsky, C. Matrix factorization techniques for recommender systems. \
     In Computer, (8), 30-37. 2009.
     """
 
-    def __init__(self, k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True, early_stop=False,
-                 trainable=True, verbose=False, init_params=None):
-        Recommender.__init__(self, name='MF', trainable=trainable, verbose=verbose)
-
+    def __init__(self, name='MF', k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True,
+                 early_stop=False, trainable=True, verbose=False, init_params=None, seed=None):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.max_iter = max_iter
         self.learning_rate = learning_rate
@@ -67,6 +73,7 @@ class MF(Recommender):
         self.use_bias = use_bias
         self.early_stop = early_stop
         self.init_params = {} if init_params is None else init_params
+        self.seed = seed
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -80,29 +87,20 @@ class MF(Recommender):
         """
         Recommender.fit(self, train_set)
 
-        if not self.trainable:
-            print('%s is trained already (trainable = False)' % (self.name))
-            return
-
-        self.u_factors = self.init_params.get('U', None)
-        self.i_factors = self.init_params.get('V', None)
-        self.u_biases = self.init_params.get('Bu', None)
-        self.i_biases = self.init_params.get('Bi', None)
-
-        if self.u_factors is None:
-            self.u_factors = np.random.normal(size=[train_set.num_users, self.k], loc=0., scale=0.01).astype(np.float32)
-        if self.i_factors is None:
-            self.i_factors = np.random.normal(size=[train_set.num_items, self.k], loc=0., scale=0.01).astype(np.float32)
-        if self.u_biases is None:
-            self.u_biases = np.zeros(train_set.num_users).astype(np.float32)
-        if self.i_biases is None:
-            self.i_biases = np.zeros(train_set.num_items).astype(np.float32)
-
+        n_users, n_items = train_set.num_users, train_set.num_items
         self.global_mean = train_set.global_mean if self.use_bias else 0.
 
-        (rid, cid, val) = train_set.uir_tuple
-        self._fit_sgd(rid, cid, val.astype(np.float32),
-                      self.u_factors, self.i_factors, self.u_biases, self.i_biases)
+        from ...utils.init_utils import normal, zeros
+
+        self.u_factors = self.init_params.get('U', normal([n_users, self.k], std=0.01, seed=self.seed))
+        self.i_factors = self.init_params.get('V', normal([n_items, self.k], std=0.01, seed=self.seed))
+        self.u_biases = self.init_params.get('Bu', zeros(n_users))
+        self.i_biases = self.init_params.get('Bi', zeros(n_items))
+
+        if self.trainable:
+            (rid, cid, val) = train_set.uir_tuple
+            self._fit_sgd(rid, cid, val.astype(np.float32),
+                          self.u_factors, self.i_factors, self.u_biases, self.i_biases)
 
 
     @cython.boundscheck(False)
@@ -133,7 +131,8 @@ class MF(Recommender):
         cdef floating * user
         cdef floating * item
 
-        progress = tqdm.trange(max_iter, disable=not self.verbose)
+        from tqdm import trange
+        progress = trange(max_iter, disable=not self.verbose)
         for epoch in progress:
             last_loss = loss
             loss = 0
@@ -170,6 +169,7 @@ class MF(Recommender):
                 if verbose:
                     print('Early stopping, delta_loss = %.4f' % delta_loss)
                 break
+        progress.close()
 
         if verbose:
             print('Optimization finished!')
