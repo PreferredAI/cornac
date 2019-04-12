@@ -3,6 +3,7 @@ import sys
 import platform
 import glob
 import os
+import numpy as np
 
 try:
     from Cython.Build import cythonize
@@ -103,9 +104,11 @@ extensions = [
               language='c++'),
     Extension(name='cornac.models.mf.recom_mf',
               sources=['cornac/models/mf/recom_mf' + ext],
+              include_dirs=[np.get_include()],
               language='c++'),
     Extension(name='cornac.models.bpr.recom_bpr',
               sources=['cornac/models/bpr/recom_bpr' + ext],
+              include_dirs=[np.get_include()],
               language='c++',
               extra_compile_args=compile_args, extra_link_args=link_args),
     Extension(name='cornac.utils.fast_dot',
