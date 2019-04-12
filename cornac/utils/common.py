@@ -5,6 +5,8 @@
          Quoc-Tuan Truong <tuantq.vnu@gmail.com>
 """
 
+import numbers
+
 import numpy as np
 
 
@@ -43,7 +45,7 @@ def scale(values, target_min, target_max, source_min=None, source_max=None):
         source_min = np.min(values)
     if source_max is None:
         source_max = np.max(values)
-    if source_min == source_max:  #improve this scenario 
+    if source_min == source_max:  # improve this scenario
         source_min = 0.0
 
     values = (values - source_min) / (source_max - source_min)
@@ -138,3 +140,16 @@ def estimate_batches(input_size, batch_size):
     Estimate number of batches give `input_size` and `batch_size`
     """
     return int(np.ceil(input_size / batch_size))
+
+
+def get_rng(seed):
+    '''Return a RandomState of numpy.
+    If seed is None, use RandomState singleton from numpy.
+    Else if seed is an integer, create a RandomState from that seed.
+    '''
+    if seed is None:
+        return np.random.mtrand._rand
+    elif isinstance(seed, (numbers.Integral, np.integer)):
+        return np.random.RandomState(seed)
+    raise ValueError('Wrong random state. Expecting None or an int, got a '
+                     '{}'.format(type(seed)))
