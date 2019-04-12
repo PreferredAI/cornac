@@ -24,38 +24,38 @@ class TrainSet:
     """
 
     def __init__(self, uid_map, iid_map):
-        self._uid_map = uid_map
-        self._iid_map = iid_map
+        self.uid_map = uid_map
+        self.iid_map = iid_map
 
     @property
     def num_users(self):
         """Return the number of users"""
-        return len(self._uid_map)
+        return len(self.uid_map)
 
     @property
     def num_items(self):
         """Return the number of items"""
-        return len(self._iid_map)
+        return len(self.iid_map)
 
     @property
     def uid_list(self):
         """Return the list of mapped user ids"""
-        return list(self._uid_map.values())
+        return list(self.uid_map.values())
 
     @property
     def raw_uid_list(self):
         """Return the list of raw user ids"""
-        return list(self._uid_map.keys())
+        return list(self.uid_map.keys())
 
     @property
     def iid_list(self):
         """Return the list of mapped item ids"""
-        return list(self._iid_map.values())
+        return list(self.iid_map.values())
 
     @property
     def raw_iid_list(self):
         """Return the list of raw item ids"""
-        return list(self._iid_map.keys())
+        return list(self.iid_map.keys())
 
     def is_unk_user(self, mapped_uid):
         """Return whether or not a user is unknown given the mapped id"""
@@ -67,11 +67,11 @@ class TrainSet:
 
     def get_uid(self, raw_uid):
         """Return the mapped id of a user given a raw id"""
-        return self._uid_map[raw_uid]
+        return self.uid_map[raw_uid]
 
     def get_iid(self, raw_iid):
         """Return the mapped id of an item given a raw id"""
-        return self._iid_map[raw_iid]
+        return self.iid_map[raw_iid]
 
     @staticmethod
     def idx_iter(idx_range, batch_size=1, shuffle=False):
