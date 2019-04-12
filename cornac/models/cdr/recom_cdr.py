@@ -111,9 +111,9 @@ class CDR(Recommender):
         self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), seed=self.seed))
 
         if self.trainable:
-            self._cdr()  # Collaborative Deep Ranking
+            self._fit_cdr()
 
-    def _cdr(self):
+    def _fit_cdr(self):
         import tensorflow as tf
         from tqdm import trange
         from .model import Model
