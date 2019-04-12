@@ -18,7 +18,7 @@ class TestGraphModule(unittest.TestCase):
         self.assertEqual(len(gmd.raw_data), 12)
         self.assertEqual(len(gmd.map_rid), 0)
         self.assertEqual(len(gmd.map_cid), 0)
-        self.assertEqual(len(gmd.map_val), 0)
+        self.assertEqual(len(gmd.val), 0)
         self.assertIsNone(gmd.matrix)
 
 
