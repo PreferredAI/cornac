@@ -6,6 +6,8 @@
 
 import numpy as np
 
+from .common import get_rng
+
 
 def zeros(shape, dtype=np.float32):
     return np.zeros(shape, dtype=dtype)
@@ -19,14 +21,12 @@ def constant(shape, val, dtype=np.float32):
     return ones(shape, dtype=dtype) * val
 
 
-def uniform(shape, low=0, high=1, seed=None, dtype=np.float32):
-    np.random.seed(seed)
-    return np.random.uniform(low, high, shape).astype(dtype)
+def uniform(shape, low=0.0, high=1.0, seed=None, dtype=np.float32):
+    return get_rng(seed).uniform(low, high, shape).astype(dtype)
 
 
-def normal(shape, mean=0, std=1, seed=None, dtype=np.float32):
-    np.random.seed(seed)
-    return np.random.normal(mean, std, shape).astype(dtype)
+def normal(shape, mean=0.0, std=1.0, seed=None, dtype=np.float32):
+    return get_rng(seed).normal(mean, std, shape).astype(dtype)
 
 
 def xavier_uniform(shape, seed=None, dtype=np.float32):
