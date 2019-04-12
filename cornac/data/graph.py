@@ -41,16 +41,25 @@ class GraphModule(FeatureModule):
     def get_train_triplet(self, train_row_ids, train_col_ids):
         """Get the training tuples
         """
+        rid = []
+        cid = []
+        val = []
         train_triplet = []
         # this makes operations much more efficient
         train_row_ids = np.asanyarray(list(train_row_ids))
         train_col_ids = np.asanyarray(list(train_col_ids))
-        for i, j, val in self.map_data:
+        for i, j, v in self.map_data:
             if (i not in train_row_ids) or (j not in train_col_ids):
                 continue
-            train_triplet.append([i, j, val])
+            rid.append(i)
+            cid.append(j)
+            val.append(v)
+            
+        train_triplet = (np.asarray(rid, dtype=np.int),
+        np.asarray(cid, dtype=np.int),
+        np.asarray(val, dtype=np.float))
 
-        return np.asarray(train_triplet)
+        return train_triplet
 
     # TODO: id_map can be None to support GraphModule as an independent component
     def build(self, id_map=None):
