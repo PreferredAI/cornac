@@ -67,8 +67,7 @@ class GraphModule(FeatureModule):
 
         return train_triplet
 
-    # TODO: id_map can be None to support GraphModule as an independent component
-    def build(self, id_map=None):
+    def build(self, id_map):
         self._build_triplet(id_map)
         self._build_sparse_matrix((self.map_rid, self.map_cid, self.val))
 
