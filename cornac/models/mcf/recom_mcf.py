@@ -5,8 +5,6 @@
 """
 
 import numpy as np
-import scipy.sparse as sp
-from cornac.models.mcf import mcf
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
@@ -52,6 +50,9 @@ class MCF(Recommender):
         V: a csc_matrix of shape (n_items,k), containing the item latent factors. \
         Z: a csc_matrix of shape (n_items,k), containing the ``Also-Viewed'' item latent factors.
 
+    seed: int, optional, default: None
+        Random seed for parameters initialization.
+
     References
     ----------
     * Park, Chanyoung, Donghyun Kim, Jinoh Oh, and Hwanjo Yu. "Do Also-Viewed Products Help User Rating Prediction?."\
@@ -59,7 +60,7 @@ class MCF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="MCF",
-                 trainable=True, verbose=False, init_params={'U': None, 'V': None, 'Z': None}):
+                 trainable=True, verbose=False, init_params={'U': None, 'V': None, 'Z': None}, seed = None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
@@ -73,6 +74,7 @@ class MCF(Recommender):
         self.U = init_params['U']  # matrix of user factors
         self.V = init_params['V']  # matrix of item factors
         self.Z = init_params['Z']  # matrix of Also-Viewed item factors
+        self.seed = seed
 
     # fit the recommender model to the traning data
     def fit(self, train_set):
@@ -85,7 +87,7 @@ class MCF(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
-
+        from cornac.models.mcf import mcf
         Recommender.fit(self, train_set)
 
         if self.trainable:
@@ -121,7 +123,7 @@ class MCF(Recommender):
             res = mcf.mcf(rat_uid, rat_iid, rat_val, net_iid, net_jid, net_val, k=self.k, n_users=train_set.num_users,
                       n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val), n_epochs=self.max_iter,
                       lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                      init_params=self.init_params, verbose=self.verbose)
+                      init_params=self.init_params, verbose=self.verbose, seed=self.seed)
 
             self.U = np.asarray(res['U'])
             self.V = np.asarray(res['V'])
