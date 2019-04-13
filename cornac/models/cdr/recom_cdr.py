@@ -105,10 +105,12 @@ class CDR(Recommender):
         """
         Recommender.fit(self, train_set)
 
+        from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
 
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), seed=self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), seed=self.seed))
+        rng = get_rng(self.seed)
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), random_state=rng))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), random_state=rng))
 
         if self.trainable:
             self._fit_cdr()
