@@ -27,7 +27,7 @@ cdef float sigmoid(float z):
 # MCF SGD_RMSProp optimizer
 def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:] net_jid, float[:] net_val,
         int n_users, int n_items, int n_ratings, int n_edges, int k, int n_epochs = 100, float lamda = 0.001,
-        float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False):
+        float learning_rate = 0.001, float gamma = 0.9, init_params = {}, verbose = False, seed = None):
   
     #some useful variables
     cdef:
