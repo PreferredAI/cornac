@@ -5,8 +5,6 @@
 """
 
 import numpy as np
-import scipy.sparse as sp
-from cornac.models.pmf import pmf
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
@@ -47,10 +45,13 @@ class PMF(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {'U':None,'V':None}
+    init_params: dictionary, optional, default: {}
         List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
         U: a csc_matrix of shape (n_users,k), containing the user latent factors. \
         V: a csc_matrix of shape (n_items,k), containing the item latent factors.
+
+    seed: int, optional, default: None
+        Random seed for parameters initialization.
 
     References
     ----------
@@ -59,7 +60,7 @@ class PMF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
-                 trainable=True, verbose=False, init_params={'U': None, 'V': None}):
+                 trainable=True, verbose=False, init_params={}, seed = None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
@@ -71,8 +72,9 @@ class PMF(Recommender):
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = init_params['U']  # matrix of user factors
-        self.V = init_params['V']  # matrix of item factors
+        self.U = self.init_params.get('U')  # matrix of user factors
+        self.V = self.init_params.get('V')  # matrix of item factors
+        self.seed = seed
 
     # fit the recommender model to the traning data
     def fit(self, train_set):
@@ -85,6 +87,7 @@ class PMF(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
+        from cornac.models.pmf import pmf
 
         Recommender.fit(self, train_set)
 
@@ -105,12 +108,12 @@ class PMF(Recommender):
                 res = pmf.pmf_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items,
                                      n_ratings=len(rat), n_epochs=self.max_iter,
                                      lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                                     init_params=self.init_params, verbose=self.verbose)
+                                     init_params=self.init_params, verbose=self.verbose, seed=self.seed)
             elif self.variant == 'non_linear':
                 res = pmf.pmf_non_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users,
                                          n_items=train_set.num_items, n_ratings=len(rat), n_epochs=self.max_iter,
                                          lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                                         init_params=self.init_params, verbose=self.verbose)
+                                         init_params=self.init_params, verbose=self.verbose, seed=self.seed)
             else:
                 raise ValueError('variant must be one of {"linear","non_linear"}')
 
