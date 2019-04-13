@@ -38,6 +38,22 @@ class TestGraphModule(unittest.TestCase):
         self.assertEqual(gmd.matrix.shape, (7, 3))
 
 
+    def test_get_train_triplet(self):
+
+        data = Reader().read('./tests/graph_data.txt', sep=' ')
+        gmd = GraphModule(data=data)
+
+        global_iid_map = OrderedDict()
+        for raw_iid, raw_jid, val in data:
+            mapped_iid = global_iid_map.setdefault(raw_iid, len(global_iid_map))
+
+        gmd.build(id_map=global_iid_map)
+        rid, cid, val = gmd.get_train_triplet([0, 1, 2], [0, 1, 2])
+        self.assertEqual(len(rid), 3)
+        self.assertEqual(len(cid), 3)
+        self.assertEqual(val, 3)
+
+
 
 
 if __name__ == '__main__':
