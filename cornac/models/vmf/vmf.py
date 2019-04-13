@@ -9,13 +9,15 @@ import numpy as np
 import torch
 
 from ...utils.common import scale
+from ...utils.init_utils import normal
+
 
 torch.set_default_dtype(torch.double)
 
 
 def _load_or_randn(size, init_values, device):
     if init_values is None:
-        tensor = np.random.normal(loc=0.0, scale=0.001, size=size)
+        tensor = normal((n,k), mean=0.0, std=0.001, seed=seed, dtype=np.double)
         tensor = torch.tensor(tensor, requires_grad=True, device=device)
     else:
         tensor = torch.tensor(init_values, requires_grad=True, device=device)
