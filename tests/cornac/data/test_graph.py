@@ -51,7 +51,7 @@ class TestGraphModule(unittest.TestCase):
         rid, cid, val = gmd.get_train_triplet([0, 1, 2], [0, 1, 2])
         self.assertEqual(len(rid), 3)
         self.assertEqual(len(cid), 3)
-        self.assertEqual(val, 3)
+        self.assertEqual(len(val), 3)
 
 
 
