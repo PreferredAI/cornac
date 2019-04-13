@@ -143,13 +143,15 @@ def estimate_batches(input_size, batch_size):
 
 
 def get_rng(seed):
-    '''Return a RandomState of numpy.
+    '''Return a RandomState of Numpy.
     If seed is None, use RandomState singleton from numpy.
-    Else if seed is an integer, create a RandomState from that seed.
+    If seed is an integer, create a RandomState from that seed.
+    If seed is already a RandomState, just return it.
     '''
     if seed is None:
         return np.random.mtrand._rand
-    elif isinstance(seed, (numbers.Integral, np.integer)):
+    if isinstance(seed, (numbers.Integral, np.integer)):
         return np.random.RandomState(seed)
-    raise ValueError('Wrong random state. Expecting None or an int, got a '
-                     '{}'.format(type(seed)))
+    if isinstance(seed, np.random.RandomState):
+        return seed
+    raise ValueError('{} can not be used to create a numpy.random.RandomState'.format(seed))
