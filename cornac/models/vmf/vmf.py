@@ -35,7 +35,7 @@ def _l2_loss(*tensors):
 
 
 def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
-        lambda_p, lambda_e, learning_rate, gamma, init_params, use_gpu, verbose):
+        lambda_p, lambda_e, learning_rate, gamma, init_params, use_gpu, verbose, seed):
     if use_gpu and torch.cuda.is_available():
         device = torch.device("cuda:0")
     else:
@@ -48,13 +48,13 @@ def vmf(train_set, item_feature, k, d, n_epochs, batch_size, lambda_u, lambda_v,
     n_items = train_set.num_items
 
     # preparing parameters
-    U = _load_or_randn((n_users, k), init_values=init_params['U'], device=device)
-    V = _load_or_randn((n_items, k), init_values=init_params['V'], device=device)
-    P = _load_or_randn((n_users, d), init_values=init_params['P'], device=device)
-    E = _load_or_randn((f_dim, d), init_values=init_params['E'], device=device)
+    U = _load_or_randn((n_users, k), init_values=init_params.get('U'), seed=seed, device=device)
+    V = _load_or_randn((n_items, k), init_values=init_params.get('V'), seed=seed, device=device)
+    P = _load_or_randn((n_users, d), init_values=init_params.get('P'), seed=seed, device=device)
+    E = _load_or_randn((f_dim, d), init_values=init_params.get('E'), seed=seed, device=device)
 
     # optimizer
-    optimizer = torch.optim.RMSprop([U, V, P, E], lr=learning_rate, alpha=0.9)
+    optimizer = torch.optim.RMSprop([U, V, P, E], lr=learning_rate, alpha=gamma)
 
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
