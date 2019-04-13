@@ -6,6 +6,7 @@ import numpy as np
 from libc.math cimport exp
 from libc.math cimport sqrt
 from ...utils.init_utils import normal
+from ...utils import get_rng
 
 #Sigmoid function
 cdef float sigmoid(float z):
@@ -43,8 +44,9 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
         double val, s, e, norm_u, norm_v
         
     # Initialize user factors
-    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
-    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
+    rng = get_rng(seed)
+    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
+    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
   
     #Optimization
     for epoch in range(n_epochs):
@@ -104,9 +106,9 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
         int u_, i_, j, epoch
         double val, s, e, norm_u, norm_v
   
-    # Initialize user factors
-    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
-    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
+    rng = get_rng(seed)
+    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
+    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
   
     #Optimization
     for epoch in range(n_epochs):

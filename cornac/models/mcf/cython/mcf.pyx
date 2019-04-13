@@ -6,7 +6,7 @@ import numpy as np
 from libc.math cimport exp
 from libc.math cimport sqrt
 from ...utils.init_utils import normal
-
+from ...utils import get_rng
 
 
 #Sigmoid function
@@ -47,10 +47,11 @@ def mcf(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_iid, int[:]
         int u_, i_, j_, k_, r, ed, epoch
         double val, s, e, norm_u, norm_v
   
-    # Initialize user factors
-    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
-    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
-    Z = init_params.get('Z', normal((d,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
+    # Initialize factors
+    rng = get_rng(seed)
+    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
+    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
+    Z = init_params.get('Z', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
   
     #Optimization
     for epoch in range(n_epochs):   

@@ -10,14 +10,17 @@ import torch
 
 from ...utils.common import scale
 from ...utils.init_utils import normal
+from ...utils import get_rng
+
 
 
 torch.set_default_dtype(torch.double)
 
 
-def _load_or_randn(size, init_values, device):
+def _load_or_randn(size, init_values, seed, device):
     if init_values is None:
-        tensor = normal((n,k), mean=0.0, std=0.001, seed=seed, dtype=np.double)
+        rng = get_rng(seed)
+        tensor = normal(size, mean=0.0, std=0.001, random_state=rng, dtype=np.double)
         tensor = torch.tensor(tensor, requires_grad=True, device=device)
     else:
         tensor = torch.tensor(init_values, requires_grad=True, device=device)
