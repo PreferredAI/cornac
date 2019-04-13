@@ -89,9 +89,9 @@ class VBPR(Recommender):
         self.beta_item = self.init_params.get('Bi', zeros(n_items))
         self.gamma_user = self.init_params.get('Gu', xavier_uniform((n_users, self.k), rng))
         self.gamma_item = self.init_params.get('Gi', xavier_uniform((n_items, self.k), rng))
-        self.theta_user = self.init_params.get('Tu', xavier_uniform((n_users, self.k2), self.seed))
-        self.emb_matrix = self.init_params.get('E', xavier_uniform((features.shape[1], self.k2), self.seed))
-        self.beta_prime = self.init_params.get('Bp', xavier_uniform((features.shape[1], 1), self.seed))
+        self.theta_user = self.init_params.get('Tu', xavier_uniform((n_users, self.k2), rng))
+        self.emb_matrix = self.init_params.get('E', xavier_uniform((features.shape[1], self.k2), rng))
+        self.beta_prime = self.init_params.get('Bp', xavier_uniform((features.shape[1], 1), rng))
         # pre-computed for faster evaluation
         self.theta_item = np.matmul(features, self.emb_matrix)
         self.visual_bias = np.matmul(features, self.beta_prime).ravel()
