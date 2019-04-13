@@ -62,12 +62,15 @@ class VMF(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {'U':None,'V':None, 'P': None, 'E': None}
+    init_params: dictionary, optional, default: {}
         List of initial parameters, e.g., init_params = {'U':U, 'V':V, 'P': P, 'E': E}. \
         U: numpy array of shape (n_users,k), user latent factors. \
         V: numpy array of shape (n_items,k), item latent factors.
         P: numpy array of shape (n_users,d), user visual latent factors.
         E: numpy array of shape (d,c), embedding kernel matrix.
+
+    seed: int, optional, default: None
+        Random seed for parameters initialization.
 
     References
     ----------
@@ -78,7 +81,7 @@ class VMF(Recommender):
     def __init__(self, name="VMF", k=10, d=10, n_epochs=100, batch_size=100, learning_rate=0.001, gamma=0.9,
                  lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e=10.,
                  trainable=True, verbose=False, use_gpu=False,
-                 init_params={'U': None, 'V': None, 'P': None, 'E': None}):
+                 init_params={}, seed = None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.d = d
@@ -94,10 +97,11 @@ class VMF(Recommender):
         self.use_gpu = use_gpu
         self.loss = np.full(n_epochs, 0)
         self.eps = 0.000000001
-        self.U = init_params['U']  # user factors
-        self.V = init_params['V']  # item factors
-        self.P = init_params['P']  # user visual factors
-        self.E = init_params['E']  # Kernel embedding matrix 
+        self.U = self.init_params.get('U')  # user factors
+        self.V = self.init_params.get('V')  # item factors
+        self.P = self.init_params.get('P')  # user visual factors
+        self.E = self.init_params.get('E')  # Kernel embedding matrix
+        self.seed = seed
 
     # fit the recommender model to the traning data
     def fit(self, train_set):
@@ -126,7 +130,7 @@ class VMF(Recommender):
                       batch_size=self.batch_size,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_p=self.lambda_p,
                       lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
-                      init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose)
+                      init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
 
             self.U = res['U']
             self.V = res['V']
