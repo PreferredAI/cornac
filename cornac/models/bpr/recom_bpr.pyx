@@ -130,10 +130,12 @@ class BPR(Recommender):
 
         n_users, n_items = train_set.num_users, train_set.num_items
 
+        from ...utils import get_rng
         from ...utils.init_utils import zeros, uniform
 
-        self.u_factors = self.init_params.get('U', (uniform((n_users, self.k), seed=self.seed) - 0.5) / self.k)
-        self.i_factors = self.init_params.get('V', (uniform((n_items, self.k), seed=self.seed) - 0.5) / self.k)
+        rng = get_rng(self.seed)
+        self.u_factors = self.init_params.get('U', (uniform((n_users, self.k), random_state=rng) - 0.5) / self.k)
+        self.i_factors = self.init_params.get('V', (uniform((n_items, self.k), random_state=rng) - 0.5) / self.k)
         self.i_biases = self.init_params.get('Bi', zeros(n_items))
 
         if self.trainable:

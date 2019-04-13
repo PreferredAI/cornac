@@ -15,6 +15,7 @@ from cornac.utils.common import clip
 from cornac.utils.common import excepts
 from cornac.utils.common import intersects
 from cornac.utils.common import estimate_batches
+from cornac.utils.common import get_rng
 
 
 class TestCommon(unittest.TestCase):
@@ -78,6 +79,12 @@ class TestCommon(unittest.TestCase):
         self.assertEqual(estimate_batches(3, 2), 2)
         self.assertEqual(estimate_batches(4, 2), 2)
         self.assertEqual(estimate_batches(1, 2), 1)
+
+    def test_get_rng(self):
+        try:
+            get_rng('a')
+        except ValueError:
+            assert True
 
 
 if __name__ == '__main__':

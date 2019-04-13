@@ -90,10 +90,12 @@ class MF(Recommender):
         n_users, n_items = train_set.num_users, train_set.num_items
         self.global_mean = train_set.global_mean if self.use_bias else 0.
 
+        from ...utils import get_rng
         from ...utils.init_utils import normal, zeros
 
-        self.u_factors = self.init_params.get('U', normal([n_users, self.k], std=0.01, seed=self.seed))
-        self.i_factors = self.init_params.get('V', normal([n_items, self.k], std=0.01, seed=self.seed))
+        rng = get_rng(self.seed)
+        self.u_factors = self.init_params.get('U', normal([n_users, self.k], std=0.01, random_state=rng))
+        self.i_factors = self.init_params.get('V', normal([n_items, self.k], std=0.01, random_state=rng))
         self.u_biases = self.init_params.get('Bu', zeros(n_users))
         self.i_biases = self.init_params.get('Bi', zeros(n_items))
 
