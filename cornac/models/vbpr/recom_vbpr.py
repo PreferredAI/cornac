@@ -82,11 +82,13 @@ class VBPR(Recommender):
         self.seed = seed
 
     def _init_factors(self, n_users, n_items, features):
+        from ...utils import get_rng
         from ...utils.init_utils import zeros, xavier_uniform
 
+        rng = get_rng(self.seed)
         self.beta_item = self.init_params.get('Bi', zeros(n_items))
-        self.gamma_user = self.init_params.get('Gu', xavier_uniform((n_users, self.k), self.seed))
-        self.gamma_item = self.init_params.get('Gi', xavier_uniform((n_items, self.k), self.seed))
+        self.gamma_user = self.init_params.get('Gu', xavier_uniform((n_users, self.k), rng))
+        self.gamma_item = self.init_params.get('Gi', xavier_uniform((n_items, self.k), rng))
         self.theta_user = self.init_params.get('Tu', xavier_uniform((n_users, self.k2), self.seed))
         self.emb_matrix = self.init_params.get('E', xavier_uniform((features.shape[1], self.k2), self.seed))
         self.beta_prime = self.init_params.get('Bp', xavier_uniform((features.shape[1], 1), self.seed))

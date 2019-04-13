@@ -5,6 +5,7 @@
 import numpy as np
 from libc.math cimport exp
 from libc.math cimport sqrt
+from ...utils.init_utils import normal
 
 #Sigmoid function
 cdef float sigmoid(float z):
@@ -23,7 +24,7 @@ cdef float sigmoid(float z):
 #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
 def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings,
                int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9,
-               init_params = None, verbose = False):
+               init_params = None, verbose = False, seed = None):
   
     #some useful variables
     cdef:
@@ -42,16 +43,8 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
         double val, s, e, norm_u, norm_v
         
     # Initialize user factors
-    if init_params['U'] is None:
-        U = np.random.normal(loc=0.0, scale=0.001, size=n*k).reshape(n,k)
-    else:
-        U = init_params['U']
-    
-    # Initialize item factors
-    if init_params['V'] is None:
-        V = np.random.normal(loc=0.0, scale=0.001, size=d*k).reshape(d,k)
-    else:
-        V = init_params['V']
+    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
+    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
   
     #Optimization
     for epoch in range(n_epochs):
@@ -93,7 +86,7 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
 #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
 def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings,
                    int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9,
-                   init_params = None, verbose = False):
+                   init_params = None, verbose = False, seed = None):
   
     #some useful variables
     cdef:
@@ -112,16 +105,8 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
         double val, s, e, norm_u, norm_v
   
     # Initialize user factors
-    if init_params['U'] is None:
-        U = np.random.normal(loc=0.0, scale=0.001, size=n*k).reshape(n,k)
-    else:
-        U = init_params['U']
-    
-    # Initialize item factors
-    if init_params['V'] is None:
-        V = np.random.normal(loc=0.0, scale=0.001, size=d*k).reshape(d,k)
-    else:
-        V = init_params['V']
+    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
+    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, seed=seed, dtype=np.double))
   
     #Optimization
     for epoch in range(n_epochs):
