@@ -94,8 +94,7 @@ class MCF(Recommender):
 
             # item-item affinity network
             map_iid = train_set.iid_list
-            affinity_net = train_set.item_graph.get_train_triplet(map_iid, map_iid)
-            (net_iid, net_jid, net_val) = (affinity_net[:, 0], affinity_net[:, 1], affinity_net[:, 2])
+            (net_iid, net_jid, net_val) = train_set.item_graph.get_train_triplet(map_iid, map_iid)
             if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
                 if self.train_set.min_rating == self.train_set.max_rating:
                     rat_val = scale(rat_val, 0., 1., 0., self.train_set.max_rating)
