@@ -21,6 +21,9 @@ from ...utils import fast_dot
 from ...utils.common import scale
 
 
+cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
+    cdef int get_thread_num()
+
 
 @cython.boundscheck(False)
 cdef bool has_non_zero(integral[:] indptr, integral[:] indices,

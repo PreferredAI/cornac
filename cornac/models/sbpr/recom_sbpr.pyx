@@ -18,8 +18,11 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import fast_dot
 from ...utils.common import scale
-from ..bpr.recom_bpr cimport RNGVector, has_non_zero, get_thread_num
+from ..bpr.recom_bpr cimport RNGVector, has_non_zero
 
+
+cdef extern from "../bpr/recom_bpr.h" namespace "recom_bpr" nogil:
+    cdef int get_thread_num()
 
 
 class SBPR(Recommender):

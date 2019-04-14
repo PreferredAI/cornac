@@ -13,10 +13,6 @@ from libcpp.vector cimport vector
 cdef bool has_non_zero(integral[:], integral[:], integral, integral) nogil
 
 
-cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
-    cdef int get_thread_num()
-
-
 cdef extern from "<random>" namespace "std":
     cdef cppclass mt19937:
         mt19937(unsigned int)
