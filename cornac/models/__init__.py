@@ -14,3 +14,4 @@ from .online_ibpr import OnlineIBPR
 from .mf import MF
 from .conv_mf import ConvMF
 from .cdr import CDR
+from .sbpr import SBPR
