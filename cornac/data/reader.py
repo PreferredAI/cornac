@@ -81,6 +81,11 @@ class Reader():
         The minimum frequency of an item to be selected.
         If `min_item_freq=1`, all items that appear in the data will be included.
 
+    bin_threshold: float, default = None
+        The rating threshold to binarize rating values (turn explicit feedback to implicit feedback).
+        For example, if `bin_threshold = 3.0`, all rating values >= 3.0 will be set to 1.0,
+        and the rest (< 3.0) will be discarded.
+
     encoding: str, default = `utf-8`
         Encoding used to decode the file.
 
@@ -91,15 +96,19 @@ class Reader():
     """
 
     def __init__(self, user_set=None, item_set=None, min_user_freq=1, min_item_freq=1,
-                 encoding='utf-8', errors=None):
+                 bin_threshold=None, encoding='utf-8', errors=None):
         self.users = user_set
         self.items = item_set
         self.min_uf = min_user_freq
         self.min_if = min_item_freq
+        self.bin_threshold = bin_threshold
         self.encoding = encoding
         self.errors = errors
 
     def filter(self, tuples):
+        if self.bin_threshold is not None:
+            tuples = [tup for tup in tuples if tup[2] >= self.bin_threshold]
+
         if self.users is not None:
             if isinstance(self.users, list):
                 self.users = set(self.users)
