@@ -79,3 +79,8 @@ Convolutional Matrix Factorization (ConvMF)
 --------------------------------------------------
 .. automodule:: cornac.models.conv_mf.recom_convmf
    :members:
+
+Social Bayesian Personalized Ranking (SBPR)
+--------------------------------------------------
+.. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
+   :members:
