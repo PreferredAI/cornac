@@ -10,7 +10,6 @@ from cython cimport floating, integral
 from cython.parallel import parallel, prange
 from libc.math cimport exp
 from libcpp cimport bool
-from libcpp.vector cimport vector
 from libcpp.algorithm cimport binary_search
 
 import numpy as np
@@ -22,38 +21,19 @@ from ...utils import fast_dot
 from ...utils.common import scale
 
 
-cdef extern from "<random>" namespace "std":
-    cdef cppclass mt19937:
-        mt19937(unsigned int)
-
-    cdef cppclass uniform_int_distribution[T]:
-        uniform_int_distribution(T, T)
-        T operator()(mt19937) nogil
-
-
-# thin wrapper around omp_get_thread_num (since referencing directly will cause OSX
-# build to fail)
-cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
-    cdef int get_thread_num()
-
 
 @cython.boundscheck(False)
 cdef bool has_non_zero(integral[:] indptr, integral[:] indices,
                        integral rowid, integral colid) nogil:
-    """ Given a CSR matrix, returns whether the [rowid, colid] contains a non zero.
-    Assumes the CSR matrix has sorted indices """
+    """Given a CSR matrix, returns whether the [rowid, colid] contains a non zero.
+    Assumes the CSR matrix has sorted indices"""
     return binary_search(&indices[indptr[rowid]], &indices[indptr[rowid + 1]], colid)
 
 
 cdef class RNGVector(object):
-    """ This class creates one c++ rng object per thread, and enables us to randomly sample
-    positive/negative items here in a thread safe manner """
-    cdef vector[mt19937] rng
-    cdef vector[uniform_int_distribution[long]] dist
-
     def __init__(self, int num_threads, long rows):
         for i in range(num_threads):
-            self.rng.push_back(mt19937(np.random.randint(2**31)))
+            self.rng.push_back(mt19937(np.random.randint(2 ** 31)))
             self.dist.push_back(uniform_int_distribution[long](0, rows))
 
     cdef inline long generate(self, int thread_id) nogil:
@@ -100,7 +80,7 @@ class BPR(Recommender):
     BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.
     """
 
-    def __init__(self, name='BPR', k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01,
+    def __init__(self, name='BPR', k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01,
                  num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -128,99 +108,100 @@ class BPR(Recommender):
         """
         Recommender.fit(self, train_set)
 
-        n_users, n_items = train_set.num_users, train_set.num_items
-
+        from tqdm import trange
         from ...utils import get_rng
         from ...utils.init_utils import zeros, uniform
+
+        n_users, n_items = train_set.num_users, train_set.num_items
 
         rng = get_rng(self.seed)
         self.u_factors = self.init_params.get('U', (uniform((n_users, self.k), random_state=rng) - 0.5) / self.k)
         self.i_factors = self.init_params.get('V', (uniform((n_items, self.k), random_state=rng) - 0.5) / self.k)
         self.i_biases = self.init_params.get('Bi', zeros(n_items))
 
-        if self.trainable:
-            X = train_set.matrix # csr_matrix
-            # this basically calculates the 'row' attribute of a COO matrix
-            # without requiring us to get the whole COO matrix
-            user_counts = np.ediff1d(X.indptr)
-            user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
+        if not self.trainable:
+            return
 
-            self._fit_sgd(user_ids, X.indices, X.indptr,
-                          self.u_factors, self.i_factors, self.i_biases)
+        X = train_set.matrix # csr_matrix
+        # this basically calculates the 'row' attribute of a COO matrix
+        # without requiring us to get the whole COO matrix
+        user_counts = np.ediff1d(X.indptr)
+        user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
 
+        cdef:
+            int num_threads = self.num_threads
+            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1)
+            RNGVector rng_neg = RNGVector(num_threads, n_items - 1)
+
+        with trange(self.max_iter, disable=not self.verbose) as progress:
+            for epoch in progress:
+                correct, skipped = self._fit_sgd(rng_pos, rng_neg, num_threads,
+                                                 user_ids, X.indices, X.indptr,
+                                                 self.u_factors, self.i_factors, self.i_biases)
+                progress.set_postfix({"correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
+                                      "skipped": "%.2f%%" % (100.0 * skipped / n_items)})
+        if self.verbose:
+            print('Optimization finished!')
 
     @cython.cdivision(True)
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def _fit_sgd(self, integral[:] user_ids, integral[:] item_ids, integral[:] indptr,
+    def _fit_sgd(self, RNGVector rng_pos, RNGVector rng_neg, int num_threads,
+                 integral[:] user_ids, integral[:] item_ids, integral[:] indptr,
                  floating[:, :] U, floating[:, :] V, floating[:] B):
         """Fit the model parameters (U, V, B) with SGD
         """
-        cdef long num_samples = len(user_ids), s, i_index, j_index, correct, skipped
-        cdef long num_items = self.train_set.num_items
-        cdef integral f, i_id, j_id, thread_id
-        cdef floating z, score, temp
+        cdef:
+            long num_samples = len(user_ids), s, i_index, j_index, correct = 0, skipped = 0
+            long num_items = self.train_set.num_items
+            integral f, i_id, j_id, thread_id
+            floating z, score, temp
 
-        cdef floating lr = self.learning_rate
-        cdef floating reg = self.lambda_reg
-        cdef integral factors = self.k
-        cdef integral num_threads = self.num_threads
+            floating lr = self.learning_rate
+            floating reg = self.lambda_reg
+            int factors = self.k
 
-        cdef floating * user
-        cdef floating * item_i
-        cdef floating * item_j
+            floating * user
+            floating * item_i
+            floating * item_j
 
-        cdef RNGVector rng_i = RNGVector(num_threads, num_samples - 1)
-        cdef RNGVector rng_j = RNGVector(num_threads, num_items - 1)
+        with nogil, parallel(num_threads=num_threads):
+            thread_id = get_thread_num()
 
-        from tqdm import trange
-        progress = trange(self.max_iter, disable=not self.verbose)
-        for epoch in progress:
-            correct = 0
-            skipped = 0
+            for s in prange(num_samples, schedule='guided'):
+                i_index = rng_pos.generate(thread_id)
+                i_id = item_ids[i_index]
+                j_id = rng_neg.generate(thread_id)
 
-            with nogil, parallel(num_threads=num_threads):
-                thread_id = get_thread_num()
+                # if the user has liked the item j, skip this for now
+                if has_non_zero(indptr, item_ids, user_ids[i_index], j_id):
+                    skipped += 1
+                    continue
 
-                for s in prange(num_samples, schedule='guided'):
-                    i_index = rng_i.generate(thread_id)
-                    i_id = item_ids[i_index]
-                    j_id = rng_j.generate(thread_id)
+                # get pointers to the relevant factors
+                user, item_i, item_j = &U[user_ids[i_index], 0], &V[i_id, 0], &V[j_id, 0]
 
-                    # if the user has liked the item j, skip this for now
-                    if has_non_zero(indptr, item_ids, user_ids[i_index], j_id):
-                        skipped += 1
-                        continue
+                # compute the score
+                score = B[i_id] - B[j_id]
+                for f in range(factors):
+                    score = score + user[f] * (item_i[f] - item_j[f])
+                z = 1.0 / (1.0 + exp(score))
 
-                    # get pointers to the relevant factors
-                    user, item_i, item_j = &U[user_ids[i_index], 0], &V[i_id, 0], &V[j_id, 0]
+                if z < .5:
+                    correct += 1
 
-                    # compute the score
-                    score = B[i_id] - B[j_id]
-                    for f in range(factors):
-                        score = score + user[f] * (item_i[f] - item_j[f])
-                    z = 1.0 / (1.0 + exp(score))
+                # update the factors via sgd.
+                for f in range(factors):
+                    temp = user[f]
+                    user[f] += lr * (z * (item_i[f] - item_j[f]) - reg * user[f])
+                    item_i[f] += lr * (z * temp - reg * item_i[f])
+                    item_j[f] += lr * (-z * temp - reg * item_j[f])
 
-                    if z < .5:
-                        correct += 1
+                # update item biases
+                B[i_id] += lr * (z - reg * B[i_id])
+                B[j_id] += lr * (-z - reg * B[j_id])
 
-                    # update the factors via sgd.
-                    for f in prange(factors):
-                        temp = user[f]
-                        user[f] += lr * (z * (item_i[f] - item_j[f]) - reg * user[f])
-                        item_i[f] += lr * (z * temp - reg * item_i[f])
-                        item_j[f] += lr * (-z * temp - reg * item_j[f])
-
-                    # update item biases
-                    B[i_id] += lr * (z - reg * B[i_id])
-                    B[j_id] += lr * (-z - reg * B[j_id])
-
-            progress.set_postfix({"correct": "%.2f%%" % (100.0 * correct / (num_samples - skipped)),
-                                  "skipped": "%.2f%%" % (100.0 * skipped / num_samples)})
-        progress.close()
-
-        if self.verbose:
-            print('Optimization finished!')
+        return correct, skipped
 
 
     def score(self, user_id, item_id=None):
