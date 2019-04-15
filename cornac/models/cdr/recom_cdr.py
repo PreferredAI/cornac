@@ -24,6 +24,10 @@ class CDR(Recommender):
         The number of neurons of encoder/decoder layer for SDAE.
         For example, autoencoder_structure = [200], the SDAE structure will be [vocab_size, 200, k, 200, vocab_size]
 
+    act_fn: str, default: 'relu'
+        Name of the activation function used for the auto-encoder.
+        Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'relu6', 'leaky_relu', 'identity']
+
     learning_rate: float, optional, default: 0.001
         The learning rate for AdamOptimizer.
 
@@ -70,9 +74,10 @@ class CDR(Recommender):
 
     """
 
-    def __init__(self, name="CDR", k=50, autoencoder_structure=None, lambda_u=0.1, lambda_v=100,
-                 lambda_w=0.1, lambda_n=1000, corruption_rate=0.3, learning_rate=0.001,
-                 dropout_rate=0.1, batch_size=128, max_iter=100, trainable=True, verbose=True,
+    def __init__(self, name="CDR", k=50, autoencoder_structure=None, act_fn='relu',
+                 lambda_u=0.1, lambda_v=100, lambda_w=0.1, lambda_n=1000,
+                 corruption_rate=0.3, learning_rate=0.001, dropout_rate=0.1,
+                 batch_size=128, max_iter=100, trainable=True, verbose=True,
                  vocab_size=8000, init_params=None, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -86,6 +91,7 @@ class CDR(Recommender):
         self.name = name
         self.max_iter = max_iter
         self.ae_structure = autoencoder_structure
+        self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
         self.vocab_size = vocab_size
@@ -108,9 +114,9 @@ class CDR(Recommender):
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
 
-        rng = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), random_state=rng))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), random_state=rng))
+        self.seed = get_rng(self.seed)
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.seed))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.seed))
 
         if self.trainable:
             self._fit_cdr()
@@ -126,12 +132,13 @@ class CDR(Recommender):
         text_feature = self.train_set.item_text.batch_bow(np.arange(n_items))  # bag of word feature
         text_feature = (text_feature - text_feature.min()) / (text_feature.max() - text_feature.min())  # normalization
 
+        # Build model
         layer_sizes = [self.vocab_size] + self.ae_structure + [self.k] + self.ae_structure + [self.vocab_size]
 
-        # Build model
         model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w,
-                      lambda_n=self.lambda_n, lr=self.learning_rate, dropout_rate=self.dropout_rate, U=self.U, V=self.V)
+                      lambda_n=self.lambda_n, lr=self.learning_rate, dropout_rate=self.dropout_rate,
+                      U=self.U, V=self.V, act_fn=self.act_fn, seed=self.seed)
 
         # Training model
         config = tf.ConfigProto()
@@ -166,10 +173,10 @@ class CDR(Recommender):
 
             self.U, self.V = sess.run([model.U, model.V])
 
+        tf.reset_default_graph()
+
         if self.verbose:
             print('\nLearning completed')
-
-        tf.reset_default_graph()
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
