@@ -24,7 +24,7 @@ class GraphModule(FeatureModule):
         if self.__matrix is None:
             n_rows = int(max(self.map_rid) + 1)
             n_cols = int(max(self.map_cid) + 1)
-            self.__matrix = sp.csr_matrix((self.val, (self.map_cid, self.map_cid)),
+            self.__matrix = sp.csr_matrix((self.val, (self.map_rid, self.map_cid)),
                                           shape=(n_rows, n_cols))
         return self.__matrix
 
