@@ -6,12 +6,71 @@
 
 import tensorflow as tf
 
+from ...utils import get_rng
+from ...utils.init_utils import xavier_uniform
+
+act_functions = {
+    'sigmoid': tf.nn.sigmoid,
+    'tanh': tf.nn.tanh,
+    'elu': tf.nn.elu,
+    'relu': tf.nn.relu,
+    'relu6': tf.nn.relu6,
+    'leaky_relu': tf.nn.leaky_relu,
+    'identity': tf.identity
+}
+
+
+# Stacked Denoising Autoencoder
+def sdae(X_corrupted, layers, dropout_rate=0.0, act_fn='relu', seed=None, name="SDAE"):
+    fn = act_functions.get(act_fn, None)
+    if fn is None:
+        raise ValueError('Invalid type of activation function {}\n'
+                         'Supported functions: {}'.format(act_fn, act_functions.keys()))
+
+    # Weight initialization
+    L = len(layers)
+    rng = get_rng(seed)
+    weights, biases = [], []
+    with tf.variable_scope(name):
+        for i in range(L - 1):
+            w = xavier_uniform((layers[i], layers[i + 1]), random_state=rng)
+            weights.append(tf.get_variable(name='W_{}'.format(i), dtype=tf.float32,
+                                           initializer=tf.constant(w)))
+            biases.append(tf.get_variable(name='b_{}'.format(i), dtype=tf.float32,
+                                          shape=(layers[i + 1]),
+                                          initializer=tf.zeros_initializer()))
+
+    # Construct the auto-encoder
+    h_value = X_corrupted
+    for i in range(L - 1):
+        # The encoder
+        if i <= int(L / 2) - 1:
+            h_value = fn(tf.add(tf.matmul(h_value, weights[i]), biases[i]))
+        # The decoder
+        elif i > int(L / 2) - 1:
+            h_value = fn(tf.add(tf.matmul(h_value, weights[i]), biases[i]))
+        # The dropout for all the layers except the final one
+        if i < (L - 2):
+            h_value = tf.nn.dropout(h_value, rate=dropout_rate)
+        # The encoder output value
+        if i == int(L / 2) - 1:
+            encoded_value = h_value
+
+    sdae_value = h_value
+
+    # L2 loss
+    loss_w = tf.constant(0.0)
+    for i in range(L - 1):
+        loss_w = tf.add(loss_w, tf.nn.l2_loss(weights[i]) + tf.nn.l2_loss(biases[i]))
+
+    return sdae_value, encoded_value, loss_w
+
 
 class Model:
 
     def __init__(self, n_users, n_items, n_vocab, k,
                  layers, lambda_u, lambda_v, lambda_n, lambda_w,
-                 lr, dropout_rate, U_init, V_init):
+                 lr, dropout_rate, U, V, act_fn, seed):
         self.n_vocab = n_vocab
         self.n_users = n_users
         self.n_items = n_items
@@ -23,8 +82,10 @@ class Model:
         self.lr = lr  # learning rate
         self.k = k  # latent dimension
         self.dropout_rate = dropout_rate
-        self.U_init = tf.constant(U_init)
-        self.V_init = tf.constant(V_init)
+        self.U_init = tf.constant(U)
+        self.V_init = tf.constant(V)
+        self.act_fn = act_fn
+        self.seed = seed
 
         self._build_graph()
 
@@ -43,7 +104,9 @@ class Model:
         V_batch = tf.reshape(tf.gather(self.V, self.item_ids), shape=[real_batch_size, self.k])
 
         corrupted_text = tf.multiply(self.text_input, self.text_mask)
-        sdae_value, encoded_value, loss_w = self._sdae(corrupted_text)
+        sdae_value, encoded_value, loss_w = sdae(X_corrupted=corrupted_text, layers=self.layers,
+                                                 dropout_rate=self.dropout_rate, act_fn=self.act_fn,
+                                                 seed=self.seed, name='SDAE_Variable')
 
         loss_1 = self.lambda_u * tf.nn.l2_loss(self.U) + self.lambda_w * loss_w
         loss_2 = self.lambda_v * tf.nn.l2_loss(V_batch - encoded_value)
@@ -74,41 +137,3 @@ class Model:
         gvs = optimizer2.compute_gradients(self.loss, var_list=train_var_list2)
         capped_gvs = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gvs]
         self.opt2 = optimizer2.apply_gradients(capped_gvs)
-
-    # Stacked Denoising Autoencoder
-    def _sdae(self, X_corrupted):
-        L = len(self.layers)
-        weights, biases = dict(), dict()
-        with tf.variable_scope("SDAE_Variable"):
-            for i in range(L - 1):
-                weights[i] = tf.get_variable(name='W_{}'.format(i), dtype=tf.float32,
-                                             shape=(self.layers[i], self.layers[i + 1]))
-                biases[i] = tf.get_variable(name='b_{}'.format(i), dtype=tf.float32,
-                                            shape=(self.layers[i + 1]),
-                                            initializer=tf.zeros_initializer())
-        for i in range(L - 1):
-            # The encoder
-            if i <= int(L / 2) - 1:
-                if i == 0:
-                    # The first layer
-                    h_value = tf.nn.relu(tf.add(tf.matmul(X_corrupted, weights[i]), biases[i]))
-                else:
-                    h_value = tf.nn.relu(tf.add(tf.matmul(h_value, weights[i]), biases[i]))
-            # The decoder
-            elif i > int(L / 2) - 1:
-                h_value = tf.nn.relu(tf.add(tf.matmul(h_value, weights[i]), biases[i]))
-            # The dropout for all the layers except the final one
-            if i < (L - 2):
-                h_value = tf.nn.dropout(h_value, rate=self.dropout_rate)
-            # The encoder output value
-            if i == int(L / 2) - 1:
-                encoded_value = h_value
-
-        sdae_value = h_value
-
-        # Generate loss function
-        loss_w = tf.constant(0, dtype=tf.float32)
-        for i in range(L - 1):
-            loss_w = tf.add(loss_w, tf.nn.l2_loss(weights[i]))
-
-        return sdae_value, encoded_value, loss_w

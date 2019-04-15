@@ -27,6 +27,10 @@ class CDL(Recommender):
         The number of neurons of encoder/decoder layer for SDAE.
         For example, autoencoder_structure = [200], the SDAE structure will be [vocab_size, 200, k, 200, vocab_size]
 
+    act_fn: str, default: 'relu'
+        Name of the activation function used for the auto-encoder.
+        Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'relu6', 'leaky_relu', 'identity']
+
     learning_rate: float, optional, default: 0.001
         The learning rate for AdamOptimizer.
 
@@ -80,7 +84,8 @@ class CDL(Recommender):
     """
 
     def __init__(self, name='CDL',
-                 k=50, autoencoder_structure=None, lambda_u=0.1, lambda_v=100, lambda_w=0.1, lambda_n=1000,
+                 k=50, autoencoder_structure=None, act_fn='relu',
+                 lambda_u=0.1, lambda_v=100, lambda_w=0.1, lambda_n=1000,
                  a=1, b=0.01, corruption_rate=0.3, learning_rate=0.001, vocab_size=8000,
                  dropout_rate=0.1, batch_size=128, max_iter=100, trainable=True, verbose=True,
                  init_params=None, seed=None):
@@ -99,7 +104,8 @@ class CDL(Recommender):
         self.name = name
         self.init_params = init_params
         self.max_iter = max_iter
-        self.autoencoder_structure = autoencoder_structure
+        self.ae_structure = autoencoder_structure
+        self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
         self.init_params = {} if not init_params else init_params
@@ -120,14 +126,14 @@ class CDL(Recommender):
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
 
-        rng = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), random_state=rng))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), random_state=rng))
+        self.seed = get_rng(self.seed)
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.seed))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.seed))
 
         if self.trainable:
             self._fit_cdl()
 
-    def _fit_cdl(self):
+    def _fit_cdl(self, ):
         import tensorflow as tf
         from tqdm import trange
         from .cdl import Model
@@ -138,13 +144,13 @@ class CDL(Recommender):
         text_feature = self.train_set.item_text.batch_bow(np.arange(n_items))  # bag of word feature
         text_feature = (text_feature - text_feature.min()) / (text_feature.max() - text_feature.min())  # normalization
 
-        layer_sizes = [self.vocab_size] + self.autoencoder_structure + [self.k] \
-                      + self.autoencoder_structure + [self.vocab_size]
-
         # Build model
+        layer_sizes = [self.vocab_size] + self.ae_structure + [self.k] + self.ae_structure + [self.vocab_size]
+
         model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w, lambda_n=self.lambda_n,
-                      lr=self.learning_rate, dropout_rate=self.dropout_rate, U_init=self.U, V_init=self.V)
+                      lr=self.learning_rate, dropout_rate=self.dropout_rate, U=self.U, V=self.V,
+                      act_fn=self.act_fn, seed=self.seed)
 
         # Training model
         config = tf.ConfigProto()
@@ -212,5 +218,4 @@ class CDL(Recommender):
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
             user_pred = self.V[item_id, :].dot(self.U[user_id, :])
-
             return user_pred
