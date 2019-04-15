@@ -111,27 +111,28 @@ class MF(Recommender):
                  floating[:, :] U, floating[:, :] V, floating[:] Bu, floating[:] Bi):
         """Fit the model parameters (U, V, Bu, Bi) with SGD
         """
-        cdef long num_users = self.train_set.num_users
-        cdef long num_items = self.train_set.num_items
-        cdef long num_ratings = val.shape[0]
-        cdef integral num_factors = self.k
-        cdef integral max_iter = self.max_iter
+        cdef:
+            long num_users = self.train_set.num_users
+            long num_items = self.train_set.num_items
+            long num_ratings = val.shape[0]
+            int num_factors = self.k
+            int max_iter = self.max_iter
 
-        cdef floating reg = self.lambda_reg
-        cdef floating mu = self.global_mean
+            floating reg = self.lambda_reg
+            floating mu = self.global_mean
 
-        cdef bool use_bias = self.use_bias
-        cdef bool early_stop = self.early_stop
-        cdef bool verbose = self.verbose
+            bool use_bias = self.use_bias
+            bool early_stop = self.early_stop
+            bool verbose = self.verbose
 
-        cdef floating lr = self.learning_rate
-        cdef floating loss = 0
-        cdef floating last_loss = 0
-        cdef floating r, r_pred, error, u_f, i_f, delta_loss
-        cdef integral u, i, f, j
+            floating lr = self.learning_rate
+            floating loss = 0
+            floating last_loss = 0
+            floating r, r_pred, error, u_f, i_f, delta_loss
+            integral u, i, f, j
 
-        cdef floating * user
-        cdef floating * item
+            floating * user
+            floating * item
 
         from tqdm import trange
         progress = trange(max_iter, disable=not self.verbose)
@@ -139,20 +140,20 @@ class MF(Recommender):
             last_loss = loss
             loss = 0
 
-            for j in prange(num_ratings, nogil=True):
+            for j in prange(num_ratings, nogil=True, schedule='guided'):
                 u, i, r = rid[j], cid[j], val[j]
                 user, item = &U[u, 0], &V[i, 0]
 
                 # predict rating
                 r_pred = mu + Bu[u] + Bi[i]
-                for f in prange(num_factors):
-                    r_pred += user[f] * item[f]
+                for f in range(num_factors):
+                    r_pred = r_pred + user[f] * item[f]
 
                 error = r - r_pred
                 loss += error * error
 
                 # update factors
-                for f in prange(num_factors):
+                for f in range(num_factors):
                     u_f, i_f = user[f], item[f]
                     user[f] += lr * (error * i_f - reg * u_f)
                     item[f] += lr * (error * u_f - reg * i_f)

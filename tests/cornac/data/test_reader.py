@@ -39,6 +39,9 @@ class TestReader(unittest.TestCase):
         self.assertEqual(triplet_data[8][0], '543')
 
     def test_filter(self):
+        reader = Reader(bin_threshold=4.0)
+        self.assertEqual(len(reader.read(self.data_file)), 8)
+
         reader = Reader(min_user_freq=2)
         self.assertEqual(len(reader.read(self.data_file)), 0)
 

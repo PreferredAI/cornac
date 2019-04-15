@@ -29,3 +29,8 @@ CiteULike
 -----------------------------------------
 .. automodule:: cornac.datasets.citeulike
    :members:
+
+Epinions
+-----------------------------------------
+.. automodule:: cornac.datasets.epinions
+   :members:
