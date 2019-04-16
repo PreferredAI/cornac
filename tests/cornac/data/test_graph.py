@@ -31,7 +31,7 @@ class TestGraphModule(unittest.TestCase):
         self.assertEqual(len(gmd.map_rid), 7)
         self.assertEqual(len(gmd.map_cid), 7)
         self.assertEqual(len(gmd.val), 7)
-        self.assertEqual(gmd.matrix.shape, (7, 3))
+        self.assertEqual(gmd.matrix.shape, (7, 7))
 
         try:
             GraphModule().build()
