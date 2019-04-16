@@ -46,11 +46,11 @@ class GraphModule(FeatureModule):
         self.val = np.asarray(self.val, dtype=np.float)
 
     def build(self, id_map=None):
-        if id_map is None:
-            raise ValueError('id_map is required but None!')
-
-        self.__matrix_size = int(max(id_map.values()) + 1)
-        self._build_triplet(id_map)
+        super().build(id_map)
+        
+        if id_map is not None:
+            self.__matrix_size = int(max(id_map.values()) + 1)
+            self._build_triplet(id_map)
         return self
 
     def get_train_triplet(self, train_row_ids, train_col_ids):
