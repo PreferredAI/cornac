@@ -18,14 +18,14 @@ class GraphModule(FeatureModule):
         super().__init__(**kwargs)
         self.raw_data = kwargs.get('data', None)
         self.__matrix = None
+        self.__matrix_size = None
 
     @property
     def matrix(self):
         if self.__matrix is None:
-            n_rows = int(max(self.map_rid) + 1)
-            n_cols = int(max(self.map_cid) + 1)
+            assert self.__matrix_size is not None
             self.__matrix = sp.csr_matrix((self.val, (self.map_rid, self.map_cid)),
-                                          shape=(n_rows, n_cols))
+                                          shape=(self.__matrix_size, self.__matrix_size))
         return self.__matrix
 
     def _build_triplet(self, id_map):
@@ -48,7 +48,10 @@ class GraphModule(FeatureModule):
     def build(self, id_map=None):
         if id_map is None:
             raise ValueError('id_map is required but None!')
+
+        self.__matrix_size = int(max(id_map.values()) + 1)
         self._build_triplet(id_map)
+        return self
 
     def get_train_triplet(self, train_row_ids, train_col_ids):
         """Get the training tuples
@@ -56,7 +59,7 @@ class GraphModule(FeatureModule):
         picked_idx = []
         train_row_ids = set(train_row_ids) if not isinstance(train_row_ids, set) else train_row_ids
         train_col_ids = set(train_col_ids) if not isinstance(train_col_ids, set) else train_col_ids
-        for idx, (i, j, v) in enumerate(zip(self.map_rid, self.map_cid, self.val)):
+        for idx, (i, j) in enumerate(zip(self.map_rid, self.map_cid)):
             if (i not in train_row_ids) or (j not in train_col_ids):
                 continue
             picked_idx.append(idx)
