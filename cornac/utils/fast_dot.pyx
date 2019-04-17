@@ -24,5 +24,5 @@ cdef floating _dot(int n, floating *x, int incx,
 @cython.wraparound(False)
 cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):
     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
-    for i in prange(d0, nogil=True):
+    for i in prange(d0, nogil=True, schedule='static'):
         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)

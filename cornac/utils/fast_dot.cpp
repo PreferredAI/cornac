@@ -3,8 +3,17 @@
 /* BEGIN: Cython Metadata
 {
     "distutils": {
-        "include_dirs": [
-            "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include"
+        "extra_compile_args": [
+            "-Wno-unused-function",
+            "-Wno-maybe-uninitialized",
+            "-O3",
+            "-ffast-math",
+            "-fopenmp",
+            "-std=c++11"
+        ],
+        "extra_link_args": [
+            "-fopenmp",
+            "-std=c++11"
         ],
         "language": "c++",
         "name": "cornac.utils.fast_dot",
@@ -2471,7 +2480,7 @@ static double __pyx_fuse_1__pyx_f_6cornac_5utils_8fast_dot__dot(int __pyx_v_n, d
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):             # <<<<<<<<<<<<<<
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  */
 
 /* Python wrapper */
@@ -3018,7 +3027,7 @@ static void __pyx_fuse_0__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]             # <<<<<<<<<<<<<<
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)
  */
   __pyx_v_d0 = (__pyx_v_mat.shape[0]);
@@ -3027,7 +3036,7 @@ static void __pyx_fuse_0__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
   /* "cornac/utils/fast_dot.pyx":27
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):             # <<<<<<<<<<<<<<
+ *     for i in prange(d0, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)
  */
   {
@@ -3054,7 +3063,7 @@ static void __pyx_fuse_0__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_i) lastprivate(__pyx_v_i)
+                    #pragma omp for firstprivate(__pyx_v_i) lastprivate(__pyx_v_i) schedule(static)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
@@ -3062,7 +3071,7 @@ static void __pyx_fuse_0__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
 
                             /* "cornac/utils/fast_dot.pyx":28
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)             # <<<<<<<<<<<<<<
  */
                             __pyx_t_4 = 0;
@@ -3086,7 +3095,7 @@ static void __pyx_fuse_0__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
       /* "cornac/utils/fast_dot.pyx":27
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):             # <<<<<<<<<<<<<<
+ *     for i in prange(d0, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)
  */
       /*finally:*/ {
@@ -3106,7 +3115,7 @@ static void __pyx_fuse_0__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):             # <<<<<<<<<<<<<<
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  */
 
   /* function exit code */
@@ -3235,7 +3244,7 @@ static void __pyx_fuse_1__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]             # <<<<<<<<<<<<<<
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)
  */
   __pyx_v_d0 = (__pyx_v_mat.shape[0]);
@@ -3244,7 +3253,7 @@ static void __pyx_fuse_1__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
   /* "cornac/utils/fast_dot.pyx":27
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):             # <<<<<<<<<<<<<<
+ *     for i in prange(d0, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)
  */
   {
@@ -3271,7 +3280,7 @@ static void __pyx_fuse_1__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
                 #endif /* _OPENMP */
                 {
                     #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_i) lastprivate(__pyx_v_i)
+                    #pragma omp for firstprivate(__pyx_v_i) lastprivate(__pyx_v_i) schedule(static)
                     #endif /* _OPENMP */
                     for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                         {
@@ -3279,7 +3288,7 @@ static void __pyx_fuse_1__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
 
                             /* "cornac/utils/fast_dot.pyx":28
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)             # <<<<<<<<<<<<<<
  */
                             __pyx_t_4 = 0;
@@ -3303,7 +3312,7 @@ static void __pyx_fuse_1__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
       /* "cornac/utils/fast_dot.pyx":27
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):             # <<<<<<<<<<<<<<
+ *     for i in prange(d0, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *         output[i] += _dot(d1, &vec[0], 1, &mat[i, 0], 1)
  */
       /*finally:*/ {
@@ -3323,7 +3332,7 @@ static void __pyx_fuse_1__pyx_f_6cornac_5utils_8fast_dot_fast_dot(__Pyx_memviews
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):             # <<<<<<<<<<<<<<
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  */
 
   /* function exit code */
@@ -17059,7 +17068,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):             # <<<<<<<<<<<<<<
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  */
   __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_No_matching_signature_found); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
@@ -17265,7 +17274,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):             # <<<<<<<<<<<<<<
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  */
   __pyx_tuple__23 = PyTuple_Pack(3, __pyx_n_s_vec, __pyx_n_s_mat, __pyx_n_s_output); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__23);
@@ -17692,7 +17701,7 @@ if (!__Pyx_RefNanny) {
  * @cython.wraparound(False)
  * cpdef void fast_dot(floating[:] vec, floating[:, :] mat, floating[:] output):             # <<<<<<<<<<<<<<
  *     cdef int i, j, d0 = mat.shape[0], d1 = mat.shape[1]
- *     for i in prange(d0, nogil=True):
+ *     for i in prange(d0, nogil=True, schedule='static'):
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);

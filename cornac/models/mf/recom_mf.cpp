@@ -7,6 +7,18 @@
             "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include/numpy/arrayobject.h",
             "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include/numpy/ufuncobject.h"
         ],
+        "extra_compile_args": [
+            "-Wno-unused-function",
+            "-Wno-maybe-uninitialized",
+            "-O3",
+            "-ffast-math",
+            "-fopenmp",
+            "-std=c++11"
+        ],
+        "extra_link_args": [
+            "-fopenmp",
+            "-std=c++11"
+        ],
         "include_dirs": [
             "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include"
         ],
@@ -5513,14 +5525,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_8_fit_sgd(CYTHON_UNU
  *             last_loss = loss
  *             loss = 0             # <<<<<<<<<<<<<<
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  */
     __pyx_v_loss = 0.0;
 
     /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -5548,7 +5560,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_8_fit_sgd(CYTHON_UNU
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(guided)
+                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(static)
                       #endif /* _OPENMP */
                       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
                           {
@@ -5567,7 +5579,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_8_fit_sgd(CYTHON_UNU
 
                               /* "cornac/models/mf/recom_mf.pyx":144
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]             # <<<<<<<<<<<<<<
  *                 user, item = &U[u, 0], &V[i, 0]
  * 
@@ -5583,7 +5595,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_8_fit_sgd(CYTHON_UNU
                               __pyx_v_r = __pyx_t_5;
 
                               /* "cornac/models/mf/recom_mf.pyx":145
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]             # <<<<<<<<<<<<<<
  * 
@@ -5750,7 +5762,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_8_fit_sgd(CYTHON_UNU
         /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -6496,14 +6508,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
  *             last_loss = loss
  *             loss = 0             # <<<<<<<<<<<<<<
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  */
     __pyx_v_loss = 0.0;
 
     /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -6531,7 +6543,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(guided)
+                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(static)
                       #endif /* _OPENMP */
                       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
                           {
@@ -6550,7 +6562,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
 
                               /* "cornac/models/mf/recom_mf.pyx":144
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]             # <<<<<<<<<<<<<<
  *                 user, item = &U[u, 0], &V[i, 0]
  * 
@@ -6566,7 +6578,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
                               __pyx_v_r = __pyx_t_5;
 
                               /* "cornac/models/mf/recom_mf.pyx":145
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]             # <<<<<<<<<<<<<<
  * 
@@ -6733,7 +6745,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_10_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -7479,14 +7491,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
  *             last_loss = loss
  *             loss = 0             # <<<<<<<<<<<<<<
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  */
     __pyx_v_loss = 0.0;
 
     /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -7514,7 +7526,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(guided)
+                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(static)
                       #endif /* _OPENMP */
                       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
                           {
@@ -7533,7 +7545,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
 
                               /* "cornac/models/mf/recom_mf.pyx":144
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]             # <<<<<<<<<<<<<<
  *                 user, item = &U[u, 0], &V[i, 0]
  * 
@@ -7549,7 +7561,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
                               __pyx_v_r = __pyx_t_5;
 
                               /* "cornac/models/mf/recom_mf.pyx":145
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]             # <<<<<<<<<<<<<<
  * 
@@ -7716,7 +7728,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_12_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -8462,14 +8474,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
  *             last_loss = loss
  *             loss = 0             # <<<<<<<<<<<<<<
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  */
     __pyx_v_loss = 0.0;
 
     /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -8497,7 +8509,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(guided)
+                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(static)
                       #endif /* _OPENMP */
                       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
                           {
@@ -8516,7 +8528,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
 
                               /* "cornac/models/mf/recom_mf.pyx":144
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]             # <<<<<<<<<<<<<<
  *                 user, item = &U[u, 0], &V[i, 0]
  * 
@@ -8532,7 +8544,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
                               __pyx_v_r = __pyx_t_5;
 
                               /* "cornac/models/mf/recom_mf.pyx":145
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]             # <<<<<<<<<<<<<<
  * 
@@ -8699,7 +8711,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_14_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -9445,14 +9457,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
  *             last_loss = loss
  *             loss = 0             # <<<<<<<<<<<<<<
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  */
     __pyx_v_loss = 0.0;
 
     /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -9480,7 +9492,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(guided)
+                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(static)
                       #endif /* _OPENMP */
                       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
                           {
@@ -9499,7 +9511,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
 
                               /* "cornac/models/mf/recom_mf.pyx":144
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]             # <<<<<<<<<<<<<<
  *                 user, item = &U[u, 0], &V[i, 0]
  * 
@@ -9515,7 +9527,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
                               __pyx_v_r = __pyx_t_5;
 
                               /* "cornac/models/mf/recom_mf.pyx":145
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]             # <<<<<<<<<<<<<<
  * 
@@ -9682,7 +9694,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_16_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -10428,14 +10440,14 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
  *             last_loss = loss
  *             loss = 0             # <<<<<<<<<<<<<<
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  */
     __pyx_v_loss = 0.0;
 
     /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
@@ -10463,7 +10475,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(guided)
+                      #pragma omp for lastprivate(__pyx_v_error) lastprivate(__pyx_v_f) lastprivate(__pyx_v_i) lastprivate(__pyx_v_i_f) lastprivate(__pyx_v_item) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_r) lastprivate(__pyx_v_r_pred) lastprivate(__pyx_v_u) lastprivate(__pyx_v_u_f) lastprivate(__pyx_v_user) schedule(static)
                       #endif /* _OPENMP */
                       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
                           {
@@ -10482,7 +10494,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
 
                               /* "cornac/models/mf/recom_mf.pyx":144
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]             # <<<<<<<<<<<<<<
  *                 user, item = &U[u, 0], &V[i, 0]
  * 
@@ -10498,7 +10510,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
                               __pyx_v_r = __pyx_t_5;
 
                               /* "cornac/models/mf/recom_mf.pyx":145
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]             # <<<<<<<<<<<<<<
  * 
@@ -10665,7 +10677,7 @@ static PyObject *__pyx_pf_6cornac_6models_2mf_8recom_mf_2MF_18_fit_sgd(CYTHON_UN
         /* "cornac/models/mf/recom_mf.pyx":143
  *             loss = 0
  * 
- *             for j in prange(num_ratings, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
+ *             for j in prange(num_ratings, nogil=True, schedule='static'):             # <<<<<<<<<<<<<<
  *                 u, i, r = rid[j], cid[j], val[j]
  *                 user, item = &U[u, 0], &V[i, 0]
  */
