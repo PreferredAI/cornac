@@ -228,14 +228,14 @@ class BPR(Recommender):
         unk_user = self.train_set.is_unk_user(user_id)
 
         if item_id is None:
-            known_item_scores = self.i_biases
+            known_item_scores = np.copy(self.i_biases)
             if not unk_user:
                 fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
             return known_item_scores
         else:
             if self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            item_score = self.i_biases[item_id]
+            item_score = np.copy(self.i_biases[item_id])
             if not unk_user:
                 item_score += np.dot(self.u_factors[user_id], self.i_factors[item_id])
             if self.train_set.min_rating != self.train_set.max_rating:
