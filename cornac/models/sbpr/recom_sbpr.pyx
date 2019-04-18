@@ -253,7 +253,7 @@ class SBPR(Recommender):
                 # update item biases
                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
-                B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+                B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
 
         return skipped
 
@@ -278,7 +278,7 @@ class SBPR(Recommender):
         unk_user = self.train_set.is_unk_user(user_id)
 
         if item_id is None:
-            known_item_scores = self.i_biases
+            known_item_scores = np.copy(self.i_biases)
             if not unk_user:
                 fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
             return known_item_scores

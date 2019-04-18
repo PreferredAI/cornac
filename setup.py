@@ -105,7 +105,8 @@ extensions = [
     Extension(name='cornac.models.mf.recom_mf',
               sources=['cornac/models/mf/recom_mf' + ext],
               include_dirs=[np.get_include()],
-              language='c++'),
+              language='c++',
+              extra_compile_args=compile_args, extra_link_args=link_args),
     Extension(name='cornac.models.bpr.recom_bpr',
               sources=['cornac/models/bpr/recom_bpr' + ext],
               include_dirs=[np.get_include()],
@@ -118,7 +119,8 @@ extensions = [
               extra_compile_args=compile_args, extra_link_args=link_args),
     Extension(name='cornac.utils.fast_dot',
               sources=['cornac/utils/fast_dot' + ext],
-              language='c++'),
+              language='c++',
+              extra_compile_args=compile_args, extra_link_args=link_args),
 ]
 
 cmdclass = {}

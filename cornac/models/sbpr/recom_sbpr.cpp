@@ -2581,6 +2581,7 @@ static const char __pyx_k_val[] = "val";
 static const char __pyx_k_SBPR[] = "SBPR";
 static const char __pyx_k_args[] = "args";
 static const char __pyx_k_base[] = "base";
+static const char __pyx_k_copy[] = "copy";
 static const char __pyx_k_desc[] = "desc";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_exit[] = "__exit__";
@@ -2889,6 +2890,7 @@ static PyObject *__pyx_n_s_class;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
+static PyObject *__pyx_n_s_copy;
 static PyObject *__pyx_n_s_cornac_models_sbpr_recom_sbpr;
 static PyObject *__pyx_kp_s_cornac_models_sbpr_recom_sbpr_py;
 static PyObject *__pyx_n_s_counts;
@@ -7442,7 +7444,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_8_fit_sgd(CYT
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])             # <<<<<<<<<<<<<<
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  */
                                 __pyx_t_42 = __pyx_v_i_id;
                                 __pyx_t_43 = __pyx_v_i_id;
@@ -7452,7 +7454,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_8_fit_sgd(CYT
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  */
                                 __pyx_t_44 = __pyx_v_j_id;
@@ -7462,11 +7464,11 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_8_fit_sgd(CYT
                                 /* "cornac/models/sbpr/recom_sbpr.pyx":256
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])             # <<<<<<<<<<<<<<
  * 
  *         return skipped
  */
-                                __pyx_t_46 = __pyx_v_j_id;
+                                __pyx_t_46 = __pyx_v_k_id;
                                 __pyx_t_47 = __pyx_v_k_id;
                                 *((float *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_47 * __pyx_v_B.strides[0]) )) += (__pyx_v_lr * ((__pyx_v_z_kj - (__pyx_v_z_ik * __pyx_v_s_uk)) - (__pyx_v_lbd_b * (*((float *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_46 * __pyx_v_B.strides[0]) ))))));
                                 goto __pyx_L27;
@@ -7507,7 +7509,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_8_fit_sgd(CYT
   }
 
   /* "cornac/models/sbpr/recom_sbpr.pyx":258
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  *         return skipped             # <<<<<<<<<<<<<<
  * 
@@ -8454,7 +8456,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_10_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])             # <<<<<<<<<<<<<<
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  */
                                 __pyx_t_42 = __pyx_v_i_id;
                                 __pyx_t_43 = __pyx_v_i_id;
@@ -8464,7 +8466,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_10_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  */
                                 __pyx_t_44 = __pyx_v_j_id;
@@ -8474,11 +8476,11 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_10_fit_sgd(CY
                                 /* "cornac/models/sbpr/recom_sbpr.pyx":256
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])             # <<<<<<<<<<<<<<
  * 
  *         return skipped
  */
-                                __pyx_t_46 = __pyx_v_j_id;
+                                __pyx_t_46 = __pyx_v_k_id;
                                 __pyx_t_47 = __pyx_v_k_id;
                                 *((double *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_47 * __pyx_v_B.strides[0]) )) += (__pyx_v_lr * ((__pyx_v_z_kj - (__pyx_v_z_ik * __pyx_v_s_uk)) - (__pyx_v_lbd_b * (*((double *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_46 * __pyx_v_B.strides[0]) ))))));
                                 goto __pyx_L27;
@@ -8519,7 +8521,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_10_fit_sgd(CY
   }
 
   /* "cornac/models/sbpr/recom_sbpr.pyx":258
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  *         return skipped             # <<<<<<<<<<<<<<
  * 
@@ -9466,7 +9468,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_12_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])             # <<<<<<<<<<<<<<
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  */
                                 __pyx_t_42 = __pyx_v_i_id;
                                 __pyx_t_43 = __pyx_v_i_id;
@@ -9476,7 +9478,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_12_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  */
                                 __pyx_t_44 = __pyx_v_j_id;
@@ -9486,11 +9488,11 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_12_fit_sgd(CY
                                 /* "cornac/models/sbpr/recom_sbpr.pyx":256
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])             # <<<<<<<<<<<<<<
  * 
  *         return skipped
  */
-                                __pyx_t_46 = __pyx_v_j_id;
+                                __pyx_t_46 = __pyx_v_k_id;
                                 __pyx_t_47 = __pyx_v_k_id;
                                 *((float *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_47 * __pyx_v_B.strides[0]) )) += (__pyx_v_lr * ((__pyx_v_z_kj - (__pyx_v_z_ik * __pyx_v_s_uk)) - (__pyx_v_lbd_b * (*((float *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_46 * __pyx_v_B.strides[0]) ))))));
                                 goto __pyx_L27;
@@ -9531,7 +9533,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_12_fit_sgd(CY
   }
 
   /* "cornac/models/sbpr/recom_sbpr.pyx":258
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  *         return skipped             # <<<<<<<<<<<<<<
  * 
@@ -10478,7 +10480,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_14_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])             # <<<<<<<<<<<<<<
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  */
                                 __pyx_t_42 = __pyx_v_i_id;
                                 __pyx_t_43 = __pyx_v_i_id;
@@ -10488,7 +10490,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_14_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  */
                                 __pyx_t_44 = __pyx_v_j_id;
@@ -10498,11 +10500,11 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_14_fit_sgd(CY
                                 /* "cornac/models/sbpr/recom_sbpr.pyx":256
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])             # <<<<<<<<<<<<<<
  * 
  *         return skipped
  */
-                                __pyx_t_46 = __pyx_v_j_id;
+                                __pyx_t_46 = __pyx_v_k_id;
                                 __pyx_t_47 = __pyx_v_k_id;
                                 *((double *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_47 * __pyx_v_B.strides[0]) )) += (__pyx_v_lr * ((__pyx_v_z_kj - (__pyx_v_z_ik * __pyx_v_s_uk)) - (__pyx_v_lbd_b * (*((double *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_46 * __pyx_v_B.strides[0]) ))))));
                                 goto __pyx_L27;
@@ -10543,7 +10545,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_14_fit_sgd(CY
   }
 
   /* "cornac/models/sbpr/recom_sbpr.pyx":258
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  *         return skipped             # <<<<<<<<<<<<<<
  * 
@@ -11490,7 +11492,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_16_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])             # <<<<<<<<<<<<<<
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  */
                                 __pyx_t_42 = __pyx_v_i_id;
                                 __pyx_t_43 = __pyx_v_i_id;
@@ -11500,7 +11502,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_16_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  */
                                 __pyx_t_44 = __pyx_v_j_id;
@@ -11510,11 +11512,11 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_16_fit_sgd(CY
                                 /* "cornac/models/sbpr/recom_sbpr.pyx":256
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])             # <<<<<<<<<<<<<<
  * 
  *         return skipped
  */
-                                __pyx_t_46 = __pyx_v_j_id;
+                                __pyx_t_46 = __pyx_v_k_id;
                                 __pyx_t_47 = __pyx_v_k_id;
                                 *((float *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_47 * __pyx_v_B.strides[0]) )) += (__pyx_v_lr * ((__pyx_v_z_kj - (__pyx_v_z_ik * __pyx_v_s_uk)) - (__pyx_v_lbd_b * (*((float *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_46 * __pyx_v_B.strides[0]) ))))));
                                 goto __pyx_L27;
@@ -11555,7 +11557,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_16_fit_sgd(CY
   }
 
   /* "cornac/models/sbpr/recom_sbpr.pyx":258
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  *         return skipped             # <<<<<<<<<<<<<<
  * 
@@ -12502,7 +12504,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_18_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])             # <<<<<<<<<<<<<<
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  */
                                 __pyx_t_42 = __pyx_v_i_id;
                                 __pyx_t_43 = __pyx_v_i_id;
@@ -12512,7 +12514,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_18_fit_sgd(CY
  *                 # update item biases
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  */
                                 __pyx_t_44 = __pyx_v_j_id;
@@ -12522,11 +12524,11 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_18_fit_sgd(CY
                                 /* "cornac/models/sbpr/recom_sbpr.pyx":256
  *                 B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
  *                 B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])             # <<<<<<<<<<<<<<
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])             # <<<<<<<<<<<<<<
  * 
  *         return skipped
  */
-                                __pyx_t_46 = __pyx_v_j_id;
+                                __pyx_t_46 = __pyx_v_k_id;
                                 __pyx_t_47 = __pyx_v_k_id;
                                 *((double *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_47 * __pyx_v_B.strides[0]) )) += (__pyx_v_lr * ((__pyx_v_z_kj - (__pyx_v_z_ik * __pyx_v_s_uk)) - (__pyx_v_lbd_b * (*((double *) ( /* dim=0 */ (__pyx_v_B.data + __pyx_t_46 * __pyx_v_B.strides[0]) ))))));
                                 goto __pyx_L27;
@@ -12567,7 +12569,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_18_fit_sgd(CY
   }
 
   /* "cornac/models/sbpr/recom_sbpr.pyx":258
- *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[j_id])
+ *                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
  * 
  *         return skipped             # <<<<<<<<<<<<<<
  * 
@@ -12748,7 +12750,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
  *         unk_user = self.train_set.is_unk_user(user_id)
  * 
  *         if item_id is None:             # <<<<<<<<<<<<<<
- *             known_item_scores = self.i_biases
+ *             known_item_scores = np.copy(self.i_biases)
  *             if not unk_user:
  */
   __pyx_t_4 = (__pyx_v_item_id == Py_None);
@@ -12758,18 +12760,39 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
     /* "cornac/models/sbpr/recom_sbpr.pyx":281
  * 
  *         if item_id is None:
- *             known_item_scores = self.i_biases             # <<<<<<<<<<<<<<
+ *             known_item_scores = np.copy(self.i_biases)             # <<<<<<<<<<<<<<
  *             if not unk_user:
  *                 fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_biases); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_copy); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 281, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_biases); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
+      }
+    }
+    __pyx_t_1 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_6, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
+    __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_known_item_scores = __pyx_t_1;
     __pyx_t_1 = 0;
 
     /* "cornac/models/sbpr/recom_sbpr.pyx":282
  *         if item_id is None:
- *             known_item_scores = self.i_biases
+ *             known_item_scores = np.copy(self.i_biases)
  *             if not unk_user:             # <<<<<<<<<<<<<<
  *                 fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
  *             return known_item_scores
@@ -12779,51 +12802,51 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
     if (__pyx_t_4) {
 
       /* "cornac/models/sbpr/recom_sbpr.pyx":283
- *             known_item_scores = self.i_biases
+ *             known_item_scores = np.copy(self.i_biases)
  *             if not unk_user:
  *                 fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)             # <<<<<<<<<<<<<<
  *             return known_item_scores
  *         else:
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_fast_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 283, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_fast_dot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 283, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_u_factors); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 283, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_u_factors); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 283, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_6 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_v_user_id); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 283, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetItem(__pyx_t_3, __pyx_v_user_id); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 283, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_factors); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 283, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_factors); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 283, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __pyx_t_7 = NULL;
       __pyx_t_8 = 0;
-      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_3);
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_2);
         if (likely(__pyx_t_7)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
           __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_3, function);
+          __Pyx_DECREF_SET(__pyx_t_2, function);
           __pyx_t_8 = 1;
         }
       }
       #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_3)) {
-        PyObject *__pyx_temp[4] = {__pyx_t_7, __pyx_t_6, __pyx_t_2, __pyx_v_known_item_scores};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
+      if (PyFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[4] = {__pyx_t_7, __pyx_t_6, __pyx_t_3, __pyx_v_known_item_scores};
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       } else
       #endif
       #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-        PyObject *__pyx_temp[4] = {__pyx_t_7, __pyx_t_6, __pyx_t_2, __pyx_v_known_item_scores};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+        PyObject *__pyx_temp[4] = {__pyx_t_7, __pyx_t_6, __pyx_t_3, __pyx_v_known_item_scores};
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_8, 3+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       } else
       #endif
       {
@@ -12834,23 +12857,23 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
         }
         __Pyx_GIVEREF(__pyx_t_6);
         PyTuple_SET_ITEM(__pyx_t_9, 0+__pyx_t_8, __pyx_t_6);
-        __Pyx_GIVEREF(__pyx_t_2);
-        PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_8, __pyx_t_2);
+        __Pyx_GIVEREF(__pyx_t_3);
+        PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_8, __pyx_t_3);
         __Pyx_INCREF(__pyx_v_known_item_scores);
         __Pyx_GIVEREF(__pyx_v_known_item_scores);
         PyTuple_SET_ITEM(__pyx_t_9, 2+__pyx_t_8, __pyx_v_known_item_scores);
         __pyx_t_6 = 0;
-        __pyx_t_2 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
+        __pyx_t_3 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
       /* "cornac/models/sbpr/recom_sbpr.pyx":282
  *         if item_id is None:
- *             known_item_scores = self.i_biases
+ *             known_item_scores = np.copy(self.i_biases)
  *             if not unk_user:             # <<<<<<<<<<<<<<
  *                 fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
  *             return known_item_scores
@@ -12873,7 +12896,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
  *         unk_user = self.train_set.is_unk_user(user_id)
  * 
  *         if item_id is None:             # <<<<<<<<<<<<<<
- *             known_item_scores = self.i_biases
+ *             known_item_scores = np.copy(self.i_biases)
  *             if not unk_user:
  */
   }
@@ -12886,23 +12909,23 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
  *             item_score = self.i_biases[item_id]
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 286, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_is_unk_item); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 286, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 286, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_is_unk_item); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 286, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = NULL;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_9))) {
-      __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_9);
-      if (likely(__pyx_t_3)) {
+      __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_9);
+      if (likely(__pyx_t_2)) {
         PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-        __Pyx_INCREF(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_2);
         __Pyx_INCREF(function);
         __Pyx_DECREF_SET(__pyx_t_9, function);
       }
     }
-    __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_9, __pyx_t_3, __pyx_v_item_id) : __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_v_item_id);
-    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_9, __pyx_t_2, __pyx_v_item_id) : __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_v_item_id);
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 286, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -12919,52 +12942,52 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
  */
       __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_ScoreException); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 287, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_3 = PyTuple_New(5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_2 = PyTuple_New(5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
       __pyx_t_10 = 0;
       __pyx_t_11 = 127;
       __Pyx_INCREF(__pyx_kp_u_Can_t_make_score_prediction_for);
       __pyx_t_10 += 41;
       __Pyx_GIVEREF(__pyx_kp_u_Can_t_make_score_prediction_for);
-      PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_kp_u_Can_t_make_score_prediction_for);
-      __pyx_t_2 = __Pyx_PyObject_Format(__pyx_v_user_id, __pyx_n_u_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_11 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_2) > __pyx_t_11) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_2) : __pyx_t_11;
-      __pyx_t_10 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
-      __pyx_t_2 = 0;
+      PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_kp_u_Can_t_make_score_prediction_for);
+      __pyx_t_3 = __Pyx_PyObject_Format(__pyx_v_user_id, __pyx_n_u_d); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_11 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_3) > __pyx_t_11) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_3) : __pyx_t_11;
+      __pyx_t_10 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_3);
+      __Pyx_GIVEREF(__pyx_t_3);
+      PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
+      __pyx_t_3 = 0;
       __Pyx_INCREF(__pyx_kp_u_item_id_2);
       __pyx_t_10 += 10;
       __Pyx_GIVEREF(__pyx_kp_u_item_id_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_kp_u_item_id_2);
-      __pyx_t_2 = __Pyx_PyObject_Format(__pyx_v_item_id, __pyx_n_u_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_11 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_2) > __pyx_t_11) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_2) : __pyx_t_11;
-      __pyx_t_10 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_3, 3, __pyx_t_2);
-      __pyx_t_2 = 0;
+      PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_kp_u_item_id_2);
+      __pyx_t_3 = __Pyx_PyObject_Format(__pyx_v_item_id, __pyx_n_u_d); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_11 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_3) > __pyx_t_11) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_3) : __pyx_t_11;
+      __pyx_t_10 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_3);
+      __Pyx_GIVEREF(__pyx_t_3);
+      PyTuple_SET_ITEM(__pyx_t_2, 3, __pyx_t_3);
+      __pyx_t_3 = 0;
       __Pyx_INCREF(__pyx_kp_u__7);
       __pyx_t_10 += 1;
       __Pyx_GIVEREF(__pyx_kp_u__7);
-      PyTuple_SET_ITEM(__pyx_t_3, 4, __pyx_kp_u__7);
-      __pyx_t_2 = __Pyx_PyUnicode_Join(__pyx_t_3, 5, __pyx_t_10, __pyx_t_11); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_3 = NULL;
+      PyTuple_SET_ITEM(__pyx_t_2, 4, __pyx_kp_u__7);
+      __pyx_t_3 = __Pyx_PyUnicode_Join(__pyx_t_2, 5, __pyx_t_10, __pyx_t_11); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_2 = NULL;
       if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_9))) {
-        __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_9);
-        if (likely(__pyx_t_3)) {
+        __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_9);
+        if (likely(__pyx_t_2)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-          __Pyx_INCREF(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_2);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_9, function);
         }
       }
-      __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_9, __pyx_t_3, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_2);
-      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_9, __pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_3);
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 287, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -13016,13 +13039,13 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
  */
       __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 290, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_u_factors); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_v_user_id); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 290, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_v_user_id); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_factors); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
@@ -13031,33 +13054,33 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_1 = NULL;
       __pyx_t_8 = 0;
-      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-        __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_2);
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_3);
         if (likely(__pyx_t_1)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
           __Pyx_INCREF(__pyx_t_1);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_2, function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
           __pyx_t_8 = 1;
         }
       }
       #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_2)) {
-        PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_t_3, __pyx_t_6};
-        __pyx_t_9 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 290, __pyx_L1_error)
+      if (PyFunction_Check(__pyx_t_3)) {
+        PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_t_2, __pyx_t_6};
+        __pyx_t_9 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 290, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_GOTREF(__pyx_t_9);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       } else
       #endif
       #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-        PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_t_3, __pyx_t_6};
-        __pyx_t_9 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 290, __pyx_L1_error)
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
+        PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_t_2, __pyx_t_6};
+        __pyx_t_9 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 290, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_GOTREF(__pyx_t_9);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       } else
       #endif
@@ -13067,22 +13090,22 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
         if (__pyx_t_1) {
           __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_1); __pyx_t_1 = NULL;
         }
-        __Pyx_GIVEREF(__pyx_t_3);
-        PyTuple_SET_ITEM(__pyx_t_7, 0+__pyx_t_8, __pyx_t_3);
+        __Pyx_GIVEREF(__pyx_t_2);
+        PyTuple_SET_ITEM(__pyx_t_7, 0+__pyx_t_8, __pyx_t_2);
         __Pyx_GIVEREF(__pyx_t_6);
         PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_8, __pyx_t_6);
-        __pyx_t_3 = 0;
+        __pyx_t_2 = 0;
         __pyx_t_6 = 0;
-        __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 290, __pyx_L1_error)
+        __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 290, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_9);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_item_score, __pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_item_score, __pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 290, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __Pyx_DECREF_SET(__pyx_v_item_score, __pyx_t_2);
-      __pyx_t_2 = 0;
+      __Pyx_DECREF_SET(__pyx_v_item_score, __pyx_t_3);
+      __pyx_t_3 = 0;
 
       /* "cornac/models/sbpr/recom_sbpr.pyx":289
  *                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
@@ -13100,21 +13123,21 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
  *                 item_score = scale(item_score, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
  *             return item_score
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 291, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_min_rating); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 291, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 291, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_min_rating); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 291, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 291, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_max_rating); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 291, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 291, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_max_rating); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 291, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyObject_RichCompare(__pyx_t_9, __pyx_t_7, Py_NE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 291, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = PyObject_RichCompare(__pyx_t_9, __pyx_t_7, Py_NE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 291, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 291, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 291, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     if (__pyx_t_5) {
 
       /* "cornac/models/sbpr/recom_sbpr.pyx":292
@@ -13132,8 +13155,8 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 292, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_max_rating); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 292, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_max_rating); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __pyx_t_9 = NULL;
       __pyx_t_8 = 0;
@@ -13149,22 +13172,22 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
       }
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_7)) {
-        PyObject *__pyx_temp[6] = {__pyx_t_9, __pyx_v_item_score, __pyx_t_6, __pyx_t_3, __pyx_float_0_, __pyx_float_1_};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 5+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L1_error)
+        PyObject *__pyx_temp[6] = {__pyx_t_9, __pyx_v_item_score, __pyx_t_6, __pyx_t_2, __pyx_float_0_, __pyx_float_1_};
+        __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 5+__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 292, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       } else
       #endif
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
-        PyObject *__pyx_temp[6] = {__pyx_t_9, __pyx_v_item_score, __pyx_t_6, __pyx_t_3, __pyx_float_0_, __pyx_float_1_};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 5+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L1_error)
+        PyObject *__pyx_temp[6] = {__pyx_t_9, __pyx_v_item_score, __pyx_t_6, __pyx_t_2, __pyx_float_0_, __pyx_float_1_};
+        __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 5+__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 292, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       } else
       #endif
       {
@@ -13178,8 +13201,8 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
         PyTuple_SET_ITEM(__pyx_t_1, 0+__pyx_t_8, __pyx_v_item_score);
         __Pyx_GIVEREF(__pyx_t_6);
         PyTuple_SET_ITEM(__pyx_t_1, 1+__pyx_t_8, __pyx_t_6);
-        __Pyx_GIVEREF(__pyx_t_3);
-        PyTuple_SET_ITEM(__pyx_t_1, 2+__pyx_t_8, __pyx_t_3);
+        __Pyx_GIVEREF(__pyx_t_2);
+        PyTuple_SET_ITEM(__pyx_t_1, 2+__pyx_t_8, __pyx_t_2);
         __Pyx_INCREF(__pyx_float_0_);
         __Pyx_GIVEREF(__pyx_float_0_);
         PyTuple_SET_ITEM(__pyx_t_1, 3+__pyx_t_8, __pyx_float_0_);
@@ -13187,14 +13210,14 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_6score(CYTHON
         __Pyx_GIVEREF(__pyx_float_1_);
         PyTuple_SET_ITEM(__pyx_t_1, 4+__pyx_t_8, __pyx_float_1_);
         __pyx_t_6 = 0;
-        __pyx_t_3 = 0;
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_2 = 0;
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 292, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_DECREF_SET(__pyx_v_item_score, __pyx_t_2);
-      __pyx_t_2 = 0;
+      __Pyx_DECREF_SET(__pyx_v_item_score, __pyx_t_3);
+      __pyx_t_3 = 0;
 
       /* "cornac/models/sbpr/recom_sbpr.pyx":291
  *             if not unk_user:
@@ -29222,6 +29245,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
+  {&__pyx_n_s_copy, __pyx_k_copy, sizeof(__pyx_k_copy), 0, 0, 1, 1},
   {&__pyx_n_s_cornac_models_sbpr_recom_sbpr, __pyx_k_cornac_models_sbpr_recom_sbpr, sizeof(__pyx_k_cornac_models_sbpr_recom_sbpr), 0, 0, 1, 1},
   {&__pyx_kp_s_cornac_models_sbpr_recom_sbpr_py, __pyx_k_cornac_models_sbpr_recom_sbpr_py, sizeof(__pyx_k_cornac_models_sbpr_recom_sbpr_py), 0, 0, 1, 0},
   {&__pyx_n_s_counts, __pyx_k_counts, sizeof(__pyx_k_counts), 0, 0, 1, 1},
