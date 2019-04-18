@@ -228,7 +228,7 @@ class BPR(Recommender):
         unk_user = self.train_set.is_unk_user(user_id)
 
         if item_id is None:
-            known_item_scores = self.i_biases
+            known_item_scores = np.copy(self.i_biases)
             if not unk_user:
                 fast_dot(self.u_factors[user_id], self.i_factors, known_item_scores)
             return known_item_scores
