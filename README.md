@@ -87,13 +87,14 @@ from cornac.eval_methods import RatioSplit
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
 ```
 
-Here we are comparing `Biased MF` and `PMF`:
+Here we are comparing `Biased MF`, `PMF`, and `BPR`:
   
 ```python
-from cornac.models import MF, PMF
+from cornac.models import MF, PMF, BPR
 
 mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True)
 pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
+bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01)
 ```
 
 Define metrics used to evaluate the models:
@@ -112,7 +113,7 @@ Put everything together into an experiment and run it:
 from cornac import Experiment
 
 exp = Experiment(eval_method=ratio_split,
-                 models=[mf, pmf],
+                 models=[mf, pmf, bpr],
                  metrics=[mae, rmse, rec_20, ndcg_20, auc],
                  user_based=True)
 exp.run()
@@ -124,6 +125,7 @@ exp.run()
 | --- | -----: | -----: | --------: | ------: | -----: | --------: | -------: |
 | [MF](cornac/models/mf)  | 0.7441 | 0.9007 |    0.0622 |  0.0534 | 0.2952 |    0.0791 |   1.3119 |
 | [PMF](cornac/models/pmf) | 0.7490 | 0.9093 |    0.0831 |  0.0683 | 0.4660 |    8.7645 |   2.1569 |
+| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8750 |    0.8898 |   1.3769 |
 
 For more details, please take a look at our [examples](examples).
 
