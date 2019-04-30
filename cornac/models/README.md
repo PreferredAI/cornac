@@ -5,7 +5,7 @@ Additional dependencies (CPU versions) and examples for each model are also list
 
 | Model and paper | Additional dependencies | Examples |
 | --- | :---: | :---: |
-| [Visual Matrix Factorization (VMF)](vmf), [paper](http://papers.www2017.com.au.s3-website-ap-southeast-2.amazonaws.com/proceedings/p1113.pdf) | N/A | 
+| [Visual Matrix Factorization (VMF)](vmf), [paper](http://papers.www2017.com.au.s3-website-ap-southeast-2.amazonaws.com/proceedings/p1113.pdf) | [requirements.txt](vmf/requirements.txt) | 
 | [Matrix Co-Factorization (MCF)](mcf), [paper](http://papers.www2017.com.au.s3-website-ap-southeast-2.amazonaws.com/proceedings/p1113.pdf) | N/A | [mcf_office.py](../../examples/mcf_office.py)
 | [Bayesian Personalized Ranking (BPR)](bpr), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | N/A | [bpr_netflix.py](../../examples/bpr_netflix.py)
 | [Collaborative Context Poisson Factorization (C2PF)](c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | N/A | [c2pf_example.py](../../examples/c2pf_example.py)
