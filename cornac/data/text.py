@@ -496,10 +496,7 @@ class TextModule(FeatureModule):
         self.count_matrix = None
 
     def _swap_text(self, id_map: Dict):
-        if self.ids is None:
-            self.ids = np.arange(len(self.corpus))
-
-        for old_idx, raw_id in enumerate(self.ids):
+        for old_idx, raw_id in enumerate(self._ids):
             new_idx = id_map.get(raw_id, None)
             if new_idx is None:
                 continue
@@ -512,7 +509,7 @@ class TextModule(FeatureModule):
         if self.corpus is None:
             return
 
-        if id_map is not None:
+        if (self._ids is not None) and (id_map is not None):
             self._swap_text(id_map)
 
         vectorizer = CountVectorizer(tokenizer=self.tokenizer, vocab=self.vocab,
