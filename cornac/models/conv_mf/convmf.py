@@ -180,7 +180,10 @@ class CNN_module():
         self.nb_epoch = nb_epoch
         self.drop_rate = dropout_rate
         self.batch_size = batch_size
-        self.sess = tf.Session()  # Tensorflow session
+        #self.sess = tf.Session()  # Tensorflow session
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        self.sess = tf.Session(config=config)
         self.max_len = max_len
 
         vanila_dimension = 200
