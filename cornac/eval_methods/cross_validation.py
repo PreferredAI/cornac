@@ -48,31 +48,29 @@ class CrossValidation(BaseMethod):
         self.current_fold = 0
         self.current_split = None
         self.n_ratings = len(self._data)
-
-        if partition is None:
-            self.partition_data()
-        else:
-            self.partition = self._validate_partition(partition)
+        self.partition = self._validate_partition(partition)
 
     # Partition ratings into n_folds
-    def partition_data(self):
-
+    def _partition_data(self):
         fold_size = int(self.n_ratings / self.n_folds)
         remain_size = self.n_ratings - fold_size * self.n_folds
 
-        self.partition = np.repeat(np.arange(self.n_folds), fold_size)
+        partition = np.repeat(np.arange(self.n_folds), fold_size)
 
         if remain_size > 0:
             remain_partition = np.random.choice(self.n_folds, size=remain_size, replace=True, p=None)
-            self.partition = np.concatenate((self.partition, remain_partition))
+            partition = np.concatenate((self.partition, remain_partition))
 
-        np.random.shuffle(self.partition)
+        np.random.shuffle(partition)
+        return partition
 
     def _validate_partition(self, partition):
-        if len(partition) != self.n_ratings:
-            raise Exception('The partition length must be equal to the number of ratings')
+        if partition is None:
+            return self._partition_data()
+        elif len(partition) != self.n_ratings:
+            raise ValueError('The partition length must be equal to the number of ratings')
         elif len(set(partition)) != self.n_folds:
-            raise Exception('Number of folds in given partition different from %s' % (self.n_folds))
+            raise ValueError('Number of folds in given partition different from %s' % (self.n_folds))
 
         return partition
 
