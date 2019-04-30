@@ -19,22 +19,22 @@ class TestCrossValidation(unittest.TestCase):
 
     def test_partition_data(self):
         ref_set = set(range(self.n_folds))
-        res_set = set(self.cv.partition)
-        fold_sizes = np.unique(self.cv.partition, return_counts=True)[1]
+        res_set = set(self.cv._partition)
+        fold_sizes = np.unique(self.cv._partition, return_counts=True)[1]
 
-        self.assertEqual(len(self.data), len(self.cv.partition))
+        self.assertEqual(len(self.data), len(self.cv._partition))
         self.assertEqual(res_set, ref_set)
         np.testing.assert_array_equal(fold_sizes, 2)
 
     def test_validate_partition(self):
         try:
             self.cv._validate_partition([0, 0, 1, 1])
-        except:
+        except ValueError:
             assert True
 
         try:
             self.cv._validate_partition([0, 0, 1, 1, 2, 2, 2, 2, 3, 3])
-        except:
+        except ValueError:
             assert True
 
     def test_get_train_test_sets_next_fold(self):

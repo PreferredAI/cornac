@@ -64,9 +64,9 @@ class TestRatioSplit(unittest.TestCase):
 
     def test_splits(self):
         ratio_split = RatioSplit(self.data, test_size=0.1, val_size=0.1, seed=123, verbose=True)
-        ratio_split.split()
+        ratio_split._split()
         self.assertTrue(ratio_split._split_ran)
-        ratio_split.split()
+        ratio_split._split()
 
     def test_evaluate(self):
         ratio_split = RatioSplit(self.data, exclude_unknowns=True, verbose=True)
