@@ -107,9 +107,7 @@ class RatioSplit(BaseMethod):
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
-        val_data = None
-        if len(val_idx) > 0:
-            val_data = safe_indexing(self._data, val_idx)
+        val_data = safe_indexing(self._data, val_idx) if len(val_idx) > 0 else None
 
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
         self._split_ran = True
