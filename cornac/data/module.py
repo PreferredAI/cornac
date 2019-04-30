@@ -39,13 +39,19 @@ class FeatureModule(Module):
     ids: List, default = None
         List of user/item ids that the indices are aligned with `corpus`.
         If None, the indices of provided `features` will be used as `ids`.
+
+    copy: bool, default = False
+        Whether or not to make a copy of the input features array and leave it unchanged during manipulation.
+        If `False`, rows of the input feature array will be swapped if needed when building the module.
     """
 
-    def __init__(self, features=None, ids=None, normalized=False, **kwargs):
+    def __init__(self, features=None, ids=None, copy=False, normalized=False, **kwargs):
         super().__init__(**kwargs)
         self.features = features
-        self.ids = ids
+        self._ids = ids
         self._normalized = normalized
+        if copy and features is not None:
+            self.features = np.copy(features)
 
     @property
     def features(self):
@@ -66,10 +72,7 @@ class FeatureModule(Module):
         return self.features.shape[1]
 
     def _swap_feature(self, id_map):
-        if self.ids is None:
-            self.ids = np.arange(self.features.shape[0])
-
-        for old_idx, raw_id in enumerate(self.ids):
+        for old_idx, raw_id in enumerate(self._ids):
             new_idx = id_map.get(raw_id, None)
             if new_idx is None:
                 continue
@@ -83,7 +86,7 @@ class FeatureModule(Module):
         if self.features is None:
             return
 
-        if id_map is not None:
+        if (self._ids is not None) and (id_map is not None):
             self._swap_feature(id_map)
 
         if self._normalized:
