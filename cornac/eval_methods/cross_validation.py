@@ -5,9 +5,11 @@
 """
 
 import numpy as np
+
 from .base_method import BaseMethod
 from ..utils.common import safe_indexing
 from ..experiment.result import CVResult
+from ..utils import get_rng
 
 
 class CrossValidation(BaseMethod):
@@ -33,6 +35,9 @@ class CrossValidation(BaseMethod):
         The minimum value that is considered to be a good rating used for ranking, \
         e.g, if the ratings are in {1, ..., 5}, then rating_threshold = 4.
 
+    seed: int, optional, default: None
+        Random seed for reproduce the splitting.
+
     exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation and testing
 
@@ -41,27 +46,31 @@ class CrossValidation(BaseMethod):
     """
 
     def __init__(self, data, fmt='UIR', n_folds=5, rating_threshold=1., partition=None,
-                 exclude_unknowns=True, verbose=False, **kwargs):
+                 seed=None, exclude_unknowns=True, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, fmt=fmt, rating_threshold=rating_threshold,
                             exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
         self.n_folds = n_folds
+        self.n_ratings = len(self._data)
         self.current_fold = 0
         self.current_split = None
-        self.n_ratings = len(self._data)
-        self.partition = self._validate_partition(partition)
+
+        self._seed = seed
+        self._partition = self._validate_partition(partition)
 
     # Partition ratings into n_folds
     def _partition_data(self):
+        rng = get_rng(self._seed)
+
         fold_size = int(self.n_ratings / self.n_folds)
         remain_size = self.n_ratings - fold_size * self.n_folds
 
         partition = np.repeat(np.arange(self.n_folds), fold_size)
+        rng.shuffle(partition)
 
         if remain_size > 0:
-            remain_partition = np.random.choice(self.n_folds, size=remain_size, replace=True, p=None)
-            partition = np.concatenate((self.partition, remain_partition))
+            remain_partition = rng.choice(self.n_folds, size=remain_size, replace=True, p=None)
+            partition = np.concatenate((self._partition, remain_partition))
 
-        np.random.shuffle(partition)
         return partition
 
     def _validate_partition(self, partition):
@@ -78,8 +87,8 @@ class CrossValidation(BaseMethod):
         if self.verbose:
             print('Fold: {}'.format(self.current_fold + 1))
 
-        test_idx = np.where(self.partition == self.current_fold)[0]
-        train_idx = np.where(self.partition != self.current_fold)[0]
+        test_idx = np.where(self._partition == self.current_fold)[0]
+        train_idx = np.where(self._partition != self.current_fold)[0]
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
@@ -88,12 +97,12 @@ class CrossValidation(BaseMethod):
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
-            
+
     def _next_fold(self):
         if self.current_fold < self.n_folds - 1:
             self.current_fold = self.current_fold + 1
         else:
-            self.current_fold = 0        
+            self.current_fold = 0
 
     def evaluate(self, model, metrics, user_based):
         result = CVResult(model.name)
