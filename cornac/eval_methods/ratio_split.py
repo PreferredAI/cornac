@@ -59,7 +59,7 @@ class RatioSplit(BaseMethod):
         self._shuffle = shuffle
         self._seed = seed
         self._train_size, self._val_size, self._test_size = self.validate_size(val_size, test_size, len(self._data))
-        self._split_ran = False
+        self._split()
 
     @staticmethod
     def validate_size(val_size, test_size, num_ratings):
@@ -93,10 +93,7 @@ class RatioSplit(BaseMethod):
 
         return int(train_size), int(val_size), int(test_size)
 
-    def split(self):
-        if self._split_ran:
-            return
-
+    def _split(self):
         if self.verbose:
             print("Splitting the data")
 
@@ -120,7 +117,3 @@ class RatioSplit(BaseMethod):
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
-
-    def evaluate(self, model, metrics, user_based):
-        self.split()
-        return BaseMethod.evaluate(self, model, metrics, user_based)
