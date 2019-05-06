@@ -95,21 +95,13 @@ class ConvMF(Recommender):
         self.seed = get_rng(self.seed)
         self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), self.seed))
         self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.dimension), self.seed))
-        self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.max_vocab, self.emb_dim), self.seed))
+        self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.vocab.size, self.emb_dim), self.seed))
 
         if self.trainable:
             self._fit_convmf()
 
         if self.verbose:
             print('Learning...')
-
-        # res = convmf(max_iter=self.max_iter,
-        #              lambda_u=self.lambda_u, lambda_v=self.lambda_v,
-        #              dimension=self.dimension, init_params=self.init_params,
-        #              give_item_weight=self.give_item_weight,
-        #              emb_dim=self.emb_dim,
-        #              num_kernel_per_ws=self.num_kernel_per_ws,
-        #              vocab_size=train_set.item_text.vocab.size, train_set=train_set)
 
         if self.verbose:
             print('Learning completed')
@@ -166,10 +158,9 @@ class ConvMF(Recommender):
             item_weight = np.ones(n_item, dtype=float)
 
         # Initialize cnn module
-        cnn_module = CNN_module(output_dimesion=self.dimension, vocab_size=self.train_set.item_text.max_vocab,
-                                dropout_rate=self.dropout_rate, emb_dim=self.emb_dim,
-                                max_len=self.max_len, nb_filters=self.num_kernel_per_ws,
-                                seed=self.seed, init_W=self.W)
+        cnn_module = CNN_module(output_dimesion=self.dimension,dropout_rate=self.dropout_rate,
+                                emb_dim=self.emb_dim, max_len=self.max_len,
+                                nb_filters=self.num_kernel_per_ws,seed=self.seed, init_W=self.W)
 
         document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
         theta = cnn_module.get_projection_layer(document)
@@ -184,7 +175,8 @@ class ConvMF(Recommender):
                 V_i = self.V[idx_item]
                 R_i = R_user[i]
 
-                A = self.lambda_u * np.eye(self.dimension) + self._square(V_i)
+                #A = self.lambda_u * np.eye(self.dimension) + self._square(V_i)
+                A = self._square(V_i)
                 B = (V_i * (np.tile(R_i, (self.dimension, 1)).T)).sum(0)
                 self.U[i] = np.linalg.solve(A, B)
 
@@ -218,7 +210,7 @@ class ConvMF(Recommender):
                 if endure == 0:
                     break
 
-    def _square(mat):
+    def _square(self, mat):
         """
         return XT.X matrix
         """
