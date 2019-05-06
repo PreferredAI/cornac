@@ -19,21 +19,23 @@ class SoRec(Recommender):
     ----------
     k: int, optional, default: 5
         The dimension of the latent factors.
+
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs for SGD.
+
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD_RMSProp.
+
     gamma: float, optional, default: 0.9
         The weight for previous/current gradient in RMSProp.
+
     lamda: float, optional, default: 0.001
         The regularization parameter.
-    lamda_C: float, optional, default: 10
+
+    lamda_c: float, optional, default: 10
         The parameter balances the information from the user-item rating matrix and the user social network.
     name: string, optional, default: 'SOREC'
         The name of the recommender model.
-    variant: {"linear","non_linear"}, optional, default: 'non_linear'
-        Pmf variant. If 'non_linear', the Gaussian mean is the output of a Sigmoid function.\
-        If 'linear' the Gaussian mean is the output of the identity function.
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U, V and Z are not None).
@@ -51,14 +53,14 @@ class SoRec(Recommender):
      CIKM ’08, pages 931–940, Napa Valley, USA, 2008.
     """
 
-    def __init__(self, name="SoRec", k=5, max_iter=100, learning_rate=0.001, lamda_C=10, lamda=0.001, gamma=0.9,
+    def __init__(self, name="SoRec", k=5, max_iter=100, learning_rate=0.001, lamda_c=10, lamda=0.001, gamma=0.9,
                  trainable=True, verbose=False, init_params={'U': None, 'V': None, 'Z': None}):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
         self.learning_rate = learning_rate
-        self.lamda_C = lamda_C
+        self.lamda_c = lamda_c
         self.lamda = lamda
         self.gamma = gamma
 
@@ -137,7 +139,7 @@ class SoRec(Recommender):
             res = sorec.sorec(rat_uid, rat_iid, rat_val, net_uid, net_jid, net_val, k=self.k,
                               n_users=train_set.num_users,
                               n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val),
-                              n_epochs=self.max_iter, lamda_C=self.lamda_C,
+                              n_epochs=self.max_iter, lamda_c=self.lamda_c,
                               lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
                               init_params=self.init_params, verbose=self.verbose)
 
