@@ -93,18 +93,13 @@ class ConvMF(Recommender):
 
 
         self.seed = get_rng(self.seed)
+
         self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), self.seed))
         self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.dimension), self.seed))
         self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.vocab.size, self.emb_dim), self.seed))
 
         if self.trainable:
             self._fit_convmf()
-
-        if self.verbose:
-            print('Learning...')
-
-        if self.verbose:
-            print('Learning completed')
 
     def _fit_convmf(self,):
 
@@ -175,8 +170,7 @@ class ConvMF(Recommender):
                 V_i = self.V[idx_item]
                 R_i = R_user[i]
 
-                #A = self.lambda_u * np.eye(self.dimension) + self._square(V_i)
-                A = self._square(V_i)
+                A = self.lambda_u * np.eye(self.dimension) + self._square(V_i)
                 B = (V_i * (np.tile(R_i, (self.dimension, 1)).T)).sum(0)
                 self.U[i] = np.linalg.solve(A, B)
 
