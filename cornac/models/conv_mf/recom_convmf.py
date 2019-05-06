@@ -91,7 +91,6 @@ class ConvMF(Recommender):
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
 
-
         self.seed = get_rng(self.seed)
 
         self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), self.seed))
@@ -101,7 +100,7 @@ class ConvMF(Recommender):
         if self.trainable:
             self._fit_convmf()
 
-    def _fit_convmf(self,):
+    def _fit_convmf(self, ):
 
         from .convmf import CNN_module
 
@@ -153,9 +152,9 @@ class ConvMF(Recommender):
             item_weight = np.ones(n_item, dtype=float)
 
         # Initialize cnn module
-        cnn_module = CNN_module(output_dimesion=self.dimension,dropout_rate=self.dropout_rate,
+        cnn_module = CNN_module(output_dimesion=self.dimension, dropout_rate=self.dropout_rate,
                                 emb_dim=self.emb_dim, max_len=self.max_len,
-                                nb_filters=self.num_kernel_per_ws,seed=self.seed, init_W=self.W)
+                                nb_filters=self.num_kernel_per_ws, seed=self.seed, init_W=self.W)
 
         document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
         theta = cnn_module.get_projection_layer(document)
@@ -184,7 +183,7 @@ class ConvMF(Recommender):
                 Uj_square = self._square(U_j)
 
                 A = self.lambda_v * item_weight[j] * np.eye(self.dimension) + Uj_square
-                B = (U_j * (np.tile(R_j,(self.dimension, 1)).T)).sum(0) \
+                B = (U_j * (np.tile(R_j, (self.dimension, 1)).T)).sum(0) \
                     + self.lambda_v * item_weight[j] * theta[j]
                 self.V[j] = np.linalg.solve(A, B)
                 item_loss[j] = -0.5 * np.square(R_j).sum()
@@ -241,5 +240,3 @@ class ConvMF(Recommender):
             user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
             return user_pred
-
-

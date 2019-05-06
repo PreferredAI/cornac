@@ -24,7 +24,7 @@ item_text_module = TextModule(corpus=plots, ids=movie_ids, seed=123,
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_module, verbose=True)
 
-convmf = cornac.models.ConvMF(n_epochs=50)
+convmf = cornac.models.ConvMF(n_epochs=5)
 rmse = cornac.metrics.RMSE()
 
 exp = cornac.Experiment(eval_method=ratio_split,
