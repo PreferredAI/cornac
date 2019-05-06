@@ -131,6 +131,7 @@ import tensorflow as tf
 from tqdm import tqdm
 import numpy as np
 
+
 class CNN_module():
 
     def _new_weights(self, shape):
@@ -170,9 +171,9 @@ class CNN_module():
         layer = tf.nn.tanh(layer)
         return layer
 
-    def __init__(self, output_dimesion, vocab_size,
-                 dropout_rate, emb_dim, max_len, nb_filters,
-                 seed, init_W, batch_size=128, nb_epoch=5):
+    def __init__(self, output_dimesion, dropout_rate,
+                 emb_dim, max_len, nb_filters, seed,
+                 init_W, batch_size=128, nb_epoch=5 ):
 
         self.nb_epoch = nb_epoch
         self.drop_rate = dropout_rate
