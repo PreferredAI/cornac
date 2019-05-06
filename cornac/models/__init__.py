@@ -1,3 +1,4 @@
+
 from .bpr import BPR
 from .cdl import CDL
 from .c2pf import C2PF
@@ -15,3 +16,5 @@ from .mf import MF
 from .conv_mf import ConvMF
 from .cdr import CDR
 from .sbpr import SBPR
+from .sorec import SoRec
+
