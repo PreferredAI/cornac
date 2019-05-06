@@ -68,7 +68,7 @@ If you want to utilize your GPUs, you might consider:
 
 ## Getting started: your first Cornac experiment
 
-![](exp-flow.jpg)
+![](flow.jpg)
 <p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
 Load the built-in [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be downloaded if not cached):
@@ -94,7 +94,7 @@ from cornac.models import MF, PMF, BPR
 
 mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True)
 pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
-bpr = BPR(k=10, max_iter=200, learning_rate=0.01, lambda_reg=0.01)
+bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01)
 ```
 
 Define metrics used to evaluate the models:
@@ -125,7 +125,7 @@ exp.run()
 | --- | -----: | -----: | --------: | ------: | -----: | --------: | -------: |
 | [MF](cornac/models/mf)  | 0.7441 | 0.9007 |    0.0622 |  0.0534 | 0.2952 |    0.0791 |   1.3119 |
 | [PMF](cornac/models/pmf) | 0.7490 | 0.9093 |    0.0831 |  0.0683 | 0.4660 |    8.7645 |   2.1569 |
-| [BPR](cornac/models/bpr) | 1.3957 | 1.7136 |    0.1378 |  0.1042 | 0.8466 |    0.8898 |   1.3769 |
+| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8750 |    0.8898 |   1.3769 |
 
 For more details, please take a look at our [examples](examples).
 

@@ -140,7 +140,7 @@ class MF(Recommender):
             last_loss = loss
             loss = 0
 
-            for j in prange(num_ratings, nogil=True, schedule='guided'):
+            for j in prange(num_ratings, nogil=True, schedule='static'):
                 u, i, r = rid[j], cid[j], val[j]
                 user, item = &U[u, 0], &V[i, 0]
 
