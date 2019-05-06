@@ -33,19 +33,23 @@ class SoRec(Recommender):
         The regularization parameter.
 
     lamda_c: float, optional, default: 10
-        The parameter balances the information from the user-item rating matrix and the user social network.
+        The parameter balancing the information from the user-item rating matrix and the user social network.
+
     name: string, optional, default: 'SOREC'
         The name of the recommender model.
+
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (U, V and Z are not None).
+
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
+
     init_params: dictionary, optional, default: {'U':None,'V':None}
         List of initial parameters, e.g., init_params = {'U':U, 'V':V,'Z':Z}. \
-        U: a ndarray of shape (n_users,l), containing the user latent factors. \
-        V: a ndarray of shape (n_items,l), containing the item latent factors. \
-        Z: a ndarray of shape (n_users,l), containing the social network latent factors. \
+        U: a ndarray of shape (n_users,k), containing the user latent factors. \
+        V: a ndarray of shape (n_items,k), containing the item latent factors. \
+        Z: a ndarray of shape (n_users,k), containing the social network latent factors. \
 
     References
     ----------
