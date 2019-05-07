@@ -66,7 +66,6 @@ class CNN_module():
         self.v = tf.placeholder(dtype=tf.float32, shape=(None, self.output_dimension))
         self.sample_weight = tf.placeholder(dtype=tf.float32, shape=(None,))
         self.droprate_holder = tf.placeholder_with_default(1.0, shape=())
-
         self.embedding_weight = tf.Variable(initial_value=self.init_W)
 
         self.seq_emb = tf.nn.embedding_lookup(self.embedding_weight, self.model_input)

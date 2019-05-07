@@ -22,9 +22,10 @@ item_text_module = TextModule(corpus=plots, ids=movie_ids, seed=123,
                               max_vocab=8000, max_doc_freq=0.5, stop_words='english')
 
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
-                         item_text=item_text_module, verbose=True)
+                         item_text=item_text_module, verbose=True, seed=123)
 
-convmf = cornac.models.ConvMF(n_epochs=5)
+convmf = cornac.models.ConvMF(n_epochs=10, verbose=True)
+
 rmse = cornac.metrics.RMSE()
 
 exp = cornac.Experiment(eval_method=ratio_split,

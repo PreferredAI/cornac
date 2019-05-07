@@ -100,27 +100,16 @@ class ConvMF(Recommender):
         if self.trainable:
             self._fit_convmf()
 
-    def _build_data(self, csr_mat):
-        data = []
-        index_list = []
-        rating_list = []
-        for i in range(csr_mat.shape[0]):
-            j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
-            index_list.append(csr_mat.indices[j:k])
-            rating_list.append(csr_mat.data[j:k])
-        data.append(index_list)
-        data.append(rating_list)
-        return data
-
     def _fit_convmf(self):
+
         endure = 3
         converge_threshold = 0.01
         history = 1e-50
         loss = 0
         cnn_epoch = 5
 
-        user_data = self._build_data(self.train_set.matrix)
-        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+        user_data = build_data(self.train_set.matrix)
+        item_data = build_data(self.train_set.matrix.T.tocsr())
 
         n_user = len(user_data[0])
         n_item = len(item_data[0])
@@ -139,7 +128,7 @@ class ConvMF(Recommender):
         # Initialize cnn module
         from .convmf import CNN_module
         import tensorflow as tf
-        from tqdm import tqdm
+        from tqdm import trange
 
         cnn_module = CNN_module(output_dimension=self.dimension, dropout_rate=self.dropout_rate,
                                 emb_dim=self.emb_dim, max_len=self.max_len,
@@ -163,7 +152,7 @@ class ConvMF(Recommender):
                 V_i = self.V[idx_item]
                 R_i = R_user[i]
 
-                A = self.lambda_u * np.eye(self.dimension) + self._square(V_i)
+                A = self.lambda_u * np.eye(self.dimension) + V_i.T.dot(V_i)
                 B = (V_i * (np.tile(R_i, (self.dimension, 1)).T)).sum(0)
                 self.U[i] = np.linalg.solve(A, B)
 
@@ -174,7 +163,7 @@ class ConvMF(Recommender):
                 idx_user = item_data[0][j]
                 U_j = self.U[idx_user]
                 R_j = R_item[j]
-                Uj_square = self._square(U_j)
+                Uj_square = U_j.T.dot(U_j)
 
                 A = self.lambda_v * item_weight[j] * np.eye(self.dimension) + Uj_square
                 B = (U_j * (np.tile(R_j, (self.dimension, 1)).T)).sum(0) \
@@ -184,7 +173,8 @@ class ConvMF(Recommender):
                 item_loss[j] = item_loss[j] + np.sum((U_j.dot(self.V[j])) * R_j)
                 item_loss[j] = item_loss[j] - 0.5 * np.dot(self.V[j].dot(Uj_square), self.V[j])
 
-            for _ in tqdm(range(cnn_epoch), desc='CNN'):
+            loop = trange(cnn_epoch, desc='CNN', disable=not self.verbose)
+            for _ in loop:
                 for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
                     batch_seq = self.train_set.item_text.batch_seq(batch_ids, max_length=self.max_len)
                     feed_dict = {cnn_module.model_input: batch_seq,
@@ -194,7 +184,6 @@ class ConvMF(Recommender):
 
                     _, cnn_loss = sess.run([cnn_module.optimizer, cnn_module.weighted_loss], feed_dict=feed_dict)
 
-            theta = cnn_module.get_projection_layer(X_train=document)
             loss = loss + np.sum(user_loss) + np.sum(item_loss) - 0.5 * self.lambda_v * cnn_loss * n_item
             toc = time.time()
             elapsed = toc - tic
@@ -207,12 +196,6 @@ class ConvMF(Recommender):
                     break
 
         tf.reset_default_graph()
-
-    def _square(self, mat):
-        """
-        return XT.X matrix
-        """
-        return mat.T.dot(mat)
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
@@ -245,3 +228,16 @@ class ConvMF(Recommender):
             user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
             return user_pred
+
+
+def build_data(csr_mat):
+    data = []
+    index_list = []
+    rating_list = []
+    for i in range(csr_mat.shape[0]):
+        j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
+        index_list.append(csr_mat.indices[j:k])
+        rating_list.append(csr_mat.data[j:k])
+    data.append(index_list)
+    data.append(rating_list)
+    return data
