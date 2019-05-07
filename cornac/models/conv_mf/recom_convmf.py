@@ -91,58 +91,43 @@ class ConvMF(Recommender):
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
 
-        self.seed = get_rng(self.seed)
+        rng = get_rng(self.seed)
 
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.dimension), self.seed))
-        self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.vocab.size, self.emb_dim), self.seed))
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), rng))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.dimension), rng))
+        self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.vocab.size, self.emb_dim), rng))
 
         if self.trainable:
             self._fit_convmf()
 
-    def _fit_convmf(self, ):
+    def _build_data(self, csr_mat):
+        data = []
+        index_list = []
+        rating_list = []
+        for i in range(csr_mat.shape[0]):
+            j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
+            index_list.append(csr_mat.indices[j:k])
+            rating_list.append(csr_mat.data[j:k])
+        data.append(index_list)
+        data.append(rating_list)
+        return data
 
-        from .convmf import CNN_module
-
+    def _fit_convmf(self):
         endure = 3
         converge_threshold = 0.01
         history = 1e-50
         loss = 0
+        cnn_epoch = 5
 
-        R_user = self.train_set.matrix
-        user = []
+        user_data = self._build_data(self.train_set.matrix)
+        item_data = self._build_data(self.train_set.matrix.T.tocsr())
 
-        user_index_list = []
-        user_rating_list = []
-        for i in range(R_user.shape[0]):
-            item_idx = R_user[i].nonzero()[1]
-            rating = R_user[i, item_idx].A[0]
-            user_index_list.append(item_idx)
-            user_rating_list.append(rating)
-
-        user.append(user_index_list)
-        user.append(user_rating_list)
-
-        R_item = self.train_set.matrix.tocsc().T
-        item = []
-
-        item_index_list = []
-        item_rating_list = []
-        for i in range(R_item.shape[0]):
-            user_idx = R_item[i].nonzero()[1]
-            rating = R_item[i, user_idx].A[0]
-            item_index_list.append(user_idx)
-            item_rating_list.append(rating)
-
-        item.append(item_index_list)
-        item.append(item_rating_list)
-
-        n_user = len(user[0])
-        n_item = len(item[0])
+        n_user = len(user_data[0])
+        n_item = len(item_data[0])
 
         # R_user and R_item contain rating values
-        R_user = user[1]
-        R_item = item[1]
+        R_user = user_data[1]
+        R_item = item_data[1]
 
         if self.give_item_weight:
             item_weight = np.array([math.sqrt(len(i))
@@ -152,12 +137,21 @@ class ConvMF(Recommender):
             item_weight = np.ones(n_item, dtype=float)
 
         # Initialize cnn module
-        cnn_module = CNN_module(output_dimesion=self.dimension, dropout_rate=self.dropout_rate,
+        from .convmf import CNN_module
+        import tensorflow as tf
+        from tqdm import tqdm
+
+        cnn_module = CNN_module(output_dimension=self.dimension, dropout_rate=self.dropout_rate,
                                 emb_dim=self.emb_dim, max_len=self.max_len,
                                 nb_filters=self.num_kernel_per_ws, seed=self.seed, init_W=self.W)
 
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        sess = tf.Session(config=config)
+        sess.run(tf.global_variables_initializer())  # init variable
+
         document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
-        theta = cnn_module.get_projection_layer(document)
+        theta = cnn_module.get_projection_layer(document, sess)
 
         for iter in range(self.max_iter):
             print("Iteration {}".format(iter + 1))
@@ -165,7 +159,7 @@ class ConvMF(Recommender):
 
             user_loss = np.zeros(n_user)
             for i in range(n_user):
-                idx_item = user[0][i]
+                idx_item = user_data[0][i]
                 V_i = self.V[idx_item]
                 R_i = R_user[i]
 
@@ -177,7 +171,7 @@ class ConvMF(Recommender):
 
             item_loss = np.zeros(n_item)
             for j in range(n_item):
-                idx_user = item[0][j]
+                idx_user = item_data[0][j]
                 U_j = self.U[idx_user]
                 R_j = R_item[j]
                 Uj_square = self._square(U_j)
@@ -190,7 +184,16 @@ class ConvMF(Recommender):
                 item_loss[j] = item_loss[j] + np.sum((U_j.dot(self.V[j])) * R_j)
                 item_loss[j] = item_loss[j] - 0.5 * np.dot(self.V[j].dot(Uj_square), self.V[j])
 
-            cnn_loss = cnn_module.train(train_set=self.train_set, V=self.V, item_weight=item_weight)
+            for _ in tqdm(range(cnn_epoch), desc='CNN'):
+                for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
+                    batch_seq = self.train_set.item_text.batch_seq(batch_ids, max_length=self.max_len)
+                    feed_dict = {cnn_module.model_input: batch_seq,
+                                 cnn_module.droprate_holder: cnn_module.drop_rate,
+                                 cnn_module.v: self.V[batch_ids],
+                                 cnn_module.sample_weight: item_weight[batch_ids]}
+
+                    _, cnn_loss = sess.run([cnn_module.optimizer, cnn_module.weighted_loss], feed_dict=feed_dict)
+
             theta = cnn_module.get_projection_layer(X_train=document)
             loss = loss + np.sum(user_loss) + np.sum(item_loss) - 0.5 * self.lambda_v * cnn_loss * n_item
             toc = time.time()
@@ -202,6 +205,8 @@ class ConvMF(Recommender):
                 endure -= 1
                 if endure == 0:
                     break
+
+        tf.reset_default_graph()
 
     def _square(self, mat):
         """
