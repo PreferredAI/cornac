@@ -106,6 +106,7 @@ class ConvMF(Recommender):
         converge_threshold = 0.01
         history = 1e-50
         loss = 0
+
         cnn_epoch = 5
 
         user_data = build_data(self.train_set.matrix)
@@ -137,6 +138,7 @@ class ConvMF(Recommender):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         sess = tf.Session(config=config)
+
         sess.run(tf.global_variables_initializer())  # init variable
 
         document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
@@ -183,6 +185,8 @@ class ConvMF(Recommender):
                                  cnn_module.sample_weight: item_weight[batch_ids]}
 
                     _, cnn_loss = sess.run([cnn_module.optimizer, cnn_module.weighted_loss], feed_dict=feed_dict)
+
+            theta = cnn_module.get_projection_layer(document, sess)
 
             loss = loss + np.sum(user_loss) + np.sum(item_loss) - 0.5 * self.lambda_v * cnn_loss * n_item
             toc = time.time()

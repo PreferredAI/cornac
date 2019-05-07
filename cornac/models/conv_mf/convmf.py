@@ -10,6 +10,7 @@ import numpy as np
 def conv_layer(input, num_input_channels,
                filter_height, filter_width,
                num_filters, seed=None, use_pooling=True):
+
     shape = [filter_height, filter_width, num_input_channels, num_filters]
     weights = tf.Variable(tf.truncated_normal(shape, stddev=0.05, seed=seed))
     biases = tf.Variable(tf.constant(0.05, shape=[num_filters]))

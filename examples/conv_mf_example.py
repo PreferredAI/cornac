@@ -17,14 +17,14 @@ plots, movie_ids = movielens.load_plot()
 ml_1m = movielens.load_1m(reader=Reader(item_set=movie_ids))
 
 # build text module
-item_text_module = TextModule(corpus=plots, ids=movie_ids, seed=123,
+item_text_module = TextModule(corpus=plots, ids=movie_ids,
                               tokenizer=BaseTokenizer('\t'),
                               max_vocab=8000, max_doc_freq=0.5, stop_words='english')
 
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_module, verbose=True, seed=123)
 
-convmf = cornac.models.ConvMF(n_epochs=10, verbose=True)
+convmf = cornac.models.ConvMF(n_epochs=5)
 
 rmse = cornac.metrics.RMSE()
 
