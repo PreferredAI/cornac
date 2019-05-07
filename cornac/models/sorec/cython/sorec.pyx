@@ -18,7 +18,7 @@ cdef float sigmoid(float z):
 
 
 def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,
-        int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_C = 10, float lamda = 0.001,
+        int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False):
 
     cdef:
@@ -76,13 +76,13 @@ def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[
             for k_ in range(k):
                 grad_u[i_, k_] = werr * Z[j_, k_] - lamda * U[i_, k_]
                 cache_u[i_, k_] = gamma * cache_u[i_, k_] + (1 - gamma) * (grad_u[i_, k_] * grad_u[i_, k_])
-                U[i_, k_] += lamda_C * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
+                U[i_, k_] += lamda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
 
             # update social network factors
             for k_ in range(k):
                 grad_z[j_, k_] = werr * U[i_, k_] - lamda * Z[j_, k_]
                 cache_z[j_, k_] = gamma * cache_z[j_, k_] + (1 - gamma) * (grad_z[j_, k_] * grad_z[j_, k_])
-                Z[j_, k_] += lamda_C * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
+                Z[j_, k_] += lamda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
 
             norm_z = 0.0
             norm_u = 0.0

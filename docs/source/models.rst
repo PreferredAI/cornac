@@ -65,6 +65,11 @@ Bayesian Personalized Ranking (BPR)
 .. autoclass:: cornac.models.bpr.recom_bpr.BPR
    :members:
 
+Social Recommendation using PMF (SoRec)
+-----------------------------------------
+.. automodule:: cornac.models.sorec.recom_sorec
+   :members:
+
 Probabilitic Matrix Factorization (PMF)
 -----------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
