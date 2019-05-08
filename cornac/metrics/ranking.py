@@ -255,10 +255,12 @@ class MeasureAtK(RankingMetric):
 
         """
         if self.k > 0:
-            pd_rank = pd_rank[:self.k]
+            truncated_pd_rank = pd_rank[:self.k]
+        else:
+            truncated_pd_rank = pd_rank
 
         pred = np.zeros_like(gt_pos)
-        pred[pd_rank] = 1
+        pred[truncated_pd_rank] = 1
 
         tp = np.sum(pred * gt_pos)
         tp_fn = np.sum(gt_pos)
