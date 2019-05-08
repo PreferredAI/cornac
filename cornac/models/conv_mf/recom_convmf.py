@@ -142,7 +142,7 @@ class ConvMF(Recommender):
         sess.run(tf.global_variables_initializer())  # init variable
 
         document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
-        theta, _ = cnn_module.get_projection_layer(document,self.V, item_weight, sess)
+        theta, _ = cnn_module.get_projection_layer(document, self.V, item_weight, sess)
 
         for iter in range(self.max_iter):
             print("Iteration {}".format(iter + 1))
@@ -165,14 +165,13 @@ class ConvMF(Recommender):
                 idx_user = item_data[0][j]
                 U_j = self.U[idx_user]
                 R_j = R_item[j]
-                #Uj_square = U_j.T.dot(U_j)
 
                 A = self.lambda_v * item_weight[j] * np.eye(self.dimension) + U_j.T.dot(U_j)
                 B = (U_j * (np.tile(R_j, (self.dimension, 1)).T)).sum(0) \
                     + self.lambda_v * item_weight[j] * theta[j]
                 self.V[j] = np.linalg.solve(A, B)
 
-                item_loss[j] = -np.square(R_j-U_j.dot(self.V[j])).sum()
+                item_loss[j] = -np.square(R_j - U_j.dot(self.V[j])).sum()
 
             loop = trange(cnn_epoch, desc='CNN', disable=not self.verbose)
             for _ in loop:
@@ -182,9 +181,10 @@ class ConvMF(Recommender):
                                  cnn_module.v: self.V[batch_ids],
                                  cnn_module.sample_weight: item_weight[batch_ids]}
 
-                    sess.run([cnn_module.optimizer, cnn_module.weighted_loss], feed_dict=feed_dict)
+                    sess.run([cnn_module.optimizer], feed_dict=feed_dict)
 
-            theta, cnn_loss = cnn_module.get_projection_layer(document,self.V, item_weight, sess)
+            feed_dict = {cnn_module.model_input: document, cnn_module.v: self.V, cnn_module.sample_weight: item_weight}
+            theta, cnn_loss = sess.run([cnn_module.model_output, cnn_module.weighted_loss], feed_dict=feed_dict)
 
             loss = loss + np.sum(user_loss) + np.sum(item_loss) - 0.5 * self.lambda_v * cnn_loss
             toc = time.time()
