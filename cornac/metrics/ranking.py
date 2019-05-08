@@ -26,6 +26,8 @@ class RankingMetric:
     """
 
     def __init__(self, name=None, k=-1):
+        assert k == -1 or k > 0
+
         self.type = 'ranking'
         self.name = name
         self.k = k
@@ -75,11 +77,13 @@ class NDCG(RankingMetric):
 
         """
         if k > 0:
-            pd_rank = pd_rank[:k]
+            truncated_pd_rank = pd_rank[:k]
+        else:
+            truncated_pd_rank = pd_rank
 
-        gt_pos = np.take(gt_pos, pd_rank)
-        gain = 2 ** gt_pos - 1
-        discounts = np.log2(np.arange(len(gt_pos)) + 2)
+        ranked_scores = np.take(gt_pos, truncated_pd_rank)
+        gain = 2 ** ranked_scores - 1
+        discounts = np.log2(np.arange(len(ranked_scores)) + 2)
 
         return np.sum(gain / discounts)
 
@@ -142,17 +146,22 @@ class NCRR(RankingMetric):
             Normalized Cumulative Reciprocal Rank score.
 
         """
+        if self.k > 0:
+            truncated_pd_rank = pd_rank[:self.k]
+        else:
+            truncated_pd_rank = pd_rank
+
         gt_pos_items = np.nonzero(gt_pos > 0)
 
-        # Compute Ideal CRR
-        ideal_rank = np.arange(len(gt_pos_items[0]))
-        ideal_rank = ideal_rank + 1  # +1 because indices starts from 0 in python
-        icrr = np.sum(1. / ideal_rank)
-
         # Compute CRR
-        rec_rank = np.where(np.in1d(pd_rank, gt_pos_items))[0]
+        rec_rank = np.where(np.in1d(truncated_pd_rank, gt_pos_items))[0]
         rec_rank = rec_rank + 1  # +1 because indices starts from 0 in python
         crr = np.sum(1. / rec_rank)
+
+        # Compute Ideal CRR
+        ideal_rank = np.arange(len(rec_rank))
+        ideal_rank = ideal_rank + 1  # +1 because indices starts from 0 in python
+        icrr = np.sum(1. / ideal_rank)
 
         # Compute nDCG
         ncrr_i = crr / icrr
