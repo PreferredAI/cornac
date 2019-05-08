@@ -1,9 +1,13 @@
-from setuptools import Extension, setup, find_packages
-import sys
-import platform
-import glob
 import os
-import numpy as np
+import sys
+import glob
+import platform
+from setuptools import Extension, setup, find_packages
+
+try:
+    import numpy as np
+except ImportError:
+    exit('Please install numpy>=1.14 first.')
 
 try:
     from Cython.Build import cythonize
