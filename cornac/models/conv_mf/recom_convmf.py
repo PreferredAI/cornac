@@ -101,10 +101,22 @@ class ConvMF(Recommender):
         if self.trainable:
             self._fit_convmf()
 
-    def _fit_convmf(self):
+    @staticmethod
+    def _build_data(csr_mat):
+        data = []
+        index_list = []
+        rating_list = []
+        for i in range(csr_mat.shape[0]):
+            j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
+            index_list.append(csr_mat.indices[j:k])
+            rating_list.append(csr_mat.data[j:k])
+        data.append(index_list)
+        data.append(rating_list)
+        return data
 
-        user_data = build_data(self.train_set.matrix)
-        item_data = build_data(self.train_set.matrix.T.tocsr())
+    def _fit_convmf(self):
+        user_data = self._build_data(self.train_set.matrix)
+        item_data = self._build_data(self.train_set.matrix.T.tocsr())
 
         n_user = len(user_data[0])
         n_item = len(item_data[0])
@@ -232,15 +244,3 @@ class ConvMF(Recommender):
 
             return user_pred
 
-
-def build_data(csr_mat):
-    data = []
-    index_list = []
-    rating_list = []
-    for i in range(csr_mat.shape[0]):
-        j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
-        index_list.append(csr_mat.indices[j:k])
-        rating_list.append(csr_mat.data[j:k])
-    data.append(index_list)
-    data.append(rating_list)
-    return data
