@@ -55,7 +55,7 @@ class ConvMF(Recommender):
     In :10th ACM Conference on Recommender Systems Pages 233-240
     """
 
-    def __init__(self, give_item_weight=True,
+    def __init__(self, give_item_weight=True, cnn_epochs=5,
                  n_epochs=50, lambda_u=1, lambda_v=100, k=50,
                  name="convmf", trainable=True,
                  verbose=False, dropout_rate=0.2, emb_dim=200,
@@ -74,6 +74,7 @@ class ConvMF(Recommender):
         self.num_kernel_per_ws = num_kernel_per_ws
         self.name = name
         self.verbose = verbose
+        self.cnn_epochs = cnn_epochs
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
@@ -101,13 +102,6 @@ class ConvMF(Recommender):
             self._fit_convmf()
 
     def _fit_convmf(self):
-
-        endure = 3
-        converge_threshold = 0.01
-        history = 1e-50
-        loss = 0
-
-        cnn_epoch = 5
 
         user_data = build_data(self.train_set.matrix)
         item_data = build_data(self.train_set.matrix.T.tocsr())
@@ -142,7 +136,13 @@ class ConvMF(Recommender):
         sess.run(tf.global_variables_initializer())  # init variable
 
         document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
-        theta, _ = cnn_module.get_projection_layer(document, self.V, item_weight, sess)
+        feed_dict = {cnn_module.model_input: document}
+        theta = sess.run([cnn_module.model_output], feed_dict=feed_dict)
+
+        endure = 3
+        converge_threshold = 0.01
+        history = 1e-50
+        loss = 0
 
         for iter in range(self.max_iter):
             print("Iteration {}".format(iter + 1))
@@ -173,7 +173,7 @@ class ConvMF(Recommender):
 
                 item_loss[j] = -np.square(R_j - U_j.dot(self.V[j])).sum()
 
-            loop = trange(cnn_epoch, desc='CNN', disable=not self.verbose)
+            loop = trange(self.cnn_epochs, desc='CNN', disable=not self.verbose)
             for _ in loop:
                 for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
                     batch_seq = self.train_set.item_text.batch_seq(batch_ids, max_length=self.max_len)
