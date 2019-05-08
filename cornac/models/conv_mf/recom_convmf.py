@@ -136,8 +136,9 @@ class ConvMF(Recommender):
         sess.run(tf.global_variables_initializer())  # init variable
 
         document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
+
         feed_dict = {cnn_module.model_input: document}
-        theta = sess.run([cnn_module.model_output], feed_dict=feed_dict)
+        theta = sess.run(cnn_module.model_output, feed_dict=feed_dict)
 
         endure = 3
         converge_threshold = 0.01
