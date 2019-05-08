@@ -66,7 +66,6 @@ class CNN_module():
         self.model_input = tf.placeholder(dtype=tf.int32, shape=(None, self.max_len))
         self.v = tf.placeholder(dtype=tf.float32, shape=(None, self.output_dimension))
         self.sample_weight = tf.placeholder(dtype=tf.float32, shape=(None,))
-        self.droprate_holder = tf.placeholder_with_default(1.0, shape=())
         self.embedding_weight = tf.Variable(initial_value=self.init_W)
 
         self.seq_emb = tf.nn.embedding_lookup(self.embedding_weight, self.model_input)
@@ -99,8 +98,8 @@ class CNN_module():
         # RMSPro optimizer
         self.optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate).minimize(self.weighted_loss)
 
-    def get_projection_layer(self, X_train, sess):
+    def get_projection_layer(self, X_train,V, item_weight,sess):
 
-        feed_dict = {self.model_input: X_train}
-        prediction = sess.run([self.model_output], feed_dict=feed_dict)
-        return np.array(prediction).reshape(len(X_train), -1)
+        feed_dict = {self.model_input: X_train,self.v: V, self.sample_weight: item_weight}
+        prediction,loss = sess.run([self.model_output,self.weighted_loss], feed_dict=feed_dict)
+        return np.array(prediction).reshape(len(X_train), -1), loss
