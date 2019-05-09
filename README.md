@@ -38,7 +38,7 @@ pip3 install cornac
   - **From Anaconda:**
 
 ```sh
-conda install cornac -c qttruong -c pytorch
+conda install -c qttruong cornac
 ```
 
   - **From the GitHub source (for latest updates):**
