@@ -1,1 +1,1 @@
-from .recom_convmf import ConvMF
+from .recom_cvae import CVAE
