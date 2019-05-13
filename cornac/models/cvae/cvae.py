@@ -4,91 +4,109 @@
 """
 
 import tensorflow as tf
-import numpy as np
+
+from ..cdl.cdl import act_functions
 
 
-def conv_layer(input, num_input_channels,
-               filter_height, filter_width,
-               num_filters, seed=None, use_pooling=True):
-    shape = [filter_height, filter_width, num_input_channels, num_filters]
-    weights = tf.Variable(tf.truncated_normal(shape, stddev=0.05, seed=seed))
-    biases = tf.Variable(tf.constant(0.05, shape=[num_filters]))
-    layer = tf.nn.conv2d(input=input, filter=weights,
-                         strides=[1, 1, 1, 1], padding="VALID")
-    layer = layer + biases
-    if use_pooling:
-        layer = tf.nn.max_pool(value=layer, ksize=[1, input.shape[1] - filter_height + 1, 1, 1],
-                               strides=[1, 1, 1, 1], padding="VALID")
-    layer = tf.nn.relu(layer)
-    return layer, weights
+class Model():
 
+    def __init__(self, input_dim, lambda_v, lambda_r, lr,seed, n_z, layers, loss_type, activations):
 
-def flatten_layer(layer):
-    layer_shape = layer.get_shape()
-    num_feature = layer_shape[1:4].num_elements()
-    layer_flat = tf.reshape(layer, [-1, num_feature])
-    return layer_flat, num_feature
-
-
-def fc_layer(input, num_input, num_output, seed=None):
-    weights = tf.Variable(tf.truncated_normal([num_input, num_output], stddev=0.05, seed=seed))
-    biases = tf.Variable(tf.constant(0.05, shape=[num_output]))
-    layer = tf.matmul(input, weights) + biases
-    layer = tf.nn.tanh(layer)
-    return layer
-
-
-class CNN_module():
-
-    def __init__(self, output_dimension, dropout_rate,
-                 emb_dim, max_len, nb_filters, seed,
-                 init_W, learning_rate=0.001):
-        self.drop_rate = dropout_rate
-        self.max_len = max_len
+        self.input_dim = input_dim
+        self.n_z = n_z
+        self.layers = layers
+        self.loss_type = loss_type
+        self.activations = activations
         self.seed = seed
-        self.learning_rate = learning_rate
-        self.init_W = tf.constant(init_W)
-        self.output_dimension = output_dimension
-        self.emb_dim = emb_dim
-        self.nb_filters = nb_filters
-        self.filter_lengths = [3, 4, 5]
-        self.vanila_dimension = 200
+        self.lambda_v = lambda_v
+        self.lambda_r = lambda_r
+        self.lr = lr
 
         self._build_graph()
 
     def _build_graph(self):
-        # create Graph
-        self.model_input = tf.placeholder(dtype=tf.int32, shape=(None, self.max_len))
-        self.v = tf.placeholder(dtype=tf.float32, shape=(None, self.output_dimension))
-        self.sample_weight = tf.placeholder(dtype=tf.float32, shape=(None,))
-        self.embedding_weight = tf.Variable(initial_value=self.init_W)
 
-        self.seq_emb = tf.nn.embedding_lookup(self.embedding_weight, self.model_input)
-        self.reshape = tf.reshape(self.seq_emb, [-1, self.max_len, self.emb_dim, 1])
-        self.convs = []
+        self.x = tf.placeholder(tf.float32, [None, self.input_dim], name='x')
+        self.v = tf.placeholder(tf.float32, [None, self.n_z])
 
-        # Convolutional layer
-        for i in self.filter_lengths:
-            convolutional_layer, weights = conv_layer(input=self.reshape, num_input_channels=1,
-                                                      filter_height=i, filter_width=self.emb_dim,
-                                                      num_filters=self.nb_filters, use_pooling=True)
+        x_recon = self._inference_generation(self.x)
 
-            flat_layer, _ = flatten_layer(convolutional_layer)
-            self.convs.append(flat_layer)
+        if self.loss_type == 'rmse':
+            self.gen_loss = tf.reduce_mean(tf.square(tf.sub(self.x, x_recon)))
+        elif self.loss_type == 'cross-entropy':
+            x_recon = tf.nn.sigmoid(x_recon, name='x_recon')
+            self.gen_loss = -tf.reduce_mean(tf.reduce_sum(self.x * tf.log(tf.maximum(x_recon, 1e-10))
+                                                          + (1 - self.x) * tf.log(tf.maximum(1 - x_recon, 1e-10)), 1))
 
-        self.model_output = tf.concat(self.convs, axis=-1)
-        # Fully-connected layers
-        self.model_output = fc_layer(input=self.model_output, num_input=self.model_input.get_shape()[1].value,
-                                     num_output=self.vanila_dimension)
-        # Dropout layer
-        self.model_output = tf.nn.dropout(self.model_output, self.drop_rate)
-        # Output layer
-        self.model_output = fc_layer(input=self.model_output, num_input=self.vanila_dimension,
-                                     num_output=self.output_dimension)
-        # Weighted MEA loss function
-        self.mean_square_loss = tf.losses.mean_squared_error(labels=self.v, predictions=self.model_output,
-                                                             reduction=tf.losses.Reduction.NONE)
-        self.weighted_loss = tf.reduce_sum(
-            tf.reduce_sum(self.mean_square_loss, axis=1, keepdims=True) * self.sample_weight)
-        # RMSPro optimizer
-        self.optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate).minimize(self.weighted_loss)
+        self.latent_loss = 0.5 * tf.reduce_mean(tf.reduce_sum(tf.square(self.z_mean) + tf.exp(self.z_log_sigma_sq)
+                                                              - self.z_log_sigma_sq - 1, 1))
+        self.v_loss = 1.0 * self.lambda_v / self.lambda_r * tf.reduce_mean(
+            tf.reduce_sum(tf.square(self.v - self.z), 1))
+
+        self.loss = self.gen_loss + self.latent_loss + self.v_loss + 2e-4 * self.reg_loss
+        self.optimizer = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
+
+    def _inference_generation(self, X):
+
+        act_fn0 = act_functions.get(self.activations[0], None)
+        act_fn1 = act_functions.get(self.activations[1], None)
+        if act_fn0 is None:
+            raise ValueError('Invalid type of activation function {}\n'
+                             'Supported functions: {}'.format(act_fn0, act_functions.keys()))
+        if act_fn1 is None:
+            raise ValueError('Invalid type of activation function {}\n'
+                             'Supported functions: {}'.format(act_fn1, act_functions.keys()))
+
+        with tf.variable_scope("inference"):
+            rec = {'W1': tf.get_variable("W1", [self.input_dim, self.layers[0]],
+                                         initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                                         dtype=tf.float32),
+                   'b1': tf.get_variable("b1", [self.layers[0]],
+                                         initializer=tf.constant_initializer(0.0), dtype=tf.float32),
+                   'W2': tf.get_variable("W2", [self.layers[0], self.layers[1]],
+                                         initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                                         dtype=tf.float32),
+                   'b2': tf.get_variable("b2", [self.layers[1]],
+                                         initializer=tf.constant_initializer(0.0), dtype=tf.float32),
+                   'W_z_mean': tf.get_variable("W_z_mean", [self.layers[1], self.n_z],
+                                               initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                                               dtype=tf.float32),
+                   'b_z_mean': tf.get_variable("b_z_mean", [self.n_z],
+                                               initializer=tf.constant_initializer(0.0), dtype=tf.float32),
+                   'W_z_log_sigma': tf.get_variable("W_z_log_sigma", [self.layers[1], self.n_z],
+                                                    initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                                                    dtype=tf.float32),
+                   'b_z_log_sigma': tf.get_variable("b_z_log_sigma", [self.n_z],
+                                                    initializer=tf.constant_initializer(0.0), dtype=tf.float32)}
+
+        h1 = act_fn0(tf.matmul(X, rec['W1']) + rec['b1'])
+        h2 = act_fn1(tf.matmul(h1, rec['W2']) + rec['b2'])
+
+        self.z_mean = tf.matmul(h2, rec['W_z_mean']) + rec['b_z_mean']
+        self.z_log_sigma_sq = tf.matmul(h2, rec['W_z_log_sigma']) + rec['b_z_log_sigma']
+
+        eps = tf.random_normal(shape=tf.shape(self.z_mean), mean=0, stddev=1,
+                               seed=self.seed, dtype=tf.float32)
+
+        self.z = self.z_mean + tf.sqrt(tf.maximum(tf.exp(self.z_log_sigma_sq), 1e-10)) * eps
+
+        with tf.variable_scope("generation"):
+            gen = {'W2': tf.get_variable("W2", [self.n_z, self.layers[1]],
+                                         initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                                         dtype=tf.float32),
+                   'b2': tf.get_variable("b2", [self.layers[1]],
+                                         initializer=tf.constant_initializer(0.0), dtype=tf.float32),
+                   'W1': tf.transpose(rec['W2']),
+                   'b1': rec['b1'],
+                   'W_x': tf.transpose(rec['W1']),
+                   'b_x': tf.get_variable("b_x", [self.input_dim],
+                                          initializer=tf.constant_initializer(0.0), dtype=tf.float32)}
+
+        self.reg_loss = tf.nn.l2_loss(rec['W1']) + tf.nn.l2_loss(rec['W2']) + \
+                   tf.nn.l2_loss(gen['W1']) + tf.nn.l2_loss(gen['W_x'])
+
+        h2 = act_fn1(tf.matmul(self.z, gen['W2']) + gen['b2'])
+        h1 = act_fn0(tf.matmul(h2, gen['W1']) + gen['b1'])
+        x_recon = tf.matmul(h1, gen['W_x']) + gen['b_x']
+
+        return x_recon

@@ -6,8 +6,6 @@
 
 from ..recommender import Recommender
 from ...exception import ScoreException
-import time
-import math
 import numpy as np
 
 
@@ -55,27 +53,28 @@ class CVAE(Recommender):
     In :10th ACM Conference on Recommender Systems Pages 233-240
     """
 
-    def __init__(self, k=50, lamda_u=0.1, lamda_v=10, lamda_r=1, a=1, b=0.01, n_epochs=100, input_dim=8000,
-        dimension=[200, 100], activations=['sigmoid', 'sigmoid'], n_z=50, loss_type='cross-entropy', lr=0.1,
-        dropout=0.1, verbose=True, name="cvae", trainable=True, seed=None):
+    def __init__(self, lambda_u=0.1, lambda_v=10, lambda_r=1, a=1, b=0.01, n_epochs=100, input_dim=8000, batch_size=128,
+                 dimensions=[200, 100], activations=['sigmoid', 'sigmoid'], n_z=50, loss_type='cross-entropy', lr=0.1,
+                 dropout=0.1, verbose=True, name="CVAE", trainable=True, seed=None, init_params=None):
 
         super().__init__(name=name, trainable=trainable, verbose=verbose)
-        self.lamda_u = lamda_u
-        self.lamda_v = lamda_v
-        self.lamda_r = lamda_r
+
+        self.lambda_u = lambda_u
+        self.lambda_v = lambda_v
+        self.lambda_r = lambda_r
         self.a = a
         self.b = b
         self.n_epochs = n_epochs
         self.input_dim = input_dim
-        self.dimenssion = dimension
+        self.dimensions = dimensions
         self.n_z = n_z
         self.loss_type = loss_type
         self.activations = activations
-        self.lr =lr
-        self.k = k
+        self.lr = lr
+        self.batch_size = batch_size
         self.dropout = dropout
+        self.init_params = {} if not init_params else init_params
         self.seed = seed
-
 
     def fit(self, train_set):
         """Fit the model.
@@ -93,10 +92,9 @@ class CVAE(Recommender):
 
         rng = get_rng(self.seed)
 
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), rng))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.dimension), rng))
-        #self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.vocab.size, self.emb_dim), rng))
-
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.n_z), rng))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.n_z), rng))
+        self.Z_mean = self.init_params.get('Z_mean', xavier_uniform((self.train_set.num_items, self.n_z), rng))
         if self.trainable:
             self._fit_cvae()
 
@@ -114,6 +112,7 @@ class CVAE(Recommender):
         return data
 
     def _fit_cvae(self):
+
         user_data = self._build_data(self.train_set.matrix)
         item_data = self._build_data(self.train_set.matrix.T.tocsr())
 
@@ -125,13 +124,13 @@ class CVAE(Recommender):
         R_item = item_data[1]
 
         # Initialize cnn module
-        from .convmf import CNN_module
+        from .cvae import Model
         import tensorflow as tf
         from tqdm import trange
 
-        cnn_module = CNN_module(output_dimension=self.dimension, dropout_rate=self.dropout_rate,
-                                emb_dim=self.emb_dim, max_len=self.max_len,
-                                nb_filters=self.num_kernel_per_ws, seed=self.seed, init_W=self.W)
+        model = Model(input_dim=self.input_dim, lambda_v=self.lambda_v, lambda_r=self.lambda_r, n_z=self.n_z,
+                      layers=self.dimensions, loss_type=self.loss_type,
+                      activations=self.activations, seed=self.seed, lr=self.lr)
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -139,28 +138,26 @@ class CVAE(Recommender):
 
         sess.run(tf.global_variables_initializer())  # init variable
 
-        document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
+        document = self.train_set.item_text.batch_bow(np.arange(n_item))  # bag of word feature
+        document = (document - document.min()) / (document.max() - document.min())  # normalization
 
-        feed_dict = {cnn_module.model_input: document}
-        theta = sess.run(cnn_module.model_output, feed_dict=feed_dict)
+        feed_dict = {model.x: document}
+        theta = sess.run(model.z_mean, feed_dict=feed_dict)
 
-        endure = 3
-        converge_threshold = 0.01
-        history = 1e-50
         loss = 0
 
-        for iter in range(self.n_epochs):
-            print("Iteration {}".format(iter + 1))
+        loop = trange(self.n_epochs, disable=not self.verbose)
+        for _ in loop:
 
             user_loss = np.zeros(n_user)
-            VV = self.b * (self.V.T.dot(self.V)) + self.lamda_u * np.eye(self.k)
+            VV = self.b * (self.V.T.dot(self.V)) + self.lambda_u * np.eye(self.n_z)
 
             for i in range(n_user):
                 idx_item = user_data[0][i]
                 V_i = self.V[idx_item]
                 R_i = R_user[i]
-                A = VV + (self.a-self.b)*(V_i.T.dot(V_i))
-                x = (self.a * V_i * (np.tile(R_i, (self.k, 1)).T)).sum(0)
+                A = VV + (self.a - self.b) * (V_i.T.dot(V_i))
+                x = (self.a * V_i * (np.tile(R_i, (self.n_z, 1)).T)).sum(0)
                 self.U[i] = np.linalg.solve(A, x)
 
                 user_loss[i] = -0.5 * self.lambda_u * np.dot(self.U[i], self.U[i])
@@ -174,38 +171,31 @@ class CVAE(Recommender):
                 R_j = R_item[j]
 
                 tmp_A = UU + (self.a - self.b) * (U_j.T.dot(U_j))
-                A = tmp_A + self.lambda_v * np.eye(self.k)
-                x = (self.a * U_j * (np.tile(R_j, (self.k, 1)).T)).sum(0) + self.lambda_v * theta[j]
+                A = tmp_A + self.lambda_v * np.eye(self.n_z)
+                x = (self.a * U_j * (np.tile(R_j, (self.n_z, 1)).T)).sum(0) + self.lambda_v * theta[j]
                 self.V[j] = np.linalg.solve(A, x)
 
                 item_loss[j] = -0.5 * np.square(R_j * self.a).sum()
                 item_loss[j] = item_loss[j] + self.a * np.sum((U_j.dot(self.V[j])) * R_j)
                 item_loss[j] = item_loss[j] - 0.5 * np.dot(self.V[j].dot(tmp_A), self.V[j])
 
-            
-            loop = trange(self.cnn_epochs, desc='CNN', disable=not self.verbose)
-            for _ in loop:
-                for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
-                    batch_seq = self.train_set.item_text.batch_seq(batch_ids, max_length=self.max_len)
-                    feed_dict = {cnn_module.model_input: batch_seq,
-                                 cnn_module.v: self.V[batch_ids],
-                                 cnn_module.sample_weight: item_weight[batch_ids]}
+                ep = self.V[j, :] - theta[j, :]
+                item_loss[j] -= 0.5 * self.lambda_v * np.sum(ep * ep)
 
-                    sess.run([cnn_module.optimizer], feed_dict=feed_dict)
+            for batch_ids in self.train_set.item_iter(batch_size=self.batch_size, shuffle=True):
+                feed_dict = {model.x: document[batch_ids],
+                             model.v: self.V[batch_ids]}
 
-            feed_dict = {cnn_module.model_input: document, cnn_module.v: self.V, cnn_module.sample_weight: item_weight}
-            theta, cnn_loss = sess.run([cnn_module.model_output, cnn_module.weighted_loss], feed_dict=feed_dict)
+                _, l, gen_loss, v_loss = sess.run((model.optimizer, model.loss, model.gen_loss, model.v_loss),
+                                                  feed_dict=feed_dict)
 
-            loss = loss + np.sum(user_loss) + np.sum(item_loss) - 0.5 * self.lambda_v * cnn_loss
+            feed_dict = {model.x: document}
+            theta = sess.run(model.z_mean, feed_dict=feed_dict)
 
-            converge = abs((loss - history) / history)
+            loss = loss + np.sum(user_loss) + np.sum(item_loss) + 0.5 * gen_loss * n_item * self.lambda_r
+            loop.set_postfix(loss=loss)
 
-            print("Loss: %.5f, Converge: %.6f " % (loss, converge))
-            history = loss
-            if converge < converge_threshold:
-                endure -= 1
-                if endure == 0:
-                    break
+        self.Z_mean = theta
 
         tf.reset_default_graph()
 
@@ -231,13 +221,12 @@ class CVAE(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            known_item_scores = self.V.dot(self.U[user_id, :])
+            known_item_scores = (self.V + self.Z_mean).dot(self.U[user_id, :])
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-            user_pred = self.V[item_id, :].dot(self.U[user_id, :])
+            user_pred = (self.V[item_id, :] + self.Z_mean[item_id, :]).dot(self.U[user_id, :])
 
             return user_pred
-
