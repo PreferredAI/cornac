@@ -33,7 +33,7 @@ class CVAE(Recommender):
     lr: float, optional, default: 0.001
         Learning rate in the auto-encoder training
 
-    input_dim: int, optional, default: 80000
+    input_dim: int, optional, default: 8000
         The size of input vector
 
     dimensions: list, optional, default: [200,100]
@@ -42,7 +42,6 @@ class CVAE(Recommender):
     loss_type: String, optional, default: "cross-entropy"
         Either "cross-entropy" or "rmse"
         The type of loss function in the last layer
-
 
     init_params: dict, optional, default: {'U':None, 'V':None, 'Z_mean': None}
         Initial U and V matrix and E[z]
