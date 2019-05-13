@@ -13,35 +13,37 @@ class CVAE(Recommender):
     """
     Parameters
     ----------
-    k: int, optional, default: 50
+    n_z: int, optional, default: 50
         The dimension of the user and item latent factors.
 
-    n_epochs: int, optional, default: 50
+    n_epochs: int, optional, default: 100
         Maximum number of epochs for training.
 
-    lambda_u: float, optional, default: 1.0
+    lambda_u: float, optional, default: 0.1
         The regularization hyper-parameter for user latent factor.
 
-    lambda_v: float, optional, default: 100.0
+    lambda_v: float, optional, default: 10.0
         The regularization hyper-parameter for item latent factor.
 
-    emb_dim: int, optional, default: 200
-        The embedding size of each word. One word corresponds with [1 x emb_dim] vector in the embedding space
+    lambda_r: float, optional, default: 1.0
+        Parameter that balance the focus on content or ratings
 
-    max_len: int, optional, default 300
-        The maximum length of item's document
+    lr: float, optional, default: 0.001
+        Learning rate in the auto-encoder training
 
-    num_kernel_per_ws: int, optional, default: 100
-        The number of kernel filter in convolutional layer
+    input_dim: int, optional, default: 80000
+        The size of input vector
 
-    dropout_rate: float, optional, default: 0.2
-        Dropout rate while training CNN
+    dimensions: list, optional, default: [200,100]
+        The list containing size of each layers in neural network structure
 
-    give_item_weight: boolean, optional, default: True
-        When True, each item will be weighted base on the number of user who have rated this item
+    loss_type: String, optional, default: "cross-entropy"
+        Either "cross-entropy" or "rmse"
+        The type of loss function in the last layer
 
-    init_params: dict, optional, default: {'U':None, 'V':None, 'W': None}
-        Initial U and V matrix and initial weight for embedding layer W
+
+    init_params: dict, optional, default: {'U':None, 'V':None, 'Z_mean': None}
+        Initial U and V matrix and E[z]
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
@@ -49,13 +51,15 @@ class CVAE(Recommender):
 
     References
     ----------
-    * Donghyun Kim1, Chanyoung Park1. ConvMF: Convolutional Matrix Factorization for Document Context-Aware Recommendation. \
-    In :10th ACM Conference on Recommender Systems Pages 233-240
+    Collaborative Variational Autoencoder for Recommender Systems
+
+    X. Li and J. She
+    ACM SIGKDD International Conference on Knowledge Discovery and Data Mining 2017
     """
 
     def __init__(self, lambda_u=0.1, lambda_v=10, lambda_r=1, a=1, b=0.01, n_epochs=100, input_dim=8000, batch_size=128,
-                 dimensions=[200, 100], activations=['sigmoid', 'sigmoid'], n_z=50, loss_type='cross-entropy', lr=0.1,
-                 dropout=0.1, verbose=True, name="CVAE", trainable=True, seed=None, init_params=None):
+                 dimensions=[200, 100], activations=['sigmoid', 'sigmoid'], n_z=50, loss_type='cross-entropy', lr=0.001,
+                 verbose=True, name="CVAE", trainable=True, seed=None, init_params=None):
 
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
@@ -72,7 +76,6 @@ class CVAE(Recommender):
         self.activations = activations
         self.lr = lr
         self.batch_size = batch_size
-        self.dropout = dropout
         self.init_params = {} if not init_params else init_params
         self.seed = seed
 
@@ -128,8 +131,8 @@ class CVAE(Recommender):
         import tensorflow as tf
         from tqdm import trange
 
-        model = Model(input_dim=self.input_dim, lambda_v=self.lambda_v, lambda_r=self.lambda_r, n_z=self.n_z,
-                      layers=self.dimensions, loss_type=self.loss_type,
+        model = Model(input_dim=self.input_dim, lambda_v=self.lambda_v, lambda_r=self.lambda_r,
+                      n_z=self.n_z, layers=self.dimensions, loss_type=self.loss_type,
                       activations=self.activations, seed=self.seed, lr=self.lr)
 
         config = tf.ConfigProto()
@@ -152,6 +155,7 @@ class CVAE(Recommender):
             user_loss = np.zeros(n_user)
             VV = self.b * (self.V.T.dot(self.V)) + self.lambda_u * np.eye(self.n_z)
 
+            # update user vector
             for i in range(n_user):
                 idx_item = user_data[0][i]
                 V_i = self.V[idx_item]
@@ -165,6 +169,7 @@ class CVAE(Recommender):
             item_loss = np.zeros(n_item)
             UU = self.b * (self.U.T.dot(self.U))
 
+            # update user vector
             for j in range(n_item):
                 idx_user = item_data[0][j]
                 U_j = self.U[idx_user]
@@ -182,12 +187,12 @@ class CVAE(Recommender):
                 ep = self.V[j, :] - theta[j, :]
                 item_loss[j] -= 0.5 * self.lambda_v * np.sum(ep * ep)
 
+            # auto_encoder training
             for batch_ids in self.train_set.item_iter(batch_size=self.batch_size, shuffle=True):
                 feed_dict = {model.x: document[batch_ids],
                              model.v: self.V[batch_ids]}
 
-                _, l, gen_loss, v_loss = sess.run((model.optimizer, model.loss, model.gen_loss, model.v_loss),
-                                                  feed_dict=feed_dict)
+                _, gen_loss = sess.run((model.optimizer, model.gen_loss), feed_dict=feed_dict)
 
             feed_dict = {model.x: document}
             theta = sess.run(model.z_mean, feed_dict=feed_dict)

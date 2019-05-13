@@ -10,7 +10,7 @@ from ..cdl.cdl import act_functions
 
 class Model():
 
-    def __init__(self, input_dim, lambda_v, lambda_r, lr,seed, n_z, layers, loss_type, activations):
+    def __init__(self, input_dim, lambda_v, lambda_r, lr, seed, n_z, layers, loss_type, activations):
 
         self.input_dim = input_dim
         self.n_z = n_z
@@ -38,12 +38,12 @@ class Model():
             self.gen_loss = -tf.reduce_mean(tf.reduce_sum(self.x * tf.log(tf.maximum(x_recon, 1e-10))
                                                           + (1 - self.x) * tf.log(tf.maximum(1 - x_recon, 1e-10)), 1))
 
-        self.latent_loss = 0.5 * tf.reduce_mean(tf.reduce_sum(tf.square(self.z_mean) + tf.exp(self.z_log_sigma_sq)
-                                                              - self.z_log_sigma_sq - 1, 1))
-        self.v_loss = 1.0 * self.lambda_v / self.lambda_r * tf.reduce_mean(
+        latent_loss = 0.5 * tf.reduce_mean(tf.reduce_sum(tf.square(self.z_mean) + tf.exp(self.z_log_sigma_sq)
+                                                         - self.z_log_sigma_sq - 1, 1))
+        v_loss = 1.0 * self.lambda_v / self.lambda_r * tf.reduce_mean(
             tf.reduce_sum(tf.square(self.v - self.z), 1))
 
-        self.loss = self.gen_loss + self.latent_loss + self.v_loss + 2e-4 * self.reg_loss
+        self.loss = self.gen_loss + latent_loss + v_loss + 2e-4 * self.reg_loss
         self.optimizer = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
 
     def _inference_generation(self, X):
@@ -103,7 +103,7 @@ class Model():
                                           initializer=tf.constant_initializer(0.0), dtype=tf.float32)}
 
         self.reg_loss = tf.nn.l2_loss(rec['W1']) + tf.nn.l2_loss(rec['W2']) + \
-                   tf.nn.l2_loss(gen['W1']) + tf.nn.l2_loss(gen['W_x'])
+                        tf.nn.l2_loss(gen['W1']) + tf.nn.l2_loss(gen['W_x'])
 
         h2 = act_fn1(tf.matmul(self.z, gen['W2']) + gen['b2'])
         h1 = act_fn0(tf.matmul(h2, gen['W1']) + gen['b1'])
