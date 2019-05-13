@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Example for Collaborative Deep Learning
+Example for Collaborative Variational Autoencoder
 
 @author: Tran Thanh Binh
 """

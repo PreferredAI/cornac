@@ -11,6 +11,8 @@ import numpy as np
 
 class CVAE(Recommender):
     """
+    Collaborative Variational Autoencoder
+
     Parameters
     ----------
     n_z: int, optional, default: 50
@@ -52,9 +54,10 @@ class CVAE(Recommender):
     References
     ----------
     Collaborative Variational Autoencoder for Recommender Systems
+    X. Li and J. She ACM SIGKDD International Conference on Knowledge Discovery and Data Mining 2017
 
-    X. Li and J. She
-    ACM SIGKDD International Conference on Knowledge Discovery and Data Mining 2017
+    http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf
+
     """
 
     def __init__(self, lambda_u=0.1, lambda_v=10, lambda_r=1, a=1, b=0.01, n_epochs=100, input_dim=8000, batch_size=128,
