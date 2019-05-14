@@ -43,8 +43,8 @@ class CVAE(Recommender):
         Either "cross-entropy" or "rmse"
         The type of loss function in the last layer
 
-    init_params: dict, optional, default: {'U':None, 'V':None, 'Z_mean': None}
-        Initial U and V matrix and E[z]
+    init_params: dict, optional, default: {'U':None, 'V':None}
+        Initial U and V latent matrix
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
@@ -99,7 +99,6 @@ class CVAE(Recommender):
 
         self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.n_z), rng))
         self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.n_z), rng))
-        self.Z_mean = self.init_params.get('Z_mean', xavier_uniform((self.train_set.num_items, self.n_z), rng))
         if self.trainable:
             self._fit_cvae()
 
@@ -202,8 +201,6 @@ class CVAE(Recommender):
             loss = loss + np.sum(user_loss) + np.sum(item_loss) + 0.5 * gen_loss * n_item * self.lambda_r
             loop.set_postfix(loss=loss)
 
-        self.Z_mean = theta
-
         tf.reset_default_graph()
 
     def score(self, user_id, item_id=None):
@@ -228,12 +225,12 @@ class CVAE(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            known_item_scores = (self.V + self.Z_mean).dot(self.U[user_id, :])
+            known_item_scores = self.V.dot(self.U[user_id, :])
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-            user_pred = (self.V[item_id, :] + self.Z_mean[item_id, :]).dot(self.U[user_id, :])
+            user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
             return user_pred
