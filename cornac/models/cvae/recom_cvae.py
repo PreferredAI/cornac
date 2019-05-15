@@ -15,7 +15,7 @@ class CVAE(Recommender):
 
     Parameters
     ----------
-    n_z: int, optional, default: 50
+    z_dim: int, optional, default: 50
         The dimension of the user and item latent factors.
 
     n_epochs: int, optional, default: 100
@@ -60,7 +60,7 @@ class CVAE(Recommender):
     """
 
     def __init__(self, lambda_u=0.1, lambda_v=10, lambda_r=1, a=1, b=0.01, n_epochs=100, input_dim=8000, batch_size=128,
-                 dimensions=[200, 100], activations=['sigmoid', 'sigmoid'], n_z=50, loss_type='cross-entropy', lr=0.001,
+                 vae_layers=[200, 100], activations=['sigmoid', 'sigmoid'], z_dim=50, loss_type='cross-entropy', lr=0.001,
                  verbose=True, name="CVAE", trainable=True, seed=None, init_params=None):
 
         super().__init__(name=name, trainable=trainable, verbose=verbose)
@@ -72,8 +72,8 @@ class CVAE(Recommender):
         self.b = b
         self.n_epochs = n_epochs
         self.input_dim = input_dim
-        self.dimensions = dimensions
-        self.n_z = n_z
+        self.dimensions = vae_layers
+        self.n_z = z_dim
         self.loss_type = loss_type
         self.activations = activations
         self.lr = lr
