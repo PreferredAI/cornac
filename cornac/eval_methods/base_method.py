@@ -338,7 +338,7 @@ class BaseMethod:
 
     @classmethod
     def from_splits(cls, train_data, test_data, val_data=None, data_format='UIR',
-                    rating_threshold=1.0, exclude_unknowns=False, verbose=False):
+                    rating_threshold=1.0, exclude_unknowns=False, verbose=False, **kwargs):
         """Constructing evaluation method given data.
 
         Parameters
@@ -371,6 +371,6 @@ class BaseMethod:
 
         """
         method = cls(data_format=data_format, rating_threshold=rating_threshold,
-                     exclude_unknowns=exclude_unknowns, verbose=verbose)
+                     exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
         method.build(train_data=train_data, test_data=test_data, val_data=val_data)
         return method
