@@ -39,8 +39,12 @@ class CVAE(Recommender):
     input_dim: int, optional, default: 8000
         The size of input vector
 
-    dimensions: list, optional, default: [200,100]
+    vae_layers: list, optional, default: [200,100]
         The list containing size of each layers in neural network structure
+
+    activations: str, default: 'sigmoid'
+        Name of the activation function used for the auto-encoder.
+        Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'relu6', 'leaky_relu', 'identity']
 
     loss_type: String, optional, default: "cross-entropy"
         Either "cross-entropy" or "rmse"
@@ -63,9 +67,8 @@ class CVAE(Recommender):
     """
 
     def __init__(self, lambda_u=0.1, lambda_v=10, lambda_w=2e-4, lambda_r=1, a=1, b=0.01, n_epochs=100, input_dim=8000,
-                 batch_size=128,
-                 vae_layers=[200, 100], activations=['sigmoid', 'sigmoid'], z_dim=50, loss_type='cross-entropy',
-                 lr=0.001,
+                 batch_size=128, vae_layers=[200, 100],
+                 act_fn='sigmoid', z_dim=50, loss_type='cross-entropy', lr=0.001,
                  verbose=True, name="CVAE", trainable=True, seed=None, init_params=None):
 
         super().__init__(name=name, trainable=trainable, verbose=verbose)
@@ -81,7 +84,7 @@ class CVAE(Recommender):
         self.dimensions = vae_layers
         self.n_z = z_dim
         self.loss_type = loss_type
-        self.activations = activations
+        self.act_fn = act_fn
         self.lr = lr
         self.batch_size = batch_size
         self.init_params = {} if not init_params else init_params
@@ -125,10 +128,7 @@ class CVAE(Recommender):
 
         user_data = self._build_data(self.train_set.matrix)
         item_data = self._build_data(self.train_set.matrix.T.tocsr())
-
-        n_item = len(item_data[0])
-
-        document = self.train_set.item_text.batch_bow(np.arange(n_item))  # bag of word feature
+        document = self.train_set.item_text.batch_bow(np.arange(self.train_set.num_items))  # bag of word feature
         document = (document - document.min()) / (document.max() - document.min())  # normalization
 
         # VAE initialization
@@ -138,7 +138,7 @@ class CVAE(Recommender):
 
         self.vae = VAE(input_dim=self.input_dim, lambda_v=self.lambda_v, lambda_r=self.lambda_r, lambda_w=self.lambda_w,
                        n_z=self.n_z, layers=self.dimensions, loss_type=self.loss_type,
-                       activations=self.activations, seed=self.seed, lr=self.lr)
+                       activations=self.act_fn, seed=self.seed, lr=self.lr)
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -147,17 +147,15 @@ class CVAE(Recommender):
 
         loop = trange(self.n_epochs, disable=not self.verbose)
         for _ in loop:
-            # autoencoder training
-            theta, gen_loss = self._ae_update(X_train=document, V=self.V)
-            # pmf training
+            theta, gen_loss = self._vae_update(X_train=document, V=self.V)
             likelihood = self._cf_update(user_data=user_data, item_data=item_data, theta=theta)
-            loss = -likelihood + 0.5 * gen_loss * n_item * self.lambda_r
+            loss = -likelihood + 0.5 * gen_loss * self.train_set.num_items * self.lambda_r
 
             loop.set_postfix(loss=loss, likelihood=likelihood, gen_loss=gen_loss)
 
         tf.reset_default_graph()
 
-    def _ae_update(self, X_train, V):
+    def _vae_update(self, X_train, V):
 
         for batch_ids in self.train_set.item_iter(batch_size=self.batch_size, shuffle=True):
             feed_dict = {self.vae.x: X_train[batch_ids],
@@ -170,7 +168,6 @@ class CVAE(Recommender):
         return theta, gen_loss
 
     def _cf_update(self, user_data, item_data, theta):
-
         n_user = len(user_data[0])
         n_item = len(item_data[0])
 

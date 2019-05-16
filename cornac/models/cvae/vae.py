@@ -51,14 +51,10 @@ class VAE():
 
     def _inference_generation(self, X):
 
-        act_fn0 = act_functions.get(self.activations[0], None)
-        act_fn1 = act_functions.get(self.activations[1], None)
-        if act_fn0 is None:
+        act_fn = act_functions.get(self.activations, None)
+        if act_fn is None:
             raise ValueError('Invalid type of activation function {}\n'
-                             'Supported functions: {}'.format(act_fn0, act_functions.keys()))
-        if act_fn1 is None:
-            raise ValueError('Invalid type of activation function {}\n'
-                             'Supported functions: {}'.format(act_fn1, act_functions.keys()))
+                             'Supported functions: {}'.format(act_fn, act_functions.keys()))
 
         with tf.variable_scope("inference"):
             rec = {'W1': tf.get_variable("W1", [self.input_dim, self.layers[0]],
@@ -82,8 +78,8 @@ class VAE():
                    'b_z_log_sigma': tf.get_variable("b_z_log_sigma", [self.n_z],
                                                     initializer=tf.constant_initializer(0.0), dtype=tf.float32)}
 
-        h1 = act_fn0(tf.matmul(X, rec['W1']) + rec['b1'])
-        h2 = act_fn1(tf.matmul(h1, rec['W2']) + rec['b2'])
+        h1 = act_fn(tf.matmul(X, rec['W1']) + rec['b1'])
+        h2 = act_fn(tf.matmul(h1, rec['W2']) + rec['b2'])
 
         self.z_mean = tf.matmul(h2, rec['W_z_mean']) + rec['b_z_mean']
         self.z_log_sigma_sq = tf.matmul(h2, rec['W_z_log_sigma']) + rec['b_z_log_sigma']
@@ -108,8 +104,8 @@ class VAE():
         self.reg_loss = tf.nn.l2_loss(rec['W1']) + tf.nn.l2_loss(rec['W2']) + \
                         tf.nn.l2_loss(gen['W1']) + tf.nn.l2_loss(gen['W_x'])
 
-        h2 = act_fn1(tf.matmul(self.z, gen['W2']) + gen['b2'])
-        h1 = act_fn0(tf.matmul(h2, gen['W1']) + gen['b1'])
+        h2 = act_fn(tf.matmul(self.z, gen['W2']) + gen['b2'])
+        h1 = act_fn(tf.matmul(h2, gen['W1']) + gen['b1'])
         x_recon = tf.matmul(h1, gen['W_x']) + gen['b_x']
 
         return x_recon
