@@ -18,7 +18,7 @@ data = citeulike.load_data(reader=Reader(item_set=item_ids))
 
 # build text module
 item_text_module = TextModule(corpus=docs, ids=item_ids,
-                              tokenizer=BaseTokenizer('\t'),
+                              tokenizer=BaseTokenizer(),
                               max_vocab=8000, max_doc_freq=0.5,
                               stop_words='english')
 
