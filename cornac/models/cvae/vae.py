@@ -8,9 +8,10 @@ import tensorflow as tf
 from ..cdl.cdl import act_functions
 
 
-class Model():
+class VAE():
 
-    def __init__(self, input_dim, lambda_v, lambda_r, lr, seed, n_z, layers, loss_type, activations):
+    def __init__(self, input_dim, seed, n_z, layers, loss_type, activations, lambda_v,
+                 lambda_r, lambda_w=2e-4, lr=0.001):
 
         self.input_dim = input_dim
         self.n_z = n_z
@@ -20,6 +21,7 @@ class Model():
         self.seed = seed
         self.lambda_v = lambda_v
         self.lambda_r = lambda_r
+        self.lambda_w = lambda_w
         self.lr = lr
 
         self._build_graph()
@@ -43,7 +45,8 @@ class Model():
         v_loss = 1.0 * self.lambda_v / self.lambda_r * tf.reduce_mean(
             tf.reduce_sum(tf.square(self.v - self.z), 1))
 
-        self.loss = self.gen_loss + latent_loss + v_loss + 2e-4 * self.reg_loss
+        self.loss = self.gen_loss + latent_loss + v_loss + self.lambda_w * self.reg_loss
+
         self.optimizer = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
 
     def _inference_generation(self, X):
