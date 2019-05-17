@@ -4,9 +4,10 @@
          
 """
 
+import numpy as np
+
 from ..recommender import Recommender
 from ...exception import ScoreException
-import numpy as np
 
 
 class CVAE(Recommender):
@@ -36,19 +37,28 @@ class CVAE(Recommender):
     lr: float, optional, default: 0.001
         Learning rate in the auto-encoder training
 
+    a: float, optional, default: 1
+        The confidence of observed ratings.
+
+    b: float, optional, default: 0.01
+        The confidence of unseen ratings.
+
     input_dim: int, optional, default: 8000
         The size of input vector
 
-    vae_layers: list, optional, default: [200,100]
+    vae_layers: list, optional, default: [200, 100]
         The list containing size of each layers in neural network structure
 
-    activations: str, default: 'sigmoid'
-        Name of the activation function used for the auto-encoder.
+    act_fn: str, default: 'sigmoid'
+        Name of the activation function used for the variational auto-encoder.
         Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'relu6', 'leaky_relu', 'identity']
 
     loss_type: String, optional, default: "cross-entropy"
         Either "cross-entropy" or "rmse"
         The type of loss function in the last layer
+
+    batch_size: int, optional, default: 128
+        The batch size for SGD.
 
     init_params: dict, optional, default: {'U':None, 'V':None}
         Initial U and V latent matrix
@@ -66,10 +76,11 @@ class CVAE(Recommender):
 
     """
 
-    def __init__(self, lambda_u=0.1, lambda_v=10, lambda_w=2e-4, lambda_r=1, a=1, b=0.01, n_epochs=100, input_dim=8000,
-                 batch_size=128, vae_layers=[200, 100],
-                 act_fn='sigmoid', z_dim=50, loss_type='cross-entropy', lr=0.001,
-                 verbose=True, name="CVAE", trainable=True, seed=None, init_params=None):
+    def __init__(self, name="CVAE", z_dim=50, n_epochs=100,
+                 lambda_u=0.1, lambda_v=10, lambda_w=2e-4, lambda_r=1,
+                 lr=0.001, a=1, b=0.01, input_dim=8000,
+                 vae_layers=[200, 100], act_fn='sigmoid', loss_type='cross-entropy',
+                 batch_size=128, init_params=None, trainable=True, seed=None, verbose=True):
 
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
@@ -156,15 +167,13 @@ class CVAE(Recommender):
         tf.reset_default_graph()
 
     def _vae_update(self, X_train, V):
-
         for batch_ids in self.train_set.item_iter(batch_size=self.batch_size, shuffle=True):
             feed_dict = {self.vae.x: X_train[batch_ids],
                          self.vae.v: V[batch_ids]}
+            self.sess.run(self.vae.optimizer, feed_dict=feed_dict)
 
-            _, gen_loss = self.sess.run((self.vae.optimizer, self.vae.gen_loss), feed_dict=feed_dict)
-
-        feed_dict = {self.vae.x: X_train}
-        theta = self.sess.run(self.vae.z_mean, feed_dict=feed_dict)
+        theta, gen_loss = self.sess.run([self.vae.z_mean, self.vae.gen_loss],
+                                        feed_dict={self.vae.x: X_train})
         return theta, gen_loss
 
     def _cf_update(self, user_data, item_data, theta):
@@ -178,7 +187,7 @@ class CVAE(Recommender):
         likelihood = 0
         VV = self.b * (self.V.T.dot(self.V)) + self.lambda_u * np.eye(self.n_z)
 
-        # update user vector
+        # update user factors
         for i in range(n_user):
             idx_item = user_data[0][i]
             V_i = self.V[idx_item]
@@ -191,7 +200,7 @@ class CVAE(Recommender):
 
         UU = self.b * (self.U.T.dot(self.U))
 
-        # update item vector
+        # update item factors
         for j in range(n_item):
             idx_user = item_data[0][j]
             U_j = self.U[idx_user]
