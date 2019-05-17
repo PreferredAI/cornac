@@ -54,6 +54,11 @@ Collaborative Deep Learning (CDL)
 ---------------------------------------
 .. automodule:: cornac.models.cdl.recom_cdl
    :members:
+
+Collaborative Variational Autoencoder (CVAE)
+---------------------------------------
+.. automodule:: cornac.models.cvae.recom_cvae
+   :members:
    
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
