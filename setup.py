@@ -139,7 +139,7 @@ if USE_CYTHON:
 
 setup(
     name='cornac',
-    version='0.2.0',
+    version='0.2.1',
     author='Aghiles Salah',
     author_email='asalah@smu.edu.sg',
     description='A collection of recommendation algorithms and comparisons',
@@ -162,7 +162,7 @@ setup(
     cmdclass=cmdclass,
     packages=find_packages(),
     classifiers=(
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
