@@ -527,6 +527,7 @@ class TextModule(FeatureModule):
         """
         super().build(id_map)
         self._build_text(id_map)
+        return self
 
     def batch_seq(self, batch_ids, max_length=None):
         """Return a numpy matrix of text sequences containing token ids with size=(len(batch_ids), max_length).
