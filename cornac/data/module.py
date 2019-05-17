@@ -93,6 +93,8 @@ class FeatureModule(Module):
             self.features = self.features - np.min(self.features)
             self.features = self.features / (np.max(self.features) + 1e-10)
 
+        return self
+
     def batch_feature(self, batch_ids):
         """Return a matrix (batch of feature vectors) corresponding to provided batch_ids
         """
