@@ -21,9 +21,11 @@ item_text_module = TextModule(corpus=docs, ids=item_ids,
                               stop_words='english')
 
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
-                         item_text=item_text_module, verbose=True, seed=123, rating_threshold=0.5)
+                         rating_threshold=0.5, verbose=True, seed=123,
+                         item_text=item_text_module)
 
-cvae = cornac.models.CVAE(n_epochs=20, seed=123, verbose=True)
+cvae = cornac.models.CVAE(z_dim=50, lr=0.001, batch_size=128,
+                          input_dim=8000, seed=123, verbose=True)
 
 rec_300 = cornac.metrics.Recall(k=300)
 
