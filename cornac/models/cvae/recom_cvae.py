@@ -136,89 +136,51 @@ class CVAE(Recommender):
         return data
 
     def _fit_cvae(self):
-
-        user_data = self._build_data(self.train_set.matrix)
-        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+        R = self.train_set.csc_matrix  # csc for efficient slicing over items
         document = self.train_set.item_text.batch_bow(np.arange(self.train_set.num_items))  # bag of word feature
         document = (document - document.min()) / (document.max() - document.min())  # normalization
 
         # VAE initialization
-        from .vae import VAE
+        from .cvae import Model
         import tensorflow as tf
         from tqdm import trange
 
-        self.vae = VAE(input_dim=self.input_dim, lambda_v=self.lambda_v, lambda_r=self.lambda_r, lambda_w=self.lambda_w,
-                       n_z=self.n_z, layers=self.dimensions, loss_type=self.loss_type,
-                       activations=self.act_fn, seed=self.seed, lr=self.lr)
+        model = Model(n_users=self.train_set.num_users, n_items=self.train_set.num_items,
+                      input_dim=self.input_dim, U=self.U, V=self.V, n_z=self.n_z,
+                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_r=self.lambda_r,
+                      lambda_w=self.lambda_w, layers=self.dimensions, loss_type=self.loss_type,
+                      act_fn=self.act_fn, seed=self.seed, lr=self.lr)
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=config)
-        self.sess.run(tf.global_variables_initializer())  # init variable
+        sess = tf.Session(config=config)
+        sess.run(tf.global_variables_initializer())  # init variable
 
         loop = trange(self.n_epochs, disable=not self.verbose)
         for _ in loop:
-            theta, gen_loss = self._vae_update(X_train=document, V=self.V)
-            likelihood = self._cf_update(user_data=user_data, item_data=item_data, theta=theta)
-            loss = -likelihood + 0.5 * gen_loss * self.train_set.num_items * self.lambda_r
+            cf_loss, vae_loss, count = 0, 0, 0
+            for i, batch_ids in enumerate(self.train_set.item_iter(self.batch_size, shuffle=True)):
+                batch_R = R[:, batch_ids]
+                batch_C = np.ones(batch_R.shape) * self.b
+                batch_C[batch_R.nonzero()] = self.a
 
-            loop.set_postfix(loss=loss, likelihood=likelihood, gen_loss=gen_loss)
+                feed_dict = {model.x: document[batch_ids],
+                             model.ratings: batch_R.A,
+                             model.C: batch_C,
+                             model.item_ids: batch_ids}
+                _, _vae_los = sess.run([model.vae_update, model.vae_loss], feed_dict)
+                _, _cf_loss = sess.run([model.cf_update, model.rating_loss], feed_dict)
+
+                cf_loss += _cf_loss
+                vae_loss += _vae_los
+                count += len(batch_ids)
+                if i % 10 == 0:
+                    loop.set_postfix(vae_loss=(vae_loss / count),
+                                     cf_loss=(cf_loss / count))
+
+        self.U, self.V = sess.run([model.U, model.V])
 
         tf.reset_default_graph()
-
-    def _vae_update(self, X_train, V):
-        for batch_ids in self.train_set.item_iter(batch_size=self.batch_size, shuffle=True):
-            feed_dict = {self.vae.x: X_train[batch_ids],
-                         self.vae.v: V[batch_ids]}
-            self.sess.run(self.vae.optimizer, feed_dict=feed_dict)
-
-        theta, gen_loss = self.sess.run([self.vae.z_mean, self.vae.gen_loss],
-                                        feed_dict={self.vae.x: X_train})
-        return theta, gen_loss
-
-    def _cf_update(self, user_data, item_data, theta):
-        n_user = len(user_data[0])
-        n_item = len(item_data[0])
-
-        # R_user and R_item contain rating values
-        R_user = user_data[1]
-        R_item = item_data[1]
-
-        likelihood = 0
-        VV = self.b * (self.V.T.dot(self.V)) + self.lambda_u * np.eye(self.n_z)
-
-        # update user factors
-        for i in range(n_user):
-            idx_item = user_data[0][i]
-            V_i = self.V[idx_item]
-            R_i = R_user[i]
-            A = VV + (self.a - self.b) * (V_i.T.dot(V_i))
-            x = (self.a * V_i * (np.tile(R_i, (self.n_z, 1)).T)).sum(0)
-            self.U[i] = np.linalg.solve(A, x)
-
-            likelihood += -0.5 * self.lambda_u * np.dot(self.U[i], self.U[i])
-
-        UU = self.b * (self.U.T.dot(self.U))
-
-        # update item factors
-        for j in range(n_item):
-            idx_user = item_data[0][j]
-            U_j = self.U[idx_user]
-            R_j = R_item[j]
-
-            UU_j = UU + (self.a - self.b) * (U_j.T.dot(U_j))
-            A = UU_j + self.lambda_v * np.eye(self.n_z)
-            x = (self.a * U_j * (np.tile(R_j, (self.n_z, 1)).T)).sum(0) + self.lambda_v * theta[j]
-            self.V[j] = np.linalg.solve(A, x)
-
-            likelihood += -0.5 * self.a * np.square(R_j).sum()
-            likelihood += self.a * np.sum((U_j.dot(self.V[j])) * R_j)
-            likelihood += - 0.5 * np.dot(self.V[j].dot(UU_j), self.V[j])
-
-            ep = self.V[j, :] - theta[j, :]
-            likelihood += -0.5 * self.lambda_v * np.sum(ep * ep)
-
-        return likelihood
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.

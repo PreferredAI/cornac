@@ -8,33 +8,53 @@ import tensorflow as tf
 from ..cdl.cdl import act_functions
 
 
-class VAE():
+class Model():
 
-    def __init__(self, input_dim, seed, n_z, layers, loss_type, activations, lambda_v,
-                 lambda_r, lambda_w=2e-4, lr=0.001):
-
+    def __init__(self, n_users, n_items, input_dim, seed, n_z, layers,
+                 loss_type, act_fn, U, V, lambda_u, lambda_v, lambda_r, lambda_w, lr=0.001):
+        self.n_users = n_users
+        self.n_items = n_items
         self.input_dim = input_dim
         self.n_z = n_z
         self.layers = layers
         self.loss_type = loss_type
-        self.activations = activations
+        self.act_fn = act_fn
         self.seed = seed
+        self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.lambda_r = lambda_r
         self.lambda_w = lambda_w
         self.lr = lr
+        self.U_init = tf.constant(U)
+        self.V_init = tf.constant(V)
 
         self._build_graph()
 
     def _build_graph(self):
+        self.x = tf.placeholder(tf.float32, [None, self.input_dim], name='text_input')
+        self.ratings = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="rating_input")
+        self.C = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="C_input")
+        self.item_ids = tf.placeholder(dtype=tf.int32, name='item_input')
 
-        self.x = tf.placeholder(tf.float32, [None, self.input_dim], name='x')
-        self.v = tf.placeholder(tf.float32, [None, self.n_z])
+        with tf.variable_scope("cf_variable"):
+            self.U = tf.get_variable(name='U', dtype=tf.float32, initializer=self.U_init)
+            self.V = tf.get_variable(name='V', dtype=tf.float32, initializer=self.V_init)
 
-        x_recon = self._inference_generation(self.x)
+        real_batch_size = tf.cast(tf.shape(self.item_ids)[0], tf.int32)
+        V_batch = tf.reshape(tf.gather(self.V, self.item_ids), shape=[real_batch_size, self.n_z])
+
+        predictions = tf.matmul(self.U, V_batch, transpose_b=True)
+        squared_error = tf.square(self.ratings - predictions)
+        # self.rating_loss = tf.reduce_mean(tf.reduce_sum(tf.multiply(self.C, squared_error), 1))
+        self.rating_loss = tf.reduce_sum(tf.multiply(self.C, squared_error))
+
+        self.cf_loss = self.rating_loss + self.lambda_u * tf.nn.l2_loss(self.U)
+
+        # VAE
+        x_recon = self._vae(self.x)
 
         if self.loss_type == 'rmse':
-            self.gen_loss = tf.reduce_mean(tf.square(tf.sub(self.x, x_recon)))
+            self.gen_loss = tf.reduce_mean(tf.square(tf.subtract(self.x, x_recon)))
         elif self.loss_type == 'cross-entropy':
             x_recon = tf.nn.sigmoid(x_recon, name='x_recon')
             self.gen_loss = -tf.reduce_mean(tf.reduce_sum(self.x * tf.log(tf.maximum(x_recon, 1e-10))
@@ -43,20 +63,36 @@ class VAE():
         latent_loss = 0.5 * tf.reduce_mean(tf.reduce_sum(tf.square(self.z_mean) + tf.exp(self.z_log_sigma_sq)
                                                          - self.z_log_sigma_sq - 1, 1))
         v_loss = 1.0 * self.lambda_v / self.lambda_r * tf.reduce_mean(
-            tf.reduce_sum(tf.square(self.v - self.z), 1))
+            tf.reduce_sum(tf.square(V_batch - self.z), 1))
 
-        self.loss = self.gen_loss + latent_loss + v_loss + self.lambda_w * self.reg_loss
+        self.vae_loss = self.gen_loss + latent_loss + v_loss + self.lambda_w * self.reg_loss
 
-        self.optimizer = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
+        cf_op = tf.train.AdamOptimizer(self.lr, name='cf_op')
+        vae_op = tf.train.AdamOptimizer(self.lr, name='vae_op')
 
-    def _inference_generation(self, X):
+        cf_var_list, vae_var_list = [], []
 
-        act_fn = act_functions.get(self.activations, None)
+        for var in tf.trainable_variables():
+            if "cf_variable" in var.name:
+                cf_var_list.append(var)
+            elif "vae" in var.name:
+                vae_var_list.append(var)
+
+        gvs = cf_op.compute_gradients(self.cf_loss, var_list=cf_var_list)
+        capped_gvs = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gvs]
+        self.cf_update = cf_op.apply_gradients(capped_gvs)
+
+        gvs = vae_op.compute_gradients(self.vae_loss, var_list=vae_var_list)
+        capped_gvs = [(tf.clip_by_value(grad, -5., 5.), var) for grad, var in gvs]
+        self.vae_update = vae_op.apply_gradients(capped_gvs)
+
+    def _vae(self, X):
+        act_fn = act_functions.get(self.act_fn, None)
         if act_fn is None:
             raise ValueError('Invalid type of activation function {}\n'
                              'Supported functions: {}'.format(act_fn, act_functions.keys()))
 
-        with tf.variable_scope("inference"):
+        with tf.variable_scope("vae/inference"):
             rec = {'W1': tf.get_variable("W1", [self.input_dim, self.layers[0]],
                                          initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
                                          dtype=tf.float32),
@@ -89,7 +125,7 @@ class VAE():
 
         self.z = self.z_mean + tf.sqrt(tf.maximum(tf.exp(self.z_log_sigma_sq), 1e-10)) * eps
 
-        with tf.variable_scope("generation"):
+        with tf.variable_scope("vae/generation"):
             gen = {'W2': tf.get_variable("W2", [self.n_z, self.layers[1]],
                                          initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
                                          dtype=tf.float32),
