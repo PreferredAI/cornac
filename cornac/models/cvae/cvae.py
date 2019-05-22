@@ -45,27 +45,27 @@ class Model():
 
         predictions = tf.matmul(self.U, V_batch, transpose_b=True)
         squared_error = tf.square(self.ratings - predictions)
-        # self.rating_loss = tf.reduce_mean(tf.reduce_sum(tf.multiply(self.C, squared_error), 1))
-        self.rating_loss = tf.reduce_sum(tf.multiply(self.C, squared_error))
+        rating_loss = tf.reduce_mean(tf.reduce_sum(tf.multiply(self.C, squared_error), 0))
 
-        self.cf_loss = self.rating_loss + self.lambda_u * tf.nn.l2_loss(self.U)
+        self.cf_loss = rating_loss + self.lambda_u * tf.nn.l2_loss(self.U)
 
         # VAE
         x_recon = self._vae(self.x)
 
         if self.loss_type == 'rmse':
-            self.gen_loss = tf.reduce_mean(tf.square(tf.subtract(self.x, x_recon)))
+            gen_loss = tf.reduce_mean(tf.square(tf.subtract(self.x, x_recon)))
         elif self.loss_type == 'cross-entropy':
             x_recon = tf.nn.sigmoid(x_recon, name='x_recon')
-            self.gen_loss = -tf.reduce_mean(tf.reduce_sum(self.x * tf.log(tf.maximum(x_recon, 1e-10))
-                                                          + (1 - self.x) * tf.log(tf.maximum(1 - x_recon, 1e-10)), 1))
+            gen_loss = -tf.reduce_mean(tf.reduce_sum(self.x * tf.log(tf.maximum(x_recon, 1e-10))
+                                                     + (1 - self.x) * tf.log(tf.maximum(1 - x_recon, 1e-10)), 1))
+        else:
+            raise ValueError('Invalid loss type {}'.format(self.loss_type))
 
         latent_loss = 0.5 * tf.reduce_mean(tf.reduce_sum(tf.square(self.z_mean) + tf.exp(self.z_log_sigma_sq)
                                                          - self.z_log_sigma_sq - 1, 1))
-        v_loss = 1.0 * self.lambda_v / self.lambda_r * tf.reduce_mean(
-            tf.reduce_sum(tf.square(V_batch - self.z), 1))
+        v_loss = self.lambda_v / self.lambda_r * tf.reduce_mean(tf.reduce_sum(tf.square(V_batch - self.z), 1))
 
-        self.vae_loss = self.gen_loss + latent_loss + v_loss + self.lambda_w * self.reg_loss
+        self.vae_loss = gen_loss + latent_loss + v_loss + self.lambda_w * self.reg_loss
 
         cf_op = tf.train.AdamOptimizer(self.lr, name='cf_op')
         vae_op = tf.train.AdamOptimizer(self.lr, name='vae_op')
