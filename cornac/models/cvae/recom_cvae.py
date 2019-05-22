@@ -22,16 +22,16 @@ class CVAE(Recommender):
     n_epochs: int, optional, default: 100
         Maximum number of epochs for training.
 
-    lambda_u: float, optional, default: 0.1
+    lambda_u: float, optional, default: 1e-4
         The regularization hyper-parameter for user latent factor.
 
-    lambda_v: float, optional, default: 10.0
+    lambda_v: float, optional, default: 0.001
         The regularization hyper-parameter for item latent factor.
 
-    lambda_r: float, optional, default: 1.0
+    lambda_r: float, optional, default: 10.0
         Parameter that balance the focus on content or ratings
 
-    lambda_w: float, optional, default: 2e-4
+    lambda_w: float, optional, default: 1e-4
         The regularization for VAE weights
 
     lr: float, optional, default: 0.001
@@ -77,7 +77,7 @@ class CVAE(Recommender):
     """
 
     def __init__(self, name="CVAE", z_dim=50, n_epochs=100,
-                 lambda_u=0.1, lambda_v=10, lambda_r=1, lambda_w=2e-4,
+                 lambda_u=1e-4, lambda_v=0.001, lambda_r=10, lambda_w=1e-4,
                  lr=0.001, a=1, b=0.01, input_dim=8000,
                  vae_layers=[200, 100], act_fn='sigmoid', loss_type='cross-entropy',
                  batch_size=128, init_params=None, trainable=True, seed=None, verbose=True):
