@@ -32,7 +32,7 @@ class CVAE(Recommender):
         Parameter that balance the focus on content or ratings
 
     lambda_w: float, optional, default: 2e-4
-        The regularization for VAE weight
+        The regularization for VAE weights
 
     lr: float, optional, default: 0.001
         Learning rate in the auto-encoder training
@@ -77,11 +77,10 @@ class CVAE(Recommender):
     """
 
     def __init__(self, name="CVAE", z_dim=50, n_epochs=100,
-                 lambda_u=0.1, lambda_v=10, lambda_w=2e-4, lambda_r=1,
+                 lambda_u=0.1, lambda_v=10, lambda_r=1, lambda_w=2e-4,
                  lr=0.001, a=1, b=0.01, input_dim=8000,
                  vae_layers=[200, 100], act_fn='sigmoid', loss_type='cross-entropy',
                  batch_size=128, init_params=None, trainable=True, seed=None, verbose=True):
-
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
         self.lambda_u = lambda_u
@@ -116,24 +115,11 @@ class CVAE(Recommender):
         from ...utils.init_utils import xavier_uniform
 
         rng = get_rng(self.seed)
-
         self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.n_z), rng))
         self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.n_z), rng))
+
         if self.trainable:
             self._fit_cvae()
-
-    @staticmethod
-    def _build_data(csr_mat):
-        data = []
-        index_list = []
-        rating_list = []
-        for i in range(csr_mat.shape[0]):
-            j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
-            index_list.append(csr_mat.indices[j:k])
-            rating_list.append(csr_mat.data[j:k])
-        data.append(index_list)
-        data.append(rating_list)
-        return data
 
     def _fit_cvae(self):
         R = self.train_set.csc_matrix  # csc for efficient slicing over items
@@ -169,7 +155,7 @@ class CVAE(Recommender):
                              model.C: batch_C,
                              model.item_ids: batch_ids}
                 _, _vae_los = sess.run([model.vae_update, model.vae_loss], feed_dict)
-                _, _cf_loss = sess.run([model.cf_update, model.rating_loss], feed_dict)
+                _, _cf_loss = sess.run([model.cf_update, model.cf_loss], feed_dict)
 
                 cf_loss += _cf_loss
                 vae_loss += _vae_los
