@@ -36,7 +36,7 @@ class Model:
         predictions = tf.matmul(self.U, V_batch, transpose_b=True)
         squared_error = tf.square(self.ratings - predictions)
         loss_1 = tf.reduce_sum(tf.multiply(self.C, squared_error))
-        loss_2 = self.lambda_u * tf.nn.l2_loss(self.U) + self.lambda_v * tf.nn.l2_loss(self.V)
+        loss_2 = self.lambda_u * tf.nn.l2_loss(self.U) + self.lambda_v * tf.nn.l2_loss(V_batch)
 
         self.loss = loss_1 + loss_2
         # Generate optimizer
