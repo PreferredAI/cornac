@@ -22,6 +22,6 @@ Additional dependencies (CPU versions) and examples for each model are also list
 | [Convolutional Matrix Factorization (ConvMF)](conv_mf), [paper](http://uclab.khu.ac.kr/resources/publication/C_351.pdf) | [requirements.txt](conv_mf/requirements.txt) | [conv_mf_example.py](../../examples/conv_mf_example.py)
 | [Collaborative Variational Autoencoder (CVAE)](cvae), [paper](http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf) | [requirements.txt](cvae/requirements.txt) | [cvae_example.py](../../examples/cvae_example.py)
 | [Collaborative Deep Ranking (CDR)](cdr), [paper](http://inpluslab.com/chenliang/homepagefiles/paper/hao-pakdd2016.pdf) | [requirements.txt](cdr/requirements.txt) | [cdr_example.py](../../examples/cdr_example.py)
-| [Collaborative Filtering for Implicit Feedbacks(CF)](cf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cf/requirements.txt) | [cf_example.py](../../examples/cf_example.py)
+| [Collaborative Filtering for Implicit Feedbacks (CF)](cf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cf/requirements.txt) | [cf_example.py](../../examples/cf_example.py)
 | [Social Bayesian Personalized Ranking (SBPR)](sbpr), [paper](https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf) | N/A | [sbpr_epinions.py](../../examples/sbpr_epinions.py)
 
