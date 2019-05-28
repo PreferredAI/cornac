@@ -10,7 +10,7 @@ import numpy as np
 
 
 class CF(Recommender):
-    """Collaborative Deep Learning.
+    """Collaborative Filtering Implicit Feedbacks
 
     Parameters
     ----------
@@ -57,7 +57,7 @@ class CF(Recommender):
 
     References
     ----------
-    * Yifan Hu, Yehuda Koren∗, Chris Volinsky. CF: Collaborative Filtering for Implicit Feedback Datasets.
+    * Yifan Hu, Yehuda Koren∗, Chris Volinsky. CF: Collaborative Filtering for Implicit Feedbacks.
     In : 2008 Eighth IEEE International Conference on Data Mining
     """
 
