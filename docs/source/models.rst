@@ -59,7 +59,12 @@ Collaborative Variational Autoencoder (CVAE)
 ---------------------------------------
 .. automodule:: cornac.models.cvae.recom_cvae
    :members:
-   
+
+Collaborative Filtering for Implicit Feedback (CF)
+--------------------------------------------------
+.. automodule:: cornac.models.cf.recom_cf
+   :members:
+
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
