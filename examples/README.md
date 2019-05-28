@@ -38,6 +38,8 @@
 
 [cdr_example.py](cdr_example.py) - Collaborative Deep Ranking (CDR) with CiteULike dataset.
 
+[cf_example.py](cf_example.py) - Collaborative Filtering for Implicit Feedback Datasets (CF) CiteULike.
+
 [cvae_example.py](cvae_example.py) - Collaborative Variational Autoencoder (CVAE) with CiteULike dataset.
 
 [mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
