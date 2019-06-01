@@ -36,6 +36,8 @@ class Model():
         self.C = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="C_input")
         self.item_ids = tf.placeholder(dtype=tf.int32, name='item_input')
 
+        x_recon = self._vae(self.x)
+
         with tf.variable_scope("cf_variable"):
             self.U = tf.get_variable(name='U', dtype=tf.float32, initializer=self.U_init)
             self.V = tf.get_variable(name='V', dtype=tf.float32, initializer=self.V_init)
@@ -45,13 +47,13 @@ class Model():
 
         predictions = tf.matmul(self.U, V_batch, transpose_b=True)
         squared_error = tf.square(self.ratings - predictions)
+
+        # CF loss
         rating_loss = tf.reduce_mean(tf.reduce_sum(tf.multiply(self.C, squared_error), 0))
+        v_loss = self.lambda_v / self.lambda_r * tf.reduce_mean(tf.reduce_sum(tf.square(V_batch - self.z), 1))
+        self.cf_loss = rating_loss + v_loss + self.lambda_u * tf.nn.l2_loss(self.U)
 
-        self.cf_loss = rating_loss + self.lambda_u * tf.nn.l2_loss(self.U)
-
-        # VAE
-        x_recon = self._vae(self.x)
-
+        # VAE loss
         if self.loss_type == 'rmse':
             gen_loss = tf.reduce_mean(tf.square(tf.subtract(self.x, x_recon)))
         elif self.loss_type == 'cross-entropy':
@@ -63,9 +65,7 @@ class Model():
 
         latent_loss = 0.5 * tf.reduce_mean(tf.reduce_sum(tf.square(self.z_mean) + tf.exp(self.z_log_sigma_sq)
                                                          - self.z_log_sigma_sq - 1, 1))
-        v_loss = self.lambda_v / self.lambda_r * tf.reduce_mean(tf.reduce_sum(tf.square(V_batch - self.z), 1))
-
-        self.vae_loss = gen_loss + latent_loss + v_loss + self.lambda_w * self.reg_loss
+        self.vae_loss = gen_loss + latent_loss + self.lambda_w * self.reg_loss
 
         cf_op = tf.train.AdamOptimizer(self.lr, name='cf_op')
         vae_op = tf.train.AdamOptimizer(self.lr, name='vae_op')
