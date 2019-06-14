@@ -91,7 +91,7 @@ class VAECF(Recommender):
 
             res = learn(self.train_set, k=self.k, h=self.h, n_epochs=self.n_epochs,
                         batch_size=self.batch_size, learn_rate=self.learning_rate, beta=self.beta, gamma=self.gamma,
-                        init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
+                        use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
 
             self.vae = res
 
