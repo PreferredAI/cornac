@@ -89,7 +89,7 @@ class VAECF(Recommender):
 
             from .vaecf import learn
 
-            res = learn(self.train_set, k=self.k, h_dim=self.h_dim, n_epochs=self.n_epochs,
+            res = learn(self.train_set, k=self.k, h=self.h, n_epochs=self.n_epochs,
                         batch_size=self.batch_size, learn_rate=self.learning_rate, beta=self.beta, gamma=self.gamma,
                         init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
 
