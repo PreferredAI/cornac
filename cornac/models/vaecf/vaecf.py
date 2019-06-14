@@ -70,6 +70,7 @@ class VAE(nn.Module):
         # KL term
         std = torch.exp(0.5 * logvar)
         kld = -0.5 * (1 + 2. * torch.log(std) - mu.pow(2) - std.pow(2))
+        kld = torch.sum(kld, dim=1)
 
         return torch.mean(beta * kld - ll)
 
