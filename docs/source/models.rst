@@ -19,6 +19,11 @@ VAE for Collaborative Filtering (VAECF)
 ----------------------------------------------------
 .. automodule:: cornac.models.vaecf.recom_vaecf
    :members:
+
+Collaborative Variational Autoencoder (CVAE)
+---------------------------------------
+.. automodule:: cornac.models.cvae.recom_cvae
+   :members:
    
 Indexable Bayesian Personalized Ranking (IBPR)
 -----------------------------------------------
@@ -68,11 +73,6 @@ Collaborative Deep Ranking (CDR)
 Collaborative Deep Learning (CDL)
 ---------------------------------------
 .. automodule:: cornac.models.cdl.recom_cdl
-   :members:
-
-Collaborative Variational Autoencoder (CVAE)
----------------------------------------
-.. automodule:: cornac.models.cvae.recom_cvae
    :members:
 
 Hierarchical Poisson Factorization (HPF)
