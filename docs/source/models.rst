@@ -19,6 +19,11 @@ VAE for Collaborative Filtering (VAECF)
 ----------------------------------------------------
 .. automodule:: cornac.models.vaecf.recom_vaecf
    :members:
+
+Collaborative Variational Autoencoder (CVAE)
+---------------------------------------
+.. automodule:: cornac.models.cvae.recom_cvae
+   :members:
    
 Indexable Bayesian Personalized Ranking (IBPR)
 -----------------------------------------------
@@ -54,25 +59,35 @@ Spherical k-means (Skmeans)
 ----------------------------
 .. automodule:: cornac.models.skm.recom_skmeans
    :members:
+
+Convolutional Matrix Factorization (ConvMF)
+--------------------------------------------------
+.. automodule:: cornac.models.conv_mf.recom_convmf
+   :members:
+
+Collaborative Deep Ranking (CDR)
+---------------------------------------
+.. automodule:: cornac.models.cdr.recom_cdr
+   :members:
    
 Collaborative Deep Learning (CDL)
 ---------------------------------------
 .. automodule:: cornac.models.cdl.recom_cdl
    :members:
 
-Collaborative Variational Autoencoder (CVAE)
----------------------------------------
-.. automodule:: cornac.models.cvae.recom_cvae
+Hierarchical Poisson Factorization (HPF)
+----------------------------------------
+.. automodule:: cornac.models.hpf.recom_hpf
+   :members:
+
+Social Bayesian Personalized Ranking (SBPR)
+--------------------------------------------------
+.. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
    :members:
 
 Collaborative Filtering for Implicit Feedback (CF)
 --------------------------------------------------
 .. automodule:: cornac.models.cf.recom_cf
-   :members:
-
-Hierarchical Poisson Factorization (HPF)
-----------------------------------------
-.. automodule:: cornac.models.hpf.recom_hpf
    :members:
 
 Bayesian Personalized Ranking (BPR)
@@ -95,12 +110,3 @@ Matrix Factorization (MF)
 .. automodule:: cornac.models.mf.recom_mf
    :members:
 
-Convolutional Matrix Factorization (ConvMF)
---------------------------------------------------
-.. automodule:: cornac.models.conv_mf.recom_convmf
-   :members:
-
-Social Bayesian Personalized Ranking (SBPR)
---------------------------------------------------
-.. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
-   :members:
