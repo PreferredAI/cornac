@@ -5,9 +5,10 @@
 """
 
 from ..recommender import Recommender
-import numpy as np
-from .convmf import convmf
 from ...exception import ScoreException
+import time
+import math
+import numpy as np
 
 
 class ConvMF(Recommender):
@@ -54,13 +55,13 @@ class ConvMF(Recommender):
     In :10th ACM Conference on Recommender Systems Pages 233-240
     """
 
-    def __init__(self, give_item_weight=True,
+    def __init__(self, give_item_weight=True, cnn_epochs=5,
                  n_epochs=50, lambda_u=1, lambda_v=100, k=50,
                  name="convmf", trainable=True,
                  verbose=False, dropout_rate=0.2, emb_dim=200,
-                 max_len=300, num_kernel_per_ws=100, init_params=None):
+                 max_len=300, num_kernel_per_ws=100, init_params=None, seed=None):
 
-        Recommender.__init__(self, name='CONVMF', trainable=trainable)
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
 
         self.give_item_weight = give_item_weight
         self.max_iter = n_epochs
@@ -73,7 +74,9 @@ class ConvMF(Recommender):
         self.num_kernel_per_ws = num_kernel_per_ws
         self.name = name
         self.verbose = verbose
+        self.cnn_epochs = cnn_epochs
         self.init_params = {} if init_params is None else init_params
+        self.seed = seed
 
     def fit(self, train_set):
         """Fit the model.
@@ -86,26 +89,128 @@ class ConvMF(Recommender):
         """
         Recommender.fit(self, train_set)
 
-        if not self.trainable:
-            print('%s is trained already (trainable = False)' % (self.name))
-            return
+        from ...utils import get_rng
+        from ...utils.init_utils import xavier_uniform
 
-        if self.verbose:
-            print('Learning...')
+        rng = get_rng(self.seed)
 
-        res = convmf(max_iter=self.max_iter,
-                     lambda_u=self.lambda_u, lambda_v=self.lambda_v,
-                     dimension=self.dimension, init_params=self.init_params,
-                     give_item_weight=self.give_item_weight,
-                     emb_dim=self.emb_dim,
-                     num_kernel_per_ws=self.num_kernel_per_ws,
-                     vocab_size=train_set.item_text.vocab.size, train_set=train_set)
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), rng))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.dimension), rng))
+        self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.vocab.size, self.emb_dim), rng))
 
-        self.U = np.asarray(res['U'])
-        self.V = np.asarray(res['V'])
+        if self.trainable:
+            self._fit_convmf()
 
-        if self.verbose:
-            print('Learning completed')
+    @staticmethod
+    def _build_data(csr_mat):
+        data = []
+        index_list = []
+        rating_list = []
+        for i in range(csr_mat.shape[0]):
+            j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
+            index_list.append(csr_mat.indices[j:k])
+            rating_list.append(csr_mat.data[j:k])
+        data.append(index_list)
+        data.append(rating_list)
+        return data
+
+    def _fit_convmf(self):
+        user_data = self._build_data(self.train_set.matrix)
+        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+
+        n_user = len(user_data[0])
+        n_item = len(item_data[0])
+
+        # R_user and R_item contain rating values
+        R_user = user_data[1]
+        R_item = item_data[1]
+
+        if self.give_item_weight:
+            item_weight = np.array([math.sqrt(len(i))
+                                    for i in R_item], dtype=float)
+            item_weight = (float(n_item) / item_weight.sum()) * item_weight
+        else:
+            item_weight = np.ones(n_item, dtype=float)
+
+        # Initialize cnn module
+        from .convmf import CNN_module
+        import tensorflow as tf
+        from tqdm import trange
+
+        cnn_module = CNN_module(output_dimension=self.dimension, dropout_rate=self.dropout_rate,
+                                emb_dim=self.emb_dim, max_len=self.max_len,
+                                nb_filters=self.num_kernel_per_ws, seed=self.seed, init_W=self.W)
+
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        sess = tf.Session(config=config)
+
+        sess.run(tf.global_variables_initializer())  # init variable
+
+        document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
+
+        feed_dict = {cnn_module.model_input: document}
+        theta = sess.run(cnn_module.model_output, feed_dict=feed_dict)
+
+        endure = 3
+        converge_threshold = 0.01
+        history = 1e-50
+        loss = 0
+
+        for iter in range(self.max_iter):
+            print("Iteration {}".format(iter + 1))
+            tic = time.time()
+
+            user_loss = np.zeros(n_user)
+            for i in range(n_user):
+                idx_item = user_data[0][i]
+                V_i = self.V[idx_item]
+                R_i = R_user[i]
+
+                A = self.lambda_u * np.eye(self.dimension) + V_i.T.dot(V_i)
+                B = (V_i * (np.tile(R_i, (self.dimension, 1)).T)).sum(0)
+                self.U[i] = np.linalg.solve(A, B)
+
+                user_loss[i] = -0.5 * self.lambda_u * np.dot(self.U[i], self.U[i])
+
+            item_loss = np.zeros(n_item)
+            for j in range(n_item):
+                idx_user = item_data[0][j]
+                U_j = self.U[idx_user]
+                R_j = R_item[j]
+
+                A = self.lambda_v * item_weight[j] * np.eye(self.dimension) + U_j.T.dot(U_j)
+                B = (U_j * (np.tile(R_j, (self.dimension, 1)).T)).sum(0) \
+                    + self.lambda_v * item_weight[j] * theta[j]
+                self.V[j] = np.linalg.solve(A, B)
+
+                item_loss[j] = -np.square(R_j - U_j.dot(self.V[j])).sum()
+
+            loop = trange(self.cnn_epochs, desc='CNN', disable=not self.verbose)
+            for _ in loop:
+                for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
+                    batch_seq = self.train_set.item_text.batch_seq(batch_ids, max_length=self.max_len)
+                    feed_dict = {cnn_module.model_input: batch_seq,
+                                 cnn_module.v: self.V[batch_ids],
+                                 cnn_module.sample_weight: item_weight[batch_ids]}
+
+                    sess.run([cnn_module.optimizer], feed_dict=feed_dict)
+
+            feed_dict = {cnn_module.model_input: document, cnn_module.v: self.V, cnn_module.sample_weight: item_weight}
+            theta, cnn_loss = sess.run([cnn_module.model_output, cnn_module.weighted_loss], feed_dict=feed_dict)
+
+            loss = loss + np.sum(user_loss) + np.sum(item_loss) - 0.5 * self.lambda_v * cnn_loss
+            toc = time.time()
+            elapsed = toc - tic
+            converge = abs((loss - history) / history)
+            print("Loss: %.5f Elpased: %.4fs Converge: %.6f " % (loss, elapsed, converge))
+            history = loss
+            if converge < converge_threshold:
+                endure -= 1
+                if endure == 0:
+                    break
+
+        tf.reset_default_graph()
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
@@ -138,3 +243,4 @@ class ConvMF(Recommender):
             user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
             return user_pred
+

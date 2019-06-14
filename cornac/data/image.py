@@ -21,6 +21,7 @@ class ImageModule(FeatureModule):
         """Build the model based on provided list of ordered ids
         """
         super().build(id_map)
+        return self
 
     def batch_image(self, batch_ids,
                     target_size=(256, 256),

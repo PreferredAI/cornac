@@ -1,9 +1,13 @@
-from setuptools import Extension, setup, find_packages
-import sys
-import platform
-import glob
 import os
-import numpy as np
+import sys
+import glob
+import platform
+from setuptools import Extension, setup, find_packages
+
+try:
+    import numpy as np
+except ImportError:
+    exit('Please install numpy>=1.14 first.')
 
 try:
     from Cython.Build import cythonize
@@ -135,7 +139,7 @@ if USE_CYTHON:
 
 setup(
     name='cornac',
-    version='0.1.0.post5',
+    version='0.2.1',
     author='Aghiles Salah',
     author_email='asalah@smu.edu.sg',
     description='A collection of recommendation algorithms and comparisons',
@@ -158,7 +162,7 @@ setup(
     cmdclass=cmdclass,
     packages=find_packages(),
     classifiers=(
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Education',
         'Intended Audience :: Developers',

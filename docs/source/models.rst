@@ -54,7 +54,17 @@ Collaborative Deep Learning (CDL)
 ---------------------------------------
 .. automodule:: cornac.models.cdl.recom_cdl
    :members:
-   
+
+Collaborative Variational Autoencoder (CVAE)
+---------------------------------------
+.. automodule:: cornac.models.cvae.recom_cvae
+   :members:
+
+Collaborative Filtering for Implicit Feedback (CF)
+--------------------------------------------------
+.. automodule:: cornac.models.cf.recom_cf
+   :members:
+
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
@@ -63,6 +73,11 @@ Hierarchical Poisson Factorization (HPF)
 Bayesian Personalized Ranking (BPR)
 ----------------------------------------
 .. autoclass:: cornac.models.bpr.recom_bpr.BPR
+   :members:
+
+Social Recommendation using PMF (SoRec)
+-----------------------------------------
+.. automodule:: cornac.models.sorec.recom_sorec
    :members:
 
 Probabilitic Matrix Factorization (PMF)

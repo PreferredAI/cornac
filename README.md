@@ -18,8 +18,8 @@
 <br />
 [![Release](https://img.shields.io/github/release-pre/PreferredAI/cornac.svg)](https://github.com/PreferredAI/cornac/releases)
 [![PyPI](https://img.shields.io/pypi/v/cornac.svg)](https://pypi.org/project/cornac/)
-[![Conda](https://img.shields.io/conda/v/qttruong/cornac.svg?label=anaconda)](https://anaconda.org/qttruong/cornac)
-[![Conda Recipe](https://img.shields.io/badge/conda-recipe-green.svg)](https://github.com/tqtg/cornac-feedstock)
+[![Conda](https://img.shields.io/conda/vn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
+[![Conda Recipe](https://img.shields.io/badge/recipe-cornac-green.svg)](https://github.com/conda-forge/cornac-feedstock)
 <br />
 [![Python](https://img.shields.io/pypi/pyversions/cornac.svg)](https://cornac.preferred.ai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -38,7 +38,7 @@ pip3 install cornac
   - **From Anaconda:**
 
 ```sh
-conda install cornac -c qttruong -c pytorch
+conda install cornac -c conda-forge
 ```
 
   - **From the GitHub source (for latest updates):**

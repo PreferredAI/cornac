@@ -17,4 +17,6 @@ from .conv_mf import ConvMF
 from .cdr import CDR
 from .sbpr import SBPR
 from .sorec import SoRec
+from .cvae import CVAE
+from .cf import CF
 
