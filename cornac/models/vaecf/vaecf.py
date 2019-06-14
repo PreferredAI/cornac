@@ -78,10 +78,9 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, gamma, verbos
     if seed is not None:
         torch.manual_seed(seed)
 
-    # Hyperparameters
-    data_dim = users.data.shape[1]
-
+    # Instantiations
     x = Dataset(train_set.matrix)
+    data_dim = x.data.shape[1]
     vae = VAE(data_dim, k, h)
     params = list(vae.parameters())
 
