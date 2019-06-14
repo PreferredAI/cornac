@@ -6,8 +6,6 @@
 
 import numpy as np
 from ..recommender import Recommender
-from ...utils.common import sigmoid
-from ...utils.common import scale
 from ...exception import ScoreException
 import torch
 
