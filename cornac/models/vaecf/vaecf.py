@@ -55,13 +55,13 @@ class VAE(nn.Module):
         # Multinomiale likelihood
         mult_ll = x * torch.log(x_ + self.eps)
 
-        # Poisson Likelihood
+        # Poisson log-likelihood
         # poiss_ll = x * torch.log(x_ + self.eps) - x_
 
-        # Bernoulli likelihood
+        # Bernoulli log-likelihood
         # bern_ll = -x * torch.log(x_ + self.eps) -  0.5*(1-x) * torch.log(1 - x_ + self.eps)
 
-        # Gaussian likelihood
+        # Gaussian log-likelihood
         # gauss_ll = (x - x_)**2
 
         ll = mult_ll
