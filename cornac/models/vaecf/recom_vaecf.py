@@ -122,16 +122,16 @@ class VAECF(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
             x_u = self.train_set.matrix[user_id].copy()
-            x_u.data = np.ones(len(r_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(r_u.A, dtype=torch.double))
+            x_u.data = np.ones(len(x_u.data))
+            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.double))
             known_item_scores = self.vae.decode(z_u).data.cpu().numpy().flatten()
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
             x_u = self.train_set.matrix[user_id].copy()
-            x_u.data = np.ones(len(r_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(r_u.A, dtype=torch.double))
+            x_u.data = np.ones(len(x_u.data))
+            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.double))
             user_pred = self.vae.decode(z_u).data.cpu().numpy().flatten()[item_id]  # Fix me I am not efficient
 
             return user_pred

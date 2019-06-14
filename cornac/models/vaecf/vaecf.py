@@ -90,7 +90,7 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, gamma, verbos
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
         count = 0
-        num_steps = int(users.data.shape[0] / batch_size)
+        num_steps = int(x.data.shape[0] / batch_size)
 
         if verbose:
             progress_bar = tqdm(total=num_steps,
