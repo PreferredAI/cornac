@@ -59,6 +59,11 @@ Convolutional Matrix Factorization (ConvMF)
 --------------------------------------------------
 .. automodule:: cornac.models.conv_mf.recom_convmf
    :members:
+
+Collaborative Deep Ranking (CDR)
+---------------------------------------
+.. automodule:: cornac.models.cdr.recom_cdr
+   :members:
    
 Collaborative Deep Learning (CDL)
 ---------------------------------------
