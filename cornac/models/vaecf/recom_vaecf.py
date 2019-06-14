@@ -7,7 +7,6 @@
 import numpy as np
 from ..recommender import Recommender
 from ...exception import ScoreException
-import torch
 
 
 class VAECF(Recommender):
@@ -118,6 +117,7 @@ class VAECF(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        import torch
         if item_id is None:
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
