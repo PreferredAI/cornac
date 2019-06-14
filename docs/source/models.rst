@@ -14,6 +14,11 @@ Collaborative Context Poisson Factorization (C2PF)
 ----------------------------------------------------
 .. automodule:: cornac.models.c2pf.recom_c2pf
    :members:
+
+VAE for Collaborative Filtering (VAECF)
+----------------------------------------------------
+.. automodule:: cornac.models.vaecf.recom_vaecf
+   :members:
    
 Indexable Bayesian Personalized Ranking (IBPR)
 -----------------------------------------------
