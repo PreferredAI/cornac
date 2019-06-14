@@ -31,7 +31,7 @@ class VAE(nn.Module):
         # self.efc22 = nn.Linear(h_dim, z_dim) # logvar
 
     def encode(self, x):
-        h = self.efc(x)
+        h = self.efc1(x)
         h = F.relu(h)
         return self.efc21(h), self.efc22(h)
 
