@@ -76,7 +76,7 @@ class VAE(nn.Module):
 
 
 
-def learn(train_set, k, h_dim, n_epochs, batch_size, learn_rate, beta, gamma, verbose, seed, use_gpu):
+def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, gamma, verbose, seed, use_gpu):
 
     if seed is not None:
         torch.manual_seed(seed)
