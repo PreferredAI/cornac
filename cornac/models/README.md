@@ -25,4 +25,5 @@ Additional dependencies (CPU versions) and examples for each model are also list
 | [Collaborative Deep Ranking (CDR)](cdr), [paper](http://inpluslab.com/chenliang/homepagefiles/paper/hao-pakdd2016.pdf) | [requirements.txt](cdr/requirements.txt) | [cdr_example.py](../../examples/cdr_example.py)
 | [Collaborative Filtering for Implicit Feedback (CF)](cf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cf/requirements.txt) | [cf_example.py](../../examples/cf_example.py)
 | [Social Bayesian Personalized Ranking (SBPR)](sbpr), [paper](https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf) | N/A | [sbpr_epinions.py](../../examples/sbpr_epinions.py)
+| [Social Recommendation using PMF (SoRec)](sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | N/A | 
 
