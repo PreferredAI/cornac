@@ -54,6 +54,11 @@ Spherical k-means (Skmeans)
 ----------------------------
 .. automodule:: cornac.models.skm.recom_skmeans
    :members:
+
+Convolutional Matrix Factorization (ConvMF)
+--------------------------------------------------
+.. automodule:: cornac.models.conv_mf.recom_convmf
+   :members:
    
 Collaborative Deep Learning (CDL)
 ---------------------------------------
@@ -65,14 +70,19 @@ Collaborative Variational Autoencoder (CVAE)
 .. automodule:: cornac.models.cvae.recom_cvae
    :members:
 
-Collaborative Filtering for Implicit Feedback (CF)
---------------------------------------------------
-.. automodule:: cornac.models.cf.recom_cf
-   :members:
-
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
+   :members:
+
+Social Bayesian Personalized Ranking (SBPR)
+--------------------------------------------------
+.. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
+   :members:
+
+Collaborative Filtering for Implicit Feedback (CF)
+--------------------------------------------------
+.. automodule:: cornac.models.cf.recom_cf
    :members:
 
 Bayesian Personalized Ranking (BPR)
@@ -95,12 +105,3 @@ Matrix Factorization (MF)
 .. automodule:: cornac.models.mf.recom_mf
    :members:
 
-Convolutional Matrix Factorization (ConvMF)
---------------------------------------------------
-.. automodule:: cornac.models.conv_mf.recom_convmf
-   :members:
-
-Social Bayesian Personalized Ranking (SBPR)
---------------------------------------------------
-.. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
-   :members:
