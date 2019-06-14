@@ -87,10 +87,10 @@ class VAECF(Recommender):
                 print('Learning...')
 
             from .vaecf import learn
-            
+
             res = learn(self.train_set, k=self.k, h_dim=self.h_dim, n_epochs=self.n_epochs,
-                      batch_size=self.batch_size, learn_rate=self.learning_rate, gamma=self.gamma,
-                      init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
+                        batch_size=self.batch_size, learn_rate=self.learning_rate, gamma=self.gamma,
+                        init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
 
             self.vae = res
 
@@ -122,7 +122,7 @@ class VAECF(Recommender):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
             x_u = self.train_set.matrix[user_id].copy()
             x_u.data = np.ones(len(r_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(r_u.A,dtype=torch.double))
+            z_u, _ = self.vae.encode(torch.tensor(r_u.A, dtype=torch.double))
             known_item_scores = self.vae.decode(z_u).data.cpu().numpy().flatten()
             return known_item_scores
         else:
@@ -130,7 +130,7 @@ class VAECF(Recommender):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
             x_u = self.train_set.matrix[user_id].copy()
             x_u.data = np.ones(len(r_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(r_u.A,dtype=torch.double))
-            user_pred = self.vae.decode(z_u).data.cpu().numpy().flatten()[item_id] # Fix me I am not efficient
+            z_u, _ = self.vae.encode(torch.tensor(r_u.A, dtype=torch.double))
+            user_pred = self.vae.decode(z_u).data.cpu().numpy().flatten()[item_id]  # Fix me I am not efficient
 
             return user_pred
