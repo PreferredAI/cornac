@@ -99,12 +99,6 @@ class CTR(Recommender):
         self.U = self.init_params.get('U', xavier_uniform((self.n_user, self.k), self.seed))
         self.V = self.init_params.get('V', xavier_uniform((self.n_item, self.k), self.seed))
 
-        self.theta = np.random.random([self.n_item, self.k])
-        self.theta = self.theta / self.theta.sum(1)[:, np.newaxis]  # normalize
-        self.beta = np.random.random([self.n_voca, self.k])
-        self.beta = self.beta / self.beta.sum(0)  # normalize
-        self.phi_sum = np.zeros([self.n_voca, self.k]) + self.eta
-
         if self.trainable:
             self._fit_ctr()
 
@@ -117,6 +111,13 @@ class CTR(Recommender):
         self.doc_ids, self.doc_cnt = self._build_data(
             self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True))  # bag of word feature
 
+        #LDA variables
+        self.theta = np.random.random([self.n_item, self.k])
+        self.theta = self.theta / self.theta.sum(1)[:, np.newaxis]  # normalize
+        self.beta = np.random.random([self.n_voca, self.k])
+        self.beta = self.beta / self.beta.sum(0)  # normalize
+        self.phi_sum = np.zeros([self.n_voca, self.k]) + self.eta
+
         # collaborative training
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
@@ -124,6 +125,8 @@ class CTR(Recommender):
             lda_loss = self._update_theta()
             self._do_m_step()
             loop.set_postfix(cf_loss=-cf_loss, lda_loss=-lda_loss)
+
+        del self.user_data, self.item_data, self.beta, self.theta, self.phi_sum
 
         if self.verbose:
             print('Learning completed!')
