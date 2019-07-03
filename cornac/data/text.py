@@ -266,11 +266,6 @@ class CountVectorizer():
         `max_features` ordered by term frequency across the corpus.
         If `vocab` is not None, this will be ignored.
 
-    stop_words : Collection, str, default: None
-        Collection of stop words which will be ignored when building `Vocabulary`.
-        If str, it indicates a built-in stop words list. Currently, only
-        `english` is supported.
-
     binary : boolean, default=False
         If True, all non zero counts are set to 1.
     """
@@ -281,11 +276,8 @@ class CountVectorizer():
                  max_doc_freq: Union[float, int] = 1.0,
                  min_freq: int = 1,
                  max_features: int = None,
-                 stop_words: Union[List, str] = None,
                  binary: bool = False):
-        self.tokenizer = tokenizer
-        if tokenizer is None:
-            self.tokenizer = BaseTokenizer(stop_words=stop_words)
+        self.tokenizer = BaseTokenizer() if tokenizer is None else tokenizer
         self.vocab = vocab
         self.max_doc_freq = max_doc_freq
         self.min_freq = min_freq
@@ -296,7 +288,6 @@ class CountVectorizer():
             if max_features <= 0:
                 raise ValueError('max_features=%r, '
                                  'neither a positive integer nor None' % max_features)
-        self.stop_words = stop_words
         self.binary = binary
 
     def _limit_features(self, X: sp.csr_matrix, max_doc_count: int):
@@ -467,11 +458,6 @@ class TextModule(FeatureModule):
         The minimum frequency of tokens to be included into vocabulary.
         If `vocab` is not None, this will be ignored.
 
-    stop_words : Collection, str, default: None
-        Collection of stop words which will be ignored when building `Vocabulary`.
-        If str, it indicates a built-in stop words list. Currently, only
-        `english` is supported.
-
     """
 
     def __init__(self,
@@ -482,16 +468,14 @@ class TextModule(FeatureModule):
                  max_vocab: int = None,
                  max_doc_freq: Union[float, int] = 1.0,
                  min_freq: int = 1,
-                 stop_words: Union[List, str] = None,
                  **kwargs):
         super().__init__(ids=ids, **kwargs)
         self.corpus = corpus
-        self.tokenizer = tokenizer
+        self.tokenizer = BaseTokenizer() if tokenizer is None else tokenizer
         self.vocab = vocab
         self.max_vocab = max_vocab
         self.max_doc_freq = max_doc_freq
         self.min_freq = min_freq
-        self.stop_words = stop_words
         self.sequences = None
         self.count_matrix = None
 
@@ -514,8 +498,7 @@ class TextModule(FeatureModule):
 
         vectorizer = CountVectorizer(tokenizer=self.tokenizer, vocab=self.vocab,
                                      max_doc_freq=self.max_doc_freq, min_freq=self.min_freq,
-                                     stop_words=self.stop_words, max_features=self.max_vocab,
-                                     binary=False)
+                                     max_features=self.max_vocab, binary=False)
         self.sequences, self.count_matrix = vectorizer.fit_transform(self.corpus)
         self.vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
         # Map tokens into integer ids
