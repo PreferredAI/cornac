@@ -33,7 +33,7 @@ class TestDownload(unittest.TestCase):
         with open(fpath, 'r') as f:
             self.assertEqual('gz', f.read().strip())
 
-    def test_downloa_bzip2_file(self):
+    def test_download_bzip2_file(self):
         fpath = cache(url='https://static.preferred.ai/cornac/tests/dummy.tar.bz2',
                       unzip=True, relative_path='dummy/bz2.txt')
         self.assertTrue(os.path.exists(fpath))
