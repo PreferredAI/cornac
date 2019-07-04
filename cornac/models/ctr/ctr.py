@@ -1,15 +1,15 @@
 import numpy as np
 from ...utils import get_rng
-from tqdm import trange
 
 """
 @author: Tran Thanh Binh
 """
+EPS = 1e-100
 
 class Model:
 
-    def __init__(self, train_set, U, V, k=200, lambda_u=0.01, lambda_v=0.01, eta=0.01,
-                 a=1, b=0.01, max_iter=100, eps=1e-100, seed=None, verbose=True):
+    def __init__(self, U, V, n_user, n_item, n_vocab, k=200, lambda_u=0.01, lambda_v=0.01, eta=0.01,
+                 a=1, b=0.01, max_iter=100, seed=None):
 
         self.k = k
         self.lambda_u = lambda_u
@@ -18,53 +18,32 @@ class Model:
         self.a = a
         self.b = b
         self.max_iter = max_iter
-        self.train_set = train_set
-        self.seed = seed
-        self.verbose = verbose
-        self.eps = eps
         self.U = U
         self.V = V
-
-        self.seed = get_rng(self.seed)
-        self.n_item = self.train_set.num_items
-        self.n_user = self.train_set.num_users
-        self.n_voca = self.train_set.item_text.vocab.size
-
-        self.user_data = self._build_data(self.train_set.matrix)
-        self.item_data = self._build_data(self.train_set.matrix.T.tocsr())
-        self.doc_ids, self.doc_cnt = self._build_data(
-            self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True))  # bag of word feature
+        self.n_item = n_item
+        self.n_user = n_user
+        self.n_vocab = n_vocab
+        self.seed = seed
+        rng = get_rng(self.seed)
 
         # LDA variables
-        self.theta = np.random.random([self.n_item, self.k])
+        self.theta = rng.random_sample([self.n_item, self.k])
         self.theta = self.theta / self.theta.sum(1)[:, np.newaxis]  # normalize
-        self.beta = np.random.random([self.n_voca, self.k])
+        self.beta = rng.random_sample([self.n_vocab, self.k])
         self.beta = self.beta / self.beta.sum(0)  # normalize
-        self.phi_sum = np.zeros([self.n_voca, self.k]) + self.eta
+        self.phi_sum = np.zeros([self.n_vocab, self.k]) + self.eta
 
-    def fit(self):
+    def cf_update(self, user_data, item_data):
 
-        # collaborative training
-        loop = trange(self.max_iter, disable=not self.verbose)
-        for _ in loop:
-            likelihood = self._cf_update()  # u and v updating
-            lda_loss = self._update_theta()
-            self._do_m_step()
-            loop.set_postfix(cf_loss=-likelihood, lda_loss=lda_loss)
-
-        return self.U, self.V
-
-    def _cf_update(self):
-
-        R_user = self.user_data[1]
-        R_item = self.item_data[1]
+        R_user = user_data[1]
+        R_item = item_data[1]
 
         likelihood = 0.0
         VV = self.b * (self.V.T.dot(self.V)) + self.lambda_u * np.eye(self.k)
 
         # update user vector
         for i in range(self.n_user):
-            idx_item = self.user_data[0][i]
+            idx_item = user_data[0][i]
             V_i = self.V[idx_item]
             R_i = R_user[i]
             A = VV + (self.a - self.b) * (V_i.T.dot(V_i))
@@ -77,7 +56,7 @@ class Model:
 
         # update item vector
         for j in range(self.n_item):
-            idx_user = self.item_data[0][j]
+            idx_user = item_data[0][j]
             U_j = self.U[idx_user]
             R_j = R_item[j]
 
@@ -95,20 +74,20 @@ class Model:
 
         return likelihood
 
-    def _do_m_step(self):
+    def do_m_step(self):
 
         self.beta = self.phi_sum / self.phi_sum.sum(0)
-        self.phi_sum = np.zeros([self.n_voca, self.k]) + self.eta
+        self.phi_sum = np.zeros([self.n_vocab, self.k]) + self.eta
 
-    def _update_theta(self):
+    def update_theta(self, doc_ids, doc_cnt):
 
         loss = 0.0
         for vi in range(self.n_item):
-            w = np.array(self.doc_ids[vi])
+            w = np.array(doc_ids[vi])
             word_beta = self.beta[w, :]
-            phi = self.theta[vi, :] * word_beta + self.eps  # W x K
+            phi = self.theta[vi, :] * word_beta + EPS  # W x K
             phi = phi / phi.sum(1)[:, np.newaxis]
-            gamma = np.array(self.doc_cnt[vi])[:, np.newaxis] * phi
+            gamma = np.array(doc_cnt[vi])[:, np.newaxis] * phi
 
             self.theta[vi, :], lda_loss = self._optimize_simplex(gamma=gamma, v=self.V[vi, :], opt_x=self.theta[vi, :],
                                                                  lambda_v=self.lambda_v, s=1)
@@ -118,54 +97,15 @@ class Model:
         return loss
 
     @staticmethod
-    def _build_data(csr_mat):
-        data = []
-        index_list = []
-        rating_list = []
-        for i in range(csr_mat.shape[0]):
-            j, k = csr_mat.indptr[i], csr_mat.indptr[i + 1]
-            index_list.append(csr_mat.indices[j:k])
-            rating_list.append(csr_mat.data[j:k])
-        data.append(index_list)
-        data.append(rating_list)
-        return data
-
-    def _optimize_simplex(self, gamma, v, lambda_v, opt_x, s=1):
-
-        opt_x_old = np.copy(opt_x)
-        f_old = self._fsimplex(gamma, v, lambda_v, opt_x)
-        df = self._dfsimplex(gamma, v, lambda_v, opt_x)
-        ab_sum = np.sum(np.absolute(df))
-        if ab_sum > 1.0:
-            df /= ab_sum
-        opt_x -= df
-        x_bar = self._simplex_project(opt_x, s=s)
-        x_bar -= opt_x_old
-        r = 0.5 * np.dot(df, x_bar)
-        beta = 0.5
-        t = beta
-
-        for iter in range(100):
-            opt_x = np.copy(opt_x_old)
-            opt_x += t * x_bar
-            f_new = self._fsimplex(gamma, v, lambda_v, opt_x)
-            if (f_new > f_old + r * t):
-                t *= beta
-            else:
-                break
-        if not opt_x.sum() <= s + 1e-10 and np.alltrue(opt_x >= 0):
-            print("Invalid values, outside simplex")
-
-        return opt_x, f_new
-
-    def _fsimplex(self, gamma, v, lambda_v, x):
+    def _f_simplex(gamma, v, lambda_v, x):
         return 0.5 * lambda_v * np.dot((v - x).T, v - x) - np.sum(gamma * np.log(x))
 
-
-    def _dfsimplex(self, gamma, v, lambda_v, x):
+    @staticmethod
+    def _df_simplex(gamma, v, lambda_v, x):
         return -lambda_v * (v - x) - np.sum(gamma * (1 / x), axis=0)
 
-    def _simplex_project(self, v, s=1):
+    @staticmethod
+    def _simplex_project(v, s=1):
 
         assert s > 0, "Radius s must be strictly positive (%d <= 0)" % s
         n, = v.shape  # will raise ValueError if v is not 1-D
@@ -183,3 +123,31 @@ class Model:
         # compute the projection by thresholding v using theta
         w = (v - theta).clip(min=0)
         return w
+
+    @staticmethod
+    def _optimize_simplex(gamma, v, lambda_v, opt_x, s=1):
+
+        opt_x_old = np.copy(opt_x)
+        f_old = Model._f_simplex(gamma, v, lambda_v, opt_x)
+        df = Model._df_simplex(gamma, v, lambda_v, opt_x)
+        ab_sum = np.sum(np.absolute(df))
+        if ab_sum > 1.0:
+            df /= ab_sum
+        opt_x -= df
+        x_bar = Model._simplex_project(opt_x, s=s)
+        x_bar -= opt_x_old
+        r = 0.5 * np.dot(df, x_bar)
+        beta = 0.5
+        t = beta
+
+        for iter in range(100):
+            opt_x = np.copy(opt_x_old)
+            opt_x += t * x_bar
+            f_new = Model._f_simplex(gamma, v, lambda_v, opt_x)
+            if (f_new > f_old + r * t):
+                t *= beta
+            else:
+                break
+        if not opt_x.sum() <= s + 1e-10 and np.alltrue(opt_x >= 0):
+            print("Invalid values, outside simplex")
+        return opt_x, f_new
