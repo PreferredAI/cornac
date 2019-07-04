@@ -11,14 +11,15 @@ from cornac.data import Reader
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 from cornac.data import TextModule
+from cornac.data.text import BaseTokenizer
 
 docs, item_ids = citeulike.load_text()
 data = citeulike.load_data(reader=Reader(item_set=item_ids))
 
 # build text module
 item_text_module = TextModule(corpus=docs, ids=item_ids,
-                              max_vocab=8000, max_doc_freq=0.5,
-                              stop_words='english')
+                              tokenizer=BaseTokenizer(stop_words='english'),
+                              max_vocab=8000, max_doc_freq=0.5)
 
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
                          rating_threshold=0.5, verbose=True, seed=123,
