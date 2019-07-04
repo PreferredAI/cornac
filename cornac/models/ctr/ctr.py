@@ -47,10 +47,10 @@ class Model:
         # collaborative training
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
-            cf_loss = self._cf_update()  # u and v updating
+            likelihood = self._cf_update()  # u and v updating
             lda_loss = self._update_theta()
             self._do_m_step()
-            loop.set_postfix(cf_loss=-cf_loss, lda_loss=-lda_loss)
+            loop.set_postfix(cf_loss=-likelihood, lda_loss=lda_loss)
 
         return self.U, self.V
 
@@ -159,10 +159,11 @@ class Model:
         return opt_x, f_new
 
     def _fsimplex(self, gamma, v, lambda_v, x):
-        return -0.5 * lambda_v * np.dot((v - x).T, v - x) + np.sum(gamma * np.log(x))
+        return 0.5 * lambda_v * np.dot((v - x).T, v - x) - np.sum(gamma * np.log(x))
+
 
     def _dfsimplex(self, gamma, v, lambda_v, x):
-        return lambda_v * (v - x) + np.sum(gamma * (1 / x), axis=0)
+        return -lambda_v * (v - x) - np.sum(gamma * (1 / x), axis=0)
 
     def _simplex_project(self, v, s=1):
 

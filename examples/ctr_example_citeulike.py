@@ -24,7 +24,7 @@ item_text_module = TextModule(corpus=docs, ids=item_ids,
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_module, verbose=True, seed=123, rating_threshold=0.5)
 
-ctr = cornac.models.CTR(k=50, max_iter=30, lambda_v=10)
+ctr = cornac.models.CTR(k=50, max_iter=50, lambda_v=1)
 
 rec_300 = cornac.metrics.Recall(k=300)
 
