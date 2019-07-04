@@ -74,7 +74,7 @@ class Model:
 
         return likelihood
 
-    def do_m_step(self):
+    def update_beta(self):
 
         self.beta = self.phi_sum / self.phi_sum.sum(0)
         self.phi_sum = np.zeros([self.n_vocab, self.k]) + self.eta
