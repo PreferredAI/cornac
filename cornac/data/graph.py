@@ -202,6 +202,9 @@ class GraphModule(FeatureModule):
         symmetric: bool, optional, default: True
             When True the resulting KNN-Graph is made symmetric
 
+        verbose: bool, default: False
+            The verbosity flag.
+
         Returns
         -------
         graph_module: :obj:`<cornac.data.GraphModule>`
@@ -210,9 +213,13 @@ class GraphModule(FeatureModule):
         """
 
         # build knn graph
+        if verbose:
+            print("Building the KNN graph ...")
         knn_graph_array = GraphModule._build_knn(features, k, similarity)
         knn_graph_triplet = GraphModule._to_triplet(mat=knn_graph_array, ids=ids)
         if symmetric:
+            if verbose:
+                print("Symmetrizing the graph")
             knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
 
         return cls(data=knn_graph_triplet)
