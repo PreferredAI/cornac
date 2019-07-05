@@ -163,7 +163,7 @@ class GraphModule(FeatureModule):
             l2_norm = l2_norm.reshape(n, 1)
             features = features/(l2_norm + 1e-20)
 
-        for i in range(len(n)):
+        for i in range(n):
             c_id = 0
             for j in range(n):
                 if i != j:
@@ -181,7 +181,7 @@ class GraphModule(FeatureModule):
 
 
     @classmethod
-    def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=True):
+    def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=True, verbose=True):
         """Instantiate a GraphModule with a KNN graph build using input features.
 
         Parameters
@@ -211,7 +211,7 @@ class GraphModule(FeatureModule):
 
         # build knn graph
         knn_graph_array = GraphModule._build_knn(features, k, similarity)
-        knn_graph_triplet = GraphModule.to_triplet(mat=knn_graph_array, ids=ids)
+        knn_graph_triplet = GraphModule._to_triplet(mat=knn_graph_array, ids=ids)
         if symmetric:
             knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
 
