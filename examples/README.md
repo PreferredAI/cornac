@@ -34,6 +34,8 @@
 
 [pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
 
+[ctr_example_citeulike.py](ctr_example_citeulike.py) - Collaborative Topic Modelling (CTR) with CiteULike dataset.
+
 [cdl_example.py](cdl_example.py) - Collaborative Deep Learning (CDL) with CiteULike dataset.
 
 [cdr_example.py](cdr_example.py) - Collaborative Deep Ranking (CDR) with CiteULike dataset.
