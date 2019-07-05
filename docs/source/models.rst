@@ -75,6 +75,11 @@ Collaborative Deep Learning (CDL)
 .. automodule:: cornac.models.cdl.recom_cdl
    :members:
 
+Collaborative Topic Modeling (CTR)
+---------------------------------------
+.. automodule:: cornac.models.ctr.recom_ctr
+   :members:
+
 Hierarchical Poisson Factorization (HPF)
 ----------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
