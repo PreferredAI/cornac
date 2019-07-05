@@ -1,12 +1,23 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Aghiles Salah <asalah@smu.edu.sg>
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import numpy as np
 import scipy.sparse as sp
-from ..recommender import Recommender
+
 from cornac.models.c2pf import c2pf
+from ..recommender import Recommender
 
 
 # Recommender class for Collaborative Context Poisson Factorization (C2PF)
@@ -105,8 +116,8 @@ class C2PF(Recommender):
 
         if self.trainable:
             map_iid = train_set.iid_list
-            (rid, cid, val) = train_set.item_graph.get_train_triplet(map_iid,map_iid)
-            context_info = np.hstack((rid.reshape(-1,1),cid.reshape(-1,1),val.reshape(-1,1)))
+            (rid, cid, val) = train_set.item_graph.get_train_triplet(map_iid, map_iid)
+            context_info = np.hstack((rid.reshape(-1, 1), cid.reshape(-1, 1), val.reshape(-1, 1)))
 
             if self.variant == 'c2pf':
                 res = c2pf.c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,

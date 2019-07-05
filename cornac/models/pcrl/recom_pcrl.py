@@ -1,15 +1,22 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Aghiles Salah <asalah@smu.edu.sg>
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import numpy as np
-from ..recommender import Recommender
-from .pcrl import PCRL_
 import scipy.sparse as sp
-from ...exception import ScoreException
 
-
+from ..recommender import Recommender
 
 
 # Recommender class for Probabilistic Collaborative Representation Learning (PCRL)
@@ -66,8 +73,9 @@ class PCRL(Recommender):
     In UAI 2018.
     """
 
-    def __init__(self, k=100, z_dims = [300], max_iter=300, batch_size = 300,learning_rate = 0.001, name = "pcrl", trainable = True,
-                 verbose=False, w_determinist = True, init_params = {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}):
+    def __init__(self, k=100, z_dims=[300], max_iter=300, batch_size=300, learning_rate=0.001, name="pcrl",
+                 trainable=True,
+                 verbose=False, w_determinist=True, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
@@ -78,9 +86,8 @@ class PCRL(Recommender):
         self.learning_rate = learning_rate
         self.init_params = init_params
         self.w_determinist = w_determinist
-        
-        
-    #fit the recommender model to the traning data    
+
+    # fit the recommender model to the traning data
     def fit(self, train_set):
         """Fit the model to observations.
 
@@ -91,10 +98,11 @@ class PCRL(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
+        from .pcrl import PCRL_
 
         Recommender.fit(self, train_set)
         X = sp.csc_matrix(self.train_set.matrix)
-        
+
         if self.trainable:
             # intanciate pcrl
 
@@ -102,13 +110,12 @@ class PCRL(Recommender):
             pcrl_ = PCRL_(cf_data=X, aux_data=train_aux_info, k=self.k, z_dims=self.z_dims, n_epoch=self.max_iter,
                           batch_size=self.batch_size, learning_rate=self.learning_rate, B=1,
                           w_determinist=self.w_determinist, init_params=self.init_params)
-            pcrl_.learn()                      
-            self.Theta = np.array(pcrl_.Gs)/np.array(pcrl_.Gr)
-            self.Beta = np.array(pcrl_.Ls)/np.array(pcrl_.Lr)
+            pcrl_.learn()
+            self.Theta = np.array(pcrl_.Gs) / np.array(pcrl_.Gr)
+            self.Beta = np.array(pcrl_.Ls) / np.array(pcrl_.Lr)
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))             
+            print('%s is trained already (trainable = False)' % (self.name))
 
-      
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for a list of items.
 

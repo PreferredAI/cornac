@@ -1,3 +1,18 @@
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+
 import os
 import sys
 import glob
@@ -77,7 +92,6 @@ else:
     compile_args.append("-std=c++11")
     link_args.append("-std=c++11")
 
-
 ext = '.pyx' if USE_CYTHON else '.cpp'
 
 extensions = [
@@ -140,8 +154,7 @@ if USE_CYTHON:
 setup(
     name='cornac',
     version='0.2.1',
-    author='Aghiles Salah',
-    author_email='asalah@smu.edu.sg',
+    author='Preferred.AI',
     description='A collection of recommendation algorithms and comparisons',
     long_description=long_description,
     long_description_content_type='text/markdown',
