@@ -80,8 +80,8 @@ class GraphModule(FeatureModule):
 
         return self.matrix[batch_ids]
 
-
-    def _find_min(self, vect):
+    @staticmethod
+    def _find_min(vect):
         """ Return the lowest number and its position (index) is a given vector (array).
 
         Parameters
@@ -99,15 +99,16 @@ class GraphModule(FeatureModule):
         return min_index, min_
 
 
-    def _mat_to_triplet(self, mat, ids=None):
+    @staticmethod
+    def _to_triplet(mat, ids=None):
         """Return the lowest number and its position (index) is a given vector (array).
 
         Parameters
         ----------
         mat: 2d array, required
             A Numpy 2d array of integers.
-        ids: 1d array, required
-            A Numpy 1d array of integers corresponding to ids (or labels) of the objects in the output triplet matrix.
+        ids: list, optional, default: None
+            A list of ids (or labels) of the objects to be used in the output triplet matrix.
         """
 
         tuples = []
@@ -116,7 +117,6 @@ class GraphModule(FeatureModule):
 
         if ids is None:
             ids = range(n)
-
         for n_ in range(n):
             for k_ in range(k):
                 j = int(mat[n_, k_])
@@ -124,8 +124,8 @@ class GraphModule(FeatureModule):
 
         return tuples
 
-
-    def to_symmetric(self, triplets):
+    @staticmethod
+    def to_symmetric(triplets):
         """ Transform an asymmetric adjacency matrix to a symmetric one.
 
         Parameters
@@ -138,8 +138,8 @@ class GraphModule(FeatureModule):
         triplets.update([(j, i, v) for (i, j, v) in triplets])
         return triplets
 
-
-    def _build_knn(self, features, k=5, similarity="cosine"):
+    @staticmethod
+    def _build_knn(features, k=5, similarity="cosine"):
         """Build a KNN graph of a set of objects using similarities among there features.
 
         Parameters
@@ -173,8 +173,46 @@ class GraphModule(FeatureModule):
                         S[i, c_id] = sim
                         c_id += 1
                     else:
-                        m_id, m = self._find_min(S[i])
+                        m_id, m = GraphModule._find_min(S[i])
                         if sim > m:
                             N[i, m_id] = j
                             S[i, m_id] = sim
         return N
+
+
+    @classmethod
+    def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=True):
+        """Instantiate a GraphModule with a KNN graph build using input features.
+
+        Parameters
+        ----------
+        features: 2d Numpy array, shape: [n_objects, n_features], required
+            A 2d Numpy array of features, e.g., visual, textual, etc.
+
+        k: int, optional, default: 5
+            The number of nearest neighbors
+
+        ids: array, optional, default: None
+            The list of object ids or labels. For instance if you use textual (bag-of-word) features,
+            then "ids" should be the same as the input to cornac.data.TextModule.
+
+        similarity: string, optional, default: "cosine"
+            The similarity measure. At this time only the cosine is supported
+
+        symmetric: bool, optional, default: True
+            When True the resulting KNN-Graph is made symmetric
+
+        Returns
+        -------
+        graph_module: :obj:`<cornac.data.GraphModule>`
+            GraphModule object.
+
+        """
+
+        # build knn graph
+        knn_graph_array = GraphModule._build_knn(features, k, similarity)
+        knn_graph_triplet = GraphModule.to_triplet(mat=knn_graph_array, ids=ids)
+        if symmetric:
+            knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
+
+        return cls(data=knn_graph_triplet)
