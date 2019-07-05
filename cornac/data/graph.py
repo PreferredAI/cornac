@@ -79,3 +79,102 @@ class GraphModule(FeatureModule):
         """
 
         return self.matrix[batch_ids]
+
+
+    def _find_min(self, vect):
+        """ Return the lowest number and its position (index) is a given vector (array).
+
+        Parameters
+        ----------
+        vect: array, required
+            A Numpy 1d array of real values.
+        """
+
+        min_index = 0
+        min_ = np.inf
+        for i in range(len(vect)):
+            if vect[i] < min_:
+                min_index = i
+                min_ = vect[i]
+        return min_index, min_
+
+
+    def _mat_to_triplet(self, mat, ids=None):
+        """Return the lowest number and its position (index) is a given vector (array).
+
+        Parameters
+        ----------
+        mat: 2d array, required
+            A Numpy 2d array of integers.
+        ids: 1d array, required
+            A Numpy 1d array of integers corresponding to ids (or labels) of the objects in the output triplet matrix.
+        """
+
+        tuples = []
+        n = mat.shape[0]
+        k = mat.shape[1]
+
+        if ids is None:
+            ids = range(n)
+
+        for n_ in range(n):
+            for k_ in range(k):
+                j = int(mat[n_, k_])
+                tuples.append((ids[n_], ids[j], 1.))
+
+        return tuples
+
+
+    def to_symmetric(self, triplets):
+        """ Transform an asymmetric adjacency matrix to a symmetric one.
+
+        Parameters
+        ----------
+        triplets: array, required
+            A Numpy 1d array of real values.
+        """
+
+        triplets = set(triplets)
+        triplets.update([(j, i, v) for (i, j, v) in triplets])
+        return triplets
+
+
+    def _build_knn(self, features, k=5, similarity="cosine"):
+        """Build a KNN graph of a set of objects using similarities among there features.
+
+        Parameters
+        ----------
+        features: 2d array, required
+            A 2d Numpy array of features (object-by-features).
+        k: int, optional, default: 5
+            The number of nearest neighbors
+        similarity: string, optional, default: "cosine"
+            The similarity measure. At this time only the cosine is supported
+        """
+
+        # Some util variables
+        n = len(features)
+        N = np.zeros((n, k))
+        S = np.zeros((n, k))
+
+        if similarity == "cosine":
+            # Normalize features to lie on a unit hypersphere
+            l2_norm = np.sqrt((features * features).sum(1))
+            l2_norm = l2_norm.reshape(n, 1)
+            features = features/(l2_norm + 1e-20)
+
+        for i in range(len(n)):
+            c_id = 0
+            for j in range(n):
+                if i != j:
+                    sim = np.dot(features[i], features[j])
+                    if c_id <= k - 1:
+                        N[i, c_id] = j
+                        S[i, c_id] = sim
+                        c_id += 1
+                    else:
+                        m_id, m = self._find_min(S[i])
+                        if sim > m:
+                            N[i, m_id] = j
+                            S[i, m_id] = sim
+        return N
