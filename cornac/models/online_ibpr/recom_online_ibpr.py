@@ -1,9 +1,20 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Dung D. Le (Andrew) <ddle.2015@smu.edu.sg>
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
-from .online_ibpr import *
+import numpy as np
+
 from ..recommender import Recommender
 from ...exception import ScoreException
 
@@ -80,6 +91,7 @@ class OnlineIBPR(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
+        from .online_ibpr import online_ibpr
 
         Recommender.fit(self, train_set)
 

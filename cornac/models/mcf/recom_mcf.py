@@ -1,10 +1,20 @@
-# -*- coding: utf-8 -*-
-
-"""
-@author: Aghiles Salah <asalah@smu.edu.sg>
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import numpy as np
+
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
@@ -121,9 +131,10 @@ class MCF(Recommender):
                 print('Learning...')
 
             res = mcf.mcf(rat_uid, rat_iid, rat_val, net_iid, net_jid, net_val, k=self.k, n_users=train_set.num_users,
-                      n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val), n_epochs=self.max_iter,
-                      lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                      init_params=self.init_params, verbose=self.verbose, seed=self.seed)
+                          n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val),
+                          n_epochs=self.max_iter,
+                          lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
+                          init_params=self.init_params, verbose=self.verbose, seed=self.seed)
 
             self.U = np.asarray(res['U'])
             self.V = np.asarray(res['V'])

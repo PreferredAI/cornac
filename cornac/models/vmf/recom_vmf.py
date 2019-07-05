@@ -1,17 +1,24 @@
-# -*- coding: utf-8 -*-
-
-"""
-@author: Aghiles Salah
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import numpy as np
+
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
-
-
-# from ...utils import fast_dot
 
 
 class VMF(Recommender):
@@ -81,7 +88,7 @@ class VMF(Recommender):
     def __init__(self, name="VMF", k=10, d=10, n_epochs=100, batch_size=100, learning_rate=0.001, gamma=0.9,
                  lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e=10.,
                  trainable=True, verbose=False, use_gpu=False,
-                 init_params={}, seed = None):
+                 init_params={}, seed=None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.d = d
