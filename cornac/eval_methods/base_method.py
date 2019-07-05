@@ -1,8 +1,23 @@
-# -*- coding: utf-8 -*-
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
-"""
-@author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
-"""
+from collections import OrderedDict, defaultdict
+import time
+
+import numpy as np
+import tqdm
 
 from ..data import TextModule
 from ..data import ImageModule
@@ -13,10 +28,6 @@ from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from ..experiment.result import Result
-from collections import OrderedDict, defaultdict
-import numpy as np
-import tqdm
-import time
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
