@@ -125,7 +125,7 @@ class GraphModule(FeatureModule):
         return tuples
 
     @staticmethod
-    def to_symmetric(triplets):
+    def _to_symmetric(triplets):
         """ Transform an asymmetric adjacency matrix to a symmetric one.
 
         Parameters
