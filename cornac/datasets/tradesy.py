@@ -1,21 +1,32 @@
-# -*- coding: utf-8 -*-
-
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 """
-@author: Quoc-Tuan Truong <tuantq.vnu@gmail.com>
-
-Original data: http://jmcauley.ucsd.edu/data/tradesy/
+Link to the data: http://jmcauley.ucsd.edu/data/tradesy/
 This data is used in the VBPR paper. After cleaning the data, we have:
 - Number of feedback: 394,421 (410,186 is reported but there are duplicates)
 - Number of users:     19,243 (19,823 is reported due to duplicates)
 - Number of items:    165,906 (166,521 is reported due to duplicates)
-
 """
+
+from typing import List
+
+import numpy as np
 
 from ..utils import cache
 from ..data import Reader
 from ..data.reader import read_text
-from typing import List
-import numpy as np
 
 
 def load_data(reader: Reader = None) -> List:
