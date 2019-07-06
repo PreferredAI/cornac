@@ -15,6 +15,7 @@
 
 import scipy.sparse as sp
 import numpy as np
+from tqdm import trange
 
 from . import FeatureModule
 
@@ -147,7 +148,7 @@ class GraphModule(FeatureModule):
         return triplets
 
     @staticmethod
-    def _build_knn(features, k=5, similarity="cosine"):
+    def _build_knn(features, k=5, similarity="cosine", verbose=True):
         """Build a KNN graph of a set of objects using similarities among there features.
 
         Parameters
@@ -171,7 +172,7 @@ class GraphModule(FeatureModule):
             l2_norm = l2_norm.reshape(n, 1)
             features = features / (l2_norm + 1e-20)
 
-        for i in range(n):
+        for i in trange(n, desc='Building KNN Graph', disable=not verbose):
             c_id = 0
             for j in range(n):
                 if i != j:
@@ -188,7 +189,7 @@ class GraphModule(FeatureModule):
         return N
 
     @classmethod
-    def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=True, verbose=True):
+    def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=False, verbose=True):
         """Instantiate a GraphModule with a KNN graph build using input features.
 
         Parameters
@@ -206,7 +207,7 @@ class GraphModule(FeatureModule):
         similarity: string, optional, default: "cosine"
             The similarity measure. At this time only the cosine is supported
 
-        symmetric: bool, optional, default: True
+        symmetric: bool, optional, default: False
             When True the resulting KNN-Graph is made symmetric
 
         verbose: bool, default: False
@@ -220,13 +221,11 @@ class GraphModule(FeatureModule):
         """
 
         # build knn graph
-        if verbose:
-            print("Building the KNN graph ...")
-        knn_graph_array = GraphModule._build_knn(features, k, similarity)
+        knn_graph_array = GraphModule._build_knn(features, k, similarity, verbose=verbose)
         knn_graph_triplet = GraphModule._to_triplet(mat=knn_graph_array, ids=ids)
         if symmetric:
-            if verbose:
-                print("Symmetrizing the graph")
             knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
+            if verbose:
+                print("Graph is symmetrized")
 
         return cls(data=knn_graph_triplet)
