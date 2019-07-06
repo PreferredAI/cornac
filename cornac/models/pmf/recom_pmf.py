@@ -1,10 +1,20 @@
-# -*- coding: utf-8 -*-
-
-"""
-@author: Aghiles Salah
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import numpy as np
+
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
@@ -60,7 +70,7 @@ class PMF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
-                 trainable=True, verbose=False, init_params={}, seed = None):
+                 trainable=True, verbose=False, init_params={}, seed=None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
