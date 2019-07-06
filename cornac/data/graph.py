@@ -119,8 +119,7 @@ class GraphModule(FeatureModule):
         ids: list, optional, default: None
             A list of ids (or labels) of the objects to be used in the output triplet matrix.
         """
-
-        tuples = []
+        tuples = set()
         n = mat.shape[0]
         k = mat.shape[1]
 
@@ -129,7 +128,7 @@ class GraphModule(FeatureModule):
         for n_ in range(n):
             for k_ in range(k):
                 j = int(mat[n_, k_])
-                tuples.append((ids[n_], ids[j], 1.))
+                tuples.add((ids[n_], ids[j], 1.))
 
         return tuples
 
@@ -142,8 +141,6 @@ class GraphModule(FeatureModule):
         triplets: array, required
             A Numpy 1d array of real values.
         """
-
-        triplets = set(triplets)
         triplets.update([(j, i, v) for (i, j, v) in triplets])
         return triplets
 
