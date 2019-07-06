@@ -81,12 +81,14 @@ class FeatureModule(Module):
         return self.features.shape[1]
 
     def _swap_feature(self, id_map):
-        for old_idx, raw_id in enumerate(self._ids):
+        from copy import copy
+        for old_idx, raw_id in enumerate(copy(self._ids)):
             new_idx = id_map.get(raw_id, None)
             if new_idx is None:
                 continue
             assert new_idx < self.features.shape[0]
             self.features[[new_idx, old_idx]] = self.features[[old_idx, new_idx]]
+            self._ids[old_idx], self._ids[new_idx] = self._ids[new_idx], self._ids[old_idx]
 
     def build(self, id_map=None):
         """Build the feature matrix.
