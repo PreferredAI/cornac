@@ -78,7 +78,7 @@ class CrossValidation(BaseMethod):
 
         if remain_size > 0:
             remain_partition = rng.choice(self.n_folds, size=remain_size, replace=True, p=None)
-            partition = np.concatenate((self._partition, remain_partition))
+            partition = np.concatenate((partition, remain_partition))
 
         return partition
 
