@@ -47,7 +47,7 @@ class GraphModule(FeatureModule):
 
     def build(self, id_map=None):
         super().build(id_map)
-        
+
         if id_map is not None:
             self.__matrix_size = int(max(id_map.values()) + 1)
             self._build_triplet(id_map)
@@ -97,7 +97,6 @@ class GraphModule(FeatureModule):
                 min_index = i
                 min_ = vect[i]
         return min_index, min_
-
 
     @staticmethod
     def _to_triplet(mat, ids=None):
@@ -161,7 +160,7 @@ class GraphModule(FeatureModule):
             # Normalize features to lie on a unit hypersphere
             l2_norm = np.sqrt((features * features).sum(1))
             l2_norm = l2_norm.reshape(n, 1)
-            features = features/(l2_norm + 1e-20)
+            features = features / (l2_norm + 1e-20)
 
         for i in range(n):
             c_id = 0
@@ -178,7 +177,6 @@ class GraphModule(FeatureModule):
                             N[i, m_id] = j
                             S[i, m_id] = sim
         return N
-
 
     @classmethod
     def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=True, verbose=True):
