@@ -33,7 +33,7 @@ class TestFeatureModule(unittest.TestCase):
         self.assertIsNone(md.features)
 
         md = FeatureModule(features=np.asarray(list(self.id_feature.values())),
-                           ids=self.id_feature.keys(),
+                           ids=list(self.id_feature.keys()),
                            normalized=True)
 
         global_iid_map = OrderedDict()
@@ -46,7 +46,7 @@ class TestFeatureModule(unittest.TestCase):
 
     def test_batch_feature(self):
         md = FeatureModule(features=np.asarray(list(self.id_feature.values())),
-                           ids=self.id_feature.keys(),
+                           ids=list(self.id_feature.keys()),
                            normalized=True)
 
         global_iid_map = OrderedDict({'a': 0, 'b': 1})
