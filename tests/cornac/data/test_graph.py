@@ -70,6 +70,7 @@ class TestGraphModule(unittest.TestCase):
     def test_from_feature(self):
 
         # build a toy feature matrix
+        import numpy as np
         F = np.zeros((4, 3))
         F[0] = np.asarray([1, 0, 0])
         F[1] = np.asarray([1, 1, 0])
