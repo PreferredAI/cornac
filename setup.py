@@ -153,7 +153,7 @@ if USE_CYTHON:
 
 setup(
     name='cornac',
-    version='0.2.1',
+    version='0.3.0',
     author='Preferred.AI',
     description='A collection of recommendation algorithms and comparisons',
     long_description=long_description,
