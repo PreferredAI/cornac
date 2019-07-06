@@ -1,10 +1,20 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Dung D. Le (Andrew) <ddle.2015@smu.edu.sg>
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import numpy as np
-from .ibpr import *
+
 from ..recommender import Recommender
 from ...exception import ScoreException
 
@@ -55,17 +65,17 @@ class IBPR(Recommender):
       In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate = 0.05, lamda = 0.001, batch_size = 100, name="ibpr", trainable = True,
-                 verbose=False, init_params = None):
+    def __init__(self, k=20, max_iter=100, learning_rate=0.05, lamda=0.001, batch_size=100, name="ibpr", trainable=True,
+                 verbose=False, init_params=None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
         self.name = name
         self.learning_rate = learning_rate
-        self.lamda = lamda   
-        self.batch_size = batch_size 
-        
+        self.lamda = lamda
+        self.batch_size = batch_size
+
         self.U = init_params['U']  # matrix of user factors
         self.V = init_params['V']  # matrix of item factors
 
@@ -80,28 +90,28 @@ class IBPR(Recommender):
             as well as some useful attributes such as mappings to the original user/item ids.\
             Please refer to the class TrainSet in the "data" module for details.
         """
-        
+        from .ibpr import ibpr
+
         Recommender.fit(self, train_set)
 
-        X = self.train_set.matrix        
-        
-        #change the data to original user Id item Id and rating format
+        X = self.train_set.matrix
+
+        # change the data to original user Id item Id and rating format
         cooX = X.tocoo()
         data = np.ndarray(shape=(len(cooX.data), 3), dtype=float)
         data[:, 0] = cooX.row
         data[:, 1] = cooX.col
         data[:, 2] = cooX.data
-        
+
         if self.verbose:
             print('Learning...')
-        res = ibpr(X, data, k=self.k, n_epochs=self.max_iter,lamda = self.lamda, learning_rate= self.learning_rate, batch_size = self.batch_size, init_params=self.init_params)
+        res = ibpr(X, data, k=self.k, n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
+                   batch_size=self.batch_size, init_params=self.init_params)
         self.U = np.asarray(res['U'])
         self.V = np.asarray(res['V'])
-        
+
         if self.verbose:
             print('Learning completed')
-
-
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.

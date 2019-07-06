@@ -1,10 +1,20 @@
-# -*- coding: utf-8 -*-
-
-"""
-@author: Aghiles Salah <asalah@smu.edu.sg>
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import unittest
+
 from cornac.data import GraphModule
 from cornac.data import Reader
 from collections import OrderedDict
@@ -56,6 +66,35 @@ class TestGraphModule(unittest.TestCase):
         self.assertEqual(len(rid), 1)
         self.assertEqual(len(cid), 1)
         self.assertEqual(len(val), 1)
+
+    def test_from_feature(self):
+
+        # build a toy feature matrix
+        import numpy as np
+        F = np.zeros((4, 3))
+        F[0] = np.asarray([1, 0, 0])
+        F[1] = np.asarray([1, 1, 0])
+        F[2] = np.asarray([0, 0, 1])
+        F[3] = np.asarray([1, 1, 1])
+
+        # the expected output graph
+        s = set()
+        s.update([(0, 1, 1.0), \
+                  (0, 3, 1.0), \
+                  (1, 0, 1.0), \
+                  (1, 2, 1.0), \
+                  (1, 3, 1.0), \
+                  (2, 1, 1.0), \
+                  (2, 3, 1.0), \
+                  (3, 0, 1.0), \
+                  (3, 1, 1.0), \
+                  (3, 2, 1.0)])
+
+        # build graph module from features
+        gm = GraphModule.from_feature(features=F, k=2, verbose=False)
+
+        self.assertTrue(isinstance(gm, GraphModule))
+        self.assertTrue(not bool(gm.raw_data.difference(s)))
 
 
 if __name__ == '__main__':

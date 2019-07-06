@@ -1,8 +1,17 @@
-# -*- coding: utf-8 -*-
-
-"""
-@author: Aghiles Salah <asalah@smu.edu.sg>
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import scipy.sparse as sp
 import numpy as np
@@ -47,7 +56,7 @@ class GraphModule(FeatureModule):
 
     def build(self, id_map=None):
         super().build(id_map)
-        
+
         if id_map is not None:
             self.__matrix_size = int(max(id_map.values()) + 1)
             self._build_triplet(id_map)
@@ -79,3 +88,145 @@ class GraphModule(FeatureModule):
         """
 
         return self.matrix[batch_ids]
+
+    @staticmethod
+    def _find_min(vect):
+        """ Return the lowest number and its position (index) is a given vector (array).
+
+        Parameters
+        ----------
+        vect: array, required
+            A Numpy 1d array of real values.
+        """
+
+        min_index = 0
+        min_ = np.inf
+        for i in range(len(vect)):
+            if vect[i] < min_:
+                min_index = i
+                min_ = vect[i]
+        return min_index, min_
+
+    @staticmethod
+    def _to_triplet(mat, ids=None):
+        """Return the lowest number and its position (index) is a given vector (array).
+
+        Parameters
+        ----------
+        mat: 2d array, required
+            A Numpy 2d array of integers.
+        ids: list, optional, default: None
+            A list of ids (or labels) of the objects to be used in the output triplet matrix.
+        """
+
+        tuples = []
+        n = mat.shape[0]
+        k = mat.shape[1]
+
+        if ids is None:
+            ids = range(n)
+        for n_ in range(n):
+            for k_ in range(k):
+                j = int(mat[n_, k_])
+                tuples.append((ids[n_], ids[j], 1.))
+
+        return tuples
+
+    @staticmethod
+    def _to_symmetric(triplets):
+        """ Transform an asymmetric adjacency matrix to a symmetric one.
+
+        Parameters
+        ----------
+        triplets: array, required
+            A Numpy 1d array of real values.
+        """
+
+        triplets = set(triplets)
+        triplets.update([(j, i, v) for (i, j, v) in triplets])
+        return triplets
+
+    @staticmethod
+    def _build_knn(features, k=5, similarity="cosine"):
+        """Build a KNN graph of a set of objects using similarities among there features.
+
+        Parameters
+        ----------
+        features: 2d array, required
+            A 2d Numpy array of features (object-by-features).
+        k: int, optional, default: 5
+            The number of nearest neighbors
+        similarity: string, optional, default: "cosine"
+            The similarity measure. At this time only the cosine is supported
+        """
+
+        # Some util variables
+        n = len(features)
+        N = np.zeros((n, k))
+        S = np.zeros((n, k))
+
+        if similarity == "cosine":
+            # Normalize features to lie on a unit hypersphere
+            l2_norm = np.sqrt((features * features).sum(1))
+            l2_norm = l2_norm.reshape(n, 1)
+            features = features / (l2_norm + 1e-20)
+
+        for i in range(n):
+            c_id = 0
+            for j in range(n):
+                if i != j:
+                    sim = np.dot(features[i], features[j])
+                    if c_id <= k - 1:
+                        N[i, c_id] = j
+                        S[i, c_id] = sim
+                        c_id += 1
+                    else:
+                        m_id, m = GraphModule._find_min(S[i])
+                        if sim > m:
+                            N[i, m_id] = j
+                            S[i, m_id] = sim
+        return N
+
+    @classmethod
+    def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=True, verbose=True):
+        """Instantiate a GraphModule with a KNN graph build using input features.
+
+        Parameters
+        ----------
+        features: 2d Numpy array, shape: [n_objects, n_features], required
+            A 2d Numpy array of features, e.g., visual, textual, etc.
+
+        k: int, optional, default: 5
+            The number of nearest neighbors
+
+        ids: array, optional, default: None
+            The list of object ids or labels. For instance if you use textual (bag-of-word) features,
+            then "ids" should be the same as the input to cornac.data.TextModule.
+
+        similarity: string, optional, default: "cosine"
+            The similarity measure. At this time only the cosine is supported
+
+        symmetric: bool, optional, default: True
+            When True the resulting KNN-Graph is made symmetric
+
+        verbose: bool, default: False
+            The verbosity flag.
+
+        Returns
+        -------
+        graph_module: :obj:`<cornac.data.GraphModule>`
+            GraphModule object.
+
+        """
+
+        # build knn graph
+        if verbose:
+            print("Building the KNN graph ...")
+        knn_graph_array = GraphModule._build_knn(features, k, similarity)
+        knn_graph_triplet = GraphModule._to_triplet(mat=knn_graph_array, ids=ids)
+        if symmetric:
+            if verbose:
+                print("Symmetrizing the graph")
+            knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
+
+        return cls(data=knn_graph_triplet)
