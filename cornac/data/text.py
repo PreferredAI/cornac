@@ -491,12 +491,13 @@ class TextModule(FeatureModule):
         self.count_matrix = None
 
     def _swap_text(self, id_map: Dict):
-        for old_idx, raw_id in enumerate(self._ids):
+        for old_idx, raw_id in enumerate(self._ids.copy()):
             new_idx = id_map.get(raw_id, None)
             if new_idx is None:
                 continue
             assert new_idx < len(self.corpus)
             self.corpus[old_idx], self.corpus[new_idx] = self.corpus[new_idx], self.corpus[old_idx]
+            self._ids[old_idx], self._ids[new_idx] = self._ids[new_idx], self._ids[old_idx]
 
     def _build_text(self, id_map: Dict):
         """Build the text based on provided global id map
