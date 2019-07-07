@@ -154,12 +154,13 @@ if USE_CYTHON:
 setup(
     name='cornac',
     version='0.3.0',
-    author='Preferred.AI',
-    description='A collection of recommendation algorithms and comparisons',
+    author='Aghiles Salah, Quoc-Tuan Truong',
+    author_email='asalah@smu.edu.sg, tuantq.vnu@gmail.com',
+    description='A Python library for using, building, evaluating and comparing recommendation algorithms',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://cornac.preferred.ai/',
-    keywords=['recommender', 'recommendation', 'factorization', 'multimodal'],
+    keywords=['recommender system', 'collaborative filtering', 'multimodal', 'preference learning', 'recommendation'],
     ext_modules=extensions,
     install_requires=[
         'numpy',
