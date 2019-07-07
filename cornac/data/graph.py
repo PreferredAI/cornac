@@ -22,6 +22,12 @@ from . import FeatureModule
 
 class GraphModule(FeatureModule):
     """Graph module
+
+    Parameters
+    ----------
+    data: List[str], required
+        A list encoding an adjacency matrix, of a user or an item graph, in the sparse triplet format, \
+        e.g., data=[('user1', 'user4', 1.0)].
     """
 
     def __init__(self, **kwargs):
@@ -39,7 +45,7 @@ class GraphModule(FeatureModule):
         return self.__matrix
 
     def _build_triplet(self, id_map):
-        """Build adjacency matrix in sparse triplet format using mapped ids
+        """Build adjacency matrix in sparse triplet format using cornac's mapped ids
         """
         self.map_rid = []
         self.map_cid = []
@@ -64,7 +70,21 @@ class GraphModule(FeatureModule):
         return self
 
     def get_train_triplet(self, train_row_ids, train_col_ids):
-        """Get the training tuples
+        """Get the subset of relations which align with the training data
+
+        Parameters
+        ----------
+        train_row_ids: array, required
+            An array containing the ids of training objects (users or items) for whom to get the "out" relations. \
+
+        train_col_ids: array, required
+            An array containing the ids of training objects (users or items) for whom to get the "in" relations.
+            Please refer to cornac/models/c2pf/recom_c2pf.py for a concrete usage example of this function.
+
+        Returns
+        -------
+        A subset of the adjacency matrix, in the sparse triplet format, whose elements align with the training \
+        set as specified by "train_row_ids" and "train_col_ids".
         """
         picked_idx = []
         train_row_ids = set(train_row_ids) if not isinstance(train_row_ids, set) else train_row_ids
@@ -74,8 +94,8 @@ class GraphModule(FeatureModule):
                 continue
             picked_idx.append(idx)
 
-        return self.map_cid[picked_idx], \
-               self.map_rid[picked_idx], \
+        return self.map_rid[picked_idx], \
+               self.map_cid[picked_idx], \
                self.val[picked_idx]
 
     # TODO: add feature_fallback decorator and rename the API more meaningful
@@ -85,14 +105,14 @@ class GraphModule(FeatureModule):
         Parameters
         ----------
         batch_ids: array, required
-            An array contains the ids of rows to be returned from the sparse adjacency matrix.
+            An array containing the ids of rows to be returned from the sparse adjacency matrix.
         """
 
         return self.matrix[batch_ids]
 
     @staticmethod
     def _find_min(vect):
-        """ Return the lowest number and its position (index) is a given vector (array).
+        """ Return the lowest number and its position (index) in a given vector (array).
 
         Parameters
         ----------
@@ -110,7 +130,7 @@ class GraphModule(FeatureModule):
 
     @staticmethod
     def _to_triplet(mat, ids=None):
-        """Return the lowest number and its position (index) is a given vector (array).
+        """Covert a 2d array into sparse triplet format.
 
         Parameters
         ----------
@@ -118,6 +138,10 @@ class GraphModule(FeatureModule):
             A Numpy 2d array of integers.
         ids: list, optional, default: None
             A list of ids (or labels) of the objects to be used in the output triplet matrix.
+
+        Returns
+        -------
+        A set corresponding to the sparse triplet representation of mat.
         """
         tuples = set()
         n = mat.shape[0]
@@ -138,8 +162,12 @@ class GraphModule(FeatureModule):
 
         Parameters
         ----------
-        triplets: array, required
-            A Numpy 1d array of real values.
+        triplets: Python set, required
+            A Python set representing an adjacency matrix in the sparse triplet format.
+
+        Returns
+        -------
+        Python set representing a symmetric adjacency matrix.
         """
         triplets.update([(j, i, v) for (i, j, v) in triplets])
         return triplets
@@ -156,6 +184,11 @@ class GraphModule(FeatureModule):
             The number of nearest neighbors
         similarity: string, optional, default: "cosine"
             The similarity measure. At this time only the cosine is supported
+
+        Returns
+        -------
+        graph_module: :obj:`<cornac.data.GraphModule>`
+            GraphModule object.
         """
 
         # Some util variables
@@ -169,7 +202,7 @@ class GraphModule(FeatureModule):
             l2_norm = l2_norm.reshape(n, 1)
             features = features / (l2_norm + 1e-20)
 
-        for i in trange(n, desc='Building KNN Graph', disable=not verbose):
+        for i in trange(n, desc='Building KNN graph', disable=not verbose):
             c_id = 0
             for j in range(n):
                 if i != j:
@@ -198,7 +231,8 @@ class GraphModule(FeatureModule):
             The number of nearest neighbors
 
         ids: array, optional, default: None
-            The list of object ids or labels. For instance if you use textual (bag-of-word) features,
+            The list of object ids or labels, which align with the rows of features. \
+            For instance if you use textual (bag-of-word) features, \
             then "ids" should be the same as the input to cornac.data.TextModule.
 
         similarity: string, optional, default: "cosine"
@@ -214,15 +248,13 @@ class GraphModule(FeatureModule):
         -------
         graph_module: :obj:`<cornac.data.GraphModule>`
             GraphModule object.
-
         """
-
         # build knn graph
         knn_graph_array = GraphModule._build_knn(features, k, similarity, verbose=verbose)
         knn_graph_triplet = GraphModule._to_triplet(mat=knn_graph_array, ids=ids)
         if symmetric:
-            knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
             if verbose:
-                print("Graph is symmetrized")
+                print("Symmetrizing the graph")
+            knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
 
         return cls(data=knn_graph_triplet)
