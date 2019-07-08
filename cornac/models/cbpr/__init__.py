@@ -13,4 +13,4 @@
 # limitations under the License.
 # ============================================================================
 
-from .recom_bpr import BPR
+from .recom_cbpr import CBPR
