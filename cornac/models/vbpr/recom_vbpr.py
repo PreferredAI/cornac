@@ -117,7 +117,7 @@ class VBPR(Recommender):
         Recommender.fit(self, train_set)
 
         if train_set.item_image is None:
-            raise CornacException('item_image module is required but None.')
+            raise CornacException('item_image modality is required but None.')
 
         # Item visual feature from CNN
         train_features = train_set.item_image.features[:self.train_set.num_items].astype(np.float32)

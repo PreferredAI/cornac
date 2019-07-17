@@ -42,7 +42,7 @@ class PCRL(Recommender):
         The learning rate for SGD.
 
     aux_info: see "cornac/examples/pcrl_example.py" in the GitHub repo for an example of how to use \
-        cornac's graph module provide item auxiliary data (e.g., context, text, etc.) for PCRL.
+        cornac's graph modality provide item auxiliary data (e.g., context, text, etc.) for PCRL.
 
     name: string, optional, default: 'PCRL'
         The name of the recommender model.

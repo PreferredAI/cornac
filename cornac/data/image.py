@@ -13,11 +13,11 @@
 # limitations under the License.
 # ============================================================================
 
-from . import FeatureModule
+from . import FeatureModality
 
 
-class ImageModule(FeatureModule):
-    """Image module
+class ImageModality(FeatureModality):
+    """Image modality
 
     """
 

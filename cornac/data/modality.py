@@ -16,29 +16,30 @@
 import numpy as np
 
 
-def fallback_feature(func):
-    """Decorator to fallback to `batch_feature` in FeatureModule
-    """
-    def wrapper(self, *args, **kwargs):
-        if self.features is not None:
-            ids = args[0] if len(args) > 0 else kwargs['batch_ids']
-            return FeatureModule.batch_feature(self, batch_ids=ids)
-        else:
-            return func(self, *args, **kwargs)
-
-    return wrapper
-
-
-class Module:
-    """Module
+class Modality:
+    """Generic class of Modality to extend from
     """
 
     def __init__(self, **kwargs):
         pass
 
 
-class FeatureModule(Module):
-    """FeatureModule
+def fallback_feature(func):
+    """Decorator to fallback to `batch_feature` in FeatureModality
+    """
+
+    def wrapper(self, *args, **kwargs):
+        if self.features is not None:
+            ids = args[0] if len(args) > 0 else kwargs['batch_ids']
+            return FeatureModality.batch_feature(self, batch_ids=ids)
+        else:
+            return func(self, *args, **kwargs)
+
+    return wrapper
+
+
+class FeatureModality(Modality):
+    """Modality that contains features in general
 
     Parameters
     ----------
@@ -51,7 +52,7 @@ class FeatureModule(Module):
 
     copy: bool, default = False
         Whether or not to make a copy of the input features array and leave it unchanged during manipulation.
-        If `False`, rows of the input feature array will be swapped if needed when building the module.
+        If `False`, rows of the input feature array will be swapped if needed when building the modality.
     """
 
     def __init__(self, features=None, ids=None, copy=False, normalized=False, **kwargs):

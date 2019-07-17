@@ -16,7 +16,7 @@
 import unittest
 
 from cornac.eval_methods import BaseMethod
-from cornac.data import TextModule, ImageModule
+from cornac.data import TextModality, ImageModality
 from cornac.data import TrainSet, Reader
 from cornac.metrics import MAE, AUC
 from cornac.models import MF
@@ -65,7 +65,7 @@ class TestBaseMethod(unittest.TestCase):
         self.assertEqual(bm.total_users, 10)
         self.assertEqual(bm.total_items, 10)
 
-    def test_with_modules(self):
+    def test_with_modalities(self):
         bm = BaseMethod()
 
         self.assertIsNone(bm.user_text)
@@ -75,37 +75,37 @@ class TestBaseMethod(unittest.TestCase):
         self.assertIsNone(bm.user_graph)
         self.assertIsNone(bm.item_graph)
 
-        bm.user_text = TextModule()
-        bm.item_image = ImageModule()
-        bm._build_modules()
+        bm.user_text = TextModality()
+        bm.item_image = ImageModality()
+        bm._build_modalities()
 
         try:
-            bm.user_text = ImageModule()
+            bm.user_text = ImageModality()
         except ValueError:
             assert True
 
         try:
-           bm.item_text = ImageModule()
+           bm.item_text = ImageModality()
         except ValueError:
            assert True
 
         try:
-            bm.user_image = TextModule()
+            bm.user_image = TextModality()
         except ValueError:
             assert True
 
         try:
-           bm.item_image = TextModule()
+           bm.item_image = TextModality()
         except ValueError:
            assert True
 
         try:
-            bm.user_graph = TextModule()
+            bm.user_graph = TextModality()
         except ValueError:
             assert True
 
         try:
-            bm.item_graph = ImageModule()
+            bm.item_graph = ImageModality()
         except ValueError:
             assert True
 
