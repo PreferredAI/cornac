@@ -64,7 +64,7 @@ class VMF(Recommender):
         pre-trained (The parameters of the model U, V, P, E are not None).
         
     visual_features : See "cornac/examples/vmf_example.py" for an example of how to use \
-        cornac's visual module to load and provide the ``item visual features'' for VMF.
+        cornac's visual modality to load and provide the ``item visual features'' for VMF.
 
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.

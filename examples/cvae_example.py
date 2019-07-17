@@ -18,20 +18,20 @@ import cornac
 from cornac.data import Reader
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
-from cornac.data import TextModule
+from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
 docs, item_ids = citeulike.load_text()
 data = citeulike.load_data(reader=Reader(item_set=item_ids))
 
-# build text module
-item_text_module = TextModule(corpus=docs, ids=item_ids,
-                              tokenizer=BaseTokenizer(stop_words='english'),
-                              max_vocab=8000, max_doc_freq=0.5)
+# build text modality
+item_text_modality = TextModality(corpus=docs, ids=item_ids,
+                                tokenizer=BaseTokenizer(stop_words='english'),
+                                max_vocab=8000, max_doc_freq=0.5)
 
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
                          rating_threshold=0.5, verbose=True, seed=123,
-                         item_text=item_text_module)
+                         item_text=item_text_modality)
 
 cvae = cornac.models.CVAE(z_dim=50, vae_layers=[200, 100], act_fn='sigmoid',
                           input_dim=8000, lr=0.001, batch_size=128, n_epochs=100,

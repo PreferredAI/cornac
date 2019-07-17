@@ -17,7 +17,7 @@
     for Personalized Item Recommendation. In UAI 2018.
 """
 
-from cornac.data import GraphModule
+from cornac.data import GraphModality
 from cornac.eval_methods import RatioSplit
 from cornac.experiment import Experiment
 from cornac import metrics
@@ -28,12 +28,12 @@ from cornac.datasets import amazon_office as office
 ratings = office.load_rating()
 contexts = office.load_context()
 
-item_graph_module = GraphModule(data=contexts)
+item_graph_modality = GraphModality(data=contexts)
 
 ratio_split = RatioSplit(data=ratings,
                          test_size=0.2, rating_threshold=3.5,
                          shuffle=True, exclude_unknowns=True,
-                         verbose=True, item_graph=item_graph_module)
+                         verbose=True, item_graph=item_graph_modality)
 
 pcrl = PCRL(k=100, z_dims=[300],
             max_iter=300, 

@@ -49,7 +49,7 @@ class MCF(Recommender):
         pre-trained (U and V are not None).
 
     item-affinity network: See "cornac/examples/mcf_office.py" for an example of how to use \
-        cornac's graph module to load and provide the ``item-affinity network'' for MCF.
+        cornac's graph modality to load and provide the ``item-affinity network'' for MCF.
 
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.

@@ -18,21 +18,21 @@ import unittest
 import numpy as np
 
 from collections import OrderedDict
-from cornac.data import FeatureModule
+from cornac.data import FeatureModality
 
 
-class TestFeatureModule(unittest.TestCase):
+class TestFeatureModality(unittest.TestCase):
 
     def setUp(self):
         self.id_feature = {'a': np.zeros(10),
                            'b': np.ones(10)}
 
     def test_init(self):
-        md = FeatureModule()
+        md = FeatureModality()
         md.build(id_map=None)
         self.assertIsNone(md.features)
 
-        md = FeatureModule(features=np.asarray(list(self.id_feature.values())),
+        md = FeatureModality(features=np.asarray(list(self.id_feature.values())),
                            ids=list(self.id_feature.keys()),
                            normalized=True)
 
@@ -45,7 +45,7 @@ class TestFeatureModule(unittest.TestCase):
         self.assertEqual(md.feature_dim, 10)
 
     def test_batch_feature(self):
-        md = FeatureModule(features=np.asarray(list(self.id_feature.values())),
+        md = FeatureModality(features=np.asarray(list(self.id_feature.values())),
                            ids=list(self.id_feature.keys()),
                            normalized=True)
 

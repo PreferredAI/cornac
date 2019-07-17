@@ -17,11 +17,11 @@ import scipy.sparse as sp
 import numpy as np
 from tqdm import trange
 
-from . import FeatureModule
+from . import FeatureModality
 
 
-class GraphModule(FeatureModule):
-    """Graph module
+class GraphModality(FeatureModality):
+    """Graph modality
 
     Parameters
     ----------
@@ -187,8 +187,8 @@ class GraphModule(FeatureModule):
 
         Returns
         -------
-        graph_module: :obj:`<cornac.data.GraphModule>`
-            GraphModule object.
+        graph_modality: :obj:`<cornac.data.GraphModality>`
+            GraphModality object.
         """
 
         # Some util variables
@@ -212,7 +212,7 @@ class GraphModule(FeatureModule):
                         S[i, c_id] = sim
                         c_id += 1
                     else:
-                        m_id, m = GraphModule._find_min(S[i])
+                        m_id, m = GraphModality._find_min(S[i])
                         if sim > m:
                             N[i, m_id] = j
                             S[i, m_id] = sim
@@ -220,7 +220,7 @@ class GraphModule(FeatureModule):
 
     @classmethod
     def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=False, verbose=True):
-        """Instantiate a GraphModule with a KNN graph build using input features.
+        """Instantiate a GraphModality with a KNN graph build using input features.
 
         Parameters
         ----------
@@ -233,7 +233,7 @@ class GraphModule(FeatureModule):
         ids: array, optional, default: None
             The list of object ids or labels, which align with the rows of features. \
             For instance if you use textual (bag-of-word) features, \
-            then "ids" should be the same as the input to cornac.data.TextModule.
+            then "ids" should be the same as the input to cornac.data.TextModality.
 
         similarity: string, optional, default: "cosine"
             The similarity measure. At this time only the cosine is supported
@@ -246,15 +246,15 @@ class GraphModule(FeatureModule):
 
         Returns
         -------
-        graph_module: :obj:`<cornac.data.GraphModule>`
-            GraphModule object.
+        graph_modality: :obj:`<cornac.data.GraphModality>`
+            GraphModality object.
         """
         # build knn graph
-        knn_graph_array = GraphModule._build_knn(features, k, similarity, verbose=verbose)
-        knn_graph_triplet = GraphModule._to_triplet(mat=knn_graph_array, ids=ids)
+        knn_graph_array = GraphModality._build_knn(features, k, similarity, verbose=verbose)
+        knn_graph_triplet = GraphModality._to_triplet(mat=knn_graph_array, ids=ids)
         if symmetric:
             if verbose:
                 print("Symmetrizing the graph")
-            knn_graph_triplet = GraphModule._to_symmetric(knn_graph_triplet)
+            knn_graph_triplet = GraphModality._to_symmetric(knn_graph_triplet)
 
         return cls(data=knn_graph_triplet)

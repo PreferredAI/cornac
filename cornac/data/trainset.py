@@ -398,9 +398,9 @@ class MultimodalTrainSet(MatrixTrainSet):
 
     def __init__(self, matrix, max_rating, min_rating, global_mean, uid_map, iid_map, **kwargs):
         super().__init__(matrix, max_rating, min_rating, global_mean, uid_map, iid_map)
-        self.add_modules(**kwargs)
+        self.add_modalities(**kwargs)
 
-    def add_modules(self, **kwargs):
+    def add_modalities(self, **kwargs):
         self.user_text = kwargs.get('user_text', None)
         self.item_text = kwargs.get('item_text', None)
         self.user_image = kwargs.get('user_image', None)
