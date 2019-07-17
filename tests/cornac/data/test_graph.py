@@ -15,22 +15,22 @@
 
 import unittest
 
-from cornac.data import GraphModule
+from cornac.data import GraphModality
 from cornac.data import Reader
 from collections import OrderedDict
 
 
-class TestGraphModule(unittest.TestCase):
+class TestGraphModality(unittest.TestCase):
 
     def test_init(self):
         data = Reader().read('./tests/graph_data.txt', sep=' ')
-        gmd = GraphModule(data=data)
+        gmd = GraphModality(data=data)
 
         self.assertEqual(len(gmd.raw_data), 7)
 
     def test_build(self):
         data = Reader().read('./tests/graph_data.txt', sep=' ')
-        gmd = GraphModule(data=data)
+        gmd = GraphModality(data=data)
 
         global_iid_map = OrderedDict()
         for raw_iid, raw_jid, val in data:
@@ -44,13 +44,13 @@ class TestGraphModule(unittest.TestCase):
         self.assertEqual(gmd.matrix.shape, (7, 7))
 
         try:
-            GraphModule().build()
+            GraphModality().build()
         except ValueError:
             assert True
 
     def test_get_train_triplet(self):
         data = Reader().read('./tests/graph_data.txt', sep=' ')
-        gmd = GraphModule(data=data)
+        gmd = GraphModality(data=data)
 
         global_iid_map = OrderedDict()
         for raw_iid, raw_jid, val in data:
@@ -90,10 +90,10 @@ class TestGraphModule(unittest.TestCase):
                   (3, 1, 1.0), \
                   (3, 2, 1.0)])
 
-        # build graph module from features
-        gm = GraphModule.from_feature(features=F, k=2, verbose=False)
+        # build graph modality from features
+        gm = GraphModality.from_feature(features=F, k=2, verbose=False)
 
-        self.assertTrue(isinstance(gm, GraphModule))
+        self.assertTrue(isinstance(gm, GraphModality))
         self.assertTrue(not bool(gm.raw_data.difference(s)))
 
 

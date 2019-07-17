@@ -19,9 +19,9 @@ import time
 import numpy as np
 import tqdm
 
-from ..data import TextModule
-from ..data import ImageModule
-from ..data import GraphModule
+from ..data import TextModality
+from ..data import ImageModality
+from ..data import GraphModality
 from ..data import MultimodalTrainSet
 from ..data import MultimodalTestSet
 from ..utils.common import validate_format
@@ -100,60 +100,60 @@ class BaseMethod:
         return self.__user_text
 
     @user_text.setter
-    def user_text(self, input_module):
-        if input_module is not None and not isinstance(input_module, TextModule):
-            raise ValueError('input_module has to be instance of TextModule but {}'.format(type(input_module)))
-        self.__user_text = input_module
+    def user_text(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, TextModality):
+            raise ValueError('input_modality has to be instance of TextModality but {}'.format(type(input_modality)))
+        self.__user_text = input_modality
 
     @property
     def user_image(self):
         return self.__user_image
 
     @user_image.setter
-    def user_image(self, input_module):
-        if input_module is not None and not isinstance(input_module, ImageModule):
-            raise ValueError('input_module has to be instance of ImageModule but {}'.format(type(input_module)))
-        self.__user_image = input_module
+    def user_image(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, ImageModality):
+            raise ValueError('input_modality has to be instance of ImageModality but {}'.format(type(input_modality)))
+        self.__user_image = input_modality
 
     @property
     def user_graph(self):
         return self.__user_graph
 
     @user_graph.setter
-    def user_graph(self, input_module):
-        if input_module is not None and not isinstance(input_module, GraphModule):
-            raise ValueError('input_module has to be instance of GraphModule but {}'.format(type(input_module)))
-        self.__user_graph = input_module
+    def user_graph(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, GraphModality):
+            raise ValueError('input_modality has to be instance of GraphModality but {}'.format(type(input_modality)))
+        self.__user_graph = input_modality
 
     @property
     def item_text(self):
         return self.__item_text
 
     @item_text.setter
-    def item_text(self, input_module):
-        if input_module is not None and not isinstance(input_module, TextModule):
-            raise ValueError('input_module has to be instance of TextModule but {}'.format(type(input_module)))
-        self.__item_text = input_module
+    def item_text(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, TextModality):
+            raise ValueError('input_modality has to be instance of TextModality but {}'.format(type(input_modality)))
+        self.__item_text = input_modality
 
     @property
     def item_image(self):
         return self.__item_image
 
     @item_image.setter
-    def item_image(self, input_module):
-        if input_module is not None and not isinstance(input_module, ImageModule):
-            raise ValueError('input_module has to be instance of ImageModule but {}'.format(type(input_module)))
-        self.__item_image = input_module
+    def item_image(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, ImageModality):
+            raise ValueError('input_modality has to be instance of ImageModality but {}'.format(type(input_modality)))
+        self.__item_image = input_modality
 
     @property
     def item_graph(self):
         return self.__item_graph
 
     @item_graph.setter
-    def item_graph(self, input_module):
-        if input_module is not None and not isinstance(input_module, GraphModule):
-            raise ValueError('input_module has to be instance of GraphModule but {}'.format(type(input_module)))
-        self.__item_graph = input_module
+    def item_graph(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, GraphModality):
+            raise ValueError('input_modality has to be instance of GraphModality but {}'.format(type(input_modality)))
+        self.__item_graph = input_modality
 
     def _organize_metrics(self, metrics):
         """Organize metrics according to their types (rating or raking)
@@ -199,21 +199,21 @@ class BaseMethod:
             self.val_set = MultimodalTestSet.from_uir(
                 val_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
 
-    def _build_modules(self):
-        for user_module in [self.user_text, self.user_image, self.user_graph]:
-            if user_module is None:
+    def _build_modalities(self):
+        for user_modality in [self.user_text, self.user_image, self.user_graph]:
+            if user_modality is None:
                 continue
-            user_module.build(id_map=self.global_uid_map)
+            user_modality.build(id_map=self.global_uid_map)
 
-        for item_module in [self.item_text, self.item_image, self.item_graph]:
-            if item_module is None:
+        for item_modality in [self.item_text, self.item_image, self.item_graph]:
+            if item_modality is None:
                 continue
-            item_module.build(id_map=self.global_iid_map)
+            item_modality.build(id_map=self.global_iid_map)
 
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None:
                 continue
-            data_set.add_modules(user_text=self.user_text,
+            data_set.add_modalities(user_text=self.user_text,
                                  user_image=self.user_image,
                                  user_graph=self.user_graph,
                                  item_text=self.item_text,
@@ -227,7 +227,7 @@ class BaseMethod:
         if self.data_format == 'UIR':
             self._build_uir(train_data, test_data, val_data)
 
-        self._build_modules()
+        self._build_modalities()
 
     def evaluate(self, model, metrics, user_based):
         """Evaluate given models according to given metrics

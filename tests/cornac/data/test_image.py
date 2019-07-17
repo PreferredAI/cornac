@@ -15,20 +15,20 @@
 
 import unittest
 
-from cornac.data import ImageModule
+from cornac.data import ImageModality
 
 
-class TestImageModule(unittest.TestCase):
+class TestImageModality(unittest.TestCase):
 
     def test_init(self):
-        md = ImageModule()
+        md = ImageModality()
         md.build(id_map=None)
 
         self.assertIsNone(md.images)
         self.assertIsNone(md.paths)
 
     def batch_image(self):
-        md = ImageModule()
+        md = ImageModality()
         md.build(id_map=None)
 
         try:

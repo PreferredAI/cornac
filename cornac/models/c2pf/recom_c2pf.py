@@ -45,7 +45,7 @@ class C2PF(Recommender):
         pre-trained (Theta, Beta and Xi are not None).
 
     Item_context: See "cornac/examples/c2pf_example.py" in the GitHub repo for an example of how to use \
-        cornac's graph module to load and provide "item context" for C2PF.
+        cornac's graph modality to load and provide "item context" for C2PF.
 
     init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None, \
         'L2_s':None, 'L2_r':None, 'L3_s':None, 'L3_r':None}
