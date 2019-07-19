@@ -6,7 +6,7 @@
 
 [Website](https://cornac.preferred.ai/) |
 [Documentation](https://cornac.readthedocs.io/en/latest/index.html) |
-[Tutorials](tutorials) |
+[Tutorials](tutorials#tutorials) |
 [Examples](https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory) |
 [Models](#models) |
 [Preferred.AI](https://preferred.ai/)
