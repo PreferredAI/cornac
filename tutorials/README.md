@@ -1,6 +1,6 @@
 # Tutorials
 
-If you are new Cornac, the [Getting Started](#getting-started) tutorials are a good beginning point to learn how to use the framework. There is also a rich collection of [examples](../examples/README.md) on how to use specific models, run your evaluation on an existing data split, etc.
+If you are new Cornac, the [Getting Started](#getting-started) tutorials are a good beginning point to learn how to use the framework. There is also a rich collection of [examples](../examples#cornac-examples-directory) on how to use specific models, run your evaluation on an existing data split, etc.
 
 ## Getting Started
 
