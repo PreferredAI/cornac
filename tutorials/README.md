@@ -5,7 +5,6 @@ If you are new Cornac, the [Getting Started](#getting-started) tutorials are a g
 ## Getting Started
 
 
-[Installation](../README.md#installation)
-
-[Your first Cornac experiment](../README.md#getting-started-your-first-cornac-experiment)  
+- [Installation](../README.md#installation)
+- [Your first Cornac experiment](../README.md#getting-started-your-first-cornac-experiment)  
 
