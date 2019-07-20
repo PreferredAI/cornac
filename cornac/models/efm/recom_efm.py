@@ -57,6 +57,9 @@ class EFM(Recommender):
         When True, user, item, and global biases are used.
         This is omitted in the original paper.
 
+    use_item_aspect_popularity: boolean, optional, default: True
+        When False, item aspect quality score computation omits item aspect frequency out of its formular.
+
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs for SGD.
 
@@ -105,7 +108,7 @@ class EFM(Recommender):
                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
                  rating_scale=5.0, alpha=0.85,
                  lambda_x=0.01, lambda_y=0.01, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01,
-                 use_bias=False, max_iter=100, learning_rate=0.01,
+                 use_bias=False, use_item_aspect_popularity=True, max_iter=100, learning_rate=0.01,
                  trainable=True, verbose=False, init_params=None, seed=None):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
@@ -120,6 +123,7 @@ class EFM(Recommender):
         self.lambda_h = lambda_h
         self.lambda_v = lambda_v
         self.use_bias = use_bias
+        self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.init_params = {} if init_params is None else init_params
@@ -204,12 +208,19 @@ class EFM(Recommender):
         for iid, sentiment_tuple_ids_by_user in sentiment.item_sentiment.items():
             if train_set.is_unk_item(iid):
                 continue
+            item_aspects = [tup[0] for tup_id in sentiment_tuple_ids_by_user.values()
+                                   for tup in sentiment.sentiment[tup_id]]
+            item_aspect_count = Counter(item_aspects)
             total_sentiment_by_aspect = OrderedDict()
             for tup_id in sentiment_tuple_ids_by_user.values():
                 for aid, _, sentiment_polarity in sentiment.sentiment[tup_id]:
                     total_sentiment_by_aspect[aid] = total_sentiment_by_aspect.get(aid, 0) + sentiment_polarity
             for aid, total_sentiment in total_sentiment_by_aspect.items():
-                Y[iid, aid] = self._compute_quality_score(total_sentiment)
+                if self.use_item_aspect_popularity:
+                    Y[iid, aid] = self._compute_quality_score(total_sentiment)
+                else:
+                    avg_sentiment = total_sentiment / item_aspect_count[aid]
+                    Y[iid, aid] = self._compute_quality_score(avg_sentiment)
         return A, X, Y
 
     def _compute_attention_score(self, count):
