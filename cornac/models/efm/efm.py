@@ -5,7 +5,7 @@ from numba import jit
 def sgd_efm(A, X, Y, U1, U2, V, H1, H2,
             global_mean, Bu, Bi,
             num_explicit_factors, num_latent_factors,
-            lambda_x, lambda_y, lambda_u, lambda_h, lambda_v,
+            lambda_x, lambda_y, lambda_u, lambda_h, lambda_v, lambda_reg,
             use_bias, max_iter, learning_rate, verbose):
 
     t = 0
@@ -19,8 +19,8 @@ def sgd_efm(A, X, Y, U1, U2, V, H1, H2,
                     e1_ij = A[i,j] - prediction
                     loss += pow(e1_ij, 2)
                     if use_bias:
-                        Bu[i] += learning_rate * (e1_ij - lambda_x * Bu[i])
-                        Bi[j] += learning_rate * (e1_ij - lambda_y * Bi[j])
+                        Bu[i] += learning_rate * (e1_ij - lambda_reg * Bu[i])
+                        Bi[j] += learning_rate * (e1_ij - lambda_reg * Bi[j])
                     U1[i, :] = U1[i, :] + learning_rate * (e1_ij * U2[j, :] - lambda_u * U1[i, :])
                     U2[j, :] = U2[j, :] + learning_rate * (e1_ij * U1[i, :] - lambda_u * U2[j, :])
                     H1[i, :] = H1[i, :] + learning_rate * (e1_ij * H2[j, :] - lambda_h * H1[i, :])

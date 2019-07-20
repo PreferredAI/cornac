@@ -57,6 +57,9 @@ class EFM(Recommender):
         When True, user, item, and global biases are used.
         This is omitted in the original paper.
 
+    lambda_reg: float, optional, default: 0.01
+        The common regularization parameter for user biases and item biases.
+
     use_item_aspect_popularity: boolean, optional, default: True
         When False, item aspect quality score computation omits item aspect frequency out of its formular.
 
@@ -107,7 +110,7 @@ class EFM(Recommender):
     def __init__(self,  name="EFM",
                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
                  rating_scale=5.0, alpha=0.85,
-                 lambda_x=0.01, lambda_y=0.01, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01,
+                 lambda_x=0.01, lambda_y=0.01, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01, lambda_reg=0.01,
                  use_bias=False, use_item_aspect_popularity=True, max_iter=100, learning_rate=0.01,
                  trainable=True, verbose=False, init_params=None, seed=None):
 
@@ -123,6 +126,7 @@ class EFM(Recommender):
         self.lambda_h = lambda_h
         self.lambda_v = lambda_v
         self.use_bias = use_bias
+        self.lambda_reg = lambda_reg
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
         self.learning_rate = learning_rate
@@ -147,7 +151,7 @@ class EFM(Recommender):
         rng = get_rng(self.seed)
         num_factors = self.num_explicit_factors + self.num_latent_factors
         low = np.sqrt(1. / num_factors)
-        high = np.sqrt(5. / num_factors)
+        high = np.sqrt(self.rating_scale / num_factors)
         self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors), low=low, high=high, random_state=rng))
         self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors), low=low, high=high, random_state=rng))
         self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors), low=low, high=high, random_state=rng))
@@ -179,7 +183,7 @@ class EFM(Recommender):
         self.U1, self.U2, self.V, self.H1, self.H2, self.u_biases, self.i_biases = sgd_efm(A, X, Y, self.U1, self.U2, self.V, self.H1, self.H2,
                                                                                            self.global_mean, self.u_biases, self.i_biases,
                                                                                            self.num_explicit_factors, self.num_latent_factors,
-                                                                                           self.lambda_x, self.lambda_y, self.lambda_u, self.lambda_h, self.lambda_v,
+                                                                                           self.lambda_x, self.lambda_y, self.lambda_u, self.lambda_h, self.lambda_v, self.lambda_reg,
                                                                                            self.use_bias, self.max_iter, self.learning_rate, self.verbose)
 
         if self.verbose:
@@ -196,23 +200,23 @@ class EFM(Recommender):
                 continue
             A[uid, iid] = rating
 
-        for uid, sentiment_tuple_ids_by_item in sentiment.user_sentiment.items():
+        for uid, sentiment_tup_ids_by_item in sentiment.user_sentiment.items():
             if train_set.is_unk_user(uid):
                 continue
-            user_aspects = [tup[0] for tup_id in sentiment_tuple_ids_by_item.values()
+            user_aspects = [tup[0] for tup_id in sentiment_tup_ids_by_item.values()
                                    for tup in sentiment.sentiment[tup_id]]
             user_aspect_count = Counter(user_aspects)
             for aid, count in user_aspect_count.items():
                 X[uid, aid] = self._compute_attention_score(count)
 
-        for iid, sentiment_tuple_ids_by_user in sentiment.item_sentiment.items():
+        for iid, sentiment_tup_ids_by_user in sentiment.item_sentiment.items():
             if train_set.is_unk_item(iid):
                 continue
-            item_aspects = [tup[0] for tup_id in sentiment_tuple_ids_by_user.values()
+            item_aspects = [tup[0] for tup_id in sentiment_tup_ids_by_user.values()
                                    for tup in sentiment.sentiment[tup_id]]
             item_aspect_count = Counter(item_aspects)
             total_sentiment_by_aspect = OrderedDict()
-            for tup_id in sentiment_tuple_ids_by_user.values():
+            for tup_id in sentiment_tup_ids_by_user.values():
                 for aid, _, sentiment_polarity in sentiment.sentiment[tup_id]:
                     total_sentiment_by_aspect[aid] = total_sentiment_by_aspect.get(aid, 0) + sentiment_polarity
             for aid, total_sentiment in total_sentiment_by_aspect.items():
