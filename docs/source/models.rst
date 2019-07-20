@@ -149,3 +149,9 @@ Weighted Matrix Factorization (WMF)
 --------------------------------------------------
 .. automodule:: cornac.models.wmf.recom_wmf
    :members:
+
+Explicit Factor Model (EFM)
+----------------------------------------
+.. automodule:: cornac.models.efm.recom_efm
+   :members:
+
