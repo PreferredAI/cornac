@@ -22,6 +22,7 @@ import tqdm
 from ..data import TextModality
 from ..data import ImageModality
 from ..data import GraphModality
+from ..data import SentimentModality
 from ..data import MultimodalTrainSet
 from ..data import MultimodalTestSet
 from ..utils.common import validate_format
@@ -82,6 +83,7 @@ class BaseMethod:
         self.item_text = kwargs.get('item_text', None)
         self.item_image = kwargs.get('item_image', None)
         self.item_graph = kwargs.get('item_graph', None)
+        self.sentiment = kwargs.get('sentiment', None)
 
         if verbose:
             print('rating_threshold = {:.1f}'.format(rating_threshold))
@@ -155,6 +157,16 @@ class BaseMethod:
             raise ValueError('input_modality has to be instance of GraphModality but {}'.format(type(input_modality)))
         self.__item_graph = input_modality
 
+    @property
+    def sentiment(self):
+        return self.__sentiment
+
+    @sentiment.setter
+    def sentiment(self, input_module):
+        if input_module is not None and not isinstance(input_module, SentimentModality):
+            raise ValueError('input_module has to be instance of Sentiment but {}'.format(type(input_module)))
+        self.__sentiment = input_module
+
     def _organize_metrics(self, metrics):
         """Organize metrics according to their types (rating or raking)
 
@@ -210,6 +222,9 @@ class BaseMethod:
                 continue
             item_modality.build(id_map=self.global_iid_map)
 
+        if self.sentiment is not None:
+            self.sentiment.build(uid_map=self.global_uid_map, iid_map=self.global_iid_map)
+
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None:
                 continue
@@ -218,7 +233,8 @@ class BaseMethod:
                                  user_graph=self.user_graph,
                                  item_text=self.item_text,
                                  item_image=self.item_image,
-                                 item_graph=self.item_graph)
+                                 item_graph=self.item_graph,
+                                 sentiment=self.sentiment)
 
     def build(self, train_data, test_data, val_data=None):
         self.global_uid_map.clear()

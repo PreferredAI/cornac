@@ -407,3 +407,4 @@ class MultimodalTrainSet(MatrixTrainSet):
         self.item_image = kwargs.get('item_image', None)
         self.user_graph = kwargs.get('user_graph', None)
         self.item_graph = kwargs.get('item_graph', None)
+        self.sentiment = kwargs.get('sentiment', None)
