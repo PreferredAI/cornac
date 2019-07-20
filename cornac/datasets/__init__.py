@@ -18,3 +18,4 @@ from . import tradesy
 from . import netflix
 from . import amazon_office
 from . import citeulike
+from . import amazon_toy

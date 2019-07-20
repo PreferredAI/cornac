@@ -13,10 +13,12 @@
 # limitations under the License.
 # ============================================================================
 
+from .modality import Modality
 from .modality import FeatureModality
 from .text import TextModality
 from .image import ImageModality
 from .graph import GraphModality
+from .sentiment import SentimentModality
 from .trainset import TrainSet
 from .trainset import MatrixTrainSet
 from .trainset import MultimodalTrainSet
