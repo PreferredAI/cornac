@@ -15,17 +15,17 @@ Test Set
 .. automodule:: cornac.data.testset
    :members:
 
-Graph Module
+Graph Modality
 ---------------------------------
 .. automodule:: cornac.data.graph
    :members:
 
-Text Module
+Text Modality
 ---------------------------------
 .. automodule:: cornac.data.text
    :members:
 
-Image Module
+Image Modality
 ---------------------------------
 .. automodule:: cornac.data.image
    :members:
