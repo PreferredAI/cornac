@@ -29,13 +29,13 @@ class EFM(Recommender):
     num_latent_factors: int, optional, default: 50
         The dimension of the latent factors.
 
-    num_most_cared_aspects: int, optional, default:15
+    num_most_cared_aspects: int, optional, default: 15
         The number of most cared aspects for each user.
 
     rating_scale: float, optional, default: 5.0
         The maximum rating score of the dataset.
 
-    alpha: float, optional, default:0.85
+    alpha: float, optional, default: 0.85
         Trace off factor for constructing ranking score.
 
     lambda_x: float, optional, default: 1
@@ -68,7 +68,7 @@ class EFM(Recommender):
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already 
-        pre-trained (U and V are not None).
+        pre-trained (U1, U2, V, H1, and H2 are not None).
 
     verbose: boolean, optional, default: False
         When True, running logs are displayed.
