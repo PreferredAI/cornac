@@ -28,7 +28,7 @@ The file `requirements.txt` is optional as opposed to the others, and it is only
 tensorflow>=1.10.0
 ```
 The main file is `recom_pmf.py`. The name of this file should always start with the prefix `recom_`. Here is the minimal structure of such file:
-```
+```python
 from ..recommender import Recommender
 
 class PMF(Recommender):
@@ -82,12 +82,12 @@ When you perform rating prediction evaluation (e.g., in terms of RMSE) Cornac ca
 
 ## Make your model available to Cornac
 As you may have already noticed, Cornac treats each recommender model as a separate module, so as to reduce coupling and ease contribution of new models. This is the reason why you need to include a `pmf/__init__.py` file:
-```
+```python
 from .recom_pmf import PMF
 ```
 
 One last step is required to make you recommender model available to Cornac, which is to update `../models/__init__.py` by adding the following line:
-```
+```python
 from .pmf import PMF
 ```
 
