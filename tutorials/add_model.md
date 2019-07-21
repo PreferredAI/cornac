@@ -1,4 +1,4 @@
-# Add a model into Cornac
+# Contribute a model into Cornac
 
 This tutorial describes how to integrate a recommender model into Cornac. We assume that you have already forked the Cornac repository to your own account.
 
