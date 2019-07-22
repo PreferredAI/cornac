@@ -85,7 +85,7 @@ tensorflow>=1.10.0
 ```
 
 ### 3. Making your recommender available to Cornac
-As you may have already noticed, Cornac treats each recommender model as a separate module, so as to reduce coupling and ease contribution of new models. This is the reason why you need to include a `pmf/__init__.py` file:
+As you may have already noticed, Cornac treats each recommender model as a separate module, so as to reduce coupling and ease the contribution of new models. This is the reason why you need to include a `pmf/__init__.py` file:
 ```python
 from .recom_pmf import PMF
 ```
@@ -109,7 +109,7 @@ Probabilitic Matrix Factorization (PMF)
 
 At this point you are done, and ready to create a pull request, congratulation!
 
-### Adding an example (optional)
+### Including an example (optional)
 We highly encourage you to add an example on how to fit your model to some dataset and report the obtained results, see for instance `./cornac/examples/pcrl_example.py`. All examples should be added to `./cornac/examples/`. 
 
 
@@ -125,8 +125,8 @@ In short, contributing a recommender model to Cornac involves,
      - [x] Recommender.fit()
      - [x] Recommender.score()
 - Updating existing files
-     - [x] cornac/cornac/models/\_\_init__.py
-     - [x] cornac/docs/source/models.rst
+     - [x] ./cornac/models/\_\_init__.py
+     - [x] ./docs/source/models.rst
      
 As a concrete example, you can take a look at one of the Cornac's model implementations inside `./cornac/models/`, as this may help you save time.   
     
