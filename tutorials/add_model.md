@@ -109,7 +109,7 @@ from .pmf import PMF
 At this point you are done, and ready to create a pull request, congratulation!
 
 ### Adding an example (optional)
-We highly encourage you to add an example on how to fit your model to some dataset and report the obtained results, see for instance `./cornac/examples/pcrl_example.py`. All example should be added to `./cornac/examples/`. 
+We highly encourage you to add an example on how to fit your model to some dataset and report the obtained results, see for instance `./cornac/examples/pcrl_example.py`. All examples should be added to `./cornac/examples/`. 
 
 
 ## Summary
