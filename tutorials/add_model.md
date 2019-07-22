@@ -91,7 +91,7 @@ Probabilitic Matrix Factorization (PMF)
 ```
 
 ### 3. Indicating dependencies
-The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external library or framework, e.g., TensorFlow, PyTorch, etc., in which case you should include this file and indicate which versions of the framework(s) are required. Here is a sample of a `requirements.txt` file:
+The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external libraries/frameworks, e.g., TensorFlow, PyTorch, etc., in which case you should include this file and indicate which versions of the framework(s) are required. Here is a sample of a `requirements.txt` file:
 ```
 tensorflow>=1.10.0
 ```
@@ -114,7 +114,7 @@ We highly encourage you to add an example on how to fit your model to some datas
 
 ## Summary
 
-In short, adding a recommender model to Cornac involves,
+In short, contributing a recommender model to Cornac involves,
 
 - Creating new files
     - [x] ./cornac/models/model_name/\_\_init__.py
