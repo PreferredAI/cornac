@@ -19,14 +19,12 @@ cornac
 │           │   recom_pmf.py
 │           │   requirements.txt
 ```
-Note that you only need to add the pmf branch as the rest of the structure is already in place.
+Note that you only need to add the `pmf` branch as the rest of the structure is already in place.
 
-## Files contents
+## Creating a Cornac model in 4 steps
 
-The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external library or framework, e.g., TensorFlow, in which case you should include this file and specify which versions of the framework(s) are required. Here is a sample of a `requirements.txt`:
-```
-tensorflow>=1.10.0
-```
+### 1. Extending the Recommender class
+
 The main file is `recom_pmf.py`. The name of this file should always start with the prefix `recom_`. Here is the minimal structure of such file:
 ```python
 from ..recommender import Recommender
@@ -75,23 +73,12 @@ class PMF(Recommender):
 ``` 
 Every model is an extension of the `Recommender` class. All you need to do is to redefine the functions listed in the above `recom_pmf.py` file.
 
-The `fit()` function should contain or make a call to the necessary codes to fit your model to the training data, while inside the `score()` function you specify how to perform predictions using your model.
+The `fit()` function should contain or make a call to the necessary codes to fit your model to the training data, while the `score()` function specifies how to perform predictions using your model.
  
 #### More on the score function 
-When you perform rating prediction evaluation (e.g., in terms of RMSE) Cornac calls the `Recommender.rate()` function, which in turn calls the score function and clips the predicted value to lie in the same range as the original ratings. Analogously, Cornac calls the `Recommender.rank()` function, which returns a ranking of items according to there scores as predicted by the function `score()`. We recommend you to take a look at `rate()` and `rank()` function inside the `Recommender` class, as you may wish to redefine them as well, if the default settings do not meet your needs. 
+When you perform rating prediction evaluation (e.g., in terms of RMSE) Cornac calls the `Recommender.rate()` function, which in turn calls the `score()` function and clips the predicted values to lie in the same range as the original ratings. Analogously, Cornac calls the `Recommender.rank()` function, which returns a ranking of items according to there scores as predicted by the function `score()`. We recommend you to take a look at the `rate()` and `rank()` functions inside the `Recommender` class, as you may wish to redefine them as well, if the default settings do not meet your needs. 
 
-## Make your model available to Cornac
-As you may have already noticed, Cornac treats each recommender model as a separate module, so as to reduce coupling and ease contribution of new models. This is the reason why you need to include a `pmf/__init__.py` file:
-```python
-from .recom_pmf import PMF
-```
-
-One last step is required to make you recommender model available to Cornac, which is to update `../models/__init__.py` by adding the following line:
-```python
-from .pmf import PMF
-```
-
-## Documentation
+### 2. Documenting your code
 
 Cornac uses [Sphinx](http://www.sphinx-doc.org/en/master/) to generate documentation. All you need to do is to fulfill the Parameters section inside `recom_pmf.py`. If you are not familiar with Sphinx syntax conventions, you can just take a look at some of the existing Cornac models and follow them.
 
@@ -103,7 +90,27 @@ Probabilitic Matrix Factorization (PMF)
    :members:
 ```
 
+### 3. Indicating dependencies
+The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external library or framework, e.g., TensorFlow, PyTorch, etc., in which case you should include this file and indicate which versions of the framework(s) are required. Here is a sample of a `requirements.txt` file:
+```
+tensorflow>=1.10.0
+```
+
+### 4. Making your recommender available to Cornac
+As you may have already noticed, Cornac treats each recommender model as a separate module, so as to reduce coupling and ease contribution of new models. This is the reason why you need to include a `pmf/__init__.py` file:
+```python
+from .recom_pmf import PMF
+```
+
+One last step is required to make you recommender model available to Cornac, which is to update `../models/__init__.py` by adding the following line:
+```python
+from .pmf import PMF
+```
 At this point you are done, and ready to create a pull request, congratulation!
+
+### Adding an example (optional)
+We highly encourage you to add an example on how to fit your model to some dataset and report the obtained results, see for instance `./cornac/examples/pcrl_example.py`. All example should be added to `./cornac/examples/`. 
+
 
 ## Summary
 
@@ -120,7 +127,7 @@ In short, adding a recommender model to Cornac involves,
      - [x] cornac/cornac/models/\_\_init__.py
      - [x] cornac/docs/source/models.rst
      
-As a concrete example, we highly recommend you to take a look at one of the Cornac's model implementations inside `./cornac/models/`, as this may help you save time.   
+As a concrete example, you can take a look at one of the Cornac's model implementations inside `./cornac/models/`, as this may help you save time.   
     
 ## Using Cython and C/C++ (optional)
 
