@@ -78,13 +78,7 @@ The `fit()` function should contain or make a call to the necessary codes to fit
 #### More on the score function 
 When you perform rating prediction evaluation (e.g., in terms of RMSE) Cornac calls the `Recommender.rate()` function, which in turn calls the `score()` function and clips the predicted values to lie in the same range as the original ratings. Analogously, Cornac calls the `Recommender.rank()` function, which returns a ranking of items according to their scores as predicted by the function `score()`. We recommend you to take a look at the `rate()` and `rank()` functions inside the `Recommender` class, as you may wish to redefine them as well, if the default settings do not meet your needs. 
 
-### 2. Indicating dependencies
-The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external libraries/frameworks, e.g., TensorFlow, PyTorch, etc., in which case you should include this file and indicate which versions of the framework(s) are required. Here is a sample of a `requirements.txt` file:
-```
-tensorflow>=1.10.0
-```
-
-### 3. Making your recommender available to Cornac
+### 2. Making your recommender available to Cornac
 As you may have already noticed, Cornac treats each recommender model as a separate module, so as to reduce coupling and ease the contribution of new models. This is the reason why you need to include a `pmf/__init__.py` file:
 ```python
 from .recom_pmf import PMF
@@ -93,6 +87,12 @@ from .recom_pmf import PMF
 One last step is required to make you recommender model available to Cornac, which is to update `../models/__init__.py` by adding the following line:
 ```python
 from .pmf import PMF
+```
+
+### 3. Indicating dependencies
+The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external libraries/frameworks, e.g., TensorFlow, PyTorch, etc., in which case you should include this file and indicate which versions of the framework(s) are required. Here is a sample of a `requirements.txt` file:
+```
+tensorflow>=1.10.0
 ```
 
 ### 4. Adding documentation
