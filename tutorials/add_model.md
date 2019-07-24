@@ -21,11 +21,11 @@ cornac
 ```
 Note that you only need to add the `pmf` branch as the rest of the structure is already in place.
 
-## Creating a Cornac model in 4 steps
+## Creating a model in 4 steps
 
 ### 1. Extending the Recommender class
 
-The main file is `recom_pmf.py`. The name of this file should always start with the prefix `recom_`. Here is the minimal structure of such file:
+The main file is `recom_pmf.py`, which will contain your recommender algorithm related codes. The name of this file should always start with the prefix `recom_`. Here is the minimal structure of such file:
 ```python
 from ..recommender import Recommender
 
@@ -71,7 +71,7 @@ class PMF(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
 ``` 
-Every model is an extension of the `Recommender` class. All you need to do is to redefine the functions listed in the above `recom_pmf.py` file.
+Every model is an extension of the generic class `Recommender`. All you need to do is to redefine the functions listed in the above `recom_pmf.py` file.
 
 The `fit()` function should contain or make a call to the necessary codes to fit your model to the training data, while the `score()` function specifies how to perform predictions using your model.
  
@@ -90,7 +90,7 @@ from .pmf import PMF
 ```
 
 ### 3. Indicating dependencies
-The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external libraries/frameworks, e.g., TensorFlow, PyTorch, etc., in which case you should include this file and indicate which versions of the framework(s) are required. Here is a sample of a `requirements.txt` file:
+The file `requirements.txt` is optional as opposed to the others, and it is only needed if your implementation relies on some external libraries (e.g., TensorFlow, PyTorch) which are not Cornac dependencies. In this case you should include this file and indicate which versions of the libraries of interest are required. Here is a sample of a `requirements.txt` file:
 ```
 tensorflow>=1.10.0
 ```
@@ -106,11 +106,11 @@ Probabilitic Matrix Factorization (PMF)
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
 ```
-
-At this point you are done, and ready to create a pull request, congratulation!
+The last step is to add your algorithm into the Cornac's list of models table inside `./README.md`, for ease of reference purposes.
+At this point you are done, and ready to create a pull request, congratulations!
 
 ### Including an example (optional)
-We highly encourage you to add an example on how to fit your model to some dataset and report the obtained results, see for instance `./cornac/examples/pcrl_example.py`. All examples should be added to `./cornac/examples/`. 
+We highly encourage you to add an example on how to fit your model to some dataset and report the obtained results, see for instance `./cornac/examples/pcrl_example.py`. All examples, should be added to the `examples/` directory, listed in `examples/README.md` under section: Examples by Algorithm, and referenced in models table in `./README.md`. 
 
 
 ## Summary
@@ -120,13 +120,14 @@ In short, contributing a recommender model to Cornac involves,
 - Creating new files
     - [x] ./cornac/models/model_name/\_\_init__.py
     - [x] ./cornac/models/model_name/recom_model_name.py
-    - [x] ./cornac/models/model_name/requirement.py (optional)
+    - [x] ./cornac/models/model_name/requirement.txt (optional)
 - Redefining two functions
      - [x] Recommender.fit()
      - [x] Recommender.score()
 - Updating existing files
      - [x] ./cornac/models/\_\_init__.py
      - [x] ./docs/source/models.rst
+     - [x] ./README.md
      
 As a concrete example, you can take a look at one of the Cornac's model implementations inside `./cornac/models/`, as this may help you save time.   
     
@@ -135,5 +136,5 @@ As a concrete example, you can take a look at one of the Cornac's model implemen
 - If you are interested in using [Cython](https://cython.org/) to implement the algorithmic part of your model, then the Cornac's PMF implementation `./cornac/models/pmf` is a good example to look at.
 - If you already have a C/C++ implementation of your model, then you can use Cython to wrap your code for Python. In this case, you may consider `./cornac/models/hpf` or `./cornac/models/c2pf`, which are based on C++ implementations.
 
-Note that, in this situation you will need to add your Cython extension into `./setup.py`.
+Note that, in this situation you will need to declare your Cython extension inside  `./setup.py`.
   
