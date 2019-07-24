@@ -7,3 +7,6 @@ If you are new to Cornac, the [Getting Started](#getting-started) tutorials are 
 - [Installation](../README.md#installation)
 - [Your first Cornac experiment](../README.md#getting-started-your-first-cornac-experiment)  
 
+## Contributing
+
+- [Add a new recommender model](./add_model.md)
