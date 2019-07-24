@@ -71,7 +71,7 @@ class PMF(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
 ``` 
-Every model is an extension of the generic class `Recommender`. All you need to do is to redefine the functions listed in the above `recom_pmf.py` file.
+Every model extends the generic class `Recommender`. All you need to do is to redefine the functions listed in the above `recom_pmf.py` file.
 
 The `fit()` function should contain or make a call to the necessary codes to fit your model to the training data, while the `score()` function specifies how to perform predictions using your model.
  
@@ -121,7 +121,7 @@ In short, contributing a recommender model to Cornac involves,
     - [x] ./cornac/models/model_name/\_\_init__.py
     - [x] ./cornac/models/model_name/recom_model_name.py
     - [x] ./cornac/models/model_name/requirement.txt (optional)
-- Redefining two functions
+- Implementing two functions
      - [x] Recommender.fit()
      - [x] Recommender.score()
 - Updating existing files
