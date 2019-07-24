@@ -14,6 +14,7 @@
 # ============================================================================
 
 from ...exception import ScoreException
+from ...utils.common import intersects
 from ..recommender import Recommender
 from collections import Counter, OrderedDict
 import numpy as np
