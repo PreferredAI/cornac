@@ -25,26 +25,23 @@ class Experiment:
 
     Parameters
     ----------
-    eval_method: BaseMethod object, required
+    eval_method: :obj:`<cornac.eval_methods.BaseMethod>` , required
         The evaluation method (e.g., RatioSplit).
 
-    models: array of objects Recommender, required
-        A collection of recommender models to evaluate, e.g., [C2pf, Hpf, Pmf].
+    models: array of :obj:`<cornac.models.Recommender>`, required
+        A collection of recommender models to evaluate, e.g., [C2PF, HPF, PMF].
 
-    metrics: array of object metrics, required
+    metrics: array of :obj:{`<cornac.metrics.RatingMetric>`, `<cornac.metrics.RankingMetric>`}, required
         A collection of metrics to use to evaluate the recommender models, \
-        e.g., [Ndcg, Mrr, Recall].
+        e.g., [NDCG, MRR, Recall].
 
     user_based: bool, optional, default: True
-        Performance will be averaged based on number of users for rating metrics.
-        If `False`, results will be averaged over number of ratings.
+        This parameter is only useful if you are considering rating metrics. When True, first the average performance \
+        for every user is computed, then the obtained values are averaged to return the final result.
+        If `False`, results will be averaged over the number of ratings.
 
-    avg_results: DataFrame, default: None
-        The average result per model.
-
-    user_results: dictionary, default: {}
-        Results per user for each model.
-        Result of user u, of metric m, of model d will be user_results[d][m][u]
+    result: array of :obj:`<cornac.experiment.result.Result>`, default: None
+        This attribute contains the results per-model of your experiment, initially it is set to None.
     """
 
     def __init__(self, eval_method, models, metrics, user_based=True, verbose=False):
