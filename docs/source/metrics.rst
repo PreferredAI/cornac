@@ -3,21 +3,45 @@ Metrics
 
 .. automodule:: cornac.metrics
 
+++++++
+Rating
+++++++
+
+Mean Absolute Error (MAE)
+----------------------------
+.. autoclass:: MAE
+
+Mean Squared Error (MSE)
+------------------------
+.. autoclass:: MSE
+
+Root Mean Squared Error (RMSE)
+--------------------------------
+.. autoclass:: RMSE
+
++++++++
+Ranking
++++++++
+
 Area Under the Curve (AUC)
 --------------------------
 .. autoclass:: AUC
 
-Normalized Discount Cumulative Gain (NDCG)
+Fmeasure (F1)
+-------------------
+.. autoclass:: FMeasure
+
+Mean Reciprocal Rank (MRR)
 -------------------------------------------
-.. autoclass:: NDCG
+.. autoclass:: MRR
 
 Normalized Cumulative Reciprocal Rank (NCRR)
 --------------------------------------------
 .. autoclass:: NCRR
 
-Mean Reciprocal Rank (MRR)
+Normalized Discount Cumulative Gain (NDCG)
 -------------------------------------------
-.. autoclass:: MRR
+.. autoclass:: NDCG
 
 Precision
 -------------------
@@ -26,15 +50,3 @@ Precision
 Recall
 -------------------
 .. autoclass:: Recall
-
-Fmeasure (F1)
--------------------
-.. autoclass:: FMeasure
-
-Mean Absolute Error (MAE)
-----------------------------
-.. autoclass:: MAE
-
-Root Mean Squared Error (RMSE)
---------------------------------
-.. autoclass:: RMSE
