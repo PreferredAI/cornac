@@ -22,14 +22,14 @@ import re
 import numpy as np
 import scipy.sparse as sp
 
-from . import FeatureModule
-from .module import fallback_feature
+from . import FeatureModality
+from .modality import fallback_feature
 
 __all__ = ['Tokenizer',
            'BaseTokenizer',
            'Vocabulary',
            'CountVectorizer',
-           'TextModule']
+           'TextModality']
 
 PAD, UNK, BOS, EOS = '<PAD>', '<UNK>', '<BOS>', '<EOS>'
 SPECIAL_TOKENS = [PAD, UNK, BOS, EOS]
@@ -437,8 +437,8 @@ class CountVectorizer():
         return sequences, X
 
 
-class TextModule(FeatureModule):
-    """Text module
+class TextModality(FeatureModality):
+    """Text modality
 
     Parameters
     ----------

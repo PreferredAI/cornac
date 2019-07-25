@@ -13,10 +13,10 @@
 # limitations under the License.
 # ============================================================================
 
-from .module import FeatureModule
-from .text import TextModule
-from .image import ImageModule
-from .graph import GraphModule
+from .modality import FeatureModality
+from .text import TextModality
+from .image import ImageModality
+from .graph import GraphModality
 from .trainset import TrainSet
 from .trainset import MatrixTrainSet
 from .trainset import MultimodalTrainSet
@@ -24,10 +24,10 @@ from .testset import TestSet
 from .testset import MultimodalTestSet
 from .reader import Reader
 
-__all__ = ['FeatureModule',
-           'TextModule',
-           'ImageModule',
-           'GraphModule',
+__all__ = ['FeatureModality',
+           'TextModality',
+           'ImageModality',
+           'GraphModality',
            'TrainSet',
            'MatrixTrainSet',
            'MultimodalTrainSet',

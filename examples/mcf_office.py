@@ -14,7 +14,7 @@
 # ============================================================================
 """Fit to and evaluate MCF on the Office Amazon dataset"""
 
-from cornac.data import GraphModule
+from cornac.data import GraphModality
 from cornac.eval_methods import RatioSplit
 from cornac.experiment import Experiment
 from cornac import metrics
@@ -25,12 +25,12 @@ from cornac.datasets import amazon_office as office
 ratings = office.load_rating()
 contexts = office.load_context()
 
-item_graph_module = GraphModule(data=contexts)
+item_graph_modality = GraphModality(data=contexts)
 
 ratio_split = RatioSplit(data=ratings,
                          test_size=0.2, rating_threshold=3.5,
                          shuffle=True, exclude_unknowns=True,
-                         verbose=True, item_graph=item_graph_module)
+                         verbose=True, item_graph=item_graph_modality)
 
 mcf = MCF(k=10, max_iter=40, learning_rate=0.001, verbose=True)
 

@@ -15,14 +15,14 @@
 """Example for Social Bayesian Personalized Ranking with Epinions dataset"""
 
 import cornac
-from cornac.data import Reader, GraphModule
+from cornac.data import Reader, GraphModality
 from cornac.datasets import epinions
 from cornac.eval_methods import RatioSplit
 
 ratio_split = RatioSplit(data=epinions.load_data(Reader(bin_threshold=4.0)),
                          test_size=0.1, rating_threshold=0.5,
                          exclude_unknowns=True, verbose=True,
-                         user_graph=GraphModule(data=epinions.load_trust()))
+                         user_graph=GraphModality(data=epinions.load_trust()))
 
 sbpr = cornac.models.SBPR(k=10, max_iter=50, learning_rate=0.001,
                           lambda_u=0.015, lambda_v=0.025, lambda_b=0.01,
