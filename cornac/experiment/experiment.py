@@ -25,7 +25,7 @@ class Experiment:
 
     Parameters
     ----------
-    eval_method: :obj:`<cornac.eval_methods.BaseMethod>` , required
+    eval_method: :obj:`<cornac.eval_methods.BaseMethod>`, required
         The evaluation method (e.g., RatioSplit).
 
     models: array of :obj:`<cornac.models.Recommender>`, required
