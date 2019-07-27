@@ -1,8 +1,7 @@
-Cornac: a collection of recommendation algorithms and comparisons
-=================================================================
+Cornac: A Comparative Framework for Multimodal Recommender Systems
+==================================================================
 
-**Cornac** is python recommender systems library for **easy**, **effective** and **efficient** experiments. Cornac is **simple** and **handy**. It is designed from the ground-up to faithfully reflect the standard steps taken by researchers to implement and evaluate personalized recommendation models. Moreover, contributing new recommender models, evaluation metrics, etc., to Cornac is very easy and smooth. For instance, if you already have a python implementation of your model, e.g., PMF, you will need to spend less than 5 minutes in average to integrate it to Cornac. 
-
+**Cornac** is a comparative framework for multimodal recommender systems. It focuses on making it **convenient** to work with models leveraging **auxiliary data** (e.g., item descriptive text and image, social network, etc). **Cornac** enables **fast** experiments and **straightforward** implementations of new models. It is **highly compatible** with existing machine learning libraries (e.g., TensorFlow, PyTorch).
 
 
 .. toctree::
