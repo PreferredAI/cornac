@@ -136,26 +136,26 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 
 | Year | Model and paper | Additional dependencies | Examples |
 | :---: | --- | :---: | :---: |
-| 2018 | [Collaborative Context Poisson Factorization (C2PF)](cornac/models/c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | N/A | [c2pf_example.py](examples/c2pf_example.py)
-| 2018 | [Probabilistic Collaborative Representation Learning (PCRL)](cornac/models/pcrl), [paper](http://www.hadylauw.com/publications/uai18.pdf) | [requirements.txt](cornac/models/pcrl/requirements.txt) | [pcrl_example.py](examples/pcrl_example.py)
+| 2018 | [Collaborative Context Poisson Factorization (C2PF)](cornac/models/c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | N/A | [c2pf_exp.py](examples/c2pf_example.py)
+| 2018 | [Probabilistic Collaborative Representation Learning (PCRL)](cornac/models/pcrl), [paper](http://www.hadylauw.com/publications/uai18.pdf) | [requirements.txt](cornac/models/pcrl/requirements.txt) | [pcrl_exp.py](examples/pcrl_example.py)
 | 2018 | [Variational Autoencoder for Collaborative Filtering (VAECF)](cornac/models/vaecf), [paper](https://arxiv.org/pdf/1802.05814.pdf) | [requirements.txt](cornac/models/vaecf/requirements.txt) |
-| 2017 | [Collaborative Variational Autoencoder (CVAE)](cornac/models/cvae), [paper](http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf) | [requirements.txt](cornac/models/cvae/requirements.txt) | [cvae_example.py](examples/cvae_example.py)
-| 2017 | [Indexable Bayesian Personalized Ranking (IBPR)](cornac/models/ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | [requirements.txt](cornac/models/ibpr/requirements.txt) | [ibpr_example.py](examples/ibpr_example.py)
+| 2017 | [Collaborative Variational Autoencoder (CVAE)](cornac/models/cvae), [paper](http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf) | [requirements.txt](cornac/models/cvae/requirements.txt) | [cvae_exp.py](examples/cvae_example.py)
+| 2017 | [Indexable Bayesian Personalized Ranking (IBPR)](cornac/models/ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | [requirements.txt](cornac/models/ibpr/requirements.txt) | [ibpr_exp.py](examples/ibpr_example.py)
 | 2017 | [Matrix Co-Factorization (MCF)](cornac/models/mcf), [paper](http://papers.www2017.com.au.s3-website-ap-southeast-2.amazonaws.com/proceedings/p1113.pdf) | N/A | [mcf_office.py](examples/mcf_office.py)
 | 2017 | [Online Indexable Bayesian Personalized Ranking (Online IBPR)](cornac/models/online_ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | [requirements.txt](cornac/models/online_ibpr/requirements.txt) |
 | 2017 | [Visual Matrix Factorization (VMF)](cornac/models/vmf), [paper](http://papers.www2017.com.au.s3-website-ap-southeast-2.amazonaws.com/proceedings/p1113.pdf) | [requirements.txt](cornac/models/vmf/requirements.txt) |
-| 2016 | [Collaborative Deep Ranking (CDR)](cornac/models/cdr), [paper](http://inpluslab.com/chenliang/homepagefiles/paper/hao-pakdd2016.pdf) | [requirements.txt](cornac/models/cdr/requirements.txt) | [cdr_example.py](examples/cdr_example.py)
+| 2016 | [Collaborative Deep Ranking (CDR)](cornac/models/cdr), [paper](http://inpluslab.com/chenliang/homepagefiles/paper/hao-pakdd2016.pdf) | [requirements.txt](cornac/models/cdr/requirements.txt) | [cdr_exp.py](examples/cdr_example.py)
 | 2016 | [Collaborative Ordinal Embedding (COE)](cornac/models/coe), [paper](http://www.hadylauw.com/publications/sdm16.pdf) | [requirements.txt](cornac/models/coe/requirements.txt) |
-| 2016 | [Convolutional Matrix Factorization (ConvMF)](cornac/models/conv_mf), [paper](http://uclab.khu.ac.kr/resources/publication/C_351.pdf) | [requirements.txt](cornac/models/conv_mf/requirements.txt) | [convmf_example.py](examples/conv_mf_example.py)
+| 2016 | [Convolutional Matrix Factorization (ConvMF)](cornac/models/conv_mf), [paper](http://uclab.khu.ac.kr/resources/publication/C_351.pdf) | [requirements.txt](cornac/models/conv_mf/requirements.txt) | [convmf_exp.py](examples/conv_mf_example.py)
 | 2016 | [Spherical K-means (SKM)](cornac/models/skm), [paper](https://www.sciencedirect.com/science/article/pii/S092523121501509X) | N/A |
 | 2016 | [Visual Bayesian Personalized Ranking (VBPR)](cornac/models/vbpr), [paper](https://arxiv.org/pdf/1510.01784.pdf) | [requirements.txt](cornac/models/vbpr/requirements.txt) | [vbpr_tradesy.py](examples/vbpr_tradesy.py)
-| 2015 | [Collaborative Deep Learning (CDL)](cornac/models/cdl), [paper](https://arxiv.org/pdf/1409.2944.pdf) | [requirements.txt](cornac/models/cdl/requirements.txt) | [cdl_example.py](examples/cdl_example.py)
+| 2015 | [Collaborative Deep Learning (CDL)](cornac/models/cdl), [paper](https://arxiv.org/pdf/1409.2944.pdf) | [requirements.txt](cornac/models/cdl/requirements.txt) | [cdl_exp.py](examples/cdl_example.py)
 | 2015 | [Hierarchical Poisson Factorization (HPF)](cornac/models/hpf), [paper](http://jakehofman.com/inprint/poisson_recs.pdf) | N/A |
 | 2014 | [Social Bayesian Personalized Ranking (SBPR)](cornac/models/sbpr), [paper](https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf) | N/A | [sbpr_epinions.py](examples/sbpr_epinions.py)
 | 2011 | [Collaborative Topic Modeling (CTR)](cornac/models/ctr), [paper](http://www.cs.columbia.edu/~blei/papers/WangBlei2011.pdf) | N/A | [ctr_citeulike.py](examples/ctr_example_citeulike.py)
 | 2009 | [Bayesian Personalized Ranking (BPR)](cornac/models/bpr), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | N/A | [bpr_netflix.py](examples/bpr_netflix.py)
 | 2009 | [Matrix Factorization (MF)](cornac/models/mf), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | N/A | [biased_mf.py](examples/biased_mf.py), [given_data.py](examples/given_data.py)
-| 2008 | [Collaborative Filtering for Implicit Feedback (CF)](cornac/models/cf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cornac/models/cf/requirements.txt) | [cf_example.py](examples/cf_example.py)
+| 2008 | [Collaborative Filtering for Implicit Feedback (CF)](cornac/models/cf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cornac/models/cf/requirements.txt) | [cf_exp.py](examples/cf_example.py)
 | 2008 | [Probabilistic Matrix Factorization (PMF)](cornac/models/pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | N/A | [pmf_ratio.py](examples/pmf_ratio.py)
 | 2008 | [Social Recommendation using PMF (SoRec)](cornac/models/sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | N/A |
 
