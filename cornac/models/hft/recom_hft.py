@@ -100,8 +100,8 @@ class HFT(Recommender):
         self.n_item = self.train_set.num_items
         self.n_user = self.train_set.num_users
 
-        n_params = 1 + 1 + self.n_user + self.n_item + self.k * (self.n_user + self.n_item + self.vocab_size)
-        self.params = self.init_params.get('params', uniform((n_params, 1), random_state=self.seed))
+        n_params = self.k * (self.n_user + self.n_item)
+        self.params = self.init_params.get('params', uniform(n_params, random_state=self.seed))
         self._update_view()
         self.alpha = self.train_set.global_mean
 
@@ -110,17 +110,26 @@ class HFT(Recommender):
 
     def _update_view(self):
 
-        params_length = np.array(
-            [1, 1, self.n_user, self.n_item, self.n_user * self.k, self.n_item * self.k, self.vocab_size * self.k])
+        # params_length = np.array(
+        #     [1, 1, self.n_user, self.n_item, self.n_user * self.k, self.n_item * self.k, self.vocab_size * self.k])
+        # idx = params_length.cumsum()
+        # # create parameter view
+        # self.alpha = self.params[0:idx[0], ]
+        # self.kappa = self.params[idx[0]:idx[1], ]
+        # self.bias_user = self.params[idx[1]:idx[2], ]
+        # self.bias_item = self.params[idx[2]:idx[3], ]
+        # self.U = self.params[idx[3]:idx[4], ].reshape(self.n_user, self.k)
+        # self.V = self.params[idx[4]:idx[5], ].reshape(self.n_item, self.k)
+        # self.topic_words = self.params[idx[5]:, ].reshape(self.vocab_size, self.k)
+
+        params_length = np.array([self.n_user * self.k, self.n_item * self.k])
         idx = params_length.cumsum()
         # create parameter view
-        self.alpha = self.params[0:idx[0], ]
-        self.kappa = self.params[idx[0]:idx[1], ]
-        self.bias_user = self.params[idx[1]:idx[2], ]
-        self.bias_item = self.params[idx[2]:idx[3], ]
-        self.U = self.params[idx[3]:idx[4], ].reshape(self.n_user, self.k)
-        self.V = self.params[idx[4]:idx[5], ].reshape(self.n_item, self.k)
-        self.topic_words = self.params[idx[5]:idx[6], ].reshape(self.vocab_size, self.k)
+        # self.alpha = self.params[0:idx[0], ]
+        # self.bias_user = self.params[idx[0]:idx[1], ]
+        # self.bias_item = self.params[idx[1]:idx[2], ]
+        self.U = self.params[:idx[0]].reshape(self.n_user, self.k)
+        self.V = self.params[idx[0]:].reshape(self.n_item, self.k)
 
     def _fit_hft(self):
 
@@ -131,17 +140,17 @@ class HFT(Recommender):
                       n_vocab=self.vocab_size, k=self.k, lambda_reg=self.lambda_reg,
                       latent_reg=self.latent_reg, grad_iter=self.grad_iter)
 
-        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
-        documents, _ = self._build_data(bow_mat)  # bag of word feature
+        # bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
+        # documents, _ = self._build_data(bow_mat)  # bag of word feature
         # Rating data
         user_data = self._build_data(self.train_set.matrix)
         item_data = self._build_data(self.train_set.matrix.T.tocsr())
         # randomly assign word topic
-        model.random_int_topic(docs=documents)
+        #model.random_int_topic(docs=documents)
         # training
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
-            model.assign_word_topics(docs=documents)
+            #model.assign_word_topics(docs=documents)
             loss = model.update_params(rating_data=(user_data, item_data))
             loop.set_postfix(loss=loss)
 
@@ -189,7 +198,6 @@ class HFT(Recommender):
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-            user_pred = self.alpha.item() + self.bias_user[user_id] + self.bias_item[item_id] + self.V[item_id, :].dot(
-                self.U[user_id, :])
+            user_pred = self.V[item_id, :].dot(self.U[user_id, :])
 
             return user_pred
