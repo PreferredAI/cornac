@@ -17,6 +17,7 @@ from ...exception import ScoreException
 from ...utils.common import intersects
 from ..recommender import Recommender
 from collections import Counter, OrderedDict
+import scipy.sparse as sp
 import numpy as np
 
 class EFM(Recommender):
@@ -144,20 +145,19 @@ class EFM(Recommender):
 
         """
         Recommender.fit(self, train_set)
-        self.global_mean = self.train_set.global_mean if self.use_bias else 0.
+        self.global_mean = self.init_params.get('u', self.train_set.global_mean) if self.use_bias else 0.
 
         from ...utils import get_rng
         from ...utils.init_utils import uniform, zeros
 
         rng = get_rng(self.seed)
         num_factors = self.num_explicit_factors + self.num_latent_factors
-        low = np.sqrt(1. / num_factors)
         high = np.sqrt(self.rating_scale / num_factors)
-        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors), low=low, high=high, random_state=rng))
-        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors), low=low, high=high, random_state=rng))
-        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors), low=low, high=high, random_state=rng))
-        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors), low=low, high=high, random_state=rng))
-        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors), low=low, high=high, random_state=rng))
+        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors), high=high, random_state=rng))
+        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors), high=high, random_state=rng))
+        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors), high=high, random_state=rng))
+        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors), high=high, random_state=rng))
+        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors), high=high, random_state=rng))
         self.u_biases = self.init_params.get('Bu', zeros(self.train_set.num_users))
         self.i_biases = self.init_params.get('Bi', zeros(self.train_set.num_items))
 
@@ -165,7 +165,7 @@ class EFM(Recommender):
             self._fit_efm()
 
     def get_params(self):
-        """Get model parameters in the form of dictionary including matrices: U1, U2, V, H1, H2, Bu, Bi
+        """Get model parameters in the form of dictionary including matrices: U1, U2, V, H1, H2, Bu, Bi, u
         """
         return {
             'U1': self.U1,
@@ -174,14 +174,18 @@ class EFM(Recommender):
             'H1': self.H1,
             'H2': self.H2,
             'Bu': self.u_biases,
-            'Bi': self.i_biases
+            'Bi': self.i_biases,
+            'u': self.global_mean
         }
 
     def _fit_efm(self):
         from .efm import sgd_efm
 
+        if self.verbose:
+            print('Construct matrices A, X, Y')
         A, X, Y = self._build_matrices(self.train_set)
-        self.U1, self.U2, self.V, self.H1, self.H2, self.u_biases, self.i_biases = sgd_efm(A, X, Y, self.U1, self.U2, self.V, self.H1, self.H2,
+        self.U1, self.U2, self.V, self.H1, self.H2, self.u_biases, self.i_biases = sgd_efm(A.data, A.indptr, A.indices, X.data, X.indptr, X.indices, Y.data, Y.indptr, Y.indices,
+                                                                                           self.U1, self.U2, self.V, self.H1, self.H2,
                                                                                            self.global_mean, self.u_biases, self.i_biases,
                                                                                            self.num_explicit_factors, self.num_latent_factors,
                                                                                            self.lambda_x, self.lambda_y, self.lambda_u, self.lambda_h, self.lambda_v, self.lambda_reg,
@@ -192,15 +196,26 @@ class EFM(Recommender):
 
     def _build_matrices(self, train_set):
         sentiment = train_set.sentiment
-        A = np.zeros((train_set.num_users, train_set.num_items))
-        X = np.zeros((train_set.num_users, sentiment.num_aspects))
-        Y = np.zeros((train_set.num_items, sentiment.num_aspects))
+        ratings = []
+        map_uid = []
+        map_iid = []
 
         for uid, iid, rating in self.train_set.uir_iter():
             if train_set.is_unk_user(uid) or train_set.is_unk_item(iid):
                 continue
-            A[uid, iid] = rating
+            ratings.append(rating)
+            map_uid.append(uid)
+            map_iid.append(iid)
 
+        ratings = np.asarray(ratings, dtype=np.float).flatten()
+        map_uid = np.asarray(map_uid, dtype=np.int).flatten()
+        map_iid = np.asarray(map_iid, dtype=np.int).flatten()
+        A = sp.csr_matrix((ratings, (map_uid, map_iid)),
+                          shape=(train_set.num_users, train_set.num_items))
+
+        attention_scores = []
+        map_uid = []
+        map_aspect_id = []
         for uid, sentiment_tup_ids_by_item in sentiment.user_sentiment.items():
             if train_set.is_unk_user(uid):
                 continue
@@ -208,7 +223,19 @@ class EFM(Recommender):
                                    for tup in sentiment.sentiment[tup_id]]
             user_aspect_count = Counter(user_aspects)
             for aid, count in user_aspect_count.items():
-                X[uid, aid] = self._compute_attention_score(count)
+                attention_scores.append(self._compute_attention_score(count))
+                map_uid.append(uid)
+                map_aspect_id.append(aid)
+
+        attention_scores = np.asarray(attention_scores, dtype=np.float).flatten()
+        map_uid = np.asarray(map_uid, dtype=np.int).flatten()
+        map_aspect_id = np.asarray(map_aspect_id, dtype=np.int).flatten()
+        X = sp.csr_matrix((attention_scores, (map_uid, map_aspect_id)),
+                          shape=(train_set.num_users, sentiment.num_aspects))
+
+        quality_scores = []
+        map_iid = []
+        map_aspect_id = []
 
         for iid, sentiment_tup_ids_by_user in sentiment.item_sentiment.items():
             if train_set.is_unk_item(iid):
@@ -221,11 +248,19 @@ class EFM(Recommender):
                 for aid, _, sentiment_polarity in sentiment.sentiment[tup_id]:
                     total_sentiment_by_aspect[aid] = total_sentiment_by_aspect.get(aid, 0) + sentiment_polarity
             for aid, total_sentiment in total_sentiment_by_aspect.items():
+                map_iid.append(iid)
+                map_aspect_id.append(aid)
                 if self.use_item_aspect_popularity:
-                    Y[iid, aid] = self._compute_quality_score(total_sentiment)
+                    quality_scores.append(self._compute_quality_score(total_sentiment))
                 else:
                     avg_sentiment = total_sentiment / item_aspect_count[aid]
-                    Y[iid, aid] = self._compute_quality_score(avg_sentiment)
+                    quality_scores.append(self._compute_quality_score(avg_sentiment))
+
+        quality_scores = np.asarray(quality_scores, dtype=np.float).flatten()
+        map_iid = np.asarray(map_iid, dtype=np.int).flatten()
+        map_aspect_id = np.asarray(map_aspect_id, dtype=np.int).flatten()
+        Y = sp.csr_matrix((quality_scores, (map_iid, map_aspect_id)),
+                          shape=(train_set.num_items, sentiment.num_aspects))
         return A, X, Y
 
     def _compute_attention_score(self, count):
@@ -284,11 +319,9 @@ class EFM(Recommender):
 
         """
         X_ = self.U1[user_id, :].dot(self.V.T)
-        Y_ = self.U2.dot(self.V.T)
         most_cared_aspects_indices = (-X_).argsort()[:self.num_most_cared_aspects]
-        num_items = Y_.shape[0]
         most_cared_X_ = X_[most_cared_aspects_indices]
-        most_cared_Y_ = Y_[np.repeat(np.arange(num_items), self.num_most_cared_aspects).reshape(num_items, self.num_most_cared_aspects), most_cared_aspects_indices]
+        most_cared_Y_ = self.U2.dot(self.V[most_cared_aspects_indices, :].T)
         explicit_scores = most_cared_X_.dot(most_cared_Y_.T) / (self.num_most_cared_aspects * self.rating_scale)
         item_scores = self.alpha * explicit_scores + (1 - self.alpha) * self.score(user_id)
 
