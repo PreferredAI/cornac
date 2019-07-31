@@ -410,7 +410,7 @@ class CountVectorizer():
         Prune features that are non zero in more samples than max_doc_count
         and modifying the vocabulary.
         """
-        if max_doc_count >= X.shape[0]:
+        if max_doc_count >= X.shape[0] and self.min_freq is None and self.max_features is None:
             return X
 
         # Calculate a mask based on document frequencies
@@ -418,6 +418,8 @@ class CountVectorizer():
         term_indices = np.arange(X.shape[1])  # terms are already sorted based on frequency from Vocabulary
         mask = np.ones(len(doc_freq), dtype=bool)
         mask &= doc_freq <= max_doc_count
+        if self.min_freq is not None:
+            mask &= doc_freq >= self.min_freq
 
         if self.max_features is not None and mask.sum() > self.max_features:
             mask_indices = term_indices[mask][:self.max_features]
@@ -506,7 +508,7 @@ class CountVectorizer():
 
         fixed_vocab = self.vocab is not None
         if self.vocab is None:
-            self.vocab = Vocabulary.from_sequences(sequences, min_freq=self.min_freq)
+            self.vocab = Vocabulary.from_sequences(sequences)
 
         X = self._count(sequences)
         if self.binary:
