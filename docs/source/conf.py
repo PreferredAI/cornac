@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Cornac'
-copyright = '2018, Cornac Contributors'
+copyright = '2018, Cornac Authors'
 author = 'Preferred.AI'
 
 # The short X.Y version
 version = '0.3'
 # The full version, including alpha/beta/rc tags
-release = '0.3.0'
+release = '0.3.1'
 
 
 # -- General configuration ---------------------------------------------------

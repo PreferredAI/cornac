@@ -43,6 +43,17 @@ def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
 class Result:
     """
     Result Class for a single model
+
+    Parameters
+    ----------
+    model_name: string, required
+        The name of the recommender model.
+
+    metric_avg_results: :obj:`OrderedDict`, required
+        A dictionary containing the average result per-metric.
+
+    metric_user_results: :obj:`defaultdict`, required
+        A dictionary containing the average result per-user across different metrics.
     """
 
     def __init__(self, model_name, metric_avg_results, metric_user_results):
@@ -101,6 +112,6 @@ class CVExperimentResult(ExperimentResult):
     """
     Result Class for a cross-validation Experiment
     """
-
+    
     def __str__(self):
         return '\n'.join([r.__str__() for r in self])
