@@ -87,6 +87,11 @@ class Tokenizer():
         """
         Splitting text into tokens.
 
+        Parameters
+        ----------
+        t: str, required
+            Input text to be tokenized.
+
         Returns
         -------
         tokens : ``List[str]``
@@ -96,6 +101,11 @@ class Tokenizer():
     def batch_tokenize(self, texts: List[str]) -> List[List[str]]:
         """
         Splitting a corpus with multiple text documents.
+
+        Parameters
+        ----------
+        texts: List[str], required
+            Input list of texts to be tokenized.
 
         Returns
         -------
@@ -139,6 +149,19 @@ DEFAULT_PRE_RULES = [lambda t: t.lower(), rm_tags, rm_numeric, rm_punctuation, r
 class BaseTokenizer(Tokenizer):
     """
     A base tokenizer use a provided delimiter `sep` to split text.
+
+    Parameters
+    ----------
+    sep: str, optional, default: ' '
+        Separator string used to split text into tokens.
+
+    pre_rules: List[Callable[[str], str]], optional
+        List of callable lambda functions to apply on text before tokenization.
+
+    stop_words: Union[List, str], optional
+        List of stop-words to be ignored during tokenization,
+        or key of built-in stop-word lists (e.g., english).
+
     """
 
     def __init__(self, sep: str = ' ',
@@ -151,6 +174,11 @@ class BaseTokenizer(Tokenizer):
     def tokenize(self, t: str) -> List[str]:
         """
         Splitting text into tokens.
+
+        Parameters
+        ----------
+        t: str, required
+            Input text to be tokenized.
 
         Returns
         -------
@@ -168,6 +196,11 @@ class BaseTokenizer(Tokenizer):
         """
         Splitting a corpus with multiple text documents.
 
+        Parameters
+        ----------
+        texts: List[str], required
+            Input list of texts to be tokenized.
+
         Returns
         -------
         tokens : ``List[List[str]]``
@@ -178,6 +211,16 @@ class BaseTokenizer(Tokenizer):
 class Vocabulary():
     """
     Vocabulary basically contains mapping between numbers and tokens and vice versa.
+
+    Parameters
+    ----------
+    idx2tok: List[str], required
+        List of tokens where list indices are corresponding to
+        their mapped integer indices.
+
+    use_special_tokens: bool, optional, default: False
+        If `True`, vocabulary will include `SPECIAL_TOKENS`.
+
     """
 
     def __init__(self, idx2tok: List[str], use_special_tokens: bool = False):
@@ -186,6 +229,9 @@ class Vocabulary():
         self.build_tok2idx()
 
     def build_tok2idx(self):
+        """
+        Build a mapping between tokens to their integer indices
+        """
         self.tok2idx = defaultdict(int, {tok: idx for idx, tok in enumerate(self.idx2tok)})
 
     @staticmethod
@@ -201,30 +247,80 @@ class Vocabulary():
         return len(self.idx2tok)
 
     def to_idx(self, tokens: List[str]) -> List[int]:
-        """
-        Convert a list of `tokens` to their integer indices.
+        """Convert a list of `tokens` to their integer indices.
+
+        Parameters
+        ----------
+        tokens: List[str], required
+            List of string tokens.
+
+        Returns
+        -------
+        indices: List[int]
+            List of integer indices corresponding to input `tokens`.
+
         """
         return [self.tok2idx.get(tok, 1) for tok in tokens]  # 1 is <UNK> idx
 
     def to_text(self, indices: List[int], sep=' ') -> List[str]:
-        """
-        Convert a list of integer `indices` to their tokens.
+        """Convert a list of integer `indices` to their tokens.
+
+        Parameters
+        ----------
+        indices: List[int], required
+            List of token integer indices.
+
+        sep: str, optional, default: ' '
+            Separator string used to connect tokens.
+
+        Returns
+        -------
+        text: str
+            Aggregated text of tokens seperated by `sep`.
+
         """
         return sep.join([self.idx2tok[i] for i in indices]) if sep is not None else [self.idx2tok[i] for i in indices]
 
     def save(self, path):
-        """
-        Save idx2tok into a pickle file.
+        """Save idx2tok into a pickle file.
+
+        Parameters
+        ----------
+        path: str, required
+            Path to store the dictionary on disk.
+
         """
         pickle.dump(self.idx2tok, open(path, 'wb'))
+
+    @classmethod
+    def load(cls, path):
+        """
+        Load a vocabulary from `path` to a pickle file.
+        """
+        return cls(pickle.load(open(path, 'rb')))
 
     @classmethod
     def from_tokens(cls, tokens: List[str],
                     max_vocab: int = None,
                     min_freq: int = 1,
                     use_special_tokens: bool = False) -> 'Vocabulary':
-        """
-        Build a vocabulary from list of tokens.
+        """Build a vocabulary from list of tokens.
+
+        Parameters
+        ----------
+        tokens: List[str], required
+            List of string tokens.
+
+        max_vocab: int, optional
+            Limit for size of the vocabulary. If specified, tokens will
+            be ranked based on counts and gathered top-down until reach `max_vocab`.
+
+        min_freq: int, optional, default: 1
+            Cut-off threshold for tokens based on their counts.
+
+        use_special_tokens: bool, optional, default: False
+            If `True`, vocabulary will include `SPECIAL_TOKENS`.
+
         """
         freq = Counter(tokens)
         idx2tok = [tok for tok, cnt in freq.most_common(max_vocab) if cnt >= min_freq]
@@ -235,18 +331,26 @@ class Vocabulary():
                        max_vocab: int = None,
                        min_freq: int = 1,
                        use_special_tokens: bool = False) -> 'Vocabulary':
-        """
-        Build a vocabulary from sequences (list of list of tokens).
+        """Build a vocabulary from sequences (list of list of tokens).
+
+        Parameters
+        ----------
+        sequences: List[List[str]], required
+            Corpus of multiple lists of string tokens.
+
+        max_vocab: int, optional
+            Limit for size of the vocabulary. If specified, tokens will
+            be ranked based on counts and gathered top-down until reach `max_vocab`.
+
+        min_freq: int, optional, default: 1
+            Cut-off threshold for tokens based on their counts.
+
+        use_special_tokens: bool, optional, default: False
+            If `True`, vocabulary will include `SPECIAL_TOKENS`.
+
         """
         return Vocabulary.from_tokens([tok for seq in sequences for tok in seq],
                                       max_vocab, min_freq, use_special_tokens)
-
-    @classmethod
-    def load(cls, path):
-        """
-        Load a vocabulary from `path` to a pickle file.
-        """
-        return cls(pickle.load(open(path, 'rb')))
 
 
 class CountVectorizer():
@@ -376,7 +480,9 @@ class CountVectorizer():
 
         Returns
         -------
-        self
+        count_vectorizer: :obj:`<cornac.data.text.CountVectorizer>`
+            An object of type `CountVectorizer`.
+
         """
         self.fit_transform(raw_documents)
         return self
@@ -519,14 +625,41 @@ class TextModality(FeatureModality):
 
     def build(self, id_map=None):
         """Build the model based on provided list of ordered ids
+
+        Parameters
+        ----------
+        id_map: dict, optional
+            A dictionary holds mapping from original ids to
+            mapped integer indices of users/items.
+
+        Returns
+        -------
+        text_modality: :obj:`<cornac.data.TextModality>`
+            An object of type `TextModality`.
+
         """
         super().build(id_map)
         self._build_text(id_map)
         return self
 
     def batch_seq(self, batch_ids, max_length=None):
-        """Return a numpy matrix of text sequences containing token ids with size=(len(batch_ids), max_length).
-        If max_length=None, it will be inferred based on retrieved sequences.
+        """Return a numpy matrix of text sequences containing token ids
+        with size=(len(batch_ids), max_length).
+
+        Parameters
+        ----------
+        batch_ids: Union[List, numpy.array], required
+            An array containing the ids of rows of text sequences to be returned.
+
+        max_length: int, optional
+            Cut-off length of returned sequences.
+            If `None`, it will be inferred based on retrieved sequences.
+
+        Returns
+        -------
+        batch_sequences: numpy.ndarray
+            Batch of sequences with zero-padding at the end.
+
         """
         if self.sequences is None:
             raise ValueError('self.sequences is required but None!')
@@ -558,6 +691,11 @@ class TextModality(FeatureModality):
             If `True`, the return feature matrix will be a `scipy.sparse.csr_matrix`.
             Otherwise, it will be a dense matrix.
 
+        Returns
+        -------
+        batch_bow: numpy.ndarray
+            Batch of bag-of-words representations corresponding to input `batch_ids`.
+
         """
         if self.count_matrix is None:
             raise ValueError('self.count_matrix is required but None!')
@@ -573,5 +711,16 @@ class TextModality(FeatureModality):
 
     def batch_tfidf(self, batch_ids):
         """Return matrix of TF-IDF features corresponding to provided batch_ids
+
+        Parameters
+        ----------
+        batch_ids: array
+            An array of ids to retrieve the corresponding features.
+
+        Returns
+        -------
+        batch_tfidf: numpy.ndarray
+            Batch of TF-IDF representations corresponding to input `batch_ids`.
+
         """
         raise NotImplementedError
