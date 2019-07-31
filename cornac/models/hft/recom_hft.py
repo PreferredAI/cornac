@@ -100,10 +100,11 @@ class HFT(Recommender):
         self.n_item = self.train_set.num_items
         self.n_user = self.train_set.num_users
 
-        n_params = self.k * (self.n_user + self.n_item)
+        n_params = 1 + self.k * (self.n_user + self.n_item + self.vocab_size)
         self.params = self.init_params.get('params', uniform(n_params, random_state=self.seed))
         self._update_view()
-        self.alpha = self.train_set.global_mean
+        #self.alpha = self.train_set.global_mean
+        self.dict = np.array(self.train_set.item_text.vocab.idx2tok[4:])
 
         if self.trainable:
             self._fit_hft()
@@ -122,14 +123,16 @@ class HFT(Recommender):
         # self.V = self.params[idx[4]:idx[5], ].reshape(self.n_item, self.k)
         # self.topic_words = self.params[idx[5]:, ].reshape(self.vocab_size, self.k)
 
-        params_length = np.array([self.n_user * self.k, self.n_item * self.k])
+        params_length = np.array([1, self.n_user * self.k, self.n_item * self.k, self.k * self.vocab_size])
         idx = params_length.cumsum()
         # create parameter view
         # self.alpha = self.params[0:idx[0], ]
         # self.bias_user = self.params[idx[0]:idx[1], ]
         # self.bias_item = self.params[idx[1]:idx[2], ]
-        self.U = self.params[:idx[0]].reshape(self.n_user, self.k)
-        self.V = self.params[idx[0]:].reshape(self.n_item, self.k)
+        self.kappa = self.params[:idx[0]]
+        self.U = self.params[idx[0]:idx[1]].reshape(self.n_user, self.k)
+        self.V = self.params[idx[1]:idx[2]].reshape(self.n_item, self.k)
+        self.topic_words = self.params[idx[2]:idx[3], ].reshape(self.vocab_size, self.k)
 
     def _fit_hft(self):
 
@@ -138,20 +141,22 @@ class HFT(Recommender):
 
         model = Model(n_user=self.n_user, n_item=self.n_item, params=self.params,
                       n_vocab=self.vocab_size, k=self.k, lambda_reg=self.lambda_reg,
-                      latent_reg=self.latent_reg, grad_iter=self.grad_iter)
+                      latent_reg=self.latent_reg, grad_iter=self.grad_iter, dict=self.dict)
 
-        # bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
-        # documents, _ = self._build_data(bow_mat)  # bag of word feature
+        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
+        documents, _ = self._build_data(bow_mat)  # bag of word feature
         # Rating data
         user_data = self._build_data(self.train_set.matrix)
         item_data = self._build_data(self.train_set.matrix.T.tocsr())
         # randomly assign word topic
-        #model.random_int_topic(docs=documents)
+        model.random_int_topic(docs=documents)
         # training
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
-            #model.assign_word_topics(docs=documents)
+            model.assign_word_topics(docs=documents)
             loss = model.update_params(rating_data=(user_data, item_data))
+            print(model.topic_word)
+            # self._print_word()
             loop.set_postfix(loss=loss)
 
         self.params = model.get_parameter()
@@ -159,6 +164,11 @@ class HFT(Recommender):
 
         if self.verbose:
             print('Learning completed!')
+
+    def _print_word(self):
+        word_idx = (- self.topic_words).argsort(axis=0)[:10,:]
+        # print(word_idx)
+        print(self.dict[word_idx.T])
 
     @staticmethod
     def _build_data(csr_mat):
