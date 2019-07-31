@@ -153,11 +153,11 @@ if USE_CYTHON:
 
 setup(
     name='cornac',
-    version='0.3.0',
-    description='A Python library for using, building, evaluating and comparing recommendation algorithms',
+    version='0.3.1',
+    description='A Comparative Framework for Multimodal Recommender Systems',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://cornac.preferred.ai/',
+    url='https://cornac.preferred.ai',
     keywords=['recommender system', 'collaborative filtering', 'multimodal', 'preference learning', 'recommendation'],
     ext_modules=extensions,
     install_requires=[
