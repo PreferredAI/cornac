@@ -12,4 +12,4 @@ Experiment
 Result
 ----------------------------------------
 .. automodule:: cornac.experiment.result
-   :members:
+   :members: Result
