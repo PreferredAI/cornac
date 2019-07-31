@@ -68,7 +68,9 @@ class Result:
 
 
 class CVResult(list):
-    # Cross Validation Result Class for a single model
+    """
+    Cross Validation Result Class for a single model
+    """
 
     def __init__(self, model_name):
         super().__init__()
@@ -93,7 +95,9 @@ class CVResult(list):
 
 
 class ExperimentResult(list):
-    # Result Class for an Experiment
+    """
+    Result Class for an Experiment
+    """
 
     def __str__(self):
         headers = list(self[0].metric_avg_results.keys())
@@ -105,7 +109,9 @@ class ExperimentResult(list):
 
 
 class CVExperimentResult(ExperimentResult):
-    # Result Class for a cross-validation Experiment
-
+    """
+    Result Class for a cross-validation Experiment
+    """
+    
     def __str__(self):
         return '\n'.join([r.__str__() for r in self])
