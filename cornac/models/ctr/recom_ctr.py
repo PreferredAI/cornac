@@ -84,7 +84,6 @@ class CTR(Recommender):
         self.verbose = verbose
         self.init_params = {} if not init_params else init_params
         self.seed = seed
-        self.eps = 1e-100
 
     def fit(self, train_set):
         """Fit the model to observations.
