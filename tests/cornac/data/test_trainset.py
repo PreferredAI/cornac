@@ -50,13 +50,6 @@ class TestTrainSet(unittest.TestCase):
         self.assertListEqual(train_set.iid_list, list(iid_map.values()))
         self.assertListEqual(train_set.raw_iid_list, list(iid_map.keys()))
 
-    def test_idx_iter(self):
-        ids = [batch_ids for batch_ids in TrainSet.idx_iter(idx_range=10, batch_size=1, shuffle=False)]
-        npt.assert_array_equal(ids, np.arange(10).reshape(10, 1))
-
-        ids = [batch_ids for batch_ids in TrainSet.idx_iter(idx_range=10, batch_size=1, shuffle=True)]
-        npt.assert_raises(AssertionError, npt.assert_array_equal, ids, np.arange(10).reshape(10, 1))
-
 
 class TestMatrixTrainSet(unittest.TestCase):
 
@@ -106,6 +99,15 @@ class TestMatrixTrainSet(unittest.TestCase):
 
         self.assertEqual(train_set.num_users, 9)
         self.assertEqual(train_set.num_items, 9)
+
+    def test_idx_iter(self):
+        train_set = MatrixTrainSet.from_uir(self.triplet_data)
+
+        ids = [batch_ids for batch_ids in train_set.idx_iter(idx_range=10, batch_size=1, shuffle=False)]
+        npt.assert_array_equal(ids, np.arange(10).reshape(10, 1))
+
+        ids = [batch_ids for batch_ids in train_set.idx_iter(idx_range=10, batch_size=1, shuffle=True)]
+        npt.assert_raises(AssertionError, npt.assert_array_equal, ids, np.arange(10).reshape(10, 1))
 
     def test_uir_iter(self):
         train_set = MatrixTrainSet.from_uir(self.triplet_data, global_uid_map={}, global_iid_map={},
