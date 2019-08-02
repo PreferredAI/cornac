@@ -126,8 +126,7 @@ class Model:
 
     def update_params(self, rating_data):
 
-        res = scipy.optimize.fmin_l_bfgs_b(self._func, x0=self.params, disp=True,
-                                           args=rating_data, maxiter=self.grad_iter)
+        res = scipy.optimize.fmin_l_bfgs_b(self._func, x0=self.params, args=rating_data, maxiter=self.grad_iter)
         self.params = res[0]
         self.alpha, self.kappa, self.beta_u, self.beta_i, \
             self.gamma_u, self.gamma_i, self.topic_word = self._get_view(self.params)
