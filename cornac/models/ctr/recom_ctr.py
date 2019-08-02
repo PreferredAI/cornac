@@ -84,7 +84,6 @@ class CTR(Recommender):
         self.verbose = verbose
         self.init_params = {} if not init_params else init_params
         self.seed = seed
-        self.eps = 1e-100
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -109,32 +108,6 @@ class CTR(Recommender):
         if self.trainable:
             self._fit_ctr()
 
-    def _fit_ctr(self, ):
-
-        from .ctr import Model
-        from tqdm import trange
-
-        model = Model(n_user=self.n_user, n_item=self.n_item, U=self.U, V=self.V, k=self.k,
-                      n_vocab=self.train_set.item_text.vocab.size,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, a=self.a,
-                      b=self.b, max_iter=self.max_iter, seed=self.seed)
-
-        user_data = self._build_data(self.train_set.matrix)
-        item_data = self._build_data(self.train_set.matrix.T.tocsr())
-
-        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
-        doc_ids, doc_cnt = self._build_data(bow_mat)  # bag of word feature
-
-        loop = trange(self.max_iter, disable=not self.verbose)
-        for _ in loop:
-            likelihood = model.cf_update(user_data=user_data, item_data=item_data)  # u and v updating
-            lda_loss = model.update_theta(doc_ids=doc_ids, doc_cnt=doc_cnt)
-            model.update_beta()
-            loop.set_postfix(cf_loss=-likelihood, lda_loss=lda_loss)
-
-        if self.verbose:
-            print('Learning completed!')
-
     @staticmethod
     def _build_data(csr_mat):
         index_list = []
@@ -144,6 +117,31 @@ class CTR(Recommender):
             index_list.append(csr_mat.indices[j:k])
             rating_list.append(csr_mat.data[j:k])
         return index_list, rating_list
+
+    def _fit_ctr(self, ):
+        from .ctr import Model
+        from tqdm import trange
+
+        user_data = self._build_data(self.train_set.matrix)
+        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+
+        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
+        doc_ids, doc_cnt = self._build_data(bow_mat)  # bag of word feature
+
+        model = Model(n_user=self.n_user, n_item=self.n_item, U=self.U, V=self.V, k=self.k,
+                      n_vocab=self.train_set.item_text.vocab.size,
+                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, a=self.a,
+                      b=self.b, max_iter=self.max_iter, seed=self.seed)
+
+        loop = trange(self.max_iter, disable=not self.verbose)
+        for _ in loop:
+            cf_loss = model.update_cf(user_data=user_data, item_data=item_data)  # u and v updating
+            lda_loss = model.update_theta(doc_ids=doc_ids, doc_cnt=doc_cnt)
+            model.update_beta()
+            loop.set_postfix(cf_loss=cf_loss, lda_likelihood=-lda_loss)
+
+        if self.verbose:
+            print('Learning completed!')
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
