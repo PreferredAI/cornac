@@ -85,6 +85,11 @@ Social Bayesian Personalized Ranking (SBPR)
 .. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
    :members:
 
+Hidden Factor Factor and Hidden Topic (HFT)
+-----------------------------------------
+.. automodule:: cornac.models.hft.recom_hft
+   :members:
+
 Collaborative Topic Modeling (CTR)
 ---------------------------------------
 .. automodule:: cornac.models.ctr.recom_ctr
@@ -113,9 +118,4 @@ Probabilitic Matrix Factorization (PMF)
 Social Recommendation using PMF (SoRec)
 -----------------------------------------
 .. automodule:: cornac.models.sorec.recom_sorec
-   :members:
-
-Hidden Factor Factor and Hidden Topic (HFT)
------------------------------------------
-.. automodule:: cornac.models.hft.recom_hft
    :members:

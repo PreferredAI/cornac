@@ -55,10 +55,10 @@ class HFT(Recommender):
         gamma_v: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
 
-    likelihood_weight: float, default : 0.01
+    lambda_text: float, default : 0.1
         Weight of likelihood in loss function
 
-    reg: float, default : 0.01
+    l2_reg: float, default : 0.001
         Regularization for user item latent factor
 
     vocab_size: int, optional, default: 8000
@@ -77,13 +77,13 @@ class HFT(Recommender):
     RecSys '13 Proceedings of the 7th ACM conference on Recommender systems Pages 165-172
     """
 
-    def __init__(self, name='HFT', k=10, likelihood_weight=0.01, reg=0.01, vocab_size=8000,
+    def __init__(self, name='HFT', k=10, lambda_text=0.1, l2_reg=0.001, vocab_size=8000,
                  max_iter=50, grad_iter=50, trainable=True, verbose=True, init_params=None,
                  seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.likelihood_weight = likelihood_weight
-        self.reg = reg
+        self.lambda_text = lambda_text
+        self.l2_reg = l2_reg
         self.grad_iter = grad_iter
         self.name = name
         self.max_iter = max_iter
@@ -128,7 +128,6 @@ class HFT(Recommender):
         return index_list, rating_list
 
     def _fit_hft(self):
-
         from .hft import Model
         from tqdm import trange
 
@@ -141,9 +140,10 @@ class HFT(Recommender):
 
         model = Model(n_user=self.n_user, n_item=self.n_item, alpha=self.alpha, beta_u=self.beta_u, beta_i=self.beta_i,
                       gamma_u=self.gamma_u, gamma_i=self.gamma_i, n_vocab=self.vocab_size, k=self.k,
-                      likelihood_weight=self.likelihood_weight, reg=self.reg, grad_iter=self.grad_iter)
+                      lambda_text=self.lambda_text, l2_reg=self.l2_reg, grad_iter=self.grad_iter)
 
         model.init_count(docs=documents)
+
         # training
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
@@ -177,14 +177,14 @@ class HFT(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            known_item_scores = self.alpha.item() + self.beta_u[user_id] + self.beta_i + self.gamma_i.dot(
+            known_item_scores = self.alpha + self.beta_u[user_id] + self.beta_i + self.gamma_i.dot(
                 self.gamma_u[user_id, :])
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-            user_pred = self.alpha.item() + self.beta_u[user_id] + self.beta_i[item_id] + self.gamma_i[item_id, :].dot(
+            user_pred = self.alpha + self.beta_u[user_id] + self.beta_i[item_id] + self.gamma_i[item_id, :].dot(
                 self.gamma_u[user_id, :])
 
             return user_pred

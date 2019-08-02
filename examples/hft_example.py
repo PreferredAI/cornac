@@ -32,7 +32,7 @@ item_text_modality = TextModality(corpus=plots, ids=movie_ids,
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True, seed=123)
 
-hft = cornac.models.HFT(k=10, max_iter=40, grad_iter=5, reg=0.01, likelihood_weight=0.01, vocab_size=5000, seed=123)
+hft = cornac.models.HFT(k=10, max_iter=40, grad_iter=5, l2_reg=0.001, lambda_text=0.01, vocab_size=5000, seed=123)
 
 mse = cornac.metrics.MSE()
 
