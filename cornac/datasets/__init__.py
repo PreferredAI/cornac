@@ -13,8 +13,9 @@
 # limitations under the License.
 # ============================================================================
 
-from . import movielens
-from . import tradesy
-from . import netflix
+from . import amazon_clothing
 from . import amazon_office
 from . import citeulike
+from . import movielens
+from . import netflix
+from . import tradesy
