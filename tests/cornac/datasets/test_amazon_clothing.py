@@ -27,7 +27,7 @@ class TestAmazonClothing(unittest.TestCase):
         if random.random() > 0.8:
             # ignore image because of big size
             ratings = amazon_clothing.load_rating()
-            texts = amazon_clothing.load_text()
+            texts, item_ids = amazon_clothing.load_text()
             contexts = amazon_clothing.load_context()
             self.assertEqual(len(ratings), 13689)
             self.assertEqual(len(texts), 3393)
