@@ -114,3 +114,8 @@ Social Recommendation using PMF (SoRec)
 -----------------------------------------
 .. automodule:: cornac.models.sorec.recom_sorec
    :members:
+
+Hidden Factor Factor and Hidden Topic (HFT)
+-----------------------------------------
+.. automodule:: cornac.models.hft.recom_hft
+   :members:

@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for Collaborative Topic Modeling"""
-
-from collections import defaultdict
+"""Example for HFT with Movilen 1m dataset """
 
 import cornac
 from cornac.data import Reader
@@ -24,32 +22,17 @@ from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
 plots, movie_ids = movielens.load_plot()
-
-# movie_plot = {}
-# for plot, movie_id in  zip(plots, movie_ids):
-#     movie_plot[movie_id] = plot
-
 ml_1m = movielens.load_1m(reader=Reader(item_set=movie_ids))
-# checker = defaultdict(bool)
-#
-# with open('data.txt', 'w') as f:
-#     for u, i, r in ml_1m:
-#         text = movie_plot[i].split('\t')
-#         if checker[i]:
-#             text = []
-#         else:
-#             checker[i] = True
-#         f.write('{} {} {} {} {} {}\n'.format(u, i, r, 0, len(text), ' '.join(text)))
-#
+
 # build text module
 item_text_modality = TextModality(corpus=plots, ids=movie_ids,
-                              tokenizer=BaseTokenizer(sep='\t', stop_words='english'),
-                              max_vocab=8000, max_doc_freq=0.5)
+                                  tokenizer=BaseTokenizer(sep='\t', stop_words='english'),
+                                  max_vocab=5000, max_doc_freq=0.5)
 
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True, seed=123)
 
-hft = cornac.models.HFT(max_iter=10, grad_iter=20, lambda_reg=0.0, latent_reg=0.0, seed=123)
+hft = cornac.models.HFT(k=10, max_iter=40, grad_iter=5, reg=0.01, likelihood_weight=0.01, vocab_size=5000, seed=123)
 
 mse = cornac.metrics.MSE()
 

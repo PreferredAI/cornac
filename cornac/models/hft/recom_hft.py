@@ -24,58 +24,66 @@ class HFT(Recommender):
 
     Parameters
     ----------
-    name: string, default: 'CTR'
+    name: string, default: 'HFT'
         The name of the recommender model.
 
-    k: int, optional, default: 200
+    k: int, optional, default: 10
         The dimension of the latent factors.
 
-    max_iter: int, optional, default: 100
-        Maximum number of iterations or the number of epochs for SGD.
+    max_iter: int, optional, default: 50
+        Maximum number of iterations for EM step
 
-    lambda_u: float, optional, default: 0.01
-        The regularization parameter for users.
-
-    lambda_v: float, optional, default: 0.01
-        The regularization parameter for items.
-
-    a: float, optional, default: 1
-        The confidence of observed ratings.
-
-    b: float, optional, default: 0.01
-        The confidence of unseen ratings.
-
-    eta: float, optional, default: 0.01
-        Added value for smoothing phi.
-
-    trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already 
-        pre-trained (U and V are not None).
+    grad_iter: int, optional, default: 50
+        Maximum number of iterations for l-bfgs
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V}
-        U: ndarray, shape (n_users,k)
+        List of initial parameters, e.g., init_params = {'alpha':alpha,'beta_u':beta_u,'beta_i':beta_i,
+        'gamma_u':gamma_u, 'gamma_v':gamma_v}
+
+        alpha: float
+            Model offset, optional initialization via init_params.
+
+        beta_u: ndarray. shape (n_user, 1)
+            User biases, optional initialization via init_params.
+
+        beta_u: ndarray. shape (n_item, 1)
+            Item biases, optional initialization via init_params.
+
+        gamma_u: ndarray, shape (n_users,k)
             The user latent factors, optional initialization via init_params.
-        V: ndarray, shape (n_items,k)
+
+        gamma_v: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
+
+    likelihood_weight: float, default : 0.01
+        Weight of likelihood in loss function
+
+    reg: float, default : 0.01
+        Regularization for user item latent factor
+
+    vocab_size: int, optional, default: 8000
+        Vocab size for auxiliary text data
 
     seed: int, optional, default: None
         Random seed for weight initialization.
 
+    trainable: boolean, optional, default: True
+        When False, the model is not trained and Cornac assumes that the model already
+        pre-trained (gamma_u and gamma_v are not None).
+
     References
     ----------
-    Wang, Chong, and David M. Blei. "Collaborative topic modeling for recommending scientific articles."
-    Proceedings of the 17th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2011.
-
+    Julian McAuley, Jure Leskovec. "Hidden Factors and Hidden Topics: Understanding Rating Dimensions with Review Text"
+    RecSys '13 Proceedings of the 7th ACM conference on Recommender systems Pages 165-172
     """
 
-    def __init__(self, name='HFT', k=10, lambda_reg=0.01, latent_reg=0.1, vocab_size=8000,
+    def __init__(self, name='HFT', k=10, likelihood_weight=0.01, reg=0.01, vocab_size=8000,
                  max_iter=50, grad_iter=50, trainable=True, verbose=True, init_params=None,
                  seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.lambda_reg = lambda_reg
-        self.latent_reg = latent_reg
+        self.likelihood_weight = likelihood_weight
+        self.reg = reg
         self.grad_iter = grad_iter
         self.name = name
         self.max_iter = max_iter
@@ -95,80 +103,21 @@ class HFT(Recommender):
             Please refer to the class TrainSet in the "data" module for details.
         """
         Recommender.fit(self, train_set)
-        from ...utils.init_utils import uniform
+        from ...utils.init_utils import normal
 
         self.n_item = self.train_set.num_items
         self.n_user = self.train_set.num_users
 
-        n_params = 1 + self.k * (self.n_user + self.n_item + self.vocab_size)
-        self.params = self.init_params.get('params', uniform(n_params, random_state=self.seed))
-        self._update_view()
-        #self.alpha = self.train_set.global_mean
+        self.alpha = self.init_params.get('alpha', train_set.global_mean)
+        self.beta_u = self.init_params.get('beta_u', normal(self.n_user, std=0.01, random_state=self.seed))
+        self.beta_i = self.init_params.get('beta_i', normal(self.n_item, std=0.01, random_state=self.seed))
+        self.gamma_u = self.init_params.get('gamma_u', normal((self.n_user, self.k), std=0.01, random_state=self.seed))
+        self.gamma_i = self.init_params.get('gamma_i', normal((self.n_item, self.k), std=0.01, random_state=self.seed))
+
         self.dict = np.array(self.train_set.item_text.vocab.idx2tok[4:])
 
         if self.trainable:
             self._fit_hft()
-
-    def _update_view(self):
-
-        # params_length = np.array(
-        #     [1, 1, self.n_user, self.n_item, self.n_user * self.k, self.n_item * self.k, self.vocab_size * self.k])
-        # idx = params_length.cumsum()
-        # # create parameter view
-        # self.alpha = self.params[0:idx[0], ]
-        # self.kappa = self.params[idx[0]:idx[1], ]
-        # self.bias_user = self.params[idx[1]:idx[2], ]
-        # self.bias_item = self.params[idx[2]:idx[3], ]
-        # self.U = self.params[idx[3]:idx[4], ].reshape(self.n_user, self.k)
-        # self.V = self.params[idx[4]:idx[5], ].reshape(self.n_item, self.k)
-        # self.topic_words = self.params[idx[5]:, ].reshape(self.vocab_size, self.k)
-
-        params_length = np.array([1, self.n_user * self.k, self.n_item * self.k, self.k * self.vocab_size])
-        idx = params_length.cumsum()
-        # create parameter view
-        # self.alpha = self.params[0:idx[0], ]
-        # self.bias_user = self.params[idx[0]:idx[1], ]
-        # self.bias_item = self.params[idx[1]:idx[2], ]
-        self.kappa = self.params[:idx[0]]
-        self.U = self.params[idx[0]:idx[1]].reshape(self.n_user, self.k)
-        self.V = self.params[idx[1]:idx[2]].reshape(self.n_item, self.k)
-        self.topic_words = self.params[idx[2]:idx[3], ].reshape(self.vocab_size, self.k)
-
-    def _fit_hft(self):
-
-        from .hft import Model
-        from tqdm import trange
-
-        model = Model(n_user=self.n_user, n_item=self.n_item, params=self.params,
-                      n_vocab=self.vocab_size, k=self.k, lambda_reg=self.lambda_reg,
-                      latent_reg=self.latent_reg, grad_iter=self.grad_iter, dict=self.dict)
-
-        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
-        documents, _ = self._build_data(bow_mat)  # bag of word feature
-        # Rating data
-        user_data = self._build_data(self.train_set.matrix)
-        item_data = self._build_data(self.train_set.matrix.T.tocsr())
-        # randomly assign word topic
-        model.random_int_topic(docs=documents)
-        # training
-        loop = trange(self.max_iter, disable=not self.verbose)
-        for _ in loop:
-            model.assign_word_topics(docs=documents)
-            loss = model.update_params(rating_data=(user_data, item_data))
-            print(model.topic_word)
-            # self._print_word()
-            loop.set_postfix(loss=loss)
-
-        self.params = model.get_parameter()
-        self._update_view()
-
-        if self.verbose:
-            print('Learning completed!')
-
-    def _print_word(self):
-        word_idx = (- self.topic_words).argsort(axis=0)[:10,:]
-        # print(word_idx)
-        print(self.dict[word_idx.T])
 
     @staticmethod
     def _build_data(csr_mat):
@@ -179,6 +128,35 @@ class HFT(Recommender):
             index_list.append(csr_mat.indices[j:k])
             rating_list.append(csr_mat.data[j:k])
         return index_list, rating_list
+
+    def _fit_hft(self):
+
+        from .hft import Model
+        from tqdm import trange
+
+        # document data
+        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
+        documents, _ = self._build_data(bow_mat)  # bag of word feature
+        # Rating data
+        user_data = self._build_data(self.train_set.matrix)
+        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+
+        model = Model(n_user=self.n_user, n_item=self.n_item, alpha=self.alpha, beta_u=self.beta_u, beta_i=self.beta_i,
+                      gamma_u=self.gamma_u, gamma_i=self.gamma_i, n_vocab=self.vocab_size, k=self.k,
+                      likelihood_weight=self.likelihood_weight, reg=self.reg, grad_iter=self.grad_iter, dict=self.dict)
+
+        model.init_count(docs=documents)
+        # training
+        loop = trange(self.max_iter, disable=not self.verbose)
+        for _ in loop:
+            model.assign_word_topics(docs=documents)
+            loss = model.update_params(rating_data=(user_data, item_data))
+            loop.set_postfix(loss=loss)
+
+        self.alpha, self.beta_u, self.beta_i, self.gamma_u, self.gamma_i = model.get_parameter()
+
+        if self.verbose:
+            print('Learning completed!')
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
@@ -201,13 +179,14 @@ class HFT(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            known_item_scores = self.alpha.item() + self.bias_user[user_id] + self.bias_item + self.V.dot(
-                self.U[user_id, :])
+            known_item_scores = self.alpha.item() + self.beta_u[user_id] + self.beta_i + self.gamma_i.dot(
+                self.gamma_u[user_id, :])
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-            user_pred = self.V[item_id, :].dot(self.U[user_id, :])
+            user_pred = self.alpha.item() + self.beta_u[user_id] + self.beta_i[item_id] + self.gamma_i[item_id, :].dot(
+                self.gamma_u[user_id, :])
 
             return user_pred
