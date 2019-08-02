@@ -114,8 +114,6 @@ class HFT(Recommender):
         self.gamma_u = self.init_params.get('gamma_u', normal((self.n_user, self.k), std=0.01, random_state=self.seed))
         self.gamma_i = self.init_params.get('gamma_i', normal((self.n_item, self.k), std=0.01, random_state=self.seed))
 
-        self.dict = np.array(self.train_set.item_text.vocab.idx2tok[4:])
-
         if self.trainable:
             self._fit_hft()
 
@@ -143,7 +141,7 @@ class HFT(Recommender):
 
         model = Model(n_user=self.n_user, n_item=self.n_item, alpha=self.alpha, beta_u=self.beta_u, beta_i=self.beta_i,
                       gamma_u=self.gamma_u, gamma_i=self.gamma_i, n_vocab=self.vocab_size, k=self.k,
-                      likelihood_weight=self.likelihood_weight, reg=self.reg, grad_iter=self.grad_iter, dict=self.dict)
+                      likelihood_weight=self.likelihood_weight, reg=self.reg, grad_iter=self.grad_iter)
 
         model.init_count(docs=documents)
         # training
