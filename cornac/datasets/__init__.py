@@ -16,6 +16,7 @@
 from . import amazon_clothing
 from . import amazon_office
 from . import citeulike
+from . import epinions
 from . import movielens
 from . import netflix
 from . import tradesy
