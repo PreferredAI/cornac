@@ -112,8 +112,8 @@ class EFM(Recommender):
     def __init__(self,  name="EFM",
                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
                  rating_scale=5.0, alpha=0.85,
-                 lambda_x=0.01, lambda_y=0.01, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01, lambda_reg=0.01,
-                 use_bias=False, use_item_aspect_popularity=True, max_iter=100, learning_rate=0.01,
+                 lambda_x=1, lambda_y=1, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01, lambda_reg=0.01,
+                 use_bias=False, use_item_aspect_popularity=True, max_iter=100, learning_rate=0.005,
                  trainable=True, verbose=False, init_params=None, seed=None):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
