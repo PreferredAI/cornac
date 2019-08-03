@@ -85,6 +85,11 @@ Social Bayesian Personalized Ranking (SBPR)
 .. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
    :members:
 
+Hidden Factors and Hidden Topics (HFT)
+-----------------------------------------
+.. automodule:: cornac.models.hft.recom_hft
+   :members:
+
 Collaborative Topic Modeling (CTR)
 ---------------------------------------
 .. automodule:: cornac.models.ctr.recom_ctr

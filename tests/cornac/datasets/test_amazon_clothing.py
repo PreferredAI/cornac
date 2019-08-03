@@ -13,10 +13,26 @@
 # limitations under the License.
 # ============================================================================
 
-from . import amazon_clothing
-from . import amazon_office
-from . import citeulike
-from . import epinions
-from . import movielens
-from . import netflix
-from . import tradesy
+import unittest
+import random
+import time
+
+from cornac.datasets import amazon_clothing
+
+
+class TestAmazonClothing(unittest.TestCase):
+
+    def test_amazon_clothing(self):
+        random.seed(time.time())
+        if random.random() > 0.8:
+            # ignore image because of big size
+            ratings = amazon_clothing.load_rating()
+            texts, item_ids = amazon_clothing.load_text()
+            contexts = amazon_clothing.load_context()
+            self.assertEqual(len(ratings), 13689)
+            self.assertEqual(len(texts), 3393)
+            self.assertEqual(len(contexts), 9198)
+
+
+if __name__ == '__main__':
+    unittest.main()

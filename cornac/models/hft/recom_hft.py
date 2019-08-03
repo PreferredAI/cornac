@@ -19,71 +19,78 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 
 
-class CTR(Recommender):
+class HFT(Recommender):
     """Collaborative Topic Regression
 
     Parameters
     ----------
-    name: string, default: 'CTR'
+    name: string, default: 'HFT'
         The name of the recommender model.
 
-    k: int, optional, default: 200
+    k: int, optional, default: 10
         The dimension of the latent factors.
 
-    max_iter: int, optional, default: 100
-        Maximum number of iterations or the number of epochs for SGD.
+    max_iter: int, optional, default: 50
+        Maximum number of iterations for EM step
 
-    lambda_u: float, optional, default: 0.01
-        The regularization parameter for users.
-
-    lambda_v: float, optional, default: 0.01
-        The regularization parameter for items.
-
-    a: float, optional, default: 1
-        The confidence of observed ratings.
-
-    b: float, optional, default: 0.01
-        The confidence of unseen ratings.
-
-    eta: float, optional, default: 0.01
-        Added value for smoothing phi.
-
-    trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already 
-        pre-trained (U and V are not None).
+    grad_iter: int, optional, default: 50
+        Maximum number of iterations for l-bfgs
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V}
-        U: ndarray, shape (n_users,k)
+        List of initial parameters, e.g., init_params = {'alpha':alpha,'beta_u':beta_u,'beta_i':beta_i,
+        'gamma_u':gamma_u, 'gamma_v':gamma_v}
+
+        alpha: float
+            Model offset, optional initialization via init_params.
+
+        beta_u: ndarray. shape (n_user, 1)
+            User biases, optional initialization via init_params.
+
+        beta_u: ndarray. shape (n_item, 1)
+            Item biases, optional initialization via init_params.
+
+        gamma_u: ndarray, shape (n_users,k)
             The user latent factors, optional initialization via init_params.
-        V: ndarray, shape (n_items,k)
+
+        gamma_v: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
+
+    lambda_text: float, default : 0.1
+        Weight of likelihood in loss function
+
+    l2_reg: float, default : 0.001
+        Regularization for user item latent factor
+
+    vocab_size: int, optional, default: 8000
+        Vocab size for auxiliary text data
 
     seed: int, optional, default: None
         Random seed for weight initialization.
 
+    trainable: boolean, optional, default: True
+        When False, the model is not trained and Cornac assumes that the model already
+        pre-trained (gamma_u and gamma_v are not None).
+
     References
     ----------
-    Wang, Chong, and David M. Blei. "Collaborative topic modeling for recommending scientific articles."
-    Proceedings of the 17th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM, 2011.
-
+    Julian McAuley, Jure Leskovec. "Hidden Factors and Hidden Topics: Understanding Rating Dimensions with Review Text"
+    RecSys '13 Proceedings of the 7th ACM conference on Recommender systems Pages 165-172
     """
 
-    def __init__(self, name='CTR', k=200, lambda_u=0.01, lambda_v=0.01, eta=0.01,
-                 a=1, b=0.01, max_iter=100, trainable=True, verbose=True, init_params=None,
+    def __init__(self, name='HFT', k=10, lambda_text=0.1, l2_reg=0.001, vocab_size=8000,
+                 max_iter=50, grad_iter=50, trainable=True, verbose=True, init_params=None,
                  seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.lambda_u = lambda_u
-        self.lambda_v = lambda_v
-        self.a = a
-        self.b = b
-        self.eta = eta
+        self.lambda_text = lambda_text
+        self.l2_reg = l2_reg
+        self.grad_iter = grad_iter
         self.name = name
         self.max_iter = max_iter
         self.verbose = verbose
         self.init_params = {} if not init_params else init_params
         self.seed = seed
+        self.vocab_size = vocab_size
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -96,17 +103,19 @@ class CTR(Recommender):
             Please refer to the class TrainSet in the "data" module for details.
         """
         Recommender.fit(self, train_set)
-
-        from ...utils.init_utils import xavier_uniform
+        from ...utils.init_utils import normal
 
         self.n_item = self.train_set.num_items
         self.n_user = self.train_set.num_users
 
-        self.U = self.init_params.get('U', xavier_uniform((self.n_user, self.k), self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.n_item, self.k), self.seed))
+        self.alpha = self.init_params.get('alpha', train_set.global_mean)
+        self.beta_u = self.init_params.get('beta_u', normal(self.n_user, std=0.01, random_state=self.seed))
+        self.beta_i = self.init_params.get('beta_i', normal(self.n_item, std=0.01, random_state=self.seed))
+        self.gamma_u = self.init_params.get('gamma_u', normal((self.n_user, self.k), std=0.01, random_state=self.seed))
+        self.gamma_i = self.init_params.get('gamma_i', normal((self.n_item, self.k), std=0.01, random_state=self.seed))
 
         if self.trainable:
-            self._fit_ctr()
+            self._fit_hft()
 
     @staticmethod
     def _build_data(csr_mat):
@@ -118,27 +127,31 @@ class CTR(Recommender):
             rating_list.append(csr_mat.data[j:k])
         return index_list, rating_list
 
-    def _fit_ctr(self, ):
-        from .ctr import Model
+    def _fit_hft(self):
+        from .hft import Model
         from tqdm import trange
 
+        # document data
+        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
+        documents, _ = self._build_data(bow_mat)  # bag of word feature
+        # Rating data
         user_data = self._build_data(self.train_set.matrix)
         item_data = self._build_data(self.train_set.matrix.T.tocsr())
 
-        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
-        doc_ids, doc_cnt = self._build_data(bow_mat)  # bag of word feature
+        model = Model(n_user=self.n_user, n_item=self.n_item, alpha=self.alpha, beta_u=self.beta_u, beta_i=self.beta_i,
+                      gamma_u=self.gamma_u, gamma_i=self.gamma_i, n_vocab=self.vocab_size, k=self.k,
+                      lambda_text=self.lambda_text, l2_reg=self.l2_reg, grad_iter=self.grad_iter)
 
-        model = Model(n_user=self.n_user, n_item=self.n_item, U=self.U, V=self.V, k=self.k,
-                      n_vocab=self.train_set.item_text.vocab.size,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, a=self.a,
-                      b=self.b, max_iter=self.max_iter, seed=self.seed)
+        model.init_count(docs=documents)
 
+        # training
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
-            cf_loss = model.update_cf(user_data=user_data, item_data=item_data)  # u and v updating
-            lda_loss = model.update_theta(doc_ids=doc_ids, doc_cnt=doc_cnt)
-            model.update_beta()
-            loop.set_postfix(cf_loss=cf_loss, lda_likelihood=-lda_loss)
+            model.assign_word_topics(docs=documents)
+            loss = model.update_params(rating_data=(user_data, item_data))
+            loop.set_postfix(loss=loss)
+
+        self.alpha, self.beta_u, self.beta_i, self.gamma_u, self.gamma_i = model.get_parameter()
 
         if self.verbose:
             print('Learning completed!')
@@ -164,10 +177,14 @@ class CTR(Recommender):
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
-            known_item_scores = self.V.dot(self.U[user_id, :])
+            known_item_scores = self.alpha + self.beta_u[user_id] + self.beta_i + self.gamma_i.dot(
+                self.gamma_u[user_id, :])
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            user_pred = self.V[item_id, :].dot(self.U[user_id, :])
+
+            user_pred = self.alpha + self.beta_u[user_id] + self.beta_i[item_id] + self.gamma_i[item_id, :].dot(
+                self.gamma_u[user_id, :])
+
             return user_pred
