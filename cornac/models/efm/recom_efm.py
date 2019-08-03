@@ -68,7 +68,7 @@ class EFM(Recommender):
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs for SGD.
 
-    learning_rate: float, optional, default: 0.01
+    learning_rate: float, optional, default: 0.005
         The learning rate for AdamOptimizer.
 
     name: string, optional, default: 'EFM'
@@ -76,13 +76,13 @@ class EFM(Recommender):
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already 
-        pre-trained (U1, U2, V, H1, and H2 are not None).
+        pre-trained (U1, U2, V, H1, H2, Bu, Bi, and u are not None).
 
     verbose: boolean, optional, default: False
         When True, running logs are displayed.
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2}
+        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2, 'Bu':Bu, 'Bi':Bi, 'u':u}
         U1: ndarray, shape (n_users, n_explicit_factors)
             The user explicit factors, optional initialization via init_params.
         U2: ndarray, shape (n_items, n_explicit_factors)
@@ -97,6 +97,8 @@ class EFM(Recommender):
             The user biases, optional initialization via init_params.
         Bi: ndarray, shape (n_items,)
             The item biases, optional initialization via init_params.
+        u: float
+            Global mean, optional initialization via init_params.
 
     seed: int, optional, default: None
         Random seed for weight initialization.
@@ -153,11 +155,16 @@ class EFM(Recommender):
         rng = get_rng(self.seed)
         num_factors = self.num_explicit_factors + self.num_latent_factors
         high = np.sqrt(self.rating_scale / num_factors)
-        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors), high=high, random_state=rng))
-        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors), high=high, random_state=rng))
-        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors), high=high, random_state=rng))
-        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors), high=high, random_state=rng))
-        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors), high=high, random_state=rng))
+        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors),
+                                                     high=high, random_state=rng))
+        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors),
+                                                     high=high, random_state=rng))
+        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors),
+                                                   high=high, random_state=rng))
+        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors),
+                                                     high=high, random_state=rng))
+        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors),
+                                                     high=high, random_state=rng))
         self.u_biases = self.init_params.get('Bu', zeros(self.train_set.num_users))
         self.i_biases = self.init_params.get('Bi', zeros(self.train_set.num_items))
 
@@ -181,15 +188,14 @@ class EFM(Recommender):
     def _fit_efm(self):
         from .efm import sgd_efm
 
-        if self.verbose:
-            print('Construct matrices A, X, Y')
         A, X, Y = self._build_matrices(self.train_set)
-        self.U1, self.U2, self.V, self.H1, self.H2, self.u_biases, self.i_biases = sgd_efm(A.data, A.indptr, A.indices, X.data, X.indptr, X.indices, Y.data, Y.indptr, Y.indices,
-                                                                                           self.U1, self.U2, self.V, self.H1, self.H2,
-                                                                                           self.global_mean, self.u_biases, self.i_biases,
-                                                                                           self.num_explicit_factors, self.num_latent_factors,
-                                                                                           self.lambda_x, self.lambda_y, self.lambda_u, self.lambda_h, self.lambda_v, self.lambda_reg,
-                                                                                           self.use_bias, self.max_iter, self.learning_rate, self.verbose)
+        self.U1, self.U2, self.V, self.H1, self.H2, self.u_biases, self.i_biases = \
+            sgd_efm(A.data, A.indptr, A.indices, X.data, X.indptr, X.indices, Y.data, Y.indptr, Y.indices,
+                    self.U1, self.U2, self.V, self.H1, self.H2,
+                    self.global_mean, self.u_biases, self.i_biases,
+                    self.num_explicit_factors, self.num_latent_factors,
+                    self.lambda_x, self.lambda_y, self.lambda_u, self.lambda_h, self.lambda_v, self.lambda_reg,
+                    self.use_bias, self.max_iter, self.learning_rate, self.verbose)
 
         if self.verbose:
             print('Learning completed!')
@@ -261,6 +267,10 @@ class EFM(Recommender):
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int).flatten()
         Y = sp.csr_matrix((quality_scores, (map_iid, map_aspect_id)),
                           shape=(train_set.num_items, sentiment.num_aspects))
+
+        if self.verbose:
+            print('Building matrices completed!')
+
         return A, X, Y
 
     def _compute_attention_score(self, count):
@@ -297,7 +307,8 @@ class EFM(Recommender):
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            item_score = self.global_mean + self.u_biases[user_id] + self.i_biases[item_id] + self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
+            item_score = self.global_mean + self.u_biases[user_id] + self.i_biases[item_id] \
+                         + self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
             return item_score
 
     def rank(self, user_id, item_ids=None):
