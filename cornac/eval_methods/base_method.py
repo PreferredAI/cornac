@@ -52,16 +52,21 @@ class BaseMethod:
     rating_threshold: float, optional, default: 1.0
         The threshold to convert ratings into positive or negative feedback for ranking metrics.
 
+    seed: int, optional, default: None
+        Random seed for reproduce the splitting.
+
     exclude_unknowns: bool, optional, default: False
         Ignore unknown users and items (cold-start) during evaluation.
 
     verbose: bool, optional, default: False
         Output running log
+
     """
 
     def __init__(self, data=None,
                  fmt='UIR',
                  rating_threshold=1.0,
+                 seed=None,
                  exclude_unknowns=False,
                  verbose=False,
                  **kwargs):
@@ -73,6 +78,7 @@ class BaseMethod:
         self.rating_threshold = rating_threshold
         self.exclude_unknowns = exclude_unknowns
         self.verbose = verbose
+        self.seed = seed
         self.global_uid_map = OrderedDict()
         self.global_iid_map = OrderedDict()
 

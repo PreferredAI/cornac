@@ -57,18 +57,18 @@ class CrossValidation(BaseMethod):
     def __init__(self, data, fmt='UIR', n_folds=5, rating_threshold=1., partition=None,
                  seed=None, exclude_unknowns=True, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, fmt=fmt, rating_threshold=rating_threshold,
-                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
+                            seed=seed, exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
+
         self.n_folds = n_folds
         self.n_ratings = len(self._data)
         self.current_fold = 0
         self.current_split = None
 
-        self._seed = seed
         self._partition = self._validate_partition(partition)
 
     # Partition ratings into n_folds
     def _partition_data(self):
-        rng = get_rng(self._seed)
+        rng = get_rng(self.seed)
 
         fold_size = int(self.n_ratings / self.n_folds)
         remain_size = self.n_ratings - fold_size * self.n_folds
