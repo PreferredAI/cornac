@@ -64,9 +64,8 @@ class RatioSplit(BaseMethod):
     def __init__(self, data, fmt='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0, shuffle=True,
                  seed=None, exclude_unknowns=False, verbose=False, **kwargs):
         BaseMethod.__init__(self, data=data, fmt=fmt, rating_threshold=rating_threshold,
-                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
+                            seed=seed, exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
         self._shuffle = shuffle
-        self._seed = seed
         self._train_size, self._val_size, self._test_size = self.validate_size(val_size, test_size, len(self._data))
         self._split()
 
@@ -108,7 +107,7 @@ class RatioSplit(BaseMethod):
 
         data_idx = np.arange(len(self._data))
         if self._shuffle:
-            data_idx = get_rng(self._seed).permutation(data_idx)
+            data_idx = get_rng(self.seed).permutation(data_idx)
 
         train_idx = data_idx[:self._train_size]
         test_idx = data_idx[-self._test_size:]
