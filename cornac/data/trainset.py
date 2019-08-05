@@ -110,7 +110,7 @@ class MatrixTrainSet(TrainSet):
         The dictionary containing mapping from original ids to mapped ids of items.
 
     seed: int, optional, default: None
-        Random seed for reproduce data sampling.
+        Random seed for reproducing data sampling.
 
     """
 
@@ -179,7 +179,7 @@ class MatrixTrainSet(TrainSet):
 
     @classmethod
     def from_uir(cls, data, global_uid_map=None, global_iid_map=None,
-                 global_ui_set=None, verbose=False):
+                 global_ui_set=None, seed=None, verbose=False):
         """Constructing TrainSet from triplet data.
 
         Parameters
@@ -195,6 +195,9 @@ class MatrixTrainSet(TrainSet):
 
         global_ui_set: :obj:`set`, optional, default: None
             The global set of tuples (user, item). This helps avoiding duplicate observations.
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
 
         verbose: bool, default: False
             The verbosity flag.
@@ -258,7 +261,7 @@ class MatrixTrainSet(TrainSet):
             print('Min rating = {:.1f}'.format(min_rating))
             print('Global mean = {:.1f}'.format(global_mean))
 
-        return cls(uir_tuple, max_rating, min_rating, global_mean, uid_map, iid_map)
+        return cls(uir_tuple, max_rating, min_rating, global_mean, uid_map, iid_map, seed=seed)
 
     def num_batches(self, batch_size):
         return estimate_batches(len(self.uir_tuple[0]), batch_size)
