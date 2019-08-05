@@ -192,7 +192,7 @@ class BaseMethod:
         if self.verbose:
             print('Building training set')
         self.train_set = MultimodalTrainSet.from_uir(
-            train_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+            train_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.seed, self.verbose)
 
         if self.verbose:
             print('Building test set')
