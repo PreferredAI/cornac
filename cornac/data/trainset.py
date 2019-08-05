@@ -110,7 +110,7 @@ class MatrixTrainSet(TrainSet):
         The dictionary containing mapping from original ids to mapped ids of items.
 
     seed: int, optional, default: None
-        Random seed for reproduce data sampling.
+        Random seed for reproducing data sampling.
 
     """
 
@@ -197,7 +197,7 @@ class MatrixTrainSet(TrainSet):
             The global set of tuples (user, item). This helps avoiding duplicate observations.
 
         seed: int, optional, default: None
-            Random seed for reproduce data sampling.
+            Random seed for reproducing data sampling.
 
         verbose: bool, default: False
             The verbosity flag.
