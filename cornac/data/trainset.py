@@ -121,7 +121,7 @@ class MatrixTrainSet(TrainSet):
         self.max_rating = max_rating
         self.min_rating = min_rating
         self.global_mean = global_mean
-        self.seed = seed
+        self.rng = get_rng(seed)
 
         self.__csr_matrix = None
         self.__csc_matrix = None
@@ -283,7 +283,7 @@ class MatrixTrainSet(TrainSet):
         """
         indices = np.arange(idx_range)
         if shuffle:
-            get_rng(self.seed).shuffle(indices)
+            self.rng.shuffle(indices)
 
         n_batches = estimate_batches(len(indices), batch_size)
         for b in range(n_batches):
@@ -337,9 +337,9 @@ class MatrixTrainSet(TrainSet):
             batch_pos_ratings = self.uir_tuple[2][batch_ids]
             batch_neg_items = np.zeros_like(batch_pos_items)
             for i, (user, pos_rating) in enumerate(zip(batch_users, batch_pos_ratings)):
-                neg_item = get_rng(self.seed).randint(0, self.num_items)
+                neg_item = self.rng.randint(0, self.num_items)
                 while self.dok_matrix[user, neg_item] >= pos_rating:
-                    neg_item = get_rng(self.seed).randint(0, self.num_items)
+                    neg_item = self.rng.randint(0, self.num_items)
                 batch_neg_items[i] = neg_item
             yield batch_users, batch_pos_items, batch_neg_items
 
@@ -406,7 +406,7 @@ class MultimodalTrainSet(MatrixTrainSet):
     """
 
     def __init__(self, matrix, max_rating, min_rating, global_mean, uid_map, iid_map, **kwargs):
-        super().__init__(matrix, max_rating, min_rating, global_mean, uid_map, iid_map)
+        super().__init__(matrix, max_rating, min_rating, global_mean, uid_map, iid_map, **kwargs)
         self.add_modalities(**kwargs)
 
     def add_modalities(self, **kwargs):
