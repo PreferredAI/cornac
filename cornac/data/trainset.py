@@ -18,6 +18,7 @@ from collections import OrderedDict
 import numpy as np
 from scipy.sparse import csr_matrix, csc_matrix, dok_matrix
 
+from ..utils import get_rng
 from ..utils import estimate_batches
 
 
@@ -84,34 +85,6 @@ class TrainSet:
         """Return the mapped id of an item given a raw id"""
         return self.iid_map[raw_iid]
 
-    @staticmethod
-    def idx_iter(idx_range, batch_size=1, shuffle=False):
-        """Create an iterator over batch of indices
-
-        Parameters
-        ----------
-        batch_size : int, optional, default = 1
-
-        shuffle : bool, optional
-            If True, orders of triplets will be randomized. If False, default orders kept
-
-        Returns
-        -------
-        iterator : batch of indices (array of np.int)
-
-        """
-        indices = np.arange(idx_range)
-        if shuffle:
-            np.random.shuffle(indices)
-
-        n_batches = estimate_batches(len(indices), batch_size)
-        for b in range(n_batches):
-            start_offset = batch_size * b
-            end_offset = batch_size * b + batch_size
-            end_offset = min(end_offset, len(indices))
-            batch_ids = indices[start_offset:end_offset]
-            yield batch_ids
-
 
 class MatrixTrainSet(TrainSet):
     """Training set contains preference matrix
@@ -136,14 +109,20 @@ class MatrixTrainSet(TrainSet):
     iid_map: :obj:`defaultdict`
         The dictionary containing mapping from original ids to mapped ids of items.
 
+    seed: int, optional, default: None
+        Random seed for reproducing data sampling.
+
     """
 
-    def __init__(self, uir_tuple, max_rating, min_rating, global_mean, uid_map, iid_map):
+    def __init__(self, uir_tuple, max_rating, min_rating, global_mean,
+                 uid_map, iid_map, seed=None):
         super().__init__(uid_map, iid_map)
         self.uir_tuple = uir_tuple
         self.max_rating = max_rating
         self.min_rating = min_rating
         self.global_mean = global_mean
+        self.seed = seed
+
         self.__csr_matrix = None
         self.__csc_matrix = None
         self.__dok_matrix = None
@@ -200,7 +179,7 @@ class MatrixTrainSet(TrainSet):
 
     @classmethod
     def from_uir(cls, data, global_uid_map=None, global_iid_map=None,
-                 global_ui_set=None, verbose=False):
+                 global_ui_set=None, seed=None, verbose=False):
         """Constructing TrainSet from triplet data.
 
         Parameters
@@ -216,6 +195,9 @@ class MatrixTrainSet(TrainSet):
 
         global_ui_set: :obj:`set`, optional, default: None
             The global set of tuples (user, item). This helps avoiding duplicate observations.
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
 
         verbose: bool, default: False
             The verbosity flag.
@@ -279,10 +261,37 @@ class MatrixTrainSet(TrainSet):
             print('Min rating = {:.1f}'.format(min_rating))
             print('Global mean = {:.1f}'.format(global_mean))
 
-        return cls(uir_tuple, max_rating, min_rating, global_mean, uid_map, iid_map)
+        return cls(uir_tuple, max_rating, min_rating, global_mean, uid_map, iid_map, seed=seed)
 
     def num_batches(self, batch_size):
         return estimate_batches(len(self.uir_tuple[0]), batch_size)
+
+    def idx_iter(self, idx_range, batch_size=1, shuffle=False):
+        """Create an iterator over batch of indices
+
+        Parameters
+        ----------
+        batch_size : int, optional, default = 1
+
+        shuffle : bool, optional
+            If True, orders of triplets will be randomized. If False, default orders kept
+
+        Returns
+        -------
+        iterator : batch of indices (array of np.int)
+
+        """
+        indices = np.arange(idx_range)
+        if shuffle:
+            get_rng(self.seed).shuffle(indices)
+
+        n_batches = estimate_batches(len(indices), batch_size)
+        for b in range(n_batches):
+            start_offset = batch_size * b
+            end_offset = batch_size * b + batch_size
+            end_offset = min(end_offset, len(indices))
+            batch_ids = indices[start_offset:end_offset]
+            yield batch_ids
 
     def uir_iter(self, batch_size=1, shuffle=False):
         """Create an iterator over data yielding batch of users, items, and rating values
@@ -328,9 +337,9 @@ class MatrixTrainSet(TrainSet):
             batch_pos_ratings = self.uir_tuple[2][batch_ids]
             batch_neg_items = np.zeros_like(batch_pos_items)
             for i, (user, pos_rating) in enumerate(zip(batch_users, batch_pos_ratings)):
-                neg_item = np.random.randint(0, self.num_items)
+                neg_item = get_rng(self.seed).randint(0, self.num_items)
                 while self.dok_matrix[user, neg_item] >= pos_rating:
-                    neg_item = np.random.randint(0, self.num_items)
+                    neg_item = get_rng(self.seed).randint(0, self.num_items)
                 batch_neg_items[i] = neg_item
             yield batch_users, batch_pos_items, batch_neg_items
 

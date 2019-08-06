@@ -53,6 +53,10 @@ class MF(Recommender):
     early_stop: boolean, optional, default: False
         When True, delta loss will be checked after each iteration to stop learning earlier.
 
+    num_threads: int, optional, default: 0
+        Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
+        If seed is not None, num_threads=1 to remove randomness from parallelization.
+
     trainable: boolean, optional, default: True
         When False, the model will not be re-trained, and input of pre-trained parameters are required.
 
@@ -65,6 +69,7 @@ class MF(Recommender):
 
     seed: int, optional, default: None
         Random seed for weight initialization.
+        If specified, training will take longer because of single-thread (no parallelization).
 
     References
     ----------
@@ -73,7 +78,7 @@ class MF(Recommender):
     """
 
     def __init__(self, name='MF', k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True,
-                 early_stop=False, trainable=True, verbose=False, init_params=None, seed=None):
+                 early_stop=False, num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.max_iter = max_iter
@@ -83,6 +88,14 @@ class MF(Recommender):
         self.early_stop = early_stop
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
+
+        import multiprocessing
+        if seed is not None:
+            self.num_threads = 1
+        elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
+            self.num_threads = num_threads
+        else:
+            self.num_threads = multiprocessing.cpu_count()
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -126,6 +139,7 @@ class MF(Recommender):
             long num_ratings = val.shape[0]
             int num_factors = self.k
             int max_iter = self.max_iter
+            int num_threads = self.num_threads
 
             floating reg = self.lambda_reg
             floating mu = self.global_mean
@@ -149,7 +163,7 @@ class MF(Recommender):
             last_loss = loss
             loss = 0
 
-            for j in prange(num_ratings, nogil=True, schedule='static'):
+            for j in prange(num_ratings, nogil=True, schedule='static', num_threads=num_threads):
                 u, i, r = rid[j], cid[j], val[j]
                 user, item = &U[u, 0], &V[i, 0]
 
