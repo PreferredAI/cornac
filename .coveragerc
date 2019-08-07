@@ -13,3 +13,4 @@ include =
     */cornac/*
 omit =
     */cornac/models/*
+    */cornac/datasets/*
