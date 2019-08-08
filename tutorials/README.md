@@ -16,3 +16,4 @@ If you are new to Cornac, the [Getting Started](#getting-started) tutorials are 
 One important aspect of Cornac is broadening the use cases of existing recommendation algorithms, by enabling seamless cross-modality transformations, e.g., from visual or textual features to graph. This is of great interest as, for instance, the modality a given model is designed for may not always be available. Tutorials within this section elaborate more on this aspect by describing concrete end-to-end use cases. 
 
 - [Text to Graph transformation](./text_to_graph.ipynb)
+- [Visual recommendation algorithm with text data](./vbpr_text.ipynb)
