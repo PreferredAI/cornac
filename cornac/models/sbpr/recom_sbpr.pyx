@@ -53,8 +53,8 @@ class SBPR(Recommender):
         The regularization hyper-parameter.
 
     num_threads: int, optional, default: 0
-        Number of parallel threads for training.
-        If 0, all CPU cores will be utilized.
+        Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
+        If seed is not None, num_threads=1 to remove randomness from parallelization.
 
     trainable: boolean, optional, default: True
         When False, the model will not be re-trained, and input of pre-trained parameters are required.
@@ -67,6 +67,7 @@ class SBPR(Recommender):
 
     seed: int, optional, default: None
         Random seed for weight initialization.
+        If specified, training will take longer because of single-thread (no parallelization).
 
     References
     ----------
@@ -88,7 +89,9 @@ class SBPR(Recommender):
         self.seed = seed
 
         import multiprocessing
-        if num_threads > 0 and num_threads < multiprocessing.cpu_count():
+        if seed is not None:
+            self.num_threads = 1
+        elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
@@ -133,7 +136,7 @@ class SBPR(Recommender):
         social_item_ids = []
         social_item_counts = []
         social_indptr = [0]
-        for uid in trange(n_users, disable=not self.verbose, desc='Social'):
+        for uid in trange(n_users, disable=not self.verbose, desc='Building social data'):
             real_pos_items = np.unique(X[uid].indices)
             social_pos_items, counts = np.unique(X[Y[uid].indices].indices,
                                                      return_counts=True)
@@ -149,8 +152,8 @@ class SBPR(Recommender):
         # construct random generators
         cdef:
             int num_threads = self.num_threads
-            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1)
-            RNGVector rng_neg = RNGVector(num_threads, n_items - 1)
+            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, rng.randint(2 ** 31))
+            RNGVector rng_neg = RNGVector(num_threads, n_items - 1, rng.randint(2 ** 31))
 
         # start training
         with trange(self.max_iter, disable=not self.verbose) as progress:

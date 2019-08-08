@@ -27,6 +27,7 @@ cimport numpy as np
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
 from ...utils import fast_dot
 from ...utils.common import scale
 
@@ -44,9 +45,10 @@ cdef bool has_non_zero(integral[:] indptr, integral[:] indices,
 
 
 cdef class RNGVector(object):
-    def __init__(self, int num_threads, long rows):
+    def __init__(self, int num_threads, long rows, int seed):
+        rng = get_rng(seed)
         for i in range(num_threads):
-            self.rng.push_back(mt19937(np.random.randint(2 ** 31)))
+            self.rng.push_back(mt19937(rng.randint(2 ** 31)))
             self.dist.push_back(uniform_int_distribution[long](0, rows))
 
     cdef inline long generate(self, int thread_id) nogil:
@@ -72,8 +74,8 @@ class BPR(Recommender):
         The regularization hyper-parameter.
 
     num_threads: int, optional, default: 0
-        Number of parallel threads for training.
-        If 0, all CPU cores will be utilized.
+        Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
+        If seed is not None, num_threads=1 to remove randomness from parallelization.
 
     trainable: boolean, optional, default: True
         When False, the model will not be re-trained, and input of pre-trained parameters are required.
@@ -86,6 +88,7 @@ class BPR(Recommender):
 
     seed: int, optional, default: None
         Random seed for weight initialization.
+        If specified, training will take longer because of single-thread (no parallelization).
 
     References
     ----------
@@ -104,7 +107,9 @@ class BPR(Recommender):
         self.seed = seed
 
         import multiprocessing
-        if num_threads > 0 and num_threads < multiprocessing.cpu_count():
+        if seed is not None:
+            self.num_threads = 1
+        elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
@@ -143,8 +148,8 @@ class BPR(Recommender):
 
         cdef:
             int num_threads = self.num_threads
-            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1)
-            RNGVector rng_neg = RNGVector(num_threads, n_items - 1)
+            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, rng.randint(2 ** 31))
+            RNGVector rng_neg = RNGVector(num_threads, n_items - 1, rng.randint(2 ** 31))
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
