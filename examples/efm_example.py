@@ -15,7 +15,7 @@ split_data = RatioSplit(data=rating,
 efm = cornac.models.EFM(num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
                         rating_scale=5.0, alpha=0.85,
                         lambda_x=1, lambda_y=1, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01,
-                        max_iter=100, learning_rate=0.005,
+                        max_iter=100, num_threads=1,
                         trainable=True, verbose=True, seed=123)
 
 rmse = cornac.metrics.RMSE()

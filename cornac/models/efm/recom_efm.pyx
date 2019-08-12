@@ -13,12 +13,27 @@
 # limitations under the License.
 # ============================================================================
 
+cimport cython
+from cython.parallel import prange, parallel
+from cython cimport floating, integral
+from libc.math cimport sqrt
+from scipy.linalg.cython_blas cimport sdot, ddot
 from ...exception import ScoreException
 from ...utils.common import intersects
+
 from ..recommender import Recommender
 from collections import Counter, OrderedDict
 import scipy.sparse as sp
 import numpy as np
+
+
+cdef floating _dot(int n, floating *x, int incx,
+                   floating *y, int incy) nogil:
+    if floating is float:
+        return sdot(&n, x, &incx, y, &incy)
+    else:
+        return ddot(&n, x, &incx, y, &incy)
+
 
 class EFM(Recommender):
     """Explict Factor Models
@@ -55,50 +70,38 @@ class EFM(Recommender):
     lambda_v: float, optional, default: 0.01
         The regularization parameter for V.
 
-    use_bias: boolean, optional, default: False
-        When True, user, item, and global biases are used.
-        This is omitted in the original paper.
-
-    lambda_reg: float, optional, default: 0.01
-        The common regularization parameter for user biases and item biases.
-
     use_item_aspect_popularity: boolean, optional, default: True
         When False, item aspect quality score computation omits item aspect frequency out of its formular.
 
     max_iter: int, optional, default: 100
-        Maximum number of iterations or the number of epochs for SGD.
-
-    learning_rate: float, optional, default: 0.005
-        The learning rate for AdamOptimizer.
+        Maximum number of iterations or the number of epochs.
 
     name: string, optional, default: 'EFM'
         The name of the recommender model.
 
+    num_threads: int, optional, default: 0
+        Number of parallel threads for training.
+        If 0, all CPU cores will be utilized.
+
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already 
-        pre-trained (U1, U2, V, H1, H2, Bu, Bi, and u are not None).
+        pre-trained (U1, U2, V, H1, and H2 are not None).
 
     verbose: boolean, optional, default: False
         When True, running logs are displayed.
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2, 'Bu':Bu, 'Bi':Bi, 'u':u}
+        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2}
         U1: ndarray, shape (n_users, n_explicit_factors)
             The user explicit factors, optional initialization via init_params.
-        U2: ndarray, shape (n_items, n_explicit_factors)
+        U2: ndarray, shape (n_ratings, n_explicit_factors)
             The item explicit factors, optional initialization via init_params.
         V: ndarray, shape (n_aspects, n_explict_factors)
             The aspect factors, optional initialization via init_params.
         H1: ndarray, shape (n_users, n_latent_factors)
             The user latent factors, optional initialization via init_params.
-        H2: ndarray, shape (n_items, n_latent_factors)
+        H2: ndarray, shape (n_ratings, n_latent_factors)
             The item latent factors, optional initialization via init_params.
-        Bu: ndarray, shape (n_users,)
-            The user biases, optional initialization via init_params.
-        Bi: ndarray, shape (n_items,)
-            The item biases, optional initialization via init_params.
-        u: float
-            Global mean, optional initialization via init_params.
 
     seed: int, optional, default: None
         Random seed for weight initialization.
@@ -114,9 +117,9 @@ class EFM(Recommender):
     def __init__(self,  name="EFM",
                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
                  rating_scale=5.0, alpha=0.85,
-                 lambda_x=1, lambda_y=1, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01, lambda_reg=0.01,
-                 use_bias=False, use_item_aspect_popularity=True, max_iter=100, learning_rate=0.005,
-                 trainable=True, verbose=False, init_params=None, seed=None):
+                 lambda_x=1, lambda_y=1, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01,
+                 use_item_aspect_popularity=True, max_iter=100,
+                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.num_explicit_factors = num_explicit_factors
@@ -129,13 +132,15 @@ class EFM(Recommender):
         self.lambda_u = lambda_u
         self.lambda_h = lambda_h
         self.lambda_v = lambda_v
-        self.use_bias = use_bias
-        self.lambda_reg = lambda_reg
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
-        self.learning_rate = learning_rate
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
+        import multiprocessing
+        if num_threads > 0 and num_threads < multiprocessing.cpu_count():
+            self.num_threads = num_threads
+        else:
+            self.num_threads = multiprocessing.cpu_count()
 
     def fit(self, train_set):
         """Fit the model.
@@ -147,10 +152,9 @@ class EFM(Recommender):
 
         """
         Recommender.fit(self, train_set)
-        self.global_mean = self.init_params.get('u', self.train_set.global_mean) if self.use_bias else 0.
 
         from ...utils import get_rng
-        from ...utils.init_utils import uniform, zeros
+        from ...utils.init_utils import uniform
 
         rng = get_rng(self.seed)
         num_factors = self.num_explicit_factors + self.num_latent_factors
@@ -165,14 +169,26 @@ class EFM(Recommender):
                                                      high=high, random_state=rng))
         self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors),
                                                      high=high, random_state=rng))
-        self.u_biases = self.init_params.get('Bu', zeros(self.train_set.num_users))
-        self.i_biases = self.init_params.get('Bi', zeros(self.train_set.num_items))
 
-        if self.trainable:
-            self._fit_efm()
+        if not self.trainable:
+            return
+
+        A, X, Y = self._build_matrices(self.train_set)
+        A_user_counts = np.ediff1d(A.indptr)
+        A_item_counts = np.ediff1d(A.transpose().indptr)
+        A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
+        X_user_counts = np.ediff1d(X.indptr)
+        X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)
+        Y_item_counts = np.ediff1d(Y.indptr)
+        Y_iids = np.repeat(np.arange(self.train_set.num_items), Y_item_counts).astype(Y.indices.dtype)
+        self._fit_efm(self.num_threads,
+                      A.data.astype(np.float32), A_uids, A.indices, A_user_counts, A_item_counts,
+                      X.data.astype(np.float32), X_uids, X.indices,
+                      Y.data.astype(np.float32), Y_iids, Y.indices,
+                      self.U1, self.U2, self.V, self.H1, self.H2)
 
     def get_params(self):
-        """Get model parameters in the form of dictionary including matrices: U1, U2, V, H1, H2, Bu, Bi, u
+        """Get model parameters in the form of dictionary including matrices: U1, U2, V, H1, H2
         """
         return {
             'U1': self.U1,
@@ -180,22 +196,164 @@ class EFM(Recommender):
             'V': self.V,
             'H1': self.H1,
             'H2': self.H2,
-            'Bu': self.u_biases,
-            'Bi': self.i_biases,
-            'u': self.global_mean
         }
 
-    def _fit_efm(self):
-        from .efm import sgd_efm
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def _fit_efm(self, #A, X, Y,
+                 int num_threads, 
+                 floating[:] A, integral[:] A_uids, integral[:] A_iids, integral[:] A_user_counts, integral[:] A_item_counts,
+                 floating[:] X, integral[:] X_uids, integral[:] X_aids,
+                 floating[:] Y, integral[:] Y_iids, integral[:] Y_aids,
+                 floating[:, :] U1, floating[:, :] U2, floating[:, :] V, floating[:, :] H1, floating[:, :] H2):
+        """Fit the model parameters (U1, U2, V, H1, H2)
+        """
+        cdef:
+            long num_users = self.train_set.num_users
+            long num_items = self.train_set.num_items
+            long num_aspects = self.train_set.sentiment.num_aspects
+            int num_explicit_factors = self.num_explicit_factors
+            int num_latent_factors = self.num_latent_factors
 
-        A, X, Y = self._build_matrices(self.train_set)
-        self.U1, self.U2, self.V, self.H1, self.H2, self.u_biases, self.i_biases = \
-            sgd_efm(A.data, A.indptr, A.indices, X.data, X.indptr, X.indices, Y.data, Y.indptr, Y.indices,
-                    self.U1, self.U2, self.V, self.H1, self.H2,
-                    self.global_mean, self.u_biases, self.i_biases,
-                    self.num_explicit_factors, self.num_latent_factors,
-                    self.lambda_x, self.lambda_y, self.lambda_u, self.lambda_h, self.lambda_v, self.lambda_reg,
-                    self.use_bias, self.max_iter, self.learning_rate, self.verbose)
+            floating lambda_x = self.lambda_x
+            floating lambda_y = self.lambda_y
+            floating lambda_u = self.lambda_u
+            floating lambda_h = self.lambda_h
+            floating lambda_v = self.lambda_v
+
+            floating prediction, score, loss
+
+            floating[:, :] U1_numerator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
+            floating[:, :] U1_denominator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
+            floating[:, :] U2_numerator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
+            floating[:, :] U2_denominator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
+            floating[:, :] V_numerator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
+            floating[:, :] V_denominator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
+            floating[:, :] H1_numerator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
+            floating[:, :] H1_denominator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
+            floating[:, :] H2_numerator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
+            floating[:, :] H2_denominator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
+            int i, j, k, idx
+            long n_ratings
+
+            floating eps = 1e-9
+
+        for t in range(1, self.max_iter + 1):
+
+            # compute numerators and denominators for all factors
+            with nogil, parallel(num_threads=num_threads):
+                for idx in prange(A.shape[0]):
+                    i = A_uids[idx]
+                    j = A_iids[idx]
+                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &U2[j, 0], 1) + _dot(num_latent_factors, &H1[i, 0], 1, &H2[j, 0], 1)
+                    score = A[idx]
+                    for k in range(num_explicit_factors):
+                        U1_numerator[i, k] += score * U2[j, k]
+                        U1_denominator[i, k] += prediction * U2[j, k]
+                        U2_numerator[j, k] += score * U1[i, k]
+                        U2_denominator[j, k] += prediction * U1[i, k]
+
+                    for k in range(num_latent_factors):
+                        H1_numerator[i, k] += score * H2[j, k]
+                        H1_denominator[i, k] += prediction * H2[j, k]
+                        H2_numerator[j, k] += score * H1[i, k]
+                        H2_denominator[j, k] += prediction * H1[i, k]
+
+                for idx in prange(X.shape[0]):
+                    i = X_uids[idx]
+                    j = X_aids[idx]
+                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &V[j, 0], 1)
+                    score = X[idx]
+                    for k in range(num_explicit_factors):
+                        V_numerator[j, k] += lambda_x * score * U1[i, k]
+                        V_denominator[j, k] += lambda_x * prediction * U1[i, k]
+                        U1_numerator[i, k] += lambda_x * score * V[j, k]
+                        U1_denominator[i, k] += lambda_x * prediction * V[j, k]
+
+                for idx in prange(Y.shape[0]):
+                    i = Y_iids[idx]
+                    j = Y_aids[idx]
+                    prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
+                    score = Y[idx]
+                    for k in range(num_latent_factors):
+                        V_numerator[j, k] += lambda_y * score * U2[i, k]
+                        V_denominator[j, k] += lambda_y * prediction * U2[i, k]
+                        U2_numerator[i, k] += lambda_y * score * V[j, k]
+                        U2_denominator[i, k] += lambda_y * prediction * V[j, k]
+
+                # update V
+                for i in prange(num_aspects):
+                    for j in range(num_explicit_factors):
+                        V_denominator[i, j] += lambda_v * V[i, j] + eps
+                        V[i, j] *= sqrt(V_numerator[i, j] / V_denominator[i, j])
+
+                # update U1, H1
+                for i in prange(num_users):
+                    n_ratings = A_user_counts[i]
+                    for j in range(num_explicit_factors):
+                        U1_denominator[i, j] += n_ratings * lambda_u * U1[i, j] + eps
+                        U1[i, j] *= sqrt(U1_numerator[i, j] / U1_denominator[i, j])
+                    for j in range(num_latent_factors):
+                        H1_denominator[i, j] += n_ratings * lambda_h * H1[i, j] + eps
+                        H1[i, j] *= sqrt(H1_numerator[i, j] / H1_denominator[i, j])
+
+                # update U2, H2
+                for i in prange(num_items):
+                    n_ratings = A_item_counts[i]
+                    for j in range(num_explicit_factors):
+                        U2_denominator[i, j] += n_ratings * lambda_u * U2[i, j] + eps
+                        U2[i, j] *= sqrt(U2_numerator[i, j] / U2_denominator[i, j])
+                    for j in range(num_latent_factors):
+                        H2_denominator[i, j] += n_ratings * lambda_h * H2[i, j] + eps
+                        H2[i, j] *= sqrt(H2_numerator[i, j] / H2_denominator[i, j])
+
+            # reset all numerators and denominators
+            U1_numerator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
+            U1_denominator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
+            U2_numerator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
+            U2_denominator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
+            V_numerator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
+            V_denominator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
+            H1_numerator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
+            H1_denominator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
+            H2_numerator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
+            H2_denominator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
+
+            if self.verbose:
+                loss = 0.
+                for idx in range(A.shape[0]):
+                    i = A_uids[idx]
+                    j = A_iids[idx]
+                    score = A[idx]
+                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &U2[j, 0], 1) + _dot(num_latent_factors, &H1[i, 0], 1, &H2[j, 0], 1)
+                    loss += (prediction - score) * (prediction - score)
+                for idx in range(X.shape[0]):
+                    i = X_uids[idx]
+                    j = X_aids[idx]
+                    score = X[idx]
+                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &V[j, 0], 1)
+                    loss += (prediction - score) * (prediction - score)
+                for idx in range(Y.shape[0]):
+                    i = Y_iids[idx]
+                    j = Y_aids[idx]
+                    score = Y[idx]
+                    prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
+                    loss += (prediction - score) * (prediction - score)
+                for i in range(num_users):
+                    for j in range(num_explicit_factors):
+                        loss += lambda_u * U1[i, j] * U1[i, j]
+                    for j in range(num_latent_factors):
+                        loss += lambda_h * H1[i, j] * H1[i, j]
+                for i in range(num_items):
+                    for j in range(num_explicit_factors):
+                        loss += lambda_u * U2[i, j] * U2[i, j]
+                    for j in range(num_latent_factors):
+                        loss += lambda_h * H2[i, j] * H2[i, j]
+                for i in range(num_aspects):
+                    for j in range(num_explicit_factors):
+                        loss += lambda_v * V[i, j] * V[i, j]
+
+                print('iter: %d, loss: %f' % (t, loss))
 
         if self.verbose:
             print('Learning completed!')
@@ -300,15 +458,12 @@ class EFM(Recommender):
         if item_id is None:
             if self.train_set.is_unk_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d" & user_id)
-            item_scores = np.add(self.i_biases, self.global_mean)
-            item_scores = np.add(item_scores, self.u_biases[user_id])
-            item_scores = np.add(item_scores, self.U2.dot(self.U1[user_id, :]) + self.H2.dot(self.H1[user_id, :]))
+            item_scores = self.U2.dot(self.U1[user_id, :]) + self.H2.dot(self.H1[user_id, :])
             return item_scores
         else:
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            item_score = self.global_mean + self.u_biases[user_id] + self.i_biases[item_id] \
-                         + self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
+            item_score = self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
             return item_score
 
     def rank(self, user_id, item_ids=None):
