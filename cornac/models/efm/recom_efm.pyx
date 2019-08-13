@@ -177,7 +177,7 @@ class EFM(Recommender):
 
         A, X, Y = self._build_matrices(self.train_set)
         A_user_counts = np.ediff1d(A.indptr)
-        A_item_counts = np.ediff1d(A.transpose().indptr)
+        A_item_counts = np.ediff1d(A.tocsc().indptr)
         A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
         X_user_counts = np.ediff1d(X.indptr)
         X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)

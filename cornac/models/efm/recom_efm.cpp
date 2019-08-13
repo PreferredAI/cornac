@@ -2283,6 +2283,7 @@ static const char __pyx_k_short[] = "short";
 static const char __pyx_k_split[] = "split";
 static const char __pyx_k_start[] = "start";
 static const char __pyx_k_strip[] = "strip";
+static const char __pyx_k_tocsc[] = "tocsc";
 static const char __pyx_k_utils[] = "utils";
 static const char __pyx_k_zeros[] = "zeros";
 static const char __pyx_k_A_iids[] = "A_iids";
@@ -2363,7 +2364,6 @@ static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_sentiment[] = "sentiment";
 static const char __pyx_k_train_set[] = "train_set";
 static const char __pyx_k_trainable[] = "trainable";
-static const char __pyx_k_transpose[] = "transpose";
 static const char __pyx_k_EFM___init[] = "EFM.__init__";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
@@ -2763,11 +2763,11 @@ static PyObject *__pyx_n_s_strip;
 static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_t;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_tocsc;
 static PyObject *__pyx_n_s_total_sentiment;
 static PyObject *__pyx_n_s_total_sentiment_by_aspect;
 static PyObject *__pyx_n_s_train_set;
 static PyObject *__pyx_n_s_trainable;
-static PyObject *__pyx_n_s_transpose;
 static PyObject *__pyx_n_s_tup;
 static PyObject *__pyx_n_s_tup_id;
 static PyObject *__pyx_n_s_uid;
@@ -4494,7 +4494,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_2fit(CYTHON_UNUSE
  * 
  *         A, X, Y = self._build_matrices(self.train_set)             # <<<<<<<<<<<<<<
  *         A_user_counts = np.ediff1d(A.indptr)
- *         A_item_counts = np.ediff1d(A.transpose().indptr)
+ *         A_item_counts = np.ediff1d(A.tocsc().indptr)
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_build_matrices); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4580,7 +4580,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_2fit(CYTHON_UNUSE
  * 
  *         A, X, Y = self._build_matrices(self.train_set)
  *         A_user_counts = np.ediff1d(A.indptr)             # <<<<<<<<<<<<<<
- *         A_item_counts = np.ediff1d(A.transpose().indptr)
+ *         A_item_counts = np.ediff1d(A.tocsc().indptr)
  *         A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
  */
   __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 179, __pyx_L1_error)
@@ -4612,7 +4612,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_2fit(CYTHON_UNUSE
   /* "cornac/models/efm/recom_efm.pyx":180
  *         A, X, Y = self._build_matrices(self.train_set)
  *         A_user_counts = np.ediff1d(A.indptr)
- *         A_item_counts = np.ediff1d(A.transpose().indptr)             # <<<<<<<<<<<<<<
+ *         A_item_counts = np.ediff1d(A.tocsc().indptr)             # <<<<<<<<<<<<<<
  *         A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
  *         X_user_counts = np.ediff1d(X.indptr)
  */
@@ -4621,7 +4621,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_2fit(CYTHON_UNUSE
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ediff1d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_A, __pyx_n_s_transpose); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_A, __pyx_n_s_tocsc); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_6 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4662,7 +4662,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_2fit(CYTHON_UNUSE
 
   /* "cornac/models/efm/recom_efm.pyx":181
  *         A_user_counts = np.ediff1d(A.indptr)
- *         A_item_counts = np.ediff1d(A.transpose().indptr)
+ *         A_item_counts = np.ediff1d(A.tocsc().indptr)
  *         A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)             # <<<<<<<<<<<<<<
  *         X_user_counts = np.ediff1d(X.indptr)
  *         X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)
@@ -4773,7 +4773,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_2fit(CYTHON_UNUSE
   __pyx_t_3 = 0;
 
   /* "cornac/models/efm/recom_efm.pyx":182
- *         A_item_counts = np.ediff1d(A.transpose().indptr)
+ *         A_item_counts = np.ediff1d(A.tocsc().indptr)
  *         A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
  *         X_user_counts = np.ediff1d(X.indptr)             # <<<<<<<<<<<<<<
  *         X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)
@@ -44501,11 +44501,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_struct, __pyx_k_struct, sizeof(__pyx_k_struct), 0, 0, 1, 1},
   {&__pyx_n_s_t, __pyx_k_t, sizeof(__pyx_k_t), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_tocsc, __pyx_k_tocsc, sizeof(__pyx_k_tocsc), 0, 0, 1, 1},
   {&__pyx_n_s_total_sentiment, __pyx_k_total_sentiment, sizeof(__pyx_k_total_sentiment), 0, 0, 1, 1},
   {&__pyx_n_s_total_sentiment_by_aspect, __pyx_k_total_sentiment_by_aspect, sizeof(__pyx_k_total_sentiment_by_aspect), 0, 0, 1, 1},
   {&__pyx_n_s_train_set, __pyx_k_train_set, sizeof(__pyx_k_train_set), 0, 0, 1, 1},
   {&__pyx_n_s_trainable, __pyx_k_trainable, sizeof(__pyx_k_trainable), 0, 0, 1, 1},
-  {&__pyx_n_s_transpose, __pyx_k_transpose, sizeof(__pyx_k_transpose), 0, 0, 1, 1},
   {&__pyx_n_s_tup, __pyx_k_tup, sizeof(__pyx_k_tup), 0, 0, 1, 1},
   {&__pyx_n_s_tup_id, __pyx_k_tup_id, sizeof(__pyx_k_tup_id), 0, 0, 1, 1},
   {&__pyx_n_s_uid, __pyx_k_uid, sizeof(__pyx_k_uid), 0, 0, 1, 1},
