@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+# cython: language_level=3
+
 cimport cython
 from cython.parallel import prange, parallel
 from cython cimport floating, integral
@@ -118,6 +120,7 @@ class EFM(Recommender):
                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
                  rating_scale=5.0, alpha=0.85,
                  lambda_x=1, lambda_y=1, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01,
+                 use_dominant=False,
                  use_item_aspect_popularity=True, max_iter=100,
                  num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
 
@@ -202,8 +205,7 @@ class EFM(Recommender):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def _fit_efm(self, #A, X, Y,
-                 int num_threads, 
+    def _fit_efm(self, int num_threads,
                  floating[:] A, integral[:] A_uids, integral[:] A_iids, integral[:] A_user_counts, integral[:] A_item_counts,
                  floating[:] X, integral[:] X_uids, integral[:] X_aids,
                  floating[:] Y, integral[:] Y_iids, integral[:] Y_aids,
@@ -242,13 +244,15 @@ class EFM(Recommender):
 
         for t in range(1, self.max_iter + 1):
 
-            # compute numerators and denominators for all factors
+            loss = 0.
             with nogil, parallel(num_threads=num_threads):
+                # compute numerators and denominators for all factors
                 for idx in prange(A.shape[0]):
                     i = A_uids[idx]
                     j = A_iids[idx]
                     prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &U2[j, 0], 1) + _dot(num_latent_factors, &H1[i, 0], 1, &H2[j, 0], 1)
                     score = A[idx]
+                    loss += (prediction - score) * (prediction - score)
                     for k in range(num_explicit_factors):
                         U1_numerator[i, k] += score * U2[j, k]
                         U1_denominator[i, k] += prediction * U2[j, k]
@@ -266,6 +270,7 @@ class EFM(Recommender):
                     j = X_aids[idx]
                     prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &V[j, 0], 1)
                     score = X[idx]
+                    loss += (prediction - score) * (prediction - score)
                     for k in range(num_explicit_factors):
                         V_numerator[j, k] += lambda_x * score * U1[i, k]
                         V_denominator[j, k] += lambda_x * prediction * U1[i, k]
@@ -277,6 +282,7 @@ class EFM(Recommender):
                     j = Y_aids[idx]
                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
                     score = Y[idx]
+                    loss += (prediction - score) * (prediction - score)
                     for k in range(num_latent_factors):
                         V_numerator[j, k] += lambda_y * score * U2[i, k]
                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
@@ -286,27 +292,30 @@ class EFM(Recommender):
                 # update V
                 for i in prange(num_aspects):
                     for j in range(num_explicit_factors):
+                        loss += lambda_v * V[i, j] * V[i, j]
                         V_denominator[i, j] += lambda_v * V[i, j] + eps
                         V[i, j] *= sqrt(V_numerator[i, j] / V_denominator[i, j])
 
                 # update U1, H1
                 for i in prange(num_users):
-                    n_ratings = A_user_counts[i]
                     for j in range(num_explicit_factors):
-                        U1_denominator[i, j] += n_ratings * lambda_u * U1[i, j] + eps
+                        loss += lambda_u * U1[i, j] * U1[i, j]
+                        U1_denominator[i, j] += A_user_counts[i] * lambda_u * U1[i, j] + eps
                         U1[i, j] *= sqrt(U1_numerator[i, j] / U1_denominator[i, j])
                     for j in range(num_latent_factors):
-                        H1_denominator[i, j] += n_ratings * lambda_h * H1[i, j] + eps
+                        loss += lambda_h * H1[i, j] * H1[i, j]
+                        H1_denominator[i, j] += A_user_counts[i] * lambda_h * H1[i, j] + eps
                         H1[i, j] *= sqrt(H1_numerator[i, j] / H1_denominator[i, j])
 
                 # update U2, H2
                 for i in prange(num_items):
-                    n_ratings = A_item_counts[i]
                     for j in range(num_explicit_factors):
-                        U2_denominator[i, j] += n_ratings * lambda_u * U2[i, j] + eps
+                        loss += lambda_u * U2[i, j] * U2[i, j]
+                        U2_denominator[i, j] += A_item_counts[i] * lambda_u * U2[i, j] + eps
                         U2[i, j] *= sqrt(U2_numerator[i, j] / U2_denominator[i, j])
                     for j in range(num_latent_factors):
-                        H2_denominator[i, j] += n_ratings * lambda_h * H2[i, j] + eps
+                        loss += lambda_h * H2[i, j] * H2[i, j]
+                        H2_denominator[i, j] += A_item_counts[i] * lambda_h * H2[i, j] + eps
                         H2[i, j] *= sqrt(H2_numerator[i, j] / H2_denominator[i, j])
 
             # reset all numerators and denominators
@@ -322,43 +331,10 @@ class EFM(Recommender):
             H2_denominator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
 
             if self.verbose:
-                loss = 0.
-                for idx in range(A.shape[0]):
-                    i = A_uids[idx]
-                    j = A_iids[idx]
-                    score = A[idx]
-                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &U2[j, 0], 1) + _dot(num_latent_factors, &H1[i, 0], 1, &H2[j, 0], 1)
-                    loss += (prediction - score) * (prediction - score)
-                for idx in range(X.shape[0]):
-                    i = X_uids[idx]
-                    j = X_aids[idx]
-                    score = X[idx]
-                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &V[j, 0], 1)
-                    loss += (prediction - score) * (prediction - score)
-                for idx in range(Y.shape[0]):
-                    i = Y_iids[idx]
-                    j = Y_aids[idx]
-                    score = Y[idx]
-                    prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
-                    loss += (prediction - score) * (prediction - score)
-                for i in range(num_users):
-                    for j in range(num_explicit_factors):
-                        loss += lambda_u * U1[i, j] * U1[i, j]
-                    for j in range(num_latent_factors):
-                        loss += lambda_h * H1[i, j] * H1[i, j]
-                for i in range(num_items):
-                    for j in range(num_explicit_factors):
-                        loss += lambda_u * U2[i, j] * U2[i, j]
-                    for j in range(num_latent_factors):
-                        loss += lambda_h * H2[i, j] * H2[i, j]
-                for i in range(num_aspects):
-                    for j in range(num_explicit_factors):
-                        loss += lambda_v * V[i, j] * V[i, j]
-
                 print('iter: %d, loss: %f' % (t, loss))
 
         if self.verbose:
-            print('Learning completed!')
+            print('Optimization finished!')
 
     def _build_matrices(self, train_set):
         sentiment = train_set.sentiment
