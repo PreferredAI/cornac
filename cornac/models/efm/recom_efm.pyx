@@ -137,7 +137,9 @@ class EFM(Recommender):
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
         import multiprocessing
-        if num_threads > 0 and num_threads < multiprocessing.cpu_count():
+        if seed is not None:
+            self.num_threads = 1
+        elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()

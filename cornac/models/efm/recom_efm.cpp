@@ -3465,7 +3465,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM___init__(CYTHON_U
  *         self.init_params = {} if init_params is None else init_params
  *         self.seed = seed             # <<<<<<<<<<<<<<
  *         import multiprocessing
- *         if num_threads > 0 and num_threads < multiprocessing.cpu_count():
+ *         if seed is not None:
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_seed, __pyx_v_seed) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
 
@@ -3473,8 +3473,8 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM___init__(CYTHON_U
  *         self.init_params = {} if init_params is None else init_params
  *         self.seed = seed
  *         import multiprocessing             # <<<<<<<<<<<<<<
- *         if num_threads > 0 and num_threads < multiprocessing.cpu_count():
- *             self.num_threads = num_threads
+ *         if seed is not None:
+ *             self.num_threads = 1
  */
   __pyx_t_4 = __Pyx_Import(__pyx_n_s_multiprocessing, 0, -1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 139, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -3484,19 +3484,49 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM___init__(CYTHON_U
   /* "cornac/models/efm/recom_efm.pyx":140
  *         self.seed = seed
  *         import multiprocessing
- *         if num_threads > 0 and num_threads < multiprocessing.cpu_count():             # <<<<<<<<<<<<<<
+ *         if seed is not None:             # <<<<<<<<<<<<<<
+ *             self.num_threads = 1
+ *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
+ */
+  __pyx_t_5 = (__pyx_v_seed != Py_None);
+  __pyx_t_6 = (__pyx_t_5 != 0);
+  if (__pyx_t_6) {
+
+    /* "cornac/models/efm/recom_efm.pyx":141
+ *         import multiprocessing
+ *         if seed is not None:
+ *             self.num_threads = 1             # <<<<<<<<<<<<<<
+ *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
+ *             self.num_threads = num_threads
+ */
+    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_int_1) < 0) __PYX_ERR(0, 141, __pyx_L1_error)
+
+    /* "cornac/models/efm/recom_efm.pyx":140
+ *         self.seed = seed
+ *         import multiprocessing
+ *         if seed is not None:             # <<<<<<<<<<<<<<
+ *             self.num_threads = 1
+ *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
+ */
+    goto __pyx_L3;
+  }
+
+  /* "cornac/models/efm/recom_efm.pyx":142
+ *         if seed is not None:
+ *             self.num_threads = 1
+ *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():             # <<<<<<<<<<<<<<
  *             self.num_threads = num_threads
  *         else:
  */
-  __pyx_t_4 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 140, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_4 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 142, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__pyx_t_6) {
+  if (__pyx_t_5) {
   } else {
-    __pyx_t_5 = __pyx_t_6;
+    __pyx_t_6 = __pyx_t_5;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_multiprocessing, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_multiprocessing, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3510,45 +3540,45 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM___init__(CYTHON_U
   }
   __pyx_t_4 = (__pyx_t_1) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 140, __pyx_L1_error)
+  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __pyx_t_6;
+  __pyx_t_6 = __pyx_t_5;
   __pyx_L4_bool_binop_done:;
-  if (__pyx_t_5) {
+  if (__pyx_t_6) {
 
-    /* "cornac/models/efm/recom_efm.pyx":141
- *         import multiprocessing
- *         if num_threads > 0 and num_threads < multiprocessing.cpu_count():
+    /* "cornac/models/efm/recom_efm.pyx":143
+ *             self.num_threads = 1
+ *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
  *             self.num_threads = num_threads             # <<<<<<<<<<<<<<
  *         else:
  *             self.num_threads = multiprocessing.cpu_count()
  */
-    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_v_num_threads) < 0) __PYX_ERR(0, 141, __pyx_L1_error)
+    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_v_num_threads) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
 
-    /* "cornac/models/efm/recom_efm.pyx":140
- *         self.seed = seed
- *         import multiprocessing
- *         if num_threads > 0 and num_threads < multiprocessing.cpu_count():             # <<<<<<<<<<<<<<
+    /* "cornac/models/efm/recom_efm.pyx":142
+ *         if seed is not None:
+ *             self.num_threads = 1
+ *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():             # <<<<<<<<<<<<<<
  *             self.num_threads = num_threads
  *         else:
  */
     goto __pyx_L3;
   }
 
-  /* "cornac/models/efm/recom_efm.pyx":143
+  /* "cornac/models/efm/recom_efm.pyx":145
  *             self.num_threads = num_threads
  *         else:
  *             self.num_threads = multiprocessing.cpu_count()             # <<<<<<<<<<<<<<
  * 
- * 
+ *     def fit(self, train_set):
  */
   /*else*/ {
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_multiprocessing, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_multiprocessing, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 145, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_1 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
@@ -3562,10 +3592,10 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM___init__(CYTHON_U
     }
     __pyx_t_3 = (__pyx_t_1) ? __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1) : __Pyx_PyObject_CallNoArg(__pyx_t_4);
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 145, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_t_3) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
+    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_t_3) < 0) __PYX_ERR(0, 145, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __pyx_L3:;
@@ -3596,7 +3626,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM___init__(CYTHON_U
 }
 
 /* "cornac/models/efm/recom_efm.pyx":147
- * 
+ *             self.num_threads = multiprocessing.cpu_count()
  * 
  *     def fit(self, train_set):             # <<<<<<<<<<<<<<
  *         """Fit the model.
@@ -5286,7 +5316,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_2fit(CYTHON_UNUSE
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "cornac/models/efm/recom_efm.pyx":147
- * 
+ *             self.num_threads = multiprocessing.cpu_count()
  * 
  *     def fit(self, train_set):             # <<<<<<<<<<<<<<
  *         """Fit the model.
@@ -44750,7 +44780,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__27);
 
   /* "cornac/models/efm/recom_efm.pyx":147
- * 
+ *             self.num_threads = multiprocessing.cpu_count()
  * 
  *     def fit(self, train_set):             # <<<<<<<<<<<<<<
  *         """Fit the model.
@@ -45429,7 +45459,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "cornac/models/efm/recom_efm.pyx":147
- * 
+ *             self.num_threads = multiprocessing.cpu_count()
  * 
  *     def fit(self, train_set):             # <<<<<<<<<<<<<<
  *         """Fit the model.
