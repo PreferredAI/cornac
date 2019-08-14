@@ -21,6 +21,7 @@ from cython cimport floating, integral
 from libcpp cimport bool
 
 import numpy as np
+cimport numpy as np
 
 from ..recommender import Recommender
 from ...exception import ScoreException
@@ -166,10 +167,10 @@ class NMF(Recommender):
             bool use_bias = self.use_bias
             bool verbose = self.verbose
 
-            floating[:, :] U_numerator = np.zeros((num_users, num_factors), dtype=np.float32)
-            floating[:, :] V_numerator = np.zeros((num_items, num_factors), dtype=np.float32)
-            floating[:, :] U_denominator = np.zeros((num_users, num_factors), dtype=np.float32)
-            floating[:, :] V_denominator = np.zeros((num_items, num_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] U_numerator = np.empty((num_users, num_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] V_numerator = np.empty((num_items, num_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] U_denominator = np.empty((num_users, num_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] V_denominator = np.empty((num_items, num_factors), dtype=np.float32)
 
             floating loss, r, r_pred, error, eps = 1e-9
 
@@ -179,6 +180,10 @@ class NMF(Recommender):
         progress = trange(max_iter, disable=not verbose)
         for epoch in progress:
             loss = 0.
+            U_numerator.fill(0)
+            V_numerator.fill(0)
+            U_denominator.fill(0)
+            V_denominator.fill(0)
 
             for j in prange(num_ratings, nogil=True, num_threads=num_threads):
                 u, i, r = rid[j], cid[j], val[j]
@@ -216,12 +221,6 @@ class NMF(Recommender):
                     loss += lambda_v * V[i, f] * V[i, f]
                     V_denominator[i, f] += item_counts[i] * lambda_v * V[i, f] + eps
                     V[i, f] *= V_numerator[i, f] / V_denominator[i, f]
-
-            # reset all numerators and denominators
-            U_numerator = np.zeros((num_users, num_factors), dtype=np.float32)
-            V_numerator = np.zeros((num_items, num_factors), dtype=np.float32)
-            U_denominator = np.zeros((num_users, num_factors), dtype=np.float32)
-            V_denominator = np.zeros((num_items, num_factors), dtype=np.float32)
 
             progress.set_postfix({"loss": "%.2f" % loss})
             progress.update(1)
