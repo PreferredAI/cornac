@@ -159,6 +159,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 | 2008 | [Collaborative Filtering for Implicit Feedback (CF)](cornac/models/cf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cornac/models/cf/requirements.txt) | [cf_exp.py](examples/cf_example.py)
 |      | [Probabilistic Matrix Factorization (PMF)](cornac/models/pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | N/A | [pmf_ratio.py](examples/pmf_ratio.py)
 |      | [Social Recommendation using PMF (SoRec)](cornac/models/sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | N/A |
+| 2001 | [Non-negative Matrix Factorization (NMF)](cornac/models/nmf), [paper](http://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf) | N/A | [nmf_exp.py](examples/nmf_example.py)
 
 ## Support
 

@@ -119,3 +119,8 @@ Social Recommendation using PMF (SoRec)
 -----------------------------------------
 .. automodule:: cornac.models.sorec.recom_sorec
    :members:
+
+Non-negative Matrix Factorization (NMF)
+-----------------------------------------
+.. automodule:: cornac.models.nmf.recom_nmf
+   :members:
