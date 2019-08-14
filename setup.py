@@ -105,6 +105,10 @@ extensions = [
                   'cornac/utils/external/eigen/unsupported/Eigen/'
               ],
               language='c++'),
+    Extension(name='cornac.models.nmf.recom_nmf',
+              sources=['cornac/models/nmf/recom_nmf' + ext],
+              include_dirs=[np.get_include()],
+              language='c++'),
     Extension(name='cornac.models.pmf.pmf',
               sources=['cornac/models/pmf/cython/pmf' + ext],
               language='c++'),
