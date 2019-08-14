@@ -115,12 +115,12 @@ Probabilitic Matrix Factorization (PMF)
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
 
-Non-negative Matrix Factorization (NMF)
------------------------------------------
-.. automodule:: cornac.models.nmf.recom_nmf
-   :members:
-
 Social Recommendation using PMF (SoRec)
 -----------------------------------------
 .. automodule:: cornac.models.sorec.recom_sorec
+   :members:
+
+Non-negative Matrix Factorization (NMF)
+-----------------------------------------
+.. automodule:: cornac.models.nmf.recom_nmf
    :members:
