@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+# cython: language_level=3
+
 cimport cython
 from cython.parallel import prange
 from cython cimport floating, integral
@@ -172,11 +174,11 @@ class NMF(Recommender):
             floating loss, r, r_pred, error, eps = 1e-9
 
             long u, i, f, j
-            long n_ratings
 
         from tqdm import trange
         progress = trange(max_iter, disable=not verbose)
         for epoch in progress:
+            loss = 0.
 
             for j in prange(num_ratings, nogil=True, num_threads=num_threads):
                 u, i, r = rid[j], cid[j], val[j]
@@ -187,6 +189,7 @@ class NMF(Recommender):
                     r_pred = r_pred + U[u, f] * V[i, f]
 
                 error = r - r_pred
+                loss += error * error
 
                 # update biases
                 if use_bias:
@@ -201,17 +204,17 @@ class NMF(Recommender):
                     V_denominator[i, f] += r_pred * U[u, f]
 
             # update user factors
-            for u in range(num_users):
-                n_ratings = user_counts[u]
+            for u in prange(num_users, nogil=True, num_threads=num_threads):
                 for f in range(num_factors):
-                    U_denominator[u, f] += n_ratings * lambda_u * U[u, f] + eps
+                    loss += lambda_u * U[u, f] * U[u, f]
+                    U_denominator[u, f] += user_counts[u] * lambda_u * U[u, f] + eps
                     U[u, f] *= U_numerator[u, f] / U_denominator[u, f]
 
             # update item factors
-            for i in range(num_items):
-                n_ratings = item_counts[i]
+            for i in prange(num_items, nogil=True, num_threads=num_threads):
                 for f in range(num_factors):
-                    V_denominator[i, f] += n_ratings * lambda_v * V[i, f] + eps
+                    loss += lambda_v * V[i, f] * V[i, f]
+                    V_denominator[i, f] += item_counts[i] * lambda_v * V[i, f] + eps
                     V[i, f] *= V_numerator[i, f] / V_denominator[i, f]
 
             # reset all numerators and denominators
@@ -219,25 +222,6 @@ class NMF(Recommender):
             V_numerator = np.zeros((num_items, num_factors), dtype=np.float32)
             U_denominator = np.zeros((num_users, num_factors), dtype=np.float32)
             V_denominator = np.zeros((num_items, num_factors), dtype=np.float32)
-
-            loss = 0.
-            for j in range(num_ratings):
-                u, i, r = rid[j], cid[j], val[j]
-
-                r_pred = mu + Bu[u] + Bi[i]
-                for f in range(num_factors):
-                    r_pred += U[u, f] * V[i, f]
-
-                error = r - r_pred
-                loss += error * error
-
-            for u in range(num_users):
-                for f in range(num_factors):
-                    loss += lambda_u * U[u, f] * U[u, f]
-
-            for i in range(num_items):
-                for f in range(num_factors):
-                    loss += lambda_v * V[i, f] * V[i, f]
 
             progress.set_postfix({"loss": "%.2f" % loss})
             progress.update(1)
