@@ -27,6 +27,7 @@ from ..recommender import Recommender
 from collections import Counter, OrderedDict
 import scipy.sparse as sp
 import numpy as np
+cimport numpy as np
 
 
 cdef floating _dot(int n, floating *x, int incx,
@@ -183,13 +184,15 @@ class EFM(Recommender):
         A_item_counts = np.ediff1d(A.tocsc().indptr)
         A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
         X_user_counts = np.ediff1d(X.indptr)
+        X_aspect_counts = np.ediff1d(X.tocsc().indptr)
         X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)
         Y_item_counts = np.ediff1d(Y.indptr)
+        Y_aspect_counts = np.ediff1d(Y.tocsc().indptr)
         Y_iids = np.repeat(np.arange(self.train_set.num_items), Y_item_counts).astype(Y.indices.dtype)
         self._fit_efm(self.num_threads,
                       A.data.astype(np.float32), A_uids, A.indices, A_user_counts, A_item_counts,
-                      X.data.astype(np.float32), X_uids, X.indices,
-                      Y.data.astype(np.float32), Y_iids, Y.indices,
+                      X.data.astype(np.float32), X_uids, X.indices, X_user_counts, X_aspect_counts,
+                      Y.data.astype(np.float32), Y_iids, Y.indices, Y_item_counts, Y_aspect_counts,
                       self.U1, self.U2, self.V, self.H1, self.H2)
 
     def get_params(self):
@@ -207,8 +210,8 @@ class EFM(Recommender):
     @cython.wraparound(False)
     def _fit_efm(self, int num_threads,
                  floating[:] A, integral[:] A_uids, integral[:] A_iids, integral[:] A_user_counts, integral[:] A_item_counts,
-                 floating[:] X, integral[:] X_uids, integral[:] X_aids,
-                 floating[:] Y, integral[:] Y_iids, integral[:] Y_aids,
+                 floating[:] X, integral[:] X_uids, integral[:] X_aids, integral[:] X_user_counts, integral[:] X_aspect_counts,
+                 floating[:] Y, integral[:] Y_iids, integral[:] Y_aids, integral[:] Y_item_counts, integral[:] Y_aspect_counts,
                  floating[:, :] U1, floating[:, :] U2, floating[:, :] V, floating[:, :] H1, floating[:, :] H2):
         """Fit the model parameters (U1, U2, V, H1, H2)
         """
@@ -227,16 +230,16 @@ class EFM(Recommender):
 
             floating prediction, score, loss
 
-            floating[:, :] U1_numerator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
-            floating[:, :] U1_denominator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
-            floating[:, :] U2_numerator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
-            floating[:, :] U2_denominator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
-            floating[:, :] V_numerator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
-            floating[:, :] V_denominator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
-            floating[:, :] H1_numerator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
-            floating[:, :] H1_denominator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
-            floating[:, :] H2_numerator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
-            floating[:, :] H2_denominator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] U1_numerator = np.empty((num_users, num_explicit_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] U1_denominator = np.empty((num_users, num_explicit_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] U2_numerator = np.empty((num_items, num_explicit_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] U2_denominator = np.empty((num_items, num_explicit_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] V_numerator = np.empty((num_aspects, num_explicit_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] V_denominator = np.empty((num_aspects, num_explicit_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] H1_numerator = np.empty((num_users, num_latent_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] H1_denominator = np.empty((num_users, num_latent_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] H2_numerator = np.empty((num_items, num_latent_factors), dtype=np.float32)
+            np.ndarray[np.float32_t, ndim=2] H2_denominator = np.empty((num_items, num_latent_factors), dtype=np.float32)
             int i, j, k, idx
             long n_ratings
 
@@ -245,12 +248,24 @@ class EFM(Recommender):
         for t in range(1, self.max_iter + 1):
 
             loss = 0.
+            U1_numerator.fill(0)
+            U1_denominator.fill(0)
+            U2_numerator.fill(0)
+            U2_denominator.fill(0)
+            V_numerator.fill(0)
+            V_denominator.fill(0)
+            H1_numerator.fill(0)
+            H1_denominator.fill(0)
+            H2_numerator.fill(0)
+            H2_denominator.fill(0)
+
             with nogil, parallel(num_threads=num_threads):
                 # compute numerators and denominators for all factors
                 for idx in prange(A.shape[0]):
                     i = A_uids[idx]
                     j = A_iids[idx]
-                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &U2[j, 0], 1) + _dot(num_latent_factors, &H1[i, 0], 1, &H2[j, 0], 1)
+                    prediction = _dot(num_explicit_factors, &U1[i, 0], 1, &U2[j, 0], 1) \
+                                 + _dot(num_latent_factors, &H1[i, 0], 1, &H2[j, 0], 1)
                     score = A[idx]
                     loss += (prediction - score) * (prediction - score)
                     for k in range(num_explicit_factors):
@@ -293,14 +308,14 @@ class EFM(Recommender):
                 for i in prange(num_aspects):
                     for j in range(num_explicit_factors):
                         loss += lambda_v * V[i, j] * V[i, j]
-                        V_denominator[i, j] += lambda_v * V[i, j] + eps
+                        V_denominator[i, j] += (X_aspect_counts[i] + Y_aspect_counts[i]) * lambda_v * V[i, j] + eps
                         V[i, j] *= sqrt(V_numerator[i, j] / V_denominator[i, j])
 
                 # update U1, H1
                 for i in prange(num_users):
                     for j in range(num_explicit_factors):
                         loss += lambda_u * U1[i, j] * U1[i, j]
-                        U1_denominator[i, j] += A_user_counts[i] * lambda_u * U1[i, j] + eps
+                        U1_denominator[i, j] += (A_user_counts[i] + X_user_counts[i])* lambda_u * U1[i, j] + eps
                         U1[i, j] *= sqrt(U1_numerator[i, j] / U1_denominator[i, j])
                     for j in range(num_latent_factors):
                         loss += lambda_h * H1[i, j] * H1[i, j]
@@ -311,24 +326,12 @@ class EFM(Recommender):
                 for i in prange(num_items):
                     for j in range(num_explicit_factors):
                         loss += lambda_u * U2[i, j] * U2[i, j]
-                        U2_denominator[i, j] += A_item_counts[i] * lambda_u * U2[i, j] + eps
+                        U2_denominator[i, j] += (A_item_counts[i] + Y_item_counts[i]) * lambda_u * U2[i, j] + eps
                         U2[i, j] *= sqrt(U2_numerator[i, j] / U2_denominator[i, j])
                     for j in range(num_latent_factors):
                         loss += lambda_h * H2[i, j] * H2[i, j]
                         H2_denominator[i, j] += A_item_counts[i] * lambda_h * H2[i, j] + eps
                         H2[i, j] *= sqrt(H2_numerator[i, j] / H2_denominator[i, j])
-
-            # reset all numerators and denominators
-            U1_numerator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
-            U1_denominator = np.zeros((num_users, num_explicit_factors), dtype=np.float32)
-            U2_numerator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
-            U2_denominator = np.zeros((num_items, num_explicit_factors), dtype=np.float32)
-            V_numerator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
-            V_denominator = np.zeros((num_aspects, num_explicit_factors), dtype=np.float32)
-            H1_numerator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
-            H1_denominator = np.zeros((num_users, num_latent_factors), dtype=np.float32)
-            H2_numerator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
-            H2_denominator = np.zeros((num_items, num_latent_factors), dtype=np.float32)
 
             if self.verbose:
                 print('iter: %d, loss: %f' % (t, loss))

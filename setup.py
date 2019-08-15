@@ -139,6 +139,7 @@ extensions = [
               extra_compile_args=compile_args, extra_link_args=link_args),
     Extension(name='cornac.models.efm.recom_efm',
               sources=['cornac/models/efm/recom_efm' + ext],
+              include_dirs=[np.get_include()],
               language='c++'),
     Extension(name='cornac.models.bpr.recom_bpr',
               sources=['cornac/models/bpr/recom_bpr' + ext],
