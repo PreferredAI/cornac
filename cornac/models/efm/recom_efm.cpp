@@ -2789,7 +2789,7 @@ static const char __pyx_k_Cannot_assign_to_read_only_memor[] = "Cannot assign to
 static const char __pyx_k_Cannot_create_writable_memory_vi[] = "Cannot create writable memory view from read-only memoryview";
 static const char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
 static const char __pyx_k_Expected_at_least_d_argument_s_g[] = "Expected at least %d argument%s, got %d";
-static const char __pyx_k_Explict_Factor_Models_Parameters[] = "Explict Factor Models\n\n    Parameters\n    ----------\n    num_explicit_factors: int, optional, default: 50\n        The dimension of the explicit factors.\n\n    num_latent_factors: int, optional, default: 50\n        The dimension of the latent factors.\n\n    num_most_cared_aspects: int, optional, default: 15\n        The number of most cared aspects for each user.\n\n    rating_scale: float, optional, default: 5.0\n        The maximum rating score of the dataset.\n\n    alpha: float, optional, default: 0.85\n        Trace off factor for constructing ranking score.\n\n    lambda_x: float, optional, default: 1\n        The regularization parameter for user aspect attentions.\n\n    lambda_y: float, optional, default: 1\n        The regularization parameter for item aspect qualities.\n\n    lambda_u: float, optional, default: 0.01\n        The regularization parameter for user and item explicit factors.\n\n    lambda_h: float, optional, default: 0.01\n        The regularization parameter for user and item latent factors.\n\n    lambda_v: float, optional, default: 0.01\n        The regularization parameter for V.\n\n    use_item_aspect_popularity: boolean, optional, default: True\n        When False, item aspect quality score computation omits item aspect frequency out of its formular.\n\n    max_iter: int, optional, default: 100\n        Maximum number of iterations or the number of epochs.\n\n    name: string, optional, default: 'EFM'\n        The name of the recommender model.\n\n    num_threads: int, optional, default: 0\n        Number of parallel threads for training.\n        If 0, all CPU cores will be utilized.\n\n    trainable: boolean, optional, default: True\n        When False, the model is not trained and Cornac assumes that the model already \n        pre-trained (U1, U2, V, H1, and H2 are not None).\n\n    verbose: boolean, optional, default: False\n        When True, running logs are displayed.\n\n    init_params: dictionary, optional, default: No""ne\n        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2}\n        U1: ndarray, shape (n_users, n_explicit_factors)\n            The user explicit factors, optional initialization via init_params.\n        U2: ndarray, shape (n_ratings, n_explicit_factors)\n            The item explicit factors, optional initialization via init_params.\n        V: ndarray, shape (n_aspects, n_explict_factors)\n            The aspect factors, optional initialization via init_params.\n        H1: ndarray, shape (n_users, n_latent_factors)\n            The user latent factors, optional initialization via init_params.\n        H2: ndarray, shape (n_ratings, n_latent_factors)\n            The item latent factors, optional initialization via init_params.\n\n    seed: int, optional, default: None\n        Random seed for weight initialization.\n\n    References\n    ----------\n    Yongfeng Zhang, Guokun Lai, Min Zhang, Yi Zhang, Yiqun Liu, and Shaoping Ma. 2014.\n    Explicit factor models for explainable recommendation based on phrase-level sentiment analysis.\n    In Proceedings of the 37th international ACM SIGIR conference on Research & development in information retrieval (SIGIR '14).\n    ACM, New York, NY, USA, 83-92. DOI: https://doi.org/10.1145/2600428.2609579\n    ";
+static const char __pyx_k_Explict_Factor_Models_Parameters[] = "Explict Factor Models\n\n    Parameters\n    ----------\n    num_explicit_factors: int, optional, default: 40\n        The dimension of the explicit factors.\n\n    num_latent_factors: int, optional, default: 60\n        The dimension of the latent factors.\n\n    num_most_cared_aspects: int, optional, default: 15\n        The number of most cared aspects for each user.\n\n    rating_scale: float, optional, default: 5.0\n        The maximum rating score of the dataset.\n\n    alpha: float, optional, default: 0.85\n        Trace off factor for constructing ranking score.\n\n    lambda_x: float, optional, default: 1\n        The regularization parameter for user aspect attentions.\n\n    lambda_y: float, optional, default: 1\n        The regularization parameter for item aspect qualities.\n\n    lambda_u: float, optional, default: 0.01\n        The regularization parameter for user and item explicit factors.\n\n    lambda_h: float, optional, default: 0.01\n        The regularization parameter for user and item latent factors.\n\n    lambda_v: float, optional, default: 0.01\n        The regularization parameter for V.\n\n    use_item_aspect_popularity: boolean, optional, default: True\n        When False, item aspect quality score computation omits item aspect frequency out of its formular.\n\n    max_iter: int, optional, default: 100\n        Maximum number of iterations or the number of epochs.\n\n    name: string, optional, default: 'EFM'\n        The name of the recommender model.\n\n    num_threads: int, optional, default: 0\n        Number of parallel threads for training.\n        If 0, all CPU cores will be utilized.\n\n    trainable: boolean, optional, default: True\n        When False, the model is not trained and Cornac assumes that the model already \n        pre-trained (U1, U2, V, H1, and H2 are not None).\n\n    verbose: boolean, optional, default: False\n        When True, running logs are displayed.\n\n    init_params: dictionary, optional, default: No""ne\n        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2}\n        U1: ndarray, shape (n_users, n_explicit_factors)\n            The user explicit factors, optional initialization via init_params.\n        U2: ndarray, shape (n_ratings, n_explicit_factors)\n            The item explicit factors, optional initialization via init_params.\n        V: ndarray, shape (n_aspects, n_explict_factors)\n            The aspect factors, optional initialization via init_params.\n        H1: ndarray, shape (n_users, n_latent_factors)\n            The user latent factors, optional initialization via init_params.\n        H2: ndarray, shape (n_ratings, n_latent_factors)\n            The item latent factors, optional initialization via init_params.\n\n    seed: int, optional, default: None\n        Random seed for weight initialization.\n\n    References\n    ----------\n    Yongfeng Zhang, Guokun Lai, Min Zhang, Yi Zhang, Yiqun Liu, and Shaoping Ma. 2014.\n    Explicit factor models for explainable recommendation based on phrase-level sentiment analysis.\n    In Proceedings of the 37th international ACM SIGIR conference on Research & development in information retrieval (SIGIR '14).\n    ACM, New York, NY, USA, 83-92. DOI: https://doi.org/10.1145/2600428.2609579\n    ";
 static const char __pyx_k_Format_string_allocated_too_shor[] = "Format string allocated too short, see comment in numpy.pxd";
 static const char __pyx_k_Function_call_with_ambiguous_arg[] = "Function call with ambiguous argument types";
 static const char __pyx_k_Incompatible_checksums_s_vs_0xb0[] = "Incompatible checksums (%s vs 0xb068931 = (name))";
@@ -3195,7 +3195,8 @@ static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_2;
 static PyObject *__pyx_int_15;
 static PyObject *__pyx_int_22;
-static PyObject *__pyx_int_50;
+static PyObject *__pyx_int_40;
+static PyObject *__pyx_int_60;
 static PyObject *__pyx_int_100;
 static PyObject *__pyx_int_184977713;
 static PyObject *__pyx_int_neg_1;
@@ -3323,7 +3324,7 @@ static double __pyx_fuse_1__pyx_f_6cornac_6models_3efm_9recom_efm__dot(int __pyx
  *     """
  * 
  *     def __init__(self,  name="EFM",             # <<<<<<<<<<<<<<
- *                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
+ *                  num_explicit_factors=40, num_latent_factors=60, num_most_cared_aspects=15,
  *                  rating_scale=5.0, alpha=0.85,
  */
 
@@ -3358,8 +3359,8 @@ static PyObject *__pyx_pw_6cornac_6models_3efm_9recom_efm_3EFM_1__init__(PyObjec
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_name,&__pyx_n_s_num_explicit_factors,&__pyx_n_s_num_latent_factors,&__pyx_n_s_num_most_cared_aspects,&__pyx_n_s_rating_scale,&__pyx_n_s_alpha,&__pyx_n_s_lambda_x,&__pyx_n_s_lambda_y,&__pyx_n_s_lambda_u,&__pyx_n_s_lambda_h,&__pyx_n_s_lambda_v,&__pyx_n_s_use_dominant,&__pyx_n_s_use_item_aspect_popularity,&__pyx_n_s_max_iter,&__pyx_n_s_num_threads,&__pyx_n_s_trainable,&__pyx_n_s_verbose,&__pyx_n_s_init_params,&__pyx_n_s_seed,0};
     PyObject* values[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     values[1] = ((PyObject *)((PyObject*)__pyx_n_u_EFM));
-    values[2] = ((PyObject *)((PyObject *)__pyx_int_50));
-    values[3] = ((PyObject *)((PyObject *)__pyx_int_50));
+    values[2] = ((PyObject *)((PyObject *)__pyx_int_40));
+    values[3] = ((PyObject *)((PyObject *)__pyx_int_60));
     values[4] = ((PyObject *)((PyObject *)__pyx_int_15));
     values[5] = ((PyObject *)((PyObject*)__pyx_float_5_0));
     values[6] = ((PyObject *)((PyObject*)__pyx_float_0_85));
@@ -3650,7 +3651,7 @@ static PyObject *__pyx_pw_6cornac_6models_3efm_9recom_efm_3EFM_1__init__(PyObjec
  *     """
  * 
  *     def __init__(self,  name="EFM",             # <<<<<<<<<<<<<<
- *                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
+ *                  num_explicit_factors=40, num_latent_factors=60, num_most_cared_aspects=15,
  *                  rating_scale=5.0, alpha=0.85,
  */
 
@@ -3972,7 +3973,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM___init__(CYTHON_U
  *     """
  * 
  *     def __init__(self,  name="EFM",             # <<<<<<<<<<<<<<
- *                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
+ *                  num_explicit_factors=40, num_latent_factors=60, num_most_cared_aspects=15,
  *                  rating_scale=5.0, alpha=0.85,
  */
 
@@ -8905,7 +8906,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_18_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]             # <<<<<<<<<<<<<<
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  */
                                   __pyx_t_98 = __pyx_v_idx;
                                   __pyx_v_score = (*((float *) ( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_98 * __pyx_v_Y.strides[0]) )));
@@ -8914,7 +8915,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_18_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)             # <<<<<<<<<<<<<<
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  */
                                   __pyx_v_loss = (__pyx_v_loss + ((__pyx_v_prediction - __pyx_v_score) * (__pyx_v_prediction - __pyx_v_score)));
@@ -8922,18 +8923,18 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_18_fit_efm(CYTHON
                                   /* "cornac/models/efm/recom_efm.pyx":301
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):             # <<<<<<<<<<<<<<
+ *                     for k in range(num_explicit_factors):             # <<<<<<<<<<<<<<
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  */
-                                  __pyx_t_4 = __pyx_v_num_latent_factors;
+                                  __pyx_t_4 = __pyx_v_num_explicit_factors;
                                   __pyx_t_35 = __pyx_t_4;
                                   for (__pyx_t_36 = 0; __pyx_t_36 < __pyx_t_35; __pyx_t_36+=1) {
                                     __pyx_v_k = __pyx_t_36;
 
                                     /* "cornac/models/efm/recom_efm.pyx":302
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]             # <<<<<<<<<<<<<<
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -8945,7 +8946,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_18_fit_efm(CYTHON
                                     *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_V_numerator.rcbuffer->pybuffer.buf, __pyx_t_101, __pyx_pybuffernd_V_numerator.diminfo[0].strides, __pyx_t_102, __pyx_pybuffernd_V_numerator.diminfo[1].strides) += ((__pyx_v_lambda_y * __pyx_v_score) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U2.data + __pyx_t_99 * __pyx_v_U2.strides[0]) ) + __pyx_t_100 * __pyx_v_U2.strides[1]) ))));
 
                                     /* "cornac/models/efm/recom_efm.pyx":303
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]             # <<<<<<<<<<<<<<
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -11987,7 +11988,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_20_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]             # <<<<<<<<<<<<<<
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  */
                                   __pyx_t_98 = __pyx_v_idx;
                                   __pyx_v_score = (*((float *) ( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_98 * __pyx_v_Y.strides[0]) )));
@@ -11996,7 +11997,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_20_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)             # <<<<<<<<<<<<<<
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  */
                                   __pyx_v_loss = (__pyx_v_loss + ((__pyx_v_prediction - __pyx_v_score) * (__pyx_v_prediction - __pyx_v_score)));
@@ -12004,18 +12005,18 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_20_fit_efm(CYTHON
                                   /* "cornac/models/efm/recom_efm.pyx":301
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):             # <<<<<<<<<<<<<<
+ *                     for k in range(num_explicit_factors):             # <<<<<<<<<<<<<<
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  */
-                                  __pyx_t_4 = __pyx_v_num_latent_factors;
+                                  __pyx_t_4 = __pyx_v_num_explicit_factors;
                                   __pyx_t_35 = __pyx_t_4;
                                   for (__pyx_t_36 = 0; __pyx_t_36 < __pyx_t_35; __pyx_t_36+=1) {
                                     __pyx_v_k = __pyx_t_36;
 
                                     /* "cornac/models/efm/recom_efm.pyx":302
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]             # <<<<<<<<<<<<<<
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -12027,7 +12028,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_20_fit_efm(CYTHON
                                     *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_V_numerator.rcbuffer->pybuffer.buf, __pyx_t_101, __pyx_pybuffernd_V_numerator.diminfo[0].strides, __pyx_t_102, __pyx_pybuffernd_V_numerator.diminfo[1].strides) += ((__pyx_v_lambda_y * __pyx_v_score) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U2.data + __pyx_t_99 * __pyx_v_U2.strides[0]) ) + __pyx_t_100 * __pyx_v_U2.strides[1]) ))));
 
                                     /* "cornac/models/efm/recom_efm.pyx":303
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]             # <<<<<<<<<<<<<<
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -15069,7 +15070,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_22_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]             # <<<<<<<<<<<<<<
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  */
                                   __pyx_t_98 = __pyx_v_idx;
                                   __pyx_v_score = (*((float *) ( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_98 * __pyx_v_Y.strides[0]) )));
@@ -15078,7 +15079,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_22_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)             # <<<<<<<<<<<<<<
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  */
                                   __pyx_v_loss = (__pyx_v_loss + ((__pyx_v_prediction - __pyx_v_score) * (__pyx_v_prediction - __pyx_v_score)));
@@ -15086,18 +15087,18 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_22_fit_efm(CYTHON
                                   /* "cornac/models/efm/recom_efm.pyx":301
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):             # <<<<<<<<<<<<<<
+ *                     for k in range(num_explicit_factors):             # <<<<<<<<<<<<<<
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  */
-                                  __pyx_t_4 = __pyx_v_num_latent_factors;
+                                  __pyx_t_4 = __pyx_v_num_explicit_factors;
                                   __pyx_t_35 = __pyx_t_4;
                                   for (__pyx_t_36 = 0; __pyx_t_36 < __pyx_t_35; __pyx_t_36+=1) {
                                     __pyx_v_k = __pyx_t_36;
 
                                     /* "cornac/models/efm/recom_efm.pyx":302
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]             # <<<<<<<<<<<<<<
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -15109,7 +15110,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_22_fit_efm(CYTHON
                                     *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_V_numerator.rcbuffer->pybuffer.buf, __pyx_t_101, __pyx_pybuffernd_V_numerator.diminfo[0].strides, __pyx_t_102, __pyx_pybuffernd_V_numerator.diminfo[1].strides) += ((__pyx_v_lambda_y * __pyx_v_score) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U2.data + __pyx_t_99 * __pyx_v_U2.strides[0]) ) + __pyx_t_100 * __pyx_v_U2.strides[1]) ))));
 
                                     /* "cornac/models/efm/recom_efm.pyx":303
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]             # <<<<<<<<<<<<<<
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -18151,7 +18152,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_24_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]             # <<<<<<<<<<<<<<
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  */
                                   __pyx_t_98 = __pyx_v_idx;
                                   __pyx_v_score = (*((double *) ( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_98 * __pyx_v_Y.strides[0]) )));
@@ -18160,7 +18161,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_24_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)             # <<<<<<<<<<<<<<
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  */
                                   __pyx_v_loss = (__pyx_v_loss + ((__pyx_v_prediction - __pyx_v_score) * (__pyx_v_prediction - __pyx_v_score)));
@@ -18168,18 +18169,18 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_24_fit_efm(CYTHON
                                   /* "cornac/models/efm/recom_efm.pyx":301
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):             # <<<<<<<<<<<<<<
+ *                     for k in range(num_explicit_factors):             # <<<<<<<<<<<<<<
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  */
-                                  __pyx_t_4 = __pyx_v_num_latent_factors;
+                                  __pyx_t_4 = __pyx_v_num_explicit_factors;
                                   __pyx_t_35 = __pyx_t_4;
                                   for (__pyx_t_36 = 0; __pyx_t_36 < __pyx_t_35; __pyx_t_36+=1) {
                                     __pyx_v_k = __pyx_t_36;
 
                                     /* "cornac/models/efm/recom_efm.pyx":302
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]             # <<<<<<<<<<<<<<
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -18191,7 +18192,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_24_fit_efm(CYTHON
                                     *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_V_numerator.rcbuffer->pybuffer.buf, __pyx_t_101, __pyx_pybuffernd_V_numerator.diminfo[0].strides, __pyx_t_102, __pyx_pybuffernd_V_numerator.diminfo[1].strides) += ((__pyx_v_lambda_y * __pyx_v_score) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U2.data + __pyx_t_99 * __pyx_v_U2.strides[0]) ) + __pyx_t_100 * __pyx_v_U2.strides[1]) ))));
 
                                     /* "cornac/models/efm/recom_efm.pyx":303
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]             # <<<<<<<<<<<<<<
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -21233,7 +21234,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_26_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]             # <<<<<<<<<<<<<<
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  */
                                   __pyx_t_98 = __pyx_v_idx;
                                   __pyx_v_score = (*((double *) ( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_98 * __pyx_v_Y.strides[0]) )));
@@ -21242,7 +21243,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_26_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)             # <<<<<<<<<<<<<<
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  */
                                   __pyx_v_loss = (__pyx_v_loss + ((__pyx_v_prediction - __pyx_v_score) * (__pyx_v_prediction - __pyx_v_score)));
@@ -21250,18 +21251,18 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_26_fit_efm(CYTHON
                                   /* "cornac/models/efm/recom_efm.pyx":301
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):             # <<<<<<<<<<<<<<
+ *                     for k in range(num_explicit_factors):             # <<<<<<<<<<<<<<
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  */
-                                  __pyx_t_4 = __pyx_v_num_latent_factors;
+                                  __pyx_t_4 = __pyx_v_num_explicit_factors;
                                   __pyx_t_35 = __pyx_t_4;
                                   for (__pyx_t_36 = 0; __pyx_t_36 < __pyx_t_35; __pyx_t_36+=1) {
                                     __pyx_v_k = __pyx_t_36;
 
                                     /* "cornac/models/efm/recom_efm.pyx":302
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]             # <<<<<<<<<<<<<<
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -21273,7 +21274,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_26_fit_efm(CYTHON
                                     *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_V_numerator.rcbuffer->pybuffer.buf, __pyx_t_101, __pyx_pybuffernd_V_numerator.diminfo[0].strides, __pyx_t_102, __pyx_pybuffernd_V_numerator.diminfo[1].strides) += ((__pyx_v_lambda_y * __pyx_v_score) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U2.data + __pyx_t_99 * __pyx_v_U2.strides[0]) ) + __pyx_t_100 * __pyx_v_U2.strides[1]) ))));
 
                                     /* "cornac/models/efm/recom_efm.pyx":303
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]             # <<<<<<<<<<<<<<
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -24315,7 +24316,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_28_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]             # <<<<<<<<<<<<<<
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  */
                                   __pyx_t_98 = __pyx_v_idx;
                                   __pyx_v_score = (*((double *) ( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_98 * __pyx_v_Y.strides[0]) )));
@@ -24324,7 +24325,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_28_fit_efm(CYTHON
  *                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)             # <<<<<<<<<<<<<<
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  */
                                   __pyx_v_loss = (__pyx_v_loss + ((__pyx_v_prediction - __pyx_v_score) * (__pyx_v_prediction - __pyx_v_score)));
@@ -24332,18 +24333,18 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_28_fit_efm(CYTHON
                                   /* "cornac/models/efm/recom_efm.pyx":301
  *                     score = Y[idx]
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):             # <<<<<<<<<<<<<<
+ *                     for k in range(num_explicit_factors):             # <<<<<<<<<<<<<<
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  */
-                                  __pyx_t_4 = __pyx_v_num_latent_factors;
+                                  __pyx_t_4 = __pyx_v_num_explicit_factors;
                                   __pyx_t_35 = __pyx_t_4;
                                   for (__pyx_t_36 = 0; __pyx_t_36 < __pyx_t_35; __pyx_t_36+=1) {
                                     __pyx_v_k = __pyx_t_36;
 
                                     /* "cornac/models/efm/recom_efm.pyx":302
  *                     loss += (prediction - score) * (prediction - score)
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]             # <<<<<<<<<<<<<<
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -24355,7 +24356,7 @@ static PyObject *__pyx_pf_6cornac_6models_3efm_9recom_efm_3EFM_28_fit_efm(CYTHON
                                     *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_V_numerator.rcbuffer->pybuffer.buf, __pyx_t_101, __pyx_pybuffernd_V_numerator.diminfo[0].strides, __pyx_t_102, __pyx_pybuffernd_V_numerator.diminfo[1].strides) += ((__pyx_v_lambda_y * __pyx_v_score) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U2.data + __pyx_t_99 * __pyx_v_U2.strides[0]) ) + __pyx_t_100 * __pyx_v_U2.strides[1]) ))));
 
                                     /* "cornac/models/efm/recom_efm.pyx":303
- *                     for k in range(num_latent_factors):
+ *                     for k in range(num_explicit_factors):
  *                         V_numerator[j, k] += lambda_y * score * U2[i, k]
  *                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]             # <<<<<<<<<<<<<<
  *                         U2_numerator[i, k] += lambda_y * score * V[j, k]
@@ -45557,14 +45558,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     """
  * 
  *     def __init__(self,  name="EFM",             # <<<<<<<<<<<<<<
- *                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
+ *                  num_explicit_factors=40, num_latent_factors=60, num_most_cared_aspects=15,
  *                  rating_scale=5.0, alpha=0.85,
  */
   __pyx_tuple__35 = PyTuple_Pack(21, __pyx_n_s_self, __pyx_n_s_name, __pyx_n_s_num_explicit_factors, __pyx_n_s_num_latent_factors, __pyx_n_s_num_most_cared_aspects, __pyx_n_s_rating_scale, __pyx_n_s_alpha, __pyx_n_s_lambda_x, __pyx_n_s_lambda_y, __pyx_n_s_lambda_u, __pyx_n_s_lambda_h, __pyx_n_s_lambda_v, __pyx_n_s_use_dominant, __pyx_n_s_use_item_aspect_popularity, __pyx_n_s_max_iter, __pyx_n_s_num_threads, __pyx_n_s_trainable, __pyx_n_s_verbose, __pyx_n_s_init_params, __pyx_n_s_seed, __pyx_n_s_multiprocessing); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__35);
   __Pyx_GIVEREF(__pyx_tuple__35);
   __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(20, 0, 21, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_efm_recom_efm_pyx, __pyx_n_s_init, 120, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 120, __pyx_L1_error)
-  __pyx_tuple__37 = PyTuple_Pack(19, ((PyObject*)__pyx_n_u_EFM), ((PyObject *)__pyx_int_50), ((PyObject *)__pyx_int_50), ((PyObject *)__pyx_int_15), ((PyObject*)__pyx_float_5_0), ((PyObject*)__pyx_float_0_85), ((PyObject *)__pyx_int_1), ((PyObject *)__pyx_int_1), ((PyObject*)__pyx_float_0_01), ((PyObject*)__pyx_float_0_01), ((PyObject*)__pyx_float_0_01), ((PyObject *)Py_False), ((PyObject *)Py_True), ((PyObject *)__pyx_int_100), ((PyObject *)__pyx_int_0), ((PyObject *)Py_True), ((PyObject *)Py_False), ((PyObject *)Py_None), ((PyObject *)Py_None)); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_tuple__37 = PyTuple_Pack(19, ((PyObject*)__pyx_n_u_EFM), ((PyObject *)__pyx_int_40), ((PyObject *)__pyx_int_60), ((PyObject *)__pyx_int_15), ((PyObject*)__pyx_float_5_0), ((PyObject*)__pyx_float_0_85), ((PyObject *)__pyx_int_1), ((PyObject *)__pyx_int_1), ((PyObject*)__pyx_float_0_01), ((PyObject*)__pyx_float_0_01), ((PyObject*)__pyx_float_0_01), ((PyObject *)Py_False), ((PyObject *)Py_True), ((PyObject *)__pyx_int_100), ((PyObject *)__pyx_int_0), ((PyObject *)Py_True), ((PyObject *)Py_False), ((PyObject *)Py_None), ((PyObject *)Py_None)); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__37);
   __Pyx_GIVEREF(__pyx_tuple__37);
 
@@ -45758,7 +45759,8 @@ if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_15 = PyInt_FromLong(15); if (unlikely(!__pyx_int_15)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_22 = PyInt_FromLong(22); if (unlikely(!__pyx_int_22)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_50 = PyInt_FromLong(50); if (unlikely(!__pyx_int_50)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_40 = PyInt_FromLong(40); if (unlikely(!__pyx_int_40)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_60 = PyInt_FromLong(60); if (unlikely(!__pyx_int_60)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_100 = PyInt_FromLong(100); if (unlikely(!__pyx_int_100)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_184977713 = PyInt_FromLong(184977713L); if (unlikely(!__pyx_int_184977713)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -46267,7 +46269,7 @@ if (!__Pyx_RefNanny) {
  *     """
  * 
  *     def __init__(self,  name="EFM",             # <<<<<<<<<<<<<<
- *                  num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
+ *                  num_explicit_factors=40, num_latent_factors=60, num_most_cared_aspects=15,
  *                  rating_scale=5.0, alpha=0.85,
  */
   __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6cornac_6models_3efm_9recom_efm_3EFM_1__init__, 0, __pyx_n_s_EFM___init, NULL, __pyx_n_s_cornac_models_efm_recom_efm, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 120, __pyx_L1_error)

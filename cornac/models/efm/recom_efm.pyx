@@ -43,10 +43,10 @@ class EFM(Recommender):
 
     Parameters
     ----------
-    num_explicit_factors: int, optional, default: 50
+    num_explicit_factors: int, optional, default: 40
         The dimension of the explicit factors.
 
-    num_latent_factors: int, optional, default: 50
+    num_latent_factors: int, optional, default: 60
         The dimension of the latent factors.
 
     num_most_cared_aspects: int, optional, default: 15
@@ -118,7 +118,7 @@ class EFM(Recommender):
     """
 
     def __init__(self,  name="EFM",
-                 num_explicit_factors=50, num_latent_factors=50, num_most_cared_aspects=15,
+                 num_explicit_factors=40, num_latent_factors=60, num_most_cared_aspects=15,
                  rating_scale=5.0, alpha=0.85,
                  lambda_x=1, lambda_y=1, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01,
                  use_dominant=False,
@@ -298,7 +298,7 @@ class EFM(Recommender):
                     prediction = _dot(num_explicit_factors, &U2[i, 0], 1, &V[j, 0], 1)
                     score = Y[idx]
                     loss += (prediction - score) * (prediction - score)
-                    for k in range(num_latent_factors):
+                    for k in range(num_explicit_factors):
                         V_numerator[j, k] += lambda_y * score * U2[i, k]
                         V_denominator[j, k] += lambda_y * prediction * U2[i, k]
                         U2_numerator[i, k] += lambda_y * score * V[j, k]
