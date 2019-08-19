@@ -49,19 +49,13 @@ class FeatureModality(Modality):
     ids: List, default = None
         List of user/item ids that the indices are aligned with `corpus`.
         If None, the indices of provided `features` will be used as `ids`.
-
-    copy: bool, default = False
-        Whether or not to make a copy of the input features array and leave it unchanged during manipulation.
-        If `False`, rows of the input feature array will be swapped if needed when building the modality.
     """
 
-    def __init__(self, features=None, ids=None, copy=False, normalized=False, **kwargs):
+    def __init__(self, features=None, ids=None, normalized=False, **kwargs):
         super().__init__(**kwargs)
         self.features = features
-        self._ids = ids
-        self._normalized = normalized
-        if copy and features is not None:
-            self.features = np.copy(features)
+        self.ids = ids
+        self.normalized = normalized
 
     @property
     def features(self):
@@ -82,13 +76,17 @@ class FeatureModality(Modality):
         return self.features.shape[1]
 
     def _swap_feature(self, id_map):
-        for old_idx, raw_id in enumerate(self._ids.copy()):
+        new_feats = np.copy(self.features)
+        new_ids = self.ids.copy()
+        for old_idx, raw_id in enumerate(self.ids):
             new_idx = id_map.get(raw_id, None)
             if new_idx is None:
                 continue
-            assert new_idx < self.features.shape[0]
-            self.features[[new_idx, old_idx]] = self.features[[old_idx, new_idx]]
-            self._ids[old_idx], self._ids[new_idx] = self._ids[new_idx], self._ids[old_idx]
+            assert new_idx < new_feats.shape[0]
+            new_feats[new_idx] = self.features[old_idx]
+            new_ids[new_idx] = raw_id
+        self.features = new_feats
+        self.ids = new_ids
 
     def build(self, id_map=None):
         """Build the feature matrix.
@@ -97,10 +95,10 @@ class FeatureModality(Modality):
         if self.features is None:
             return
 
-        if (self._ids is not None) and (id_map is not None):
+        if (self.ids is not None) and (id_map is not None):
             self._swap_feature(id_map)
 
-        if self._normalized:
+        if self.normalized:
             self.features = self.features - np.min(self.features)
             self.features = self.features / (np.max(self.features) + 1e-10)
 
