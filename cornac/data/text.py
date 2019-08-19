@@ -599,13 +599,17 @@ class TextModality(FeatureModality):
         self.count_matrix = None
 
     def _swap_text(self, id_map: Dict):
-        for old_idx, raw_id in enumerate(self._ids.copy()):
+        new_corpus = self.corpus.copy()
+        new_ids = self.ids.copy()
+        for old_idx, raw_id in enumerate(self.ids):
             new_idx = id_map.get(raw_id, None)
             if new_idx is None:
                 continue
             assert new_idx < len(self.corpus)
-            self.corpus[old_idx], self.corpus[new_idx] = self.corpus[new_idx], self.corpus[old_idx]
-            self._ids[old_idx], self._ids[new_idx] = self._ids[new_idx], self._ids[old_idx]
+            new_corpus[new_idx] = self.corpus[old_idx]
+            new_ids[new_idx] = raw_id
+        self.corpus = new_corpus
+        self.ids = new_ids
 
     def _build_text(self, id_map: Dict):
         """Build the text based on provided global id map
@@ -613,7 +617,7 @@ class TextModality(FeatureModality):
         if self.corpus is None:
             return
 
-        if (self._ids is not None) and (id_map is not None):
+        if (self.ids is not None) and (id_map is not None):
             self._swap_text(id_map)
 
         vectorizer = CountVectorizer(tokenizer=self.tokenizer, vocab=self.vocab,
