@@ -20,11 +20,12 @@ ml_100k = cn.datasets.movielens.load_100k()
 ratio_split = cn.eval_methods.RatioSplit(data=ml_100k, test_size=0.2,
                                          rating_threshold=4.0, verbose=True)
 
+bo = cn.models.BaselineOnly(max_iter=30, learning_rate=0.01, lambda_reg=0.02, verbose=True)
 svd = cn.models.SVD(k=10, max_iter=30, learning_rate=0.01, lambda_reg=0.02, verbose=True)
 
 mae = cn.metrics.MAE()
 rmse = cn.metrics.RMSE()
 
 cn.Experiment(eval_method=ratio_split,
-              models=[svd],
+              models=[bo, svd],
               metrics=[mae, rmse]).run()
