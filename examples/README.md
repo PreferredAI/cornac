@@ -26,6 +26,8 @@
 
 [nmf_example.py](nmf_example.py) - Non-negative Matrix Factorization (NMF) with RatioSplit.
 
+[svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
+
 [ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
