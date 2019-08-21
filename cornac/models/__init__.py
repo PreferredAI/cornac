@@ -13,6 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
+from .baseline_only import BaselineOnly
 from .bpr import BPR
 from .cdl import CDL
 from .c2pf import C2PF
@@ -28,6 +29,7 @@ from .skm import SKMeans
 from .vbpr import VBPR
 from .online_ibpr import OnlineIBPR
 from .mf import MF
+from .svd import SVD
 from .conv_mf import ConvMF
 from .cdr import CDR
 from .sbpr import SBPR

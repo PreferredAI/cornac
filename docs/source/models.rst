@@ -95,6 +95,11 @@ Collaborative Topic Modeling (CTR)
 .. automodule:: cornac.models.ctr.recom_ctr
    :members:
 
+Baseline Only
+----------------------------------------
+.. autoclass:: cornac.models.baseline_only.recom_bo
+   :members:
+
 Bayesian Personalized Ranking (BPR)
 ----------------------------------------
 .. autoclass:: cornac.models.bpr.recom_bpr.BPR
