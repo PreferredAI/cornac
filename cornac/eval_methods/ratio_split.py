@@ -15,20 +15,18 @@
 
 from math import ceil
 
-import numpy as np
-
 from .base_method import BaseMethod
 from ..utils import get_rng
 from ..utils.common import safe_indexing
 
 
 class RatioSplit(BaseMethod):
-    """Train-Test Split Evaluation Method.
+    """Splitting data into training, validation, and test sets based on provided sizes.
+    Data is always shuffled before split.
 
     Parameters
     ----------
-
-    data: ..., required
+    data: list, required
         The input data in the form of triplets (user, item, rating).
 
     fmt: str, optional, default: "UIR"
@@ -48,9 +46,6 @@ class RatioSplit(BaseMethod):
         The minimum value that is considered to be a good rating used for ranking, \
         e.g, if the ratings are in {1, ..., 5}, then rating_threshold = 4.
 
-    shuffle: bool, optional, default: True
-        Shuffle the data before splitting.
-
     seed: int, optional, default: None
         Random seed for reproduce the splitting.
 
@@ -61,12 +56,12 @@ class RatioSplit(BaseMethod):
         Output running log
     """
 
-    def __init__(self, data, fmt='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0, shuffle=True,
+    def __init__(self, data, fmt='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0,
                  seed=None, exclude_unknowns=False, verbose=False, **kwargs):
-        BaseMethod.__init__(self, data=data, fmt=fmt, rating_threshold=rating_threshold,
-                            seed=seed, exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
-        self._shuffle = shuffle
-        self._train_size, self._val_size, self._test_size = self.validate_size(val_size, test_size, len(self._data))
+        super().__init__(data=data, fmt=fmt, rating_threshold=rating_threshold, seed=seed,
+                         exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
+
+        self.train_size, self.val_size, self.test_size = self.validate_size(val_size, test_size, len(self._data))
         self._split()
 
     @staticmethod
@@ -105,20 +100,16 @@ class RatioSplit(BaseMethod):
         if self.verbose:
             print("Splitting the data")
 
-        data_idx = np.arange(len(self._data))
-        if self._shuffle:
-            data_idx = get_rng(self.seed).permutation(data_idx)
-
-        train_idx = data_idx[:self._train_size]
-        test_idx = data_idx[-self._test_size:]
-        val_idx = data_idx[self._train_size:-self._test_size]
+        data_idx = get_rng(self.seed).permutation(len(self._data))
+        train_idx = data_idx[:self.train_size]
+        test_idx = data_idx[-self.test_size:]
+        val_idx = data_idx[self.train_size:-self.test_size]
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
         val_data = safe_indexing(self._data, val_idx) if len(val_idx) > 0 else None
 
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
-        self._split_ran = True
 
         if self.verbose:
             print('Total users = {}'.format(self.total_users))
