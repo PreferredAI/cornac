@@ -29,8 +29,8 @@ item_graph_modality = GraphModality(data=contexts)
 
 ratio_split = RatioSplit(data=ratings,
                          test_size=0.2, rating_threshold=3.5,
-                         shuffle=True, exclude_unknowns=True,
-                         verbose=True, item_graph=item_graph_modality)
+                         exclude_unknowns=True, verbose=True,
+                         item_graph=item_graph_modality)
 
 c2pf = C2PF(k=100, max_iter=80, variant='c2pf')
 
