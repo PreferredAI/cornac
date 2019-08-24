@@ -136,9 +136,9 @@ class CDL(Recommender):
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
 
-        self.seed = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.seed))
+        self.rng = get_rng(self.seed)
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.rng))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.rng))
 
         if self.trainable:
             self._fit_cdl()
@@ -170,8 +170,8 @@ class CDL(Recommender):
 
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
-                corruption_mask = np.random.binomial(1, 1 - self.corruption_rate,
-                                                     size=(n_items, self.vocab_size))
+                corruption_mask = self.rng.binomial(1, 1 - self.corruption_rate,
+                                                    size=(n_items, self.vocab_size))
                 sum_loss = 0
                 count = 0
                 for i, batch_ids in enumerate(self.train_set.item_iter(self.batch_size, shuffle=True)):
