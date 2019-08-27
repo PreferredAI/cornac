@@ -116,7 +116,8 @@ class Reader():
 
     def filter(self, tuples):
         if self.bin_threshold is not None:
-            tuples = [tup for tup in tuples if tup[2] >= self.bin_threshold]
+            def binarize(t): t = list(t); t[2] = 1; return tuple(t)
+            tuples = [binarize(t) for t in tuples if t[2] >= self.bin_threshold]
 
         if self.users is not None:
             if isinstance(self.users, list):
