@@ -63,9 +63,14 @@ def uir_parser(tokens, **kwargs):
     return [(tokens[0], tokens[1], float(tokens[2]))]
 
 
+def tup_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], [tuple(tup.split(kwargs.get('tup_sep'))) for tup in tokens[2:]])]
+
+
 PARSERS = {
     'UI': ui_parser,
-    'UIR': uir_parser
+    'UIR': uir_parser,
+    'UITuples': tup_parser 
 }
 
 
@@ -139,7 +144,7 @@ class Reader():
 
         return tuples
 
-    def read(self, fpath, fmt='UIR', sep='\t', skip_lines=0, id_inline=False, parser=None):
+    def read(self, fpath, fmt='UIR', sep='\t', skip_lines=0, id_inline=False, parser=None, **kwargs):
         """Read data and parse line by line based on provided `fmt` or `parser`.
 
         Parameters
@@ -172,12 +177,12 @@ class Reader():
             depends on `parser` or `fmt`.
 
         """
-        parser = PARSERS.get(fmt.upper(), None) if parser is None else parser
+        parser = PARSERS.get(fmt, None) if parser is None else parser
         if parser is None:
             raise ValueError('Invalid line format: {}\n'
                              'Only support: {}'.format(fmt, PARSERS.keys()))
         with open(fpath, encoding=self.encoding, errors=self.errors) as f:
             tuples = [tup
                       for idx, line in enumerate(itertools.islice(f, skip_lines, None))
-                      for tup in parser(line.strip().split(sep), line_idx=idx, id_inline=id_inline)]
+                      for tup in parser(line.strip().split(sep), line_idx=idx, id_inline=id_inline, **kwargs)]
             return self.filter(tuples)
