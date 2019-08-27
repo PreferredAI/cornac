@@ -30,6 +30,11 @@ Image Modality
 .. automodule:: cornac.data.image
    :members:
 
+Sentiment Modality
+---------------------------------
+.. automodule:: cornac.data.sentiment
+   :members:
+
 Reader
 ----------------------------------
 .. automodule:: cornac.data.reader

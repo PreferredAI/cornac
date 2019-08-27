@@ -23,6 +23,7 @@ from scipy.sparse import csr_matrix
 from ..data import TextModality
 from ..data import ImageModality
 from ..data import GraphModality
+from ..data import SentimentModality
 from ..data import Dataset
 from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
@@ -88,6 +89,7 @@ class BaseMethod:
         self.item_text = kwargs.get('item_text', None)
         self.item_image = kwargs.get('item_image', None)
         self.item_graph = kwargs.get('item_graph', None)
+        self.sentiment = kwargs.get('sentiment', None)
 
         if verbose:
             print('rating_threshold = {:.1f}'.format(rating_threshold))
@@ -161,6 +163,16 @@ class BaseMethod:
             raise ValueError('input_modality has to be instance of GraphModality but {}'.format(type(input_modality)))
         self.__item_graph = input_modality
 
+    @property
+    def sentiment(self):
+        return self.__sentiment
+
+    @sentiment.setter
+    def sentiment(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, SentimentModality):
+            raise ValueError('input_modality has to be instance of SentimentModality but {}'.format(type(input_modality)))
+        self.__sentiment = input_modality
+
     def _organize_metrics(self, metrics):
         """Organize metrics according to their types (rating or raking)
 
@@ -226,6 +238,11 @@ class BaseMethod:
                 continue
             item_modality.build(id_map=self.global_iid_map)
 
+        if self.sentiment is not None:
+            self.sentiment.build(uid_map=self.train_set.uid_map,
+                                 iid_map=self.train_set.iid_map,
+                                 dok_matrix=self.train_set.dok_matrix)
+
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None:
                 continue
@@ -234,7 +251,8 @@ class BaseMethod:
                                     user_graph=self.user_graph,
                                     item_text=self.item_text,
                                     item_image=self.item_image,
-                                    item_graph=self.item_graph)
+                                    item_graph=self.item_graph,
+                                    sentiment=self.sentiment)
 
     def build(self, train_data, test_data, val_data=None):
         if train_data is None or len(train_data) == 0:
@@ -403,7 +421,7 @@ class BaseMethod:
             Evaluation method object.
 
         """
-        method = cls(data_format=data_format, rating_threshold=rating_threshold,
+        method = cls(fmt=data_format, rating_threshold=rating_threshold,
                      exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
         method.build(train_data=train_data, test_data=test_data, val_data=val_data)
         return method
