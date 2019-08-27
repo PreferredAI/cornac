@@ -15,6 +15,11 @@ Amazon Office
 .. automodule:: cornac.datasets.amazon_office
    :members:
 
+Amazon Toys and Games
+---------------------------------------------
+.. automodule:: cornac.datasets.amazon_toy
+   :members:
+
 CiteULike
 -----------------------------------------
 .. automodule:: cornac.datasets.citeulike
