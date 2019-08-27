@@ -50,7 +50,9 @@ class TestReader(unittest.TestCase):
 
     def test_filter(self):
         reader = Reader(bin_threshold=4.0)
-        self.assertEqual(len(reader.read(self.data_file)), 8)
+        data = reader.read(self.data_file)
+        self.assertEqual(len(data), 8)
+        self.assertListEqual([x[2] for x in data], [1] * len(data))
 
         reader = Reader(min_user_freq=2)
         self.assertEqual(len(reader.read(self.data_file)), 0)
