@@ -49,7 +49,7 @@ class TestReader(unittest.TestCase):
         self.assertEqual(triplet_data[8][0], '543')
 
     def test_read_tup(self):
-        tup_data = self.reader.read(self.data_file, fmt='UITuples')
+        tup_data = self.reader.read(self.data_file, fmt='UITup')
         self.assertEqual(len(tup_data), 10)
         self.assertEqual(tup_data[4][2], [('3',), ('891656347',)])
         self.assertEqual(tup_data[6][1], '478')

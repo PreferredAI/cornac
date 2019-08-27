@@ -70,7 +70,7 @@ def tup_parser(tokens, **kwargs):
 PARSERS = {
     'UI': ui_parser,
     'UIR': uir_parser,
-    'UITuples': tup_parser 
+    'UITup': tup_parser,
 }
 
 
