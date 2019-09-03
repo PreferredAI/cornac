@@ -39,9 +39,6 @@ class VAECF(Recommender):
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD_RMSProp.
 
-    gamma: float, optional, default: 0.9
-        The weight for previous/current gradient in RMSProp.
-
     beta: float, optional, default: 1.
         The weight of the KL term as in beta-VAE.
 		
@@ -64,7 +61,7 @@ class VAECF(Recommender):
 	In Proceedings of the 2018 World Wide Web Conference on World Wide Web, pp. 689-698.
     """
 
-    def __init__(self, name="VAECF", k=10, h=20, n_epochs=100, batch_size=100, learning_rate=0.001, beta=1., gamma=0.9,
+    def __init__(self, name="VAECF", k=10, h=20, n_epochs=100, batch_size=100, learning_rate=0.001, beta=1.,
                  trainable=True, verbose=False, seed=None, use_gpu=False):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -73,7 +70,6 @@ class VAECF(Recommender):
         self.n_epochs = n_epochs
         self.learning_rate = learning_rate
         self.beta = beta
-        self.gamma = gamma
         self.seed = seed
         self.use_gpu = use_gpu
 
@@ -99,7 +95,7 @@ class VAECF(Recommender):
             from .vaecf import learn
 
             res = learn(self.train_set, k=self.k, h=self.h, n_epochs=self.n_epochs,
-                        batch_size=self.batch_size, learn_rate=self.learning_rate, beta=self.beta, gamma=self.gamma,
+                        batch_size=self.batch_size, learn_rate=self.learning_rate, beta=self.beta,
                         use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
 
             self.vae = res
