@@ -41,12 +41,12 @@ class VAE(nn.Module):
 
     def encode(self, x):
         h = self.efc1(x)
-        h = F.relu(h)
+        h = F.tanh(h)
         return self.efc21(h), self.efc22(h)
 
     def decode(self, z):
         h = self.dfc1(z)
-        h = F.relu(h)
+        h = F.tanh(h)
         o = self.dfc2(h)
         return F.softmax(o)
 
