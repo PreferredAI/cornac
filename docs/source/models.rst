@@ -40,6 +40,11 @@ Matrix Co-Factorization (MCF)
 .. automodule:: cornac.models.mcf.recom_mcf
    :members:
 
+Multi-Layer Perceptron (MLP)
+-----------------------------------------
+.. automodule:: cornac.models.neu_cf.recom_mlp
+   :members:
+
 Neural Matrix Factorization (NeuMF)
 -----------------------------------------
 .. automodule:: cornac.models.neu_cf.recom_neumf
