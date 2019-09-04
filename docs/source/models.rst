@@ -35,6 +35,11 @@ Matrix Co-Factorization (MCF)
 .. automodule:: cornac.models.mcf.recom_mcf
    :members:
 
+Neural Matrix Factorization (NeuMF)
+-----------------------------------------
+.. automodule:: cornac.models.neu_cf.recom_neumf
+   :members:
+
 Online Indexable Bayesian Personalized Ranking (OIBPR)
 -------------------------------------------------------
 .. automodule:: cornac.models.online_ibpr.recom_online_ibpr
