@@ -19,9 +19,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from ...utils.data_utils import Dataset
-
-
 class VAE(nn.Module):
     def __init__(self, data_dim, z_dim, h_dim):
         super(VAE, self).__init__()
@@ -41,12 +38,12 @@ class VAE(nn.Module):
 
     def encode(self, x):
         h = self.efc1(x)
-        h = F.relu(h)
+        h = F.tanh(h)
         return self.efc21(h), self.efc22(h)
 
     def decode(self, z):
         h = self.dfc1(z)
-        h = F.relu(h)
+        h = F.tanh(h)
         o = self.dfc2(h)
         return F.softmax(o)
 
@@ -84,31 +81,29 @@ class VAE(nn.Module):
         return torch.mean(beta * kld - ll)
 
 
-def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, gamma, verbose, seed, use_gpu):
+def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed, use_gpu):
     if seed is not None:
         torch.manual_seed(seed)
 
     # Instantiations
-    x = Dataset(train_set.matrix)
-    data_dim = x.data.shape[1]
+    data_dim = train_set.matrix.shape[1]
     vae = VAE(data_dim, k, h)
     params = list(vae.parameters())
 
-    # optimizer = torch.optim.RMSprop(params=params, lr=learn_rate, alpha=gamma)
     optimizer = torch.optim.Adam(params=params, lr=learn_rate)
 
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
         count = 0
-        num_steps = int(x.data.shape[0] / batch_size)
+        num_steps = int(train_set.matrix.shape[0] / batch_size)
 
         if verbose:
             progress_bar = tqdm(total=num_steps,
                                 desc='Epoch {}/{}'.format(epoch, n_epochs),
                                 disable=False)
 
-        for i in range(1, num_steps + 1):
-            u_batch, u_ids = x.next_batch(batch_size)
+        for batch_id, u_ids in enumerate(train_set.user_iter(batch_size, shuffle=False)):
+            u_batch = train_set.matrix[u_ids,:]
             u_batch.data = np.ones(len(u_batch.data))  # Binarize data
             u_batch = u_batch.A
             u_batch = torch.tensor(u_batch, dtype=torch.double)
@@ -125,7 +120,7 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, gamma, verbos
             count += len(u_batch)
 
             if verbose:
-                if count % (batch_size * 10) == 0:
+                if batch_id % 10 == 0:
                     progress_bar.set_postfix(loss=(sum_loss / count))
                 progress_bar.update(1)
         if verbose:
