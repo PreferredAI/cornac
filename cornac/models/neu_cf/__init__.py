@@ -13,4 +13,5 @@
 # limitations under the License.
 # ============================================================================
 
+from .recom_gmf import GMF
 from .recom_neumf import NeuMF
