@@ -122,6 +122,10 @@ class TestMatrixTrainSet(unittest.TestCase):
         ratings = [batch_ratings for _, _, batch_ratings in train_set.uir_iter()]
         self.assertListEqual(ratings, [4, 4, 4, 4, 3, 4, 4, 5, 3, 4])
 
+        ratings = [batch_ratings for _, _, batch_ratings in train_set.uir_iter(batch_size=5, num_zeros=1)]
+        self.assertListEqual(ratings[0].tolist(), [4, 4, 4, 4, 3, 0, 0, 0, 0, 0])
+        self.assertListEqual(ratings[1].tolist(), [4, 4, 5, 3, 4, 0, 0, 0, 0, 0])
+
     def test_uij_iter(self):
         train_set = MatrixTrainSet.from_uir(self.triplet_data, global_uid_map={}, global_iid_map={},
                                             global_ui_set=set(), verbose=True)

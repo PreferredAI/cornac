@@ -293,7 +293,7 @@ class MatrixTrainSet(TrainSet):
             batch_ids = indices[start_offset:end_offset]
             yield batch_ids
 
-    def uir_iter(self, batch_size=1, shuffle=False):
+    def uir_iter(self, batch_size=1, shuffle=False, num_zeros=0):
         """Create an iterator over data yielding batch of users, items, and rating values
 
         Parameters
@@ -302,6 +302,10 @@ class MatrixTrainSet(TrainSet):
 
         shuffle : bool, optional
             If True, orders of triplets will be randomized. If False, default orders kept
+
+        num_zeros : int, optional, default = 0
+            Number of unobserved ratings (zeros) to be added per user. This could be used
+            for negative sampling. By default, no values are added.
 
         Returns
         -------
@@ -313,6 +317,19 @@ class MatrixTrainSet(TrainSet):
             batch_users = self.uir_tuple[0][batch_ids]
             batch_items = self.uir_tuple[1][batch_ids]
             batch_ratings = self.uir_tuple[2][batch_ids]
+
+            if num_zeros > 0:
+                repeated_users = batch_users.repeat(num_zeros)
+                neg_items = np.empty_like(repeated_users)
+                for i, u in enumerate(repeated_users):
+                    j = self.rng.randint(0, self.num_items)
+                    while self.dok_matrix[u, j] > 0:
+                        j = self.rng.randint(0, self.num_items)
+                    neg_items[i] = j
+                batch_users = np.concatenate((batch_users, repeated_users))
+                batch_items = np.concatenate((batch_items, neg_items))
+                batch_ratings = np.concatenate((batch_ratings, np.zeros_like(neg_items)))
+
             yield batch_users, batch_items, batch_ratings
 
     def uij_iter(self, batch_size=1, shuffle=False):
