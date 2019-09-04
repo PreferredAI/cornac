@@ -24,7 +24,12 @@ Collaborative Variational Autoencoder (CVAE)
 ---------------------------------------
 .. automodule:: cornac.models.cvae.recom_cvae
    :members:
-   
+
+Generalized Matrix Factorization (NeuMF)
+-----------------------------------------
+.. automodule:: cornac.models.neu_cf.recom_gmf
+   :members:
+
 Indexable Bayesian Personalized Ranking (IBPR)
 -----------------------------------------------
 .. automodule:: cornac.models.ibpr.recom_ibpr
