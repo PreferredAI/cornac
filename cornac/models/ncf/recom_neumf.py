@@ -19,16 +19,28 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 
 
-class GMF(Recommender):
-    """Generalized Matrix Factorization.
+class NeuMF(Recommender):
+    """Neural Matrix Factorization.
 
     Parameters
     ----------
     num_factors: int, optional, default: 8
         Embedding size of MF model.
 
-    regs: float, optional, default: 0.
-        Regularization for user and item embeddings.
+    layers: list, optional, default: [64, 32, 16, 8]
+        MLP layers. Note that the first layer is the concatenation of
+        user and item embeddings. So layers[0]/2 is the embedding size.
+
+    act_fn: str, default: 'relu'
+        Name of the activation function used for the MLP layers.
+        Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'selu, 'relu6', 'leaky_relu']
+
+    reg_mf: float, optional, default: 0.
+        Regularization for MF embeddings.
+
+    reg_layers: list, optional, default: [0., 0., 0., 0.]
+        Regularization for each MLP layer,
+        reg_layers[0] is the regularization for embeddings.
 
     num_epochs: int, optional, default: 20
         Number of epochs.
@@ -45,7 +57,7 @@ class GMF(Recommender):
     learner: str, optional, default: 'adam'
         Specify an optimizer: adagrad, adam, rmsprop, sgd
 
-    name: string, optional, default: 'GMF'
+    name: string, optional, default: 'NeuMF'
         Name of the recommender model.
 
     trainable: boolean, optional, default: True
@@ -64,19 +76,46 @@ class GMF(Recommender):
     In Proceedings of the 26th international conference on world wide web (pp. 173-182).
     """
 
-    def __init__(self, name='GMF',
-                 num_factors=8, regs=[0., 0.], num_epochs=20, batch_size=256, num_neg=4,
-                 lr=0.001, learner='adam', trainable=True, verbose=True, seed=None):
+    def __init__(self, name='NeuMF',
+                 num_factors=8, layers=[64, 32, 16, 8], act_fn='relu',
+                 reg_mf=0., reg_layers=[0., 0., 0., 0.], num_epochs=20,
+                 batch_size=256, num_neg=4, lr=0.001, learner='adam',
+                 trainable=True, verbose=True, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
         self.num_factors = num_factors
-        self.regs = regs
+        self.layers = layers
+        self.act_fn = act_fn
+        self.reg_mf = reg_mf
+        self.reg_layers = reg_layers
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.num_neg = num_neg
         self.learning_rate = lr
         self.learner = learner
         self.seed = seed
+        self.pretrained = False
+
+    def pretrain(self, gmf_model, mlp_model, alpha=0.5):
+        """Provide pre-trained GMF and MLP models. Section 3.4.1 of the paper.
+
+        Parameters
+        ----------
+        gmf_model: object of type GMF, required
+            Reference to trained/fitted GMF model.
+
+        gmf_model: object of type GMF, required
+            Reference to trained/fitted GMF model.
+
+        alpha: float, optional, default: 0.5
+            Hyper-parameter determining the trade-off between the two pre-trained models.
+            Details are described in the section 3.4.1 of the paper.
+        """
+        self.pretrained = True
+        self.gmf_model = gmf_model
+        self.mlp_model = mlp_model
+        self.alpha = alpha
+        return self
 
     def fit(self, train_set):
         """Fit the model to observations.
@@ -93,29 +132,35 @@ class GMF(Recommender):
         if self.trainable:
             self._fit_neumf()
 
+        return self
+
     def _fit_neumf(self):
         import os
         import tensorflow as tf
         from tqdm import trange
+        from .ops import gmf, mlp, loss_fn, train_fn
 
         np.random.seed(self.seed)
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-        from .ops import gmf, mlp, loss_fn, train_fn
-
         graph = tf.Graph()
         with graph.as_default():
             tf.set_random_seed(self.seed)
 
-            self.user_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='user_id')
+            self.gmf_user_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='gmf_user_id')
+            self.mlp_user_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='mlp_user_id')
             self.item_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='item_id')
             self.labels = tf.placeholder(shape=[None, 1], dtype=tf.float32, name='labels')
 
-            interaction = gmf(uid=self.user_id, iid=self.item_id, num_users=self.train_set.num_users,
-                              num_items=self.train_set.num_items, emb_size=self.num_factors,
-                              reg_user=self.regs[0], reg_item=self.regs[1], seed=self.seed)
+            gmf_feat = gmf(uid=self.gmf_user_id, iid=self.item_id, num_users=self.train_set.num_users,
+                           num_items=self.train_set.num_items, emb_size=self.num_factors,
+                           reg_user=self.reg_mf, reg_item=self.reg_mf, seed=self.seed)
+            mlp_feat = mlp(uid=self.mlp_user_id, iid=self.item_id, num_users=self.train_set.num_users,
+                           num_items=self.train_set.num_items, layers=self.layers,
+                           reg_layers=self.reg_layers, act_fn=self.act_fn, seed=self.seed)
 
+            interaction = tf.concat([gmf_feat, mlp_feat], axis=-1)
             logits = tf.layers.dense(interaction, units=1, name='logits',
                                      kernel_initializer=tf.initializers.lecun_uniform(self.seed))
             self.prediction = tf.nn.sigmoid(logits)
@@ -130,21 +175,40 @@ class GMF(Recommender):
         self.sess = tf.Session(graph=graph, config=config)
         self.sess.run(initializer)
 
+        if self.pretrained:
+            gmf_kernel = self.gmf_model.sess.run(self.gmf_model.sess.graph.get_tensor_by_name('logits/kernel:0'))
+            gmf_bias = self.gmf_model.sess.run(self.gmf_model.sess.graph.get_tensor_by_name('logits/bias:0'))
+            mlp_kernel = self.mlp_model.sess.run(self.mlp_model.sess.graph.get_tensor_by_name('logits/kernel:0'))
+            mlp_bias = self.mlp_model.sess.run(self.mlp_model.sess.graph.get_tensor_by_name('logits/bias:0'))
+            logits_kernel = np.concatenate([self.alpha * gmf_kernel, (1 - self.alpha) * mlp_kernel])
+            logits_bias = self.alpha * gmf_bias + (1 - self.alpha) * mlp_bias
+
+            for v in graph.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+                if v.name.startswith('GMF'):
+                    sess = self.gmf_model.sess
+                    self.sess.run(tf.assign(v, sess.run(sess.graph.get_tensor_by_name(v.name))))
+                elif v.name.startswith('MLP'):
+                    sess = self.mlp_model.sess
+                    self.sess.run(tf.assign(v, sess.run(sess.graph.get_tensor_by_name(v.name))))
+                elif v.name.startswith('logits/kernel'):
+                    self.sess.run(tf.assign(v, logits_kernel))
+                elif v.name.startswith('logits/bias'):
+                    self.sess.run(tf.assign(v, logits_bias))
+
         loop = trange(self.num_epochs, disable=not self.verbose)
         for _ in loop:
             count = 0
             sum_loss = 0
             for i, (batch_users, batch_items, batch_ratings) in enumerate(
                     self.train_set.uir_iter(self.batch_size, shuffle=True, num_zeros=self.num_neg)):
-                _, _loss = self.sess.run([train_op, loss],
-                                         feed_dict={
-                                             self.user_id: batch_users,
-                                             self.item_id: batch_items,
-                                             self.labels: batch_ratings.reshape(-1, 1)
-                                         })
-
+                _, _loss = self.sess.run([train_op, loss], feed_dict={
+                    self.gmf_user_id: batch_users,
+                    self.mlp_user_id: batch_users,
+                    self.item_id: batch_items,
+                    self.labels: batch_ratings.reshape(-1, 1)
+                })
                 count += len(batch_ratings)
-                sum_loss += _loss
+                sum_loss += _loss * len(batch_ratings)
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
 
@@ -170,7 +234,9 @@ class GMF(Recommender):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
             known_item_scores = self.sess.run(self.prediction, feed_dict={
-                self.user_id: [user_id], self.item_id: np.arange(self.train_set.num_items)
+                self.gmf_user_id: [user_id],
+                self.mlp_user_id: np.ones(self.train_set.num_items) * user_id,
+                self.item_id: np.arange(self.train_set.num_items)
             })
             return known_item_scores.ravel()
         else:
@@ -178,6 +244,6 @@ class GMF(Recommender):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
             user_pred = self.sess.run(self.prediction, feed_dict={
-                self.user_id: [user_id], self.item_id: [item_id]
+                self.gmf_user_id: [user_id], self.mlp_user_id: [user_id], self.item_id: [item_id]
             })
             return user_pred.ravel()

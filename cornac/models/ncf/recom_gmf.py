@@ -19,28 +19,16 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 
 
-class NeuMF(Recommender):
-    """Neural Matrix Factorization.
+class GMF(Recommender):
+    """Generalized Matrix Factorization.
 
     Parameters
     ----------
     num_factors: int, optional, default: 8
         Embedding size of MF model.
 
-    layers: list, optional, default: [64, 32, 16, 8]
-        MLP layers. Note that the first layer is the concatenation of
-        user and item embeddings. So layers[0]/2 is the embedding size.
-
-    act_fn: str, default: 'relu'
-        Name of the activation function used for the MLP layers.
-        Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'selu, 'relu6', 'leaky_relu']
-
-    reg_mf: float, optional, default: 0.
-        Regularization for MF embeddings.
-
-    reg_layers: list, optional, default: [0., 0., 0., 0.]
-        Regularization for each MLP layer,
-        reg_layers[0] is the regularization for embeddings.
+    regs: float, optional, default: 0.
+        Regularization for user and item embeddings.
 
     num_epochs: int, optional, default: 20
         Number of epochs.
@@ -57,7 +45,7 @@ class NeuMF(Recommender):
     learner: str, optional, default: 'adam'
         Specify an optimizer: adagrad, adam, rmsprop, sgd
 
-    name: string, optional, default: 'NeuMF'
+    name: string, optional, default: 'GMF'
         Name of the recommender model.
 
     trainable: boolean, optional, default: True
@@ -76,18 +64,13 @@ class NeuMF(Recommender):
     In Proceedings of the 26th international conference on world wide web (pp. 173-182).
     """
 
-    def __init__(self, name='NeuMF',
-                 num_factors=8, layers=[64, 32, 16, 8], act_fn='relu',
-                 reg_mf=0., reg_layers=[0., 0., 0., 0.], num_epochs=20,
-                 batch_size=256, num_neg=4, lr=0.001, learner='adam',
-                 trainable=True, verbose=True, seed=None):
+    def __init__(self, name='GMF',
+                 num_factors=8, regs=[0., 0.], num_epochs=20, batch_size=256, num_neg=4,
+                 lr=0.001, learner='adam', trainable=True, verbose=True, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
         self.num_factors = num_factors
-        self.layers = layers
-        self.act_fn = act_fn
-        self.reg_mf = reg_mf
-        self.reg_layers = reg_layers
+        self.regs = regs
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.num_neg = num_neg
@@ -108,37 +91,33 @@ class NeuMF(Recommender):
         Recommender.fit(self, train_set)
 
         if self.trainable:
-            self._fit_neumf()
+            self._fit_gmf()
 
-    def _fit_neumf(self):
+        return self
+
+    def _fit_gmf(self):
         import os
         import tensorflow as tf
         from tqdm import trange
+        from .ops import gmf, loss_fn, train_fn
 
         np.random.seed(self.seed)
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-        from .ops import gmf, mlp, loss_fn, train_fn
-
         graph = tf.Graph()
         with graph.as_default():
             tf.set_random_seed(self.seed)
 
-            self.gmf_user_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='gmf_user_id')
-            self.mlp_user_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='mlp_user_id')
+            self.user_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='user_id')
             self.item_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='item_id')
             self.labels = tf.placeholder(shape=[None, 1], dtype=tf.float32, name='labels')
 
-            gmf_feat = gmf(uid=self.gmf_user_id, iid=self.item_id, num_users=self.train_set.num_users,
-                           num_items=self.train_set.num_items, emb_size=self.num_factors,
-                           reg_user=self.reg_mf, reg_item=self.reg_mf, seed=self.seed)
-            mlp_feat = mlp(uid=self.mlp_user_id, iid=self.item_id, num_users=self.train_set.num_users,
-                           num_items=self.train_set.num_items, layers=self.layers,
-                           reg_layers=self.reg_layers, act_fn=self.act_fn, seed=self.seed)
+            self.interaction = gmf(uid=self.user_id, iid=self.item_id, num_users=self.train_set.num_users,
+                                   num_items=self.train_set.num_items, emb_size=self.num_factors,
+                                   reg_user=self.regs[0], reg_item=self.regs[1], seed=self.seed)
 
-            interaction = tf.concat([gmf_feat, mlp_feat], axis=-1)
-            logits = tf.layers.dense(interaction, units=1, name='logits',
+            logits = tf.layers.dense(self.interaction, units=1, name='logits',
                                      kernel_initializer=tf.initializers.lecun_uniform(self.seed))
             self.prediction = tf.nn.sigmoid(logits)
 
@@ -160,14 +139,13 @@ class NeuMF(Recommender):
                     self.train_set.uir_iter(self.batch_size, shuffle=True, num_zeros=self.num_neg)):
                 _, _loss = self.sess.run([train_op, loss],
                                          feed_dict={
-                                             self.gmf_user_id: batch_users,
-                                             self.mlp_user_id: batch_users,
+                                             self.user_id: batch_users,
                                              self.item_id: batch_items,
                                              self.labels: batch_ratings.reshape(-1, 1)
                                          })
 
                 count += len(batch_ratings)
-                sum_loss += _loss
+                sum_loss += _loss * len(batch_ratings)
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
 
@@ -193,9 +171,7 @@ class NeuMF(Recommender):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
 
             known_item_scores = self.sess.run(self.prediction, feed_dict={
-                self.gmf_user_id: [user_id],
-                self.mlp_user_id: np.ones(self.train_set.num_items) * user_id,
-                self.item_id: np.arange(self.train_set.num_items)
+                self.user_id: [user_id], self.item_id: np.arange(self.train_set.num_items)
             })
             return known_item_scores.ravel()
         else:
@@ -203,6 +179,6 @@ class NeuMF(Recommender):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
             user_pred = self.sess.run(self.prediction, feed_dict={
-                self.gmf_user_id: [user_id], self.mlp_user_id: [user_id], self.item_id: [item_id]
+                self.user_id: [user_id], self.item_id: [item_id]
             })
             return user_pred.ravel()
