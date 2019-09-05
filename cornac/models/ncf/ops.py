@@ -28,7 +28,7 @@ act_functions = {
 
 
 def loss_fn(labels, logits):
-    cross_entropy = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits))
+    cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits))
     reg_loss = tf.losses.get_regularization_loss()
     return cross_entropy + reg_loss
 
@@ -74,7 +74,7 @@ def mlp(uid, iid, num_users, num_items, layers, reg_layers, act_fn, seed=None):
                                  seed=seed, scope=scope)
         interaction = tf.concat([user_emb, item_emb], axis=-1)
         for i, layer in enumerate(layers[1:]):
-            interaction = tf.layers.dense(interaction, units=layer, name='layer{}'.format(i),
+            interaction = tf.layers.dense(interaction, units=layer, name='layer{}'.format(i + 1),
                                           activation=act_functions.get(act_fn, tf.nn.relu),
                                           kernel_initializer=tf.initializers.lecun_uniform(seed),
                                           kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_layers[i + 1]))
