@@ -27,7 +27,7 @@ Collaborative Variational Autoencoder (CVAE)
 
 Generalized Matrix Factorization (NeuMF)
 -----------------------------------------
-.. automodule:: cornac.models.neu_cf.recom_gmf
+.. automodule:: cornac.models.ncf.recom_gmf
    :members:
 
 Indexable Bayesian Personalized Ranking (IBPR)
@@ -42,12 +42,12 @@ Matrix Co-Factorization (MCF)
 
 Multi-Layer Perceptron (MLP)
 -----------------------------------------
-.. automodule:: cornac.models.neu_cf.recom_mlp
+.. automodule:: cornac.models.ncf.recom_mlp
    :members:
 
 Neural Matrix Factorization (NeuMF)
 -----------------------------------------
-.. automodule:: cornac.models.neu_cf.recom_neumf
+.. automodule:: cornac.models.ncf.recom_neumf
    :members:
 
 Online Indexable Bayesian Personalized Ranking (OIBPR)

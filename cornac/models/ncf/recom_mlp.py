@@ -101,16 +101,17 @@ class MLP(Recommender):
         if self.trainable:
             self._fit_neumf()
 
+        return self
+
     def _fit_neumf(self):
         import os
         import tensorflow as tf
         from tqdm import trange
+        from .ops import mlp, loss_fn, train_fn
 
         np.random.seed(self.seed)
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
-        from .ops import gmf, mlp, loss_fn, train_fn
 
         graph = tf.Graph()
         with graph.as_default():
@@ -120,10 +121,10 @@ class MLP(Recommender):
             self.item_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='item_id')
             self.labels = tf.placeholder(shape=[None, 1], dtype=tf.float32, name='labels')
 
-            interaction = mlp(uid=self.user_id, iid=self.item_id, num_users=self.train_set.num_users,
-                              num_items=self.train_set.num_items, layers=self.layers,
-                              reg_layers=self.reg_layers, act_fn=self.act_fn, seed=self.seed)
-            logits = tf.layers.dense(interaction, units=1, name='logits',
+            self.interaction = mlp(uid=self.user_id, iid=self.item_id, num_users=self.train_set.num_users,
+                                   num_items=self.train_set.num_items, layers=self.layers,
+                                   reg_layers=self.reg_layers, act_fn=self.act_fn, seed=self.seed)
+            logits = tf.layers.dense(self.interaction, units=1, name='logits',
                                      kernel_initializer=tf.initializers.lecun_uniform(self.seed))
             self.prediction = tf.nn.sigmoid(logits)
 
@@ -151,7 +152,7 @@ class MLP(Recommender):
                                          })
 
                 count += len(batch_ratings)
-                sum_loss += _loss
+                sum_loss += _loss * len(batch_ratings)
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
 

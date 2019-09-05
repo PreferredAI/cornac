@@ -39,6 +39,6 @@ from .cf import CF
 from .vaecf import VAECF
 from .ctr import CTR
 from .hft import HFT
-from .neu_cf import GMF
-from .neu_cf import MLP
-from .neu_cf import NeuMF
+from .ncf import GMF
+from .ncf import MLP
+from .ncf import NeuMF
