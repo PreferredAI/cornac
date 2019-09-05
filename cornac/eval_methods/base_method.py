@@ -220,11 +220,11 @@ class BaseMethod:
             if data_set is None:
                 continue
             data_set.add_modalities(user_text=self.user_text,
-                                 user_image=self.user_image,
-                                 user_graph=self.user_graph,
-                                 item_text=self.item_text,
-                                 item_image=self.item_image,
-                                 item_graph=self.item_graph)
+                                    user_image=self.user_image,
+                                    user_graph=self.user_graph,
+                                    item_text=self.item_text,
+                                    item_image=self.item_image,
+                                    item_graph=self.item_graph)
 
     def build(self, train_data, test_data, val_data=None):
         self.global_uid_map.clear()
@@ -260,7 +260,7 @@ class BaseMethod:
         if self.verbose:
             print('\n[{}] Training started!'.format(model.name))
         start = time.time()
-        model.fit(self.train_set)
+        model.fit(self.train_set, self.val_set)
         train_time = time.time() - start
 
         if self.verbose:
