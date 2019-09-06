@@ -206,6 +206,13 @@ class Dataset(object):
         if global_ui_set is None:
             global_ui_set = set()
 
+        filtered_data = [(u, i, r) for u, i, r in data if (u, i) not in global_ui_set]
+        if exclude_unknowns:
+            filtered_data = [(u, i, r) for u, i, r in filtered_data
+                             if u in global_uid_map and i in global_iid_map]
+        if len(filtered_data) == 0:
+            raise ValueError('data is empty after being filtered!')
+
         uid_map = OrderedDict()
         iid_map = OrderedDict()
 
@@ -217,11 +224,6 @@ class Dataset(object):
         rating_count = 0
         max_rating = float('-inf')
         min_rating = float('inf')
-
-        filtered_data = [(u, i, r) for u, i, r in data if (u, i) not in global_ui_set]
-        if exclude_unknowns:
-            filtered_data = [(u, i, r) for u, i, r in filtered_data
-                             if u in global_uid_map and i in global_iid_map]
 
         for uid, iid, rating in filtered_data:
             global_ui_set.add((uid, iid))
