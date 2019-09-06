@@ -72,6 +72,16 @@ class TestRatioSplit(unittest.TestCase):
         except ValueError:
             assert True
 
+    def test_splits(self):
+        try:
+            RatioSplit(self.data, test_size=0.1, val_size=0.1, seed=123, verbose=True)
+        except ValueError:
+            assert True
+
+        ratio_split = RatioSplit(self.data, test_size=0.1, seed=123, verbose=True)
+        self.assertTrue(ratio_split.train_size == 9)
+        self.assertTrue(ratio_split.test_size == 1)
+
     def test_evaluate(self):
         ratio_split = RatioSplit(self.data, exclude_unknowns=False, verbose=True)
         ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=False)

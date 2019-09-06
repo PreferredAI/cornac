@@ -170,5 +170,13 @@ class TestDataset(unittest.TestCase):
         self.assertEqual(train_set.dok_matrix[7, 7], 5)
 
 
+    def test_item_data(self):
+        train_set = Dataset.from_uir(self.triplet_data,
+                                     global_uid_map=None,
+                                     global_iid_map=None,
+                                     global_ui_set=None)
+
+        self.assertEqual(len(train_set.item_data), 10)
+
 if __name__ == '__main__':
     unittest.main()
