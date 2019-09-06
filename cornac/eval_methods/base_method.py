@@ -181,11 +181,6 @@ class BaseMethod:
         return rating_metrics, ranking_metrics
 
     def _build_uir(self, train_data, test_data, val_data=None):
-        if train_data is None:
-            raise ValueError('train_data is required but None!')
-        if test_data is None:
-            raise ValueError('test_data is required but None!')
-
         global_ui_set = set()  # avoid duplicate ratings in the data
 
         self.train_set = Dataset.from_uir(
@@ -246,6 +241,11 @@ class BaseMethod:
                                     item_graph=self.item_graph)
 
     def build(self, train_data, test_data, val_data=None):
+        if train_data is None or len(train_data) == 0:
+            raise ValueError('train_data is required but None or empty!')
+        if test_data is None or len(test_data) == 0:
+            raise ValueError('test_data is required but None or empty!')
+
         self.global_uid_map.clear()
         self.global_iid_map.clear()
 
@@ -294,19 +294,15 @@ class BaseMethod:
             metric_user_results[mt.name] = {}
 
         for user_idx in tqdm.tqdm(self.test_set.user_indices, disable=not self.verbose):
-            # ignore unknown users when self.exclude_unknown
-            if self.exclude_unknowns and self.train_set.is_unk_user(user_idx):
-                continue
-
             u_pd_ratings = []
             u_gt_ratings = []
 
             if self.exclude_unknowns:
                 u_gt_pos = np.zeros(self.train_set.num_items, dtype=np.int)
-                item_ids = None  # all known items
+                item_indices = None  # all known items
             else:
                 u_gt_pos = np.zeros(self.total_items, dtype=np.int)
-                item_ids = np.arange(self.total_items)
+                item_indices = np.arange(self.total_items)
 
             u_gt_neg = np.ones_like(u_gt_pos, dtype=np.int)
             if not self.train_set.is_unk_user(user_idx):
@@ -315,10 +311,6 @@ class BaseMethod:
                 u_gt_neg[:len(u_train_neg)] = u_train_neg
 
             for item_id, rating in zip(*self.test_set.user_data[user_idx]):
-                # ignore unknown items when self.exclude_unknown
-                if self.exclude_unknowns and self.train_set.is_unk_item(item_id):
-                    continue
-
                 if len(rating_metrics) > 0:
                     all_gt_ratings.append(rating)
                     u_gt_ratings.append(rating)
@@ -341,7 +333,7 @@ class BaseMethod:
 
             # evaluation of ranking metrics
             if len(ranking_metrics) > 0 and u_gt_pos.sum() > 0:
-                item_rank, item_scores = model.rank(user_idx, item_ids)
+                item_rank, item_scores = model.rank(user_idx, item_indices)
                 for mt in ranking_metrics:
                     mt_score = mt.compute(gt_pos=u_gt_pos,
                                           gt_neg=u_gt_neg,
