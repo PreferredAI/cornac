@@ -91,14 +91,16 @@ class Dataset(object):
     def user_indices(self):
         """Return a numpy array of the user indices"""
         if self.__user_indices is None:
-            self.__user_indices = np.fromiter(self.uid_map.values(), dtype=np.int)
+            # self.__user_indices = np.fromiter(self.uid_map.values(), dtype=np.int)
+            self.__user_indices = list(self.uid_map.values())
         return self.__user_indices
 
     @property
     def item_indices(self):
         """Return a numpy array of the item indices"""
         if self.__item_indices is None:
-            self.__item_indices = np.fromiter(self.iid_map.values(), dtype=np.int)
+            # self.__item_indices = np.fromiter(self.iid_map.values(), dtype=np.int)
+            self.__item_indices = list(self.iid_map.values())
         return self.__item_indices
 
     @property
@@ -360,8 +362,9 @@ class Dataset(object):
         -------
         iterator : batch of user indices (array of np.int)
         """
-        for batch_ids in self.idx_iter(len(self.user_indices), batch_size, shuffle):
-            yield self.user_indices[batch_ids]
+        user_indices = np.asarray(self.user_indices)
+        for batch_ids in self.idx_iter(len(user_indices), batch_size, shuffle):
+            yield user_indices[batch_ids]
 
     def item_iter(self, batch_size=1, shuffle=False):
         """Create an iterator over item indices
@@ -377,8 +380,9 @@ class Dataset(object):
         -------
         iterator : batch of item indices (array of np.int)
         """
-        for batch_ids in self.idx_iter(len(self.item_indices), batch_size, shuffle):
-            yield self.item_indices[batch_ids]
+        item_indices = np.asarray(self.item_indices)
+        for batch_ids in self.idx_iter(len(item_indices), batch_size, shuffle):
+            yield item_indices[batch_ids]
 
     def is_unk_user(self, user_idx):
         """Return whether or not a user is unknown given the user index"""
