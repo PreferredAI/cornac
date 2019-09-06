@@ -191,7 +191,7 @@ class Recommender:
             Loss value on validation set.
             Return `None` if `val_set` is `None`.
         """
-        raise NotImplementedError('Overwrite me!')
+        raise NotImplementedError('Overwritten me!')
 
     def early_stop(self, min_delta=0., patience=0):
         """Check if training should be stopped when validation loss has stopped improving.
