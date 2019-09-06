@@ -42,7 +42,7 @@ def read_text(fpath, sep=None, encoding='utf-8', errors=None):
     """
     with open(fpath, encoding=encoding, errors=errors) as f:
         if sep is None:
-            return f.read().splitlines()
+            return [line.strip() for line in f]
         else:
             texts, ids = [], []
             for line in f:
