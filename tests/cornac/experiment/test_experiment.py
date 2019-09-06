@@ -28,11 +28,10 @@ class TestExperiment(unittest.TestCase):
         self.data = Reader().read('./tests/data.txt')
 
     def test_with_ratio_split(self):
-        exp = Experiment(eval_method=RatioSplit(self.data, verbose=True),
-                         models=[PMF(1, 0)],
-                         metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
-                         verbose=True)
-        exp.run()
+        Experiment(eval_method=RatioSplit(self.data, verbose=True),
+                   models=[PMF(1, 0)],
+                   metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
+                   verbose=True).run()
 
         try:
             Experiment(None, None, None)
@@ -45,11 +44,10 @@ class TestExperiment(unittest.TestCase):
             assert True
 
     def test_with_cross_validation(self):
-        exp = Experiment(eval_method=CrossValidation(self.data),
-                         models=[PMF(1, 0)],
-                         metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
-                         verbose=True)
-        exp.run()
+        Experiment(eval_method=CrossValidation(self.data, exclude_unknowns=False),
+                   models=[PMF(1, 0)],
+                   metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
+                   verbose=True).run()
 
 
 if __name__ == '__main__':
