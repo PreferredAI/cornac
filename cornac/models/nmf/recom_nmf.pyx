@@ -77,10 +77,10 @@ class NMF(Recommender):
 
     References
     ----------
-    Lee, D. D., & Seung, H. S. (2001). Algorithms for non-negative matrix factorization. \
+    * Lee, D. D., & Seung, H. S. (2001). Algorithms for non-negative matrix factorization. \
     In Advances in neural information processing systems (pp. 556-562).
 
-    Takahashi, N., Katayama, J., & Takeuchi, J. I. (2014). A generalized sufficient condition for \
+    * Takahashi, N., Katayama, J., & Takeuchi, J. I. (2014). A generalized sufficient condition for \
     global convergence of modified multiplicative updates for NMF. \
     In Proceedings of 2014 International Symposium on Nonlinear Theory and its Applications (pp. 44-47).
     """
@@ -108,17 +108,22 @@ class NMF(Recommender):
         else:
             self.num_threads = multiprocessing.cpu_count()
 
-    def fit(self, train_set):
+    def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: object of type TrainSet, required
-            An object contains the user-item preference in csr scipy sparse format,\
-            as well as some useful attributes such as mappings to the original user/item ids.\
-            Please refer to the class TrainSet in the "data" module for details.
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
-        Recommender.fit(self, train_set)
+        Recommender.fit(self, train_set, val_set)
 
         from ...utils import get_rng
         from ...utils.init_utils import uniform, zeros
@@ -131,16 +136,16 @@ class NMF(Recommender):
         self.i_biases = self.init_params.get('Bi', zeros(n_items))
         self.global_mean = self.init_params.get('mu', train_set.global_mean) if self.use_bias else 0.
 
-        if not self.trainable:
-            return
+        if self.trainable:
+            X = train_set.matrix # csr_matrix
+            user_counts = np.ediff1d(X.indptr)
+            user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
+            item_counts = np.ediff1d(X.tocsc().indptr).astype(X.indices.dtype)
 
-        X = train_set.matrix # csr_matrix
-        user_counts = np.ediff1d(X.indptr)
-        user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
-        item_counts = np.ediff1d(X.tocsc().indptr).astype(X.indices.dtype)
+            self._fit_sgd(user_ids, X.indices, X.data.astype(np.float32), user_counts, item_counts,
+                          self.u_factors, self.i_factors, self.u_biases, self.i_biases)
 
-        self._fit_sgd(user_ids, X.indices, X.data.astype(np.float32), user_counts, item_counts,
-                      self.u_factors, self.i_factors, self.u_biases, self.i_biases)
+        return self
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

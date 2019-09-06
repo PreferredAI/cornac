@@ -42,15 +42,20 @@ class PMF(Recommender):
     def __init__(self, name="PMF", trainable=True, verbose=False, ...):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
-    def fit(self, train_set):
+    def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: object of type TrainSet, required
-            An object contraining the user-item preference in csr scipy sparse format,\
-            as well as some useful attributes such as mappings to the original user/item ids.\
-            Please refer to the class TrainSet in the "data" module for details.
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
 
     def score(self, user_id, item_id=None):

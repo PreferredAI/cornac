@@ -80,20 +80,24 @@ class OnlineIBPR(Recommender):
         self.U = init_params['U']  # matrix of user factors
         self.V = init_params['V']  # matrix of item factors
 
-    # fit the recommender model to the traning data
-    def fit(self, train_set):
+    def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: object of type TrainSet, required
-            An object contraining the user-item preference in csr scipy sparse format,\
-            as well as some useful attributes such as mappings to the original user/item ids.\
-            Please refer to the class TrainSet in the "data" module for details.
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
         from .online_ibpr import online_ibpr
 
-        Recommender.fit(self, train_set)
+        Recommender.fit(self, train_set, val_set)
 
         X = self.train_set.matrix
         # change the data to original user Id item Id and rating format
@@ -111,6 +115,8 @@ class OnlineIBPR(Recommender):
         self.V = np.asarray(res['V'])
         if self.verbose:
             print('Learning completed')
+
+        return self
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
