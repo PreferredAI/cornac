@@ -121,17 +121,22 @@ class CDL(Recommender):
         self.init_params = {} if not init_params else init_params
         self.seed = seed
 
-    def fit(self, train_set):
+    def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: object of type TrainSet, required
-            An object contraining the user-item preference in csr scipy sparse format,\
-            as well as some useful attributes such as mappings to the original user/item ids.\
-            Please refer to the class TrainSet in the "data" module for details.
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
-        Recommender.fit(self, train_set)
+        Recommender.fit(self, train_set, val_set)
 
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
@@ -142,6 +147,8 @@ class CDL(Recommender):
 
         if self.trainable:
             self._fit_cdl()
+
+        return self
 
     def _fit_cdl(self, ):
         import tensorflow as tf

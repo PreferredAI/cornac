@@ -114,17 +114,22 @@ class BPR(Recommender):
         else:
             self.num_threads = multiprocessing.cpu_count()
 
-    def fit(self, train_set):
+    def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: object of type TrainSet, required
-            An object contains the user-item preference in csr scipy sparse format,\
-            as well as some useful attributes such as mappings to the original user/item ids.\
-            Please refer to the class TrainSet in the "data" module for details.
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
-        Recommender.fit(self, train_set)
+        Recommender.fit(self, train_set, val_set)
 
         from tqdm import trange
         from ...utils import get_rng
@@ -160,6 +165,8 @@ class BPR(Recommender):
                                       "skipped": "%.2f%%" % (100.0 * skipped / n_items)})
         if self.verbose:
             print('Optimization finished!')
+
+        return self
 
     @cython.cdivision(True)
     @cython.boundscheck(False)

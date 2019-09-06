@@ -21,8 +21,6 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 
 
-
-# HierarchicalPoissonFactorization: Hpf
 class HPF(Recommender):
     """Hierarchical Poisson Factorization.
 
@@ -66,8 +64,8 @@ class HPF(Recommender):
     """
 
     def __init__(self, k=5, max_iter=100, name="HPF", trainable=True,
-                 verbose=False, hierarchical = True, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
-        Recommender.__init__(self, name=name, trainable=trainable, verbose = verbose)
+                 verbose=False, hierarchical=True, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
+        Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
         self.max_iter = max_iter
@@ -76,26 +74,28 @@ class HPF(Recommender):
         self.etp_r = np.full(max_iter, 0)
         self.etp_c = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.hierarchical  = hierarchical
+        self.hierarchical = hierarchical
         self.Theta = None  # matrix of user factors
         self.Beta = None  # matrix of item factors
 
-
-    # fit the recommender model to the traning data
-    def fit(self, train_set):
+    def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: object of type TrainSet, required
-            An object contraining the user-item preference in csr scipy sparse format,\
-            as well as some useful attributes such as mappings to the original user/item ids.\
-            Please refer to the class TrainSet in the "data" module for details.
-        """
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
 
-        Recommender.fit(self, train_set)
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
+        """
+        Recommender.fit(self, train_set, val_set)
         X = sp.csc_matrix(self.train_set.matrix)
-        
+
         # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
         (rid, cid, val) = sp.find(X)
         val = np.array(val, dtype='float32')
@@ -103,7 +103,6 @@ class HPF(Recommender):
         cid = np.array(cid, dtype='int32')
         tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
         del rid, cid, val
-        
 
         if self.trainable:
             if self.hierarchical:
@@ -115,7 +114,7 @@ class HPF(Recommender):
         elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
 
-
+        return self
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.
@@ -148,7 +147,7 @@ class HPF(Recommender):
             if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
 
-            user_pred = self.Beta[item_id,:].dot(self.Theta[user_id, :])
+            user_pred = self.Beta[item_id, :].dot(self.Theta[user_id, :])
             user_pred = np.array(user_pred, dtype='float64').flatten()[0]
 
             return user_pred

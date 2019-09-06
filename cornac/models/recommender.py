@@ -38,11 +38,27 @@ class Recommender:
         self.verbose = verbose
         self.train_set = None
 
-    def fit(self, train_set):
-        """Fit the model with training data, should be called before each implementation of any recommender model's class
+    def fit(self, train_set, val_set=None):
+        """Fit the model to observations. Need to
 
+        Parameters
+        ----------
+        train_set: object of type TrainSet, required
+            An object containing the user-item preference in csr scipy sparse format,\
+            as well as some useful attributes such as mappings to the original user/item ids.\
+            Please refer to the class TrainSet in the "data" module for details.
+
+        val_set: object of type TestSet, optional, default: None
+            An object containing the user-item preference for model selection purposes (e.g., early stopping).
+            Please refer to the class TestSet in the "data" module for details.
+
+        Returns
+        -------
+        self : object
         """
         self.train_set = train_set
+        self.val_set = val_set
+        return self
 
     def score(self, user_id, item_id=None):
         """Predict the scores/ratings of a user for an item.

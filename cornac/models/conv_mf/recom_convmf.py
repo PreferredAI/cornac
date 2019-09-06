@@ -89,16 +89,22 @@ class ConvMF(Recommender):
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
-    def fit(self, train_set):
-        """Fit the model.
+    def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`
-            Multimodal training set.
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
 
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
-        Recommender.fit(self, train_set)
+        Recommender.fit(self, train_set, val_set)
 
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
@@ -111,6 +117,8 @@ class ConvMF(Recommender):
 
         if self.trainable:
             self._fit_convmf()
+
+        return self
 
     @staticmethod
     def _build_data(csr_mat):
