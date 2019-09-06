@@ -36,6 +36,12 @@ class Dataset(object):
     uir_tuple: tuple
         Tuple of 3 numpy arrays (users, items, ratings).
 
+    num_users: int
+        Number of users.
+
+    num_items: int
+        Number of items.
+
     max_rating: float
         Maximum value of the preferences.
 
