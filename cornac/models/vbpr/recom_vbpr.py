@@ -105,16 +105,22 @@ class VBPR(Recommender):
         self.theta_item = np.matmul(features, self.emb_matrix)
         self.visual_bias = np.matmul(features, self.beta_prime).ravel()
 
-    def fit(self, train_set):
-        """Fit the model.
+    def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`
-            Multimodal training set.
+        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+            User-Item preference data as well as additional modalities.
 
+        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
-        Recommender.fit(self, train_set)
+        Recommender.fit(self, train_set, val_set)
 
         if train_set.item_image is None:
             raise CornacException('item_image modality is required but None.')
@@ -127,6 +133,8 @@ class VBPR(Recommender):
 
         if self.trainable:
             self._fit_torch(train_features)
+
+        return self
 
     def _fit_torch(self, train_features):
         import torch
