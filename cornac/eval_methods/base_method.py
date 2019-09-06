@@ -209,8 +209,8 @@ class BaseMethod:
             if self.verbose:
                 print('---')
                 print('Validation data:')
-                print('Number of users = {}'.format(self.val_set.num_users))
-                print('Number of items = {}'.format(self.val_set.num_items))
+                print('Number of users = {}'.format(len(self.val_set.uid_map)))
+                print('Number of items = {}'.format(len(self.val_set.iid_map)))
 
         self.test_set = Dataset.from_uir(
             data=test_data, global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
@@ -219,8 +219,8 @@ class BaseMethod:
         if self.verbose:
             print('---')
             print('Test data:')
-            print('Number of users = {}'.format(self.test_set.num_users))
-            print('Number of items = {}'.format(self.test_set.num_items))
+            print('Number of users = {}'.format(len(self.test_set.uid_map)))
+            print('Number of items = {}'.format(len(self.test_set.iid_map)))
             print('Number of unknown users = {}'.format(self.test_set.num_users - self.train_set.num_users))
             print('Number of unknown items = {}'.format(self.test_set.num_items - self.train_set.num_items))
 
