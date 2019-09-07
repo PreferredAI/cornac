@@ -272,11 +272,11 @@ class BaseMethod:
 
         for mt in metrics:
             if user_based:  # averaging over users
-                user_results = [mt.compute(gt_ratings=gt_mat.getrow(user_idx).data,
-                                           pd_ratings=pd_mat.getrow(user_idx).data).item()
-                                for user_idx in self.test_set.user_indices]
-                metric_avg_results[mt.name] = np.mean(user_results)
-                metric_user_results[mt.name] = dict(zip(self.test_set.user_indices, user_results))
+                metric_user_results[mt.name] = {user_idx: mt.compute(gt_ratings=gt_mat.getrow(user_idx).data,
+                                                                     pd_ratings=pd_mat.getrow(user_idx).data).item()
+                                                for user_idx in self.test_set.user_indices}
+                metric_avg_results[mt.name] = sum(metric_user_results[mt.name].values()) / \
+                                              len(metric_user_results[mt.name])
             else:  # averaging over ratings
                 metric_avg_results[mt.name] = mt.compute(gt_ratings=r_values, pd_ratings=r_preds)
 
@@ -319,8 +319,8 @@ class BaseMethod:
 
         # avg results of ranking metrics
         for mt in metrics:
-            user_results = list(metric_user_results[mt.name].values())
-            metric_avg_results[mt.name] = np.mean(user_results)
+            metric_avg_results[mt.name] = sum(metric_user_results[mt.name].values()) / \
+                                          len(metric_user_results[mt.name])
 
     def evaluate(self, model, metrics, user_based):
         """Evaluate given models according to given metrics
