@@ -255,7 +255,7 @@ class BaseMethod:
 
         self._build_modalities()
 
-    def _rating_eval(self, model, metrics, user_based, metric_avg_results, metric_user_results):
+    def _rating_eval(self, model, metrics, metric_avg_results, metric_user_results, user_based):
         """Evaluate model on provided rating metrics
         """
 
@@ -361,12 +361,10 @@ class BaseMethod:
             print('\n[{}] Evaluation started!'.format(model.name))
 
         metric_avg_results = OrderedDict()
-        metric_user_results = defaultdict()
-        for mt in (rating_metrics + ranking_metrics):
-            metric_user_results[mt.name] = defaultdict()
+        metric_user_results = defaultdict(defaultdict)
 
         start = time.time()
-        self._rating_eval(model, rating_metrics, user_based, metric_avg_results, metric_user_results)
+        self._rating_eval(model, rating_metrics, metric_avg_results, metric_user_results, user_based)
         self._ranking_eval(model, ranking_metrics, metric_avg_results, metric_user_results)
         test_time = time.time() - start
 
