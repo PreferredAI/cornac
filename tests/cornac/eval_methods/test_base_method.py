@@ -17,7 +17,7 @@ import unittest
 
 from cornac.eval_methods import BaseMethod
 from cornac.data import TextModality, ImageModality
-from cornac.data import TrainSet, Reader
+from cornac.data import Dataset, Reader
 from cornac.metrics import MAE, AUC
 from cornac.models import MF
 
@@ -38,7 +38,7 @@ class TestBaseMethod(unittest.TestCase):
 
     def test_testset_none(self):
         bm = BaseMethod(None, verbose=True)
-        bm.train_set = TrainSet(None, None)
+        bm.train_set = Dataset(None, None, ([], [], []), None, None, 0., 0., 0.)
         try:
             bm.evaluate(None, {}, False)
         except ValueError:
@@ -56,12 +56,19 @@ class TestBaseMethod(unittest.TestCase):
         except ValueError:
             assert True
 
-        bm = BaseMethod.from_splits(train_data=data, test_data=data)
+        try:
+            BaseMethod.from_splits(train_data=data, test_data=[], exclude_unknowns=True)
+        except ValueError:
+            assert True
+
+        bm = BaseMethod.from_splits(train_data=data[:-1], test_data=data[-1:])
         self.assertEqual(bm.total_users, 10)
         self.assertEqual(bm.total_items, 10)
 
-        bm = BaseMethod.from_splits(train_data=data, test_data=data,
-                                    val_data=data, verbose=True)
+        bm = BaseMethod.from_splits(train_data=data[:-1],
+                                    test_data=data[-1:],
+                                    val_data=[(data[0][0], data[1][1], 5.0)],
+                                    verbose=True)
         self.assertEqual(bm.total_users, 10)
         self.assertEqual(bm.total_items, 10)
 
@@ -85,9 +92,9 @@ class TestBaseMethod(unittest.TestCase):
             assert True
 
         try:
-           bm.item_text = ImageModality()
+            bm.item_text = ImageModality()
         except ValueError:
-           assert True
+            assert True
 
         try:
             bm.user_image = TextModality()
@@ -95,9 +102,9 @@ class TestBaseMethod(unittest.TestCase):
             assert True
 
         try:
-           bm.item_image = TextModality()
+            bm.item_image = TextModality()
         except ValueError:
-           assert True
+            assert True
 
         try:
             bm.user_graph = TextModality()
@@ -123,10 +130,11 @@ class TestBaseMethod(unittest.TestCase):
 
     def test_evaluate(self):
         data = Reader().read('./tests/data.txt')
-        bm = BaseMethod.from_splits(train_data=data, test_data=data)
+        bm = BaseMethod.from_splits(train_data=data[:-1], test_data=data[-1:])
         model = MF(k=1, max_iter=0)
         result = bm.evaluate(model, metrics=[MAE()], user_based=False)
         result.__str__()
+
 
 if __name__ == '__main__':
     unittest.main()

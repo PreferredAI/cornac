@@ -97,9 +97,6 @@ class RatioSplit(BaseMethod):
         return int(train_size), int(val_size), int(test_size)
 
     def _split(self):
-        if self.verbose:
-            print("Splitting the data")
-
         data_idx = get_rng(self.seed).permutation(len(self._data))
         train_idx = data_idx[:self.train_size]
         test_idx = data_idx[-self.test_size:]
@@ -112,5 +109,6 @@ class RatioSplit(BaseMethod):
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
 
         if self.verbose:
+            print('---')
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))

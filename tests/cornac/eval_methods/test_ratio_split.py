@@ -73,13 +73,17 @@ class TestRatioSplit(unittest.TestCase):
             assert True
 
     def test_splits(self):
-        ratio_split = RatioSplit(self.data, test_size=0.1, val_size=0.1, seed=123, verbose=True)
-        self.assertTrue(ratio_split.train_size == 8)
-        self.assertTrue(ratio_split.val_size == 1)
+        try:
+            RatioSplit(self.data, test_size=0.1, val_size=0.1, seed=123, verbose=True)
+        except ValueError:
+            assert True
+
+        ratio_split = RatioSplit(self.data, test_size=0.1, seed=123, verbose=True)
+        self.assertTrue(ratio_split.train_size == 9)
         self.assertTrue(ratio_split.test_size == 1)
 
     def test_evaluate(self):
-        ratio_split = RatioSplit(self.data, exclude_unknowns=True, verbose=True)
+        ratio_split = RatioSplit(self.data, exclude_unknowns=False, verbose=True)
         ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=False)
 
         ratio_split = RatioSplit(self.data, exclude_unknowns=False, verbose=True)
@@ -93,9 +97,6 @@ class TestRatioSplit(unittest.TestCase):
         for u in users:
             for i in items:
                 self.data.append((u, i, 5))
-
-        ratio_split = RatioSplit(self.data, exclude_unknowns=True, verbose=True)
-        ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=True)
 
         ratio_split = RatioSplit(self.data, exclude_unknowns=False, verbose=True)
         ratio_split.evaluate(MF(), [MAE(), Recall()], user_based=True)

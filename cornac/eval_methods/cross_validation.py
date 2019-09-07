@@ -15,10 +15,11 @@
 
 import numpy as np
 
-from .base_method import BaseMethod
 from ..utils.common import safe_indexing
 from ..experiment.result import CVResult
 from ..utils import get_rng
+from ..data import Dataset
+from .base_method import BaseMethod
 
 
 class CrossValidation(BaseMethod):
@@ -105,6 +106,7 @@ class CrossValidation(BaseMethod):
         self.val_set = self.test_set
 
         if self.verbose:
+            print('---')
             print('Total users = {}'.format(self.total_users))
             print('Total items = {}'.format(self.total_items))
 
