@@ -5,14 +5,14 @@ Data
 .. automodule:: cornac.data
     :members:
 	
-Train Set
+Dataset
 ------------------------------------
-.. automodule:: cornac.data.trainset
+.. automodule:: cornac.data.dataset
    :members:
 
-Test Set
-------------------------------------
-.. automodule:: cornac.data.testset
+Modality
+---------------------------------
+.. automodule:: cornac.data.modality
    :members:
 
 Graph Modality

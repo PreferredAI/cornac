@@ -26,7 +26,7 @@ class TestCrossValidation(unittest.TestCase):
     def setUp(self):
         self.data = Reader().read('./tests/data.txt')
         self.n_folds = 5
-        self.cv = CrossValidation(data=self.data, n_folds=self.n_folds)
+        self.cv = CrossValidation(data=self.data, n_folds=self.n_folds, exclude_unknowns=False)
 
     def test_partition_data(self):
         ref_set = set(range(self.n_folds))
