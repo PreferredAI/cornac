@@ -267,8 +267,7 @@ class BaseMethod:
                               for user_idx, item_idx in zip(u_indices, i_indices)])
 
         gt_mat = self.test_set.csr_matrix
-        pd_mat = csr_matrix((r_preds, (u_indices, i_indices)),
-                            shape=(self.test_set.num_users, self.test_set.num_items))
+        pd_mat = csr_matrix((r_preds, (u_indices, i_indices)), shape=gt_mat.shape)
 
         for mt in metrics:
             if user_based:  # averaging over users
@@ -287,24 +286,25 @@ class BaseMethod:
         if len(metrics) == 0:
             return
 
-        train_mat = self.train_set.csr_matrix
         gt_mat = self.test_set.csr_matrix
+        train_mat = self.train_set.csr_matrix
         val_mat = None if self.val_set is None else self.val_set.csr_matrix
 
-        def get_pos_items(csr_row):
-            return [item_idx for (item_idx, rating) in zip(csr_row.indices, csr_row.data)
+        def pos_items(csr_row):
+            return [item_idx
+                    for (item_idx, rating) in zip(csr_row.indices, csr_row.data)
                     if rating >= self.rating_threshold]
 
-        for user_idx in tqdm.tqdm(self.test_set.user_indices, disable=not self.verbose):
-            test_pos_items = get_pos_items(gt_mat.getrow(user_idx))
+        for user_idx in tqdm.tqdm(self.test_set.user_indices, disable=not self.verbose, miniters=100):
+            test_pos_items = pos_items(gt_mat.getrow(user_idx))
             if len(test_pos_items) == 0:
                 continue
 
             u_gt_pos = np.zeros(self.test_set.num_items, dtype=np.int)
             u_gt_pos[test_pos_items] = 1
 
-            val_pos_items = [] if val_mat is None else get_pos_items(val_mat.getrow(user_idx))
-            train_pos_items = [] if self.train_set.is_unk_user(user_idx) else get_pos_items(train_mat.getrow(user_idx))
+            val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
+            train_pos_items = [] if self.train_set.is_unk_user(user_idx) else pos_items(train_mat.getrow(user_idx))
 
             u_gt_neg = np.ones(self.test_set.num_items, dtype=np.int)
             u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
