@@ -22,8 +22,7 @@ import tqdm
 from ..data import TextModality
 from ..data import ImageModality
 from ..data import GraphModality
-from ..data import MultimodalTrainSet
-from ..data import MultimodalTestSet
+from ..data import Dataset
 from ..utils.common import validate_format
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
@@ -182,28 +181,43 @@ class BaseMethod:
         return rating_metrics, ranking_metrics
 
     def _build_uir(self, train_data, test_data, val_data=None):
-        if train_data is None:
-            raise ValueError('train_data is required but None!')
-        if test_data is None:
-            raise ValueError('test_data is required but None!')
-
         global_ui_set = set()  # avoid duplicate ratings in the data
 
+        self.train_set = Dataset.from_uir(
+            data=train_data, global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+            global_ui_set=global_ui_set, seed=self.seed, exclude_unknowns=False
+        )
         if self.verbose:
-            print('Building training set')
-        self.train_set = MultimodalTrainSet.from_uir(
-            train_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.seed, self.verbose)
+            print('---')
+            print('Training data:')
+            print('Number of users = {}'.format(self.train_set.num_users))
+            print('Number of items = {}'.format(self.train_set.num_items))
+            print('Max rating = {:.1f}'.format(self.train_set.max_rating))
+            print('Min rating = {:.1f}'.format(self.train_set.min_rating))
+            print('Global mean = {:.1f}'.format(self.train_set.global_mean))
 
-        if self.verbose:
-            print('Building test set')
-        self.test_set = MultimodalTestSet.from_uir(
-            test_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
-
-        if val_data is not None:
+        if val_data is not None and len(val_data) > 0:
+            self.val_set = Dataset.from_uir(
+                data=val_data, global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+                global_ui_set=global_ui_set, seed=self.seed, exclude_unknowns=True
+            )
             if self.verbose:
-                print('Building validation set')
-            self.val_set = MultimodalTestSet.from_uir(
-                val_data, self.global_uid_map, self.global_iid_map, global_ui_set, self.verbose)
+                print('---')
+                print('Validation data:')
+                print('Number of users = {}'.format(len(self.val_set.uid_map)))
+                print('Number of items = {}'.format(len(self.val_set.iid_map)))
+
+        self.test_set = Dataset.from_uir(
+            data=test_data, global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+            global_ui_set=global_ui_set, seed=self.seed, exclude_unknowns=self.exclude_unknowns
+        )
+        if self.verbose:
+            print('---')
+            print('Test data:')
+            print('Number of users = {}'.format(len(self.test_set.uid_map)))
+            print('Number of items = {}'.format(len(self.test_set.iid_map)))
+            print('Number of unknown users = {}'.format(self.test_set.num_users - self.train_set.num_users))
+            print('Number of unknown items = {}'.format(self.test_set.num_items - self.train_set.num_items))
 
     def _build_modalities(self):
         for user_modality in [self.user_text, self.user_image, self.user_graph]:
@@ -227,6 +241,11 @@ class BaseMethod:
                                     item_graph=self.item_graph)
 
     def build(self, train_data, test_data, val_data=None):
+        if train_data is None or len(train_data) == 0:
+            raise ValueError('train_data is required but None or empty!')
+        if test_data is None or len(test_data) == 0:
+            raise ValueError('test_data is required but None or empty!')
+
         self.global_uid_map.clear()
         self.global_iid_map.clear()
 
@@ -274,37 +293,29 @@ class BaseMethod:
         for mt in (rating_metrics + ranking_metrics):
             metric_user_results[mt.name] = {}
 
-        for user_id in tqdm.tqdm(self.test_set.users, disable=not self.verbose):
-            # ignore unknown users when self.exclude_unknown
-            if self.exclude_unknowns and self.train_set.is_unk_user(user_id):
-                continue
-
+        for user_idx in tqdm.tqdm(self.test_set.user_indices, disable=not self.verbose):
             u_pd_ratings = []
             u_gt_ratings = []
 
             if self.exclude_unknowns:
                 u_gt_pos = np.zeros(self.train_set.num_items, dtype=np.int)
-                item_ids = None  # all known items
+                item_indices = None  # all known items
             else:
                 u_gt_pos = np.zeros(self.total_items, dtype=np.int)
-                item_ids = np.arange(self.total_items)
+                item_indices = np.arange(self.total_items)
 
             u_gt_neg = np.ones_like(u_gt_pos, dtype=np.int)
-            if not self.train_set.is_unk_user(user_id):
-                u_train_ratings = self.train_set.matrix[user_id].A.ravel()
+            if not self.train_set.is_unk_user(user_idx):
+                u_train_ratings = self.train_set.matrix[user_idx].A.ravel()
                 u_train_neg = np.where(u_train_ratings < self.rating_threshold, 1, 0)
                 u_gt_neg[:len(u_train_neg)] = u_train_neg
 
-            for item_id, rating in self.test_set.get_ratings(user_id):
-                # ignore unknown items when self.exclude_unknown
-                if self.exclude_unknowns and self.train_set.is_unk_item(item_id):
-                    continue
-
+            for item_id, rating in zip(*self.test_set.user_data[user_idx]):
                 if len(rating_metrics) > 0:
                     all_gt_ratings.append(rating)
                     u_gt_ratings.append(rating)
 
-                    rating_pred = model.rate(user_id, item_id)
+                    rating_pred = model.rate(user_idx, item_id)
                     all_pd_ratings.append(rating_pred)
                     u_pd_ratings.append(rating_pred)
 
@@ -318,17 +329,17 @@ class BaseMethod:
                 for mt in rating_metrics:
                     mt_score = mt.compute(gt_ratings=np.asarray(u_gt_ratings),
                                           pd_ratings=np.asarray(u_pd_ratings))
-                    metric_user_results[mt.name][user_id] = mt_score
+                    metric_user_results[mt.name][user_idx] = mt_score
 
             # evaluation of ranking metrics
             if len(ranking_metrics) > 0 and u_gt_pos.sum() > 0:
-                item_rank, item_scores = model.rank(user_id, item_ids)
+                item_rank, item_scores = model.rank(user_idx, item_indices)
                 for mt in ranking_metrics:
                     mt_score = mt.compute(gt_pos=u_gt_pos,
                                           gt_neg=u_gt_neg,
                                           pd_rank=item_rank,
                                           pd_scores=item_scores)
-                    metric_user_results[mt.name][user_id] = mt_score
+                    metric_user_results[mt.name][user_idx] = mt_score
 
         metric_avg_results = OrderedDict()
 

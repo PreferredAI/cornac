@@ -17,20 +17,12 @@ from .modality import FeatureModality
 from .text import TextModality
 from .image import ImageModality
 from .graph import GraphModality
-from .trainset import TrainSet
-from .trainset import MatrixTrainSet
-from .trainset import MultimodalTrainSet
-from .testset import TestSet
-from .testset import MultimodalTestSet
 from .reader import Reader
+from .dataset import Dataset
 
 __all__ = ['FeatureModality',
            'TextModality',
            'ImageModality',
            'GraphModality',
-           'TrainSet',
-           'MatrixTrainSet',
-           'MultimodalTrainSet',
-           'TestSet',
-           'MultimodalTestSet',
+           'Dataset',
            'Reader']
