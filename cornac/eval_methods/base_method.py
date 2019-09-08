@@ -182,12 +182,9 @@ class BaseMethod:
         return rating_metrics, ranking_metrics
 
     def _build_uir(self, train_data, test_data, val_data=None):
-        global_ui_set = set()  # avoid duplicate ratings in the data
-
-        self.train_set = Dataset.from_uir(
-            data=train_data, global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
-            global_ui_set=global_ui_set, seed=self.seed, exclude_unknowns=False
-        )
+        self.train_set = Dataset.from_uir(data=train_data,
+                                          global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+                                          seed=self.seed, exclude_unknowns=False)
         if self.verbose:
             print('---')
             print('Training data:')
@@ -197,21 +194,9 @@ class BaseMethod:
             print('Min rating = {:.1f}'.format(self.train_set.min_rating))
             print('Global mean = {:.1f}'.format(self.train_set.global_mean))
 
-        if val_data is not None and len(val_data) > 0:
-            self.val_set = Dataset.from_uir(
-                data=val_data, global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
-                global_ui_set=global_ui_set, seed=self.seed, exclude_unknowns=True
-            )
-            if self.verbose:
-                print('---')
-                print('Validation data:')
-                print('Number of users = {}'.format(len(self.val_set.uid_map)))
-                print('Number of items = {}'.format(len(self.val_set.iid_map)))
-
-        self.test_set = Dataset.from_uir(
-            data=test_data, global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
-            global_ui_set=global_ui_set, seed=self.seed, exclude_unknowns=self.exclude_unknowns
-        )
+        self.test_set = Dataset.from_uir(data=test_data,
+                                         global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+                                         seed=self.seed, exclude_unknowns=self.exclude_unknowns)
         if self.verbose:
             print('---')
             print('Test data:')
@@ -219,6 +204,16 @@ class BaseMethod:
             print('Number of items = {}'.format(len(self.test_set.iid_map)))
             print('Number of unknown users = {}'.format(self.test_set.num_users - self.train_set.num_users))
             print('Number of unknown items = {}'.format(self.test_set.num_items - self.train_set.num_items))
+
+        if val_data is not None and len(val_data) > 0:
+            self.val_set = Dataset.from_uir(data=val_data,
+                                            global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+                                            seed=self.seed, exclude_unknowns=True)
+            if self.verbose:
+                print('---')
+                print('Validation data:')
+                print('Number of users = {}'.format(len(self.val_set.uid_map)))
+                print('Number of items = {}'.format(len(self.val_set.iid_map)))
 
     def _build_modalities(self):
         for user_modality in [self.user_text, self.user_image, self.user_graph]:

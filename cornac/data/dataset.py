@@ -14,6 +14,7 @@
 # ============================================================================
 
 from collections import OrderedDict, defaultdict
+import itertools
 
 import numpy as np
 from scipy.sparse import csr_matrix, csc_matrix, dok_matrix
@@ -81,33 +82,23 @@ class Dataset(object):
 
     @property
     def user_ids(self):
-        """Return a list of the raw user ids"""
-        if self.__user_ids is None:
-            self.__user_ids = list(self.uid_map.keys())
-        return self.__user_ids
+        """Return an iterator over the raw user ids"""
+        return self.uid_map.keys()
 
     @property
     def item_ids(self):
-        """Return a list of the raw item ids"""
-        if self.__item_ids is None:
-            self.__item_ids = list(self.iid_map.keys())
-        return self.__item_ids
+        """Return an iterator over the raw item ids"""
+        return self.iid_map.keys()
 
     @property
     def user_indices(self):
-        """Return a numpy array of the user indices"""
-        if self.__user_indices is None:
-            # self.__user_indices = np.fromiter(self.uid_map.values(), dtype=np.int)
-            self.__user_indices = list(self.uid_map.values())
-        return self.__user_indices
+        """Return an iterator over the user indices"""
+        return self.uid_map.values()
 
     @property
     def item_indices(self):
-        """Return a numpy array of the item indices"""
-        if self.__item_indices is None:
-            # self.__item_indices = np.fromiter(self.iid_map.values(), dtype=np.int)
-            self.__item_indices = list(self.iid_map.values())
-        return self.__item_indices
+        """Return an iterator over the item indices"""
+        return self.iid_map.values()
 
     @property
     def uir_tuple(self):
@@ -176,7 +167,7 @@ class Dataset(object):
 
     @classmethod
     def from_uir(cls, data, global_uid_map=None, global_iid_map=None,
-                 global_ui_set=None, seed=None, exclude_unknowns=False):
+                 seed=None, exclude_unknowns=False):
         """Constructing Dataset from UIR triplet data.
 
         Parameters
@@ -189,9 +180,6 @@ class Dataset(object):
 
         global_iid_map: :obj:`defaultdict`, optional, default: None
             The dictionary containing global mapping from original ids to mapped ids of items.
-
-        global_ui_set: :obj:`set`, optional, default: None
-            The global set of tuples (user, item). This helps avoiding duplicate observations.
 
         seed: int, optional, default: None
             Random seed for reproducing data sampling.
@@ -209,16 +197,8 @@ class Dataset(object):
             global_uid_map = OrderedDict()
         if global_iid_map is None:
             global_iid_map = OrderedDict()
-        if global_ui_set is None:
-            global_ui_set = set()
 
-        filtered_data = [(u, i, r) for u, i, r in data if (u, i) not in global_ui_set]
-        if exclude_unknowns:
-            filtered_data = [(u, i, r) for u, i, r in filtered_data
-                             if u in global_uid_map and i in global_iid_map]
-        if len(filtered_data) == 0:
-            raise ValueError('data is empty after being filtered!')
-
+        ui_set = set()  # avoid duplicate observations.
         uid_map = OrderedDict()
         iid_map = OrderedDict()
 
@@ -231,8 +211,13 @@ class Dataset(object):
         max_rating = float('-inf')
         min_rating = float('inf')
 
-        for uid, iid, rating in filtered_data:
-            global_ui_set.add((uid, iid))
+        for uid, iid, rating in itertools.filterfalse(
+                lambda x: (x[0], x[1]) in ui_set or
+                          (exclude_unknowns and (x[0] not in global_uid_map or
+                                                 x[1] not in global_iid_map)),
+                data
+        ):
+            ui_set.add((uid, iid))
             uid_map[uid] = global_uid_map.setdefault(uid, len(global_uid_map))
             iid_map[iid] = global_iid_map.setdefault(iid, len(global_iid_map))
 
@@ -247,6 +232,9 @@ class Dataset(object):
             u_indices.append(uid_map[uid])
             i_indices.append(iid_map[iid])
             r_values.append(rating)
+
+        if len(ui_set) == 0:
+            raise ValueError('data is empty after being filtered!')
 
         num_users = len(global_uid_map)
         num_items = len(global_iid_map)
@@ -370,7 +358,7 @@ class Dataset(object):
         -------
         iterator : batch of user indices (array of np.int)
         """
-        user_indices = np.asarray(self.user_indices)
+        user_indices = np.fromiter(self.user_indices, dtype=np.int)
         for batch_ids in self.idx_iter(len(user_indices), batch_size, shuffle):
             yield user_indices[batch_ids]
 
@@ -388,7 +376,7 @@ class Dataset(object):
         -------
         iterator : batch of item indices (array of np.int)
         """
-        item_indices = np.asarray(self.item_indices)
+        item_indices = np.fromiter(self.item_indices, np.int)
         for batch_ids in self.idx_iter(len(item_indices), batch_size, shuffle):
             yield item_indices[batch_ids]
 
