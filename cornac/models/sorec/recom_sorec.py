@@ -104,10 +104,10 @@ class SoRec(Recommender):
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+        train_set: :obj:`cornac.data.Dataset`, required
             User-Item preference data as well as additional modalities.
 
-        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
             User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
