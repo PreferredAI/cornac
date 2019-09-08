@@ -18,6 +18,7 @@ import time
 
 import numpy as np
 import tqdm
+from scipy.sparse import csr_matrix
 
 from ..data import TextModality
 from ..data import ImageModality
@@ -254,6 +255,74 @@ class BaseMethod:
 
         self._build_modalities()
 
+    def _rating_eval(self, model, metrics, metric_avg_results, metric_user_results, user_based):
+        """Evaluate model on provided rating metrics
+        """
+
+        if len(metrics) == 0:
+            return
+
+        (u_indices, i_indices, r_values) = self.test_set.uir_tuple
+        r_preds = np.fromiter((model.rate(user_idx, item_idx).item()
+                               for user_idx, item_idx in zip(u_indices, i_indices)),
+                              dtype=np.float, count=len(u_indices))
+
+        gt_mat = self.test_set.csr_matrix
+        pd_mat = csr_matrix((r_preds, (u_indices, i_indices)), shape=gt_mat.shape)
+
+        for mt in metrics:
+            if user_based:  # averaging over users
+                metric_user_results[mt.name] = {user_idx: mt.compute(gt_ratings=gt_mat.getrow(user_idx).data,
+                                                                     pd_ratings=pd_mat.getrow(user_idx).data).item()
+                                                for user_idx in self.test_set.user_indices}
+                metric_avg_results[mt.name] = sum(metric_user_results[mt.name].values()) / \
+                                              len(metric_user_results[mt.name])
+            else:  # averaging over ratings
+                metric_avg_results[mt.name] = mt.compute(gt_ratings=r_values, pd_ratings=r_preds)
+
+    def _ranking_eval(self, model, metrics, metric_avg_results, metric_user_results):
+        """Evaluate model on provided ranking metrics
+        """
+
+        if len(metrics) == 0:
+            return
+
+        gt_mat = self.test_set.csr_matrix
+        train_mat = self.train_set.csr_matrix
+        val_mat = None if self.val_set is None else self.val_set.csr_matrix
+
+        def pos_items(csr_row):
+            return [item_idx
+                    for (item_idx, rating) in zip(csr_row.indices, csr_row.data)
+                    if rating >= self.rating_threshold]
+
+        for user_idx in tqdm.tqdm(self.test_set.user_indices, disable=not self.verbose, miniters=100):
+            test_pos_items = pos_items(gt_mat.getrow(user_idx))
+            if len(test_pos_items) == 0:
+                continue
+
+            u_gt_pos = np.zeros(self.test_set.num_items, dtype=np.int)
+            u_gt_pos[test_pos_items] = 1
+
+            val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
+            train_pos_items = [] if self.train_set.is_unk_user(user_idx) else pos_items(train_mat.getrow(user_idx))
+
+            u_gt_neg = np.ones(self.test_set.num_items, dtype=np.int)
+            u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
+
+            item_indices = None if self.exclude_unknowns else np.arange(self.test_set.num_items)
+            item_rank, item_scores = model.rank(user_idx, item_indices)
+
+            for mt in metrics:
+                mt_score = mt.compute(gt_pos=u_gt_pos, gt_neg=u_gt_neg,
+                                      pd_rank=item_rank, pd_scores=item_scores)
+                metric_user_results[mt.name][user_idx] = mt_score
+
+        # avg results of ranking metrics
+        for mt in metrics:
+            metric_avg_results[mt.name] = sum(metric_user_results[mt.name].values()) / \
+                                          len(metric_user_results[mt.name])
+
     def evaluate(self, model, metrics, user_based):
         """Evaluate given models according to given metrics
 
@@ -276,87 +345,28 @@ class BaseMethod:
         if self.test_set is None:
             raise ValueError('test_set is required but None!')
 
+        ###########
+        # FITTING #
+        ###########
         if self.verbose:
             print('\n[{}] Training started!'.format(model.name))
+
         start = time.time()
         model.fit(self.train_set, self.val_set)
         train_time = time.time() - start
 
+        ##############
+        # EVALUATION #
+        ##############
         if self.verbose:
             print('\n[{}] Evaluation started!'.format(model.name))
-        start = time.time()
-
-        all_pd_ratings = []
-        all_gt_ratings = []
-
-        metric_user_results = defaultdict()
-        for mt in (rating_metrics + ranking_metrics):
-            metric_user_results[mt.name] = {}
-
-        for user_idx in tqdm.tqdm(self.test_set.user_indices, disable=not self.verbose):
-            u_pd_ratings = []
-            u_gt_ratings = []
-
-            if self.exclude_unknowns:
-                u_gt_pos = np.zeros(self.train_set.num_items, dtype=np.int)
-                item_indices = None  # all known items
-            else:
-                u_gt_pos = np.zeros(self.total_items, dtype=np.int)
-                item_indices = np.arange(self.total_items)
-
-            u_gt_neg = np.ones_like(u_gt_pos, dtype=np.int)
-            if not self.train_set.is_unk_user(user_idx):
-                u_train_ratings = self.train_set.matrix[user_idx].A.ravel()
-                u_train_neg = np.where(u_train_ratings < self.rating_threshold, 1, 0)
-                u_gt_neg[:len(u_train_neg)] = u_train_neg
-
-            for item_id, rating in zip(*self.test_set.user_data[user_idx]):
-                if len(rating_metrics) > 0:
-                    all_gt_ratings.append(rating)
-                    u_gt_ratings.append(rating)
-
-                    rating_pred = model.rate(user_idx, item_id)
-                    all_pd_ratings.append(rating_pred)
-                    u_pd_ratings.append(rating_pred)
-
-                # constructing ranking ground-truth
-                if rating >= self.rating_threshold:
-                    u_gt_pos[item_id] = 1
-                    u_gt_neg[item_id] = 0
-
-            # per user evaluation of rating metrics
-            if len(rating_metrics) > 0 and len(u_gt_ratings) > 0:
-                for mt in rating_metrics:
-                    mt_score = mt.compute(gt_ratings=np.asarray(u_gt_ratings),
-                                          pd_ratings=np.asarray(u_pd_ratings))
-                    metric_user_results[mt.name][user_idx] = mt_score
-
-            # evaluation of ranking metrics
-            if len(ranking_metrics) > 0 and u_gt_pos.sum() > 0:
-                item_rank, item_scores = model.rank(user_idx, item_indices)
-                for mt in ranking_metrics:
-                    mt_score = mt.compute(gt_pos=u_gt_pos,
-                                          gt_neg=u_gt_neg,
-                                          pd_rank=item_rank,
-                                          pd_scores=item_scores)
-                    metric_user_results[mt.name][user_idx] = mt_score
 
         metric_avg_results = OrderedDict()
+        metric_user_results = defaultdict(defaultdict)
 
-        # avg results of rating metrics
-        for mt in rating_metrics:
-            if user_based:  # averaging over users
-                user_results = list(metric_user_results[mt.name].values())
-                metric_avg_results[mt.name] = np.mean(user_results)
-            else:  # averaging over ratings
-                metric_avg_results[mt.name] = mt.compute(gt_ratings=np.asarray(all_gt_ratings),
-                                                         pd_ratings=np.asarray(all_pd_ratings))
-
-        # avg results of ranking metrics
-        for mt in ranking_metrics:
-            user_results = list(metric_user_results[mt.name].values())
-            metric_avg_results[mt.name] = np.mean(user_results)
-
+        start = time.time()
+        self._rating_eval(model, rating_metrics, metric_avg_results, metric_user_results, user_based)
+        self._ranking_eval(model, ranking_metrics, metric_avg_results, metric_user_results)
         test_time = time.time() - start
 
         metric_avg_results['Train (s)'] = train_time
