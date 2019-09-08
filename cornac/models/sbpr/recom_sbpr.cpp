@@ -3750,7 +3750,7 @@ static PyObject *__pyx_pf_6cornac_6models_4sbpr_10recom_sbpr_4SBPR___init__(CYTH
 
 /* Python wrapper */
 static PyObject *__pyx_pw_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_3fit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_2fit[] = "Fit the model to observations.\n\n        Parameters\n        ----------\n        train_set: :obj:`cornac.data.MultimodalTrainSet`, required\n            User-Item preference data as well as additional modalities.\n\n        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None\n            User-Item preference data for model selection purposes (e.g., early stopping).\n\n        Returns\n        -------\n        self : object\n        ";
+static char __pyx_doc_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_2fit[] = "Fit the model to observations.\n\n        Parameters\n        ----------\n        train_set: :obj:`cornac.data.Dataset`, required\n            User-Item preference data as well as additional modalities.\n\n        val_set: :obj:`cornac.data.Dataset`, optional, default: None\n            User-Item preference data for model selection purposes (e.g., early stopping).\n\n        Returns\n        -------\n        self : object\n        ";
 static PyMethodDef __pyx_mdef_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_3fit = {"fit", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_3fit, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_2fit};
 static PyObject *__pyx_pw_6cornac_6models_4sbpr_10recom_sbpr_4SBPR_3fit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
