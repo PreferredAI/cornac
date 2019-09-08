@@ -122,15 +122,15 @@ class PCRL(Recommender):
 
         return self
 
-    def score(self, user_id, item_id=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for a list of items.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
 
-        item_id: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for that to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -141,10 +141,10 @@ class PCRL(Recommender):
 
         """
 
-        if item_id is None:
-            user_pred = self.Beta * self.Theta[user_id, :].T
+        if item_idx is None:
+            user_pred = self.Beta * self.Theta[user_idx, :].T
         else:
-            user_pred = self.Beta[item_id, :] * self.Theta[user_id, :].T
+            user_pred = self.Beta[item_idx, :] * self.Theta[user_idx, :].T
         # transform user_pred to a flatten array
         user_pred = np.array(user_pred, dtype='float64').flatten()
 
