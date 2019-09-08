@@ -31,7 +31,7 @@ class TestExperiment(unittest.TestCase):
         Experiment(eval_method=RatioSplit(self.data + [(self.data[0][0], self.data[1][1], 5.0)],
                                           exclude_unknowns=True, seed=123, verbose=True),
                    models=[PMF(1, 0)],
-                   metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
+                   metrics=[MAE(), RMSE()],
                    verbose=True).run()
 
         try:
@@ -48,7 +48,7 @@ class TestExperiment(unittest.TestCase):
         Experiment(eval_method=CrossValidation(self.data + [(self.data[0][0], self.data[1][1], 5.0)],
                                                exclude_unknowns=False, verbose=True),
                    models=[PMF(1, 0)],
-                   metrics=[MAE(), RMSE(), Recall(1), FMeasure(1)],
+                   metrics=[Recall(1), FMeasure(1)],
                    verbose=True).run()
 
 
