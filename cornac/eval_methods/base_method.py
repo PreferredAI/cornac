@@ -263,8 +263,9 @@ class BaseMethod:
             return
 
         (u_indices, i_indices, r_values) = self.test_set.uir_tuple
-        r_preds = np.asarray([model.rate(user_idx, item_idx).item()
-                              for user_idx, item_idx in zip(u_indices, i_indices)])
+        r_preds = np.fromiter((model.rate(user_idx, item_idx).item()
+                               for user_idx, item_idx in zip(u_indices, i_indices)),
+                              dtype=np.float, count=len(u_indices))
 
         gt_mat = self.test_set.csr_matrix
         pd_mat = csr_matrix((r_preds, (u_indices, i_indices)), shape=gt_mat.shape)
