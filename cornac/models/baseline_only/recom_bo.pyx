@@ -90,10 +90,10 @@ class BaselineOnly(Recommender):
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+        train_set: :obj:`cornac.data.Dataset`, required
             User-Item preference data as well as additional modalities.
 
-        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
             User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
@@ -170,15 +170,15 @@ class BaselineOnly(Recommender):
             print('Optimization finished!')
 
 
-    def score(self, user_id, item_id=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
 
-        item_id: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for that to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -188,18 +188,18 @@ class BaselineOnly(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        unk_user = self.train_set.is_unk_user(user_id)
+        unk_user = self.train_set.is_unk_user(user_idx)
 
-        if item_id is None:
+        if item_idx is None:
             known_item_scores = np.add(self.i_biases, self.global_mean)
             if not unk_user:
-                known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
+                known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])
             return known_item_scores
         else:
-            unk_item = self.train_set.is_unk_item(item_id)
+            unk_item = self.train_set.is_unk_item(item_idx)
             item_score = self.global_mean
             if not unk_user:
-                item_score += self.u_biases[user_id]
+                item_score += self.u_biases[user_idx]
             if not unk_item:
-                item_score += self.i_biases[item_id]
+                item_score += self.i_biases[item_idx]
             return item_score

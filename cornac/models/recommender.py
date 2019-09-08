@@ -67,15 +67,15 @@ class Recommender:
         self.val_set = val_set
         return self
 
-    def score(self, user_id, item_id=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
             
-        item_id: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for that to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -93,37 +93,15 @@ class Recommender:
         """
         return self.train_set.global_mean
 
-    def default_rank(self, item_ids=None):
-        """Overwrite this function if your algorithm has special treatment for cold-start problem
-
-        """
-        known_item_rank = self.train_set.item_ppl_rank
-        known_item_scores = self.train_set.item_ppl_scores
-
-        if item_ids is None:
-            item_rank = known_item_rank
-            item_scores = known_item_scores
-        else:
-            known_item_ids = intersects(known_item_rank, item_ids, assume_unique=True)
-            unk_item_ids = excepts(known_item_rank, item_ids, assume_unique=True)
-            item_rank = np.concatenate((known_item_ids, unk_item_ids))
-
-            num_items = max(self.train_set.num_items, max(item_ids) + 1)
-            item_scores = np.ones(num_items) * np.min(known_item_scores)
-            item_scores[:self.train_set.num_items] = known_item_scores
-            item_scores = item_scores[item_ids]
-
-        return item_rank, item_scores
-
-    def rate(self, user_id, item_id, clipping=True):
+    def rate(self, user_idx, item_idx, clipping=True):
         """Give a rating score between pair of user and item
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform item raking.
 
-        item_id: int, required
+        item_idx: int, required
             The index of the item to be rated by the user.
 
         clipping: bool, default: True
@@ -135,7 +113,7 @@ class Recommender:
             A rating score of the user for the item
         """
         try:
-            rating_pred = self.score(user_id, item_id)
+            rating_pred = self.score(user_idx, item_idx)
         except ScoreException:
             rating_pred = self.default_score()
 
@@ -146,15 +124,15 @@ class Recommender:
 
         return rating_pred
 
-    def rank(self, user_id, item_ids=None):
+    def rank(self, user_idx, item_indices=None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform item raking.
 
-        item_ids: 1d array, optional, default: None
+        item_indices: 1d array, optional, default: None
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned
 
@@ -165,20 +143,20 @@ class Recommender:
 
         """
         try:
-            known_item_scores = self.score(user_id)
+            known_item_scores = self.score(user_idx)
         except ScoreException:
             known_item_scores = np.ones(self.train_set.num_items) * self.default_score()
 
-        if item_ids is None:
+        if item_indices is None:
             item_scores = known_item_scores
             item_rank = item_scores.argsort()[::-1]
         else:
-            num_items = max(self.train_set.num_items, max(item_ids) + 1)
+            num_items = max(self.train_set.num_items, max(item_indices) + 1)
             item_scores = np.ones(num_items) * np.min(known_item_scores)
             item_scores[:self.train_set.num_items] = known_item_scores
             item_rank = item_scores.argsort()[::-1]
-            item_rank = intersects(item_rank, item_ids, assume_unique=True)
-            item_scores = item_scores[item_ids]
+            item_rank = intersects(item_rank, item_indices, assume_unique=True)
+            item_scores = item_scores[item_indices]
         return item_rank, item_scores
 
     def val_loss(self):

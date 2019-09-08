@@ -84,10 +84,10 @@ class COE(Recommender):
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+        train_set: :obj:`cornac.data.Dataset`, required
             User-Item preference data as well as additional modalities.
 
-        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
             User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
@@ -115,15 +115,15 @@ class COE(Recommender):
     # get prefiction for a single user (predictions for one user at a time for efficiency purposes)
     # predictions are not stored for the same efficiency reasons"""
 
-    def score(self, user_id, item_id=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
 
-        item_id: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for that to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -133,15 +133,15 @@ class COE(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if item_id is None:
-            if self.train_set.is_unk_user(user_id):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
+        if item_idx is None:
+            if self.train_set.is_unk_user(user_idx):
+                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
 
-            known_item_scores = np.sum(np.abs(self.V - self.U[user_id, :]) ** 2, axis=-1) ** (1. / 2)
+            known_item_scores = np.sum(np.abs(self.V - self.U[user_idx, :]) ** 2, axis=-1) ** (1. / 2)
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
+                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
 
-            user_pred = np.sum(np.abs(self.V[item_id, :] - self.U[user_id, :]) ** 2, axis=-1) ** (1. / 2)
+            user_pred = np.sum(np.abs(self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1) ** (1. / 2)
             return user_pred

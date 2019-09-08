@@ -110,10 +110,10 @@ class VBPR(Recommender):
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+        train_set: :obj:`cornac.data.Dataset`, required
             User-Item preference data as well as additional modalities.
 
-        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
             User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
@@ -220,15 +220,15 @@ class VBPR(Recommender):
         self.theta_item = F.mm(E).data.cpu().numpy()
         self.visual_bias = F.mm(Bp).data.cpu().numpy().ravel()
 
-    def score(self, user_id, item_id=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
 
-        item_id: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for that to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -238,18 +238,18 @@ class VBPR(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if item_id is None:
+        if item_idx is None:
             known_item_scores = np.add(self.beta_item, self.visual_bias)
-            if not self.train_set.is_unk_user(user_id):
-                fast_dot(self.gamma_user[user_id], self.gamma_item, known_item_scores)
-                fast_dot(self.theta_user[user_id], self.theta_item, known_item_scores)
+            if not self.train_set.is_unk_user(user_idx):
+                fast_dot(self.gamma_user[user_idx], self.gamma_item, known_item_scores)
+                fast_dot(self.theta_user[user_idx], self.theta_item, known_item_scores)
             return known_item_scores
         else:
-            if self.train_set.is_unk_item(item_id):
-                raise ScoreException("Can't make score prediction for (item_id=%d)" % item_id)
+            if self.train_set.is_unk_item(item_idx):
+                raise ScoreException("Can't make score prediction for (item_id=%d)" % item_idx)
 
-            item_score = np.add(self.beta_item[item_id], self.visual_bias[item_id])
-            if not self.train_set.is_unk_user(user_id):
-                item_score += np.dot(self.gamma_item[item_id], self.gamma_user[user_id])
-                item_score += np.dot(self.theta_item[item_id], self.theta_user[user_id])
+            item_score = np.add(self.beta_item[item_idx], self.visual_bias[item_idx])
+            if not self.train_set.is_unk_user(user_idx):
+                item_score += np.dot(self.gamma_item[item_idx], self.gamma_user[user_idx])
+                item_score += np.dot(self.theta_item[item_idx], self.theta_user[user_idx])
             return item_score
