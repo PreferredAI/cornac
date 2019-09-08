@@ -31,8 +31,7 @@ class TestDataset(unittest.TestCase):
     def test_init(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=OrderedDict(),
-                                     global_iid_map=OrderedDict(),
-                                     global_ui_set=set())
+                                     global_iid_map=OrderedDict())
 
         self.assertSequenceEqual(train_set.matrix.shape, (10, 10))
         self.assertEqual(train_set.min_rating, 3)
@@ -52,21 +51,13 @@ class TestDataset(unittest.TestCase):
         self.assertEqual(train_set.uid_map['768'], 1)
         self.assertEqual(train_set.iid_map['195'], 7)
 
-        self.assertSequenceEqual(train_set.user_indices, range(10))
-        self.assertListEqual(train_set.user_ids,
+        self.assertSequenceEqual(list(train_set.user_indices), range(10))
+        self.assertListEqual(list(train_set.user_ids),
                              ['76', '768', '642', '930', '329', '633', '716', '871', '543', '754'])
 
-        self.assertSequenceEqual(train_set.item_indices, range(10))
-        self.assertListEqual(train_set.item_ids,
+        self.assertSequenceEqual(list(train_set.item_indices), range(10))
+        self.assertListEqual(list(train_set.item_ids),
                              ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])
-
-        train_set = Dataset.from_uir(self.triplet_data,
-                                     global_uid_map=OrderedDict(),
-                                     global_iid_map=OrderedDict(),
-                                     global_ui_set=set([('76', '93')]))
-
-        self.assertEqual(train_set.num_users, 9)
-        self.assertEqual(train_set.num_items, 9)
 
     def test_idx_iter(self):
         train_set = Dataset.from_uir(self.triplet_data)
@@ -80,8 +71,7 @@ class TestDataset(unittest.TestCase):
     def test_uir_iter(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=OrderedDict(),
-                                     global_iid_map=OrderedDict(),
-                                     global_ui_set=set())
+                                     global_iid_map=OrderedDict())
 
         users = [batch_users for batch_users, _, _ in train_set.uir_iter()]
         self.assertSequenceEqual(users, range(10))
@@ -99,8 +89,7 @@ class TestDataset(unittest.TestCase):
     def test_uij_iter(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=OrderedDict(),
-                                     global_iid_map=OrderedDict(),
-                                     global_ui_set=set())
+                                     global_iid_map=OrderedDict())
 
         users = [batch_users for batch_users, _, _ in train_set.uij_iter()]
         self.assertSequenceEqual(users, range(10))
@@ -114,8 +103,7 @@ class TestDataset(unittest.TestCase):
     def test_user_iter(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=OrderedDict(),
-                                     global_iid_map=OrderedDict(),
-                                     global_ui_set=set())
+                                     global_iid_map=OrderedDict())
 
         npt.assert_array_equal(np.arange(10).reshape(10, 1),
                                [u for u in train_set.user_iter()])
@@ -126,8 +114,7 @@ class TestDataset(unittest.TestCase):
     def test_item_iter(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=OrderedDict(),
-                                     global_iid_map=OrderedDict(),
-                                     global_ui_set=set())
+                                     global_iid_map=OrderedDict())
 
         npt.assert_array_equal(np.arange(10).reshape(10, 1),
                                [i for i in train_set.item_iter()])
@@ -138,8 +125,7 @@ class TestDataset(unittest.TestCase):
     def test_uir_tuple(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=None,
-                                     global_iid_map=None,
-                                     global_ui_set=None)
+                                     global_iid_map=None)
 
         self.assertEqual(len(train_set.uir_tuple), 3)
         self.assertEqual(len(train_set.uir_tuple[0]), 10)
@@ -156,8 +142,7 @@ class TestDataset(unittest.TestCase):
 
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=None,
-                                     global_iid_map=None,
-                                     global_ui_set=None)
+                                     global_iid_map=None)
 
         self.assertTrue(isinstance(train_set.matrix, csr_matrix))
         self.assertEqual(train_set.csr_matrix[0, 0], 4)
@@ -172,8 +157,7 @@ class TestDataset(unittest.TestCase):
     def test_user_data(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=None,
-                                     global_iid_map=None,
-                                     global_ui_set=None)
+                                     global_iid_map=None)
 
         self.assertEqual(len(train_set.user_data), 10)
         self.assertListEqual(train_set.user_data[0][0], [0])
@@ -182,8 +166,7 @@ class TestDataset(unittest.TestCase):
     def test_item_data(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=None,
-                                     global_iid_map=None,
-                                     global_ui_set=None)
+                                     global_iid_map=None)
 
         self.assertEqual(len(train_set.item_data), 10)
         self.assertListEqual(train_set.user_data[0][0], [0])
