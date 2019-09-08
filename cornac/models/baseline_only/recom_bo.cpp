@@ -2490,18 +2490,17 @@ static const char __pyx_k_disable[] = "disable";
 static const char __pyx_k_fit_sgd[] = "_fit_sgd";
 static const char __pyx_k_float32[] = "float32";
 static const char __pyx_k_fortran[] = "fortran";
-static const char __pyx_k_item_id[] = "item_id";
 static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_n_items[] = "n_items";
 static const char __pyx_k_n_users[] = "n_users";
 static const char __pyx_k_prepare[] = "__prepare__";
-static const char __pyx_k_user_id[] = "user_id";
 static const char __pyx_k_val_set[] = "val_set";
 static const char __pyx_k_verbose[] = "verbose";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_defaults[] = "defaults";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_i_biases[] = "i_biases";
+static const char __pyx_k_item_idx[] = "item_idx";
 static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_max_iter[] = "max_iter";
 static const char __pyx_k_progress[] = "progress";
@@ -2511,6 +2510,7 @@ static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_u_biases[] = "u_biases";
 static const char __pyx_k_unk_item[] = "unk_item";
 static const char __pyx_k_unk_user[] = "unk_user";
+static const char __pyx_k_user_idx[] = "user_idx";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_cpu_count[] = "cpu_count";
 static const char __pyx_k_enumerate[] = "enumerate";
@@ -2711,7 +2711,7 @@ static PyObject *__pyx_kp_s_int_double;
 static PyObject *__pyx_kp_s_int_float;
 static PyObject *__pyx_n_s_is_unk_item;
 static PyObject *__pyx_n_s_is_unk_user;
-static PyObject *__pyx_n_s_item_id;
+static PyObject *__pyx_n_s_item_idx;
 static PyObject *__pyx_n_s_item_score;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
@@ -2816,7 +2816,7 @@ static PyObject *__pyx_n_s_unk_user;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
-static PyObject *__pyx_n_s_user_id;
+static PyObject *__pyx_n_s_user_idx;
 static PyObject *__pyx_n_s_utils_init_utils;
 static PyObject *__pyx_n_s_val;
 static PyObject *__pyx_n_s_val_set;
@@ -2831,7 +2831,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
 static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_14_fit_sgd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, __Pyx_memviewslice __pyx_v_rid, __Pyx_memviewslice __pyx_v_cid, __Pyx_memviewslice __pyx_v_val, __Pyx_memviewslice __pyx_v_Bu, __Pyx_memviewslice __pyx_v_Bi); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_16_fit_sgd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, __Pyx_memviewslice __pyx_v_rid, __Pyx_memviewslice __pyx_v_cid, __Pyx_memviewslice __pyx_v_val, __Pyx_memviewslice __pyx_v_Bu, __Pyx_memviewslice __pyx_v_Bi); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_18_fit_sgd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, __Pyx_memviewslice __pyx_v_rid, __Pyx_memviewslice __pyx_v_cid, __Pyx_memviewslice __pyx_v_val, __Pyx_memviewslice __pyx_v_Bu, __Pyx_memviewslice __pyx_v_Bi); /* proto */
-static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_user_id, PyObject *__pyx_v_item_id); /* proto */
+static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_user_idx, PyObject *__pyx_v_item_idx); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -3419,7 +3419,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
 
 /* Python wrapper */
 static PyObject *__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_3fit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_2fit[] = "Fit the model to observations.\n\n        Parameters\n        ----------\n        train_set: :obj:`cornac.data.MultimodalTrainSet`, required\n            User-Item preference data as well as additional modalities.\n\n        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None\n            User-Item preference data for model selection purposes (e.g., early stopping).\n\n        Returns\n        -------\n        self : object\n        ";
+static char __pyx_doc_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_2fit[] = "Fit the model to observations.\n\n        Parameters\n        ----------\n        train_set: :obj:`cornac.data.Dataset`, required\n            User-Item preference data as well as additional modalities.\n\n        val_set: :obj:`cornac.data.Dataset`, optional, default: None\n            User-Item preference data for model selection purposes (e.g., early stopping).\n\n        Returns\n        -------\n        self : object\n        ";
 static PyMethodDef __pyx_mdef_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_3fit = {"fit", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_3fit, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_2fit};
 static PyObject *__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_3fit(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
@@ -9792,24 +9792,24 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
 /* "cornac/models/baseline_only/recom_bo.pyx":173
  * 
  * 
- *     def score(self, user_id, item_id=None):             # <<<<<<<<<<<<<<
+ *     def score(self, user_idx, item_idx=None):             # <<<<<<<<<<<<<<
  *         """Predict the scores/ratings of a user for an item.
  * 
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_7score(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score[] = "Predict the scores/ratings of a user for an item.\n\n        Parameters\n        ----------\n        user_id: int, required\n            The index of the user for whom to perform score prediction.\n\n        item_id: int, optional, default: None\n            The index of the item for that to perform score prediction.\n            If None, scores for all known items will be returned.\n\n        Returns\n        -------\n        res : A scalar or a Numpy array\n            Relative scores that the user gives to the item or to all known items\n\n        ";
+static char __pyx_doc_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score[] = "Predict the scores/ratings of a user for an item.\n\n        Parameters\n        ----------\n        user_idx: int, required\n            The index of the user for whom to perform score prediction.\n\n        item_idx: int, optional, default: None\n            The index of the item for that to perform score prediction.\n            If None, scores for all known items will be returned.\n\n        Returns\n        -------\n        res : A scalar or a Numpy array\n            Relative scores that the user gives to the item or to all known items\n\n        ";
 static PyMethodDef __pyx_mdef_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_7score = {"score", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_7score, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score};
 static PyObject *__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_7score(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
-  PyObject *__pyx_v_user_id = 0;
-  PyObject *__pyx_v_item_id = 0;
+  PyObject *__pyx_v_user_idx = 0;
+  PyObject *__pyx_v_item_idx = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("score (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_user_id,&__pyx_n_s_item_id,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_user_idx,&__pyx_n_s_item_idx,0};
     PyObject* values[3] = {0,0,0};
     values[2] = ((PyObject *)((PyObject *)Py_None));
     if (unlikely(__pyx_kwds)) {
@@ -9832,14 +9832,14 @@ static PyObject *__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_user_id)) != 0)) kw_args--;
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_user_idx)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("score", 0, 2, 3, 1); __PYX_ERR(0, 173, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_item_id);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_item_idx);
           if (value) { values[2] = value; kw_args--; }
         }
       }
@@ -9857,8 +9857,8 @@ static PyObject *__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
       }
     }
     __pyx_v_self = values[0];
-    __pyx_v_user_id = values[1];
-    __pyx_v_item_id = values[2];
+    __pyx_v_user_idx = values[1];
+    __pyx_v_item_idx = values[2];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -9868,14 +9868,14 @@ static PyObject *__pyx_pw_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score(__pyx_self, __pyx_v_self, __pyx_v_user_id, __pyx_v_item_id);
+  __pyx_r = __pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score(__pyx_self, __pyx_v_self, __pyx_v_user_idx, __pyx_v_item_idx);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_user_id, PyObject *__pyx_v_item_id) {
+static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOnly_6score(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_user_idx, PyObject *__pyx_v_item_idx) {
   PyObject *__pyx_v_unk_user = NULL;
   PyObject *__pyx_v_known_item_scores = NULL;
   PyObject *__pyx_v_unk_item = NULL;
@@ -9896,9 +9896,9 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   /* "cornac/models/baseline_only/recom_bo.pyx":191
  * 
  *         """
- *         unk_user = self.train_set.is_unk_user(user_id)             # <<<<<<<<<<<<<<
+ *         unk_user = self.train_set.is_unk_user(user_idx)             # <<<<<<<<<<<<<<
  * 
- *         if item_id is None:
+ *         if item_idx is None:
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_train_set); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 191, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -9915,7 +9915,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
       __Pyx_DECREF_SET(__pyx_t_3, function);
     }
   }
-  __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_user_id) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_user_id);
+  __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_user_idx) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_user_idx);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -9924,22 +9924,22 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   __pyx_t_1 = 0;
 
   /* "cornac/models/baseline_only/recom_bo.pyx":193
- *         unk_user = self.train_set.is_unk_user(user_id)
+ *         unk_user = self.train_set.is_unk_user(user_idx)
  * 
- *         if item_id is None:             # <<<<<<<<<<<<<<
+ *         if item_idx is None:             # <<<<<<<<<<<<<<
  *             known_item_scores = np.add(self.i_biases, self.global_mean)
  *             if not unk_user:
  */
-  __pyx_t_4 = (__pyx_v_item_id == Py_None);
+  __pyx_t_4 = (__pyx_v_item_idx == Py_None);
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (__pyx_t_5) {
 
     /* "cornac/models/baseline_only/recom_bo.pyx":194
  * 
- *         if item_id is None:
+ *         if item_idx is None:
  *             known_item_scores = np.add(self.i_biases, self.global_mean)             # <<<<<<<<<<<<<<
  *             if not unk_user:
- *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
+ *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])
  */
     __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 194, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -10003,10 +10003,10 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
     __pyx_t_1 = 0;
 
     /* "cornac/models/baseline_only/recom_bo.pyx":195
- *         if item_id is None:
+ *         if item_idx is None:
  *             known_item_scores = np.add(self.i_biases, self.global_mean)
  *             if not unk_user:             # <<<<<<<<<<<<<<
- *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
+ *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])
  *             return known_item_scores
  */
     __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_unk_user); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 195, __pyx_L1_error)
@@ -10016,7 +10016,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
       /* "cornac/models/baseline_only/recom_bo.pyx":196
  *             known_item_scores = np.add(self.i_biases, self.global_mean)
  *             if not unk_user:
- *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_id])             # <<<<<<<<<<<<<<
+ *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])             # <<<<<<<<<<<<<<
  *             return known_item_scores
  *         else:
  */
@@ -10027,7 +10027,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_u_biases); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 196, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_6 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_v_user_id); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 196, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_v_user_idx); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 196, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_2 = NULL;
@@ -10081,20 +10081,20 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
       __pyx_t_1 = 0;
 
       /* "cornac/models/baseline_only/recom_bo.pyx":195
- *         if item_id is None:
+ *         if item_idx is None:
  *             known_item_scores = np.add(self.i_biases, self.global_mean)
  *             if not unk_user:             # <<<<<<<<<<<<<<
- *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
+ *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])
  *             return known_item_scores
  */
     }
 
     /* "cornac/models/baseline_only/recom_bo.pyx":197
  *             if not unk_user:
- *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_id])
+ *                 known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])
  *             return known_item_scores             # <<<<<<<<<<<<<<
  *         else:
- *             unk_item = self.train_set.is_unk_item(item_id)
+ *             unk_item = self.train_set.is_unk_item(item_idx)
  */
     __Pyx_XDECREF(__pyx_r);
     __Pyx_INCREF(__pyx_v_known_item_scores);
@@ -10102,9 +10102,9 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
     goto __pyx_L0;
 
     /* "cornac/models/baseline_only/recom_bo.pyx":193
- *         unk_user = self.train_set.is_unk_user(user_id)
+ *         unk_user = self.train_set.is_unk_user(user_idx)
  * 
- *         if item_id is None:             # <<<<<<<<<<<<<<
+ *         if item_idx is None:             # <<<<<<<<<<<<<<
  *             known_item_scores = np.add(self.i_biases, self.global_mean)
  *             if not unk_user:
  */
@@ -10113,7 +10113,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   /* "cornac/models/baseline_only/recom_bo.pyx":199
  *             return known_item_scores
  *         else:
- *             unk_item = self.train_set.is_unk_item(item_id)             # <<<<<<<<<<<<<<
+ *             unk_item = self.train_set.is_unk_item(item_idx)             # <<<<<<<<<<<<<<
  *             item_score = self.global_mean
  *             if not unk_user:
  */
@@ -10133,7 +10133,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
         __Pyx_DECREF_SET(__pyx_t_3, function);
       }
     }
-    __pyx_t_1 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_9, __pyx_v_item_id) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_item_id);
+    __pyx_t_1 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_9, __pyx_v_item_idx) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_item_idx);
     __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -10143,10 +10143,10 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
 
     /* "cornac/models/baseline_only/recom_bo.pyx":200
  *         else:
- *             unk_item = self.train_set.is_unk_item(item_id)
+ *             unk_item = self.train_set.is_unk_item(item_idx)
  *             item_score = self.global_mean             # <<<<<<<<<<<<<<
  *             if not unk_user:
- *                 item_score += self.u_biases[user_id]
+ *                 item_score += self.u_biases[user_idx]
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_global_mean); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 200, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -10154,10 +10154,10 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
     __pyx_t_1 = 0;
 
     /* "cornac/models/baseline_only/recom_bo.pyx":201
- *             unk_item = self.train_set.is_unk_item(item_id)
+ *             unk_item = self.train_set.is_unk_item(item_idx)
  *             item_score = self.global_mean
  *             if not unk_user:             # <<<<<<<<<<<<<<
- *                 item_score += self.u_biases[user_id]
+ *                 item_score += self.u_biases[user_idx]
  *             if not unk_item:
  */
     __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_unk_user); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 201, __pyx_L1_error)
@@ -10167,13 +10167,13 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
       /* "cornac/models/baseline_only/recom_bo.pyx":202
  *             item_score = self.global_mean
  *             if not unk_user:
- *                 item_score += self.u_biases[user_id]             # <<<<<<<<<<<<<<
+ *                 item_score += self.u_biases[user_idx]             # <<<<<<<<<<<<<<
  *             if not unk_item:
- *                 item_score += self.i_biases[item_id]
+ *                 item_score += self.i_biases[item_idx]
  */
       __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_u_biases); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 202, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_v_user_id); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 202, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_v_user_idx); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 202, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_item_score, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 202, __pyx_L1_error)
@@ -10183,19 +10183,19 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
       __pyx_t_1 = 0;
 
       /* "cornac/models/baseline_only/recom_bo.pyx":201
- *             unk_item = self.train_set.is_unk_item(item_id)
+ *             unk_item = self.train_set.is_unk_item(item_idx)
  *             item_score = self.global_mean
  *             if not unk_user:             # <<<<<<<<<<<<<<
- *                 item_score += self.u_biases[user_id]
+ *                 item_score += self.u_biases[user_idx]
  *             if not unk_item:
  */
     }
 
     /* "cornac/models/baseline_only/recom_bo.pyx":203
  *             if not unk_user:
- *                 item_score += self.u_biases[user_id]
+ *                 item_score += self.u_biases[user_idx]
  *             if not unk_item:             # <<<<<<<<<<<<<<
- *                 item_score += self.i_biases[item_id]
+ *                 item_score += self.i_biases[item_idx]
  *             return item_score
  */
     __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_v_unk_item); if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 203, __pyx_L1_error)
@@ -10203,14 +10203,14 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
     if (__pyx_t_4) {
 
       /* "cornac/models/baseline_only/recom_bo.pyx":204
- *                 item_score += self.u_biases[user_id]
+ *                 item_score += self.u_biases[user_idx]
  *             if not unk_item:
- *                 item_score += self.i_biases[item_id]             # <<<<<<<<<<<<<<
+ *                 item_score += self.i_biases[item_idx]             # <<<<<<<<<<<<<<
  *             return item_score
  */
       __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_biases); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 204, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_v_item_id); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 204, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_v_item_idx); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 204, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_item_score, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 204, __pyx_L1_error)
@@ -10221,16 +10221,16 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
 
       /* "cornac/models/baseline_only/recom_bo.pyx":203
  *             if not unk_user:
- *                 item_score += self.u_biases[user_id]
+ *                 item_score += self.u_biases[user_idx]
  *             if not unk_item:             # <<<<<<<<<<<<<<
- *                 item_score += self.i_biases[item_id]
+ *                 item_score += self.i_biases[item_idx]
  *             return item_score
  */
     }
 
     /* "cornac/models/baseline_only/recom_bo.pyx":205
  *             if not unk_item:
- *                 item_score += self.i_biases[item_id]
+ *                 item_score += self.i_biases[item_idx]
  *             return item_score             # <<<<<<<<<<<<<<
  */
     __Pyx_XDECREF(__pyx_r);
@@ -10242,7 +10242,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   /* "cornac/models/baseline_only/recom_bo.pyx":173
  * 
  * 
- *     def score(self, user_id, item_id=None):             # <<<<<<<<<<<<<<
+ *     def score(self, user_idx, item_idx=None):             # <<<<<<<<<<<<<<
  *         """Predict the scores/ratings of a user for an item.
  * 
  */
@@ -26276,7 +26276,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_int_float, __pyx_k_int_float, sizeof(__pyx_k_int_float), 0, 0, 1, 0},
   {&__pyx_n_s_is_unk_item, __pyx_k_is_unk_item, sizeof(__pyx_k_is_unk_item), 0, 0, 1, 1},
   {&__pyx_n_s_is_unk_user, __pyx_k_is_unk_user, sizeof(__pyx_k_is_unk_user), 0, 0, 1, 1},
-  {&__pyx_n_s_item_id, __pyx_k_item_id, sizeof(__pyx_k_item_id), 0, 0, 1, 1},
+  {&__pyx_n_s_item_idx, __pyx_k_item_idx, sizeof(__pyx_k_item_idx), 0, 0, 1, 1},
   {&__pyx_n_s_item_score, __pyx_k_item_score, sizeof(__pyx_k_item_score), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
@@ -26381,7 +26381,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
   {&__pyx_n_s_update, __pyx_k_update, sizeof(__pyx_k_update), 0, 0, 1, 1},
-  {&__pyx_n_s_user_id, __pyx_k_user_id, sizeof(__pyx_k_user_id), 0, 0, 1, 1},
+  {&__pyx_n_s_user_idx, __pyx_k_user_idx, sizeof(__pyx_k_user_idx), 0, 0, 1, 1},
   {&__pyx_n_s_utils_init_utils, __pyx_k_utils_init_utils, sizeof(__pyx_k_utils_init_utils), 0, 0, 1, 1},
   {&__pyx_n_s_val, __pyx_k_val, sizeof(__pyx_k_val), 0, 0, 1, 1},
   {&__pyx_n_s_val_set, __pyx_k_val_set, sizeof(__pyx_k_val_set), 0, 0, 1, 1},
@@ -26750,11 +26750,11 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "cornac/models/baseline_only/recom_bo.pyx":173
  * 
  * 
- *     def score(self, user_id, item_id=None):             # <<<<<<<<<<<<<<
+ *     def score(self, user_idx, item_idx=None):             # <<<<<<<<<<<<<<
  *         """Predict the scores/ratings of a user for an item.
  * 
  */
-  __pyx_tuple__39 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_user_id, __pyx_n_s_item_id, __pyx_n_s_unk_user, __pyx_n_s_known_item_scores, __pyx_n_s_unk_item, __pyx_n_s_item_score); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_tuple__39 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_user_idx, __pyx_n_s_item_idx, __pyx_n_s_unk_user, __pyx_n_s_known_item_scores, __pyx_n_s_unk_item, __pyx_n_s_item_score); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__39);
   __Pyx_GIVEREF(__pyx_tuple__39);
   __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(3, 0, 7, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__39, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_baseline_only_reco_2, __pyx_n_s_score, 173, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) __PYX_ERR(0, 173, __pyx_L1_error)
@@ -27337,7 +27337,7 @@ if (!__Pyx_RefNanny) {
   /* "cornac/models/baseline_only/recom_bo.pyx":173
  * 
  * 
- *     def score(self, user_id, item_id=None):             # <<<<<<<<<<<<<<
+ *     def score(self, user_idx, item_idx=None):             # <<<<<<<<<<<<<<
  *         """Predict the scores/ratings of a user for an item.
  * 
  */

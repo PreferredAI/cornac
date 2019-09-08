@@ -83,10 +83,10 @@ class GMF(Recommender):
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`, required
+        train_set: :obj:`cornac.data.Dataset`, required
             User-Item preference data as well as additional modalities.
 
-        val_set: :obj:`cornac.data.MultimodalTestSet`, optional, default: None
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
             User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
@@ -154,15 +154,15 @@ class GMF(Recommender):
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
 
-    def score(self, user_id, item_id=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
 
-        item_id: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for that to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -171,19 +171,19 @@ class GMF(Recommender):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
-        if item_id is None:
-            if self.train_set.is_unk_user(user_id):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_id)
+        if item_idx is None:
+            if self.train_set.is_unk_user(user_idx):
+                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
 
             known_item_scores = self.sess.run(self.prediction, feed_dict={
-                self.user_id: [user_id], self.item_id: np.arange(self.train_set.num_items)
+                self.user_id: [user_idx], self.item_id: np.arange(self.train_set.num_items)
             })
             return known_item_scores.ravel()
         else:
-            if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
+                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
 
             user_pred = self.sess.run(self.prediction, feed_dict={
-                self.user_id: [user_id], self.item_id: [item_id]
+                self.user_id: [user_idx], self.item_id: [item_idx]
             })
             return user_pred.ravel()
