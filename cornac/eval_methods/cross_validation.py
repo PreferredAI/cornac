@@ -102,8 +102,7 @@ class CrossValidation(BaseMethod):
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
-        self.build(train_data=train_data, test_data=test_data)
-        self.val_set = self.test_set
+        self.build(train_data=train_data, test_data=test_data, val_data=test_data)
 
         if self.verbose:
             print('---')
