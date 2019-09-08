@@ -93,28 +93,6 @@ class Recommender:
         """
         return self.train_set.global_mean
 
-    def default_rank(self, item_ids=None):
-        """Overwrite this function if your algorithm has special treatment for cold-start problem
-
-        """
-        known_item_rank = self.train_set.item_ppl_rank
-        known_item_scores = self.train_set.item_ppl_scores
-
-        if item_ids is None:
-            item_rank = known_item_rank
-            item_scores = known_item_scores
-        else:
-            known_item_ids = intersects(known_item_rank, item_ids, assume_unique=True)
-            unk_item_ids = excepts(known_item_rank, item_ids, assume_unique=True)
-            item_rank = np.concatenate((known_item_ids, unk_item_ids))
-
-            num_items = max(self.train_set.num_items, max(item_ids) + 1)
-            item_scores = np.ones(num_items) * np.min(known_item_scores)
-            item_scores[:self.train_set.num_items] = known_item_scores
-            item_scores = item_scores[item_ids]
-
-        return item_rank, item_scores
-
     def rate(self, user_id, item_id, clipping=True):
         """Give a rating score between pair of user and item
 
