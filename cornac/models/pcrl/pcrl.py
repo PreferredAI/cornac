@@ -16,9 +16,6 @@
 import numpy as np
 import scipy.sparse as sp
 import scipy as sc
-
-from ...utils.data_utils import Dataset
-
 import tensorflow as tf
 
 
@@ -118,10 +115,6 @@ class PCRL_:
 
         # Hyper-parameters setting
         a = 0.3
-        a_ = 0.3
-        c_ = 0.3
-        b_ = 1.
-        d_ = 1.
 
         # Parameter initialization
 
@@ -274,7 +267,6 @@ class PCRL_:
 
     # fitting PCRL to observed data
     def learn(self):
-        print('new version')
         # placeholders
         C = tf.placeholder(tf.float32, shape=[None, self.c_dim], name='C')
         X_ = tf.placeholder(tf.float32, shape=[None, self.c_dim], name='X_')
@@ -309,24 +301,15 @@ class PCRL_:
         resPF = self.pf_(self.cf_data, k=self.k, max_iter=1, init_params=self.init_params)
 
         for epoch in range(self.n_epoch):
-            #num_steps = int(self.aux_data.data.shape[0] / self.batch_size)
             for idx in self.train_set.item_iter(self.batch_size, shuffle=False):
-            #for i in range(1, num_steps + 1):
-                # get next batch of auxiliary information
-                #batch_C, idx = self.aux_data.next_batch(self.batch_size)
                 batch_C = self.aux_data[idx].A
-                #batch_C = batch_C.todense()
                 EE = self.sess.run(E_, feed_dict={C: batch_C})
                 z_c = self.sess.run(X_g, feed_dict={C: batch_C, E: EE})
                 feed_dict = {C: batch_C, X_: z_c, E: EE, Zik: resPF['Zik'][idx], Tk: resPF['Tk'][0:len(idx)]}
                 _, l = self.sess.run([train, loss], feed_dict=feed_dict)
                 del (EE, z_c)
-            #num_steps = int(self.aux_data.data.shape[0] / (self.batch_size * 2))
             for idx in self.train_set.item_iter(2 * self.batch_size, shuffle=False):
-            #for i in range(1, num_steps + 2):
                 batch_C = self.aux_data[idx].A
-                #batch_C, idx = self.aux_data.next_batch(self.batch_size * 2)
-                #batch_C = batch_C.todense()
                 self.Ls[idx], self.Lr[idx] = self.sess.run([alpha, beta], feed_dict={C: batch_C})
             print('epoch %i, Train Loss: %f' % (epoch, l))
             resPF = self.pf_(self.cf_data, k=self.k, max_iter=1,
