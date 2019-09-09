@@ -28,11 +28,10 @@ class PCRL_:
 
         self.train_set = train_set
         self.cf_data = sp.csc_matrix(self.train_set.matrix)  # user-item interaction (CF data)
-        train_aux_info = self.train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
-        self.aux_data = Dataset(train_aux_info)  # item auxiliary information (items'context in the original paper)
+        self.aux_data = self.train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]  # item auxiliary information (items'context in the original paper)
         self.k = k  # the number of user and item latent factors
         self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
-        self.c_dim = self.aux_data.data.shape[1]  # the dimension of the auxiliary information matrix
+        self.c_dim = self.aux_data.shape[1]  # the dimension of the auxiliary information matrix
         self.n_epoch = n_epoch  # the number of traning epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -41,9 +40,9 @@ class PCRL_:
         # Additional parameters
         self.aa = 0.3
         self.bb = 0.3
-        self.Ls = sp.csc_matrix((self.aux_data.data.shape[0],
+        self.Ls = sp.csc_matrix((self.aux_data.shape[0],
                                  self.k))  # Variational Shape parameters of the item factors (Beta in the paper)
-        self.Lr = sp.csc_matrix((self.aux_data.data.shape[0],
+        self.Lr = sp.csc_matrix((self.aux_data.shape[0],
                                  self.k))  # Variational Rate parameters  of the item factors (Beta in the paper)
         self.Gs = None  # Variational Shapre parameters of the user factors (Theta in the paper)
         self.Gr = None  # Variational Rate parameters of the user factors (Theta in the paper)
@@ -271,7 +270,7 @@ class PCRL_:
         kl_term = (alpha - self.aa - Zik) * tf.digamma(alpha) - tf.lgamma(alpha) + (self.aa + Zik) * tf.log(
             beta) + alpha * (Tk + self.bb - beta) / beta
         kl_term = -tf.reduce_sum(kl_term, 1)
-        return -tf.reduce_mean(loss1 + loss2 + loss3 + kl_term) + kl_w / self.aux_data.data.shape[0]
+        return -tf.reduce_mean(loss1 + loss2 + loss3 + kl_term) + kl_w / self.aux_data.shape[0]
 
     # fitting PCRL to observed data
     def learn(self):
@@ -315,7 +314,7 @@ class PCRL_:
             #for i in range(1, num_steps + 1):
                 # get next batch of auxiliary information
                 #batch_C, idx = self.aux_data.next_batch(self.batch_size)
-                batch_C = self.aux_data.data[idx].A
+                batch_C = self.aux_data[idx].A
                 #batch_C = batch_C.todense()
                 EE = self.sess.run(E_, feed_dict={C: batch_C})
                 z_c = self.sess.run(X_g, feed_dict={C: batch_C, E: EE})
@@ -325,7 +324,7 @@ class PCRL_:
             #num_steps = int(self.aux_data.data.shape[0] / (self.batch_size * 2))
             for idx in self.train_set.item_iter(2 * self.batch_size, shuffle=False):
             #for i in range(1, num_steps + 2):
-                batch_C = self.aux_data.data[idx].A
+                batch_C = self.aux_data[idx].A
                 #batch_C, idx = self.aux_data.next_batch(self.batch_size * 2)
                 #batch_C = batch_C.todense()
                 self.Ls[idx], self.Lr[idx] = self.sess.run([alpha, beta], feed_dict={C: batch_C})
