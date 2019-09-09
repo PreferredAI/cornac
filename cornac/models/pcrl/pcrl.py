@@ -23,14 +23,16 @@ import tensorflow as tf
 
 
 class PCRL_:
-    def __init__(self, cf_data, aux_data, k=100, z_dims=[300], n_epoch=300, batch_size=300, learning_rate=0.001, B=1,
+    def __init__(self, train_set, k=100, z_dims=[300], n_epoch=300, batch_size=300, learning_rate=0.001, B=1,
                  w_determinist=True, init_params=None):
 
-        self.cf_data = cf_data  # user-item interaction (CF data)
-        self.aux_data = Dataset(aux_data)  # item auxiliary information (items'context in the original paper)
+        self.train_set = train_set
+        self.cf_data = sp.csc_matrix(self.train_set.matrix)  # user-item interaction (CF data)
+        train_aux_info = self.train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
+        self.aux_data = Dataset(train_aux_info)  # item auxiliary information (items'context in the original paper)
         self.k = k  # the number of user and item latent factors
         self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
-        self.c_dim = aux_data.shape[1]  # the dimension of the auxiliary information matrix
+        self.c_dim = self.aux_data.data.shape[1]  # the dimension of the auxiliary information matrix
         self.n_epoch = n_epoch  # the number of traning epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
