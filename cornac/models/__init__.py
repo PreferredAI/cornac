@@ -35,7 +35,7 @@ from .cdr import CDR
 from .sbpr import SBPR
 from .sorec import SoRec
 from .cvae import CVAE
-from .cf import CF
+from .wmf import WMF
 from .vaecf import VAECF
 from .ctr import CTR
 from .hft import HFT
