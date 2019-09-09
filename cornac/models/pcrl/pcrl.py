@@ -18,7 +18,6 @@ import scipy.sparse as sp
 import scipy as sc
 import tensorflow as tf
 
-
 class PCRL_:
     def __init__(self, train_set, k=100, z_dims=[300], n_epoch=300, batch_size=300, learning_rate=0.001, B=1,
                  w_determinist=True, init_params=None):

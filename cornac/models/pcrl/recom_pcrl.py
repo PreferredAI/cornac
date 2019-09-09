@@ -14,12 +14,9 @@
 # ============================================================================
 
 import numpy as np
-import scipy.sparse as sp
-
 from ..recommender import Recommender
 
 
-# Recommender class for Probabilistic Collaborative Representation Learning (PCRL)
 class PCRL(Recommender):
     """Probabilistic Collaborative Representation Learning.
 
