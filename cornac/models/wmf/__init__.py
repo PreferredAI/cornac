@@ -13,4 +13,4 @@
 # limitations under the License.
 # ============================================================================
 
-from .recom_cf import CF
+from .recom_wmf import WMF
