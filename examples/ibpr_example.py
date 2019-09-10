@@ -22,10 +22,11 @@ from cornac.models import IBPR
 ml_1m = movielens.load_1m()
 
 # Instantiate an evaluation method.
-ratio_split = RatioSplit(data=ml_1m, test_size=0.2, rating_threshold=1.0, exclude_unknowns=True)
+ratio_split = RatioSplit(data=ml_1m, test_size=0.2, rating_threshold=1.0,
+                         exclude_unknowns=True, verbose=True)
 
 # Instantiate a IBPR recommender model.
-ibpr = IBPR(k=10, init_params={'U': None, 'V': None})
+ibpr = IBPR(k=10, init_params={'U': None, 'V': None}, verbose=True)
 
 # Instantiate evaluation metrics.
 rec_20 = cornac.metrics.Recall(k=20)
