@@ -16,21 +16,18 @@
 import numpy as np
 import scipy.sparse as sp
 import scipy as sc
-
-from ...utils.data_utils import Dataset
-
 import tensorflow as tf
 
-
 class PCRL_:
-    def __init__(self, cf_data, aux_data, k=100, z_dims=[300], n_epoch=300, batch_size=300, learning_rate=0.001, B=1,
+    def __init__(self, train_set, k=100, z_dims=[300], n_epoch=300, batch_size=300, learning_rate=0.001, B=1,
                  w_determinist=True, init_params=None):
 
-        self.cf_data = cf_data  # user-item interaction (CF data)
-        self.aux_data = Dataset(aux_data)  # item auxiliary information (items'context in the original paper)
+        self.train_set = train_set
+        self.cf_data = sp.csc_matrix(self.train_set.matrix)  # user-item interaction (CF data)
+        self.aux_data = self.train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]  # item auxiliary information (items'context in the original paper)
         self.k = k  # the number of user and item latent factors
         self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
-        self.c_dim = aux_data.shape[1]  # the dimension of the auxiliary information matrix
+        self.c_dim = self.aux_data.shape[1]  # the dimension of the auxiliary information matrix
         self.n_epoch = n_epoch  # the number of traning epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -39,9 +36,9 @@ class PCRL_:
         # Additional parameters
         self.aa = 0.3
         self.bb = 0.3
-        self.Ls = sp.csc_matrix((self.aux_data.data.shape[0],
+        self.Ls = sp.csc_matrix((self.aux_data.shape[0],
                                  self.k))  # Variational Shape parameters of the item factors (Beta in the paper)
-        self.Lr = sp.csc_matrix((self.aux_data.data.shape[0],
+        self.Lr = sp.csc_matrix((self.aux_data.shape[0],
                                  self.k))  # Variational Rate parameters  of the item factors (Beta in the paper)
         self.Gs = None  # Variational Shapre parameters of the user factors (Theta in the paper)
         self.Gr = None  # Variational Rate parameters of the user factors (Theta in the paper)
@@ -117,10 +114,6 @@ class PCRL_:
 
         # Hyper-parameters setting
         a = 0.3
-        a_ = 0.3
-        c_ = 0.3
-        b_ = 1.
-        d_ = 1.
 
         # Parameter initialization
 
@@ -269,11 +262,10 @@ class PCRL_:
         kl_term = (alpha - self.aa - Zik) * tf.digamma(alpha) - tf.lgamma(alpha) + (self.aa + Zik) * tf.log(
             beta) + alpha * (Tk + self.bb - beta) / beta
         kl_term = -tf.reduce_sum(kl_term, 1)
-        return -tf.reduce_mean(loss1 + loss2 + loss3 + kl_term) + kl_w / self.aux_data.data.shape[0]
+        return -tf.reduce_mean(loss1 + loss2 + loss3 + kl_term) + kl_w / self.aux_data.shape[0]
 
     # fitting PCRL to observed data
     def learn(self):
-        print('new version')
         # placeholders
         C = tf.placeholder(tf.float32, shape=[None, self.c_dim], name='C')
         X_ = tf.placeholder(tf.float32, shape=[None, self.c_dim], name='X_')
@@ -308,20 +300,15 @@ class PCRL_:
         resPF = self.pf_(self.cf_data, k=self.k, max_iter=1, init_params=self.init_params)
 
         for epoch in range(self.n_epoch):
-            num_steps = int(self.aux_data.data.shape[0] / self.batch_size)
-            for i in range(1, num_steps + 1):
-                # get next batch of auxiliary information
-                batch_C, idx = self.aux_data.next_batch(self.batch_size)
-                batch_C = batch_C.todense()
+            for idx in self.train_set.item_iter(self.batch_size, shuffle=False):
+                batch_C = self.aux_data[idx].A
                 EE = self.sess.run(E_, feed_dict={C: batch_C})
                 z_c = self.sess.run(X_g, feed_dict={C: batch_C, E: EE})
-                feed_dict = {C: batch_C, X_: z_c, E: EE, Zik: resPF['Zik'][idx], Tk: resPF['Tk']}
+                feed_dict = {C: batch_C, X_: z_c, E: EE, Zik: resPF['Zik'][idx], Tk: resPF['Tk'][0:len(idx)]}
                 _, l = self.sess.run([train, loss], feed_dict=feed_dict)
                 del (EE, z_c)
-            num_steps = int(self.aux_data.data.shape[0] / (self.batch_size * 2))
-            for i in range(1, num_steps + 2):
-                batch_C, idx = self.aux_data.next_batch(self.batch_size * 2)
-                batch_C = batch_C.todense()
+            for idx in self.train_set.item_iter(2 * self.batch_size, shuffle=False):
+                batch_C = self.aux_data[idx].A
                 self.Ls[idx], self.Lr[idx] = self.sess.run([alpha, beta], feed_dict={C: batch_C})
             print('epoch %i, Train Loss: %f' % (epoch, l))
             resPF = self.pf_(self.cf_data, k=self.k, max_iter=1,
