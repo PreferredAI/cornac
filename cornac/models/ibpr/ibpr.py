@@ -52,7 +52,7 @@ def ibpr(train_set, k, lamda=0.001, n_epochs=150, learning_rate=0.05, batch_size
             regJ = V[batch_j, :]
 
             regU_unq = U[np.unique(batch_u), :]
-            regI_unq = V[np.unique(batch_i), :]
+            regI_unq = V[np.union1d(batch_i, batch_j), :]
 
             regU_norm = regU / regU.norm(dim=1)[:, None]
             regI_norm = regI / regI.norm(dim=1)[:, None]
