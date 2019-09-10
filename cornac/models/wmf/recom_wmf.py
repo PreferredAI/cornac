@@ -19,12 +19,12 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 
 
-class CF(Recommender):
-    """Collaborative Filtering for Implicit Feedbacks
+class WMF(Recommender):
+    """Weighted Matrix Factorization.
 
     Parameters
     ----------
-    name: string, default: 'CF'
+    name: string, default: 'WMF'
         The name of the recommender model.
 
     k: int, optional, default: 200
@@ -67,11 +67,15 @@ class CF(Recommender):
 
     References
     ----------
-    * Yifan Hu, Yehuda Koren∗, Chris Volinsky. CF: Collaborative Filtering for Implicit Feedbacks.
-    In : 2008 Eighth IEEE International Conference on Data Mining
+    * Hu, Y., Koren, Y., & Volinsky, C. (2008, December). Collaborative filtering for implicit feedback datasets.
+    In 2008 Eighth IEEE International Conference on Data Mining (pp. 263-272).
+
+    * Pan, R., Zhou, Y., Cao, B., Liu, N. N., Lukose, R., Scholz, M., & Yang, Q. (2008, December).
+    One-class collaborative filtering. In 2008 Eighth IEEE International Conference on Data Mining (pp. 502-511).
+
     """
 
-    def __init__(self, name='CF', k=200, lambda_u=0.01, lambda_v=0.01,
+    def __init__(self, name='WMF', k=200, lambda_u=0.01, lambda_v=0.01,
                  a=1, b=0.01, learning_rate=0.001, batch_size=128, max_iter=100,
                  trainable=True, verbose=True, init_params=None, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
@@ -109,9 +113,9 @@ class CF(Recommender):
         from ...utils import get_rng
         from ...utils.init_utils import xavier_uniform
 
-        self.seed = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.seed))
+        rng = get_rng(self.seed)
+        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), rng))
+        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), rng))
 
         if self.trainable:
             self._fit_cf()
@@ -119,22 +123,30 @@ class CF(Recommender):
         return self
 
     def _fit_cf(self, ):
+        import os
         import tensorflow as tf
         from tqdm import trange
-        from .cf import Model
+        from .wmf import Model
+
+        np.random.seed(self.seed)
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+        tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
         R = self.train_set.csc_matrix  # csc for efficient slicing over items
         n_users, n_items, = self.train_set.num_users, self.train_set.num_items
 
         # Build model
-        model = Model(n_users=n_users, n_items=n_items, k=self.k,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v,
-                      lr=self.learning_rate, U=self.U, V=self.V)
+        graph = tf.Graph()
+        with graph.as_default():
+            tf.set_random_seed(self.seed)
+            model = Model(n_users=n_users, n_items=n_items, k=self.k,
+                          lambda_u=self.lambda_u, lambda_v=self.lambda_v,
+                          lr=self.learning_rate, U=self.U, V=self.V)
 
         # Training model
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
-        with tf.Session(config=config) as sess:
+        with tf.Session(config=config, graph=graph) as sess:
             sess.run(tf.global_variables_initializer())
 
             loop = trange(self.max_iter, disable=not self.verbose)

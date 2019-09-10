@@ -65,7 +65,7 @@ class IBPR(Recommender):
       In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate=0.05, lamda=0.001, batch_size=100, name="ibpr", trainable=True,
+    def __init__(self, k=20, max_iter=100, learning_rate=0.05, lamda=0.001, batch_size=100, name="IBPR", trainable=True,
                  verbose=False, init_params=None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -98,24 +98,10 @@ class IBPR(Recommender):
 
         from .ibpr import ibpr
 
-        X = self.train_set.matrix
-
-        # change the data to original user Id item Id and rating format
-        cooX = X.tocoo()
-        data = np.ndarray(shape=(len(cooX.data), 3), dtype=float)
-        data[:, 0] = cooX.row
-        data[:, 1] = cooX.col
-        data[:, 2] = cooX.data
-
-        if self.verbose:
-            print('Learning...')
-        res = ibpr(X, data, k=self.k, n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
-                   batch_size=self.batch_size, init_params=self.init_params)
+        res = ibpr(self.train_set, k=self.k, n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
+                   batch_size=self.batch_size, init_params=self.init_params, verbose=self.verbose)
         self.U = np.asarray(res['U'])
         self.V = np.asarray(res['V'])
-
-        if self.verbose:
-            print('Learning completed')
 
         return self
 

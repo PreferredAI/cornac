@@ -28,7 +28,7 @@
 
 [cdr_example.py](cdr_example.py) - Collaborative Deep Ranking (CDR) with CiteULike dataset.
 
-[cf_example.py](cf_example.py) - Collaborative Filtering for Implicit Feedback Datasets (CF) CiteULike.
+[wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
 
 [conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF) with MovieLens dataset.
 

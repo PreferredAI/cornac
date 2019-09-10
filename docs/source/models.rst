@@ -130,11 +130,6 @@ Non-negative Matrix Factorization (NMF)
 .. automodule:: cornac.models.nmf.recom_nmf
    :members:
 
-Collaborative Filtering for Implicit Feedback (CF)
---------------------------------------------------
-.. automodule:: cornac.models.cf.recom_cf
-   :members:
-
 Probabilitic Matrix Factorization (PMF)
 -----------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
@@ -148,4 +143,9 @@ Singular Value Decomposition (SVD)
 Social Recommendation using PMF (SoRec)
 -----------------------------------------
 .. automodule:: cornac.models.sorec.recom_sorec
+   :members:
+
+Weighted Matrix Factorization (WMF)
+--------------------------------------------------
+.. automodule:: cornac.models.wmf.recom_wmf
    :members:
