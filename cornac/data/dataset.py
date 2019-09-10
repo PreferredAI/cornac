@@ -255,9 +255,9 @@ class Dataset(object):
 
         Parameters
         ----------
-        batch_size : int, optional, default = 1
+        batch_size: int, optional, default = 1
 
-        shuffle : bool, optional
+        shuffle: bool, optional
             If True, orders of triplets will be randomized. If False, default orders kept
 
         Returns
@@ -282,12 +282,12 @@ class Dataset(object):
 
         Parameters
         ----------
-        batch_size : int, optional, default = 1
+        batch_size: int, optional, default = 1
 
-        shuffle : bool, optional
-            If True, orders of triplets will be randomized. If False, default orders kept
+        shuffle: bool, optional, default: False
+            If `True`, orders of triplets will be randomized. If `False`, default orders kept.
 
-        num_zeros : int, optional, default = 0
+        num_zeros: int, optional, default = 0
             Number of unobserved ratings (zeros) to be added per user. This could be used
             for negative sampling. By default, no values are added.
 
@@ -316,15 +316,18 @@ class Dataset(object):
 
             yield batch_users, batch_items, batch_ratings
 
-    def uij_iter(self, batch_size=1, shuffle=False):
+    def uij_iter(self, batch_size=1, shuffle=False, neg_sampling='uniform'):
         """Create an iterator over data yielding batch of users, positive items, and negative items
 
         Parameters
         ----------
-        batch_size : int, optional, default = 1
+        batch_size: int, optional, default = 1
 
-        shuffle : bool, optional
-            If True, orders of triplets will be randomized. If False, default orders kept
+        shuffle: bool, optional, default: False
+            If `True`, orders of triplets will be randomized. If `False`, default orders kept.
+
+        neg_sampling: str, optional, default: 'uniform'
+            How negative item `j` will be sampled. Supported options: {`uniform`, `popularity`}.
 
         Returns
         -------
@@ -332,15 +335,23 @@ class Dataset(object):
             batch of negative items (array of np.int)
 
         """
+
+        if neg_sampling.lower() == 'uniform':
+            neg_population = np.arange(self.num_items)
+        elif neg_sampling.lower() == 'popularity':
+            neg_population = self.uir_tuple[1]
+        else:
+            raise ValueError('Unsupported negative sampling option: {}'.format(neg_sampling))
+
         for batch_ids in self.idx_iter(len(self.uir_tuple[0]), batch_size, shuffle):
             batch_users = self.uir_tuple[0][batch_ids]
             batch_pos_items = self.uir_tuple[1][batch_ids]
             batch_pos_ratings = self.uir_tuple[2][batch_ids]
-            batch_neg_items = np.zeros_like(batch_pos_items)
+            batch_neg_items = np.empty_like(batch_pos_items)
             for i, (user, pos_rating) in enumerate(zip(batch_users, batch_pos_ratings)):
-                neg_item = self.rng.randint(0, self.num_items)
+                neg_item = self.rng.choice(neg_population)
                 while self.dok_matrix[user, neg_item] >= pos_rating:
-                    neg_item = self.rng.randint(0, self.num_items)
+                    neg_item = self.rng.choice(neg_population)
                 batch_neg_items[i] = neg_item
             yield batch_users, batch_pos_items, batch_neg_items
 
