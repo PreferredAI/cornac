@@ -89,7 +89,8 @@ class TestDataset(unittest.TestCase):
     def test_uij_iter(self):
         train_set = Dataset.from_uir(self.triplet_data,
                                      global_uid_map=OrderedDict(),
-                                     global_iid_map=OrderedDict())
+                                     global_iid_map=OrderedDict(),
+                                     seed=123)
 
         users = [batch_users for batch_users, _, _ in train_set.uij_iter()]
         self.assertSequenceEqual(users, range(10))
@@ -99,6 +100,15 @@ class TestDataset(unittest.TestCase):
 
         neg_items = [batch_neg_items for _, _, batch_neg_items in train_set.uij_iter()]
         self.assertRaises(AssertionError, self.assertSequenceEqual, neg_items, range(10))
+
+        neg_items = [batch_neg_items for _, _, batch_neg_items in train_set.uij_iter(neg_sampling='popularity')]
+        self.assertRaises(AssertionError, self.assertSequenceEqual, neg_items, range(10))
+
+        try:
+            for _ in train_set.uij_iter(neg_sampling='bla'): continue
+        except ValueError:
+            assert True
+
 
     def test_user_iter(self):
         train_set = Dataset.from_uir(self.triplet_data,
