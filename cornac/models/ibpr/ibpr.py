@@ -13,44 +13,15 @@
 # limitations under the License.
 # ============================================================================
 
-import random
 
 import numpy as np
 import torch
-
-from ...utils.data_utils import Dataset
-
-"""Firstly, we define a helper function to generate\sample training ordinal triplets:
-   Step 1:  
-   given rated item i, randomly choose item j and check whether rating of j is lower than i, 
-   if not randomly sample another item. 
-   each row of the sampled data in the following form:
-        [userId itemId_i itemId_j]
-   for each user u, he/she prefers item i over item j.
-   """
+from tqdm import tqdm
 
 
-def sample_data(X, data):
-    sampled_data = np.zeros((data.shape[0], 5), dtype=np.int)
-    data = data.astype(int)
-
-    for k in range(0, data.shape[0]):
-        u = data[k, 0]
-        i = data[k, 1]
-        ratingi = data[k, 2]
-        j = random.randint(0, X.shape[1] - 1)
-
-        while X[u, j] > ratingi:
-            j = random.randint(0, X.shape[1] - 1)
-
-        sampled_data[k, :] = [u, i, j, ratingi, X[u, j]]
-
-    return sampled_data
-
-
-def ibpr(X, data, k, lamda=0.001, n_epochs=150, learning_rate=0.05, batch_size=100, init_params=None):
-    # X = sp.csr_matrix(X)
-    Data = Dataset(data)
+def ibpr(train_set, k, lamda=0.001, n_epochs=150, learning_rate=0.05, batch_size=100,
+         init_params=None, verbose=False):
+    X = train_set.csr_matrix
 
     # Initial user factors
     if init_params['U'] is None:
@@ -67,19 +38,21 @@ def ibpr(X, data, k, lamda=0.001, n_epochs=150, learning_rate=0.05, batch_size=1
         V = torch.from_numpy(V)
 
     optimizer = torch.optim.Adam([U, V], lr=learning_rate)
-    for epoch in range(n_epochs):
-        num_steps = int(Data.data.shape[0] / batch_size)
-        for i in range(1, num_steps + 1):
-            batch_c, _ = Data.next_batch(batch_size)
-            # print(batch_c, idx)
-            sampled_batch = sample_data(X, batch_c)
 
-            regU = U[sampled_batch[:, 0], :]
-            regI = V[sampled_batch[:, 1], :]
-            regJ = V[sampled_batch[:, 2], :]
+    for epoch in range(1, n_epochs + 1):
+        sum_loss = 0.
+        count = 0
+        progress_bar = tqdm(total=train_set.num_batches(batch_size),
+                            desc='Epoch {}/{}'.format(epoch, n_epochs),
+                            disable=not verbose)
 
-            regU_unq = U[np.unique(sampled_batch[:, 0]), :]
-            regI_unq = V[np.unique(sampled_batch[:, 1:]), :]
+        for batch_u, batch_i, batch_j in train_set.uij_iter(batch_size, shuffle=True):
+            regU = U[batch_u, :]
+            regI = V[batch_i, :]
+            regJ = V[batch_j, :]
+
+            regU_unq = U[np.unique(batch_u), :]
+            regI_unq = V[np.union1d(batch_i, batch_j), :]
 
             regU_norm = regU / regU.norm(dim=1)[:, None]
             regI_norm = regI / regI.norm(dim=1)[:, None]
@@ -88,14 +61,22 @@ def ibpr(X, data, k, lamda=0.001, n_epochs=150, learning_rate=0.05, batch_size=1
             Scorei = torch.acos(torch.clamp(torch.sum(regU_norm * regI_norm, dim=1), -1 + 1e-7, 1 - 1e-7))
             Scorej = torch.acos(torch.clamp(torch.sum(regU_norm * regJ_norm, dim=1), -1 + 1e-7, 1 - 1e-7))
 
-            loss = lamda * (regU_unq.norm().pow(2) + regI_unq.norm().pow(2)) - torch.log(
-                torch.sigmoid(Scorej - Scorei)).sum()
+            loss = lamda * (regU_unq.norm().pow(2) + regI_unq.norm().pow(2)) \
+                   - torch.log(torch.sigmoid(Scorej - Scorei)).sum()
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        print('epoch:', epoch, 'loss:', loss)
 
-    # since the user's preference is defined by the angular distance, we can normalize the user/item vectors without changing the ranking
+            sum_loss += loss.data.item()
+            count += len(batch_u)
+            if count % (batch_size * 10) == 0:
+                progress_bar.set_postfix(loss=(sum_loss / count))
+            progress_bar.update(1)
+
+        progress_bar.close()
+
+    # since the user's preference is defined by the angular distance,
+    # we can normalize the user/item vectors without changing the ranking
     U = torch.nn.functional.normalize(U, p=2, dim=1)
     V = torch.nn.functional.normalize(V, p=2, dim=1)
     U = U.data.cpu().numpy()
