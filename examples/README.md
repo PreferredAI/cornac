@@ -34,6 +34,8 @@
 
 [cvae_example.py](cvae_example.py) - Collaborative Variational Autoencoder (CVAE) with CiteULike dataset.
 
+[efm_example.py](efm_example.py) - Explicit Factor Model (EFM) with Amazon Toy and Games dataset.
+
 [hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLen 1m dataset.
 
 [ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
@@ -55,5 +57,3 @@
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
-
-[efm_example.py](efm_example.py) - Explicit Factor Model (EFM) with Amazon Toy and Games dataset.

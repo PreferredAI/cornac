@@ -155,6 +155,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 | 2015 | [Collaborative Deep Learning (CDL)](cornac/models/cdl), [paper](https://arxiv.org/pdf/1409.2944.pdf) | [requirements.txt](cornac/models/cdl/requirements.txt) | [cdl_exp.py](examples/cdl_example.py)
 |      | [Hierarchical Poisson Factorization (HPF)](cornac/models/hpf), [paper](http://jakehofman.com/inprint/poisson_recs.pdf) | N/A |
 | 2014 | [Social Bayesian Personalized Ranking (SBPR)](cornac/models/sbpr), [paper](https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf) | N/A | [sbpr_epinions.py](examples/sbpr_epinions.py)
+| 2014 | [Explicit Factor Model (EFM)](cornac/models/efm), [paper](http://yongfeng.me/attach/efm-zhang.pdf) | [requirements.txt](cornac/models/efm/requirements.txt) | [efm_exp.py](examples/efm_example.py)
 | 2013 | [Hidden Factors and Hidden Topics (HFT)](cornac/models/hft), [paper](https://cs.stanford.edu/people/jure/pubs/reviews-recsys13.pdf) | N/A | [hft_exp.py](examples/hft_example.py)
 | 2011 | [Collaborative Topic Modeling (CTR)](cornac/models/ctr), [paper](http://www.cs.columbia.edu/~blei/papers/WangBlei2011.pdf) | N/A | [ctr_citeulike.py](examples/ctr_example_citeulike.py)
 | Earlier | [Baseline Only](cornac/models/baseline_only), [paper](http://courses.ischool.berkeley.edu/i290-dm/s11/SECURE/a1-koren.pdf) | N/A | [svd_exp.py](examples/svd_example.py)
@@ -165,7 +166,6 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 |      | [Singular Value Decomposition (SVD)](cornac/models/svd), [paper](https://www.cs.rochester.edu/twiki/pub/Main/HarpSeminar/Factorization_Meets_the_Neighborhood-_a_Multifaceted_Collaborative_Filtering_Model.pdf) | N/A | [svd_exp.py](examples/svd_example.py)
 |      | [Social Recommendation using PMF (SoRec)](cornac/models/sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | N/A |
 |      | [Weighted Matrix Factorization (WMF)](cornac/models/wmf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cornac/models/wmf/requirements.txt) | [wmf_exp.py](examples/wmf_example.py)
-| 2014 [Explicit Factor Model (EFM)](cornac/models/efm), [paper](http://yongfeng.me/attach/efm-zhang.pdf) | [requirements.txt](cornac/models/efm/requirements.txt) | [efm_example.py](examples/efm_example.py)
 
 ## Support
 

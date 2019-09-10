@@ -100,6 +100,11 @@ Social Bayesian Personalized Ranking (SBPR)
 .. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
    :members:
 
+Explicit Factor Model (EFM)
+----------------------------------------
+.. automodule:: cornac.models.efm.recom_efm
+   :members:
+
 Hidden Factors and Hidden Topics (HFT)
 -----------------------------------------
 .. automodule:: cornac.models.hft.recom_hft
@@ -149,9 +154,3 @@ Weighted Matrix Factorization (WMF)
 --------------------------------------------------
 .. automodule:: cornac.models.wmf.recom_wmf
    :members:
-
-Explicit Factor Model (EFM)
-----------------------------------------
-.. automodule:: cornac.models.efm.recom_efm
-   :members:
-

@@ -74,7 +74,8 @@ class EFM(Recommender):
         The regularization parameter for V.
 
     use_item_aspect_popularity: boolean, optional, default: True
-        When False, item aspect quality score computation omits item aspect frequency out of its formular.
+        When False, item aspect frequency is omitted from item aspect quality computation formular.\
+        Specifically, :math:`Y_{ij} = 1 + \frac{N - 1}{1 + e^{-s_{ij}}}` if `p_i` is reviewed on feature `F_j`
 
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs.
@@ -121,7 +122,6 @@ class EFM(Recommender):
                  num_explicit_factors=40, num_latent_factors=60, num_most_cared_aspects=15,
                  rating_scale=5.0, alpha=0.85,
                  lambda_x=1, lambda_y=1, lambda_u=0.01, lambda_h=0.01, lambda_v=0.01,
-                 use_dominant=False,
                  use_item_aspect_popularity=True, max_iter=100,
                  num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
 
@@ -148,16 +148,22 @@ class EFM(Recommender):
         else:
             self.num_threads = multiprocessing.cpu_count()
 
-    def fit(self, train_set):
-        """Fit the model.
+    def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.MultimodalTrainSet`
-            Multimodal training set.
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
 
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
         """
-        Recommender.fit(self, train_set)
+        Recommender.fit(self, train_set, val_set)
 
         from ...utils import get_rng
         from ...utils.init_utils import uniform
@@ -194,17 +200,6 @@ class EFM(Recommender):
                       X.data.astype(np.float32), X_uids, X.indices, X_user_counts, X_aspect_counts,
                       Y.data.astype(np.float32), Y_iids, Y.indices, Y_item_counts, Y_aspect_counts,
                       self.U1, self.U2, self.V, self.H1, self.H2)
-
-    def get_params(self):
-        """Get model parameters in the form of dictionary including matrices: U1, U2, V, H1, H2
-        """
-        return {
-            'U1': self.U1,
-            'U2': self.U2,
-            'V': self.V,
-            'H1': self.H1,
-            'H2': self.H2,
-        }
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -246,7 +241,6 @@ class EFM(Recommender):
             floating eps = 1e-9
 
         for t in range(1, self.max_iter + 1):
-
             loss = 0.
             U1_numerator.fill(0)
             U1_denominator.fill(0)
@@ -339,14 +333,14 @@ class EFM(Recommender):
         if self.verbose:
             print('Optimization finished!')
 
-    def _build_matrices(self, train_set):
-        sentiment = train_set.sentiment
+    def _build_matrices(self, data_set):
+        sentiment = self.train_set.sentiment
         ratings = []
         map_uid = []
         map_iid = []
 
-        for uid, iid, rating in self.train_set.uir_iter():
-            if train_set.is_unk_user(uid) or train_set.is_unk_item(iid):
+        for uid, iid, rating in data_set.uir_iter():
+            if self.train_set.is_unk_user(uid) or self.train_set.is_unk_item(iid):
                 continue
             ratings.append(rating)
             map_uid.append(uid)
@@ -356,13 +350,13 @@ class EFM(Recommender):
         map_uid = np.asarray(map_uid, dtype=np.int).flatten()
         map_iid = np.asarray(map_iid, dtype=np.int).flatten()
         A = sp.csr_matrix((ratings, (map_uid, map_iid)),
-                          shape=(train_set.num_users, train_set.num_items))
+                          shape=(self.train_set.num_users, self.train_set.num_items))
 
         attention_scores = []
         map_uid = []
         map_aspect_id = []
         for uid, sentiment_tup_ids_by_item in sentiment.user_sentiment.items():
-            if train_set.is_unk_user(uid):
+            if self.train_set.is_unk_user(uid):
                 continue
             user_aspects = [tup[0] for tup_id in sentiment_tup_ids_by_item.values()
                                    for tup in sentiment.sentiment[tup_id]]
@@ -376,14 +370,14 @@ class EFM(Recommender):
         map_uid = np.asarray(map_uid, dtype=np.int).flatten()
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int).flatten()
         X = sp.csr_matrix((attention_scores, (map_uid, map_aspect_id)),
-                          shape=(train_set.num_users, sentiment.num_aspects))
+                          shape=(self.train_set.num_users, sentiment.num_aspects))
 
         quality_scores = []
         map_iid = []
         map_aspect_id = []
 
         for iid, sentiment_tup_ids_by_user in sentiment.item_sentiment.items():
-            if train_set.is_unk_item(iid):
+            if self.train_set.is_unk_item(iid):
                 continue
             item_aspects = [tup[0] for tup_id in sentiment_tup_ids_by_user.values()
                                    for tup in sentiment.sentiment[tup_id]]
@@ -405,7 +399,7 @@ class EFM(Recommender):
         map_iid = np.asarray(map_iid, dtype=np.int).flatten()
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int).flatten()
         Y = sp.csr_matrix((quality_scores, (map_iid, map_aspect_id)),
-                          shape=(train_set.num_items, sentiment.num_aspects))
+                          shape=(self.train_set.num_items, sentiment.num_aspects))
 
         if self.verbose:
             print('Building matrices completed!')
