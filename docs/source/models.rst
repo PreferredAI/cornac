@@ -95,14 +95,14 @@ Hierarchical Poisson Factorization (HPF)
 .. automodule:: cornac.models.hpf.recom_hpf
    :members:
 
-Social Bayesian Personalized Ranking (SBPR)
---------------------------------------------------
-.. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
-   :members:
-
 Explicit Factor Model (EFM)
 ----------------------------------------
 .. automodule:: cornac.models.efm.recom_efm
+   :members:
+
+Social Bayesian Personalized Ranking (SBPR)
+--------------------------------------------------
+.. autoclass:: cornac.models.sbpr.recom_sbpr.SBPR
    :members:
 
 Hidden Factors and Hidden Topics (HFT)
