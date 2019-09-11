@@ -13,10 +13,12 @@
 # limitations under the License.
 # ============================================================================
 
+from .modality import Modality
 from .modality import FeatureModality
 from .text import TextModality
 from .image import ImageModality
 from .graph import GraphModality
+from .sentiment import SentimentModality
 from .reader import Reader
 from .dataset import Dataset
 
@@ -24,5 +26,6 @@ __all__ = ['FeatureModality',
            'TextModality',
            'ImageModality',
            'GraphModality',
+           'SentimentModality',
            'Dataset',
            'Reader']

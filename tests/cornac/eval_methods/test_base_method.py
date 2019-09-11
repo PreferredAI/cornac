@@ -16,7 +16,7 @@
 import unittest
 
 from cornac.eval_methods import BaseMethod
-from cornac.data import TextModality, ImageModality
+from cornac.data import TextModality, ImageModality, SentimentModality
 from cornac.data import Dataset, Reader
 from cornac.metrics import MAE, AUC
 from cornac.models import MF
@@ -73,7 +73,9 @@ class TestBaseMethod(unittest.TestCase):
         self.assertEqual(bm.total_items, 10)
 
     def test_with_modalities(self):
-        bm = BaseMethod()
+        data = Reader().read('./tests/data.txt')
+        sentiment_data = Reader().read('./tests/sentiment_data.txt', fmt='UITup', sep=',', tup_sep=':')
+        bm = BaseMethod.from_splits(train_data=data[:-1], test_data=data[-1:])
 
         self.assertIsNone(bm.user_text)
         self.assertIsNone(bm.item_text)
@@ -81,9 +83,11 @@ class TestBaseMethod(unittest.TestCase):
         self.assertIsNone(bm.item_image)
         self.assertIsNone(bm.user_graph)
         self.assertIsNone(bm.item_graph)
+        self.assertIsNone(bm.sentiment)
 
         bm.user_text = TextModality()
         bm.item_image = ImageModality()
+        bm.sentiment = SentimentModality(data=sentiment_data)
         bm._build_modalities()
 
         try:
@@ -113,6 +117,16 @@ class TestBaseMethod(unittest.TestCase):
 
         try:
             bm.item_graph = ImageModality()
+        except ValueError:
+            assert True
+
+        try:
+            bm.sentiment = TextModality()
+        except ValueError:
+            assert True
+
+        try:
+            bm.sentiment = ImageModality()
         except ValueError:
             assert True
 
