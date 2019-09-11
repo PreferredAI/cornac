@@ -28,8 +28,6 @@
 
 [cdr_example.py](cdr_example.py) - Collaborative Deep Ranking (CDR) with CiteULike dataset.
 
-[wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
-
 [conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF) with MovieLens dataset.
 
 [ctr_example_citeulike.py](ctr_example_citeulike.py) - Collaborative Topic Modelling (CTR) with CiteULike dataset.
@@ -55,3 +53,5 @@
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
+
+[wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
