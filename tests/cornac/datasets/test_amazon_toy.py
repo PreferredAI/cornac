@@ -13,11 +13,23 @@
 # limitations under the License.
 # ============================================================================
 
-from . import amazon_clothing
-from . import amazon_office
-from . import amazon_toy
-from . import citeulike
-from . import epinions
-from . import movielens
-from . import netflix
-from . import tradesy
+import unittest
+import random
+import time
+
+from cornac.datasets import amazon_toy as toy
+
+
+class TestAmazonToy(unittest.TestCase):
+
+    def test_amazon_toy(self):
+        random.seed(time.time())
+        if random.random() > 0.8:
+            ratings = toy.load_rating()
+            sentiments = toy.load_sentiment()
+            self.assertEqual(len(ratings), 167597)
+            self.assertEqual(len(sentiments), 149877)
+
+
+if __name__ == '__main__':
+    unittest.main()
