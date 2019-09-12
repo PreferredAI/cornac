@@ -277,7 +277,7 @@ class Dataset(object):
             batch_ids = indices[start_offset:end_offset]
             yield batch_ids
 
-    def uir_iter(self, batch_size=1, shuffle=False, num_zeros=0):
+    def uir_iter(self, batch_size=1, shuffle=False, binary=False, num_zeros=0):
         """Create an iterator over data yielding batch of users, items, and rating values
 
         Parameters
@@ -286,6 +286,9 @@ class Dataset(object):
 
         shuffle: bool, optional, default: False
             If `True`, orders of triplets will be randomized. If `False`, default orders kept.
+
+        binary: bool, optional, default: False
+            If `True`, non-zero ratings will be turned into `1`, otherwise, values remain unchanged.
 
         num_zeros: int, optional, default = 0
             Number of unobserved ratings (zeros) to be added per user. This could be used
@@ -300,7 +303,10 @@ class Dataset(object):
         for batch_ids in self.idx_iter(len(self.uir_tuple[0]), batch_size, shuffle):
             batch_users = self.uir_tuple[0][batch_ids]
             batch_items = self.uir_tuple[1][batch_ids]
-            batch_ratings = self.uir_tuple[2][batch_ids]
+            if binary:
+                batch_ratings = np.ones_like(batch_items)
+            else:
+                batch_ratings = self.uir_tuple[2][batch_ids]
 
             if num_zeros > 0:
                 repeated_users = batch_users.repeat(num_zeros)
