@@ -45,6 +45,12 @@ class GMF(Recommender):
     learner: str, optional, default: 'adam'
         Specify an optimizer: adagrad, adam, rmsprop, sgd
 
+    early_stopping: {min_delta: float, patience: int}, optional, default: None
+        If `None`, no early stopping. Meaning of the arguments: \
+         - `min_delta`: the minimum increase in monitored value on validation set to be considered as improvement, \
+           i.e. an increment of less than min_delta will count as no improvement.
+         - `patience`: number of epochs with no improvement after which training should be stopped.
+
     name: string, optional, default: 'GMF'
         Name of the recommender model.
 
@@ -65,8 +71,8 @@ class GMF(Recommender):
     """
 
     def __init__(self, name='GMF',
-                 num_factors=8, regs=[0., 0.], num_epochs=20, batch_size=256, num_neg=4,
-                 lr=0.001, learner='adam', trainable=True, verbose=True, seed=None):
+                 num_factors=8, regs=(0., 0.), num_epochs=20, batch_size=256, num_neg=4,
+                 lr=0.001, learner='adam', early_stopping=None, trainable=True, verbose=True, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
         self.num_factors = num_factors
@@ -76,6 +82,7 @@ class GMF(Recommender):
         self.num_neg = num_neg
         self.learning_rate = lr
         self.learner = learner
+        self.early_stopping = early_stopping
         self.seed = seed
 
     def fit(self, train_set, val_set=None):
@@ -126,8 +133,8 @@ class GMF(Recommender):
                                      kernel_initializer=tf.initializers.lecun_uniform(self.seed))
             self.prediction = tf.nn.sigmoid(logits)
 
-            loss = loss_fn(labels=self.labels, logits=logits)
-            train_op = train_fn(loss, learning_rate=self.learning_rate, learner=self.learner)
+            self.loss = loss_fn(labels=self.labels, logits=logits)
+            train_op = train_fn(self.loss, learning_rate=self.learning_rate, learner=self.learner)
 
             initializer = tf.global_variables_initializer()
 
@@ -141,8 +148,8 @@ class GMF(Recommender):
             count = 0
             sum_loss = 0
             for i, (batch_users, batch_items, batch_ratings) in enumerate(
-                    self.train_set.uir_iter(self.batch_size, shuffle=True, num_zeros=self.num_neg)):
-                _, _loss = self.sess.run([train_op, loss],
+                    self.train_set.uir_iter(self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg)):
+                _, _loss = self.sess.run([train_op, self.loss],
                                          feed_dict={
                                              self.user_id: batch_users,
                                              self.item_id: batch_items,
@@ -153,6 +160,27 @@ class GMF(Recommender):
                 sum_loss += _loss * len(batch_ratings)
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
+
+            if self.early_stopping is not None and self.early_stop(**self.early_stopping):
+                break
+        loop.close()
+
+    def monitor_value(self):
+        """Calculating monitored value used for early stopping on validation set (`val_set`).
+        This function will be called by `early_stop()` function.
+
+        Returns
+        -------
+        res : float
+            Monitored value on validation set.
+            Return `None` if `val_set` is `None`.
+        """
+        if self.val_set is None:
+            return None
+
+        from .ops import ndcg
+
+        return ndcg(self, self.train_set, self.val_set)
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
