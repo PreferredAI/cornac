@@ -13,6 +13,9 @@
 # limitations under the License.
 # ============================================================================
 
+from .base_method import rating_eval
+from .base_method import ranking_eval
+
 from .base_method import BaseMethod
 from .ratio_split import RatioSplit
 from .cross_validation import CrossValidation
