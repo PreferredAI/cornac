@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 import time
 
 import numpy as np
@@ -26,11 +26,149 @@ from ..data import GraphModality
 from ..data import SentimentModality
 from ..data import Dataset
 from ..utils.common import validate_format
-from ..metrics.rating import RatingMetric
-from ..metrics.ranking import RankingMetric
+from ..metrics import RatingMetric
+from ..metrics import RankingMetric
 from ..experiment.result import Result
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
+
+
+def rating_eval(model, metrics, test_set, user_based=False):
+    """Evaluate model on provided rating metrics.
+
+    Parameters
+    ----------
+    model: :obj:`cornac.models.Recommender`, required
+        Recommender model to be evaluated.
+
+    metrics: :obj:`iterable`, required
+        List of rating metrics :obj:`cornac.metrics.RatingMetric`.
+
+    test_set: :obj:`cornac.data.Dataset`, required
+        Dataset to be used for evaluation.
+
+    user_based: bool, optional, default: False
+        Evaluation mode. Whether results are averaging based on number of users or number of ratings.
+
+    Returns
+    -------
+    res: (List, List)
+        Tuple of two lists:
+         - average result for each of the metrics
+         - average result per user for each of the metrics
+
+    """
+
+    if len(metrics) == 0:
+        return [], []
+
+    avg_results = []
+    user_results = []
+
+    (u_indices, i_indices, r_values) = test_set.uir_tuple
+    r_preds = np.fromiter((model.rate(user_idx, item_idx).item()
+                           for user_idx, item_idx in zip(u_indices, i_indices)),
+                          dtype=np.float, count=len(u_indices))
+
+    gt_mat = test_set.csr_matrix
+    pd_mat = csr_matrix((r_preds, (u_indices, i_indices)), shape=gt_mat.shape)
+
+    for mt in metrics:
+        if user_based:  # averaging over users
+            user_results.append({user_idx: mt.compute(gt_ratings=gt_mat.getrow(user_idx).data,
+                                                      pd_ratings=pd_mat.getrow(user_idx).data).item()
+                                 for user_idx in test_set.user_indices})
+            avg_results.append(sum(user_results[-1].values()) / len(user_results[-1]))
+        else:  # averaging over ratings
+            user_results.append({})
+            avg_results.append(mt.compute(gt_ratings=r_values, pd_ratings=r_preds))
+
+    return avg_results, user_results
+
+
+def ranking_eval(model, metrics, train_set, test_set, val_set=None,
+                 rating_threshold=1.0, exclude_unknowns=True, verbose=False):
+    """Evaluate model on provided ranking metrics.
+
+    Parameters
+    ----------
+    model: :obj:`cornac.models.Recommender`, required
+        Recommender model to be evaluated.
+
+    metrics: :obj:`iterable`, required
+        List of rating metrics :obj:`cornac.metrics.RankingMetric`.
+
+    train_set: :obj:`cornac.data.Dataset`, required
+        Dataset to be used for model training. This will be used to exclude
+        observations already appeared during training.
+
+    test_set: :obj:`cornac.data.Dataset`, required
+        Dataset to be used for evaluation.
+
+    val_set: :obj:`cornac.data.Dataset`, optional, default: None
+        Dataset to be used for model selection. This will be used to exclude
+        observations already appeared during validation.
+
+    rating_threshold: float, optional, default: 1.0
+        The threshold to convert ratings into positive or negative feedback.
+
+    exclude_unknowns: bool, optional, default: True
+        Ignore unknown users and items during evaluation.
+
+    verbose: bool, optional, default: False
+        Output evaluation progress.
+
+    Returns
+    -------
+    res: (List, List)
+        Tuple of two lists:
+         - average result for each of the metrics
+         - average result per user for each of the metrics
+
+    """
+
+    if len(metrics) == 0:
+        return [], []
+
+    avg_results = []
+    user_results = [{}] * len(metrics)
+
+    gt_mat = test_set.csr_matrix
+    train_mat = train_set.csr_matrix
+    val_mat = None if val_set is None else val_set.csr_matrix
+
+    def pos_items(csr_row):
+        return [item_idx
+                for (item_idx, rating) in zip(csr_row.indices, csr_row.data)
+                if rating >= rating_threshold]
+
+    for user_idx in tqdm.tqdm(test_set.user_indices, disable=not verbose, miniters=100):
+        test_pos_items = pos_items(gt_mat.getrow(user_idx))
+        if len(test_pos_items) == 0:
+            continue
+
+        u_gt_pos = np.zeros(test_set.num_items, dtype=np.int)
+        u_gt_pos[test_pos_items] = 1
+
+        val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
+        train_pos_items = [] if train_set.is_unk_user(user_idx) else pos_items(train_mat.getrow(user_idx))
+
+        u_gt_neg = np.ones(test_set.num_items, dtype=np.int)
+        u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
+
+        item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
+        item_rank, item_scores = model.rank(user_idx, item_indices)
+
+        for i, mt in enumerate(metrics):
+            mt_score = mt.compute(gt_pos=u_gt_pos, gt_neg=u_gt_neg,
+                                  pd_rank=item_rank, pd_scores=item_scores)
+            user_results[i][user_idx] = mt_score
+
+    # avg results of ranking metrics
+    for i, mt in enumerate(metrics):
+        avg_results.append(sum(user_results[i].values()) / len(user_results[i]))
+
+    return avg_results, user_results
 
 
 class BaseMethod:
@@ -56,7 +194,7 @@ class BaseMethod:
     seed: int, optional, default: None
         Random seed for reproduce the splitting.
 
-    exclude_unknowns: bool, optional, default: False
+    exclude_unknowns: bool, optional, default: True
         Ignore unknown users and items (cold-start) during evaluation.
 
     verbose: bool, optional, default: False
@@ -64,11 +202,12 @@ class BaseMethod:
 
     """
 
-    def __init__(self, data=None,
+    def __init__(self,
+                 data=None,
                  fmt='UIR',
                  rating_threshold=1.0,
                  seed=None,
-                 exclude_unknowns=False,
+                 exclude_unknowns=True,
                  verbose=False,
                  **kwargs):
         self._data = data
@@ -170,7 +309,8 @@ class BaseMethod:
     @sentiment.setter
     def sentiment(self, input_modality):
         if input_modality is not None and not isinstance(input_modality, SentimentModality):
-            raise ValueError('input_modality has to be instance of SentimentModality but {}'.format(type(input_modality)))
+            raise ValueError(
+                'input_modality has to be instance of SentimentModality but {}'.format(type(input_modality)))
         self.__sentiment = input_modality
 
     def _organize_metrics(self, metrics):
@@ -268,74 +408,6 @@ class BaseMethod:
 
         self._build_modalities()
 
-    def _rating_eval(self, model, metrics, metric_avg_results, metric_user_results, user_based):
-        """Evaluate model on provided rating metrics
-        """
-
-        if len(metrics) == 0:
-            return
-
-        (u_indices, i_indices, r_values) = self.test_set.uir_tuple
-        r_preds = np.fromiter((model.rate(user_idx, item_idx).item()
-                               for user_idx, item_idx in zip(u_indices, i_indices)),
-                              dtype=np.float, count=len(u_indices))
-
-        gt_mat = self.test_set.csr_matrix
-        pd_mat = csr_matrix((r_preds, (u_indices, i_indices)), shape=gt_mat.shape)
-
-        for mt in metrics:
-            if user_based:  # averaging over users
-                metric_user_results[mt.name] = {user_idx: mt.compute(gt_ratings=gt_mat.getrow(user_idx).data,
-                                                                     pd_ratings=pd_mat.getrow(user_idx).data).item()
-                                                for user_idx in self.test_set.user_indices}
-                metric_avg_results[mt.name] = sum(metric_user_results[mt.name].values()) / \
-                                              len(metric_user_results[mt.name])
-            else:  # averaging over ratings
-                metric_avg_results[mt.name] = mt.compute(gt_ratings=r_values, pd_ratings=r_preds)
-
-    def _ranking_eval(self, model, metrics, metric_avg_results, metric_user_results):
-        """Evaluate model on provided ranking metrics
-        """
-
-        if len(metrics) == 0:
-            return
-
-        gt_mat = self.test_set.csr_matrix
-        train_mat = self.train_set.csr_matrix
-        val_mat = None if self.val_set is None else self.val_set.csr_matrix
-
-        def pos_items(csr_row):
-            return [item_idx
-                    for (item_idx, rating) in zip(csr_row.indices, csr_row.data)
-                    if rating >= self.rating_threshold]
-
-        for user_idx in tqdm.tqdm(self.test_set.user_indices, disable=not self.verbose, miniters=100):
-            test_pos_items = pos_items(gt_mat.getrow(user_idx))
-            if len(test_pos_items) == 0:
-                continue
-
-            u_gt_pos = np.zeros(self.test_set.num_items, dtype=np.int)
-            u_gt_pos[test_pos_items] = 1
-
-            val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
-            train_pos_items = [] if self.train_set.is_unk_user(user_idx) else pos_items(train_mat.getrow(user_idx))
-
-            u_gt_neg = np.ones(self.test_set.num_items, dtype=np.int)
-            u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
-
-            item_indices = None if self.exclude_unknowns else np.arange(self.test_set.num_items)
-            item_rank, item_scores = model.rank(user_idx, item_indices)
-
-            for mt in metrics:
-                mt_score = mt.compute(gt_pos=u_gt_pos, gt_neg=u_gt_neg,
-                                      pd_rank=item_rank, pd_scores=item_scores)
-                metric_user_results[mt.name][user_idx] = mt_score
-
-        # avg results of ranking metrics
-        for mt in metrics:
-            metric_avg_results[mt.name] = sum(metric_user_results[mt.name].values()) / \
-                                          len(metric_user_results[mt.name])
-
     def evaluate(self, model, metrics, user_based):
         """Evaluate given models according to given metrics
 
@@ -347,10 +419,15 @@ class BaseMethod:
         metrics: :obj:`iterable`
             List of metrics.
 
-        user_based: bool
+        user_based: bool, optional, default: False
             Evaluation mode. Whether results are averaging based on number of users or number of ratings.
 
+        Returns
+        -------
+        res: :obj:`cornac.experiment.Result`
+
         """
+
         rating_metrics, ranking_metrics = self._organize_metrics(metrics)
 
         if self.train_set is None:
@@ -374,12 +451,31 @@ class BaseMethod:
         if self.verbose:
             print('\n[{}] Evaluation started!'.format(model.name))
 
-        metric_avg_results = OrderedDict()
-        metric_user_results = defaultdict(defaultdict)
-
         start = time.time()
-        self._rating_eval(model, rating_metrics, metric_avg_results, metric_user_results, user_based)
-        self._ranking_eval(model, ranking_metrics, metric_avg_results, metric_user_results)
+
+        metric_avg_results = OrderedDict()
+        metric_user_results = OrderedDict()
+
+        avg_results, user_results = rating_eval(model=model,
+                                                metrics=rating_metrics,
+                                                test_set=self.test_set,
+                                                user_based=user_based)
+        for i, mt in enumerate(rating_metrics):
+            metric_avg_results[mt.name] = avg_results[i]
+            metric_user_results[mt.name] = user_results[i]
+
+        avg_results, user_results = ranking_eval(model=model,
+                                                 metrics=ranking_metrics,
+                                                 train_set=self.train_set,
+                                                 test_set=self.test_set,
+                                                 val_set=self.val_set,
+                                                 rating_threshold=self.rating_threshold,
+                                                 exclude_unknowns=self.exclude_unknowns,
+                                                 verbose=self.verbose)
+        for i, mt in enumerate(ranking_metrics):
+            metric_avg_results[mt.name] = avg_results[i]
+            metric_user_results[mt.name] = user_results[i]
+
         test_time = time.time() - start
 
         metric_avg_results['Train (s)'] = train_time

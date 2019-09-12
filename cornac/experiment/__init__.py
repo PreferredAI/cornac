@@ -14,5 +14,13 @@
 # ============================================================================
 
 from .experiment import Experiment
+from .result import Result
+from .result import ExperimentResult
+from .result import CVResult
+from .result import CVExperimentResult
 
-__all__ = ['Experiment']
+__all__ = ['Experiment',
+           'Result',
+           'ExperimentResult',
+           'CVResult',
+           'CVExperimentResult']
