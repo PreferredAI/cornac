@@ -60,7 +60,7 @@ def load_trust(reader: Reader = None) -> List:
     Returns
     -------
     data: array-like
-        Data in the form of a list of tuples (user, item, rating).
+        Data in the form of a list of tuples (source_user, target_item, trust_value).
 
     """
     fpath = cache(url='http://www.trustlet.org/datasets/downloaded_epinions/trust_data.txt.bz2',
