@@ -342,6 +342,7 @@ class BaseMethod:
             print('Training data:')
             print('Number of users = {}'.format(self.train_set.num_users))
             print('Number of items = {}'.format(self.train_set.num_items))
+            print('Number of ratings = {}'.format(self.train_set.num_ratings))
             print('Max rating = {:.1f}'.format(self.train_set.max_rating))
             print('Min rating = {:.1f}'.format(self.train_set.min_rating))
             print('Global mean = {:.1f}'.format(self.train_set.global_mean))
@@ -354,6 +355,7 @@ class BaseMethod:
             print('Test data:')
             print('Number of users = {}'.format(len(self.test_set.uid_map)))
             print('Number of items = {}'.format(len(self.test_set.iid_map)))
+            print('Number of ratings = {}'.format(self.test_set.num_ratings))
             print('Number of unknown users = {}'.format(self.test_set.num_users - self.train_set.num_users))
             print('Number of unknown items = {}'.format(self.test_set.num_items - self.train_set.num_items))
 
@@ -366,6 +368,7 @@ class BaseMethod:
                 print('Validation data:')
                 print('Number of users = {}'.format(len(self.val_set.uid_map)))
                 print('Number of items = {}'.format(len(self.val_set.iid_map)))
+                print('Number of ratings = {}'.format(self.val_set.num_ratings))
 
     def _build_modalities(self):
         for user_modality in [self.user_text, self.user_image, self.user_graph]:
