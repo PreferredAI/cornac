@@ -42,3 +42,4 @@ from .hft import HFT
 from .ncf import GMF
 from .ncf import MLP
 from .ncf import NeuMF
+from .efm import EFM
