@@ -38,7 +38,7 @@ class TestBaseMethod(unittest.TestCase):
 
     def test_testset_none(self):
         bm = BaseMethod(None, verbose=True)
-        bm.train_set = Dataset(None, None, ([], [], []), None, None, 0., 0., 0.)
+        bm.train_set = Dataset(None, None, ([], [], []), 0, 0, 0., 0., 0.)
         try:
             bm.evaluate(None, {}, False)
         except ValueError:
