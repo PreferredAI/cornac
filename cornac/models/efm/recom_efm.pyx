@@ -94,7 +94,7 @@ class EFM(Recommender):
     verbose: boolean, optional, default: False
         When True, running logs are displayed.
 
-    init_params: dictionary, optional, default: None
+    init_params: dictionary, optional, default: {}
         List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2}
         U1: ndarray, shape (n_users, n_explicit_factors)
             The user explicit factors, optional initialization via init_params.
@@ -148,6 +148,24 @@ class EFM(Recommender):
         else:
             self.num_threads = multiprocessing.cpu_count()
 
+    def _init_params(self):
+        from ...utils import get_rng
+        from ...utils.init_utils import uniform
+
+        rng = get_rng(self.seed)
+        num_factors = self.num_explicit_factors + self.num_latent_factors
+        high = np.sqrt(self.rating_scale / num_factors)
+        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors),
+                                                     high=high, random_state=rng))
+        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors),
+                                                     high=high, random_state=rng))
+        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors),
+                                                   high=high, random_state=rng))
+        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors),
+                                                     high=high, random_state=rng))
+        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors),
+                                                     high=high, random_state=rng))
+
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
@@ -165,22 +183,7 @@ class EFM(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import uniform
-
-        rng = get_rng(self.seed)
-        num_factors = self.num_explicit_factors + self.num_latent_factors
-        high = np.sqrt(self.rating_scale / num_factors)
-        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors),
-                                                     high=high, random_state=rng))
-        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors),
-                                                     high=high, random_state=rng))
-        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors),
-                                                   high=high, random_state=rng))
-        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors),
-                                                     high=high, random_state=rng))
-        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors),
-                                                     high=high, random_state=rng))
+        self._init_params()
 
         if not self.trainable:
             return
@@ -412,15 +415,15 @@ class EFM(Recommender):
     def _compute_quality_score(self, sentiment):
         return 1 + (self.rating_scale - 1) / (1 + np.exp(-sentiment))
 
-    def score(self, user_id, item_id=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
 
-        item_id: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for that to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -430,26 +433,26 @@ class EFM(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if item_id is None:
-            if self.train_set.is_unk_user(user_id):
-                raise ScoreException("Can't make score prediction for (user_id=%d" & user_id)
-            item_scores = self.U2.dot(self.U1[user_id, :]) + self.H2.dot(self.H1[user_id, :])
+        if item_idx is None:
+            if self.train_set.is_unk_user(user_idx):
+                raise ScoreException("Can't make score prediction for (user_id=%d" & user_idx)
+            item_scores = self.U2.dot(self.U1[user_idx, :]) + self.H2.dot(self.H1[user_idx, :])
             return item_scores
         else:
-            if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
-            item_score = self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
+                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            item_score = self.U2[item_idx, :].dot(self.U1[user_idx, :]) + self.H2[item_idx, :].dot(self.H1[user_idx, :])
             return item_score
 
-    def rank(self, user_id, item_ids=None):
+    def rank(self, user_idx, item_indices=None):
         """Rank all test items for a given user.
 
         Parameters
         ----------
-        user_id: int, required
+        user_idx: int, required
             The index of the user for whom to perform item raking.
 
-        item_ids: 1d array, optional, default: None
+        item_indices: 1d array, optional, default: None
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned
 
@@ -459,21 +462,21 @@ class EFM(Recommender):
         in item_scores are corresponding to the order of their ids in item_ids
 
         """
-        X_ = self.U1[user_id, :].dot(self.V.T)
+        X_ = self.U1[user_idx, :].dot(self.V.T)
         most_cared_aspects_indices = (-X_).argsort()[:self.num_most_cared_aspects]
         most_cared_X_ = X_[most_cared_aspects_indices]
         most_cared_Y_ = self.U2.dot(self.V[most_cared_aspects_indices, :].T)
         explicit_scores = most_cared_X_.dot(most_cared_Y_.T) / (self.num_most_cared_aspects * self.rating_scale)
-        item_scores = self.alpha * explicit_scores + (1 - self.alpha) * self.score(user_id)
+        item_scores = self.alpha * explicit_scores + (1 - self.alpha) * self.score(user_idx)
 
-        if item_ids is None:
+        if item_indices is None:
             item_scores = item_scores
             item_rank = item_scores.argsort()[::-1]
         else:
-            num_items = max(self.train_set.num_items, max(item_ids) + 1)
+            num_items = max(self.train_set.num_items, max(item_indices) + 1)
             item_scores = np.ones(num_items) * np.min(item_scores)
             item_scores[:self.train_set.num_items] = item_scores
             item_rank = item_scores.argsort()[::-1]
-            item_rank = intersects(item_rank, item_ids, assume_unique=True)
-            item_scores = item_scores[item_ids]
+            item_rank = intersects(item_rank, item_indices, assume_unique=True)
+            item_scores = item_scores[item_indices]
         return item_rank, item_scores
