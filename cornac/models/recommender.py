@@ -16,7 +16,7 @@
 import numpy as np
 
 from ..exception import ScoreException
-from ..utils.common import intersects, excepts, clip
+from ..utils.common import intersects, clip
 
 
 class Recommender:
@@ -39,7 +39,7 @@ class Recommender:
         self.train_set = None
         self.val_set = None
 
-        self.best_loss = np.Inf
+        self.best_value = -np.Inf
         self.best_epoch = 0
         self.current_epoch = 0
         self.stopped_epoch = 0
@@ -159,17 +159,16 @@ class Recommender:
             item_scores = item_scores[item_indices]
         return item_rank, item_scores
 
-    def val_loss(self):
-        """Calculating loss on validation set (`val_set`). This function will be called by `early_stop()`.
+    def monitor_value(self):
+        """Calculating monitored value used for early stopping on validation set (`val_set`).
+        This function will be called by `early_stop()` function.
         Note: `val_set` could be `None` thus it needs to be checked before usage.
 
         Returns
         -------
-        res : float
-            Loss value on validation set.
-            Return `None` if `val_set` is `None`.
+        :raise NotImplementedError
         """
-        raise NotImplementedError('Overwritten me!')
+        raise NotImplementedError()
 
     def early_stop(self, min_delta=0., patience=0):
         """Check if training should be stopped when validation loss has stopped improving.
@@ -177,8 +176,8 @@ class Recommender:
         Parameters
         ----------
         min_delta: float, optional, default: 0.
-            The minimum reduction on validation loss to be considered as improvement,
-            i.e. a reduction of less than min_delta will count as no improvement.
+            The minimum increase in monitored value on validation set to be considered as improvement,
+            i.e. an increment of less than `min_delta` will count as no improvement.
 
         patience: int, optional, default: 0
             Number of epochs with no improvement after which training should be stopped.
@@ -190,12 +189,12 @@ class Recommender:
             otherwise return `False`.
         """
         self.current_epoch += 1
-        current_loss = self.val_loss()
-        if current_loss is None:
+        current_value = self.monitor_value()
+        if current_value is None:
             return False
 
-        if np.less_equal(current_loss, self.best_loss - min_delta):
-            self.best_loss = current_loss
+        if np.greater_equal(current_value - self.best_value, min_delta):
+            self.best_value = current_value
             self.best_epoch = self.current_epoch
             self.wait = 0
         else:
@@ -204,7 +203,9 @@ class Recommender:
                 self.stopped_epoch = self.current_epoch
 
         if self.stopped_epoch > 0:
-            print('Early stopping: best epoch = %d, '
-                  'stopped epoch = %d' % (self.best_epoch, self.stopped_epoch))
+            print('Early stopping:')
+            print('- best epoch = {}, stopped epoch = {}'.format(self.best_epoch, self.stopped_epoch))
+            print('- best monitored value = {:.6f} (delta = {:.6f})'.format(
+                self.best_value, current_value - self.best_value))
             return True
         return False
