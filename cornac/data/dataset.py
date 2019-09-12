@@ -55,6 +55,28 @@ class Dataset(object):
     seed: int, optional, default: None
         Random seed for reproducing data sampling.
 
+    Attributes
+    ----------
+    num_users: int
+        Number of users in the dataset. For the case of validation or test dataset,
+        this could add up the number of users in the training dataset as well.
+
+    num_items: int
+        Number of items in the dataset. For the case of validation or test dataset,
+         this could add up the number of items in the training dataset as well.
+
+    num_ratings: int
+        Number of rating observations in the dataset.
+
+    max_rating: float
+        Maximum value among the rating observations.
+
+    max_rating: float
+        Minimum value among the rating observations.
+
+    global_mean: float
+        Average value over the rating observations.
+
     """
 
     def __init__(self, uid_map, iid_map, uir_tuple, num_users, num_items,
@@ -64,6 +86,7 @@ class Dataset(object):
         self.uir_tuple = uir_tuple
         self.num_users = num_users
         self.num_items = num_items
+        self.num_ratings = len(uir_tuple[-1])
         self.max_rating = max_rating
         self.min_rating = min_rating
         self.global_mean = global_mean
@@ -135,7 +158,7 @@ class Dataset(object):
 
     @property
     def matrix(self):
-        """Return the user-item interaction matrix in csr sparse format"""
+        """Return the user-item interaction matrix in CSR sparse format"""
         return self.csr_matrix
 
     @property
