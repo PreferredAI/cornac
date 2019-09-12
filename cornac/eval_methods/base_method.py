@@ -47,7 +47,7 @@ def rating_eval(model, metrics, test_set, user_based=False):
     test_set: :obj:`cornac.data.Dataset`, required
         Dataset to be used for evaluation.
 
-    user_based: bool
+    user_based: bool, optional, default: False
         Evaluation mode. Whether results are averaging based on number of users or number of ratings.
 
     Returns
@@ -96,7 +96,7 @@ def ranking_eval(model, metrics, train_set, test_set, val_set=None,
         Recommender model to be evaluated.
 
     metrics: :obj:`iterable`, required
-        List of rating metrics :obj:`cornac.metrics.RatingMetric`.
+        List of rating metrics :obj:`cornac.metrics.RankingMetric`.
 
     train_set: :obj:`cornac.data.Dataset`, required
         Dataset to be used for model training. This will be used to exclude
@@ -419,7 +419,7 @@ class BaseMethod:
         metrics: :obj:`iterable`
             List of metrics.
 
-        user_based: bool
+        user_based: bool, optional, default: False
             Evaluation mode. Whether results are averaging based on number of users or number of ratings.
 
         Returns
