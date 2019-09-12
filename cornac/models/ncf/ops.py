@@ -16,6 +16,9 @@
 
 import tensorflow as tf
 
+from ...metrics import NDCG
+from ...eval_methods import ranking_eval
+
 act_functions = {
     'sigmoid': tf.nn.sigmoid,
     'tanh': tf.nn.tanh,
@@ -79,3 +82,8 @@ def mlp(uid, iid, num_users, num_items, layers, reg_layers, act_fn, seed=None):
                                           kernel_initializer=tf.initializers.lecun_uniform(seed),
                                           kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_layers[i + 1]))
         return interaction
+
+
+def ndcg(model, train_set, val_set, k=100):
+    return ranking_eval(model=model, metrics=[NDCG(k=k)],
+                        train_set=train_set, test_set=val_set)[0][0]
