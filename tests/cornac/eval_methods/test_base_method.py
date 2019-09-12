@@ -26,7 +26,7 @@ class TestBaseMethod(unittest.TestCase):
 
     def test_init(self):
         bm = BaseMethod(None, verbose=True)
-        self.assertFalse(bm.exclude_unknowns)
+        self.assertTrue(bm.exclude_unknowns)
         self.assertEqual(bm.rating_threshold, 1.0)
 
     def test_trainset_none(self):
@@ -38,7 +38,7 @@ class TestBaseMethod(unittest.TestCase):
 
     def test_testset_none(self):
         bm = BaseMethod(None, verbose=True)
-        bm.train_set = Dataset(None, None, ([], [], []), None, None, 0., 0., 0.)
+        bm.train_set = Dataset(None, None, ([], [], []), 0, 0, 0., 0., 0.)
         try:
             bm.evaluate(None, {}, False)
         except ValueError:
