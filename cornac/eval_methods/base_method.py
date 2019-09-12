@@ -26,15 +26,37 @@ from ..data import GraphModality
 from ..data import SentimentModality
 from ..data import Dataset
 from ..utils.common import validate_format
-from ..metrics.rating import RatingMetric
-from ..metrics.ranking import RankingMetric
+from ..metrics import RatingMetric
+from ..metrics import RankingMetric
 from ..experiment.result import Result
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
 
 def rating_eval(model, metrics, test_set, user_based=False):
-    """Evaluate model on provided rating metrics
+    """Evaluate model on provided rating metrics.
+
+    Parameters
+    ----------
+    model: :obj:`cornac.models.Recommender`, required
+        Recommender model to be evaluated.
+
+    metrics: :obj:`iterable`, required
+        List of rating metrics :obj:`cornac.metrics.RatingMetric`.
+
+    test_set: :obj:`cornac.data.Dataset`, required
+        Dataset to be used for evaluation.
+
+    user_based: bool
+        Evaluation mode. Whether results are averaging based on number of users or number of ratings.
+
+    Returns
+    -------
+    res: (List, List)
+        Tuple of two lists:
+         - average result for each of the metrics
+         - average result per user for each of the metrics
+
     """
 
     if len(metrics) == 0:
@@ -66,7 +88,43 @@ def rating_eval(model, metrics, test_set, user_based=False):
 
 def ranking_eval(model, metrics, train_set, test_set, val_set=None,
                  rating_threshold=1.0, exclude_unknowns=True, verbose=False):
-    """Evaluate model on provided ranking metrics
+    """Evaluate model on provided ranking metrics.
+
+    Parameters
+    ----------
+    model: :obj:`cornac.models.Recommender`, required
+        Recommender model to be evaluated.
+
+    metrics: :obj:`iterable`, required
+        List of rating metrics :obj:`cornac.metrics.RatingMetric`.
+
+    train_set: :obj:`cornac.data.Dataset`, required
+        Dataset to be used for model training. This will be used to exclude
+        observations already appeared during training.
+
+    test_set: :obj:`cornac.data.Dataset`, required
+        Dataset to be used for evaluation.
+
+    val_set: :obj:`cornac.data.Dataset`, optional, default: None
+        Dataset to be used for model selection. This will be used to exclude
+        observations already appeared during validation.
+
+    rating_threshold: float, optional, default: 1.0
+        The threshold to convert ratings into positive or negative feedback.
+
+    exclude_unknowns: bool, optional, default: True
+        Ignore unknown users and items during evaluation.
+
+    verbose: bool, optional, default: False
+        Output evaluation progress.
+
+    Returns
+    -------
+    res: (List, List)
+        Tuple of two lists:
+         - average result for each of the metrics
+         - average result per user for each of the metrics
+
     """
 
     if len(metrics) == 0:
@@ -136,7 +194,7 @@ class BaseMethod:
     seed: int, optional, default: None
         Random seed for reproduce the splitting.
 
-    exclude_unknowns: bool, optional, default: False
+    exclude_unknowns: bool, optional, default: True
         Ignore unknown users and items (cold-start) during evaluation.
 
     verbose: bool, optional, default: False
@@ -144,11 +202,12 @@ class BaseMethod:
 
     """
 
-    def __init__(self, data=None,
+    def __init__(self,
+                 data=None,
                  fmt='UIR',
                  rating_threshold=1.0,
                  seed=None,
-                 exclude_unknowns=False,
+                 exclude_unknowns=True,
                  verbose=False,
                  **kwargs):
         self._data = data
@@ -363,7 +422,12 @@ class BaseMethod:
         user_based: bool
             Evaluation mode. Whether results are averaging based on number of users or number of ratings.
 
+        Returns
+        -------
+        res: :obj:`cornac.experiment.Result`
+
         """
+
         rating_metrics, ranking_metrics = self._organize_metrics(metrics)
 
         if self.train_set is None:
