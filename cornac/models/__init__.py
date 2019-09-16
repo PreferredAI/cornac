@@ -43,3 +43,4 @@ from .ncf import GMF
 from .ncf import MLP
 from .ncf import NeuMF
 from .efm import EFM
+from .mter import MTER

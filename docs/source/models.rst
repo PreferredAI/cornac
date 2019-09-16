@@ -20,6 +20,11 @@ VAE for Collaborative Filtering (VAECF)
 .. automodule:: cornac.models.vaecf.recom_vaecf
    :members:
 
+Multi-Task Explainable Recommendation (MTER)
+----------------------------------------------------
+.. automodule:: cornac.models.mter.recom_mter
+   :members:
+
 Collaborative Variational Autoencoder (CVAE)
 ----------------------------------------------
 .. automodule:: cornac.models.cvae.recom_cvae
