@@ -28,7 +28,7 @@
 
 ## Installation
 
-Currently, we are supporting Python 3 (version 3.6 is recommended). There are several ways to install Cornac:
+Currently, we are supporting Python 3. There are several ways to install Cornac:
 
   - **From PyPI (you may need a C++ compiler):**
 
