@@ -131,7 +131,7 @@ def ranking_eval(model, metrics, train_set, test_set, val_set=None,
         return [], []
 
     avg_results = []
-    user_results = [{}] * len(metrics)
+    user_results = [{} for _ in enumerate(metrics)]
 
     gt_mat = test_set.csr_matrix
     train_mat = train_set.csr_matrix
