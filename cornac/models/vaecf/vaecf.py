@@ -38,14 +38,14 @@ class VAE(nn.Module):
 
     def encode(self, x):
         h = self.efc1(x)
-        h = F.tanh(h)
+        h = torch.tanh(h)
         return self.efc21(h), self.efc22(h)
 
     def decode(self, z):
         h = self.dfc1(z)
-        h = F.tanh(h)
+        h = torch.tanh(h)
         o = self.dfc2(h)
-        return F.softmax(o)
+        return F.softmax(o, dim=1)
 
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
