@@ -103,10 +103,9 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
         count = 0
         num_steps = int(train_set.matrix.shape[0] / batch_size)
 
-        if verbose:
-            progress_bar = tqdm(total=num_steps,
-                                desc='Epoch {}/{}'.format(epoch, n_epochs),
-                                disable=False)
+        progress_bar = tqdm(total=num_steps,
+                            desc='Epoch {}/{}'.format(epoch, n_epochs),
+                            disable=not(verbose))
 
         for batch_id, u_ids in enumerate(train_set.user_iter(batch_size, shuffle=False)):
             u_batch = train_set.matrix[u_ids,:]
@@ -125,12 +124,11 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
             sum_loss += loss.data.item()
             count += len(u_batch)
 
-            if verbose:
-                if batch_id % 10 == 0:
-                    progress_bar.set_postfix(loss=(sum_loss / count))
-                progress_bar.update(1)
+            if count % (batch_size * 10) == 0:
+                progress_bar.set_postfix(loss=(sum_loss / count))
+            progress_bar.update(1)
+        progress_bar.close()
         if verbose:
-            progress_bar.close()
             print(sum_loss)
 
     return vae
