@@ -87,10 +87,16 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
 
     # Instantiations
     data_dim = train_set.matrix.shape[1]
-    vae = VAE(data_dim, k, h)
-    params = list(vae.parameters())
 
-    optimizer = torch.optim.Adam(params=params, lr=learn_rate)
+    if use_gpu and torch.cuda.is_available():
+        device = torch.device("cuda:0")
+        vae = VAE(data_dim, k, h).cuda(device=0)
+
+    else:
+        device = torch.device("cpu")
+        vae = VAE(data_dim, k, h)
+
+    optimizer = torch.optim.Adam(params=vae.parameters(), lr=learn_rate)
 
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
@@ -106,7 +112,7 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
             u_batch = train_set.matrix[u_ids,:]
             u_batch.data = np.ones(len(u_batch.data))  # Binarize data
             u_batch = u_batch.A
-            u_batch = torch.tensor(u_batch, dtype=torch.double)
+            u_batch = torch.tensor(u_batch, dtype=torch.double, device=device)
 
             # Reconstructed batch
             u_batch_, mu, logvar = vae(u_batch)

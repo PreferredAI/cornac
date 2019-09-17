@@ -55,6 +55,9 @@ class VAECF(Recommender):
     seed: int, optional, default: None
         Random seed for parameters initialization.
 
+    use_gpu: boolean, optional, default: False
+        If True and your system supports CUDA then training is performed on GPUs.
+
     References
     ----------
     * Liang, Dawen, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. "Variational autoencoders for collaborative filtering." \
