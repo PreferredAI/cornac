@@ -18,6 +18,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
+from ...utils import estimate_batches
 
 class VAE(nn.Module):
     def __init__(self, data_dim, z_dim, h_dim):
@@ -97,12 +98,11 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
         vae = VAE(data_dim, k, h)
 
     optimizer = torch.optim.Adam(params=vae.parameters(), lr=learn_rate)
+    num_steps = estimate_batches(train_set.num_users,batch_size)
 
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
         count = 0
-        num_steps = int(train_set.matrix.shape[0] / batch_size)
-
         progress_bar = tqdm(total=num_steps,
                             desc='Epoch {}/{}'.format(epoch, n_epochs),
                             disable=not(verbose))
@@ -124,12 +124,10 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
             sum_loss += loss.data.item()
             count += len(u_batch)
 
-            if count % (batch_size * 10) == 0:
+            if batch_id % 10 == 0:
                 progress_bar.set_postfix(loss=(sum_loss / count))
             progress_bar.update(1)
         progress_bar.close()
-        if verbose:
-            print(sum_loss)
 
     return vae
 
