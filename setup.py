@@ -32,11 +32,12 @@ except ImportError:
 else:
     USE_CYTHON = True
 
+
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-USE_OPENMP = True
 
+USE_OPENMP = True
 
 def extract_gcc_binaries():
     """Try to find GCC on OSX for OpenMP support."""
@@ -166,7 +167,7 @@ if USE_CYTHON:
 
 setup(
     name='cornac',
-    version='1.1.1',
+    version='1.1.2',
     description='A Comparative Framework for Multimodal Recommender Systems',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -195,6 +196,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'License :: OSI Approved :: Apache Software License',
         'Topic :: Software Development',
         'Topic :: Scientific/Engineering',
