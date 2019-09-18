@@ -162,7 +162,7 @@ class BPR(Recommender):
                                                  user_ids, X.indices, X.indptr,
                                                  self.u_factors, self.i_factors, self.i_biases)
                 progress.set_postfix({"correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
-                                      "skipped": "%.2f%%" % (100.0 * skipped / n_items)})
+                                      "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))})
         if self.verbose:
             print('Optimization finished!')
 
