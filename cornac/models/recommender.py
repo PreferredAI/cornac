@@ -39,6 +39,7 @@ class Recommender:
         self.train_set = None
         self.val_set = None
 
+    def reset_info(self):
         self.best_value = -np.Inf
         self.best_epoch = 0
         self.current_epoch = 0
@@ -63,6 +64,7 @@ class Recommender:
         -------
         self : object
         """
+        self.reset_info()
         self.train_set = train_set
         self.val_set = val_set
         return self
