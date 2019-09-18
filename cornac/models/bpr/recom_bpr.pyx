@@ -162,7 +162,7 @@ class BPR(Recommender):
                                                  user_ids, X.indices, X.indptr,
                                                  self.u_factors, self.i_factors, self.i_biases)
                 progress.set_postfix({"correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
-                                      "skipped": "%.2f%%" % (100.0 * skipped / n_items)})
+                                      "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))})
         if self.verbose:
             print('Optimization finished!')
 
@@ -260,6 +260,4 @@ class BPR(Recommender):
             item_score = self.i_biases[item_idx]
             if not unk_user:
                 item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
-            if self.train_set.min_rating != self.train_set.max_rating:
-                item_score = scale(item_score, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
             return item_score
