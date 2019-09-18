@@ -21,7 +21,7 @@ VAE for Collaborative Filtering (VAECF)
    :members:
 
 Collaborative Variational Autoencoder (CVAE)
----------------------------------------
+----------------------------------------------
 .. automodule:: cornac.models.cvae.recom_cvae
    :members:
 
@@ -46,12 +46,12 @@ Multi-Layer Perceptron (MLP)
    :members:
 
 Neural Matrix Factorization (NeuMF)
------------------------------------------
+----------------------------------------------
 .. automodule:: cornac.models.ncf.recom_neumf
    :members:
 
 Online Indexable Bayesian Personalized Ranking (OIBPR)
--------------------------------------------------------
+-----------------------------------------------------------
 .. automodule:: cornac.models.online_ibpr.recom_online_ibpr
    :members:
 
@@ -66,7 +66,7 @@ Collaborative Deep Ranking (CDR)
    :members:
 
 Collaborative Ordinal Embedding (COE)
--------------------------------------------------------
+--------------------------------------------
 .. automodule:: cornac.models.coe.recom_coe
    :members:
 
@@ -86,17 +86,17 @@ Visual Bayesian Personalized Ranking (VBPR)
    :members:
 
 Collaborative Deep Learning (CDL)
----------------------------------------
+---------------------------------------------
 .. automodule:: cornac.models.cdl.recom_cdl
    :members:
 
 Hierarchical Poisson Factorization (HPF)
-----------------------------------------
+--------------------------------------------
 .. automodule:: cornac.models.hpf.recom_hpf
    :members:
 
 Explicit Factor Model (EFM)
-----------------------------------------
+--------------------------------------------
 .. automodule:: cornac.models.efm.recom_efm
    :members:
 
@@ -106,47 +106,47 @@ Social Bayesian Personalized Ranking (SBPR)
    :members:
 
 Hidden Factors and Hidden Topics (HFT)
------------------------------------------
+---------------------------------------------
 .. automodule:: cornac.models.hft.recom_hft
    :members:
 
 Collaborative Topic Modeling (CTR)
----------------------------------------
+-------------------------------------------
 .. automodule:: cornac.models.ctr.recom_ctr
    :members:
 
 Baseline Only
-----------------------------------------
+---------------------------------------------------
 .. autoclass:: cornac.models.baseline_only.recom_bo
    :members:
 
 Bayesian Personalized Ranking (BPR)
-----------------------------------------
+----------------------------------------------
 .. autoclass:: cornac.models.bpr.recom_bpr.BPR
    :members:
 
 Matrix Factorization (MF)
-----------------------------------------
+------------------------------------------
 .. automodule:: cornac.models.mf.recom_mf
    :members:
 
 Non-negative Matrix Factorization (NMF)
------------------------------------------
+--------------------------------------------
 .. automodule:: cornac.models.nmf.recom_nmf
    :members:
 
 Probabilitic Matrix Factorization (PMF)
------------------------------------------
+--------------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
 
 Singular Value Decomposition (SVD)
------------------------------------------
+-------------------------------------------
 .. automodule:: cornac.models.svd.recom_svd
    :members:
 
 Social Recommendation using PMF (SoRec)
------------------------------------------
+------------------------------------------------
 .. automodule:: cornac.models.sorec.recom_sorec
    :members:
 

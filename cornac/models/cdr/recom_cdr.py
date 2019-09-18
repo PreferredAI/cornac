@@ -71,6 +71,7 @@ class CDR(Recommender):
 
     init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U':U, 'V':V}
+
         U: ndarray, shape (n_users,k)
             The user latent factors, optional initialization via init_params.
         V: ndarray, shape (n_items,k)
@@ -79,7 +80,9 @@ class CDR(Recommender):
     seed: int, optional, default: None
         Random seed for weight initialization.
 
-    Reference: Collaborative Deep Ranking: A Hybrid Pair-Wise Recommendation Algorithm with Implicit Feedback
+    References
+    ----------
+    Collaborative Deep Ranking: A Hybrid Pair-Wise Recommendation Algorithm with Implicit Feedback
     Ying H., Chen L., Xiong Y., Wu J. (2016)
 
     """

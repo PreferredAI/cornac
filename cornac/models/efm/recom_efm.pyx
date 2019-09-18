@@ -75,7 +75,8 @@ class EFM(Recommender):
 
     use_item_aspect_popularity: boolean, optional, default: True
         When False, item aspect frequency is omitted from item aspect quality computation formular.\
-        Specifically, :math:`Y_{ij} = 1 + \frac{N - 1}{1 + e^{-s_{ij}}}` if `p_i` is reviewed on feature `F_j`
+        Specifically, :math:`Y_{ij} = 1 + \\frac{N - 1}{1 + e^{-s_{ij}}}`
+        if :math:`p_i` is reviewed on feature :math:`F_j`
 
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs.
@@ -95,7 +96,8 @@ class EFM(Recommender):
         When True, running logs are displayed.
 
     init_params: dictionary, optional, default: {}
-        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V', H1':H1, 'H2':H2}
+        List of initial parameters, e.g., init_params = {'U1':U1, 'U2':U2, 'V':V, 'H1':H1, 'H2':H2}
+
         U1: ndarray, shape (n_users, n_explicit_factors)
             The user explicit factors, optional initialization via init_params.
         U2: ndarray, shape (n_ratings, n_explicit_factors)
@@ -116,6 +118,7 @@ class EFM(Recommender):
     Explicit factor models for explainable recommendation based on phrase-level sentiment analysis.
     In Proceedings of the 37th international ACM SIGIR conference on Research & development in information retrieval (SIGIR '14).
     ACM, New York, NY, USA, 83-92. DOI: https://doi.org/10.1145/2600428.2609579
+
     """
 
     def __init__(self,  name="EFM",

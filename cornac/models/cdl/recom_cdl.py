@@ -80,6 +80,7 @@ class CDL(Recommender):
 
     init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U':U, 'V':V}
+
         U: ndarray, shape (n_users,k)
             The user latent factors, optional initialization via init_params.
         V: ndarray, shape (n_items,k)

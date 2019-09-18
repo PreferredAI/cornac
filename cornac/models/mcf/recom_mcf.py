@@ -49,16 +49,17 @@ class MCF(Recommender):
         pre-trained (U and V are not None).
 
     item-affinity network: See "cornac/examples/mcf_office.py" for an example of how to use \
-        cornac's graph modality to load and provide the ``item-affinity network'' for MCF.
+        cornac's graph modality to load and provide the "item-affinity network" for MCF.
 
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: {}
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
-        U: a csc_matrix of shape (n_users,k), containing the user latent factors. \
-        V: a csc_matrix of shape (n_items,k), containing the item latent factors. \
-        Z: a csc_matrix of shape (n_items,k), containing the ``Also-Viewed'' item latent factors.
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}.
+
+        U: a csc_matrix of shape (n_users,k), containing the user latent factors.
+        V: a csc_matrix of shape (n_items,k), containing the item latent factors.
+        Z: a csc_matrix of shape (n_items,k), containing the "Also-Viewed" item latent factors.
 
     seed: int, optional, default: None
         Random seed for parameters initialization.
@@ -67,6 +68,7 @@ class MCF(Recommender):
     ----------
     * Park, Chanyoung, Donghyun Kim, Jinoh Oh, and Hwanjo Yu. "Do Also-Viewed Products Help User Rating Prediction?."\
      In Proceedings of WWW, pp. 1113-1122. 2017.
+
     """
 
     def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="MCF",
