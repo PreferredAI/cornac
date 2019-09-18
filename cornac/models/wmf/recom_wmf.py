@@ -52,11 +52,12 @@ class WMF(Recommender):
         The batch size for SGD.
 
     trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already 
+        When False, the model is not trained and Cornac assumes that the model already
         pre-trained (U and V are not None).
 
     init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U':U, 'V':V}
+
         U: ndarray, shape (n_users,k)
             The user latent factors, optional initialization via init_params.
         V: ndarray, shape (n_items,k)
@@ -67,10 +68,10 @@ class WMF(Recommender):
 
     References
     ----------
-    * Hu, Y., Koren, Y., & Volinsky, C. (2008, December). Collaborative filtering for implicit feedback datasets.
+    * Hu, Y., Koren, Y., & Volinsky, C. (2008, December). Collaborative filtering for implicit feedback datasets. \
     In 2008 Eighth IEEE International Conference on Data Mining (pp. 263-272).
 
-    * Pan, R., Zhou, Y., Cao, B., Liu, N. N., Lukose, R., Scholz, M., & Yang, Q. (2008, December).
+    * Pan, R., Zhou, Y., Cao, B., Liu, N. N., Lukose, R., Scholz, M., & Yang, Q. (2008, December). \
     One-class collaborative filtering. In 2008 Eighth IEEE International Conference on Data Mining (pp. 502-511).
 
     """

@@ -63,15 +63,16 @@ class VMF(Recommender):
         When False, the model is not trained and Cornac assumes that the model is already \
         pre-trained (The parameters of the model U, V, P, E are not None).
         
-    visual_features : See "cornac/examples/vmf_example.py" for an example of how to use \
-        cornac's visual modality to load and provide the ``item visual features'' for VMF.
+    visual_features: See "cornac/examples/vmf_example.py" for an example of how to use \
+        cornac's visual modality to load and provide the "item visual features" for VMF.
 
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: {}
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V, 'P': P, 'E': E}. \
-        U: numpy array of shape (n_users,k), user latent factors. \
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V, 'P': P, 'E': E}.
+
+        U: numpy array of shape (n_users,k), user latent factors.
         V: numpy array of shape (n_items,k), item latent factors.
         P: numpy array of shape (n_users,d), user visual latent factors.
         E: numpy array of shape (d,c), embedding kernel matrix.
@@ -83,6 +84,7 @@ class VMF(Recommender):
     ----------
     * Park, Chanyoung, Donghyun Kim, Jinoh Oh, and Hwanjo Yu. "Do Also-Viewed Products Help User Rating Prediction?."\
      In Proceedings of WWW, pp. 1113-1122. 2017.
+
     """
 
     def __init__(self, name="VMF", k=10, d=10, n_epochs=100, batch_size=100, learning_rate=0.001, gamma=0.9,

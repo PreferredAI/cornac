@@ -49,22 +49,27 @@ class SoRec(Recommender):
         The name of the recommender model.
 
     trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already \
+        When False, the model is not trained and Cornac assumes that the model already
         pre-trained (U, V and Z are not None).
 
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {'U':None,'V':None}
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V,'Z':Z}. \
-        U: a ndarray of shape (n_users,k), containing the user latent factors. \
-        V: a ndarray of shape (n_items,k), containing the item latent factors. \
-        Z: a ndarray of shape (n_users,k), containing the social network latent factors. \
+    init_params: dictionary, optional, default: {'U':None, 'V':None}
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V, 'Z':Z}.
+
+        U: a ndarray of shape (n_users, k)
+            Containing the user latent factors.
+        V: a ndarray of shape (n_items, k)
+            Containing the item latent factors.
+        Z: a ndarray of shape (n_users, k)
+            Containing the social network latent factors.
 
     References
     ----------
     * H. Ma, H. Yang, M. R. Lyu, and I. King. SoRec:Social recommendation using probabilistic matrix factorization. \
      CIKM ’08, pages 931–940, Napa Valley, USA, 2008.
+
     """
 
     def __init__(self, name="SoRec", k=5, max_iter=100, learning_rate=0.001, lamda_c=10, lamda=0.001, gamma=0.9,
