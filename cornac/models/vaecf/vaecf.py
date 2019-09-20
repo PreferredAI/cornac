@@ -18,7 +18,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
+
 from ...utils import estimate_batches
+
+torch.set_default_dtype(torch.float32)
 
 
 class VAE(nn.Module):
@@ -83,19 +86,17 @@ class VAE(nn.Module):
         return torch.mean(beta * kld - ll)
 
 
-def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed, use_gpu):
+def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose,
+          seed=None, device=torch.device('cpu')):
     if seed is not None:
         torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
 
     # Instantiations
     data_dim = train_set.matrix.shape[1]
-
-    if use_gpu and torch.cuda.is_available():
-        device = torch.device("cuda:0")
+    if str(device).startswith('cuda'):
         vae = VAE(data_dim, k, h).cuda(device=0)
-
     else:
-        device = torch.device("cpu")
         vae = VAE(data_dim, k, h)
 
     optimizer = torch.optim.Adam(params=vae.parameters(), lr=learn_rate)
@@ -112,7 +113,7 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
             u_batch = train_set.matrix[u_ids, :]
             u_batch.data = np.ones(len(u_batch.data))  # Binarize data
             u_batch = u_batch.A
-            u_batch = torch.tensor(u_batch, dtype=torch.double, device=device)
+            u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
 
             # Reconstructed batch
             u_batch_, mu, logvar = vae(u_batch)
@@ -131,6 +132,3 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
         progress_bar.close()
 
     return vae
-
-
-torch.set_default_dtype(torch.double)
