@@ -13,16 +13,18 @@
 # limitations under the License.
 # ============================================================================
 
+import random
+import multiprocessing as mp
+import ctypes as c
+
 import numpy as np
 import scipy.sparse as sp
+from tqdm import tqdm
+
 from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
-import multiprocessing as mp
-import random
-import ctypes as c
-from tqdm import tqdm
 
 
 class MTER(Recommender):
