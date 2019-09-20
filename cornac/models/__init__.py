@@ -13,6 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
+from .recommender import Recommender
 from .baseline_only import BaselineOnly
 from .bpr import BPR
 from .cdl import CDL
