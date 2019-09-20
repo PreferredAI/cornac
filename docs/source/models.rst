@@ -10,6 +10,11 @@ Collaborative Context Poisson Factorization (C2PF)
 .. automodule:: cornac.models.c2pf.recom_c2pf
    :members:
 
+Multi-Task Explainable Recommendation (MTER)
+----------------------------------------------------
+.. automodule:: cornac.models.mter.recom_mter
+   :members:
+
 Probabilistic Collaborative Representation Learning (PCRL)
 ------------------------------------------------------------
 .. automodule:: cornac.models.pcrl.recom_pcrl
@@ -18,11 +23,6 @@ Probabilistic Collaborative Representation Learning (PCRL)
 VAE for Collaborative Filtering (VAECF)
 ----------------------------------------------------
 .. automodule:: cornac.models.vaecf.recom_vaecf
-   :members:
-
-Multi-Task Explainable Recommendation (MTER)
-----------------------------------------------------
-.. automodule:: cornac.models.mter.recom_mter
    :members:
 
 Collaborative Variational Autoencoder (CVAE)
