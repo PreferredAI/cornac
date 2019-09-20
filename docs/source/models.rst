@@ -5,6 +5,11 @@ Models
 .. automodule:: cornac.models
     :members:
 
+Recommender (Generic Class)
+-----------------------------------------
+.. automodule:: cornac.models.recommender
+   :members:
+
 Collaborative Context Poisson Factorization (C2PF)
 ----------------------------------------------------
 .. automodule:: cornac.models.c2pf.recom_c2pf
