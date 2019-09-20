@@ -13,11 +13,12 @@
 # limitations under the License.
 # ============================================================================
 
-from autograd import grad
-import numpy as np
 import time
 import multiprocessing as mp
 import ctypes as c
+
+import numpy as np
+from autograd import grad
 
 
 EPS = 1e-9
