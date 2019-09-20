@@ -19,6 +19,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
+from ...utils import estimate_batches
+
+torch.set_default_dtype(torch.float32)
+
+
 class VAE(nn.Module):
     def __init__(self, data_dim, z_dim, h_dim):
         super(VAE, self).__init__()
@@ -38,14 +43,14 @@ class VAE(nn.Module):
 
     def encode(self, x):
         h = self.efc1(x)
-        h = F.tanh(h)
+        h = torch.tanh(h)
         return self.efc21(h), self.efc22(h)
 
     def decode(self, z):
         h = self.dfc1(z)
-        h = F.tanh(h)
+        h = torch.tanh(h)
         o = self.dfc2(h)
-        return F.softmax(o)
+        return F.softmax(o, dim=1)
 
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
@@ -81,32 +86,34 @@ class VAE(nn.Module):
         return torch.mean(beta * kld - ll)
 
 
-def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed, use_gpu):
+def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose,
+          seed=None, device=torch.device('cpu')):
     if seed is not None:
         torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
 
     # Instantiations
     data_dim = train_set.matrix.shape[1]
-    vae = VAE(data_dim, k, h)
-    params = list(vae.parameters())
+    if str(device).startswith('cuda'):
+        vae = VAE(data_dim, k, h).cuda(device=0)
+    else:
+        vae = VAE(data_dim, k, h)
 
-    optimizer = torch.optim.Adam(params=params, lr=learn_rate)
+    optimizer = torch.optim.Adam(params=vae.parameters(), lr=learn_rate)
+    num_steps = estimate_batches(train_set.num_users, batch_size)
 
     for epoch in range(1, n_epochs + 1):
         sum_loss = 0.
         count = 0
-        num_steps = int(train_set.matrix.shape[0] / batch_size)
-
-        if verbose:
-            progress_bar = tqdm(total=num_steps,
-                                desc='Epoch {}/{}'.format(epoch, n_epochs),
-                                disable=False)
+        progress_bar = tqdm(total=num_steps,
+                            desc='Epoch {}/{}'.format(epoch, n_epochs),
+                            disable=not (verbose))
 
         for batch_id, u_ids in enumerate(train_set.user_iter(batch_size, shuffle=False)):
-            u_batch = train_set.matrix[u_ids,:]
+            u_batch = train_set.matrix[u_ids, :]
             u_batch.data = np.ones(len(u_batch.data))  # Binarize data
             u_batch = u_batch.A
-            u_batch = torch.tensor(u_batch, dtype=torch.double)
+            u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
 
             # Reconstructed batch
             u_batch_, mu, logvar = vae(u_batch)
@@ -119,15 +126,9 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose, seed
             sum_loss += loss.data.item()
             count += len(u_batch)
 
-            if verbose:
-                if batch_id % 10 == 0:
-                    progress_bar.set_postfix(loss=(sum_loss / count))
-                progress_bar.update(1)
-        if verbose:
-            progress_bar.close()
-            print(sum_loss)
+            if batch_id % 10 == 0:
+                progress_bar.set_postfix(loss=(sum_loss / count))
+            progress_bar.update(1)
+        progress_bar.close()
 
     return vae
-
-
-torch.set_default_dtype(torch.double)

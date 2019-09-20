@@ -41,24 +41,27 @@ class VAECF(Recommender):
 
     beta: float, optional, default: 1.
         The weight of the KL term as in beta-VAE.
-		
+
     name: string, optional, default: 'VAECF'
         The name of the recommender model.
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model is already \
         pre-trained.
-		
+
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
     seed: int, optional, default: None
         Random seed for parameters initialization.
 
+    use_gpu: boolean, optional, default: False
+        If True and your system supports CUDA then training is performed on GPUs.
+
     References
     ----------
     * Liang, Dawen, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. "Variational autoencoders for collaborative filtering." \
-	In Proceedings of the 2018 World Wide Web Conference on World Wide Web, pp. 689-698.
+    In Proceedings of the 2018 World Wide Web Conference on World Wide Web, pp. 689-698.
     """
 
     def __init__(self, name="VAECF", k=10, h=20, n_epochs=100, batch_size=100, learning_rate=0.001, beta=1.,
@@ -90,21 +93,15 @@ class VAECF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        import torch
+        from .vaecf import learn
+
+        self.device = torch.device("cuda:0") if (self.use_gpu and torch.cuda.is_available()) else torch.device("cpu")
+
         if self.trainable:
-
-            if self.verbose:
-                print('Learning...')
-
-            from .vaecf import learn
-
-            res = learn(self.train_set, k=self.k, h=self.h, n_epochs=self.n_epochs,
-                        batch_size=self.batch_size, learn_rate=self.learning_rate, beta=self.beta,
-                        use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
-
-            self.vae = res
-
-            if self.verbose:
-                print('Learning completed')
+            self.vae = learn(self.train_set, k=self.k, h=self.h, n_epochs=self.n_epochs,
+                             batch_size=self.batch_size, learn_rate=self.learning_rate, beta=self.beta,
+                             verbose=self.verbose, seed=self.seed, device=self.device)
         elif self.verbose:
             print('%s is trained already (trainable = False)' % (self.name))
 
@@ -129,20 +126,24 @@ class VAECF(Recommender):
 
         """
         import torch
+
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
                 raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+
             x_u = self.train_set.matrix[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.double))
+            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.float32, device=self.device))
             known_item_scores = self.vae.decode(z_u).data.cpu().numpy().flatten()
+
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+
             x_u = self.train_set.matrix[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.double))
+            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.float32, device=self.device))
             user_pred = self.vae.decode(z_u).data.cpu().numpy().flatten()[item_idx]  # Fix me I am not efficient
 
             return user_pred
