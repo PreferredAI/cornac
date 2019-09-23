@@ -140,6 +140,11 @@ Matrix Factorization (MF)
 .. automodule:: cornac.models.mf.recom_mf
    :members:
 
+Most Popular (MostPop)
+-----------------------------------------------------
+.. automodule:: cornac.models.most_pop.recom_most_pop
+   :members:
+
 Non-negative Matrix Factorization (NMF)
 --------------------------------------------
 .. automodule:: cornac.models.nmf.recom_nmf
