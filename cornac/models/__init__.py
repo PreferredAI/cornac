@@ -30,6 +30,7 @@ from .hpf import HPF
 from .ibpr import IBPR
 from .mcf import MCF
 from .mf import MF
+from .most_pop import MostPop
 from .mter import MTER
 from .ncf import GMF
 from .ncf import MLP
