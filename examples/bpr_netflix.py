@@ -23,12 +23,13 @@ ratio_split = RatioSplit(data=netflix.load_data_small(reader=Reader(bin_threshol
                          test_size=0.1, rating_threshold=1.0,
                          exclude_unknowns=True, verbose=True)
 
+most_pop = cornac.models.MostPop()
 bpr = cornac.models.BPR(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01, verbose=True)
 
 auc = cornac.metrics.AUC()
 rec_20 = cornac.metrics.Recall(k=20)
 
 cornac.Experiment(eval_method=ratio_split,
-                  models=[bpr],
+                  models=[most_pop, bpr],
                   metrics=[auc, rec_20],
                   user_based=True).run()
