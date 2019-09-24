@@ -23,6 +23,7 @@ ratio_split = RatioSplit(data=movielens.load_1m(),
                          exclude_unknowns=False,
                          verbose=True)
 
+global_avg = cornac.models.GlobalAvg()
 mf = cornac.models.MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,
                       use_bias=True, early_stop=True, verbose=True)
 
@@ -30,7 +31,7 @@ mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
 
 exp = cornac.Experiment(eval_method=ratio_split,
-                        models=[mf],
+                        models=[global_avg, mf],
                         metrics=[mae, rmse],
                         user_based=True)
 exp.run()
