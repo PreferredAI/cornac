@@ -26,13 +26,8 @@ class RatioSplit(BaseMethod):
 
     Parameters
     ----------
-    data: list, required
-        The input data in the form of triplets (user, item, rating).
-
-    fmt: str, optional, default: "UIR"
-        The format of input data:
-        - UIR: (user, item, rating) triplet data
-        - UIRT: (user, item , rating, timestamp) quadruplet data
+    data: array-like, required
+        Raw preference data in the triplet format [(user_id, item_id, rating_value)].
 
     test_size: float, optional, default: 0.2
         The proportion of the test set, \
@@ -42,23 +37,24 @@ class RatioSplit(BaseMethod):
         The proportion of the validation set, \
         if > 1 then it is treated as the size of the validation set.
 
-    rating_threshold: float, optional, default: 1.
-        The minimum value that is considered to be a good rating used for ranking, \
-        e.g, if the ratings are in {1, ..., 5}, then rating_threshold = 4.
+    rating_threshold: float, optional, default: 1.0
+        Threshold used to binarize rating values into positive or negative feedback for
+        model evaluation using ranking metrics (rating metrics are not affected).
 
     seed: int, optional, default: None
-        Random seed for reproduce the splitting.
+        Random seed for reproducibility.
 
-    exclude_unknowns: bool, optional, default: False
-        Ignore unknown users and items (cold-start) during evaluation and testing
+    exclude_unknowns: bool, optional, default: True
+        If `True`, unknown users and items will be ignored during model evaluation.
 
     verbose: bool, optional, default: False
-        Output running log
+        Output running log.
+
     """
 
-    def __init__(self, data, fmt='UIR', test_size=0.2, val_size=0.0, rating_threshold=1.0,
+    def __init__(self, data, test_size=0.2, val_size=0.0, rating_threshold=1.0,
                  seed=None, exclude_unknowns=False, verbose=False, **kwargs):
-        super().__init__(data=data, fmt=fmt, rating_threshold=rating_threshold, seed=seed,
+        super().__init__(data=data, rating_threshold=rating_threshold, seed=seed,
                          exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
 
         self.train_size, self.val_size, self.test_size = self.validate_size(val_size, test_size, len(self._data))
@@ -107,8 +103,3 @@ class RatioSplit(BaseMethod):
         val_data = safe_indexing(self._data, val_idx) if len(val_idx) > 0 else None
 
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
-
-        if self.verbose:
-            print('---')
-            print('Total users = {}'.format(self.total_users))
-            print('Total items = {}'.format(self.total_items))

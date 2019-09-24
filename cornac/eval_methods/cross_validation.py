@@ -27,38 +27,34 @@ class CrossValidation(BaseMethod):
 
     Parameters
     ----------
-    data: ... , required
-        Input data in the triplet format (user_id, item_id, rating_val).
+    data: array-like, required
+        Raw preference data in the triplet format [(user_id, item_id, rating_value)].
 
     n_folds: int, optional, default: 5
         The number of folds for cross validation.
 
-    rating_threshold: float, optional, default: 1.
-        The minimum value that is considered to be a good rating, \
-        e.g, if the ratings are in {1, ... ,5}, then rating_threshold = 4.
+    rating_threshold: float, optional, default: 1.0
+        Threshold used to binarize rating values into positive or negative feedback for
+        model evaluation using ranking metrics (rating metrics are not affected).
 
     partition: array-like, shape (n_observed_ratings,), optional, default: None
         The partition of ratings into n_folds (fold label of each rating) \
-        If None, random partitioning is performed to assign each rating into a fold.
-
-    rating_threshold: float, optional, default: 1.
-        The minimum value that is considered to be a good rating used for ranking, \
-        e.g, if the ratings are in {1, ..., 5}, then rating_threshold = 4.
+        If `None`, random partitioning is performed to assign each rating into a fold.
 
     seed: int, optional, default: None
-        Random seed for reproduce the splitting.
+        Random seed for reproducibility.
 
-    exclude_unknowns: bool, optional, default: False
-        Ignore unknown users and items (cold-start) during evaluation and testing
+    exclude_unknowns: bool, optional, default: True
+        If `True`, unknown users and items will be ignored during model evaluation.
 
     verbose: bool, optional, default: False
-        Output running log
+        Output running log.
     """
 
-    def __init__(self, data, fmt='UIR', n_folds=5, rating_threshold=1., partition=None,
+    def __init__(self, data, n_folds=5, rating_threshold=1., partition=None,
                  seed=None, exclude_unknowns=True, verbose=False, **kwargs):
-        BaseMethod.__init__(self, data=data, fmt=fmt, rating_threshold=rating_threshold,
-                            seed=seed, exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
+        BaseMethod.__init__(self, data=data, rating_threshold=rating_threshold, seed=seed,
+                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
 
         self.n_folds = n_folds
         self.n_ratings = len(self._data)
@@ -67,8 +63,9 @@ class CrossValidation(BaseMethod):
 
         self._partition = self._validate_partition(partition)
 
-    # Partition ratings into n_folds
     def _partition_data(self):
+        """Partition ratings into n_folds"""
+
         rng = get_rng(self.seed)
 
         fold_size = int(self.n_ratings / self.n_folds)
@@ -103,11 +100,6 @@ class CrossValidation(BaseMethod):
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
         self.build(train_data=train_data, test_data=test_data, val_data=test_data)
-
-        if self.verbose:
-            print('---')
-            print('Total users = {}'.format(self.total_users))
-            print('Total items = {}'.format(self.total_items))
 
     def _next_fold(self):
         if self.current_fold < self.n_folds - 1:
