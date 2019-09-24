@@ -427,8 +427,10 @@ class CountVectorizer():
         doc_freq = np.bincount(X.indices, minlength=X.shape[1])
         term_indices = np.arange(X.shape[1])  # terms are already sorted based on frequency from Vocabulary
         mask = np.ones(len(doc_freq), dtype=bool)
-        mask &= doc_freq <= max_doc_count
-        mask &= doc_freq >= min_doc_count
+        if max_doc_count < X.shape[0]:
+            mask &= doc_freq <= max_doc_count
+        if min_doc_count > 1:
+            mask &= doc_freq >= min_doc_count
 
         if self.max_features is not None and mask.sum() > self.max_features:
             mask_indices = term_indices[mask][:self.max_features]
