@@ -25,12 +25,9 @@ from ..data import ImageModality
 from ..data import GraphModality
 from ..data import SentimentModality
 from ..data import Dataset
-from ..utils.common import validate_format
 from ..metrics import RatingMetric
 from ..metrics import RankingMetric
 from ..experiment.result import Result
-
-VALID_DATA_FORMATS = ['UIR', 'UIRT']
 
 
 def rating_eval(model, metrics, test_set, user_based=False):
@@ -176,42 +173,32 @@ class BaseMethod:
 
     Parameters
     ----------
-    data: array-like
-        The original data.
-
-    data_format: str, default: 'UIR'
-        The format of given data.
-
-    total_users: int, optional, default: None
-        Total number of unique users in the data including train, val, and test sets.
-
-    total_users: int, optional, default: None
-        Total number of unique items in the data including train, val, and test sets.
+    data: array-like, required
+        Raw preference data in the triplet format [(user_id, item_id, rating_value)].
 
     rating_threshold: float, optional, default: 1.0
-        The threshold to convert ratings into positive or negative feedback for ranking metrics.
+        Threshold used to binarize rating values into positive or negative feedback for
+        model evaluation using ranking metrics (rating metrics are not affected).
 
     seed: int, optional, default: None
-        Random seed for reproduce the splitting.
+        Random seed for reproducibility.
 
     exclude_unknowns: bool, optional, default: True
-        Ignore unknown users and items (cold-start) during evaluation.
+        If `True`, unknown users and items will be ignored during model evaluation.
 
     verbose: bool, optional, default: False
-        Output running log
+        Output running log.
 
     """
 
     def __init__(self,
                  data=None,
-                 fmt='UIR',
                  rating_threshold=1.0,
                  seed=None,
                  exclude_unknowns=True,
                  verbose=False,
                  **kwargs):
         self._data = data
-        self.data_format = validate_format(fmt, VALID_DATA_FORMATS)
         self.train_set = None
         self.test_set = None
         self.val_set = None
@@ -333,7 +320,7 @@ class BaseMethod:
 
         return rating_metrics, ranking_metrics
 
-    def _build_uir(self, train_data, test_data, val_data=None):
+    def _build_datasets(self, train_data, test_data, val_data=None):
         self.train_set = Dataset.from_uir(data=train_data,
                                           global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
                                           seed=self.seed, exclude_unknowns=False)
@@ -369,6 +356,11 @@ class BaseMethod:
                 print('Number of users = {}'.format(len(self.val_set.uid_map)))
                 print('Number of items = {}'.format(len(self.val_set.iid_map)))
                 print('Number of ratings = {}'.format(self.val_set.num_ratings))
+
+        if self.verbose:
+            print('---')
+            print('Total users = {}'.format(self.total_users))
+            print('Total items = {}'.format(self.total_items))
 
     def _build_modalities(self):
         for user_modality in [self.user_text, self.user_image, self.user_graph]:
@@ -406,10 +398,10 @@ class BaseMethod:
         self.global_uid_map.clear()
         self.global_iid_map.clear()
 
-        if self.data_format == 'UIR':
-            self._build_uir(train_data, test_data, val_data)
-
+        self._build_datasets(train_data, test_data, val_data)
         self._build_modalities()
+
+        return self
 
     def evaluate(self, model, metrics, user_based):
         """Evaluate given models according to given metrics
@@ -487,8 +479,8 @@ class BaseMethod:
         return Result(model.name, metric_avg_results, metric_user_results)
 
     @classmethod
-    def from_splits(cls, train_data, test_data, val_data=None, data_format='UIR',
-                    rating_threshold=1.0, exclude_unknowns=False, verbose=False, **kwargs):
+    def from_splits(cls, train_data, test_data, val_data=None, rating_threshold=1.0,
+                    exclude_unknowns=False, seed=None, verbose=False, **kwargs):
         """Constructing evaluation method given data.
 
         Parameters
@@ -502,14 +494,14 @@ class BaseMethod:
         val_data: array-like
             Validation data
 
-        data_format: str, default: 'UIR'
-            The format of given data.
-
         rating_threshold: float, default: 1.0
             Threshold to decide positive or negative preferences.
 
         exclude_unknowns: bool, default: False
             Whether to exclude unknown users/items in evaluation.
+
+        seed: int, optional, default: None
+            Random seed for reproduce the splitting.
 
         verbose: bool, default: False
             The verbosity flag.
@@ -520,7 +512,12 @@ class BaseMethod:
             Evaluation method object.
 
         """
-        method = cls(fmt=data_format, rating_threshold=rating_threshold,
-                     exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
-        method.build(train_data=train_data, test_data=test_data, val_data=val_data)
-        return method
+        method = cls(rating_threshold=rating_threshold,
+                     exclude_unknowns=exclude_unknowns,
+                     seed=seed,
+                     verbose=verbose,
+                     **kwargs)
+
+        return method.build(train_data=train_data,
+                            test_data=test_data,
+                            val_data=val_data)
