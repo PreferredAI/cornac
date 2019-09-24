@@ -53,16 +53,16 @@ class MTER(Recommender):
     n_bpr_samples: int, optional, default: 1000
         The number of samples from all BPR pairs.
 
-    n_element_samples: int, optional, default: 200
+    n_element_samples: int, optional, default: 50
         The number of samples from all ratings in each iteration.
 
     lambda_reg: float, optional, default: 0.1
         The regularization parameter.
 
-    lambda_bpr: float, optional, default: 5.0
+    lambda_bpr: float, optional, default: 10.0
         The regularization parameter for BPR.
 
-    n_epochs: int, optional, default: 20000
+    n_epochs: int, optional, default: 200000
         Maximum number of epochs for training.
 
     lr: float, optional, default: 0.1
@@ -115,10 +115,10 @@ class MTER(Recommender):
                  n_aspect_factors=12,
                  n_opinion_factors=12,
                  n_bpr_samples=1000,
-                 n_element_samples=200,
+                 n_element_samples=50,
                  lambda_reg=0.1,
-                 lambda_bpr=5,
-                 n_epochs=20000,
+                 lambda_bpr=10,
+                 n_epochs=200000,
                  lr=0.1,
                  n_threads=0, trainable=True, verbose=False,
                  init_params={}, seed=None):
@@ -250,8 +250,8 @@ class MTER(Recommender):
         processes = []
         ps = mp.Process(target=paraserver,
                         args=(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspect_opinion,
-                              n_element_samples, n_bpr_samples, lambda_reg, lambda_bpr, n_epochs,
-                              lr, G1, G2, G3, U, I, A, O,
+                              n_element_samples, n_bpr_samples, lambda_reg, n_epochs, lr,
+                              G1, G2, G3, U, I, A, O,
                               error_square, error_bpr, q_samples_mse, q_samples_bpr,
                               del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad, n_threads, self.seed, self.verbose))
 
@@ -260,17 +260,17 @@ class MTER(Recommender):
 
         for _ in range(n_threads):
             p = mp.Process(target=grad_worker_mse,
-                           args=(user_item_aspect, user_aspect_opinion, item_aspect_opinion, lambda_bpr,
+                           args=(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
                                  G1, G2, G3, U, I, A, O,
-                                 error_square, error_bpr, lock, q_samples_mse,
+                                 error_square, lock, q_samples_mse,
                                  del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad))
             processes.append(p)
             p.start()
 
         for _ in range(n_threads):
             p = mp.Process(target=grad_worker_bpr,
-                           args=(user_item_aspect, rating_matrix, lambda_bpr,
-                                 G1, U, I, A, error_square, error_bpr, lock, q_samples_bpr,
+                           args=(rating_matrix, lambda_bpr,
+                                 G1, U, I, A, error_bpr, lock, q_samples_bpr,
                                  del_g1, del_u, del_i, del_a, num_grad))
             processes.append(p)
             p.start()

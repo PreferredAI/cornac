@@ -34,9 +34,9 @@ def sign(a, b):
     return 1 if a > b else -1
 
 
-def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion, lambda_bpr,
+def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
                     G1, G2, G3, U, I, A, O,
-                    error_square, error_bpr, lock, q_samples_mse,
+                    error_square, lock, q_samples_mse,
                     del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad):
     while 1:
         if not q_samples_mse.empty():
@@ -126,8 +126,8 @@ def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion, 
             lock.release()
 
 
-def grad_worker_bpr(user_item_aspect, rating_matrix, lambda_bpr,
-                    G1, U, I, A, error_square, error_bpr, lock, q_samples_bpr,
+def grad_worker_bpr(rating_matrix, lambda_bpr,
+                    G1, U, I, A, error_bpr, lock, q_samples_bpr,
                     del_g1, del_u, del_i, del_a, num_grad):
     while 1:
         if not q_samples_bpr.empty():
@@ -179,13 +179,12 @@ def grad_worker_bpr(user_item_aspect, rating_matrix, lambda_bpr,
 
 
 def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspect_opinion,
-               n_element_samples, n_bpr_samples, lambda_reg, lambda_bpr, num_iter, lr,
+               n_element_samples, n_bpr_samples, lambda_reg, n_epochs, lr,
                G1, G2, G3, U, I, A, O,
                error_square, error_bpr, q_samples_mse, q_samples_bpr,
-               del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad, num_threads, seed=None, verbose=False):
+               del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad, n_threads, seed=None, verbose=False):
 
     from ...utils import get_rng
-    from ...utils.init_utils import uniform
     rng = get_rng(seed)
 
     sum_square_gradients_G1 = np.zeros_like(G1)
@@ -196,17 +195,17 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
     sum_square_gradients_A = np.zeros_like(A)
     sum_square_gradients_O = np.zeros_like(O)
 
-    mse_per_proc = int(n_element_samples / num_threads)
-    bpr_per_proc = int(n_bpr_samples / num_threads)
+    mse_per_proc = int(n_element_samples / n_threads)
+    bpr_per_proc = int(n_bpr_samples / n_threads)
 
     user_item_aspect_keys = np.array(list(user_item_aspect.keys()))
     user_aspect_opinion_keys = np.array(list(user_aspect_opinion.keys()))
     item_aspect_opinion_keys = np.array(list(item_aspect_opinion.keys()))
     user_item_pairs_keys = np.array(user_item_pairs)
-    for iteration in range(num_iter):
+    for epoch in range(n_epochs):
         start_time = time.time()
         if verbose:
-            print('iteration:', iteration + 1, '/', num_iter)
+            print('iteration:', epoch + 1, '/', n_epochs)
 
         error_square.value = 0
         error_bpr.value = 0
@@ -229,7 +228,7 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
         del_a[:] = 0
         del_o[:] = 0
 
-        for i in range(num_threads):
+        for i in range(n_threads):
             q_samples_mse.put(
                 (uia_samples[mse_per_proc * i:mse_per_proc * (i + 1)],
                  uao_samples[mse_per_proc * i:mse_per_proc * (i + 1)],
@@ -239,7 +238,7 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
                  item2_sample[bpr_per_proc * i:bpr_per_proc * (i + 1)]))
 
         while 1:
-            if num_grad.value == 2 * num_threads:
+            if num_grad.value == 2 * n_threads:
                 break
 
         del_g1_reg = del_g1 + lambda_reg * G1 * (del_g1 != 0)
@@ -289,7 +288,7 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
             if n_bpr_samples:
                 print('BPR:', error_bpr.value / n_bpr_samples)
 
-            timeleft = (time.time() - start_time) * (num_iter - iteration - 1)
+            timeleft = (time.time() - start_time) * (n_epochs - epoch - 1)
 
             if (timeleft / 60) > 60:
                 print('time left: ' + str(int(timeleft / 3600)) + ' hr ' +
@@ -298,6 +297,6 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
                 print("time left: " + str(int(timeleft / 60)) +
                       ' min ' + str(int(timeleft % 60)) + ' s')
 
-    for _ in range(num_threads):
+    for _ in range(n_threads):
         q_samples_bpr.put(0)
         q_samples_mse.put(0)
