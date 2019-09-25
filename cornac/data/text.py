@@ -367,13 +367,18 @@ class CountVectorizer():
         Vocabulary of tokens. It contains mapping between tokens to their
         integer ids and vice versa.
 
-    max_doc_freq: Union[float, int] = 1.0
-        The maximum frequency of tokens appearing in documents to be excluded from vocabulary.
+    max_doc_freq: float in range [0.0, 1.0] or int, default=1.0
+        When building the vocabulary ignore terms that have a document
+        frequency strictly higher than the given threshold (corpus-specific
+        stop words).
         If float, the value represents a proportion of documents, int for absolute counts.
         If `vocab` is not None, this will be ignored.
 
-    min_freq: int, default = 1
-        The minimum frequency of tokens to be included into vocabulary.
+    min_doc_freq: float in range [0.0, 1.0] or int, default=1
+        When building the vocabulary ignore terms that have a document
+        frequency strictly lower than the given threshold. This value is also
+        called cut-off in the literature.
+        If float, the value represents a proportion of documents, int absolute counts.
         If `vocab` is not None, this will be ignored.
 
     max_features : int, default=None
@@ -383,21 +388,26 @@ class CountVectorizer():
 
     binary : boolean, default=False
         If True, all non zero counts are set to 1.
+
+    Reference
+    ---------
+    https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/feature_extraction/text.py#L790
+
     """
 
     def __init__(self,
                  tokenizer: Tokenizer = None,
                  vocab: Vocabulary = None,
                  max_doc_freq: Union[float, int] = 1.0,
-                 min_freq: int = 1,
+                 min_doc_freq: int = 1,
                  max_features: int = None,
                  binary: bool = False):
         self.tokenizer = BaseTokenizer() if tokenizer is None else tokenizer
         self.vocab = vocab
         self.max_doc_freq = max_doc_freq
-        self.min_freq = min_freq
-        if max_doc_freq < 0 or min_freq < 0:
-            raise ValueError('negative value for max_doc_freq or min_freq')
+        self.min_doc_freq = min_doc_freq
+        if max_doc_freq < 0 or min_doc_freq < 0:
+            raise ValueError('negative value for max_doc_freq or min_doc_freq')
         self.max_features = max_features
         if max_features is not None:
             if max_features <= 0:
@@ -405,21 +415,22 @@ class CountVectorizer():
                                  'neither a positive integer nor None' % max_features)
         self.binary = binary
 
-    def _limit_features(self, X: sp.csr_matrix, max_doc_count: int):
+    def _limit_features(self, X: sp.csr_matrix, max_doc_count: int, min_doc_count: int):
         """Remove too common features.
         Prune features that are non zero in more samples than max_doc_count
         and modifying the vocabulary.
         """
-        if max_doc_count >= X.shape[0] and self.min_freq is None and self.max_features is None:
+        if max_doc_count >= X.shape[0] and min_doc_count <= 1 and self.max_features is None:
             return X
 
         # Calculate a mask based on document frequencies
         doc_freq = np.bincount(X.indices, minlength=X.shape[1])
         term_indices = np.arange(X.shape[1])  # terms are already sorted based on frequency from Vocabulary
         mask = np.ones(len(doc_freq), dtype=bool)
-        mask &= doc_freq <= max_doc_count
-        if self.min_freq is not None:
-            mask &= doc_freq >= self.min_freq
+        if max_doc_count < X.shape[0]:
+            mask &= doc_freq <= max_doc_count
+        if min_doc_count > 1:
+            mask &= doc_freq >= min_doc_count
 
         if self.max_features is not None and mask.sum() > self.max_features:
             mask_indices = term_indices[mask][:self.max_features]
@@ -458,10 +469,6 @@ class CountVectorizer():
             indices.extend(feature_counter.keys())
             data.extend(feature_counter.values())
             indptr.append(len(indices))
-
-        indices = np.asarray(indices, dtype=np.int)
-        indptr = np.asarray(indptr, dtype=np.int)
-        data = np.asarray(data, dtype=np.int)
 
         feature_dim = self.vocab.size
         if self.vocab.use_special_tokens:
@@ -518,8 +525,11 @@ class CountVectorizer():
             n_docs = X.shape[0]
             max_doc_count = (self.max_doc_freq
                              if isinstance(self.max_doc_freq, int)
-                             else self.max_doc_freq * n_docs)
-            X = self._limit_features(X, max_doc_count)
+                             else int(self.max_doc_freq * n_docs))
+            min_doc_count = (self.min_doc_freq
+                             if isinstance(self.min_doc_freq, int)
+                             else int(self.min_doc_freq * n_docs))
+            X = self._limit_features(X, max_doc_count, min_doc_count)
 
         return sequences, X
 
@@ -568,13 +578,18 @@ class TextModality(FeatureModality):
         The maximum size of the vocabulary.
         If vocab is provided, this will be ignored.
 
-    max_doc_freq: Union[float, int] = 1.0
-        The maximum frequency of tokens appearing in documents to be excluded from vocabulary.
+    max_doc_freq: float in range [0.0, 1.0] or int, default=1.0
+        When building the vocabulary ignore terms that have a document
+        frequency strictly higher than the given threshold (corpus-specific
+        stop words).
         If float, the value represents a proportion of documents, int for absolute counts.
         If `vocab` is not None, this will be ignored.
 
-    min_freq: int, default = 1
-        The minimum frequency of tokens to be included into vocabulary.
+    min_doc_freq: float in range [0.0, 1.0] or int, default=1
+        When building the vocabulary ignore terms that have a document
+        frequency strictly lower than the given threshold. This value is also
+        called cut-off in the literature.
+        If float, the value represents a proportion of documents, int absolute counts.
         If `vocab` is not None, this will be ignored.
 
     """
@@ -586,7 +601,7 @@ class TextModality(FeatureModality):
                  vocab: Vocabulary = None,
                  max_vocab: int = None,
                  max_doc_freq: Union[float, int] = 1.0,
-                 min_freq: int = 1,
+                 min_doc_freq: int = 1,
                  **kwargs):
         super().__init__(ids=ids, **kwargs)
         self.corpus = corpus
@@ -594,7 +609,7 @@ class TextModality(FeatureModality):
         self.vocab = vocab
         self.max_vocab = max_vocab
         self.max_doc_freq = max_doc_freq
-        self.min_freq = min_freq
+        self.min_doc_freq = min_doc_freq
         self.sequences = None
         self.count_matrix = None
 
@@ -621,13 +636,15 @@ class TextModality(FeatureModality):
             self._swap_text(id_map)
 
         vectorizer = CountVectorizer(tokenizer=self.tokenizer, vocab=self.vocab,
-                                     max_doc_freq=self.max_doc_freq, min_freq=self.min_freq,
+                                     max_doc_freq=self.max_doc_freq, min_doc_freq=self.min_doc_freq,
                                      max_features=self.max_vocab, binary=False)
         self.sequences, self.count_matrix = vectorizer.fit_transform(self.corpus)
         self.vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
         # Map tokens into integer ids
         for i, seq in enumerate(self.sequences):
             self.sequences[i] = self.vocab.to_idx(seq)
+
+        # Reset other lazy-built properties (e.g. tfidf)
 
     def build(self, id_map=None):
         """Build the model based on provided list of ordered ids

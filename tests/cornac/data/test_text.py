@@ -134,14 +134,14 @@ class TestCountVectorizer(unittest.TestCase):
             assert True
 
     def test_bad_freq_arguments(self):
-        vectorizer = CountVectorizer(max_doc_freq=2, min_freq=3)
+        vectorizer = CountVectorizer(max_doc_freq=2, min_doc_freq=3)
         try:
             vectorizer.fit(self.docs)
         except ValueError:
             assert True
 
     def test_transform(self):
-        vectorizer = CountVectorizer(max_doc_freq=2, min_freq=1, max_features=1)
+        vectorizer = CountVectorizer(max_doc_freq=2, min_doc_freq=1, max_features=1)
         vectorizer.fit(self.docs)
         sequences, X = vectorizer.transform(self.docs)
         npt.assert_array_equal(X.A, np.asarray([[0], [2], [0]]))
@@ -152,7 +152,7 @@ class TestCountVectorizer(unittest.TestCase):
         npt.assert_array_equal(X1.A, X2.A)
 
     def test_with_special_tokens(self):
-        vectorizer = CountVectorizer(max_doc_freq=2, min_freq=1, max_features=1)
+        vectorizer = CountVectorizer(max_doc_freq=2, min_doc_freq=1, max_features=1)
         vectorizer.fit(self.docs)
 
         new_vocab = Vocabulary(vectorizer.vocab.idx2tok, use_special_tokens=True)
