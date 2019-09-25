@@ -769,7 +769,7 @@ class TextModality(FeatureModality):
         If float, the value represents a proportion of documents, int absolute counts.
         If `vocab` is not None, this will be ignored.
 
-    ifidf_params: dict or None, optional, default=None
+    tfidf_params: dict or None, optional, default=None
         If `None`, a default arguments of :obj:`<cornac.data.text.IfidfVectorizer>` will be used.
         List of parameters:
 
