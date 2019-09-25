@@ -20,10 +20,14 @@ import numpy as np
 import numpy.testing as npt
 
 from cornac.data import TextModality
-from cornac.data.text import BaseTokenizer
-from cornac.data.text import Vocabulary
-from cornac.data.text import CountVectorizer
-from cornac.data.text import SPECIAL_TOKENS, DEFAULT_PRE_RULES
+from cornac.data.text import (
+    SPECIAL_TOKENS,
+    DEFAULT_PRE_RULES,
+    BaseTokenizer,
+    Vocabulary,
+    CountVectorizer,
+    TfidfVectorizer,
+)
 
 
 class TestBaseTokenizer(unittest.TestCase):
@@ -162,6 +166,54 @@ class TestCountVectorizer(unittest.TestCase):
         npt.assert_array_equal(X.A, np.asarray([[0], [2], [0]]))
 
 
+class TestTfidfVectorizer(unittest.TestCase):
+
+    def setUp(self):
+        self.docs = ['this is a sample',
+                     'this is another example']
+
+    def test_arguments(self):
+        try:
+            TfidfVectorizer(max_doc_freq=-1)
+        except ValueError:
+            assert True
+
+        try:
+            TfidfVectorizer(max_features=-1)
+        except ValueError:
+            assert True
+
+    def test_bad_freq_arguments(self):
+        vectorizer = TfidfVectorizer(max_doc_freq=2, min_doc_freq=3)
+        try:
+            vectorizer.fit(self.docs)
+        except ValueError:
+            assert True
+
+    def test_transform(self):
+        vectorizer = TfidfVectorizer(norm=None)
+        vectorizer.fit(self.docs)
+
+        tok2idx = vectorizer.vocab.tok2idx
+        idf = vectorizer.idf
+        print(vectorizer.vocab.idx2tok)
+
+        self.assertEqual(idf[tok2idx['this'], tok2idx['this']], 1)
+        self.assertEqual(idf[tok2idx['a'], tok2idx['a']], np.log(3 / 2) + 1)
+
+        X = vectorizer.transform(self.docs).A
+        npt.assert_array_equal(X[:, tok2idx['this']],
+                               np.asarray([1., 1.]))
+        npt.assert_array_equal(X[:, tok2idx['a']],
+                               np.asarray([1., 0.]) * (np.log(3 / 2) + 1))
+
+        vectorizer.binary = True
+        vectorizer.sublinear_tf = True
+        X1 = vectorizer.fit_transform(self.docs)
+        X2 = vectorizer.transform(self.docs)
+        npt.assert_array_equal(X1.A, X2.A)
+
+
 class TestTextModality(unittest.TestCase):
 
     def setUp(self):
@@ -259,9 +311,28 @@ class TestTextModality(unittest.TestCase):
 
     def test_batch_bow_fallback(self):
         modality = TextModality(features=np.asarray([[3, 2, 1], [4, 5, 6]]),
-                              ids=['a', 'b'])
+                                ids=['a', 'b'])
         modality.build()
         npt.assert_array_equal(np.asarray([[3, 2, 1]]), modality.batch_bow(batch_ids=[0]))
+
+    def test_batch_tfidf(self):
+        batch_tfidf = self.modality.batch_tfidf([2, 1])
+        self.assertEqual((2, self.modality.max_vocab), batch_tfidf.shape)
+
+    def test_tfidf_params(self):
+        corpus = ['a b c', 'b c d d', 'c b e c f']
+        ids = ['u1', 'u2', 'u3']
+        modality = TextModality(corpus=corpus, ids=ids, max_vocab=6,
+                                ifidf_params={
+                                    'vocab': self.modality.vocab,
+                                    'norm': 'l2',
+                                    'max_doc_freq': self.modality.max_doc_freq,
+                                    'min_doc_freq': self.modality.min_doc_freq,
+                                    'max_features': self.modality.max_vocab
+                                })
+        modality.build({'u1': 0, 'u2': 1, 'u3': 2})
+        npt.assert_array_equal(modality.batch_tfidf([0]),
+                               self.modality.batch_tfidf([0]))
 
 
 if __name__ == '__main__':
