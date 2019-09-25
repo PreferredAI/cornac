@@ -324,15 +324,15 @@ class TestTextModality(unittest.TestCase):
         ids = ['u1', 'u2', 'u3']
 
         modality = TextModality(corpus=corpus, ids=ids, max_vocab=6,
-                                ifidf_params={
+                                tfidf_params={
                                     'binary': False,
                                     'norm': 'l2',
                                     'use_idf': True,
                                     'smooth_idf': True,
                                     'sublinear_tf': False
                                 }).build({'u1': 0, 'u2': 1, 'u3': 2})
-        npt.assert_array_equal(modality.batch_tfidf([0]),
-                               self.modality.batch_tfidf([0]))
+        npt.assert_array_equal(modality.batch_tfidf([1]),
+                               self.modality.batch_tfidf([1]))
 
         for k, v in {
             'binary': True,
@@ -342,10 +342,10 @@ class TestTextModality(unittest.TestCase):
             'sublinear_tf': True
         }.items():
             modality = TextModality(corpus=corpus, ids=ids, max_vocab=6,
-                                    ifidf_params={k: v})
+                                    tfidf_params={k: v})
             modality.build({'u1': 0, 'u2': 1, 'u3': 2})
-            self.assertFalse(npt.assert_array_equal(modality.batch_tfidf([0]),
-                                                    self.modality.batch_tfidf([0])))
+            self.assertFalse(np.array_equal(modality.batch_tfidf([1]),
+                                            self.modality.batch_tfidf([1])))
 
 
 if __name__ == '__main__':
