@@ -322,17 +322,30 @@ class TestTextModality(unittest.TestCase):
     def test_tfidf_params(self):
         corpus = ['a b c', 'b c d d', 'c b e c f']
         ids = ['u1', 'u2', 'u3']
+
         modality = TextModality(corpus=corpus, ids=ids, max_vocab=6,
                                 ifidf_params={
-                                    'vocab': self.modality.vocab,
+                                    'binary': False,
                                     'norm': 'l2',
-                                    'max_doc_freq': self.modality.max_doc_freq,
-                                    'min_doc_freq': self.modality.min_doc_freq,
-                                    'max_features': self.modality.max_vocab
-                                })
-        modality.build({'u1': 0, 'u2': 1, 'u3': 2})
+                                    'use_idf': True,
+                                    'smooth_idf': True,
+                                    'sublinear_tf': False
+                                }).build({'u1': 0, 'u2': 1, 'u3': 2})
         npt.assert_array_equal(modality.batch_tfidf([0]),
                                self.modality.batch_tfidf([0]))
+
+        for k, v in {
+            'binary': True,
+            'norm': 'l1',
+            'use_idf': False,
+            'smooth_idf': False,
+            'sublinear_tf': True
+        }.items():
+            modality = TextModality(corpus=corpus, ids=ids, max_vocab=6,
+                                    ifidf_params={k: v})
+            modality.build({'u1': 0, 'u2': 1, 'u3': 2})
+            self.assertFalse(npt.assert_array_equal(modality.batch_tfidf([0]),
+                                                    self.modality.batch_tfidf([0])))
 
 
 if __name__ == '__main__':
