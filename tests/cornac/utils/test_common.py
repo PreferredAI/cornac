@@ -17,6 +17,7 @@ import unittest
 
 import numpy as np
 import numpy.testing as npt
+import scipy.sparse as sp
 
 from cornac.utils.common import sigmoid
 from cornac.utils.common import safe_indexing
@@ -27,6 +28,7 @@ from cornac.utils.common import excepts
 from cornac.utils.common import intersects
 from cornac.utils.common import estimate_batches
 from cornac.utils.common import get_rng
+from cornac.utils.common import normalize
 
 
 class TestCommon(unittest.TestCase):
@@ -94,6 +96,49 @@ class TestCommon(unittest.TestCase):
     def test_get_rng(self):
         try:
             get_rng('a')
+        except ValueError:
+            assert True
+
+    def test_normalize(self):
+        """
+        X = array([[1, 0, 2],
+                   [0, 0, 3],
+                   [4, 5, 6]])
+        """
+        indptr = np.array([0, 2, 3, 6])
+        indices = np.array([0, 2, 2, 0, 1, 2])
+        data = np.array([1, 2, 3, 4, 5, 6])
+        X = sp.csr_matrix((data, indices, indptr), shape=(3, 3))
+        XA = X.A
+
+        # normalizing rows (axis=1)
+        X_l1 = XA / (np.abs(XA).sum(1).reshape(-1, 1))
+        X_l2 = XA / (np.sqrt((XA ** 2).sum(1)).reshape(-1, 1))
+        X_max = XA / (np.max(XA, axis=1).reshape(-1, 1))
+        # sparse input
+        npt.assert_array_equal(X_l1, normalize(X, 'l1', axis=1, copy=True).A)
+        npt.assert_array_equal(X_l2, normalize(X, 'l2', axis=1, copy=True).A)
+        npt.assert_array_equal(X_max, normalize(X, 'max', axis=1, copy=True).A)
+        # dense input
+        npt.assert_array_equal(X_l1, normalize(XA, 'l1', axis=1, copy=True))
+        npt.assert_array_equal(X_l2, normalize(XA, 'l2', axis=1, copy=True))
+        npt.assert_array_equal(X_max, normalize(XA, 'max', axis=1, copy=True))
+
+        # normalizing columns (axis=0)
+        X_l1 = XA / (np.abs(XA).sum(0).reshape(1, -1))
+        X_l2 = XA / (np.sqrt((XA ** 2).sum(0)).reshape(1, -1))
+        X_max = XA / (np.max(XA, axis=0).reshape(1, -1))
+        # sparse input
+        npt.assert_array_equal(X_l1, normalize(X, 'l1', axis=0, copy=True).A)
+        npt.assert_array_equal(X_l2, normalize(X, 'l2', axis=0, copy=True).A)
+        npt.assert_array_equal(X_max, normalize(X, 'max', axis=0, copy=True).A)
+        # dense input
+        npt.assert_array_equal(X_l1, normalize(XA, 'l1', axis=0, copy=True))
+        npt.assert_array_equal(X_l2, normalize(XA, 'l2', axis=0, copy=True))
+        npt.assert_array_equal(X_max, normalize(XA, 'max', axis=0, copy=True))
+
+        try:
+            normalize(X, norm='bla bla')
         except ValueError:
             assert True
 

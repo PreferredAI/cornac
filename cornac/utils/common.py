@@ -16,6 +16,12 @@
 import numbers
 
 import numpy as np
+import scipy.sparse as sp
+
+from .fast_sparse_funcs import (
+    inplace_csr_row_normalize_l1,
+    inplace_csr_row_normalize_l2
+)
 
 
 def sigmoid(x):
@@ -163,3 +169,70 @@ def get_rng(seed):
     if isinstance(seed, np.random.RandomState):
         return seed
     raise ValueError('{} can not be used to create a numpy.random.RandomState'.format(seed))
+
+
+def normalize(X, norm='l2', axis=1, copy=True):
+    """Scale input vectors individually to unit norm (vector length).
+
+    Parameters
+    ----------
+    X : {array-like, sparse matrix}, shape [n_samples, n_features]
+        The data to normalize, element by element.
+        scipy.sparse matrices should be in CSR format to avoid an
+        un-necessary copy.
+
+    norm : 'l1', 'l2', or 'max', optional ('l2' by default)
+        The norm to use to normalize each non zero sample (or each non-zero
+        feature if axis is 0).
+
+    axis : 0 or 1, optional (1 by default)
+        axis used to normalize the data along. If 1, independently normalize
+        each sample, otherwise (if 0) normalize each feature.
+
+    copy : boolean, optional, default True
+        set to False to perform inplace row normalization and avoid a
+        copy (if the input is already a numpy array or a scipy.sparse
+        CSR matrix and if axis is 1).
+        
+    Reference
+    ---------
+    https://github.com/scikit-learn/scikit-learn/blob/1495f69242646d239d89a5713982946b8ffcf9d9/sklearn/preprocessing/data.py#L1553
+
+    """
+    if norm not in ('l1', 'l2', 'max'):
+        raise ValueError("'%s' is not a supported norm" % norm)
+
+    if copy:
+        X = X.copy()
+
+    if axis == 0:
+        X = X.T
+
+    X = X.astype(np.float64)
+
+    if sp.issparse(X):
+        X = X.tocsr()
+
+        if norm == 'l1':
+            inplace_csr_row_normalize_l1(X)
+        elif norm == 'l2':
+            inplace_csr_row_normalize_l2(X)
+        elif norm == 'max':
+            norms = X.max(axis=1).A
+            norms_elementwise = norms.repeat(np.diff(X.indptr))
+            mask = norms_elementwise != 0
+            X.data[mask] /= norms_elementwise[mask]
+    else:
+        if norm == 'l1':
+            norms = np.abs(X).sum(axis=1)
+        elif norm == 'l2':
+            norms = np.sqrt((X ** 2).sum(axis=1))
+        elif norm == 'max':
+            norms = np.max(X, axis=1)
+        norms[norms == 0] = 1.
+        X /= norms.reshape(-1, 1)
+
+    if axis == 0:
+        X = X.T
+
+    return X
