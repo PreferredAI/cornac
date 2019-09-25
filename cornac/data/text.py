@@ -24,6 +24,7 @@ import scipy.sparse as sp
 
 from . import FeatureModality
 from .modality import fallback_feature
+from ..utils import normalize
 
 __all__ = ['Tokenizer',
            'BaseTokenizer',
@@ -360,7 +361,7 @@ class CountVectorizer():
 
     Parameters
     ----------
-    tokenizer: Tokenizer, optional, default = None
+    tokenizer: Tokenizer, optional, default=None
         Tokenizer for text splitting. If None, the BaseTokenizer will be used.
 
     vocab: Vocabulary, optional, default = None
@@ -381,7 +382,7 @@ class CountVectorizer():
         If float, the value represents a proportion of documents, int absolute counts.
         If `vocab` is not None, this will be ignored.
 
-    max_features : int, default=None
+    max_features : int or None, optional, default=None
         If not None, build a vocabulary that only consider the top
         `max_features` ordered by term frequency across the corpus.
         If `vocab` is not None, this will be ignored.
@@ -555,6 +556,182 @@ class CountVectorizer():
         return sequences, X
 
 
+class TfidfVectorizer(CountVectorizer):
+    """Convert a collection of raw documents to a matrix of TF-IDF features.
+
+    Parameters
+    ----------
+    tokenizer: Tokenizer, optional, default = None
+        Tokenizer for text splitting. If None, the BaseTokenizer will be used.
+
+    vocab: Vocabulary, optional, default = None
+        Vocabulary of tokens. It contains mapping between tokens to their
+        integer ids and vice versa.
+
+    max_doc_freq: float in range [0.0, 1.0] or int, default=1.0
+        When building the vocabulary ignore terms that have a document
+        frequency strictly higher than the given threshold (corpus-specific
+        stop words).
+        If float, the value represents a proportion of documents, int for absolute counts.
+        If `vocab` is not None, this will be ignored.
+
+    min_doc_freq: float in range [0.0, 1.0] or int, default=1
+        When building the vocabulary ignore terms that have a document
+        frequency strictly lower than the given threshold. This value is also
+        called cut-off in the literature.
+        If float, the value represents a proportion of documents, int absolute counts.
+        If `vocab` is not None, this will be ignored.
+
+    max_features : int or None, optional, default=None
+        If not None, build a vocabulary that only consider the top
+        `max_features` ordered by term frequency across the corpus.
+        If `vocab` is not None, this will be ignored.
+
+    binary : boolean, default=False
+        If True, all non zero counts are set to 1.
+
+    norm : 'l1', 'l2' or None, optional, default='l2'
+        Each output row will have unit norm, either:
+        * 'l2': Sum of squares of vector elements is 1. The cosine
+        similarity between two vectors is their dot product when l2 norm has
+        been applied.
+        * 'l1': Sum of absolute values of vector elements is 1.
+        See :func:`utils.common.normalize`
+
+    use_idf : boolean, default=True
+        Enable inverse-document-frequency reweighting.
+
+    smooth_idf : boolean, default=True
+        Smooth idf weights by adding one to document frequencies, as if an
+        extra document was seen containing every term in the collection
+        exactly once. Prevents zero divisions.
+
+    sublinear_tf : boolean (default=False)
+        Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
+
+    Reference
+    ---------
+    https://github.com/scikit-learn/scikit-learn/blob/d6d1d63fa6b098c72953a6827aae475f611936ed/sklearn/feature_extraction/text.py#L1451
+
+    """
+
+    def __init__(self,
+                 tokenizer: Tokenizer = None,
+                 vocab: Vocabulary = None,
+                 max_doc_freq: Union[float, int] = 1.0,
+                 min_doc_freq: int = 1,
+                 max_features: int = None,
+                 binary: bool = False,
+                 norm='l2',
+                 use_idf=True,
+                 smooth_idf=True,
+                 sublinear_tf=False):
+        super().__init__(tokenizer=tokenizer,
+                         vocab=vocab,
+                         max_doc_freq=max_doc_freq,
+                         min_doc_freq=min_doc_freq,
+                         max_features=max_features,
+                         binary=binary)
+
+        self.norm = norm
+        self.use_idf = use_idf
+        self.smooth_idf = smooth_idf
+        self.sublinear_tf = sublinear_tf
+
+    def _build_idf(self, X):
+        """
+        Build inverse document frequency vector (global term weights).
+        """
+        n_samples, n_features = X.shape
+        doc_freq = np.bincount(X.indices, minlength=X.shape[1])
+
+        # perform idf smoothing if required
+        doc_freq += int(self.smooth_idf)
+        n_samples += int(self.smooth_idf)
+
+        # log+1 instead of log makes sure terms with zero idf don't get
+        # suppressed entirely.
+        idf = np.log(n_samples / doc_freq) + 1
+
+        self.idf = sp.diags(idf,
+                            offsets=0,
+                            shape=(n_features, n_features),
+                            format='csr')
+
+    def _transform(self, X):
+        """
+        Transform tf matrix into tf-idf matrix.
+        """
+        X = (X.tocsr().astype(np.float64)
+             if sp.issparse(X)
+             else sp.csr_matrix(X, dtype=np.float64))
+
+        if self.sublinear_tf:
+            np.log(X.data, X.data)
+            X.data += 1
+
+        if self.use_idf:
+            X = X * self.idf
+
+        if self.norm:
+            X = normalize(X, norm=self.norm, copy=False)
+
+        return X
+
+    def fit(self, raw_documents: List[str]) -> 'TfidfVectorizer':
+        """Build a vocabulary of all tokens in the raw documents.
+
+        Parameters
+        ----------
+        raw_documents : iterable
+            An iterable which yields either str, unicode or file objects.
+
+        Returns
+        -------
+        tfidf_vectorizer: :obj:`<cornac.data.text.IfidfVectorizer>`
+            An object of type `IfidfVectorizer`.
+
+        """
+        self.fit_transform(raw_documents)
+        return self
+
+    def fit_transform(self, raw_documents: List[str]) -> (List[List[str]], sp.csr_matrix):
+        """Build the vocabulary and return term-document matrix.
+
+        Parameters
+        ----------
+        raw_documents : List[str]
+
+        Returns
+        -------
+        X : sparse matrix, [n_samples, n_features]
+            Tf-idf-weighted document-term matrix.
+
+        """
+        _, X = super().fit_transform(raw_documents)
+
+        if self.use_idf:
+            self._build_idf(X)
+
+        return self._transform(X)
+
+    def transform(self, raw_documents: List[str]) -> (List[List[str]], sp.csr_matrix):
+        """Transform documents to document-term matrix.
+
+        Parameters
+        ----------
+        raw_documents : List[str]
+
+        Returns
+        -------
+        X : sparse matrix, [n_samples, n_features]
+            Tf-idf-weighted document-term matrix.
+
+        """
+        _, X = super().transform(raw_documents)
+        return self._transform(X)
+
+
 class TextModality(FeatureModality):
     """Text modality
 
@@ -592,6 +769,28 @@ class TextModality(FeatureModality):
         If float, the value represents a proportion of documents, int absolute counts.
         If `vocab` is not None, this will be ignored.
 
+    ifidf_params: dict or None, optional, default=None
+        If `None`, a default arguments of :obj:`<cornac.data.text.IfidfVectorizer>` will be used.
+        List of parameters:
+
+        'binary' : boolean, default=False
+            If True, all non zero counts are set to 1.
+        'norm' : 'l1', 'l2' or None, optional, default='l2'
+            Each output row will have unit norm, either:
+            * 'l2': Sum of squares of vector elements is 1. The cosine
+            similarity between two vectors is their dot product when l2 norm has
+            been applied.
+            * 'l1': Sum of absolute values of vector elements is 1.
+            See :func:`utils.common.normalize`
+        'use_idf' : boolean, default=True
+            Enable inverse-document-frequency reweighting.
+        'smooth_idf' : boolean, default=True
+            Smooth idf weights by adding one to document frequencies, as if an
+            extra document was seen containing every term in the collection
+            exactly once. Prevents zero divisions.
+        'sublinear_tf' : boolean (default=False)
+            Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
+
     """
 
     def __init__(self,
@@ -602,6 +801,7 @@ class TextModality(FeatureModality):
                  max_vocab: int = None,
                  max_doc_freq: Union[float, int] = 1.0,
                  min_doc_freq: int = 1,
+                 tfidf_params: Dict = None,
                  **kwargs):
         super().__init__(ids=ids, **kwargs)
         self.corpus = corpus
@@ -610,8 +810,31 @@ class TextModality(FeatureModality):
         self.max_vocab = max_vocab
         self.max_doc_freq = max_doc_freq
         self.min_doc_freq = min_doc_freq
+        self.tfidf_params = tfidf_params
         self.sequences = None
         self.count_matrix = None
+        self.__tfidf_matrix = None
+
+    @property
+    def tfidf_matrix(self):
+        """Return tf-idf matrix.
+        """
+        if self.__tfidf_matrix is None:
+            params = {
+                'tokenizer': self.tokenizer,
+                'vocab': self.vocab,
+                'max_doc_freq': self.max_doc_freq,
+                'min_doc_freq': self.min_doc_freq,
+                'max_features': self.max_vocab
+            }
+            self.tfidf_params = (params
+                                 if self.tfidf_params is None
+                                 else {**self.tfidf_params, **params})
+
+            vectorizer = TfidfVectorizer(**self.tfidf_params)
+            self.__tfidf_matrix = vectorizer.fit_transform(self.corpus)
+
+        return self.__tfidf_matrix
 
     def _swap_text(self, id_map: Dict):
         new_corpus = self.corpus.copy()
@@ -645,6 +868,7 @@ class TextModality(FeatureModality):
             self.sequences[i] = self.vocab.to_idx(seq)
 
         # Reset other lazy-built properties (e.g. tfidf)
+        self.__tfidf_matrix = None
 
     def build(self, id_map=None):
         """Build the model based on provided list of ordered ids
@@ -727,12 +951,9 @@ class TextModality(FeatureModality):
         if binary:
             bow_mat.data.fill(1)
 
-        if keep_sparse:
-            return bow_mat
+        return bow_mat if keep_sparse else bow_mat.A
 
-        return bow_mat.A
-
-    def batch_tfidf(self, batch_ids):
+    def batch_tfidf(self, batch_ids, keep_sparse=False):
         """Return matrix of TF-IDF features corresponding to provided batch_ids
 
         Parameters
@@ -740,10 +961,15 @@ class TextModality(FeatureModality):
         batch_ids: array
             An array of ids to retrieve the corresponding features.
 
+        keep_sparse: bool, default = False
+            If `True`, the return feature matrix will be a `scipy.sparse.csr_matrix`.
+            Otherwise, it will be a dense matrix.
+
         Returns
         -------
         batch_tfidf: numpy.ndarray
             Batch of TF-IDF representations corresponding to input `batch_ids`.
 
         """
-        raise NotImplementedError
+        tfidf_mat = self.tfidf_matrix[batch_ids]
+        return tfidf_mat if keep_sparse else tfidf_mat.A
