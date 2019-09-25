@@ -156,6 +156,10 @@ extensions = [
               sources=['cornac/utils/fast_dot' + ext],
               language='c++',
               extra_compile_args=compile_args, extra_link_args=link_args),
+    Extension(name='cornac.utils.fast_sparse_funcs',
+              sources=['cornac/utils/fast_sparse_funcs' + ext],
+              include_dirs=[np.get_include()],
+              language='c++'),
 ]
 
 cmdclass = {}
