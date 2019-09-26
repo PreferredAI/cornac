@@ -497,6 +497,8 @@ class BaseMethod:
 
         fmt: str, default: 'UIR'
             The format of given data.
+            If `fmt` is 'UIRT', data will be sorted chronologically \
+            before constructing dataset to preserve the purchased sequences.
 
         rating_threshold: float, default: 1.0
             Threshold to decide positive or negative preferences.
