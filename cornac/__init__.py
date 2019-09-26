@@ -23,4 +23,4 @@ from . import utils
 # Also importable from root
 from .experiment import Experiment
 
-__version__ = '1.1.2'
+__version__ = '1.2.0'
