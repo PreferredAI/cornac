@@ -101,13 +101,13 @@ class TestCommon(unittest.TestCase):
 
     def test_normalize(self):
         """
-        X = array([[1, 0, 2],
-                   [0, 0, 3],
-                   [4, 5, 6]])
+        X = array([[1., 0., 2.],
+                   [0., 0., 3.],
+                   [4., 5., 6.]])
         """
         indptr = np.array([0, 2, 3, 6])
         indices = np.array([0, 2, 2, 0, 1, 2])
-        data = np.array([1, 2, 3, 4, 5, 6])
+        data = np.array([1., 2., 3., 4., 5., 6.], dtype=np.float64)
         X = sp.csr_matrix((data, indices, indptr), shape=(3, 3))
         XA = X.A
 
@@ -137,10 +137,37 @@ class TestCommon(unittest.TestCase):
         npt.assert_array_equal(X_l2, normalize(XA, 'l2', axis=0, copy=True))
         npt.assert_array_equal(X_max, normalize(XA, 'max', axis=0, copy=True))
 
+        # check valid norm type
         try:
             normalize(X, norm='bla bla')
         except ValueError:
             assert True
+
+        # check valid input shape
+        try:
+            normalize(XA[:, np.newaxis])
+        except ValueError:
+            assert True
+
+        # copy=True, sparse
+        normalized_X = normalize(X, copy=True)
+        self.assertFalse(np.allclose(X.data, normalized_X.data))
+
+        # copy=True, dense
+        normalized_XA = normalize(XA, copy=True)
+        self.assertFalse(np.allclose(XA, normalized_XA))
+
+        # copy=False, sparse
+        original = X.data.copy()
+        normalized_X = normalize(X, copy=False)
+        self.assertFalse(np.allclose(original, X.data))
+        npt.assert_array_equal(normalized_X.data, X.data)
+
+        # copy=False, dense
+        original = XA.copy()
+        normalized_XA = normalize(XA, copy=False)
+        self.assertFalse(np.allclose(original, XA))
+        npt.assert_array_equal(normalized_XA, XA)
 
 
 if __name__ == '__main__':

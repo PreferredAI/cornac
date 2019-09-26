@@ -23,6 +23,8 @@ from .fast_sparse_funcs import (
     inplace_csr_row_normalize_l2
 )
 
+FLOAT_DTYPES = (np.float64, np.float32, np.float16)
+
 
 def sigmoid(x):
     """Sigmoid function"""
@@ -202,37 +204,38 @@ def normalize(X, norm='l2', axis=1, copy=True):
     if norm not in ('l1', 'l2', 'max'):
         raise ValueError("'%s' is not a supported norm" % norm)
 
-    if copy:
-        X = X.copy()
+    if len(X.shape) != 2:
+        raise ValueError("input X must be 2D but shape={}".format(X.shape))
+
+    X_out = X.copy() if copy else X
+    X_out = X_out if X_out.dtype in FLOAT_DTYPES else X_out.astype(np.float64)
 
     if axis == 0:
-        X = X.T
+        X_out = X_out.T
 
-    X = X.astype(np.float64)
-
-    if sp.issparse(X):
-        X = X.tocsr()
+    if sp.issparse(X_out):
+        X_out = X_out.tocsr()
 
         if norm == 'l1':
-            inplace_csr_row_normalize_l1(X)
+            inplace_csr_row_normalize_l1(X_out)
         elif norm == 'l2':
-            inplace_csr_row_normalize_l2(X)
+            inplace_csr_row_normalize_l2(X_out)
         elif norm == 'max':
-            norms = X.max(axis=1).A
-            norms_elementwise = norms.repeat(np.diff(X.indptr))
+            norms = X_out.max(axis=1).A
+            norms_elementwise = norms.repeat(np.diff(X_out.indptr))
             mask = norms_elementwise != 0
-            X.data[mask] /= norms_elementwise[mask]
+            X_out.data[mask] /= norms_elementwise[mask]
     else:
         if norm == 'l1':
-            norms = np.abs(X).sum(axis=1)
+            norms = np.abs(X_out).sum(axis=1)
         elif norm == 'l2':
-            norms = np.sqrt((X ** 2).sum(axis=1))
+            norms = np.sqrt((X_out ** 2).sum(axis=1))
         elif norm == 'max':
-            norms = np.max(X, axis=1)
+            norms = np.max(X_out, axis=1)
         norms[norms == 0] = 1.
-        X /= norms.reshape(-1, 1)
+        X_out /= norms.reshape(-1, 1)
 
     if axis == 0:
-        X = X.T
+        X_out = X_out.T
 
-    return X
+    return X_out
