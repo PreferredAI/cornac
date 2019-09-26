@@ -63,6 +63,10 @@ def uir_parser(tokens, **kwargs):
     return [(tokens[0], tokens[1], float(tokens[2]))]
 
 
+def uirt_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], float(tokens[2]), float(tokens[3]))]
+
+
 def tup_parser(tokens, **kwargs):
     return [(tokens[0], tokens[1], [tuple(tup.split(kwargs.get('tup_sep'))) for tup in tokens[2:]])]
 
@@ -70,6 +74,7 @@ def tup_parser(tokens, **kwargs):
 PARSERS = {
     'UI': ui_parser,
     'UIR': uir_parser,
+    'UIRT': uirt_parser,
     'UITup': tup_parser,
 }
 
