@@ -45,7 +45,7 @@ class TestBaseMethod(unittest.TestCase):
             assert True
 
     def test_from_splits(self):
-        data = Reader().read('./tests/data.txt')
+        data = Reader().read('./tests/data.txt', fmt='UIRT')
         try:
             BaseMethod.from_splits(train_data=None, test_data=None)
         except ValueError:
@@ -71,6 +71,19 @@ class TestBaseMethod(unittest.TestCase):
                                     verbose=True)
         self.assertEqual(bm.total_users, 10)
         self.assertEqual(bm.total_items, 10)
+
+        bm = BaseMethod.from_splits(train_data=data[:-1] + [(data[0][0], data[1][1], 5.0, 1),
+                                                            (data[0][0], data[2][1], 5.0, float('inf'))],
+                                    test_data=data[-1:],
+                                    val_data=[(data[0][0], data[3][1], 5.0, 1)],
+                                    fmt='UIRT',
+                                    verbose=True)
+
+        self.assertEqual(bm.total_users, 10)
+        self.assertEqual(bm.total_items, 10)
+        user_idx = bm.train_set.uid_map[data[0][0]]
+        self.assertEqual(bm.train_set.user_data[user_idx][0][0], bm.train_set.iid_map[data[1][1]])
+        self.assertEqual(bm.train_set.user_data[user_idx][0][-1], bm.train_set.iid_map[data[2][1]])
 
     def test_with_modalities(self):
         data = Reader().read('./tests/data.txt')

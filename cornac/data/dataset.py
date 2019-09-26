@@ -234,12 +234,13 @@ class Dataset(object):
         max_rating = float('-inf')
         min_rating = float('inf')
 
-        for uid, iid, rating in itertools.filterfalse(
+        for tup in itertools.filterfalse(
                 lambda x: (x[0], x[1]) in ui_set or
                           (exclude_unknowns and (x[0] not in global_uid_map or
                                                  x[1] not in global_iid_map)),
                 data
         ):
+            uid, iid, rating = tup[0], tup[1], tup[2]
             ui_set.add((uid, iid))
             uid_map[uid] = global_uid_map.setdefault(uid, len(global_uid_map))
             iid_map[iid] = global_iid_map.setdefault(iid, len(global_iid_map))

@@ -28,6 +28,7 @@ from ..data import Dataset
 from ..metrics import RatingMetric
 from ..metrics import RankingMetric
 from ..experiment.result import Result
+from ..utils.common import safe_indexing
 
 
 def rating_eval(model, metrics, test_set, user_based=False):
@@ -479,7 +480,7 @@ class BaseMethod:
         return Result(model.name, metric_avg_results, metric_user_results)
 
     @classmethod
-    def from_splits(cls, train_data, test_data, val_data=None, rating_threshold=1.0,
+    def from_splits(cls, train_data, test_data, val_data=None, fmt='UIR', rating_threshold=1.0,
                     exclude_unknowns=False, seed=None, verbose=False, **kwargs):
         """Constructing evaluation method given data.
 
@@ -493,6 +494,9 @@ class BaseMethod:
 
         val_data: array-like
             Validation data
+
+        fmt: str, default: 'UIR'
+            The format of given data.
 
         rating_threshold: float, default: 1.0
             Threshold to decide positive or negative preferences.
@@ -517,6 +521,12 @@ class BaseMethod:
                      seed=seed,
                      verbose=verbose,
                      **kwargs)
+
+        if fmt == 'UIRT':
+            train_data = safe_indexing(train_data, np.argsort([x[3] for x in train_data]))
+            test_data = safe_indexing(test_data, np.argsort([x[3] for x in test_data]))
+            if val_data is not None:
+                val_data = safe_indexing(val_data, np.argsort([x[3] for x in val_data]))
 
         return method.build(train_data=train_data,
                             test_data=test_data,
