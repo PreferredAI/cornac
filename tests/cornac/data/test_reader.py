@@ -48,6 +48,16 @@ class TestReader(unittest.TestCase):
         self.assertEqual(triplet_data[6][1], '478')
         self.assertEqual(triplet_data[8][0], '543')
 
+    def test_read_uirt(self):
+        data = self.reader.read(self.data_file, fmt='UIRT')
+
+        self.assertEqual(len(data), 10)
+        self.assertEqual(data[4][3], 891656347)
+        self.assertEqual(data[4][2], 3)
+        self.assertEqual(data[4][1], '705')
+        self.assertEqual(data[4][0], '329')
+        self.assertEqual(data[9][3], 879451804)
+
     def test_read_tup(self):
         tup_data = self.reader.read(self.data_file, fmt='UITup')
         self.assertEqual(len(tup_data), 10)
