@@ -76,7 +76,28 @@ class Dataset(object):
     uir_tuple: tuple
         Tuple three numpy arrays (user_indices, item_indices, rating_values).
 
-
+    timestamps: numpy.array
+        Numpy array of timestamps corresponding to feedback in `uir_tuple`.
+        This is only available when input data is in `UIRT` format.
+    
+    user_data: dict
+        Data organized by user. A dictionary where keys are users,
+        values are tuples of two lists (items, ratings) interacted by the corresponding users.
+        
+    item_data: dict
+        Data organized by item. A dictionary where keys are items,
+        values are tuples of two lists (users, ratings) interacted with the corresponding items.
+    
+    chrono_user_data: dict
+        Data organized by user sorted chronologically (timestamps required).
+        A dictionary where keys are users, values are tuples of three chronologically 
+        sorted lists (items, ratings, timestamps) interacted by the corresponding users.
+        
+    chrono_item_data: dict
+        Data organized by item sorted chronologically (timestamps required).
+        A dictionary where keys are items, values are tuples of three chronologically 
+        sorted lists (users, ratings, timestamps) interacted with the corresponding items.
+        
     """
 
     def __init__(self, num_users, num_items, uid_map, iid_map,
