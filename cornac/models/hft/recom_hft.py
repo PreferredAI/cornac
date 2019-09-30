@@ -20,7 +20,7 @@ from ...exception import ScoreException
 
 
 class HFT(Recommender):
-    """Collaborative Topic Regression
+    """Hidden Factors and Hidden Topics
 
     Parameters
     ----------
