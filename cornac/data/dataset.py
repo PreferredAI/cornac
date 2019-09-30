@@ -15,11 +15,13 @@
 
 from collections import OrderedDict, defaultdict
 import itertools
+import warnings
 
 import numpy as np
 from scipy.sparse import csr_matrix, csc_matrix, dok_matrix
 
 from ..utils import get_rng
+from ..utils import validate_format
 from ..utils import estimate_batches
 
 
@@ -28,29 +30,23 @@ class Dataset(object):
 
     Parameters
     ----------
-    uid_map: :obj:`OrderDict`
-        The dictionary containing mapping from original ids to mapped ids of users.
-
-    iid_map: :obj:`OrderDict`
-        The dictionary containing mapping from original ids to mapped ids of items.
-
-    uir_tuple: tuple
-        Tuple of 3 numpy arrays (users, items, ratings).
-
-    num_users: int
+    num_users: int, required
         Number of users.
 
-    num_items: int
+    num_items: int, required
         Number of items.
 
-    max_rating: float
-        Maximum value of the preferences.
+    uid_map: :obj:`OrderDict`, required
+        The dictionary containing mapping from user original ids to mapped integer indices.
 
-    min_rating: float
-        Minimum value of the preferences.
+    iid_map: :obj:`OrderDict`, required
+        The dictionary containing mapping from item original ids to mapped integer indices.
 
-    global_mean: float
-        Average value of the preferences.
+    uir_tuple: tuple, required
+        Tuple of 3 numpy arrays (user_indices, item_indices, rating_values).
+
+    timestamps: numpy.array, optional, default: None
+        Array of timestamps corresponding to observations in `uir_tuple`.
 
     seed: int, optional, default: None
         Random seed for reproducing data sampling.
@@ -76,21 +72,49 @@ class Dataset(object):
 
     global_mean: float
         Average value over the rating observations.
+        
+    uir_tuple: tuple
+        Tuple three numpy arrays (user_indices, item_indices, rating_values).
 
+    timestamps: numpy.array
+        Numpy array of timestamps corresponding to feedback in `uir_tuple`.
+        This is only available when input data is in `UIRT` format.
+    
+    user_data: dict
+        Data organized by user. A dictionary where keys are users,
+        values are tuples of two lists (items, ratings) interacted by the corresponding users.
+        
+    item_data: dict
+        Data organized by item. A dictionary where keys are items,
+        values are tuples of two lists (users, ratings) interacted with the corresponding items.
+    
+    chrono_user_data: dict
+        Data organized by user sorted chronologically (timestamps required).
+        A dictionary where keys are users, values are tuples of three chronologically 
+        sorted lists (items, ratings, timestamps) interacted by the corresponding users.
+        
+    chrono_item_data: dict
+        Data organized by item sorted chronologically (timestamps required).
+        A dictionary where keys are items, values are tuples of three chronologically 
+        sorted lists (users, ratings, timestamps) interacted with the corresponding items.
+        
     """
 
-    def __init__(self, uid_map, iid_map, uir_tuple, num_users, num_items,
-                 max_rating, min_rating, global_mean, seed=None):
+    def __init__(self, num_users, num_items, uid_map, iid_map,
+                 uir_tuple, timestamps=None, seed=None):
+        self.num_users = num_users
+        self.num_items = num_items
         self.uid_map = uid_map
         self.iid_map = iid_map
         self.uir_tuple = uir_tuple
-        self.num_users = num_users
-        self.num_items = num_items
-        self.num_ratings = len(uir_tuple[-1])
-        self.max_rating = max_rating
-        self.min_rating = min_rating
-        self.global_mean = global_mean
+        self.timestamps = timestamps
         self.rng = get_rng(seed)
+
+        (_, _, r_values) = uir_tuple
+        self.num_ratings = len(r_values)
+        self.max_rating = np.max(r_values)
+        self.min_rating = np.min(r_values)
+        self.global_mean = np.mean(r_values)
 
         self.__user_ids = None
         self.__item_ids = None
@@ -99,6 +123,8 @@ class Dataset(object):
 
         self.__user_data = None
         self.__item_data = None
+        self.__chrono_user_data = None
+        self.__chrono_item_data = None
         self.__csr_matrix = None
         self.__csc_matrix = None
         self.__dok_matrix = None
@@ -124,19 +150,10 @@ class Dataset(object):
         return self.iid_map.values()
 
     @property
-    def uir_tuple(self):
-        """Return tuple of three numpy arrays (users, items, ratings)"""
-        return self.__uir_tuple
-
-    @uir_tuple.setter
-    def uir_tuple(self, input_tuple):
-        if input_tuple is not None and len(input_tuple) != 3:
-            raise ValueError('input_tuple required to be size 3 but size {}'.format(len(input_tuple)))
-        self.__uir_tuple = input_tuple
-
-    @property
     def user_data(self):
-        """Return user-oriented data. Each user contains a tuple of two lists (items, ratings)"""
+        """Return data organized by user. A dictionary where keys are users,
+        values are tuples of two lists (items, ratings) interacted by the corresponding users.
+        """
         if self.__user_data is None:
             self.__user_data = defaultdict()
             for u, i, r in zip(*self.uir_tuple):
@@ -147,7 +164,9 @@ class Dataset(object):
 
     @property
     def item_data(self):
-        """Return item-oriented data. Each item contains a tuple of two lists (users, ratings)"""
+        """Return data organized by item. A dictionary where keys are items,
+        values are tuples of two lists (users, ratings) interacted with the corresponding items.
+        """
         if self.__item_data is None:
             self.__item_data = defaultdict()
             for u, i, r in zip(*self.uir_tuple):
@@ -155,6 +174,60 @@ class Dataset(object):
                 i_data[0].append(u)
                 i_data[1].append(r)
         return self.__item_data
+
+    @property
+    def chrono_user_data(self):
+        """Return data organized by user sorted chronologically (timestamps required).
+        A dictionary where keys are users, values are tuples of three chronologically 
+        sorted lists (items, ratings, timestamps) interacted by the corresponding users.
+        """
+        if self.timestamps is None:
+            raise ValueError('Timestamps are required but None!')
+
+        if self.__chrono_user_data is None:
+            self.__chrono_user_data = defaultdict()
+            for u, i, r, t in zip(*self.uir_tuple, self.timestamps):
+                u_data = self.__chrono_user_data.setdefault(u, ([], [], []))
+                u_data[0].append(i)
+                u_data[1].append(r)
+                u_data[2].append(t)
+            # sorting based on timestamps
+            for user, (items, ratings, timestamps) in self.__chrono_user_data.items():
+                sorted_idx = np.argsort(timestamps)
+                sorted_items = [items[i] for i in sorted_idx]
+                sorted_ratings = [ratings[i] for i in sorted_idx]
+                sorted_timestamps = [timestamps[i] for i in sorted_idx]
+                self.__chrono_user_data[user] = (sorted_items, 
+                                                 sorted_ratings, 
+                                                 sorted_timestamps)
+        return self.__chrono_user_data
+
+    @property
+    def chrono_item_data(self):
+        """Return data organized by item sorted chronologically (timestamps required).
+        A dictionary where keys are items, values are tuples of three chronologically 
+        sorted lists (users, ratings, timestamps) interacted with the corresponding items.
+        """
+        if self.timestamps is None:
+            raise ValueError('Timestamps are required but None!')
+
+        if self.__chrono_item_data is None:
+            self.__chrono_item_data = defaultdict()
+            for u, i, r, t in zip(*self.uir_tuple, self.timestamps):
+                i_data = self.__chrono_item_data.setdefault(i, ([], [], []))
+                i_data[0].append(u)
+                i_data[1].append(r)
+                i_data[2].append(t)
+            # sorting based on timestamps
+            for item, (users, ratings, timestamps) in self.__chrono_item_data.items():
+                sorted_idx = np.argsort(timestamps)
+                sorted_users = [users[i] for i in sorted_idx]
+                sorted_ratings = [ratings[i] for i in sorted_idx]
+                sorted_timestamps = [timestamps[i] for i in sorted_idx]
+                self.__chrono_item_data[item] = (sorted_users,
+                                                 sorted_ratings,
+                                                 sorted_timestamps)
+        return self.__chrono_item_data
 
     @property
     def matrix(self):
@@ -183,20 +256,29 @@ class Dataset(object):
     def dok_matrix(self):
         """Return the user-item interaction matrix in DOK sparse format"""
         if self.__dok_matrix is None:
-            self.__dok_matrix = dok_matrix((self.num_users, self.num_items), dtype=np.float32)
+            self.__dok_matrix = dok_matrix(
+                (self.num_users, self.num_items), dtype=np.float32)
             for u, i, r in zip(*self.uir_tuple):
                 self.__dok_matrix[u, i] = r
         return self.__dok_matrix
 
     @classmethod
-    def from_uir(cls, data, global_uid_map=None, global_iid_map=None,
-                 seed=None, exclude_unknowns=False):
-        """Constructing Dataset from UIR triplet data.
+    def build(cls, data, fmt='UIR',
+              global_uid_map=None, global_iid_map=None,
+              seed=None, exclude_unknowns=False):
+        """Constructing Dataset from given data of specific format.
 
         Parameters
         ----------
-        data: array-like, shape: [n_examples, 3]
-            Data in the form of triplets (user, item, rating)
+        data: array-like, required
+            Data in the form of triplets (user, item, rating) for UIR format,
+            or quadruplets (user, item, rating, timestamps) for UIRT format.
+
+        fmt: str, default: 'UIR'
+            Format of the input data. Currently, we are supporting:
+
+            'UIR': User, Item, Rating
+            'UIRT': User, Item, Rating, Timestamp
 
         global_uid_map: :obj:`defaultdict`, optional, default: None
             The dictionary containing global mapping from original ids to mapped ids of users.
@@ -208,7 +290,7 @@ class Dataset(object):
             Random seed for reproducing data sampling.
 
         exclude_unknowns: bool, default: False
-            Ignore unknown users and items (cold-start).
+            Ignore unknown users and items.
 
         Returns
         -------
@@ -216,59 +298,103 @@ class Dataset(object):
             Dataset object.
 
         """
+        fmt = validate_format(fmt, ['UIR', 'UIRT'])
+
         if global_uid_map is None:
             global_uid_map = OrderedDict()
         if global_iid_map is None:
             global_iid_map = OrderedDict()
 
-        ui_set = set()  # avoid duplicate observations.
         uid_map = OrderedDict()
         iid_map = OrderedDict()
 
         u_indices = []
         i_indices = []
         r_values = []
+        valid_idx = []
 
-        rating_sum = 0.
-        rating_count = 0
-        max_rating = float('-inf')
-        min_rating = float('inf')
-
-        for uid, iid, rating in itertools.filterfalse(
-                lambda x: (x[0], x[1]) in ui_set or
-                          (exclude_unknowns and (x[0] not in global_uid_map or
-                                                 x[1] not in global_iid_map)),
-                data
-        ):
+        ui_set = set()  # avoid duplicate observations
+        dup_count = 0
+        
+        for idx, (uid, iid, rating, *_) in enumerate(data):            
+            if exclude_unknowns and (uid not in global_uid_map or
+                                     iid not in global_iid_map):
+                continue
+            
+            if (uid, iid) in ui_set:
+                dup_count += 1
+                continue
             ui_set.add((uid, iid))
+            
             uid_map[uid] = global_uid_map.setdefault(uid, len(global_uid_map))
             iid_map[iid] = global_iid_map.setdefault(iid, len(global_iid_map))
 
-            rating = float(rating)
-            rating_sum += rating
-            rating_count += 1
-            if rating > max_rating:
-                max_rating = rating
-            if rating < min_rating:
-                min_rating = rating
-
             u_indices.append(uid_map[uid])
             i_indices.append(iid_map[iid])
-            r_values.append(rating)
+            r_values.append(float(rating))
+            valid_idx.append(idx)
+
+        if dup_count > 0:
+            warnings.warn('%d duplicated observations are removed!' % dup_count)
 
         if len(ui_set) == 0:
             raise ValueError('data is empty after being filtered!')
-
-        num_users = len(global_uid_map)
-        num_items = len(global_iid_map)
-        global_mean = rating_sum / rating_count
 
         uir_tuple = (np.asarray(u_indices, dtype=np.int),
                      np.asarray(i_indices, dtype=np.int),
                      np.asarray(r_values, dtype=np.float))
 
-        return cls(uid_map=uid_map, iid_map=iid_map, uir_tuple=uir_tuple, num_users=num_users, num_items=num_items,
-                   max_rating=max_rating, min_rating=min_rating, global_mean=global_mean, seed=seed)
+        timestamps = (np.fromiter((int(data[i][3]) for i in valid_idx), dtype=np.int)
+                      if fmt == 'UIRT' else None)
+
+        return cls(num_users=len(global_uid_map),
+                   num_items=len(global_iid_map),
+                   uid_map=uid_map,
+                   iid_map=iid_map,
+                   uir_tuple=uir_tuple,
+                   timestamps=timestamps,
+                   seed=seed)
+
+    @classmethod
+    def from_uir(cls, data, seed=None):
+        """Constructing Dataset from UIR (User, Item, Rating) triplet data.
+
+        Parameters
+        ----------
+        data: array-like, shape: [n_examples, 3]
+            Data in the form of triplets (user, item, rating)
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.Dataset>`
+            Dataset object.
+
+        """
+        return cls.build(data, fmt='UIR', seed=seed)
+
+    @classmethod
+    def from_uirt(cls, data, seed=None):
+        """Constructing Dataset from UIRT (User, Item, Rating, Timestamp) 
+        quadruplet data.
+
+        Parameters
+        ----------
+        data: array-like, shape: [n_examples, 4]
+            Data in the form of triplets (user, item, rating, timestamp)
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.Dataset>`
+            Dataset object.
+
+        """
+        return cls.build(data, fmt='UIRT', seed=seed)
 
     def num_batches(self, batch_size):
         return estimate_batches(len(self.uir_tuple[0]), batch_size)
@@ -341,7 +467,8 @@ class Dataset(object):
                     neg_items[i] = j
                 batch_users = np.concatenate((batch_users, repeated_users))
                 batch_items = np.concatenate((batch_items, neg_items))
-                batch_ratings = np.concatenate((batch_ratings, np.zeros_like(neg_items)))
+                batch_ratings = np.concatenate(
+                    (batch_ratings, np.zeros_like(neg_items)))
 
             yield batch_users, batch_items, batch_ratings
 
@@ -370,7 +497,8 @@ class Dataset(object):
         elif neg_sampling.lower() == 'popularity':
             neg_population = self.uir_tuple[1]
         else:
-            raise ValueError('Unsupported negative sampling option: {}'.format(neg_sampling))
+            raise ValueError(
+                'Unsupported negative sampling option: {}'.format(neg_sampling))
 
         for batch_ids in self.idx_iter(len(self.uir_tuple[0]), batch_size, shuffle):
             batch_users = self.uir_tuple[0][batch_ids]

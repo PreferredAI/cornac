@@ -148,7 +148,8 @@ def ranking_eval(model, metrics, train_set, test_set, val_set=None,
         u_gt_pos[test_pos_items] = 1
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
-        train_pos_items = [] if train_set.is_unk_user(user_idx) else pos_items(train_mat.getrow(user_idx))
+        train_pos_items = [] if train_set.is_unk_user(
+            user_idx) else pos_items(train_mat.getrow(user_idx))
 
         u_gt_neg = np.ones(test_set.num_items, dtype=np.int)
         u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
@@ -193,12 +194,14 @@ class BaseMethod:
 
     def __init__(self,
                  data=None,
+                 fmt='UIR',
                  rating_threshold=1.0,
                  seed=None,
                  exclude_unknowns=True,
                  verbose=False,
                  **kwargs):
         self._data = data
+        self.fmt = fmt
         self.train_set = None
         self.test_set = None
         self.val_set = None
@@ -236,7 +239,8 @@ class BaseMethod:
     @user_text.setter
     def user_text(self, input_modality):
         if input_modality is not None and not isinstance(input_modality, TextModality):
-            raise ValueError('input_modality has to be instance of TextModality but {}'.format(type(input_modality)))
+            raise ValueError(
+                'input_modality has to be instance of TextModality but {}'.format(type(input_modality)))
         self.__user_text = input_modality
 
     @property
@@ -246,7 +250,8 @@ class BaseMethod:
     @user_image.setter
     def user_image(self, input_modality):
         if input_modality is not None and not isinstance(input_modality, ImageModality):
-            raise ValueError('input_modality has to be instance of ImageModality but {}'.format(type(input_modality)))
+            raise ValueError('input_modality has to be instance of ImageModality but {}'.format(
+                type(input_modality)))
         self.__user_image = input_modality
 
     @property
@@ -256,7 +261,8 @@ class BaseMethod:
     @user_graph.setter
     def user_graph(self, input_modality):
         if input_modality is not None and not isinstance(input_modality, GraphModality):
-            raise ValueError('input_modality has to be instance of GraphModality but {}'.format(type(input_modality)))
+            raise ValueError('input_modality has to be instance of GraphModality but {}'.format(
+                type(input_modality)))
         self.__user_graph = input_modality
 
     @property
@@ -266,7 +272,8 @@ class BaseMethod:
     @item_text.setter
     def item_text(self, input_modality):
         if input_modality is not None and not isinstance(input_modality, TextModality):
-            raise ValueError('input_modality has to be instance of TextModality but {}'.format(type(input_modality)))
+            raise ValueError(
+                'input_modality has to be instance of TextModality but {}'.format(type(input_modality)))
         self.__item_text = input_modality
 
     @property
@@ -276,7 +283,8 @@ class BaseMethod:
     @item_image.setter
     def item_image(self, input_modality):
         if input_modality is not None and not isinstance(input_modality, ImageModality):
-            raise ValueError('input_modality has to be instance of ImageModality but {}'.format(type(input_modality)))
+            raise ValueError('input_modality has to be instance of ImageModality but {}'.format(
+                type(input_modality)))
         self.__item_image = input_modality
 
     @property
@@ -286,7 +294,8 @@ class BaseMethod:
     @item_graph.setter
     def item_graph(self, input_modality):
         if input_modality is not None and not isinstance(input_modality, GraphModality):
-            raise ValueError('input_modality has to be instance of GraphModality but {}'.format(type(input_modality)))
+            raise ValueError('input_modality has to be instance of GraphModality but {}'.format(
+                type(input_modality)))
         self.__item_graph = input_modality
 
     @property
@@ -321,9 +330,9 @@ class BaseMethod:
         return rating_metrics, ranking_metrics
 
     def _build_datasets(self, train_data, test_data, val_data=None):
-        self.train_set = Dataset.from_uir(data=train_data,
-                                          global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
-                                          seed=self.seed, exclude_unknowns=False)
+        self.train_set = Dataset.build(data=train_data, fmt=self.fmt,
+                                       global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+                                       seed=self.seed, exclude_unknowns=False)
         if self.verbose:
             print('---')
             print('Training data:')
@@ -334,22 +343,24 @@ class BaseMethod:
             print('Min rating = {:.1f}'.format(self.train_set.min_rating))
             print('Global mean = {:.1f}'.format(self.train_set.global_mean))
 
-        self.test_set = Dataset.from_uir(data=test_data,
-                                         global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
-                                         seed=self.seed, exclude_unknowns=self.exclude_unknowns)
+        self.test_set = Dataset.build(data=test_data, fmt=self.fmt,
+                                      global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+                                      seed=self.seed, exclude_unknowns=self.exclude_unknowns)
         if self.verbose:
             print('---')
             print('Test data:')
             print('Number of users = {}'.format(len(self.test_set.uid_map)))
             print('Number of items = {}'.format(len(self.test_set.iid_map)))
             print('Number of ratings = {}'.format(self.test_set.num_ratings))
-            print('Number of unknown users = {}'.format(self.test_set.num_users - self.train_set.num_users))
-            print('Number of unknown items = {}'.format(self.test_set.num_items - self.train_set.num_items))
+            print('Number of unknown users = {}'.format(
+                self.test_set.num_users - self.train_set.num_users))
+            print('Number of unknown items = {}'.format(
+                self.test_set.num_items - self.train_set.num_items))
 
         if val_data is not None and len(val_data) > 0:
-            self.val_set = Dataset.from_uir(data=val_data,
-                                            global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
-                                            seed=self.seed, exclude_unknowns=True)
+            self.val_set = Dataset.build(data=val_data, fmt=self.fmt,
+                                         global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
+                                         seed=self.seed, exclude_unknowns=True)
             if self.verbose:
                 print('---')
                 print('Validation data:')
@@ -479,8 +490,10 @@ class BaseMethod:
         return Result(model.name, metric_avg_results, metric_user_results)
 
     @classmethod
-    def from_splits(cls, train_data, test_data, val_data=None, rating_threshold=1.0,
-                    exclude_unknowns=False, seed=None, verbose=False, **kwargs):
+    def from_splits(cls, train_data, test_data, val_data=None,
+                    fmt='UIR', rating_threshold=1.0,
+                    exclude_unknowns=False, seed=None,
+                    verbose=False, **kwargs):
         """Constructing evaluation method given data.
 
         Parameters
@@ -491,8 +504,14 @@ class BaseMethod:
         test_data: array-like
             Test data
 
-        val_data: array-like
+        val_data: array-like, optional, default: None
             Validation data
+
+        fmt: str, default: 'UIR'
+            Format of the input data. Currently, we are supporting:
+
+            'UIR': User, Item, Rating
+            'UIRT': User, Item, Rating, Timestamp
 
         rating_threshold: float, default: 1.0
             Threshold to decide positive or negative preferences.
@@ -512,7 +531,8 @@ class BaseMethod:
             Evaluation method object.
 
         """
-        method = cls(rating_threshold=rating_threshold,
+        method = cls(fmt=fmt,
+                     rating_threshold=rating_threshold,
                      exclude_unknowns=exclude_unknowns,
                      seed=seed,
                      verbose=verbose,

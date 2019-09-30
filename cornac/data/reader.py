@@ -63,6 +63,10 @@ def uir_parser(tokens, **kwargs):
     return [(tokens[0], tokens[1], float(tokens[2]))]
 
 
+def uirt_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], float(tokens[2]), int(tokens[3]))]
+
+
 def tup_parser(tokens, **kwargs):
     return [(tokens[0], tokens[1], [tuple(tup.split(kwargs.get('tup_sep'))) for tup in tokens[2:]])]
 
@@ -70,6 +74,7 @@ def tup_parser(tokens, **kwargs):
 PARSERS = {
     'UI': ui_parser,
     'UIR': uir_parser,
+    'UIRT': uirt_parser,
     'UITup': tup_parser,
 }
 
@@ -121,7 +126,10 @@ class Reader():
 
     def filter(self, tuples):
         if self.bin_threshold is not None:
-            def binarize(t): t = list(t); t[2] = 1; return tuple(t)
+            def binarize(t):
+                t = list(t)
+                t[2] = 1.
+                return tuple(t)
             tuples = [binarize(t) for t in tuples if t[2] >= self.bin_threshold]
 
         if self.users is not None:
@@ -150,10 +158,10 @@ class Reader():
         Parameters
         ----------
         fpath: str
-            Path to the data file
+            Path to the data file.
 
         fmt: str, default: `UIR`
-            Line format to be parsed
+            Line format to be parsed (`UIR` or `UIRT`).
 
         sep: str, default: \t
             The delimiter string.
