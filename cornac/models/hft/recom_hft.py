@@ -31,14 +31,23 @@ class HFT(Recommender):
         The dimension of the latent factors.
 
     max_iter: int, optional, default: 50
-        Maximum number of iterations for EM step
+        Maximum number of iterations for EM.
 
     grad_iter: int, optional, default: 50
-        Maximum number of iterations for l-bfgs
+        Maximum number of iterations for L-BFGS.
+
+    lambda_text: float, default: 0.1
+        Weight of corpus likelihood in objective function.
+
+    l2_reg: float, default: 0.001
+        Regularization for user item latent factors.
+
+    vocab_size: int, optional, default: 8000
+        Size of vocabulary for review text.
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'alpha':alpha,'beta_u':beta_u,'beta_i':beta_i,
-        'gamma_u':gamma_u, 'gamma_v':gamma_v}
+        List of initial parameters, e.g., init_params = {'alpha': alpha, 'beta_u': beta_u,
+        'beta_i': beta_i, 'gamma_u': gamma_u, 'gamma_v': gamma_v}
 
         alpha: float
             Model offset, optional initialization via init_params.
@@ -55,21 +64,14 @@ class HFT(Recommender):
         gamma_v: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
 
-    lambda_text: float, default : 0.1
-        Weight of likelihood in loss function
+    trainable: boolean, optional, default: True
+        When False, the model will not be re-trained, and input of pre-trained parameters are required.
 
-    l2_reg: float, default : 0.001
-        Regularization for user item latent factor
-
-    vocab_size: int, optional, default: 8000
-        Vocab size for auxiliary text data
-
+    verbose: boolean, optional, default: True
+        When True, some running logs are displayed.
+        
     seed: int, optional, default: None
         Random seed for weight initialization.
-
-    trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already
-        pre-trained (gamma_u and gamma_v are not None).
 
     References
     ----------
@@ -77,10 +79,11 @@ class HFT(Recommender):
     RecSys '13 Proceedings of the 7th ACM conference on Recommender systems Pages 165-172
     """
 
-    def __init__(self, name='HFT', k=10, lambda_text=0.1, l2_reg=0.001, vocab_size=8000,
-                 max_iter=50, grad_iter=50, trainable=True, verbose=True, init_params=None,
-                 seed=None):
+    def __init__(self, name='HFT', k=10, max_iter=50, grad_iter=50, 
+                 lambda_text=0.1, l2_reg=0.001, vocab_size=8000,
+                 init_params=None, trainable=True, verbose=True, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
+        
         self.k = k
         self.lambda_text = lambda_text
         self.l2_reg = l2_reg
