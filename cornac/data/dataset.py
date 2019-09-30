@@ -315,19 +315,17 @@ class Dataset(object):
 
         ui_set = set()  # avoid duplicate observations
         dup_count = 0
-
-        for idx, row in enumerate(data):
-            uid, iid, rating = row[:3]
-
-            if (uid, iid) in ui_set:
-                dup_count += 1
-                continue
-
+        
+        for idx, (uid, iid, rating, *_) in enumerate(data):            
             if exclude_unknowns and (uid not in global_uid_map or
                                      iid not in global_iid_map):
                 continue
-
+            
+            if (uid, iid) in ui_set:
+                dup_count += 1
+                continue
             ui_set.add((uid, iid))
+            
             uid_map[uid] = global_uid_map.setdefault(uid, len(global_uid_map))
             iid_map[iid] = global_iid_map.setdefault(iid, len(global_iid_map))
 
