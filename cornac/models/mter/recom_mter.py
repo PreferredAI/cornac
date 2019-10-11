@@ -267,7 +267,7 @@ class MTER(Recommender):
             p = mp.Process(target=grad_worker_mse,
                            args=(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
                                  G1, G2, G3, U, I, A, O,
-                                 error_square, lock, q_samples_mse,
+                                 error_square, error_bpr, lock, q_samples_mse,
                                  del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad))
             processes.append(p)
             p.start()
@@ -275,7 +275,7 @@ class MTER(Recommender):
         for _ in range(n_threads):
             p = mp.Process(target=grad_worker_bpr,
                            args=(rating_matrix, lambda_bpr,
-                                 G1, U, I, A, error_bpr, lock, q_samples_bpr,
+                                 G1, U, I, A, error_square, error_bpr, lock, q_samples_bpr,
                                  del_g1, del_u, del_i, del_a, num_grad))
             processes.append(p)
             p.start()

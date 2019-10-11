@@ -36,7 +36,7 @@ def sign(a, b):
 
 def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
                     G1, G2, G3, U, I, A, O,
-                    error_square, lock, q_samples_mse,
+                    error_square, error_bpr, lock, q_samples_mse,
                     del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad):
     while 1:
         if not q_samples_mse.empty():
@@ -127,7 +127,7 @@ def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
 
 
 def grad_worker_bpr(rating_matrix, lambda_bpr,
-                    G1, U, I, A, error_bpr, lock, q_samples_bpr,
+                    G1, U, I, A, error_square, error_bpr, lock, q_samples_bpr,
                     del_g1, del_u, del_i, del_a, num_grad):
     while 1:
         if not q_samples_bpr.empty():
