@@ -431,12 +431,11 @@ class AUC(RankingMetric):
             AUC score.
 
         """
-        gt_pos = gt_pos.astype(bool)
         if gt_neg is None:
             gt_neg = np.logical_not(gt_pos)
 
-        pos_scores = pd_scores[gt_pos]
-        neg_scores = pd_scores[gt_neg]
+        pos_scores = pd_scores[gt_pos.astype(np.bool)]
+        neg_scores = pd_scores[gt_neg.astype(np.bool)]
         ui_scores = np.repeat(pos_scores, len(neg_scores))
         uj_scores = np.tile(neg_scores, len(pos_scores))
 
