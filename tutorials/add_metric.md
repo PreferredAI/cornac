@@ -17,11 +17,11 @@ cornac
 │           │   ranking.py
 │           │   rating.py 
 ```
-It is important to follow the above categorization to avoid confusions. For the rest of the tutorial let's use MAE (Mean Absolute Error) as a running example.
+It is important to follow the above categorization to avoid confusions. For the rest of the tutorial let's use MAE (Mean Absolute Error) as a running example. Note that we could have picked a ranking metric as well, e.g., Normalized Discount Cumulative Gain (NDCG), and follow the same process as below.  
 
 ### 1. Extending the RatingMetric class
 
-The starting point is to create a class called ``MAE``, which extends the generic class ``RatingMetric`` implemented inside `metric/rating.py`. The minimal structure our new class is as follows:  
+The starting point is to create a class called ``MAE``, which extends the generic class ``RatingMetric`` implemented inside `metric/rating.py`. The minimal structure of our new class is as follows:  
 ```python
 class MAE(RatingMetric):
     """Mean Absolute Error.
@@ -40,7 +40,7 @@ class MAE(RatingMetric):
         raise NotImplementedError()
 ```
 
-Next, we need to implement the ``compute()`` function of our class, as well as provide the necessary comments that will be automatically transformed into documentation using [Sphinx](http://www.sphinx-doc.org/en/master/). Here is an implementation example:
+Next, we need to implement the ``compute()`` function, as well as provide the necessary comments that will be automatically transformed into documentation by [Sphinx](http://www.sphinx-doc.org/en/master/). Here is an implementation example:
 ```python
 def compute(self, gt_ratings, pd_ratings, weights=None, **kwargs):
     """Compute Mean Absolute Error.
@@ -85,7 +85,7 @@ Mean Absolute Error (MAE)
 
 ### 3. Adding unit tests
 
-Unit tests are required for metrics to ensure implementation quality. Cornac's tests are grouped into the ``tests`` folder in the root of the repository. In our case we are interested in updating the rating-metrics' file `tests/cornac/metrics/test_rating.py`. The latter contains a class called `TestRating`, and we can simply add a function to this class to test our MAE code, as in the example below.
+Unit tests are required for metrics to ensure implementation quality. All tests are grouped into the ``tests`` folder, in the root of the Cornac repository. In our case we are interested in updating the rating-metrics' test file: `tests/cornac/metrics/test_rating.py`. The latter contains a class called `TestRating`, and we can simply add a function to this class to test our MAE code, as in the example below.
 ```python
 def test_mae(self):
     mae = MAE()
