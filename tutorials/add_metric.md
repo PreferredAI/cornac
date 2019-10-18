@@ -6,7 +6,7 @@ Some evaluation measures may have different appellations in the literature. So i
 
 ## Adding a metric
 
-Cornac's evaluation measures are inside the ``metrics`` directory, and they are organized into two main categories, namely _raking_ (e.g., Recall) and _rating_ (e.g., MAE) metrics as illustrated below.   
+Cornac's evaluation measures are inside the ``metrics`` directory, and they are organized into two main categories, namely _ranking_ (e.g., Recall) and _rating_ (e.g., MAE) metrics as illustrated below.   
 ```
 cornac    
 │
