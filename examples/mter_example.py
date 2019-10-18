@@ -28,7 +28,7 @@ eval_method = RatioSplit(data, test_size=0.2, rating_threshold=1.0,
                          sentiment=md, exclude_unknowns=True, verbose=True, seed=123)
 
 mter = MTER(n_user_factors=15, n_item_factors=15, n_aspect_factors=12, n_opinion_factors=12,
-            n_bpr_samples=1000, n_element_samples=200, lambda_reg=0.1, lambda_bpr=5,
+            n_bpr_samples=1000, n_element_samples=50, lambda_reg=0.1, lambda_bpr=10,
             n_epochs=2000, lr=0.1, verbose=True, seed=123)
 
 exp = Experiment(eval_method=eval_method,
