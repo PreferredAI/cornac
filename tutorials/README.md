@@ -10,6 +10,7 @@ If you are new to Cornac, the [Getting Started](#getting-started) tutorials are 
 ## Contributing
 
 - [Add a new recommender model](./add_model.md)
+- [Add an evaluation metric](./add_metric.md)
 
 ## Cross-Modality
 
