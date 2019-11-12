@@ -119,7 +119,7 @@ class C2PF(Recommender):
         del rid, cid, val
 
         if self.trainable:
-            map_iid = train_set.iid_list
+            map_iid = train_set.item_indices
             (rid, cid, val) = train_set.item_graph.get_train_triplet(map_iid, map_iid)
             context_info = np.hstack((rid.reshape(-1, 1), cid.reshape(-1, 1), val.reshape(-1, 1)))
 
