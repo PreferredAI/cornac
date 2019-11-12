@@ -128,7 +128,7 @@ class SoRec(Recommender):
             # user-item interactions
             (rat_uid, rat_iid, rat_val) = train_set.uir_tuple
             # user-user social network
-            map_uid = train_set.uid_list
+            map_uid = train_set.user_indices
             social_net = train_set.user_graph.get_train_triplet(map_uid, map_uid)
 
             social_raw = scipy.sparse.csc_matrix((social_net[:, 2], (social_net[:, 0], social_net[:, 1])),
