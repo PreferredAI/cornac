@@ -25,9 +25,9 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td>3,393</td>
     <td>13, 689</td>
     <td>INT: [1,5]</td>
-    <td>&amp;#10004;</td>
-    <td>&amp;#10004;</td>
-    <td>&amp;#10004;</td>
+    <td>&#10004;</td>
+    <td>&#10004;</td>
+    <td>&#10004;</td>
     <td></td>
   </tr>
   <tr>
@@ -37,7 +37,7 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td>53,282</td>
     <td>INT: [1,5]</td>
     <td></td>
-    <td>&amp;#10004;</td>
+    <td>&#10004;</td>
     <td></td>
     <td></td>
   </tr>
@@ -58,7 +58,7 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td>16,980</td>
     <td>210,537</td>
     <td>BIN: {0,1}</td>
-    <td>&amp;#10004;</td>
+    <td>&#10004;</td>
     <td></td>
     <td></td>
     <td></td>
@@ -72,7 +72,7 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td></td>
     <td></td>
     <td></td>
-    <td>&amp;#10004;</td>
+    <td>&#10004;</td>
   </tr>
   <tr>
     <td rowspan="2">MovieLens </td>
@@ -81,7 +81,7 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td>1,682</td>
     <td>100,000</td>
     <td>INT: [1,5]</td>
-    <td>&amp;#10004;</td>
+    <td>&#10004;</td>
     <td></td>
     <td></td>
     <td></td>
@@ -92,7 +92,7 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td>3,706</td>
     <td>1,000,209</td>
     <td>INT: [1,5]</td>
-    <td>&amp;#10004;</td>
+    <td>&#10004;</td>
     <td></td>
     <td></td>
     <td></td>
@@ -128,7 +128,7 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td>BIN: {0,1}</td>
     <td></td>
     <td></td>
-    <td>&amp;#10004;</td>
+    <td>&#10004;</td>
     <td></td>
   </tr>
 </table>
