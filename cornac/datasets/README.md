@@ -20,9 +20,9 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
   </tr>
   <tr>
     <td>Amazon Clothing</td>
-    <td>5,377</td>
-    <td>3,393</td>
-    <td>13, 689</td>
+    <td align="right">5,377</td>
+    <td align="right">3,393</td>
+    <td align="right">13, 689</td>
     <td align="center">INT<br>[1,5]</td>
     <td align="center">&#10004;</td>
     <td align="center">&#10004;</td>
