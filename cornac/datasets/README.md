@@ -1,6 +1,9 @@
 # Datasets
 
-For convenience Cornac offers easy access to a number of popular benchmark datasets. These are listed below along with their basic characteristics, followed by a usage example.
+For convenience Cornac offers easy access to a number of popular benchmark datasets. These are listed below along with their basic characteristics, followed by a usage example. In addition to preference feedback, some of these datasets come with item and/or user auxiliary information, which are grouped into three main categories:
+- **Text**. Refers to texts associated with items or users. The usual format of this data is `(item_id, text)`, or for users `(user_id, text)`. Concrete examples of such information are item textual descriptions, product reviews, movie plots, and user's reviews, just to name a few.
+- **Graph**. For items this corresponds to a network where vertices (or nodes) are items, and edges (or links) represent relations among items. This information is typically represented by an adjacency matrix in the sparse format: `(item_id, item_id, weight)`, or simply `(item_id, item_id)` in which case the weights are assumed to be binary, i.e., 1 for observed item-pairs and 0 for missing pairs. Similarly, relations between users may be available (e.g., social network).    
+- **Image**. Consists of visual information paired with either users or items. The common format for this type of auxiliary data is `(object_id, array)`, where object stands for user or item, the array may contain pixel intensities, in the case of raw images, or some continuous visual features, e.g., learned using deep neural nets. For instance, the Amazon clothing dataset includes product CNN features.    
 <table>
   <tr>
     <th rowspan="2"><br>Dataset</th>
