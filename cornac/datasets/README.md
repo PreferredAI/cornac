@@ -16,36 +16,36 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
     <td>Text</td>
     <td>Graph</td>
     <td>Image</td>
-    <td><center>Graph</td>
+    <td align="center">Graph</td>
   </tr>
   <tr>
     <td>Amazon Clothing</td>
     <td>5,377</td>
     <td>3,393</td>
     <td>13, 689</td>
-    <td><center>INT<br>[1,5]</td>
-    <td><center>&#10004;</td>
-    <td><center>&#10004;</td>
-    <td><center>&#10004;</td>
+    <td align="center">INT<br>[1,5]</td>
+    <td align="center">&#10004;</td>
+    <td align="center">&#10004;</td>
+    <td align="center">&#10004;</td>
     <td></td>
   </tr>
   <tr>
     <td>Amazon Office</td>
-    <td>3,703</td>
-    <td>6,523</td>
-    <td>53,282</td>
-    <td><center>INT<br>[1,5]</td>
+    <td align="right">3,703</td>
+    <td align="right">6,523</td>
+    <td align="right">53,282</td>
+    <td align="center">INT<br>[1,5]</td>
     <td></td>
-    <td><center>&#10004;</td>
+    <td align="center">&#10004;</td>
     <td></td>
     <td></td>
   </tr>
   <tr>
     <td>Amazon Toy</td>
-    <td>19,412</td>
-    <td>11,924</td>
-    <td>167,597</td>
-    <td><center>INT<br>[1,5]</td>
+    <td align="right">19,412</td>
+    <td align="right">11,924</td>
+    <td align="right">167,597</td>
+    <td align="center">INT<br>[1,5]</td>
     <td></td>
     <td></td>
     <td></td>
@@ -53,54 +53,54 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
   </tr>
   <tr>
     <td>Citeulike</td>
-    <td>5,551</td>
-    <td>16,980</td>
-    <td>210,537</td>
-    <td><center>BIN<br>{0,1}</td>
-    <td><center>&#10004;</td>
+    <td align="right">5,551</td>
+    <td align="right">16,980</td>
+    <td align="right">210,537</td>
+    <td align="center">BIN<br>{0,1}</td>
+    <td align="center">&#10004;</td>
     <td></td>
     <td></td>
     <td></td>
   </tr>
   <tr>
     <td>Epinions</td>
-    <td>40,163</td>
-    <td>139,738</td>
-    <td>664,824</td>
-    <td><center>INT<br>[1,5]</td>
+    <td align="right">40,163</td>
+    <td align="right">139,738</td>
+    <td align="right">664,824</td>
+    <td align="center">INT<br>[1,5]</td>
     <td></td>
     <td></td>
     <td></td>
-    <td><center>&#10004;</td>
+    <td align="center">&#10004;</td>
   </tr>
   <tr>
     <td>MovieLens 100k</td>
-    <td>943</td>
-    <td>1,682</td>
-    <td>100,000</td>
-    <td><center>INT<br>[1,5]</td>
-    <td><center>&#10004;</td>
+    <td align="right">943</td>
+    <td align="right">1,682</td>
+    <td align="right">100,000</td>
+    <td align="center">INT<br>[1,5]</td>
+    <td align="center">&#10004;</td>
     <td></td>
     <td></td>
     <td></td>
   </tr>
   <tr>
     <td>MovieLens 1M</td>
-    <td>6,040</td>
-    <td>3,706</td>
-    <td>1,000,209</td>
-    <td><center>INT<br>[1,5]</td>
-    <td><center>&#10004;</td>
+    <td align="right">6,040</td>
+    <td align="right">3,706</td>
+    <td align="right">1,000,209</td>
+    <td align="center">INT<br>[1,5]</td>
+    <td align="center">&#10004;</td>
     <td></td>
     <td></td>
     <td></td>
   </tr>
   <tr>
     <td>Netflix Small</td>
-    <td>10,000</td>
-    <td>5,000</td>
-    <td>607,803</td>
-    <td><center>INT<br>[1,5]</td>
+    <td align="right">10,000</td>
+    <td align="right">5,000</td>
+    <td align="right">607,803</td>
+    <td align="center">INT<br>[1,5]</td>
     <td></td>
     <td></td>
     <td></td>
@@ -108,10 +108,10 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
   </tr>
   <tr>
     <td>Neflix Original</td>
-    <td>480,189</td>
-    <td>17,770</td>
-    <td>100,480,507</td>
-    <td><center>INT<br>[1,5]</td>
+    <td align="right">480,189</td>
+    <td align="right">17,770</td>
+    <td align="right">100,480,507</td>
+    <td align="center">INT<br>[1,5]</td>
     <td></td>
     <td></td>
     <td></td>
@@ -119,13 +119,13 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
   </tr>
   <tr>
     <td>Tradesy</td>
-    <td>19,243</td>
-    <td>165,906</td>
-    <td>394,421</td>
-    <td><center>BIN<br>{0,1}</td>
+    <td align="right">19,243</td>
+    <td align="right">165,906</td>
+    <td align="right">394,421</td>
+    <td align="center">BIN<br>{0,1}</td>
     <td></td>
     <td></td>
-    <td><center>&#10004;</td>
+    <td align="center">&#10004;</td>
     <td></td>
   </tr>
 </table>
