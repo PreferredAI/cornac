@@ -22,7 +22,7 @@ from cornac.datasets import filmtrust
 
 class TestFilmTrust(unittest.TestCase):
 
-    def test_amazon_office(self):
+    def test_filmtrust(self):
         random.seed(time.time())
         if random.random() > 0.8:
             ratings = filmtrust.load_feedback()
