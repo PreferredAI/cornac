@@ -26,7 +26,7 @@ class TestFilmTrust(unittest.TestCase):
         random.seed(time.time())
         if random.random() > 0.8:
             ratings = filmtrust.load_feedback()
-            trust = filmtrust.load_trut()
+            trust = filmtrust.load_trust()
             self.assertEqual(len(ratings), 35497)
             self.assertEqual(len(trust), 1853)
 
