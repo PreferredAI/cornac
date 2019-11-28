@@ -15,11 +15,20 @@
 """
 Source: https://www.librec.net/datasets.html
 """
-
+import os
 from typing import List
 
 from ..utils import cache
 from ..data import Reader
+
+from ..utils.download import get_cache_path
+
+
+def _get_cache_dir():
+    cache_dir = get_cache_path('filmtrust')[0]
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+    return cache_dir
 
 
 def load_feedback(reader: Reader = None) -> List:
@@ -36,7 +45,7 @@ def load_feedback(reader: Reader = None) -> List:
         Data in the form of a list of tuples (user, item, rating).
     """
     fpath = cache(url='https://www.librec.net/datasets/filmtrust.zip',
-                  unzip=True, cache_dir='filmtrust/', relative_path='ratings.txt')
+                  unzip=True, cache_dir=_get_cache_dir(), relative_path='ratings.txt')
     reader = Reader() if reader is None else reader
     return reader.read(fpath, sep=' ')
 
@@ -55,6 +64,6 @@ def load_trust(reader: Reader = None) -> List:
         Data in the form of a list of tuples (user, user, 1).
     """
     fpath = cache(url='https://www.librec.net/datasets/filmtrust.zip',
-                  unzip=True, cache_dir='filmtrust',relative_path='trust.txt')
+                  unzip=True, cache_dir=_get_cache_dir(),relative_path='trust.txt')
     reader = Reader() if reader is None else reader
     return reader.read(fpath, sep=' ')
