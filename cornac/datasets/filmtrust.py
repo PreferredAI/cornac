@@ -36,12 +36,12 @@ def load_feedback(reader: Reader = None) -> List:
         Data in the form of a list of tuples (user, item, rating).
     """
     fpath = cache(url='https://www.librec.net/datasets/filmtrust.zip',
-                  unzip=True, relative_path='filmtrust/ratings.txt')
+                  unzip=True, cache_dir='filmtrust/', relative_path='ratings.txt')
     reader = Reader() if reader is None else reader
     return reader.read(fpath, sep=' ')
 
 
-def load_user_trust(reader: Reader = None) -> List:
+def load_trust(reader: Reader = None) -> List:
     """Load the user-user trust information (undirected network)
 
     Parameters
@@ -52,9 +52,9 @@ def load_user_trust(reader: Reader = None) -> List:
     Returns
     -------
     data: array-like
-        Data in the form of a list of tuples (user_id, user_id, 1).
+        Data in the form of a list of tuples (user, user, 1).
     """
     fpath = cache(url='https://www.librec.net/datasets/filmtrust.zip',
-                  unzip=True, relative_path='filmtrust/trust.txt')
+                  unzip=True, cache_dir='filmtrust',relative_path='trust.txt')
     reader = Reader() if reader is None else reader
     return reader.read(fpath, sep=' ')
