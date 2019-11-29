@@ -96,6 +96,32 @@ class TestGraphModality(unittest.TestCase):
         self.assertTrue(isinstance(gm, GraphModality))
         self.assertTrue(not bool(gm.raw_data.difference(s)))
 
+    def test_get_node_degree(self):
+        data = Reader().read('./tests/graph_data.txt', sep=' ')
+        gmd = GraphModality(data=data)
+
+        global_iid_map = OrderedDict()
+        for raw_iid, raw_jid, val in data:
+            global_iid_map.setdefault(raw_iid, len(global_iid_map))
+
+        gmd.build(id_map=global_iid_map)
+
+        degree = gmd.get_node_degree()
+
+        self.assertEqual(degree.get(0)[0], 4)
+        self.assertEqual(degree.get(0)[1], 1)
+        self.assertEqual(degree.get(1)[0], 2)
+        self.assertEqual(degree.get(1)[1], 1)
+        self.assertEqual(degree.get(5)[0], 0)
+        self.assertEqual(degree.get(5)[1], 1)
+
+        degree = gmd.get_node_degree([0,1],[0,1])
+
+        self.assertEqual(degree.get(0)[0], 1)
+        self.assertEqual(degree.get(0)[1], 0)
+        self.assertEqual(degree.get(1)[0], 0)
+        self.assertEqual(degree.get(1)[1], 1)
+
 
 if __name__ == '__main__':
     unittest.main()
