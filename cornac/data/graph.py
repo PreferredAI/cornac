@@ -38,6 +38,8 @@ class GraphModality(FeatureModality):
 
     @property
     def matrix(self):
+        """Return the adjacency matrix in scipy csr sparse format
+        """
         if self.__matrix is None:
             assert self.__matrix_size is not None
             self.__matrix = sp.csr_matrix((self.val, (self.map_rid, self.map_cid)),
@@ -75,7 +77,7 @@ class GraphModality(FeatureModality):
         Parameters
         ----------
         train_row_ids: array, required
-            An array containing the ids of training objects (users or items) for whom to get the "out" relations. \
+            An array containing the ids of training objects (users or items) for which to get the "out" relations. \
 
         train_col_ids: array, required
             An array containing the ids of training objects (users or items) for whom to get the "in" relations.
@@ -97,6 +99,41 @@ class GraphModality(FeatureModality):
         return self.map_rid[picked_idx], \
                self.map_cid[picked_idx], \
                self.val[picked_idx]
+
+
+    def get_node_degree(self, in_ids=None, out_ids=None):
+        """Get the "in" and "out" degree for the desired set of nodes
+
+        Parameters
+        ----------
+        in_ids: array, required
+            An array containing the ids for which to get the "in" degree. \
+
+        out_ids: array, required
+            An array containing the ids for which to get the "out" degree. \
+
+        Returns
+        -------
+        Dictionary of the from {node_id: [in_degree,out_degree]}
+        """
+
+        degree = {}
+
+        if in_ids is None:
+            in_ids = self.map_cid
+        if out_ids is None:
+            out_ids = self.map_rid
+
+        in_ids = set(in_ids) if not isinstance(in_ids, set) else in_ids
+        out_ids = set(out_ids) if not isinstance(out_ids, set) else out_ids
+        for (i, j) in zip(self.map_rid, self.map_cid):
+            if (i not in out_ids) or (j not in in_ids):
+                continue
+            degree[i] = degree.get(i,np.asarray([0,0])) + np.asarray([0,1])
+            degree[j] = degree.get(j, np.asarray([0, 0])) + np.asarray([1,0])
+        return  degree
+
+
 
     # TODO: add feature_fallback decorator and rename the API more meaningful
     def batch(self, batch_ids):

@@ -45,6 +45,9 @@ class SoRec(Recommender):
     lamda_c: float, optional, default: 10
         The parameter balancing the information from the user-item rating matrix and the user social network.
 
+    weight_link: boolean, optional, default: True
+        When true the social network links are weighted according to eq. (4) in the original paper.
+
     name: string, optional, default: 'SOREC'
         The name of the recommender model.
 
@@ -65,6 +68,9 @@ class SoRec(Recommender):
         Z: a ndarray of shape (n_users, k)
             Containing the social network latent factors.
 
+    seed: int, optional, default: None
+        Random seed for parameters initialization.
+
     References
     ----------
     * H. Ma, H. Yang, M. R. Lyu, and I. King. SoRec:Social recommendation using probabilistic matrix factorization. \
@@ -73,7 +79,7 @@ class SoRec(Recommender):
     """
 
     def __init__(self, name="SoRec", k=5, max_iter=100, learning_rate=0.001, lamda_c=10, lamda=0.001, gamma=0.9,
-                 trainable=True, verbose=False, init_params={'U': None, 'V': None, 'Z': None}):
+                 weight_link = True, trainable=True, verbose=False, init_params={}, seed=None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
@@ -82,26 +88,22 @@ class SoRec(Recommender):
         self.lamda_c = lamda_c
         self.lamda = lamda
         self.gamma = gamma
+        self.weight_link = weight_link
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = init_params['U']  # matrix of user factors
-        self.V = init_params['V']  # matrix of item factors
-        self.Z = init_params['V']  # matrix of social network factors
+        self.U = self.init_params.get('U')  # matrix of user factors
+        self.V = self.init_params.get('V')  # matrix of item factors
+        self.Z = self.init_params.get('Z')  # matrix of social network factors
+        self.seed = seed
 
-        if self.U is None:
-            print("random initialize user factors")
-        elif self.U.shape[1] != self.k:
+        if self.U is not None and self.U.shape[1] != self.k:
             raise ValueError('initial parameters U dimension error')
 
-        if self.V is None:
-            print("random initialize item factors")
-        elif self.V.shape[1] != self.k:
+        if self.V is not None and self.V.shape[1] != self.k:
             raise ValueError('initial parameters V dimension error')
 
-        if self.Z is None:
-            print("random initialize social factors")
-        elif self.Z.shape[1] != self.k:
+        if self.Z is not None and self.Z.shape[1] != self.k:
             raise ValueError('initial parameters Z dimension error')
 
     def fit(self, train_set, val_set=None):
@@ -127,22 +129,22 @@ class SoRec(Recommender):
         if self.trainable:
             # user-item interactions
             (rat_uid, rat_iid, rat_val) = train_set.uir_tuple
-            # user-user social network
+
+            # user social network
             map_uid = train_set.user_indices
-            social_net = train_set.user_graph.get_train_triplet(map_uid, map_uid)
+            (net_uid, net_jid, net_val) = train_set.user_graph.get_train_triplet(map_uid, map_uid)
 
-            social_raw = scipy.sparse.csc_matrix((social_net[:, 2], (social_net[:, 0], social_net[:, 1])),
-                                                 shape=(len(map_uid), len(map_uid)))
-            outdegree = np.array(social_raw.sum(axis=1)).flatten()
-            indegree = np.array(social_raw.sum(axis=0)).flatten()
-            weighted_social = []
-            for ui, uk, cik in social_net:
-                i_out = outdegree[int(ui)]
-                k_in = indegree[int(uk)]
-                cik_weighted = math.sqrt(k_in / (k_in + i_out)) * cik
-                weighted_social.append(cik_weighted)
+            if self.weight_link:
+                degree = train_set.user_graph.get_node_degree(map_uid, map_uid)
+                weighted_net_val = []
+                for u, j, val in zip(net_uid, net_jid, net_val):
+                    u_out = degree[int(u)][1]
+                    j_in =  degree[int(j)][0]
+                    val_weighted = math.sqrt(j_in / (j_in + u_out)) * val
+                    weighted_net_val.append(val_weighted)
+                net_val = weighted_net_val
 
-            (net_uid, net_jid, net_val) = (social_net[:, 0], social_net[:, 1], weighted_social)
+
 
             if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
                 if self.train_set.min_rating == self.train_set.max_rating:
@@ -166,7 +168,7 @@ class SoRec(Recommender):
                               n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val),
                               n_epochs=self.max_iter, lamda_c=self.lamda_c,
                               lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                              init_params=self.init_params, verbose=self.verbose)
+                              init_params=self.init_params, verbose=self.verbose, seed=self.seed)
 
             self.U = np.asarray(res['U'])
             self.V = np.asarray(res['V'])
