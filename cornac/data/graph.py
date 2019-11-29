@@ -38,6 +38,8 @@ class GraphModality(FeatureModality):
 
     @property
     def matrix(self):
+        """Return the adjacency matrix in scipy csr sparse format
+        """
         if self.__matrix is None:
             assert self.__matrix_size is not None
             self.__matrix = sp.csr_matrix((self.val, (self.map_rid, self.map_cid)),
