@@ -135,8 +135,8 @@ class SBPR(Recommender):
         user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
 
         # construct social feedback
-        (rid, cid, val) = train_set.user_graph.get_train_triplet(train_set.uid_list,
-                                                                     train_set.uid_list)
+        (rid, cid, val) = train_set.user_graph.get_train_triplet(train_set.user_indices,
+                                                                     train_set.user_indices)
         Y = csr_matrix((val, (rid, cid)), shape=(n_users, n_users))
         social_item_ids = []
         social_item_counts = []
