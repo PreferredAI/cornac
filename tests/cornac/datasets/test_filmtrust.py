@@ -13,14 +13,23 @@
 # limitations under the License.
 # ============================================================================
 
-from . import data
-from . import datasets
-from . import eval_methods
-from . import models
-from . import metrics
-from . import utils
+import unittest
+import random
+import time
 
-# Also importable from root
-from .experiment import Experiment
+from cornac.datasets import filmtrust
 
-__version__ = '1.2.2'
+
+class TestFilmTrust(unittest.TestCase):
+
+    def test_filmtrust(self):
+        random.seed(time.time())
+        if random.random() > 0.8:
+            ratings = filmtrust.load_feedback()
+            trust = filmtrust.load_trust()
+            self.assertEqual(len(ratings), 35497)
+            self.assertEqual(len(trust), 1853)
+
+
+if __name__ == '__main__':
+    unittest.main()
