@@ -67,7 +67,7 @@ class Dataset(object):
     max_rating: float
         Maximum value among the rating observations.
 
-    max_rating: float
+    min_rating: float
         Minimum value among the rating observations.
 
     global_mean: float
