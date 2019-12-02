@@ -124,9 +124,9 @@ exp.run()
 
 |     |    MAE |   RMSE | Recall@20 | NDCG@20 |    AUC | Train (s) | Test (s) |
 | --- | -----: | -----: | --------: | ------: | -----: | --------: | -------: |
-| [MF](cornac/models/mf)  | 0.7441 | 0.9007 |    0.0622 |  0.0534 | 0.7474 |    0.0791 |   1.3119 |
-| [PMF](cornac/models/pmf) | 0.7490 | 0.9093 |    0.0831 |  0.0683 | 0.7811 |    8.7645 |   2.1569 |
-| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8713 |    0.8898 |   1.3769 |
+| [MF](cornac/models/mf)  | 0.7429 | 0.8999 |    0.0636 |  0.0530 | 0.7477 |    0.0441 |   1.4278 |
+| [PMF](cornac/models/pmf) | 0.7510 | 0.9095 |    0.0877 |  0.0718 | 0.7812 |    3.9997 |   1.2332 |
+| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8715 |    0.6818 |   1.3777 |
 
 For more details, please take a look at our [examples](examples).
 
