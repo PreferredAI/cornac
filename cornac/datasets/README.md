@@ -137,6 +137,42 @@ For convenience Cornac offers easy access to a number of popular benchmark datas
 
 ## Usage example
 
-Assume that we are interested in the FilmTrust dataset, which comes with both user-item ratings and user-user trust information. We can load these two information as follows,
+Assume that we are interested in the FilmTrust dataset, which comes with both user-item ratings and user-user trust information. We can load these two pieces of information as follows,
 ```Python
- 
+from cornac.datasets import filmtrust
+
+ratings = filmtrust.load_feedback()
+trust = filmtrust.load_trust()
+```
+
+The rantings are in the range `[0.5,4]`, and the trust network is undirected with binary weight, i.e., `1` for observed user-user pairs, and `0` for missing ones. Here are samples, the first three lines of `rantings` and `trust`, from our dataset,
+```Python
+Sample of ratings: [('1', '1', 2.0), ('1', '2', 4.0), ('1', '3', 3.5)] 
+Sample of trust relations: [('2', '966', 1.0), ('2', '104', 1.0), ('5', '1509', 1.0)]
+```
+We can now start using our dataset. The code below illustrates how to perform an experiment to evaluate the [SoRec](../models/sorec/) model on FilmTrust.
+
+```Python
+# Instantiate a GraphModality with the trust information
+user_graph_modality = GraphModality(data=trust)
+
+# Instantiate a data splitting method
+ratio_split = RatioSplit(data=ratings,
+                         test_size=0.2, rating_threshold=0.0,
+                         exclude_unknowns=True, verbose=True,
+                         user_graph=user_graph_modality, seed=1)
+
+# Instantiate SoRec
+sorec = SoRec(k=10, max_iter=100, learning_rate=0.001, verbose=False, weight_link = False, seed = 1)
+
+
+# Evaluation metrics
+rmse = metrics.RMSE()
+rec = metrics.Recall(k=20)
+
+# Instantiate and run an experiment
+exp = Experiment(eval_method=ratio_split,
+                 models=[sorec],
+                 metrics=[rmse,rec])
+exp.run()
+```
