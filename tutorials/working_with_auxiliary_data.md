@@ -43,11 +43,11 @@ item_text_modality = TextModality(corpus=plots, ids=movie_ids,
 In addition to the movie plots and ids, we have specified a `cornac.data.text.Tokenizer` to split text, we limited the maximum vocabulary size to 5000, as well as filtered out words occurring in more than 50% of documents (plots in our case) by setting `max_doc_freq = 0.5`. For more options/details on the `TextModality` please refer to the [docs](https://cornac.readthedocs.io/en/latest/data.html#module-cornac.data.text). 
  
  
-**Bag-of-Words text representation.** CDL assumes the bag-of-words representation for text information, i.e., in the form of a document-word matrix. The good news is that we don't have to worry about how to generate such representation from our raw texts. The `TextModality` class implements the necessary routines to process and output different representations for text data, e.g., sequence, bag of words, tf-idf. That is, to get our auxiliary data under the desired format, all we need inside the `CLD` [implementation](../cornac/models/cdl/recom_cld.py) is the following line of code:
+**Bag-of-Words text representation.** CDL assumes the bag-of-words representation for text information, i.e., in the form of a document-word matrix. The good news is that we don't have to worry about how to generate such representation from our raw texts. The `TextModality` class implements the necessary routines to process and output different representations for text data, e.g., sequence, bag of words, tf-idf. That is, to get our auxiliary data under the desired format, all we need inside the `CDL` [implementation](../cornac/models/cdl/recom_cdl.py) is the following line of code:
 ```Python
 text_feature = self.train_set.item_text.batch_bow(np.arange(n_items))
 ``` 
-where `self.train_set.item_text` is our `item_text_modality`, `n_items` is number of training items, and the `batch_bow()` function returns the bag-of-words vectors of the specified item ids, in our case we want the text features for all training items. In more details, the rows of `text_feature` correspond to the bag-of-words vectors of the provided item ids to `batch_bow()`.
+where `self.train_set.item_text` is our `item_text_modality`, `n_items` is the number of training items, and the `batch_bow()` function returns the bag-of-words vectors of the specified item indices, in our case we want the text features for all training items. In more details, the rows of `text_feature` correspond to the bag-of-words vectors of the provided item indices to `batch_bow()`.
 
 **Note.** As evident from the above, we don't have to take extra actions to align the set of training movies with their plots. This is made possible thanks to passing `item_text_modality` through the evaluation (splitting) method as we shall see shortly. 
 
@@ -61,7 +61,7 @@ ratio_split = RatioSplit(data=rating_data, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True,
                          seed=123, rating_threshold=0.5)
 ``` 
-The item text modality is passed for the evaluation method. As mentioned earlier, this make it possible to avoid the tedious process of aligning the set of training items with their auxiliary data. Moving forward, we need to instantiate the CLD model and evaluation metrics:
+The item text modality is passed for the evaluation method. As mentioned earlier, this makes it possible to avoid the tedious process of aligning the set of training items with their auxiliary data. Moving forward, we need to instantiate the CDL model and evaluation metrics:
 ```Python
 cdl = cornac.models.CDL(k=20, autoencoder_structure=[50], max_iter=100,
                         learning_rate=0.01, lambda_u=0.01, lambda_v=0.01,
