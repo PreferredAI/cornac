@@ -158,7 +158,7 @@ trust = filmtrust.load_trust()
 
 The ranting values are in the range `[0.5,4]`, and the trust network is undirected. Here are samples from our dataset,
 ```
-Sample from ratings: [('1', '1', 2.0), ('1', '2', 4.0), ('1', '3', 3.5)] 
-Sample from trust: [('2', '966', 1.0), ('2', '104', 1.0), ('5', '1509', 1.0)]
+Samples from ratings: [('1', '1', 2.0), ('1', '2', 4.0), ('1', '3', 3.5)] 
+Samples from trust: [('2', '966', 1.0), ('2', '104', 1.0), ('5', '1509', 1.0)]
 ```
 Our dataset is now ready to use for model training and evaluation. A concrete example is [sorec_filmtrust](../../examples/sorec_filmtrust.py), which illustrates how to perform an experiment with the [SoRec](../models/sorec/) model on FilmTrust. More details regarding the other datasets are available in the [documentation](https://cornac.readthedocs.io/en/latest/datasets.html).
