@@ -14,3 +14,4 @@
 - [ ] I have updated the documentation accordingly.
 - [ ] I have updated `README.md` (if you are adding a new model).
 - [ ] I have updated `examples/README.md` (if you are adding a new example).
+- [ ] I have updated `datasets/README.md` (if you are adding a new dataset).
