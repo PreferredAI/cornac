@@ -18,7 +18,7 @@ For convenience, assume that we are fitting and evaluating a recommender model l
  
  
 ### Dataset
-We use the well know MovieLens 100K dataset. It consists of user-movie interactions in the triplet format `(user_id, movie_id, rating)`, as well as movie plots in the format `(movie_id, text)`, which represent our textual auxiliary information. This dataset is already accessible from Cornac, and we can load it as follows,
+We use the well-known MovieLens 100K dataset. It consists of user-movie interactions in the triplet format `(user_id, movie_id, rating)`, as well as movie plots in the format `(movie_id, text)`, which represent our textual auxiliary information. This dataset is already accessible from Cornac, and we can load it as follows,
 ```Python
 import cornac
 from cornac.data import Reader
@@ -61,7 +61,7 @@ ratio_split = RatioSplit(data=rating_data, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True,
                          seed=123, rating_threshold=0.5)
 ``` 
-The item text modality is passed for the evaluation method. As mentioned earlier, this makes it possible to avoid the tedious process of aligning the set of training items with their auxiliary data. Moving forward, we need to instantiate the CDL model and evaluation metrics:
+The item text modality is passed to the evaluation method. As mentioned earlier, this makes it possible to avoid the tedious process of aligning the set of training items with their auxiliary data. Moving forward, we need to instantiate the CDL model and evaluation metrics:
 ```Python
 cdl = cornac.models.CDL(k=20, autoencoder_structure=[50], max_iter=100,
                         learning_rate=0.01, lambda_u=0.01, lambda_v=0.01,
