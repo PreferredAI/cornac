@@ -35,7 +35,7 @@ Collaborative Variational Autoencoder (CVAE)
 .. automodule:: cornac.models.cvae.recom_cvae
    :members:
 
-Generalized Matrix Factorization (NeuMF)
+Generalized Matrix Factorization (GMF)
 -----------------------------------------
 .. automodule:: cornac.models.ncf.recom_gmf
    :members:
@@ -55,7 +55,7 @@ Multi-Layer Perceptron (MLP)
 .. automodule:: cornac.models.ncf.recom_mlp
    :members:
 
-Neural Matrix Factorization (NeuMF)
+Neural Matrix Factorization (NeuMF/NCF)
 ----------------------------------------------
 .. automodule:: cornac.models.ncf.recom_neumf
    :members:

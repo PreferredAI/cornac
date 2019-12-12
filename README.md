@@ -9,6 +9,7 @@
 [Tutorials](tutorials#tutorials) |
 [Examples](https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory) |
 [Models](#models) |
+[Datasets](./cornac/datasets/README.md#datasets) |
 [Preferred.AI](https://preferred.ai/)
 
 [![TravisCI](https://img.shields.io/travis/PreferredAI/cornac/master.svg?logo=travis)](https://www.travis-ci.org/PreferredAI/cornac)
@@ -93,9 +94,9 @@ Here we are comparing `Biased MF`, `PMF`, and `BPR`:
 ```python
 from cornac.models import MF, PMF, BPR
 
-mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True)
-pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
-bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01)
+mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
+pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, seed=123)
+bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 ```
 
 Define metrics used to evaluate the models:
@@ -124,9 +125,9 @@ exp.run()
 
 |     |    MAE |   RMSE | Recall@20 | NDCG@20 |    AUC | Train (s) | Test (s) |
 | --- | -----: | -----: | --------: | ------: | -----: | --------: | -------: |
-| [MF](cornac/models/mf)  | 0.7441 | 0.9007 |    0.0622 |  0.0534 | 0.7474 |    0.0791 |   1.3119 |
-| [PMF](cornac/models/pmf) | 0.7490 | 0.9093 |    0.0831 |  0.0683 | 0.7811 |    8.7645 |   2.1569 |
-| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8713 |    0.8898 |   1.3769 |
+| [MF](cornac/models/mf)  | 0.7431 | 0.9000 |    0.0654 |  0.0556 | 0.7485 |    0.0762 |   1.3927 |
+| [PMF](cornac/models/pmf) | 0.7538 | 0.9143 |    0.0880 |  0.0719 | 0.7779 |    4.1340 |   1.2292 |
+| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1125 | 0.8715 |    2.3332 |   1.3235 |
 
 For more details, please take a look at our [examples](examples).
 
