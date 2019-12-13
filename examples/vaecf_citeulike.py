@@ -21,12 +21,12 @@ from cornac.eval_methods import RatioSplit
 
 _, item_ids = citeulike.load_text()
 
-data = citeulike.load_data(reader=Reader(item_set=item_ids))
+data = citeulike.load_data()
 
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
                          verbose=True, seed=123, rating_threshold=0.5)
 
-vaecf = cornac.models.vaecf.recom_vaecf.VAECF(name='VAECF', k=10, h=20, n_epochs=100, batch_size=100, learning_rate=0.001, beta=1.0, trainable=True, verbose=False, seed=123, use_gpu=False)
+vaecf = cornac.models.VAECF(k=10, h=20, n_epochs=100, batch_size=100, learning_rate=0.001, beta=1.0, seed=123)
 
 rec_20 = cornac.metrics.Recall(k=20)
 ndcg_20 = cornac.metrics.NDCG(k=20)
