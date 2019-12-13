@@ -19,8 +19,6 @@ from cornac.data import Reader
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 
-_, item_ids = citeulike.load_text()
-
 data = citeulike.load_data()
 
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
