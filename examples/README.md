@@ -56,7 +56,7 @@
 
 [sorec_filmtrust.py](sorec_filmtrust.py) - Social Recommendation using PMF (Sorec) with FilmTrust dataset.
 
-[vaecf_example.py](vaecf_example.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
+[vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
