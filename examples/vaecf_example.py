@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for Collaborative Filtering for Implicit Feedback Datasets (Citeulike)"""
+"""Example for Variational Autoencoder for Collaborative Filtering for Implicit Feedback Datasets (Citeulike)"""
 
 import cornac
 from cornac.data import Reader
