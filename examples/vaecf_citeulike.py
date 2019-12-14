@@ -15,7 +15,6 @@
 """Example for Variational Autoencoder for Collaborative Filtering for Implicit Feedback Datasets (Citeulike)"""
 
 import cornac
-from cornac.data import Reader
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 
