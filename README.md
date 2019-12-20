@@ -9,6 +9,7 @@
 [Tutorials](tutorials#tutorials) |
 [Examples](https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory) |
 [Models](#models) |
+[Datasets](./cornac/datasets/README.md#datasets) |
 [Preferred.AI](https://preferred.ai/)
 
 [![TravisCI](https://img.shields.io/travis/PreferredAI/cornac/master.svg?logo=travis)](https://www.travis-ci.org/PreferredAI/cornac)
@@ -93,9 +94,9 @@ Here we are comparing `Biased MF`, `PMF`, and `BPR`:
 ```python
 from cornac.models import MF, PMF, BPR
 
-mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True)
-pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001)
-bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01)
+mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
+pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, seed=123)
+bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 ```
 
 Define metrics used to evaluate the models:
@@ -124,9 +125,9 @@ exp.run()
 
 |     |    MAE |   RMSE | Recall@20 | NDCG@20 |    AUC | Train (s) | Test (s) |
 | --- | -----: | -----: | --------: | ------: | -----: | --------: | -------: |
-| [MF](cornac/models/mf)  | 0.7441 | 0.9007 |    0.0622 |  0.0534 | 0.7474 |    0.0791 |   1.3119 |
-| [PMF](cornac/models/pmf) | 0.7490 | 0.9093 |    0.0831 |  0.0683 | 0.7811 |    8.7645 |   2.1569 |
-| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8713 |    0.8898 |   1.3769 |
+| [MF](cornac/models/mf)  | 0.7431 | 0.9000 |    0.0654 |  0.0556 | 0.7485 |    0.0762 |   1.3927 |
+| [PMF](cornac/models/pmf) | 0.7538 | 0.9143 |    0.0880 |  0.0719 | 0.7779 |    4.1340 |   1.2292 |
+| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1125 | 0.8715 |    2.3332 |   1.3235 |
 
 For more details, please take a look at our [examples](examples).
 
@@ -139,7 +140,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 | 2018 | [Collaborative Context Poisson Factorization (C2PF)](cornac/models/c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | N/A | [c2pf_exp.py](examples/c2pf_example.py)
 |      | [Multi-Task Explainable Recommendation (MTER)](cornac/models/mter), [paper](https://arxiv.org/pdf/1806.03568.pdf) | [requirements.txt](cornac/models/mter/requirements.txt) | [mter_exp.py](examples/mter_example.py)
 |      | [Probabilistic Collaborative Representation Learning (PCRL)](cornac/models/pcrl), [paper](http://www.hadylauw.com/publications/uai18.pdf) | [requirements.txt](cornac/models/pcrl/requirements.txt) | [pcrl_exp.py](examples/pcrl_example.py)
-|      | [Variational Autoencoder for Collaborative Filtering (VAECF)](cornac/models/vaecf), [paper](https://arxiv.org/pdf/1802.05814.pdf) | [requirements.txt](cornac/models/vaecf/requirements.txt) |
+|      | [Variational Autoencoder for Collaborative Filtering (VAECF)](cornac/models/vaecf), [paper](https://arxiv.org/pdf/1802.05814.pdf) | [requirements.txt](cornac/models/vaecf/requirements.txt) | [vaecf_citeulike.py](examples/vaecf_citeulike.py)
 | 2017 | [Collaborative Variational Autoencoder (CVAE)](cornac/models/cvae), [paper](http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf) | [requirements.txt](cornac/models/cvae/requirements.txt) | [cvae_exp.py](examples/cvae_example.py)
 |      | [Generalized Matrix Factorization (GMF)](cornac/models/ncf), [paper](https://arxiv.org/pdf/1708.05031.pdf) | [requirements.txt](cornac/models/ncf/requirements.txt) | [ncf_exp.py](examples/ncf_example.py)
 |      | [Indexable Bayesian Personalized Ranking (IBPR)](cornac/models/ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | [requirements.txt](cornac/models/ibpr/requirements.txt) | [ibpr_exp.py](examples/ibpr_example.py)
@@ -167,7 +168,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 |      | [Non-negative Matrix Factorization (NMF)](cornac/models/nmf), [paper](http://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf) | N/A | [nmf_exp.py](examples/nmf_example.py)
 |      | [Probabilistic Matrix Factorization (PMF)](cornac/models/pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | N/A | [pmf_ratio.py](examples/pmf_ratio.py)
 |      | [Singular Value Decomposition (SVD)](cornac/models/svd), [paper](https://www.cs.rochester.edu/twiki/pub/Main/HarpSeminar/Factorization_Meets_the_Neighborhood-_a_Multifaceted_Collaborative_Filtering_Model.pdf) | N/A | [svd_exp.py](examples/svd_example.py)
-|      | [Social Recommendation using PMF (SoRec)](cornac/models/sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | N/A |
+|      | [Social Recommendation using PMF (SoRec)](cornac/models/sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | N/A | [sorec_filmtrust.py](examples/sorec_filmtrust.py)
 |      | [Weighted Matrix Factorization (WMF)](cornac/models/wmf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cornac/models/wmf/requirements.txt) | [wmf_exp.py](examples/wmf_example.py)
 
 ## Support

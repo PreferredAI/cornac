@@ -30,6 +30,11 @@ Epinions
 .. automodule:: cornac.datasets.epinions
    :members:
 
+FilmTrust
+---------------------------------------------
+.. automodule:: cornac.datasets.filmtrust
+   :members:
+
 MovieLens
 -----------------------------------------
 .. automodule:: cornac.datasets.movielens

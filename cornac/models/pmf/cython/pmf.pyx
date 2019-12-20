@@ -53,7 +53,7 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
         double[:,:] grad_u = np.zeros((n,k))
         double[:,:] grad_v = np.zeros((d,k))
         double eps = 1e-8
-        int u_, i_, j, epoch
+        int u_, i_, k_, r, epoch
         double val, s, e, norm_u, norm_v
         
     # Initialize user factors
@@ -66,27 +66,27 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
         for r in range(nnz):
             u_, i_, val = uid[r], iid[r], rat[r]
             s = 0.0
-            for j in range(k):
-                s+= U[u_,j]*V[i_,j]
+            for k_ in range(k):
+                s+= U[u_,k_]*V[i_,k_]
             e = val - s  # Error for the obseved rating u, i, val
             
             # update user factors
-            for j in range(k):
-                grad_u[u_,j] = e * V[i_,j]- lamda * U[u_,j]
-                cache_u[u_,j] = gamma * cache_u[u_,j] + (1 - gamma) * (grad_u[u_,j]*grad_u[u_,j])
-                U[u_,j] += learning_rate * (grad_u[u_,j]/(sqrt(cache_u[u_,j])+eps)) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
+            for k_ in range(k):
+                grad_u[u_,k_] = e * V[i_,k_]- lamda * U[u_,k_]
+                cache_u[u_,k_] = gamma * cache_u[u_,k_] + (1 - gamma) * (grad_u[u_,k_]*grad_u[u_,k_])
+                U[u_,k_] += learning_rate * (grad_u[u_,k_]/(sqrt(cache_u[u_,k_])+eps)) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
             
             # update item factors
-            for j in range(k):
-                grad_v[i_,j] = e * U[u_,j] - lamda * V[i_, j]
-                cache_v[i_,j] = gamma * cache_v[i_,j] + (1 - gamma) * (grad_v[i_,j]*grad_v[i_,j])            
-                V[i_,j] += learning_rate * (grad_v[i_,j]/(sqrt(cache_v[i_,j]) + eps))            
+            for k_ in range(k):
+                grad_v[i_,k_] = e * U[u_,k_] - lamda * V[i_, k_]
+                cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])            
+                V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))            
             
             norm_u = 0.0
             norm_v = 0.0
-            for j in range(k):
-                norm_u += U[u_,j]*U[u_,j]
-                norm_v += V[i_,j]*V[i_,j]
+            for k_ in range(k):
+                norm_u += U[u_,k_]*U[u_,k_]
+                norm_v += V[i_,k_]*V[i_,k_]
             
             loss[epoch]+= e*e  + lamda * (norm_u + norm_v)
 
@@ -101,14 +101,13 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
 #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
 def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings,
                    int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9,
-                   init_params = {}, verbose = False, seed = None):
+                   init_params = None, verbose = False, seed = None):
   
     #some useful variables
     cdef:
         double[:] loss = np.full(n_epochs, 0.0)
         int n = n_users
         int d = n_items
-        int nnz = n_ratings
         double[:,:] U
         double[:,:] V
         double[:,:] cache_u = np.zeros((n,k))
@@ -116,8 +115,8 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
         double[:,:] grad_u = np.zeros((n,k))
         double[:,:] grad_v = np.zeros((d,k))
         double eps = 1e-8
-        int u_, i_, j, epoch
-        double val, s, e, norm_u, norm_v
+        int u_, i_, r, k_, epoch 
+        double val, s, e, we, sg, norm_u, norm_v
   
     rng = get_rng(seed)
     U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
@@ -125,35 +124,35 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
   
     #Optimization
     for epoch in range(n_epochs):
-        for r in range(nnz):
+        for r in range(n_ratings):
             u_, i_, val = uid[r], iid[r], rat[r]
-            
+
             s = 0.0
-            for j in range(k):
-                s+= U[u_,j]*V[i_,j]
+            for k_ in range(k):
+                s += U[u_, k_] * V[i_, k_]
             sg = sigmoid(s)
-            e = (val - sg)     #Error for the obseved rating u, i, val
-            we= e*sg*(1.-sg)   #Weighted error for the obseved rating u, i, val
-            
+            e = (val - sg)  # Error for the obseved rating u_, i_, val
+            we = e * sg * (1. - sg)  # Weighted error
+
             # update user factors
-            for j in range(k):
-                grad_u[u_,j] = we * V[i_,j]- lamda * U[u_,j]
-                cache_u[u_,j] = gamma * cache_u[u_,j] + (1 - gamma) * (grad_u[u_,j]*grad_u[u_,j])
-                U[u_,j] += learning_rate * (grad_u[u_,j]/(sqrt(cache_u[u_,j])+eps)) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user 
-            
+            for k_ in range(k):
+                grad_u[u_, k_] = we * V[i_, k_] - lamda * U[u_, k_]
+                cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])
+                U[u_, k_] += learning_rate * (grad_u[u_, k_] / (sqrt(cache_u[u_, k_]) + eps))  # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
+
             # update item factors
-            for j in range(k):
-                grad_v[i_,j] = we * U[u_,j] - lamda * V[i_, j]
-                cache_v[i_,j] = gamma * cache_v[i_,j] + (1 - gamma) * (grad_v[i_,j]*grad_v[i_,j])            
-                V[i_,j] += learning_rate * (grad_v[i_,j]/(sqrt(cache_v[i_,j]) + eps))  
-                
+            for k_ in range(k):
+                grad_v[i_, k_] = we * U[u_, k_] - lamda * V[i_, k_]
+                cache_v[i_, k_] = gamma * cache_v[i_, k_] + (1 - gamma) * (grad_v[i_, k_] * grad_v[i_, k_])
+                V[i_, k_] += learning_rate * (grad_v[i_, k_] / (sqrt(cache_v[i_, k_]) + eps))
+
             norm_u = 0.0
             norm_v = 0.0
-            for j in range(k):
-                norm_u += U[u_,j]*U[u_,j]
-                norm_v += V[i_,j]*V[i_,j]
-            
-            loss[epoch]+= e*e  + lamda * (norm_u + norm_v)
+            for k_ in range(k):
+                norm_u += U[u_, k_] * U[u_, k_]
+                norm_v += V[i_, k_] * V[i_, k_]
+
+            loss[epoch] += e * e + lamda * (norm_u + norm_v)
 
         if verbose:
             print('epoch %i, loss: %f' % (epoch, loss[epoch]))

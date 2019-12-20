@@ -54,6 +54,10 @@
 
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
 
+[sorec_filmtrust.py](sorec_filmtrust.py) - Social Recommendation using PMF (Sorec) with FilmTrust dataset.
+
+[vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
+
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
