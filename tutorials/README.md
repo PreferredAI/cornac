@@ -12,9 +12,9 @@ If you are new to Cornac, the [Getting Started](#getting-started) tutorials are 
 - [Add a new recommender model](./add_model.md)
 - [Add an evaluation metric](./add_metric.md)
 
-## Cross-Modality
+## Multimodality
+An important focus of Cornac is making it convenient to work with auxiliary data. Tutorials within this section elaborate more on this aspect, including how to work with auxiliary information, perform cross-modality transformations (e.g., from visual or textual features to graph), as well as use models designed for a specific modality (e.g., images) with a different one (e.g., texts).
 
-One important aspect of Cornac is broadening the use cases of existing recommendation algorithms, by enabling seamless cross-modality transformations, e.g., from visual or textual features to graph. This is of great interest as, for instance, the modality a given model is designed for may not always be available. Tutorials within this section elaborate more on this aspect by describing concrete end-to-end use cases. 
-
+- [Working with auxiliary data](./working_with_auxiliary_data.md)
 - [Text to Graph transformation](./text_to_graph.ipynb)
 - [Visual recommendation algorithm with text data](./vbpr_text.ipynb)
