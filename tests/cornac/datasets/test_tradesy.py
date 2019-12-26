@@ -22,7 +22,7 @@ from cornac.datasets import tradesy
 
 class TestTradesy(unittest.TestCase):
 
-    def test_load_data(self):
+    def test_load_feedback(self):
         # only run data download tests 20% of the time to speed up frequent testing
         random.seed(time.time())
         if random.random() > 0.8:
