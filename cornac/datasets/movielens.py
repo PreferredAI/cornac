@@ -40,7 +40,7 @@ def load_feedback(fmt='UIR', variant='100K', reader=None):
         Data format to be returned.
 
     variant: str, optional, default: '100K'
-        Specifies which MovieLens datasets to load, one of ['100K', '1M'].
+        Specifies which MovieLens dataset to load, one of ['100K', '1M'].
 
     reader: `obj:cornac.data.Reader`, optional, default: None
         Reader object used to read the data.
