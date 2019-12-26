@@ -26,7 +26,7 @@ from ..data import Reader
 from ..data.reader import read_text
 
 
-def load_rating(reader: Reader = None) -> List:
+def load_feedback(reader: Reader = None) -> List:
     """Load the user-item ratings
 
     Parameters
