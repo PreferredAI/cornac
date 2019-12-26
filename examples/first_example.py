@@ -17,7 +17,7 @@
 import cornac as cn
 
 # Load MovieLens 100K dataset
-ml_100k = cn.datasets.movielens.load_100k()
+ml_100k = cn.datasets.movielens.load_feedback()
 
 # Split data based on ratio
 ratio_split = cn.eval_methods.RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
@@ -25,7 +25,7 @@ ratio_split = cn.eval_methods.RatioSplit(data=ml_100k, test_size=0.2, rating_thr
 # Here we are comparing biased MF, PMF, and BPR
 mf = cn.models.MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
 pmf = cn.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, seed=123)
-bpr = cn.models.BPR(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01, seed=123)
+bpr = cn.models.BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 
 # Define metrics used to evaluate the models
 mae = cn.metrics.MAE()

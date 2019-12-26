@@ -22,51 +22,43 @@ from ..data import Reader
 from ..data.reader import read_text
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
+VARIANTS = ['100K', '1M']
+UNZIP = {'100K':False, '1M':True}
+SEP = {'100K':'\t', '1M':'::'}
+URL = {'100K': 'http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
+       '1M': 'http://files.grouplens.org/datasets/movielens/ml-1m.zip'}
+RELATIVE_PATH = {'100K': 'ml-100k/u.data',
+                 '1M': 'ml-1m/ratings.dat'}
 
 
-def load_100k(fmt='UIR', reader=None):
-    """Load the MovieLens 100K dataset
-
-    Parameters
-    ----------
-    fmt: str, default: 'UIR'
-        Data format to be returned.
-
-    Returns
-    -------
-    data: array-like
-        Data in the form of a list of tuples depending on the given data format.
-
-    """
-    fmt = validate_format(fmt, VALID_DATA_FORMATS)
-    fpath = cache(url='http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
-                  relative_path='ml-100k/u.data')
-    reader = Reader() if reader is None else reader
-    return reader.read(fpath, fmt)
-
-
-def load_1m(fmt='UIR', reader: Reader = None) -> List:
-    """Load the MovieLens 1M dataset
+def load_feedback(fmt='UIR', variant='100K', reader=None):
+    """Load the user-item ratings of one of the MovieLens datasets
 
     Parameters
     ----------
     fmt: str, default: 'UIR'
         Data format to be returned.
 
-    reader: `obj:cornac.data.Reader`, default: None
+    variant: str, optional, default: '100K'
+        Specifies which MovieLens datasets to load, one of ['100K', '1M'].
+
+    reader: `obj:cornac.data.Reader`, optional, default: None
         Reader object used to read the data.
 
     Returns
     -------
     data: array-like
         Data in the form of a list of tuples depending on the given data format.
-
     """
+
     fmt = validate_format(fmt, VALID_DATA_FORMATS)
-    fpath = cache(url='http://files.grouplens.org/datasets/movielens/ml-1m.zip',
-                  unzip=True, relative_path='ml-1m/ratings.dat')
+
+    if variant not in VARIANTS:
+        raise ValueError('variant must be one of {}.'.format(VARIANTS))
+
+    fpath = cache(url=URL[variant], unzip=UNZIP[variant], relative_path=RELATIVE_PATH[variant])
     reader = Reader() if reader is None else reader
-    return reader.read(fpath, fmt, sep='::')
+    return reader.read(fpath, fmt, sep=SEP[variant])
 
 
 def load_plot():

@@ -22,12 +22,12 @@ from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
 plots, movie_ids = movielens.load_plot()
-ml_1m = movielens.load_1m(reader=Reader(item_set=movie_ids))
+ml_1m = movielens.load_feedback(variant='1M', reader=Reader(item_set=movie_ids))
 
 # build text modality
 item_text_modality = TextModality(corpus=plots, ids=movie_ids,
-                                tokenizer=BaseTokenizer(sep='\t', stop_words='english'),
-                                max_vocab=8000, max_doc_freq=0.5)
+                                  tokenizer=BaseTokenizer(sep='\t', stop_words='english'),
+                                  max_vocab=8000, max_doc_freq=0.5)
 
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True, seed=123)

@@ -19,7 +19,7 @@ from cornac.eval_methods import RatioSplit
 from cornac.models import IBPR
 
 # Load the MovieLens 1M dataset
-ml_1m = movielens.load_1m()
+ml_1m = movielens.load_feedback(variant='1M')
 
 # Instantiate an evaluation method.
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, rating_threshold=1.0,
