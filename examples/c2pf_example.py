@@ -22,7 +22,7 @@ from cornac.models import C2PF
 from cornac.datasets import amazon_office as office
 
 # Load office ratings and item contexts, see C2PF paper for details
-ratings = office.load_rating()
+ratings = office.load_feedback()
 contexts = office.load_context()
 
 item_graph_modality = GraphModality(data=contexts)

@@ -25,7 +25,7 @@ from cornac.models import PCRL
 from cornac.datasets import amazon_office as office
 
 # Load office ratings and item contexts
-ratings = office.load_rating()
+ratings = office.load_feedback()
 contexts = office.load_context()
 
 item_graph_modality = GraphModality(data=contexts)

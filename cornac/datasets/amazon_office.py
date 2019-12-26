@@ -23,7 +23,7 @@ from ..utils import cache
 from ..data import Reader
 
 
-def load_rating(reader: Reader = None) -> List:
+def load_feedback(reader: Reader = None) -> List:
     """Load the user-item ratings
 
     Parameters
