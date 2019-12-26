@@ -60,7 +60,7 @@ def load_feedback(fmt='UIR', variant='original', reader: Reader = None) -> List:
     fmt: str, default: 'UIR'
         Data format to be returned.
 
-    variant: str, optional, default: '100K'
+    variant: str, optional, default: 'original'
         Specifies which Netflix dataset to load, one of ['original', 'small'].
 
     reader: `obj:cornac.data.Reader`, default: None

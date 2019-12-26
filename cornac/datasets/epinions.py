@@ -30,7 +30,7 @@ def _get_cache_dir():
 
 
 def load_feedback(reader: Reader = None) -> List:
-    """Load user-item ratings, ranting value is in [1,5]
+    """Load user-item ratings, rating value is in [1,5]
 
     Parameters
     ----------
