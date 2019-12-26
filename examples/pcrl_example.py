@@ -26,7 +26,7 @@ from cornac.datasets import amazon_office as office
 
 # Load office ratings and item contexts
 ratings = office.load_feedback()
-contexts = office.load_context()
+contexts = office.load_graph()
 
 item_graph_modality = GraphModality(data=contexts)
 

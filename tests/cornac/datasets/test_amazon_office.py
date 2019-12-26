@@ -26,7 +26,7 @@ class TestAmazonOffice(unittest.TestCase):
         random.seed(time.time())
         if random.random() > 0.8:
             ratings = office.load_feedback()
-            contexts = office.load_context()
+            contexts = office.load_graph()
             self.assertEqual(len(ratings), 53282)
             self.assertEqual(len(contexts), 108466)
 

@@ -80,8 +80,8 @@ def load_image():
     return features, item_ids
 
 
-def load_context(reader: Reader = None) -> List:
-    """Load the item-item interactions
+def load_graph(reader: Reader = None) -> List:
+    """Load the item-item interactions (symmetric network), built from the Amazon Also-Viewed information
 
     Parameters
     ----------
