@@ -21,6 +21,8 @@ from ..utils import cache
 from ..data import Reader
 
 VALID_DATA_FORMATS = ['UIR', 'UIRT']
+VARIANTS = ['original', 'small']
+FNAME = {'small':'data_small', 'original':'data'}
 
 
 def _load(fname, fmt='UIR', reader: Reader = None) -> List:
@@ -50,16 +52,16 @@ def _load(fname, fmt='UIR', reader: Reader = None) -> List:
     return reader.read(fpath, fmt, sep=',')
 
 
-def load_data(fmt='UIR', reader: Reader = None) -> List:
-    """Load the Netflix entire dataset
-    - Number of ratings: 100,480,507
-    - Number of users:       480,189
-    - Number of items:        17,770
+def load_feedback(fmt='UIR', variant='original', reader: Reader = None) -> List:
+    """Load Netflix user-item ratings, scale: [1,5]
 
     Parameters
     ----------
     fmt: str, default: 'UIR'
         Data format to be returned.
+
+    variant: str, optional, default: '100K'
+        Specifies which Netflix dataset to load, one of ['original', 'small'].
 
     reader: `obj:cornac.data.Reader`, default: None
         Reader object used to read the data.
@@ -70,28 +72,8 @@ def load_data(fmt='UIR', reader: Reader = None) -> List:
         Data in the form of a list of tuples depending on the given data format.
 
     """
-    return _load('data', fmt, reader)
 
+    if variant not in VARIANTS:
+        raise ValueError('variant must be one of {}.'.format(VARIANTS))
 
-def load_data_small(fmt='UIR', reader: Reader = None) -> List:
-    """Load a small subset of the Netflix dataset. We draw this subsample such that
-    every user has at least 10 items and each item has at least 10 users.
-    - Number of ratings: 607,803
-    - Number of users:    10,000
-    - Number of items:     5,000
-
-    Parameters
-    ----------
-    fmt: str, default: 'UIR'
-        Data format to be returned.
-
-    reader: `obj:cornac.data.Reader`, default: None
-        Reader object used to read the data.
-
-    Returns
-    -------
-    data: array-like
-        Data in the form of a list of tuples depending on the given data format.
-
-    """
-    return _load('data_small', fmt, reader)
+    return _load(FNAME[variant], fmt, reader)
