@@ -26,7 +26,7 @@ class TestEpinions(unittest.TestCase):
         # only run data download tests 20% of the time to speed up frequent testing
         random.seed(time.time())
         if random.random() > 0.8:
-            self.assertEqual(len(epinions.load_data()), 664824)
+            self.assertEqual(len(epinions.load_feedback()), 664824)
 
     def test_load_trust(self):
         # only run data download tests 20% of the time to speed up frequent testing
