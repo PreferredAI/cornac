@@ -22,7 +22,7 @@ from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
 docs, item_ids = citeulike.load_text()
-data = citeulike.load_data(reader=Reader(item_set=item_ids))
+data = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
 # build text modality
 item_text_modality = TextModality(corpus=docs, ids=item_ids,
