@@ -27,7 +27,7 @@ from ..data.reader import read_text
 
 
 def load_feedback(reader: Reader = None) -> List:
-    """Load the user-item ratings
+    """Load the user-item ratings, scale: [1,5]
 
     Parameters
     ----------
