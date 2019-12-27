@@ -21,21 +21,28 @@ from cornac.eval_methods import RatioSplit
 from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
+# ConvMF extends matrix factorization to leverage item textual information
+# The necessary data can be loaded as follows
 plots, movie_ids = movielens.load_plot()
 ml_1m = movielens.load_feedback(variant='1M', reader=Reader(item_set=movie_ids))
 
-# build text modality
+# Instantiate a TextModality, it make it convenient to work with text auxiliary information
+# For more details, please refer to the tutorial on how to work with auxiliary data
 item_text_modality = TextModality(corpus=plots, ids=movie_ids,
                                   tokenizer=BaseTokenizer(sep='\t', stop_words='english'),
                                   max_vocab=8000, max_doc_freq=0.5)
 
+# Define an evaluation method to split feedback into train and test sets
 ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True, seed=123)
 
+# Instantiate ConvMF
 convmf = cornac.models.ConvMF(n_epochs=5, verbose=True, seed=123)
 
+# Instantiate RMSE for evaluation
 rmse = cornac.metrics.RMSE()
 
+# Put everything together into an experiment and run it
 exp = cornac.Experiment(eval_method=ratio_split,
                         models=[convmf],
                         metrics=[rmse],
