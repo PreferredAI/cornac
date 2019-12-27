@@ -22,11 +22,11 @@ from cornac.datasets import netflix
 
 class TestNetflix(unittest.TestCase):
 
-    def test_load_data_small(self):
+    def test_load_feedback(self):
         # only run data download tests 20% of the time to speed up frequent testing
         random.seed(time.time())
         if random.random() > 0.8:
-            data = netflix.load_data_small()
+            data = netflix.load_feedback(variant='small')
             self.assertEqual(len(data), 607803)
 
 

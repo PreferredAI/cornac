@@ -19,7 +19,7 @@ from cornac.data import Reader, GraphModality
 from cornac.datasets import epinions
 from cornac.eval_methods import RatioSplit
 
-ratio_split = RatioSplit(data=epinions.load_data(Reader(bin_threshold=4.0)),
+ratio_split = RatioSplit(data=epinions.load_feedback(Reader(bin_threshold=4.0)),
                          test_size=0.1, rating_threshold=0.5,
                          exclude_unknowns=True, verbose=True,
                          user_graph=GraphModality(data=epinions.load_trust()))

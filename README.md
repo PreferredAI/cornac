@@ -78,7 +78,7 @@ Load the built-in [MovieLens 100K](https://grouplens.org/datasets/movielens/100k
 ```python
 from cornac.datasets import movielens
 
-ml_100k = movielens.load_100k()
+ml_100k = movielens.load_feedback()
 ```
 
 Split the data based on ratio:

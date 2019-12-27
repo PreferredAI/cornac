@@ -18,7 +18,7 @@ import cornac
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 
-ratio_split = RatioSplit(data=movielens.load_1m(),
+ratio_split = RatioSplit(data=movielens.load_feedback(variant='1M'),
                          test_size=0.2,
                          exclude_unknowns=False,
                          verbose=True)

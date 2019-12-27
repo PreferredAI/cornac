@@ -25,7 +25,7 @@ from cornac.data import Reader
 from cornac.datasets import movielens
 
 plots, movie_ids = movielens.load_plot()
-rating_data = movielens.load_100k(reader=Reader(item_set=movie_ids, bin_threshold=3))
+rating_data = movielens.load_feedback(reader=Reader(item_set=movie_ids, bin_threshold=3))
 ```
 where we have filtered out movies without plots and binarized the integer ratings using `cornac.data.Reader`.
 
