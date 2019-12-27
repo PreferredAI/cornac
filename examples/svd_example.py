@@ -16,7 +16,7 @@
 
 import cornac as cn
 
-ml_100k = cn.datasets.movielens.load_100k()
+ml_100k = cn.datasets.movielens.load_feedback()
 ratio_split = cn.eval_methods.RatioSplit(data=ml_100k, test_size=0.2,
                                          rating_threshold=4.0, verbose=True)
 

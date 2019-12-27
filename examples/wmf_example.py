@@ -21,7 +21,7 @@ from cornac.eval_methods import RatioSplit
 
 _, item_ids = citeulike.load_text()
 
-data = citeulike.load_data(reader=Reader(item_set=item_ids))
+data = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
                          verbose=True, seed=123, rating_threshold=0.5)

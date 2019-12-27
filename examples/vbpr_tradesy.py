@@ -25,7 +25,7 @@ from cornac.eval_methods import RatioSplit
 features, item_ids = tradesy.load_feature()  # BIG file
 item_image_modality = ImageModality(features=features, ids=item_ids, normalized=True)
 
-ratio_split = RatioSplit(data=tradesy.load_data(),
+ratio_split = RatioSplit(data=tradesy.load_feedback(),
                          test_size=0.1, rating_threshold=0.5,
                          exclude_unknowns=True, verbose=True,
                          item_image=item_image_modality)

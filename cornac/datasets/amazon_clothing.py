@@ -26,8 +26,8 @@ from ..data import Reader
 from ..data.reader import read_text
 
 
-def load_rating(reader: Reader = None) -> List:
-    """Load the user-item ratings
+def load_feedback(reader: Reader = None) -> List:
+    """Load the user-item ratings, scale: [1,5]
 
     Parameters
     ----------
@@ -80,8 +80,8 @@ def load_image():
     return features, item_ids
 
 
-def load_context(reader: Reader = None) -> List:
-    """Load the item-item interactions
+def load_graph(reader: Reader = None) -> List:
+    """Load the item-item interactions (symmetric network), built from the Amazon Also-Viewed information
 
     Parameters
     ----------

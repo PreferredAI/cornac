@@ -19,7 +19,7 @@ from cornac.eval_methods import RatioSplit
 from cornac.datasets import amazon_clothing
 from cornac.data import Reader
 
-ratio_split = RatioSplit(data=amazon_clothing.load_rating(reader=Reader(bin_threshold=1.0)),
+ratio_split = RatioSplit(data=amazon_clothing.load_feedback(reader=Reader(bin_threshold=1.0)),
                          test_size=0.2, rating_threshold=1.0, seed=123,
                          exclude_unknowns=True, verbose=True)
 
