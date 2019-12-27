@@ -17,7 +17,6 @@
     In IJCAI, pp. 2667-2674. 2018.
 """
 
-
 from cornac.data import GraphModality
 from cornac.eval_methods import RatioSplit
 from cornac.experiment import Experiment
