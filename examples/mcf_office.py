@@ -21,17 +21,22 @@ from cornac import metrics
 from cornac.models import MCF
 from cornac.datasets import amazon_office as office
 
-# Load office ratings and item contexts, see C2PF paper for details
+# MCF leverage relationships among items, it jointly factorization the user-item and item-item matrices
+# The necessary data can be loaded as follows
 ratings = office.load_feedback()
-contexts = office.load_graph()
+item_net = office.load_graph()
 
-item_graph_modality = GraphModality(data=contexts)
+# Instantiate a GraphModality, it make it convenient to work with graph (network) auxiliary information
+# For more details, please refer to the tutorial on how to work with auxiliary data
+item_graph_modality = GraphModality(data=item_net)
 
+# Define an evaluation method to split feedback into train and test sets
 ratio_split = RatioSplit(data=ratings,
                          test_size=0.2, rating_threshold=3.5,
                          exclude_unknowns=True, verbose=True,
                          item_graph=item_graph_modality)
 
+# Instantiate MCF
 mcf = MCF(k=10, max_iter=40, learning_rate=0.001, verbose=True)
 
 # Evaluation metrics
@@ -40,7 +45,7 @@ rmse = metrics.RMSE()
 rec = metrics.Recall(k=20)
 pre = metrics.Precision(k=20)
 
-# Instantiate and run your experiment
+# Put everything together into an experiment and run it
 exp = Experiment(eval_method=ratio_split,
                  models=[mcf],
                  metrics=[rmse, ndcg, rec, pre])
