@@ -21,7 +21,7 @@ from cornac.metrics import NDCG, RMSE
 from cornac.models import MTER
 from cornac import Experiment
 
-data = amazon_toy.load_rating()
+data = amazon_toy.load_feedback()
 sentiment = amazon_toy.load_sentiment()
 md = SentimentModality(data=sentiment)
 eval_method = RatioSplit(data, test_size=0.2, rating_threshold=1.0,

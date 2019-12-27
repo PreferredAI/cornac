@@ -29,8 +29,8 @@ from ..data import Reader
 from ..data.reader import read_text
 
 
-def load_data(reader: Reader = None) -> List:
-    """Load the feedback observations
+def load_feedback(reader: Reader = None) -> List:
+    """Load user-item feedback
 
     Parameters
     ----------

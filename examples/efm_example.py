@@ -19,7 +19,7 @@ from cornac.datasets import amazon_toy
 from cornac.data import SentimentModality
 from cornac.eval_methods import RatioSplit
 
-rating = amazon_toy.load_rating()
+rating = amazon_toy.load_feedback()
 sentiment = amazon_toy.load_sentiment()
 md = SentimentModality(data=sentiment)
 

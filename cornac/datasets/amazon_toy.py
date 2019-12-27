@@ -22,8 +22,8 @@ from ..data import Reader
 from typing import List
 
 
-def load_rating(reader: Reader = None) -> List:
-    """Load the user-item ratings
+def load_feedback(reader: Reader = None) -> List:
+    """Load the user-item ratings, scale: [1,5]
 
     Parameters
     ----------

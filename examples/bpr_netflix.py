@@ -19,7 +19,7 @@ from cornac.data import Reader
 from cornac.datasets import netflix
 from cornac.eval_methods import RatioSplit
 
-ratio_split = RatioSplit(data=netflix.load_data_small(reader=Reader(bin_threshold=1.0)),
+ratio_split = RatioSplit(data=netflix.load_feedback(variant='small', reader=Reader(bin_threshold=1.0)),
                          test_size=0.1, rating_threshold=1.0,
                          exclude_unknowns=True, verbose=True)
 

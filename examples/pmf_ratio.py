@@ -20,7 +20,7 @@ from cornac.eval_methods import RatioSplit
 from cornac.models import PMF
 
 # Load the MovieLens 100K dataset
-ml_100k = movielens.load_100k()
+ml_100k = movielens.load_feedback()
 
 # Instantiate an evaluation method.
 ratio_split = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, exclude_unknowns=False)

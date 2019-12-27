@@ -29,8 +29,8 @@ def _get_cache_dir():
     return cache_dir
 
 
-def load_data(reader: Reader = None) -> List:
-    """Load the rating feedback
+def load_feedback(reader: Reader = None) -> List:
+    """Load user-item ratings, rating value is in [1,5]
 
     Parameters
     ----------
@@ -50,7 +50,7 @@ def load_data(reader: Reader = None) -> List:
 
 
 def load_trust(reader: Reader = None) -> List:
-    """Load the trust data
+    """Load the user trust information (undirected network)
 
     Parameters
     ----------

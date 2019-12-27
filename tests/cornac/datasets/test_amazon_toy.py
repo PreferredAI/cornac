@@ -25,7 +25,7 @@ class TestAmazonToy(unittest.TestCase):
     def test_amazon_toy(self):
         random.seed(time.time())
         if random.random() > 0.8:
-            ratings = toy.load_rating()
+            ratings = toy.load_feedback()
             sentiments = toy.load_sentiment()
             self.assertEqual(len(ratings), 167597)
             self.assertEqual(len(sentiments), 149877)

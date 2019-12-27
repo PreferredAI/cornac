@@ -26,7 +26,7 @@ from ..utils import cache
 from ..data import Reader
 
 
-def load_data(reader: Reader = None) -> List:
+def load_feedback(reader: Reader = None) -> List:
     """Load the implicit feedback between users and items
 
     Parameters
