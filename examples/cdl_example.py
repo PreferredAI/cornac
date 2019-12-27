@@ -40,7 +40,7 @@ ratio_split = RatioSplit(data=feedback, test_size=0.2, exclude_unknowns=True,
 cdl = cornac.models.CDL(k=50, autoencoder_structure=[200], max_iter=30,
                         lambda_u=0.1, lambda_v=1, lambda_w=0.1, lambda_n=1000)
 
-# Use recall for evaluation
+# Use Recall@300 for evaluation
 rec_300 = cornac.metrics.Recall(k=300)
 
 # Put everything together into an experiment and run it
