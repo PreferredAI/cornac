@@ -21,7 +21,7 @@ from cornac import metrics
 from cornac.models import MCF
 from cornac.datasets import amazon_office as office
 
-# MCF leverage relationships among items, it jointly factorization the user-item and item-item matrices
+# MCF leverages relationships among items, it jointly factorizes the user-item and item-item matrices
 # The necessary data can be loaded as follows
 ratings = office.load_feedback()
 item_net = office.load_graph()
