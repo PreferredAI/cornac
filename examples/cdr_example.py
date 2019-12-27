@@ -29,8 +29,8 @@ feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 # Instantiate a TextModality, it make it convenient to work with text auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
 item_text_modality = TextModality(corpus=docs, ids=item_ids,
-                                tokenizer=BaseTokenizer(stop_words='english'),
-                                max_vocab=8000, max_doc_freq=0.5)
+                                  tokenizer=BaseTokenizer(stop_words='english'),
+                                  max_vocab=8000, max_doc_freq=0.5)
 
 # Define an evaluation method to split feedback into train and test sets
 ratio_split = RatioSplit(data=feedback, test_size=0.2, exclude_unknowns=True,
