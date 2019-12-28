@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example to train and evaluate a model with given data"""
+"""Example on how to train and evaluate a model with provided train and test sets"""
 
 from cornac.data import Reader
 from cornac.eval_methods import BaseMethod
@@ -25,9 +25,11 @@ reader = Reader()
 train_data = reader.read(cache(url='http://files.grouplens.org/datasets/movielens/ml-100k/u1.base'))
 test_data = reader.read(cache(url='http://files.grouplens.org/datasets/movielens/ml-100k/u1.test'))
 
+# Instantiate a Base evaluation method using the provided train and test sets
 eval_method = BaseMethod.from_splits(train_data=train_data, test_data=test_data,
                                      exclude_unknowns=False, verbose=True)
 
+# Instantiate the MF model
 mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02,
         use_bias=True, early_stop=True, verbose=True)
 
