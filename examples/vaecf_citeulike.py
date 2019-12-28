@@ -12,23 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for Variational Autoencoder for Collaborative Filtering for Implicit Feedback Datasets (Citeulike)"""
+"""Example for Variational Autoencoder for Collaborative Filtering, using the CiteULike dataset"""
 
 import cornac
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 
+# Load user-item feedback
 data = citeulike.load_feedback()
 
+# Instantiate an evaluation method to split data into train and test sets.
 ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
                          verbose=True, seed=123, rating_threshold=0.5)
 
+# Instantiate the VAECF model
 vaecf = cornac.models.VAECF(k=10, h=20, n_epochs=100, batch_size=100, learning_rate=0.001, beta=1.0, seed=123)
 
+# Instantiate evaluation measures
 rec_20 = cornac.metrics.Recall(k=20)
 ndcg_20 = cornac.metrics.NDCG(k=20)
 auc = cornac.metrics.AUC()
 
+# Put everything together into an experiment and run it
 cornac.Experiment(eval_method=ratio_split,
                   models=[vaecf],
                   metrics=[rec_20, ndcg_20, auc],
