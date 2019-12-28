@@ -20,7 +20,7 @@ from cornac.models import MF
 from cornac.metrics import MAE, RMSE
 from cornac.utils import cache
 
-# Download MovieLens 100K provided training and test splits
+# Download MovieLens 100K provided train and test sets
 reader = Reader()
 train_data = reader.read(cache(url='http://files.grouplens.org/datasets/movielens/ml-100k/u1.base'))
 test_data = reader.read(cache(url='http://files.grouplens.org/datasets/movielens/ml-100k/u1.test'))
