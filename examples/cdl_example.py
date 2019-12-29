@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for Collaborative Deep Learning"""
+"""Example for Collaborative Deep Learning (CDL)"""
 
 import cornac
 from cornac.data import Reader
@@ -21,20 +21,29 @@ from cornac.eval_methods import RatioSplit
 from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
+# CDL composes an autoencoder with matrix factorization to model item (article) texts and user-item preferences
+# The necessary data can be loaded as follows
 docs, item_ids = citeulike.load_text()
-data = citeulike.load_feedback(reader=Reader(item_set=item_ids))
+feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
-# build text modality
+# Instantiate a TextModality, it make it convenient to work with text auxiliary information
+# For more details, please refer to the tutorial on how to work with auxiliary data
 item_text_modality = TextModality(corpus=docs, ids=item_ids,
-                                tokenizer=BaseTokenizer(stop_words='english'),
-                                max_vocab=8000, max_doc_freq=0.5)
+                                  tokenizer=BaseTokenizer(stop_words='english'),
+                                  max_vocab=8000, max_doc_freq=0.5)
 
-ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
+# Define an evaluation method to split feedback into train and test sets
+ratio_split = RatioSplit(data=feedback, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True, seed=123, rating_threshold=0.5)
+
+# Instantiate CDL
 cdl = cornac.models.CDL(k=50, autoencoder_structure=[200], max_iter=30,
                         lambda_u=0.1, lambda_v=1, lambda_w=0.1, lambda_n=1000)
+
+# Use Recall@300 for evaluation
 rec_300 = cornac.metrics.Recall(k=300)
 
+# Put everything together into an experiment and run it
 exp = cornac.Experiment(eval_method=ratio_split,
                         models=[cdl],
                         metrics=[rec_300])
