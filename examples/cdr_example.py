@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for Collaborative Deep Ranking"""
+"""Example for Collaborative Deep Ranking (CDR)"""
 
 import cornac
 from cornac.data import Reader
@@ -21,23 +21,30 @@ from cornac.eval_methods import RatioSplit
 from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
+# CDR composes an autoencoder with a ranking collaborative model to represent item texts and user-item interactions
+# The necessary data can be loaded as follows
 docs, item_ids = citeulike.load_text()
-data = citeulike.load_feedback(reader=Reader(item_set=item_ids))
+feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
-# build text module
+# Instantiate a TextModality, it make it convenient to work with text auxiliary information
+# For more details, please refer to the tutorial on how to work with auxiliary data
 item_text_modality = TextModality(corpus=docs, ids=item_ids,
-                                tokenizer=BaseTokenizer(stop_words='english'),
-                                max_vocab=8000, max_doc_freq=0.5)
+                                  tokenizer=BaseTokenizer(stop_words='english'),
+                                  max_vocab=8000, max_doc_freq=0.5)
 
-ratio_split = RatioSplit(data=data, test_size=0.2, exclude_unknowns=True,
+# Define an evaluation method to split feedback into train and test sets
+ratio_split = RatioSplit(data=feedback, test_size=0.2, exclude_unknowns=True,
                          item_text=item_text_modality, verbose=True, seed=123, rating_threshold=0.5)
 
+# Instantiate CDR
 cdr = cornac.models.CDR(k=50, autoencoder_structure=[200], max_iter=100, batch_size=128,
                         lambda_u=0.01, lambda_v=0.1, lambda_w=0.0001, lambda_n=5,
                         learning_rate=0.001, vocab_size=8000)
 
+# Use Recall@300 for evaluation
 rec_300 = cornac.metrics.Recall(k=300)
 
+# Put everything together into an experiment and run it
 exp = cornac.Experiment(eval_method=ratio_split,
                         models=[cdr],
                         metrics=[rec_300])
