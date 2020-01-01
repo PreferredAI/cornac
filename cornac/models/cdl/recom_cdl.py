@@ -71,7 +71,7 @@ class CDL(Recommender):
     dropout_rate: float, optional, default: 0.1
         The probability that each element is removed in dropout of SDAE.
 
-    batch_size: int, optional, default: 100
+    batch_size: int, optional, default: 128
         The batch size for SGD.
 
     trainable: boolean, optional, default: True
@@ -96,7 +96,7 @@ class CDL(Recommender):
 
     def __init__(self, name='CDL',
                  k=50, autoencoder_structure=None, act_fn='relu',
-                 lambda_u=0.1, lambda_v=100, lambda_w=0.1, lambda_n=1000,
+                 lambda_u=0.1, lambda_v=10, lambda_w=0.1, lambda_n=1000,
                  a=1, b=0.01, corruption_rate=0.3, learning_rate=0.001, vocab_size=8000,
                  dropout_rate=0.1, batch_size=128, max_iter=100, trainable=True, verbose=True,
                  init_params=None, seed=None):
