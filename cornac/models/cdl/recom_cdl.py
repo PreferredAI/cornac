@@ -164,17 +164,17 @@ class CDL(Recommender):
 
         # Build model
         layer_sizes = [self.vocab_size] + self.ae_structure + [self.k] + self.ae_structure + [self.vocab_size]
-
+        tf.compat.v1.set_random_seed(self.seed)
         model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w, lambda_n=self.lambda_n,
                       lr=self.learning_rate, dropout_rate=self.dropout_rate, U=self.U, V=self.V,
                       act_fn=self.act_fn, seed=self.seed)
 
         # Training model
-        config = tf.ConfigProto()
+        config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
-        with tf.Session(config=config) as sess:
-            sess.run(tf.global_variables_initializer())
+        with tf.compat.v1.Session(config=config) as sess:
+            sess.run(tf.compat.v1.global_variables_initializer())
 
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
@@ -204,7 +204,7 @@ class CDL(Recommender):
 
             self.U, self.V = sess.run([model.U, model.V])
 
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph()
 
         if self.verbose:
             print('Learning completed!')
