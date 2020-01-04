@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from ...utils import get_rng
 from ...utils.init_utils import xavier_uniform
@@ -40,12 +40,12 @@ def sdae(X_corrupted, layers, dropout_rate=0.0, act_fn='relu', seed=None, name="
     L = len(layers)
     rng = get_rng(seed)
     weights, biases = [], []
-    with tf.compat.v1.variable_scope(name):
+    with tf.variable_scope(name):
         for i in range(L - 1):
             w = xavier_uniform((layers[i], layers[i + 1]), random_state=rng)
-            weights.append(tf.compat.v1.get_variable(name='W_{}'.format(i), dtype=tf.float32,
+            weights.append(tf.get_variable(name='W_{}'.format(i), dtype=tf.float32,
                                            initializer=tf.constant(w)))
-            biases.append(tf.compat.v1.get_variable(name='b_{}'.format(i), dtype=tf.float32,
+            biases.append(tf.get_variable(name='b_{}'.format(i), dtype=tf.float32,
                                           shape=(layers[i + 1]),
                                           initializer=tf.zeros_initializer()))
 
@@ -99,16 +99,16 @@ class Model:
         self._build_graph()
 
     def _build_graph(self):
-        self.text_mask = tf.compat.v1.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="mask_input")
-        self.text_input = tf.compat.v1.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="text_input")
-        self.ratings = tf.compat.v1.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="rating_input")
-        self.C = tf.compat.v1.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="C_input")
+        self.text_mask = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="mask_input")
+        self.text_input = tf.placeholder(dtype=tf.float32, shape=[None, self.n_vocab], name="text_input")
+        self.ratings = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="rating_input")
+        self.C = tf.placeholder(dtype=tf.float32, shape=[self.n_users, None], name="C_input")
 
-        with tf.compat.v1.variable_scope("CDL_Variable"):
-            self.U = tf.compat.v1.get_variable(name='U', dtype=tf.float32, initializer=self.U_init)
-            self.V = tf.compat.v1.get_variable(name='V', dtype=tf.float32, initializer=self.V_init)
+        with tf.variable_scope("CDL_Variable"):
+            self.U = tf.get_variable(name='U', dtype=tf.float32, initializer=self.U_init)
+            self.V = tf.get_variable(name='V', dtype=tf.float32, initializer=self.V_init)
 
-        self.item_ids = tf.compat.v1.placeholder(dtype=tf.int32)
+        self.item_ids = tf.placeholder(dtype=tf.int32)
         real_batch_size = tf.cast(tf.shape(self.text_input)[0], tf.int32)
         V_batch = tf.reshape(tf.gather(self.V, self.item_ids), shape=[real_batch_size, self.k])
 
@@ -128,12 +128,12 @@ class Model:
         self.loss = loss_1 + loss_2 + loss_3 + loss_4
 
         # Generate optimizer
-        optimizer1 = tf.compat.v1.train.AdamOptimizer(self.lr)
-        optimizer2 = tf.compat.v1.train.AdamOptimizer(self.lr)
+        optimizer1 = tf.train.AdamOptimizer(self.lr)
+        optimizer2 = tf.train.AdamOptimizer(self.lr)
 
         train_var_list1, train_var_list2 = [], []
 
-        for var in tf.compat.v1.trainable_variables():
+        for var in tf.trainable_variables():
             if "CDL_Variable" in var.name:
                 train_var_list1.append(var)
             elif "SDAE_Variable" in var.name:
