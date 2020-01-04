@@ -152,7 +152,7 @@ class CDL(Recommender):
         return self
 
     def _fit_cdl(self, ):
-        import tensorflow as tf
+        import tensorflow.compat.v1 as tf
         from tqdm import trange
         from .cdl import Model
 
@@ -164,7 +164,7 @@ class CDL(Recommender):
 
         # Build model
         layer_sizes = [self.vocab_size] + self.ae_structure + [self.k] + self.ae_structure + [self.vocab_size]
-
+        tf.set_random_seed(self.seed)
         model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
                       lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w, lambda_n=self.lambda_n,
                       lr=self.learning_rate, dropout_rate=self.dropout_rate, U=self.U, V=self.V,
