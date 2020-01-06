@@ -16,11 +16,21 @@
 
 ----
 
-## Examples by Algorithm
+## Multimodal Algorithms (Using Auxiliary Data)
 
-### Multimodal (Using Auxiliary Data)
+### Graph
 
 [c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF) with Amazon Office dataset.
+
+[mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
+
+[pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
+
+[sbpr_epinions.py](sbpr_epinions.py) - Social Bayesian Personalized Ranking (SBPR) with Epinions dataset.
+
+[sorec_filmtrust.py](sorec_filmtrust.py) - Social Recommendation using PMF (Sorec) with FilmTrust dataset.
+
+### Text
 
 [cdl_example.py](cdl_example.py) - Collaborative Deep Learning (CDL) with CiteULike dataset.
 
@@ -36,17 +46,11 @@
 
 [hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLen 1m dataset.
 
-[mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
-
-[pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
-
-[sbpr_epinions.py](sbpr_epinions.py) - Social Bayesian Personalized Ranking (SBPR) with Epinions dataset.
-
-[sorec_filmtrust.py](sorec_filmtrust.py) - Social Recommendation using PMF (Sorec) with FilmTrust dataset.
+### Image
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
-### Unimodal
+## Unimodal Algorithms
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
 
