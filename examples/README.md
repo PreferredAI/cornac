@@ -16,13 +16,21 @@
 
 ----
 
-## Examples by Algorithm
+## Multimodal Algorithms (Using Auxiliary Data)
 
-[biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
-
-[bpr_netflix.py](bpr_netflix.py) - Example to run Bayesian Personalized Ranking (BPR) with Netflix dataset.
+### Graph
 
 [c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF) with Amazon Office dataset.
+
+[mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
+
+[pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
+
+[sbpr_epinions.py](sbpr_epinions.py) - Social Bayesian Personalized Ranking (SBPR) with Epinions dataset.
+
+[sorec_filmtrust.py](sorec_filmtrust.py) - Social Recommendation using PMF (Sorec) with FilmTrust dataset.
+
+### Text
 
 [cdl_example.py](cdl_example.py) - Collaborative Deep Learning (CDL) with CiteULike dataset.
 
@@ -38,26 +46,26 @@
 
 [hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLen 1m dataset.
 
-[ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
+### Image
 
-[mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
+[vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
+
+## Unimodal Algorithms
+
+[biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
+
+[bpr_netflix.py](bpr_netflix.py) - Example to run Bayesian Personalized Ranking (BPR) with Netflix dataset.
+
+[ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
 
 [ncf_example.py](ncf_example.py) - Neural Collaborative Filtering (GMF, MLP, NeuMF) with Amazon Clothing dataset.
 
 [nmf_example.py](nmf_example.py) - Non-negative Matrix Factorization (NMF) with RatioSplit.
 
-[pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
-
 [pmf_ratio.py](pmf_ratio.py) - Probabilistic Matrix Factorization (PMF) with RatioSplit.
-
-[sbpr_epinions.py](sbpr_epinions.py) - Social Bayesian Personalized Ranking (SBPR) with Epinions dataset.
 
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
 
-[sorec_filmtrust.py](sorec_filmtrust.py) - Social Recommendation using PMF (Sorec) with FilmTrust dataset.
-
 [vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
-
-[vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
