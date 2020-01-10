@@ -135,12 +135,10 @@ class BPR(Recommender):
         from ...utils import get_rng
         from ...utils.init_utils import zeros, uniform
 
-        n_users, n_items = train_set.num_users, train_set.num_items
-
         rng = get_rng(self.seed)
-        self.u_factors = self.init_params.get('U', (uniform((n_users, self.k), random_state=rng) - 0.5) / self.k)
-        self.i_factors = self.init_params.get('V', (uniform((n_items, self.k), random_state=rng) - 0.5) / self.k)
-        self.i_biases = self.init_params.get('Bi', zeros(n_items))
+        self.u_factors = self.init_params.get('U', (uniform((train_set.total_users, self.k), random_state=rng) - 0.5) / self.k)
+        self.i_factors = self.init_params.get('V', (uniform((train_set.total_items, self.k), random_state=rng) - 0.5) / self.k)
+        self.i_biases = self.init_params.get('Bi', zeros(train_set.total_items))
 
         if not self.trainable:
             return
@@ -149,12 +147,12 @@ class BPR(Recommender):
         # this basically calculates the 'row' attribute of a COO matrix
         # without requiring us to get the whole COO matrix
         user_counts = np.ediff1d(X.indptr)
-        user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
+        user_ids = np.repeat(np.arange(train_set.num_users), user_counts).astype(X.indices.dtype)
 
         cdef:
             int num_threads = self.num_threads
             RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, rng.randint(2 ** 31))
-            RNGVector rng_neg = RNGVector(num_threads, n_items - 1, rng.randint(2 ** 31))
+            RNGVector rng_neg = RNGVector(num_threads, train_set.num_items - 1, rng.randint(2 ** 31))
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
@@ -247,17 +245,11 @@ class BPR(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        unk_user = self.train_set.is_unk_user(user_idx)
-
         if item_idx is None:
             known_item_scores = np.copy(self.i_biases)
-            if not unk_user:
-                fast_dot(self.u_factors[user_idx], self.i_factors, known_item_scores)
+            fast_dot(self.u_factors[user_idx], self.i_factors, known_item_scores)
             return known_item_scores
         else:
-            if self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
             item_score = self.i_biases[item_idx]
-            if not unk_user:
-                item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
+            item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score
