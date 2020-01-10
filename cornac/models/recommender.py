@@ -87,7 +87,7 @@ class Recommender:
             Relative scores that the user gives to the item or to all known items
 
         """
-        raise NotImplementedError('The algorithm is not able to make score prediction!')
+        raise NotImplementedError("The algorithm is not able to make score prediction!")
 
     def default_score(self):
         """Overwrite this function if your algorithm has special treatment for cold-start problem
@@ -120,9 +120,11 @@ class Recommender:
             rating_pred = self.default_score()
 
         if clipping:
-            rating_pred = clip(values=rating_pred,
-                               lower_bound=self.train_set.min_rating,
-                               upper_bound=self.train_set.max_rating)
+            rating_pred = clip(
+                values=rating_pred,
+                lower_bound=self.train_set.min_rating,
+                upper_bound=self.train_set.max_rating,
+            )
 
         return rating_pred
 
@@ -136,7 +138,8 @@ class Recommender:
 
         item_indices: 1d array, optional, default: None
             A list of candidate item indices to be ranked by the user.
-            If `None`, list of ranked known item indices and their scores will be returned
+            If `None`, list of ranked known item indices and their scores will be returned.
+            ASSUMPTION: list of item indices are continuous from 0 to len(item_indices).
 
         Returns
         -------
@@ -144,21 +147,33 @@ class Recommender:
         in item_scores are corresponding to the order of their ids in item_ids
 
         """
+        # obtain item scores from the model
         try:
             known_item_scores = self.score(user_idx)
         except ScoreException:
-            known_item_scores = np.ones(self.train_set.num_items) * self.default_score()
+            known_item_scores = (
+                np.ones(self.train_set.total_items) * self.default_score()
+            )
 
+        # check if the returned scores also cover unknown items
+        # if not, all unknown items will be given the MIN score
+        if len(known_item_scores) == self.train_set.total_items:
+            all_item_scores = known_item_scores
+        else:
+            all_item_scores = np.ones(self.train_set.total_items) * np.min(
+                known_item_scores
+            )
+            all_item_scores[: self.train_set.num_items] = known_item_scores
+
+        # rank items based on their scores
         if item_indices is None:
-            item_scores = known_item_scores
+            item_scores = all_item_scores[: self.train_set.num_items]
             item_rank = item_scores.argsort()[::-1]
         else:
-            num_items = max(self.train_set.num_items, max(item_indices) + 1)
-            item_scores = np.ones(num_items) * np.min(known_item_scores)
-            item_scores[:self.train_set.num_items] = known_item_scores
+            item_scores = all_item_scores[: len(item_indices)]
             item_rank = item_scores.argsort()[::-1]
-            item_rank = intersects(item_rank, item_indices, assume_unique=True)
             item_scores = item_scores[item_indices]
+
         return item_rank, item_scores
 
     def monitor_value(self):
@@ -172,7 +187,7 @@ class Recommender:
         """
         raise NotImplementedError()
 
-    def early_stop(self, min_delta=0., patience=0):
+    def early_stop(self, min_delta=0.0, patience=0):
         """Check if training should be stopped when validation loss has stopped improving.
 
         Parameters
@@ -205,9 +220,16 @@ class Recommender:
                 self.stopped_epoch = self.current_epoch
 
         if self.stopped_epoch > 0:
-            print('Early stopping:')
-            print('- best epoch = {}, stopped epoch = {}'.format(self.best_epoch, self.stopped_epoch))
-            print('- best monitored value = {:.6f} (delta = {:.6f})'.format(
-                self.best_value, current_value - self.best_value))
+            print("Early stopping:")
+            print(
+                "- best epoch = {}, stopped epoch = {}".format(
+                    self.best_epoch, self.stopped_epoch
+                )
+            )
+            print(
+                "- best monitored value = {:.6f} (delta = {:.6f})".format(
+                    self.best_value, current_value - self.best_value
+                )
+            )
             return True
         return False
