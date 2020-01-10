@@ -127,7 +127,7 @@ exp.run()
 | --- | -----: | -----: | --------: | ------: | -----: | --------: | -------: |
 | [MF](cornac/models/mf)  | 0.7431 | 0.9000 |    0.0654 |  0.0556 | 0.7485 |    0.0762 |   1.3927 |
 | [PMF](cornac/models/pmf) | 0.7538 | 0.9143 |    0.0880 |  0.0719 | 0.7779 |    4.1340 |   1.2292 |
-| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1125 | 0.8715 |    2.3332 |   1.3235 |
+| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8707 |    2.3332 |   1.3235 |
 
 For more details, please take a look at our [examples](examples).
 
