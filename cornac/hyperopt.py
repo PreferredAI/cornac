@@ -44,7 +44,7 @@ class SearchDomain(object):
         raise NotImplementedError()
 
 
-class Discrete(object):
+class Discrete(SearchDomain):
     """Domain of a parameter with a set of discrete values
     
     Parameters
@@ -58,7 +58,7 @@ class Discrete(object):
     """
 
     def __init__(self, name, values):
-        self.name = name
+        super().__init__(name=name)
         self.values = values
 
     def _sample(self, rng):
@@ -66,7 +66,7 @@ class Discrete(object):
         return rng.choice(self.values)
 
 
-class Continuous(object):
+class Continuous(SearchDomain):
     """Domain of a parameter with continuous values within a range of [low, high)
     
     
@@ -76,15 +76,15 @@ class Continuous(object):
         Name of the parameter.
         
     low: float, default: 0.0
-        Lower bound of the searched values.
+        Lower bound of the searched values (included).
 
     high: float, default: 1.0
-        Upper bound of the searched values.
+        Upper bound of the searched values (excluded).
             
     """
 
     def __init__(self, name, low=0.0, high=1.0):
-        self.name = name
+        super().__init__(name=name)
         self.low = low
         self.high = high
 
@@ -117,7 +117,7 @@ class BaseSearch(Recommender):
     """
 
     def __init__(self, model, space, metric, eval_method, name="BaseSearch"):
-        super(BaseSearch, self).__init__(name=name, verbose=model.verbose)
+        super().__init__(name=name, verbose=model.verbose)
         self.model = model
         self.space = sorted(space, key=lambda x: x.name)  # for reproducibility
         self.metric = metric
@@ -129,9 +129,7 @@ class BaseSearch(Recommender):
 
     def fit(self, train_set, val_set=None):
         """Doing hyper-parameter search"""
-        if val_set is None:
-            raise ValueError("Validation set is required but None!")
-
+        assert val_set is not None
         Recommender.fit(self, train_set, val_set)
 
         param_set = self._build_param_set()
@@ -257,7 +255,7 @@ class RandomSearch(BaseSearch):
     """
 
     def __init__(self, model, space, metric, eval_method, n_trails=10):
-        super(RandomSearch, self).__init__(
+        super().__init__(
             model, space, metric, eval_method, name="RandomSearch_{}".format(model.name)
         )
         self.n_trails = n_trails

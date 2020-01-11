@@ -53,7 +53,7 @@ class RatioSplit(BaseMethod):
     """
 
     def __init__(self, data, test_size=0.2, val_size=0.0, rating_threshold=1.0,
-                 seed=None, exclude_unknowns=False, verbose=False, **kwargs):
+                 seed=None, exclude_unknowns=True, verbose=False, **kwargs):
         super().__init__(data=data, rating_threshold=rating_threshold, seed=seed,
                          exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
 
