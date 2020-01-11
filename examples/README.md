@@ -14,6 +14,8 @@
 
 [conv_mf_example.py](conv_mf_example.py) - Text data associate with items/users.
 
+[param_search.py](param_search.py) - Hyper-parameter tuning with GridSearch and RandomSearch.
+
 ----
 
 ## Multimodal Algorithms (Using Auxiliary Data)
