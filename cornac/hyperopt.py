@@ -27,7 +27,7 @@ __all__ = ["Discrete", "Continuous", "GridSearch", "RandomSearch"]
 
 
 class SearchDomain(object):
-    """Domain of a parameter to search on
+    """Domain of a parameter to search on.
     
     Parameters
     ----------------
@@ -45,7 +45,7 @@ class SearchDomain(object):
 
 
 class Discrete(SearchDomain):
-    """Domain of a parameter with a set of discrete values
+    """Domain of a parameter with a set of discrete values.
     
     Parameters
     ----------------
@@ -67,8 +67,7 @@ class Discrete(SearchDomain):
 
 
 class Continuous(SearchDomain):
-    """Domain of a parameter with continuous values within a range of [low, high)
-    
+    """Domain of a parameter with continuous values within a range of [low, high).
     
     Parameters
     ----------------
@@ -94,7 +93,7 @@ class Continuous(SearchDomain):
 
 
 class BaseSearch(Recommender):
-    """Base class for doing parameter search
+    """Base class for doing parameter search.
     
     Parameters
     ----------------
@@ -178,7 +177,7 @@ class BaseSearch(Recommender):
 
 
 class GridSearch(BaseSearch):
-    """Parameter searching on a grid
+    """Parameter searching on a grid.
     
     Parameters
     ----------------
@@ -232,7 +231,7 @@ class GridSearch(BaseSearch):
 
 
 class RandomSearch(BaseSearch):
-    """Parameter searching with random strategy
+    """Parameter searching with random strategy.
     
     Parameters
     ----------------
