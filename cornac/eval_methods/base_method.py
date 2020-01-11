@@ -433,7 +433,7 @@ class BaseMethod:
                 global_uid_map=self.global_uid_map,
                 global_iid_map=self.global_iid_map,
                 seed=self.seed,
-                exclude_unknowns=True,
+                exclude_unknowns=self.exclude_unknowns,
             )
             if self.verbose:
                 print("---")
@@ -570,7 +570,7 @@ class BaseMethod:
         ##############
         if self.verbose:
             print("\n[{}] Evaluation started!".format(model.name))
-            
+
         start = time.time()
         test_result = self._eval(
             model=model,
