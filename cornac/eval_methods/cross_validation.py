@@ -129,7 +129,7 @@ class CrossValidation(BaseMethod):
         else:
             self.current_fold = 0
 
-    def evaluate(self, model, metrics, user_based):
+    def evaluate(self, model, metrics, user_based, show_validation):
         result = CVResult(model.name)
         for _ in range(self.n_folds):
             self._get_train_test()
@@ -139,4 +139,5 @@ class CrossValidation(BaseMethod):
             result.append(fold_result)
             self._next_fold()
         result.organize()
-        return result
+        return result, None  # no validation result of CV
+
