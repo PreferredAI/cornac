@@ -13,6 +13,9 @@
 # limitations under the License.
 # ============================================================================
 
+import copy
+import inspect
+
 import numpy as np
 
 from ..exception import ScoreException
@@ -45,6 +48,25 @@ class Recommender:
         self.current_epoch = 0
         self.stopped_epoch = 0
         self.wait = 0
+
+    @classmethod
+    def get_init_params(cls):
+        init = getattr(cls.__init__, "deprecated_original", cls.__init__)
+        if init is object.__init__:
+            return []
+
+        init_signature = inspect.signature(init)
+        parameters = [p for p in init_signature.parameters.values() if p.name != "self"]
+
+        return sorted([p.name for p in parameters])
+
+    def clone(self, new_params):
+        init_params = {}
+        for name in self.get_init_params():
+            init_params[name] = copy.deepcopy(getattr(self, name))
+        init_params = {**init_params, **new_params}
+
+        return self.__class__(**init_params)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations. Need to
