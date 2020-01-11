@@ -50,6 +50,8 @@
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
+[vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
+
 ## Unimodal Algorithms
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
