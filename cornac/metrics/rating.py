@@ -29,9 +29,10 @@ class RatingMetric:
 
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, higher_better=False):
         self.type = 'rating'
         self.name = name
+        self.higher_better = higher_better
 
     def compute(self, **kwargs):
         raise NotImplementedError()

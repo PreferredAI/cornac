@@ -13,6 +13,9 @@
 # limitations under the License.
 # ============================================================================
 
+import copy
+import inspect
+
 import numpy as np
 
 from ..exception import ScoreException
@@ -46,19 +49,47 @@ class Recommender:
         self.stopped_epoch = 0
         self.wait = 0
 
-    def fit(self, train_set, val_set=None):
-        """Fit the model to observations. Need to
+    @classmethod
+    def _get_init_params(cls):
+        """Get initial parameters from the model constructor"""
+        init = getattr(cls.__init__, "deprecated_original", cls.__init__)
+        if init is object.__init__:
+            return []
+
+        init_signature = inspect.signature(init)
+        parameters = [p for p in init_signature.parameters.values() if p.name != "self"]
+
+        return sorted([p.name for p in parameters])
+
+    def clone(self, new_params):
+        """Clone an instance of the model object.
 
         Parameters
         ----------
-        train_set: object of type TrainSet, required
-            An object containing the user-item preference in csr scipy sparse format,\
-            as well as some useful attributes such as mappings to the original user/item ids.\
-            Please refer to the class TrainSet in the "data" module for details.
+        new_params: dict, required
+            New parameters for the cloned instance.
 
-        val_set: object of type TestSet, optional, default: None
-            An object containing the user-item preference for model selection purposes (e.g., early stopping).
-            Please refer to the class TestSet in the "data" module for details.
+        Returns
+        -------
+        object: :obj:`cornac.models.Recommender`
+        """
+        init_params = {}
+        for name in self._get_init_params():
+            init_params[name] = copy.deepcopy(getattr(self, name))
+        init_params = {**init_params, **new_params}
+
+        return self.__class__(**init_params)
+
+    def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
         -------
