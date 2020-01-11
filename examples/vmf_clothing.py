@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""
-Example for Visual Bayesian Personalized Ranking (VBPR)
-Original data: http://jmcauley.ucsd.edu/data/tradesy/
-"""
+"""Example for Visual Matrix Factorization (VMF)"""
 
 import cornac
 from cornac.datasets import amazon_clothing
