@@ -360,7 +360,8 @@ class BaseMethod:
         if val_data is not None and len(val_data) > 0:
             self.val_set = Dataset.build(data=val_data, fmt=self.fmt,
                                          global_uid_map=self.global_uid_map, global_iid_map=self.global_iid_map,
-                                         seed=self.seed, exclude_unknowns=True)
+                                         seed=self.seed, 
+                                         exclude_unknowns=self.exclude_unknowns)
             if self.verbose:
                 print('---')
                 print('Validation data:')

@@ -33,12 +33,13 @@ class RankingMetric:
 
     """
 
-    def __init__(self, name=None, k=-1):
+    def __init__(self, name=None, k=-1, higher_better=True):
         assert k == -1 or k > 0
 
         self.type = 'ranking'
         self.name = name
         self.k = k
+        self.higher_better = higher_better
 
     def compute(self, **kwargs):
         raise NotImplementedError()

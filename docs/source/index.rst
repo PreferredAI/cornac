@@ -25,5 +25,5 @@ Cornac: A Comparative Framework for Multimodal Recommender Systems
    eval_methods
    experiment
    datasets
-   
+   hyperopt
    
