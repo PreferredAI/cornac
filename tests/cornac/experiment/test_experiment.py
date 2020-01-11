@@ -23,16 +23,21 @@ from cornac.experiment.experiment import Experiment
 
 
 class TestExperiment(unittest.TestCase):
-
     def setUp(self):
-        self.data = Reader().read('./tests/data.txt')
+        self.data = Reader().read("./tests/data.txt")
 
     def test_with_ratio_split(self):
-        Experiment(eval_method=RatioSplit(self.data + [(self.data[0][0], self.data[1][1], 5.0)],
-                                          exclude_unknowns=True, seed=123, verbose=True),
-                   models=[PMF(1, 0)],
-                   metrics=[MAE(), RMSE()],
-                   verbose=True).run()
+        Experiment(
+            eval_method=RatioSplit(
+                self.data + [(self.data[0][0], self.data[1][1], 5.0)],
+                exclude_unknowns=True,
+                seed=123,
+                verbose=True,
+            ),
+            models=[PMF(1, 0)],
+            metrics=[MAE(), RMSE()],
+            verbose=True,
+        ).run()
 
         try:
             Experiment(None, None, None)
@@ -45,12 +50,17 @@ class TestExperiment(unittest.TestCase):
             assert True
 
     def test_with_cross_validation(self):
-        Experiment(eval_method=CrossValidation(self.data + [(self.data[0][0], self.data[1][1], 5.0)],
-                                               exclude_unknowns=False, verbose=True),
-                   models=[PMF(1, 0)],
-                   metrics=[Recall(1), FMeasure(1)],
-                   verbose=True).run()
+        Experiment(
+            eval_method=CrossValidation(
+                self.data + [(self.data[0][0], self.data[1][1], 5.0)],
+                exclude_unknowns=False,
+                verbose=True,
+            ),
+            models=[PMF(1, 0)],
+            metrics=[Recall(1), FMeasure(1)],
+            verbose=True,
+        ).run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

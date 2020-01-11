@@ -23,7 +23,6 @@ from cornac.models import MF
 
 
 class TestBaseMethod(unittest.TestCase):
-
     def test_init(self):
         bm = BaseMethod(None, verbose=True)
         self.assertTrue(bm.exclude_unknowns)
@@ -38,14 +37,14 @@ class TestBaseMethod(unittest.TestCase):
 
     def test_testset_none(self):
         bm = BaseMethod(None, verbose=True)
-        bm.train_set = Dataset.from_uir(data=Reader().read('./tests/data.txt'))
+        bm.train_set = Dataset.from_uir(data=Reader().read("./tests/data.txt"))
         try:
             bm.evaluate(None, {}, False)
         except ValueError:
             assert True
 
     def test_from_splits(self):
-        data = Reader().read('./tests/data.txt')
+        data = Reader().read("./tests/data.txt")
         try:
             BaseMethod.from_splits(train_data=None, test_data=None)
         except ValueError:
@@ -65,16 +64,20 @@ class TestBaseMethod(unittest.TestCase):
         self.assertEqual(bm.total_users, 10)
         self.assertEqual(bm.total_items, 10)
 
-        bm = BaseMethod.from_splits(train_data=data[:-1],
-                                    test_data=data[-1:],
-                                    val_data=[(data[0][0], data[1][1], 5.0)],
-                                    verbose=True)
+        bm = BaseMethod.from_splits(
+            train_data=data[:-1],
+            test_data=data[-1:],
+            val_data=[(data[0][0], data[1][1], 5.0)],
+            verbose=True,
+        )
         self.assertEqual(bm.total_users, 10)
         self.assertEqual(bm.total_items, 10)
 
     def test_with_modalities(self):
-        data = Reader().read('./tests/data.txt')
-        sentiment_data = Reader().read('./tests/sentiment_data.txt', fmt='UITup', sep=',', tup_sep=':')
+        data = Reader().read("./tests/data.txt")
+        sentiment_data = Reader().read(
+            "./tests/sentiment_data.txt", fmt="UITup", sep=",", tup_sep=":"
+        )
         bm = BaseMethod.from_splits(train_data=data[:-1], test_data=data[-1:])
 
         self.assertIsNone(bm.user_text)
@@ -133,9 +136,9 @@ class TestBaseMethod(unittest.TestCase):
     def test_organize_metrics(self):
         bm = BaseMethod()
 
-        rating_metrics, ranking_metrics = bm._organize_metrics([MAE(), AUC()])
-        self.assertEqual(len(rating_metrics), 1)  # MAE
-        self.assertEqual(len(ranking_metrics), 1)  # AUC
+        bm._organize_metrics([MAE(), AUC()])
+        self.assertEqual(len(bm.rating_metrics), 1)  # MAE
+        self.assertEqual(len(bm.ranking_metrics), 1)  # AUC
 
         try:
             bm._organize_metrics(None)
@@ -143,12 +146,12 @@ class TestBaseMethod(unittest.TestCase):
             assert True
 
     def test_evaluate(self):
-        data = Reader().read('./tests/data.txt')
+        data = Reader().read("./tests/data.txt")
         bm = BaseMethod.from_splits(train_data=data[:-1], test_data=data[-1:])
         model = MF(k=1, max_iter=0)
         result = bm.evaluate(model, metrics=[MAE()], user_based=False)
         result.__str__()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
