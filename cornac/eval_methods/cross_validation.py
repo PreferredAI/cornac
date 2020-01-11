@@ -51,10 +51,26 @@ class CrossValidation(BaseMethod):
         Output running log.
     """
 
-    def __init__(self, data, n_folds=5, rating_threshold=1., partition=None,
-                 seed=None, exclude_unknowns=True, verbose=False, **kwargs):
-        BaseMethod.__init__(self, data=data, rating_threshold=rating_threshold, seed=seed,
-                            exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
+    def __init__(
+        self,
+        data,
+        n_folds=5,
+        rating_threshold=1.0,
+        partition=None,
+        seed=None,
+        exclude_unknowns=True,
+        verbose=False,
+        **kwargs
+    ):
+        BaseMethod.__init__(
+            self,
+            data=data,
+            rating_threshold=rating_threshold,
+            seed=seed,
+            exclude_unknowns=exclude_unknowns,
+            verbose=verbose,
+            **kwargs
+        )
 
         self.n_folds = n_folds
         self.n_ratings = len(self._data)
@@ -75,7 +91,9 @@ class CrossValidation(BaseMethod):
         rng.shuffle(partition)
 
         if remain_size > 0:
-            remain_partition = rng.choice(self.n_folds, size=remain_size, replace=True, p=None)
+            remain_partition = rng.choice(
+                self.n_folds, size=remain_size, replace=True, p=None
+            )
             partition = np.concatenate((partition, remain_partition))
 
         return partition
@@ -84,15 +102,19 @@ class CrossValidation(BaseMethod):
         if partition is None:
             return self._partition_data()
         elif len(partition) != self.n_ratings:
-            raise ValueError('The partition length must be equal to the number of ratings')
+            raise ValueError(
+                "The partition length must be equal to the number of ratings"
+            )
         elif len(set(partition)) != self.n_folds:
-            raise ValueError('Number of folds in given partition different from %s' % (self.n_folds))
+            raise ValueError(
+                "Number of folds in given partition different from %s" % (self.n_folds)
+            )
 
         return partition
 
     def _get_train_test(self):
         if self.verbose:
-            print('Fold: {}'.format(self.current_fold + 1))
+            print("Fold: {}".format(self.current_fold + 1))
 
         test_idx = np.where(self._partition == self.current_fold)[0]
         train_idx = np.where(self._partition != self.current_fold)[0]
@@ -109,9 +131,11 @@ class CrossValidation(BaseMethod):
 
     def evaluate(self, model, metrics, user_based):
         result = CVResult(model.name)
-        for fold in range(self.n_folds):
+        for _ in range(self.n_folds):
             self._get_train_test()
-            fold_result = BaseMethod.evaluate(self, model, metrics, user_based)
+            fold_result, _ = BaseMethod.evaluate(
+                self, model, metrics, user_based, show_validation=False
+            )
             result.append(fold_result)
             self._next_fold()
         result.organize()
