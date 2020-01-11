@@ -27,43 +27,94 @@ __all__ = ["Discrete", "Continuous", "GridSearch", "RandomSearch"]
 
 
 class SearchDomain(object):
-    """Domain of a parameter to search on"""
+    """Domain of a parameter to search on
+    
+    Parameters
+    ----------------
+    name: str, required
+        Name of the parameter.
+
+    """
 
     def __init__(self, name):
         self.name = name
 
-    def sample(self, rng):
+    def _sample(self, rng):
         """Sample a value of parameter used for RandomSearch"""
         raise NotImplementedError()
 
 
 class Discrete(object):
-    """Domain of a parameter with a set of discrete values"""
+    """Domain of a parameter with a set of discrete values
+    
+    Parameters
+    ----------------
+    name: str, required
+        Name of the parameter.
+        
+    values: list, required
+        List of values to be searched.
+
+    """
 
     def __init__(self, name, values):
         self.name = name
         self.values = values
 
-    def sample(self, rng):
+    def _sample(self, rng):
         """Sample a value of parameter used for RandomSearch"""
         return rng.choice(self.values)
 
 
 class Continuous(object):
-    """Domain of a parameter with continuous values within a range of [low, high)"""
+    """Domain of a parameter with continuous values within a range of [low, high)
+    
+    
+    Parameters
+    ----------------
+    name: str, required
+        Name of the parameter.
+        
+    low: float, default: 0.0
+        Lower bound of the searched values.
+
+    high: float, default: 1.0
+        Upper bound of the searched values.
+            
+    """
 
     def __init__(self, name, low=0.0, high=1.0):
         self.name = name
         self.low = low
         self.high = high
 
-    def sample(self, rng):
+    def _sample(self, rng):
         """Sample a value of parameter used for RandomSearch"""
         return rng.uniform(low=self.low, high=self.high)
 
 
 class BaseSearch(Recommender):
-    """Base class for doing parameter search"""
+    """Base class for doing parameter search
+    
+    Parameters
+    ----------------
+    model: :obj:`cornac.models.Recommender`, required
+        Base recommender model to be tuned.
+
+    space: list, required
+        Parameter space to be searched on.
+        It's a list of :obj:`cornac.hyperopt.SearchDomain`.
+    
+    metric: :obj:`cornac.metrics.RatingMetric` or :obj:`cornac.metrics.RankingMetric`, required
+        Scoring metric to measure the performance and rank the parameter settings.
+
+    eval_method: :obj:`cornac.eval_methods.BaseMethod`, required
+        Evaluation method is being used. 
+        
+    name: str, default: 'BaseSearch'
+        The name of the searching strategy.
+        
+    """
 
     def __init__(self, model, space, metric, eval_method, name="BaseSearch"):
         super(BaseSearch, self).__init__(name=name, verbose=model.verbose)
@@ -72,7 +123,7 @@ class BaseSearch(Recommender):
         self.metric = metric
         self.eval_method = eval_method
 
-    def build_param_set(self):
+    def _build_param_set(self):
         """Generate searching points"""
         raise NotImplementedError()
 
@@ -83,7 +134,7 @@ class BaseSearch(Recommender):
 
         Recommender.fit(self, train_set, val_set)
 
-        param_set = self.build_param_set()
+        param_set = self._build_param_set()
         compare_op = np.greater if self.metric.higher_better else np.less
         self.best_score = -np.inf if self.metric.higher_better else np.inf
         self.best_model = None
@@ -129,7 +180,24 @@ class BaseSearch(Recommender):
 
 
 class GridSearch(BaseSearch):
-    """Parameter searching on a grid"""
+    """Parameter searching on a grid
+    
+    Parameters
+    ----------------
+    model: :obj:`cornac.models.Recommender`, required
+        Base recommender model to be tuned.
+
+    space: list, required
+        Parameter space to be searched on.
+        It's a list of :obj:`cornac.hyperopt.SearchDomain`.
+    
+    metric: :obj:`cornac.metrics.RatingMetric` or :obj:`cornac.metrics.RankingMetric`, required
+        Scoring metric to measure the performance and rank the parameter settings.
+
+    eval_method: :obj:`cornac.eval_methods.BaseMethod`, required
+        Evaluation method is being used. 
+        
+    """
 
     def __init__(self, model, space, metric, eval_method):
         super().__init__(
@@ -156,7 +224,7 @@ class GridSearch(BaseSearch):
 
         return space
 
-    def build_param_set(self):
+    def _build_param_set(self):
         """Generate searching points"""
         param_set = []
         keys = [d.name for d in self.space]
@@ -166,7 +234,27 @@ class GridSearch(BaseSearch):
 
 
 class RandomSearch(BaseSearch):
-    """Parameter searching with random strategy"""
+    """Parameter searching with random strategy
+    
+    Parameters
+    ----------------
+    model: :obj:`cornac.models.Recommender`, required
+        Base recommender model to be tuned.
+
+    space: list, required
+        Parameter space to be searched on.
+        It's a list of :obj:`cornac.hyperopt.SearchDomain`.
+    
+    metric: :obj:`cornac.metrics.RatingMetric` or :obj:`cornac.metrics.RankingMetric`, required
+        Scoring metric to measure the performance and rank the parameter settings.
+
+    eval_method: :obj:`cornac.eval_methods.BaseMethod`, required
+        Evaluation method is being used. 
+
+    n_trails: int, default: 10
+        Number of trails for random search.
+
+    """
 
     def __init__(self, model, space, metric, eval_method, n_trails=10):
         super(RandomSearch, self).__init__(
@@ -174,12 +262,12 @@ class RandomSearch(BaseSearch):
         )
         self.n_trails = n_trails
 
-    def build_param_set(self):
+    def _build_param_set(self):
         """Generate searching points"""
         param_set = []
         keys = [d.name for d in self.space]
         rng = get_rng(self.model.seed)
         while len(param_set) < self.n_trails:
-            params = [d.sample(rng) for d in self.space]
+            params = [d._sample(rng) for d in self.space]
             param_set.append(dict(zip(keys, params)))
         return param_set
