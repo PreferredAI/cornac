@@ -112,6 +112,28 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.movielens">MovieLens 10M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
+    <td align="right">69,878</td>
+    <td align="right">10,677</td>
+    <td align="right">10,000,054</td>
+    <td align="center">INT<br>[1,5]</td>
+    <td align="center">&#10004;</td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.movielens">MovieLens 20M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
+    <td align="right">138,493</td>
+    <td align="right">26,744</td>
+    <td align="right">20,000,263</td>
+    <td align="center">INT<br>[1,5]</td>
+    <td align="center">&#10004;</td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.netflix">Netflix Small</a><br>(<a href="https://www.kaggle.com/netflix-inc/netflix-prize-data/">source</a>)</td>
     <td align="right">10,000</td>
     <td align="right">5,000</td>
