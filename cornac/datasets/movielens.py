@@ -15,32 +15,59 @@
 """Link to the data: https://grouplens.org/datasets/movielens/"""
 
 from typing import List
+from collections import namedtuple
 
 from ..utils import validate_format
 from ..utils import cache
 from ..data import Reader
 from ..data.reader import read_text
 
-VALID_DATA_FORMATS = ['UIR', 'UIRT']
-VARIANTS = ['100K', '1M']
-UNZIP = {'100K':False, '1M':True}
-SEP = {'100K':'\t', '1M':'::'}
-URL = {'100K': 'http://files.grouplens.org/datasets/movielens/ml-100k/u.data',
-       '1M': 'http://files.grouplens.org/datasets/movielens/ml-1m.zip'}
-RELATIVE_PATH = {'100K': 'ml-100k/u.data',
-                 '1M': 'ml-1m/ratings.dat'}
+
+VALID_DATA_FORMATS = ["UIR", "UIRT"]
+
+MovieLens = namedtuple("MovieLens", ["url", "unzip", "path", "sep", "skip"])
+ML_DATASETS = {
+    "100K": MovieLens(
+        "http://files.grouplens.org/datasets/movielens/ml-100k/u.data",
+        False,
+        "ml-100k/u.data",
+        "\t",
+        0,
+    ),
+    "1M": MovieLens(
+        "http://files.grouplens.org/datasets/movielens/ml-1m.zip",
+        True,
+        "ml-1m/ratings.dat",
+        "::",
+        0,
+    ),
+    "10M": MovieLens(
+        "http://files.grouplens.org/datasets/movielens/ml-10m.zip",
+        True,
+        "ml-10M100K/ratings.dat",
+        "::",
+        0,
+    ),
+    "20M": MovieLens(
+        "http://files.grouplens.org/datasets/movielens/ml-20m.zip",
+        True,
+        "ml-20m/ratings.csv",
+        ",",
+        1,
+    ),
+}
 
 
-def load_feedback(fmt='UIR', variant='100K', reader=None):
+def load_feedback(fmt="UIR", variant="100K", reader=None):
     """Load the user-item ratings of one of the MovieLens datasets
 
     Parameters
     ----------
     fmt: str, default: 'UIR'
-        Data format to be returned.
+        Data format to be returned, one of ['UIR', 'UIRT'].
 
     variant: str, optional, default: '100K'
-        Specifies which MovieLens dataset to load, one of ['100K', '1M'].
+        Specifies which MovieLens dataset to load, one of ['100K', '1M', '10M', '20M'].
 
     reader: `obj:cornac.data.Reader`, optional, default: None
         Reader object used to read the data.
@@ -53,12 +80,13 @@ def load_feedback(fmt='UIR', variant='100K', reader=None):
 
     fmt = validate_format(fmt, VALID_DATA_FORMATS)
 
-    if variant not in VARIANTS:
-        raise ValueError('variant must be one of {}.'.format(VARIANTS))
+    ml = ML_DATASETS.get(variant.upper(), None)
+    if ml is None:
+        raise ValueError("variant must be one of {}.".format(ML_DATASETS.keys()))
 
-    fpath = cache(url=URL[variant], unzip=UNZIP[variant], relative_path=RELATIVE_PATH[variant])
+    fpath = cache(url=ml.url, unzip=ml.unzip, relative_path=ml.path)
     reader = Reader() if reader is None else reader
-    return reader.read(fpath, fmt, sep=SEP[variant])
+    return reader.read(fpath, fmt, sep=ml.sep, skip_lines=ml.skip)
 
 
 def load_plot():
@@ -72,7 +100,10 @@ def load_plot():
     ids: List
         List of item ids aligned with indices in `texts`.
     """
-    fpath = cache(url='https://static.preferred.ai/cornac/datasets/movielens/ml_plot.zip',
-                  unzip=True, relative_path='movielens/ml_plot.dat')
-    texts, ids = read_text(fpath, sep='::')
+    fpath = cache(
+        url="https://static.preferred.ai/cornac/datasets/movielens/ml_plot.zip",
+        unzip=True,
+        relative_path="movielens/ml_plot.dat",
+    )
+    texts, ids = read_text(fpath, sep="::")
     return texts, ids
