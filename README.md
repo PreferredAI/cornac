@@ -108,7 +108,7 @@ auc = cornac.metrics.AUC()
 Put everything together into an experiment and run it:
   
 ```python
-cornac.Experiment(eval_method=ratio_split,
+cornac.Experiment(eval_method=rs,
                   models=[mf, pmf, bpr],
                   metrics=[mae, rmse, rec_20, ndcg_20, auc],
                   user_based=True).run()
