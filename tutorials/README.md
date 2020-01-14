@@ -6,6 +6,7 @@ If you are new to Cornac, the [Getting Started](#getting-started) tutorials are 
 
 - [Installation](../README.md#installation)
 - [Your first Cornac experiment](../README.md#getting-started-your-first-cornac-experiment) 
+- [Introduction to Bayesian Personalized Ranking (BPR)](https://github.com/microsoft/recommenders/blob/master/notebooks/02_model/cornac_bpr_deep_dive.ipynb)
 - [Hyperparameter search for VAECF](./param_search_vaecf.ipynb)
 
 ## Contributing
