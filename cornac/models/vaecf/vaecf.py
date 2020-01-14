@@ -17,40 +17,62 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from tqdm import tqdm
+from tqdm import trange
 
 from ...utils import estimate_batches
 
 torch.set_default_dtype(torch.float32)
 
+EPS = 1e-10
+
+ACT = {
+    "sigmoid": nn.Sigmoid(),
+    "tanh": nn.Tanh(),
+    "elu": nn.ELU(),
+    "relu": nn.ReLU(),
+    "relu6": nn.ReLU6(),
+}
+
 
 class VAE(nn.Module):
-    def __init__(self, data_dim, z_dim, h_dim):
+    def __init__(self, z_dim, ae_structure, act_fn, likelihood):
         super(VAE, self).__init__()
 
-        # Hyperparameters
-        self.eps = 1e-10
+        self.likelihood = likelihood
+        self.act_fn = ACT.get(act_fn, None)
+        if self.act_fn is None:
+            raise ValueError("Supported act_fn: {}".format(ACT.keys()))
 
-        # Encoder layers
-        self.efc1 = nn.Linear(data_dim, h_dim)
-        self.efc21 = nn.Linear(h_dim, z_dim)  # mu
-        self.efc22 = nn.Linear(h_dim, z_dim)  # logvar
+        # Encoder
+        self.encoder = nn.Sequential()
+        for i in range(len(ae_structure) - 1):
+            self.encoder.add_module(
+                "fc{}".format(i), nn.Linear(ae_structure[i], ae_structure[i + 1])
+            )
+            self.encoder.add_module("act{}".format(i), self.act_fn)
+        self.enc_mu = nn.Linear(ae_structure[-1], z_dim)  # mu
+        self.enc_logvar = nn.Linear(ae_structure[-1], z_dim)  # logvar
 
-        # Decoder layers
-        self.dfc1 = nn.Linear(z_dim, h_dim)
-        self.dfc2 = nn.Linear(h_dim, data_dim)
-        # self.efc22 = nn.Linear(h_dim, z_dim) # logvar
+        # Decoder
+        ae_structure = [z_dim] + ae_structure[::-1]
+        self.decoder = nn.Sequential()
+        for i in range(len(ae_structure) - 1):
+            self.decoder.add_module(
+                "fc{}".format(i), nn.Linear(ae_structure[i], ae_structure[i + 1])
+            )
+            if i != len(ae_structure) - 2:
+                self.decoder.add_module("act{}".format(i), self.act_fn)
 
     def encode(self, x):
-        h = self.efc1(x)
-        h = torch.tanh(h)
-        return self.efc21(h), self.efc22(h)
+        h = self.encoder(x)
+        return self.enc_mu(h), self.enc_logvar(h)
 
     def decode(self, z):
-        h = self.dfc1(z)
-        h = torch.tanh(h)
-        o = self.dfc2(h)
-        return F.softmax(o, dim=1)
+        h = self.decoder(z)
+        if self.likelihood == "mult":
+            return torch.softmax(h, dim=1)
+        else:
+            return torch.sigmoid(h)
 
     def reparameterize(self, mu, logvar):
         std = torch.exp(0.5 * logvar)
@@ -63,53 +85,60 @@ class VAE(nn.Module):
         return self.decode(z), mu, logvar
 
     def loss(self, x, x_, mu, logvar, beta):
-        # Multinomiale likelihood
-        mult_ll = x * torch.log(x_ + self.eps)
+        # Likelihood
+        ll_choices = {
+            "mult": x * torch.log(x_ + EPS),
+            "bern": x * torch.log(x_ + EPS) + (1 - x) * torch.log(1 - x_ + EPS),
+            "gaus": -(x - x_) ** 2,
+            "pois": x * torch.log(x_ + EPS) - x_,
+        }
 
-        # Poisson log-likelihood
-        # poiss_ll = x * torch.log(x_ + self.eps) - x_
+        ll = ll_choices.get(self.likelihood, None)
+        if ll is None:
+            raise ValueError("Supported likelihoods: {}".format(ll_choices.keys()))
 
-        # Bernoulli log-likelihood
-        # bern_ll = -x * torch.log(x_ + self.eps) -  0.5*(1-x) * torch.log(1 - x_ + self.eps)
-
-        # Gaussian log-likelihood
-        # gauss_ll = (x - x_)**2
-
-        ll = mult_ll
         ll = torch.sum(ll, dim=1)
 
         # KL term
         std = torch.exp(0.5 * logvar)
-        kld = -0.5 * (1 + 2. * torch.log(std) - mu.pow(2) - std.pow(2))
+        kld = -0.5 * (1 + 2.0 * torch.log(std) - mu.pow(2) - std.pow(2))
         kld = torch.sum(kld, dim=1)
 
         return torch.mean(beta * kld - ll)
 
 
-def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose,
-          seed=None, device=torch.device('cpu')):
+def learn(
+    train_set,
+    z_dim,
+    ae_structure,
+    act_fn,
+    likelihood,
+    n_epochs,
+    batch_size,
+    learn_rate,
+    beta,
+    verbose,
+    seed=None,
+    device=torch.device("cpu"),
+):
     if seed is not None:
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
 
     # Instantiations
     data_dim = train_set.matrix.shape[1]
-    if str(device).startswith('cuda'):
-        vae = VAE(data_dim, k, h).cuda(device=0)
-    else:
-        vae = VAE(data_dim, k, h)
+    vae = VAE(z_dim, [data_dim] + ae_structure, act_fn, likelihood).to(device)
 
     optimizer = torch.optim.Adam(params=vae.parameters(), lr=learn_rate)
     num_steps = estimate_batches(train_set.num_users, batch_size)
 
-    for epoch in range(1, n_epochs + 1):
-        sum_loss = 0.
+    progress_bar = trange(1, n_epochs + 1, disable=not verbose)
+    for _ in progress_bar:
+        sum_loss = 0.0
         count = 0
-        progress_bar = tqdm(total=num_steps,
-                            desc='Epoch {}/{}'.format(epoch, n_epochs),
-                            disable=not (verbose))
-
-        for batch_id, u_ids in enumerate(train_set.user_iter(batch_size, shuffle=False)):
+        for batch_id, u_ids in enumerate(
+            train_set.user_iter(batch_size, shuffle=False)
+        ):
             u_batch = train_set.matrix[u_ids, :]
             u_batch.data = np.ones(len(u_batch.data))  # Binarize data
             u_batch = u_batch.A
@@ -128,7 +157,5 @@ def learn(train_set, k, h, n_epochs, batch_size, learn_rate, beta, verbose,
 
             if batch_id % 10 == 0:
                 progress_bar.set_postfix(loss=(sum_loss / count))
-            progress_bar.update(1)
-        progress_bar.close()
 
     return vae

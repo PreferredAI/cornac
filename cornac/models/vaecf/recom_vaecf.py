@@ -27,8 +27,22 @@ class VAECF(Recommender):
     k: int, optional, default: 10
         The dimension of the stochastic user factors ``z''.
 
-    h: int, optional, default: 20
-       The dimension of the deterministic hidden layer.
+    autoencoder_structure: list, default: [20]
+        The number of neurons of encoder/decoder layer for VAE.
+        For example, autoencoder_structure = [200], the VAE structure will be [num_items, 200, k, 200, num_items].
+
+    act_fn: str, default: 'tanh'
+        Name of the activation function used between hidden layers of the auto-encoder.
+        Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'relu6']
+
+    likelihood: str, default: 'mult'
+        Name of the likelihood function used for fitting the obserations.
+        Supported choices:
+        
+        mult: Multinomial likelihood
+        bern: Bernoulli likelihood
+        gaus: Gaussian likelihood
+        pois: Poisson likelihood
 
     n_epochs: int, optional, default: 100
         The number of epochs for SGD.
@@ -37,9 +51,9 @@ class VAECF(Recommender):
         The batch size.
 
     learning_rate: float, optional, default: 0.001
-        The learning rate for SGD_RMSProp.
+        The learning rate for Adam.
 
-    beta: float, optional, default: 1.
+    beta: float, optional, default: 1.0
         The weight of the KL term as in beta-VAE.
 
     name: string, optional, default: 'VAECF'
@@ -64,11 +78,27 @@ class VAECF(Recommender):
     In Proceedings of the 2018 World Wide Web Conference on World Wide Web, pp. 689-698.
     """
 
-    def __init__(self, name="VAECF", k=10, h=20, n_epochs=100, batch_size=100, learning_rate=0.001, beta=1.,
-                 trainable=True, verbose=False, seed=None, use_gpu=False):
+    def __init__(
+        self,
+        name="VAECF",
+        k=10,
+        autoencoder_structure=[20],
+        act_fn="tanh",
+        likelihood="mult",
+        n_epochs=100,
+        batch_size=100,
+        learning_rate=0.001,
+        beta=1.0,
+        trainable=True,
+        verbose=False,
+        seed=None,
+        use_gpu=False,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.h = h
+        self.autoencoder_structure = autoencoder_structure
+        self.act_fn = act_fn
+        self.likelihood = likelihood
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.learning_rate = learning_rate
@@ -96,14 +126,29 @@ class VAECF(Recommender):
         import torch
         from .vaecf import learn
 
-        self.device = torch.device("cuda:0") if (self.use_gpu and torch.cuda.is_available()) else torch.device("cpu")
+        self.device = (
+            torch.device("cuda:0")
+            if (self.use_gpu and torch.cuda.is_available())
+            else torch.device("cpu")
+        )
 
         if self.trainable:
-            self.vae = learn(self.train_set, k=self.k, h=self.h, n_epochs=self.n_epochs,
-                             batch_size=self.batch_size, learn_rate=self.learning_rate, beta=self.beta,
-                             verbose=self.verbose, seed=self.seed, device=self.device)
+            self.vae = learn(
+                self.train_set,
+                z_dim=self.k,
+                ae_structure=self.autoencoder_structure,
+                act_fn=self.act_fn,
+                likelihood=self.likelihood,
+                n_epochs=self.n_epochs,
+                batch_size=self.batch_size,
+                learn_rate=self.learning_rate,
+                beta=self.beta,
+                verbose=self.verbose,
+                seed=self.seed,
+                device=self.device,
+            )
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))
+            print("%s is trained already (trainable = False)" % (self.name))
 
         return self
 
@@ -129,21 +174,34 @@ class VAECF(Recommender):
 
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             x_u = self.train_set.matrix[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.float32, device=self.device))
+            z_u, _ = self.vae.encode(
+                torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
+            )
             known_item_scores = self.vae.decode(z_u).data.cpu().numpy().flatten()
 
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             x_u = self.train_set.matrix[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            z_u, _ = self.vae.encode(torch.tensor(x_u.A, dtype=torch.float32, device=self.device))
-            user_pred = self.vae.decode(z_u).data.cpu().numpy().flatten()[item_idx]  # Fix me I am not efficient
+            z_u, _ = self.vae.encode(
+                torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
+            )
+            user_pred = (
+                self.vae.decode(z_u).data.cpu().numpy().flatten()[item_idx]
+            )  # Fix me I am not efficient
 
             return user_pred
