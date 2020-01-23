@@ -375,12 +375,23 @@ class BaseMethod:
             self.rating_metrics = metrics.get("rating", [])
             self.ranking_metrics = metrics.get("ranking", [])
         elif isinstance(metrics, list):
-            self.rating_metrics = [mt for mt in metrics if isinstance(mt, RatingMetric)]
-            self.ranking_metrics = [
-                mt for mt in metrics if isinstance(mt, RankingMetric)
-            ]
+            self.rating_metrics = []
+            self.ranking_metrics = []
+            for mt in metrics:
+                if isinstance(mt, RatingMetric):
+                    self.rating_metrics.append(mt)
+                elif isinstance(mt, RankingMetric) and hasattr(mt.k, "__len__"):
+                    self.ranking_metrics.extend(
+                        [mt.__class__(k=_k) for _k in sorted(set(mt.k))]
+                    )
+                else:
+                    self.ranking_metrics.append(mt)
         else:
             raise ValueError("Type of metrics has to be either dict or list!")
+
+        # sort metrics by name
+        self.rating_metrics = sorted(self.rating_metrics, key=lambda mt: mt.name)
+        self.ranking_metrics = sorted(self.ranking_metrics, key=lambda mt: mt.name)
 
     def _build_datasets(self, train_data, test_data, val_data=None):
         self.train_set = Dataset.build(
