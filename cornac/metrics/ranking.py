@@ -27,14 +27,14 @@ class RankingMetric:
     name: string, default: None
         Name of the measure.
 
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
     """
 
     def __init__(self, name=None, k=-1, higher_better=True):
-        assert k == -1 or k > 0
+        assert hasattr(k, '__len__') or k == -1 or k > 0
 
         self.type = 'ranking'
         self.name = name
