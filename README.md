@@ -100,9 +100,10 @@ Define metrics used to evaluate the models:
 ```python
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
-rec_20 = cornac.metrics.Recall(k=20)
-ndcg_20 = cornac.metrics.NDCG(k=20)
+recall = cornac.metrics.Recall(k=[10, 20])
+ndcg = cornac.metrics.NDCG(k=[10, 20])
 auc = cornac.metrics.AUC()
+
 ```
 
 Put everything together into an experiment and run it:
@@ -110,17 +111,17 @@ Put everything together into an experiment and run it:
 ```python
 cornac.Experiment(eval_method=rs,
                   models=[mf, pmf, bpr],
-                  metrics=[mae, rmse, rec_20, ndcg_20, auc],
+                  metrics=[mae, rmse, recall, ndcg, auc],
                   user_based=True).run()
 ```
 
 **Output:**
 
-|     |    MAE |   RMSE | Recall@20 | NDCG@20 |    AUC | Train (s) | Test (s) |
-| --- | -----: | -----: | --------: | ------: | -----: | --------: | -------: |
-| [MF](cornac/models/mf)  | 0.7431 | 0.9000 |    0.0654 |  0.0556 | 0.7485 |    0.0762 |   1.3927 |
-| [PMF](cornac/models/pmf) | 0.7538 | 0.9143 |    0.0880 |  0.0719 | 0.7779 |    4.1340 |   1.2292 |
-| [BPR](cornac/models/bpr) | N/A | N/A |    0.1449 |  0.1124 | 0.8707 |    2.3332 |   1.3235 |
+|                          |    MAE |   RMSE |    AUC | NDCG@10 | NDCG@20 | Recall@10 | Recall@20 |  Train (s) | Test (s) |
+| ------------------------ | -----: | -----: | -----: | ------: | ------: | --------: | --------: | ---------: | -------: |
+| [MF](cornac/models/mf)   | 0.7431 | 0.9000 | 0.7445 |  0.0479 |  0.0556 |    0.0352 |    0.0654 |     0.1252 |   1.5702 |
+| [PMF](cornac/models/pmf) | 0.7538 | 0.9143 | 0.7744 |  0.0617 |  0.0719 |    0.0479 |    0.0880 |     2.1754 |   1.6366 |
+| [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.0975 |  0.1129 |    0.0891 |    0.1449 |     3.7412 |   1.4901 |
 
 For more details, please take a look at our [examples](examples).
 
