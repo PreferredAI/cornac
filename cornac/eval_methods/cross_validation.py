@@ -81,17 +81,14 @@ class CrossValidation(BaseMethod):
 
     def _partition_data(self):
         """Partition ratings into n_folds"""
-
-        rng = get_rng(self.seed)
-
         fold_size = int(self.n_ratings / self.n_folds)
         remain_size = self.n_ratings - fold_size * self.n_folds
 
         partition = np.repeat(np.arange(self.n_folds), fold_size)
-        rng.shuffle(partition)
+        self.rng.shuffle(partition)
 
         if remain_size > 0:
-            remain_partition = rng.choice(
+            remain_partition = self.rng.choice(
                 self.n_folds, size=remain_size, replace=True, p=None
             )
             partition = np.concatenate((partition, remain_partition))

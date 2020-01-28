@@ -28,6 +28,7 @@ from ..data import Dataset
 from ..metrics import RatingMetric
 from ..metrics import RankingMetric
 from ..experiment.result import Result
+from ..utils import get_rng
 
 
 def rating_eval(model, metrics, test_set, user_based=False):
@@ -239,6 +240,7 @@ class BaseMethod:
         self.exclude_unknowns = exclude_unknowns
         self.verbose = verbose
         self.seed = seed
+        self.rng = get_rng(seed)
         self.global_uid_map = OrderedDict()
         self.global_iid_map = OrderedDict()
 
@@ -361,6 +363,11 @@ class BaseMethod:
                 )
             )
         self.__sentiment = input_modality
+
+    def _reset(self):
+        """Reset the random number generator for reproducibility"""
+        self.rng = get_rng(self.seed)
+        self.test_set = self.test_set.reset()
 
     def _organize_metrics(self, metrics):
         """Organize metrics according to their types (rating or raking)
@@ -559,12 +566,13 @@ class BaseMethod:
         res: :obj:`cornac.experiment.Result`
 
         """
-        self._organize_metrics(metrics)
-
         if self.train_set is None:
             raise ValueError("train_set is required but None!")
         if self.test_set is None:
             raise ValueError("test_set is required but None!")
+        
+        self._reset()
+        self._organize_metrics(metrics)
 
         ###########
         # FITTING #
