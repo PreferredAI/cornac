@@ -93,7 +93,7 @@ class RatioSplit(BaseMethod):
         return int(train_size), int(val_size), int(test_size)
 
     def _split(self):
-        data_idx = get_rng(self.seed).permutation(len(self._data))
+        data_idx = self.rng.permutation(len(self._data))
         train_idx = data_idx[:self.train_size]
         test_idx = data_idx[-self.test_size:]
         val_idx = data_idx[self.train_size:-self.test_size]

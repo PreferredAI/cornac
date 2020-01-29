@@ -96,8 +96,8 @@ class Recommender:
         self : object
         """
         self.reset_info()
-        self.train_set = train_set
-        self.val_set = val_set
+        self.train_set = train_set.reset()
+        self.val_set = None if val_set is None else val_set.reset()
         return self
 
     def score(self, user_idx, item_idx=None):

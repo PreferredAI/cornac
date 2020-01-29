@@ -426,7 +426,13 @@ class Dataset(object):
         """
         return cls.build(data, fmt="UIRT", seed=seed)
 
+    def reset(self):
+        """Reset the random number generator for reproducibility"""
+        self.rng = get_rng(self.seed)
+        return self
+
     def num_batches(self, batch_size):
+        """Estimate number of batches per epoch"""
         return estimate_batches(len(self.uir_tuple[0]), batch_size)
 
     def idx_iter(self, idx_range, batch_size=1, shuffle=False):
