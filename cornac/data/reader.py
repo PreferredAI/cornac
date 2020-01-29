@@ -51,20 +51,20 @@ class Reader:
     Parameters
     ----------
     user_set: set, default = None
-        Set of user_set to be selected when reading data.
-        If `None`, all user_set that appear in the data will be included.
+        Set of users to be retained when reading data.
+        If `None`, all users will be included.
 
     item_set: set, default = None
-        Set of item_set to be selected when reading data.
-        If `None`, all item_set that appear in the data will be included.
+        Set of items to be retained when reading data.
+        If `None`, all items will be included.
 
     min_user_freq: int, default = 1
-        The minimum frequency of a user to be selected.
-        If `min_user_freq=1`, all user_set that appear in the data will be included.
+        The minimum frequency of a user to be retained.
+        If `min_user_freq = 1`, all users will be included.
 
     min_item_freq: int, default = 1
-        The minimum frequency of an item to be selected.
-        If `min_item_freq=1`, all item_set that appear in the data will be included.
+        The minimum frequency of an item to be retained.
+        If `min_item_freq = 1`, all items will be included.
 
     bin_threshold: float, default = None
         The rating threshold to binarize rating values (turn explicit feedback to implicit feedback).
