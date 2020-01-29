@@ -24,7 +24,7 @@ rs = cornac.eval_methods.RatioSplit(data=ml_100k, test_size=0.2, rating_threshol
 
 # Here we are comparing biased MF, PMF, and BPR
 mf = cornac.models.MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
-pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lamda=0.001, seed=123)
+pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123)
 bpr = cornac.models.BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 
 # Define metrics used to evaluate the models

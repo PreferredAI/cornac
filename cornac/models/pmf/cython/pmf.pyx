@@ -37,7 +37,7 @@ cdef float sigmoid(float z):
 
 #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
 def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings,
-               int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9,
+               int k, int n_epochs = 100, float lambda_reg = 0.001, float learning_rate = 0.001, float gamma = 0.9,
                init_params = {}, verbose = False, seed = None):
   
     #some useful variables
@@ -72,13 +72,13 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
             
             # update user factors
             for k_ in range(k):
-                grad_u[u_,k_] = e * V[i_,k_]- lamda * U[u_,k_]
+                grad_u[u_,k_] = e * V[i_,k_]- lambda_reg * U[u_,k_]
                 cache_u[u_,k_] = gamma * cache_u[u_,k_] + (1 - gamma) * (grad_u[u_,k_]*grad_u[u_,k_])
                 U[u_,k_] += learning_rate * (grad_u[u_,k_]/(sqrt(cache_u[u_,k_])+eps)) # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
             
             # update item factors
             for k_ in range(k):
-                grad_v[i_,k_] = e * U[u_,k_] - lamda * V[i_, k_]
+                grad_v[i_,k_] = e * U[u_,k_] - lambda_reg * V[i_, k_]
                 cache_v[i_,k_] = gamma * cache_v[i_,k_] + (1 - gamma) * (grad_v[i_,k_]*grad_v[i_,k_])            
                 V[i_,k_] += learning_rate * (grad_v[i_,k_]/(sqrt(cache_v[i_,k_]) + eps))            
             
@@ -88,7 +88,7 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
                 norm_u += U[u_,k_]*U[u_,k_]
                 norm_v += V[i_,k_]*V[i_,k_]
             
-            loss[epoch]+= e*e  + lamda * (norm_u + norm_v)
+            loss[epoch]+= e*e  + lambda_reg * (norm_u + norm_v)
 
         if verbose:
             print('epoch %i, loss: %f' % (epoch, loss[epoch]))
@@ -100,7 +100,7 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
 
 #PMF (Gaussian non-linear model version using sigmoid function)  SGD_RMSProp optimizer
 def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, int n_ratings,
-                   int k, int n_epochs = 100, float lamda = 0.001, float learning_rate = 0.001, float gamma = 0.9,
+                   int k, int n_epochs = 100, float lambda_reg = 0.001, float learning_rate = 0.001, float gamma = 0.9,
                    init_params = None, verbose = False, seed = None):
   
     #some useful variables
@@ -136,13 +136,13 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
 
             # update user factors
             for k_ in range(k):
-                grad_u[u_, k_] = we * V[i_, k_] - lamda * U[u_, k_]
+                grad_u[u_, k_] = we * V[i_, k_] - lambda_reg * U[u_, k_]
                 cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])
                 U[u_, k_] += learning_rate * (grad_u[u_, k_] / (sqrt(cache_u[u_, k_]) + eps))  # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
 
             # update item factors
             for k_ in range(k):
-                grad_v[i_, k_] = we * U[u_, k_] - lamda * V[i_, k_]
+                grad_v[i_, k_] = we * U[u_, k_] - lambda_reg * V[i_, k_]
                 cache_v[i_, k_] = gamma * cache_v[i_, k_] + (1 - gamma) * (grad_v[i_, k_] * grad_v[i_, k_])
                 V[i_, k_] += learning_rate * (grad_v[i_, k_] / (sqrt(cache_v[i_, k_]) + eps))
 
@@ -152,7 +152,7 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
                 norm_u += U[u_, k_] * U[u_, k_]
                 norm_v += V[i_, k_] * V[i_, k_]
 
-            loss[epoch] += e * e + lamda * (norm_u + norm_v)
+            loss[epoch] += e * e + lambda_reg * (norm_u + norm_v)
 
         if verbose:
             print('epoch %i, loss: %f' % (epoch, loss[epoch]))
