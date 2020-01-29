@@ -38,8 +38,8 @@ class PMF(Recommender):
     gamma: float, optional, default: 0.9
         The weight for previous/current gradient in RMSProp.
 
-    lamda: float, optional, default: 0.001
-        The regularization parameter.
+    lambda_reg: float, optional, default: 0.001
+        The regularization coefficient.
 
     name: string, optional, default: 'PMF'
         The name of the recommender model.
@@ -69,7 +69,7 @@ class PMF(Recommender):
     In NIPS, pp. 1257-1264. 2008.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="PMF", variant='non_linear',
+    def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lambda_reg=0.001, name="PMF", variant='non_linear',
                  trainable=True, verbose=False, init_params={}, seed=None):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -77,7 +77,7 @@ class PMF(Recommender):
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.gamma = gamma
-        self.lamda = lamda
+        self.lambda_reg = lambda_reg
         self.variant = variant
 
         self.ll = np.full(max_iter, 0)
@@ -121,12 +121,12 @@ class PMF(Recommender):
             if self.variant == 'linear':
                 res = pmf.pmf_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items,
                                      n_ratings=len(rat), n_epochs=self.max_iter,
-                                     lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
+                                     lambda_reg=self.lambda_reg, learning_rate=self.learning_rate, gamma=self.gamma,
                                      init_params=self.init_params, verbose=self.verbose, seed=self.seed)
             elif self.variant == 'non_linear':
                 res = pmf.pmf_non_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users,
                                          n_items=train_set.num_items, n_ratings=len(rat), n_epochs=self.max_iter,
-                                         lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
+                                         lambda_reg=self.lambda_reg, learning_rate=self.learning_rate, gamma=self.gamma,
                                          init_params=self.init_params, verbose=self.verbose, seed=self.seed)
             else:
                 raise ValueError('variant must be one of {"linear","non_linear"}')
