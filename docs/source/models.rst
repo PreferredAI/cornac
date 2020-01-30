@@ -120,6 +120,11 @@ Hidden Factors and Hidden Topics (HFT)
 .. automodule:: cornac.models.hft.recom_hft
    :members:
 
+Weighted Bayesian Personalized Ranking (WBPR)
+------------------------------------------------
+.. autoclass:: cornac.models.bpr.recom_wbpr.WBPR
+   :members:
+
 Collaborative Topic Modeling (CTR)
 -------------------------------------------
 .. automodule:: cornac.models.ctr.recom_ctr

@@ -22,7 +22,7 @@ from setuptools import Extension, setup, find_packages
 try:
     import numpy as np
 except ImportError:
-    exit('Please install numpy>=1.14 first.')
+    exit("Please install numpy>=1.14 first.")
 
 try:
     from Cython.Build import cythonize
@@ -33,19 +33,22 @@ else:
     USE_CYTHON = True
 
 
-with open('README.md', 'r') as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
 USE_OPENMP = True
 
+
 def extract_gcc_binaries():
     """Try to find GCC on OSX for OpenMP support."""
-    patterns = ['/opt/local/bin/g++-mp-[0-9].[0-9]',
-                '/opt/local/bin/g++-mp-[0-9]',
-                '/usr/local/bin/g++-[0-9].[0-9]',
-                '/usr/local/bin/g++-[0-9]']
-    if 'darwin' in platform.platform().lower():
+    patterns = [
+        "/opt/local/bin/g++-mp-[0-9].[0-9]",
+        "/opt/local/bin/g++-mp-[0-9]",
+        "/usr/local/bin/g++-[0-9].[0-9]",
+        "/usr/local/bin/g++-[0-9]",
+    ]
+    if "darwin" in platform.platform().lower():
         gcc_binaries = []
         for pattern in patterns:
             gcc_binaries += glob.glob(pattern)
@@ -62,29 +65,35 @@ def extract_gcc_binaries():
 if sys.platform.startswith("win"):
     # compile args from
     # https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx
-    compile_args = ['/O2', '/openmp']
+    compile_args = ["/O2", "/openmp"]
     link_args = []
 else:
     gcc = extract_gcc_binaries()
     if gcc is not None:
-        rpath = '/usr/local/opt/gcc/lib/gcc/' + gcc[-1] + '/'
-        link_args = ['-Wl,-rpath,' + rpath]
+        rpath = "/usr/local/opt/gcc/lib/gcc/" + gcc[-1] + "/"
+        link_args = ["-Wl,-rpath," + rpath]
     else:
         link_args = []
 
-    compile_args = ['-Wno-unused-function', '-Wno-maybe-uninitialized', '-O3', '-ffast-math']
+    compile_args = [
+        "-Wno-unused-function",
+        "-Wno-maybe-uninitialized",
+        "-O3",
+        "-ffast-math",
+    ]
 
-    if 'darwin' in platform.platform().lower():
+    if "darwin" in platform.platform().lower():
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
             USE_OPENMP = False
-            print('No GCC available. Install gcc from Homebrew '
-                  'using brew install gcc.')
+            print(
+                "No GCC available. Install gcc from Homebrew " "using brew install gcc."
+            )
             # required arguments for default gcc of OSX
-            compile_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
-            link_args.extend(['-O2', '-stdlib=libc++', '-mmacosx-version-min=10.7'])
+            compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
+            link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
 
     if USE_OPENMP:
         compile_args.append("-fopenmp")
@@ -93,73 +102,115 @@ else:
     compile_args.append("-std=c++11")
     link_args.append("-std=c++11")
 
-ext = '.pyx' if USE_CYTHON else '.cpp'
+ext = ".pyx" if USE_CYTHON else ".cpp"
 
 extensions = [
-    Extension(name='cornac.models.c2pf.c2pf',
-              sources=[
-                  'cornac/models/c2pf/cython/c2pf' + ext,
-                  'cornac/models/c2pf/cpp/cpp_c2pf.cpp'],
-              include_dirs=[
-                  'cornac/models/c2pf/cpp/',
-                  'cornac/utils/external/eigen/Eigen',
-                  'cornac/utils/external/eigen/unsupported/Eigen/'
-              ],
-              language='c++'),
-    Extension(name='cornac.models.nmf.recom_nmf',
-              sources=['cornac/models/nmf/recom_nmf' + ext],
-              include_dirs=[np.get_include()],
-              language='c++'),
-    Extension(name='cornac.models.pmf.pmf',
-              sources=['cornac/models/pmf/cython/pmf' + ext],
-              language='c++'),
-    Extension(name='cornac.models.mcf.mcf',
-              sources=['cornac/models/mcf/cython/mcf' + ext],
-              language='c++'),
-    Extension(name='cornac.models.sorec.sorec',
-              sources=['cornac/models/sorec/cython/sorec' + ext],
-              language='c++'),
-    Extension('cornac.models.hpf.hpf',
-              sources=['cornac/models/hpf/cython/hpf' + ext,
-                       'cornac/models/hpf/cpp/cpp_hpf.cpp'],
-              include_dirs=[
-                  'cornac/models/hpf/cpp/',
-                  'cornac/utils/external/eigen/Eigen',
-                  'cornac/utils/external/eigen/unsupported/Eigen/'
-              ],
-              language='c++'),
-    Extension(name='cornac.models.mf.recom_mf',
-              sources=['cornac/models/mf/recom_mf' + ext],
-              include_dirs=[np.get_include()],
-              language='c++',
-              extra_compile_args=compile_args, extra_link_args=link_args),
-    Extension(name='cornac.models.baseline_only.recom_bo',
-              sources=['cornac/models/baseline_only/recom_bo' + ext],
-              include_dirs=[np.get_include()],
-              language='c++',
-              extra_compile_args=compile_args, extra_link_args=link_args),
-    Extension(name='cornac.models.efm.recom_efm',
-              sources=['cornac/models/efm/recom_efm' + ext],
-              include_dirs=[np.get_include()],
-              language='c++'),
-    Extension(name='cornac.models.bpr.recom_bpr',
-              sources=['cornac/models/bpr/recom_bpr' + ext],
-              include_dirs=[np.get_include()],
-              language='c++',
-              extra_compile_args=compile_args, extra_link_args=link_args),
-    Extension(name='cornac.models.sbpr.recom_sbpr',
-              sources=['cornac/models/sbpr/recom_sbpr' + ext],
-              include_dirs=[np.get_include()],
-              language='c++',
-              extra_compile_args=compile_args, extra_link_args=link_args),
-    Extension(name='cornac.utils.fast_dot',
-              sources=['cornac/utils/fast_dot' + ext],
-              language='c++',
-              extra_compile_args=compile_args, extra_link_args=link_args),
-    Extension(name='cornac.utils.fast_sparse_funcs',
-              sources=['cornac/utils/fast_sparse_funcs' + ext],
-              include_dirs=[np.get_include()],
-              language='c++'),
+    Extension(
+        name="cornac.models.c2pf.c2pf",
+        sources=[
+            "cornac/models/c2pf/cython/c2pf" + ext,
+            "cornac/models/c2pf/cpp/cpp_c2pf.cpp",
+        ],
+        include_dirs=[
+            "cornac/models/c2pf/cpp/",
+            "cornac/utils/external/eigen/Eigen",
+            "cornac/utils/external/eigen/unsupported/Eigen/",
+        ],
+        language="c++",
+    ),
+    Extension(
+        name="cornac.models.nmf.recom_nmf",
+        sources=["cornac/models/nmf/recom_nmf" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+    ),
+    Extension(
+        name="cornac.models.pmf.pmf",
+        sources=["cornac/models/pmf/cython/pmf" + ext],
+        language="c++",
+    ),
+    Extension(
+        name="cornac.models.mcf.mcf",
+        sources=["cornac/models/mcf/cython/mcf" + ext],
+        language="c++",
+    ),
+    Extension(
+        name="cornac.models.sorec.sorec",
+        sources=["cornac/models/sorec/cython/sorec" + ext],
+        language="c++",
+    ),
+    Extension(
+        "cornac.models.hpf.hpf",
+        sources=[
+            "cornac/models/hpf/cython/hpf" + ext,
+            "cornac/models/hpf/cpp/cpp_hpf.cpp",
+        ],
+        include_dirs=[
+            "cornac/models/hpf/cpp/",
+            "cornac/utils/external/eigen/Eigen",
+            "cornac/utils/external/eigen/unsupported/Eigen/",
+        ],
+        language="c++",
+    ),
+    Extension(
+        name="cornac.models.mf.recom_mf",
+        sources=["cornac/models/mf/recom_mf" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.models.baseline_only.recom_bo",
+        sources=["cornac/models/baseline_only/recom_bo" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.models.efm.recom_efm",
+        sources=["cornac/models/efm/recom_efm" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+    ),
+    Extension(
+        name="cornac.models.bpr.recom_bpr",
+        sources=["cornac/models/bpr/recom_bpr" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.models.bpr.recom_wbpr",
+        sources=["cornac/models/bpr/recom_wbpr" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.models.sbpr.recom_sbpr",
+        sources=["cornac/models/sbpr/recom_sbpr" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.utils.fast_dot",
+        sources=["cornac/utils/fast_dot" + ext],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.utils.fast_sparse_funcs",
+        sources=["cornac/utils/fast_sparse_funcs" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+    ),
 ]
 
 cmdclass = {}
@@ -167,42 +218,39 @@ cmdclass = {}
 # cythonize c++ modules
 if USE_CYTHON:
     extensions = cythonize(extensions)
-    cmdclass.update({'build_ext': build_ext})
+    cmdclass.update({"build_ext": build_ext})
 
 setup(
-    name='cornac',
-    version='1.3.1',
-    description='A Comparative Framework for Multimodal Recommender Systems',
+    name="cornac",
+    version="1.3.1",
+    description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
-    long_description_content_type='text/markdown',
-    url='https://cornac.preferred.ai',
-    keywords=['recommender system', 'collaborative filtering', 'multimodal', 'preference learning', 'recommendation'],
-    ext_modules=extensions,
-    install_requires=[
-        'numpy',
-        'scipy',
-        'tqdm>=4.19'
+    long_description_content_type="text/markdown",
+    url="https://cornac.preferred.ai",
+    keywords=[
+        "recommender system",
+        "collaborative filtering",
+        "multimodal",
+        "preference learning",
+        "recommendation",
     ],
-    extras_require={
-        'tests': ['pytest',
-                  'pytest-pep8',
-                  'pytest-xdist',
-                  'pytest-cov']
-    },
+    ext_modules=extensions,
+    install_requires=["numpy", "scipy", "tqdm>=4.19"],
+    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
     classifiers=(
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Science/Research',
-        'Intended Audience :: Education',
-        'Intended Audience :: Developers',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'License :: OSI Approved :: Apache Software License',
-        'Topic :: Software Development',
-        'Topic :: Scientific/Engineering',
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Education",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "License :: OSI Approved :: Apache Software License",
+        "Topic :: Software Development",
+        "Topic :: Scientific/Engineering",
     ),
 )
