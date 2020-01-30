@@ -148,6 +148,7 @@ class BPR(Recommender):
         # without requiring us to get the whole COO matrix
         user_counts = np.ediff1d(X.indptr)
         user_ids = np.repeat(np.arange(train_set.num_users), user_counts).astype(X.indices.dtype)
+        neg_item_ids = np.arange(train_set.num_items, dtype=np.int32)
 
         cdef:
             int num_threads = self.num_threads
@@ -157,10 +158,12 @@ class BPR(Recommender):
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
                 correct, skipped = self._fit_sgd(rng_pos, rng_neg, num_threads,
-                                                 user_ids, X.indices, X.indptr,
+                                                 user_ids, X.indices, neg_item_ids, X.indptr,
                                                  self.u_factors, self.i_factors, self.i_biases)
-                progress.set_postfix({"correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
-                                      "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))})
+                progress.set_postfix({
+                    "correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
+                    "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))
+                })
         if self.verbose:
             print('Optimization finished!')
 
@@ -170,7 +173,8 @@ class BPR(Recommender):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def _fit_sgd(self, RNGVector rng_pos, RNGVector rng_neg, int num_threads,
-                 integral[:] user_ids, integral[:] item_ids, integral[:] indptr,
+                 integral[:] user_ids, integral[:] item_ids, 
+                 integral[:] neg_item_ids, integral[:] indptr,
                  floating[:, :] U, floating[:, :] V, floating[:] B):
         """Fit the model parameters (U, V, B) with SGD
         """
@@ -194,7 +198,8 @@ class BPR(Recommender):
             for s in prange(num_samples, schedule='guided'):
                 i_index = rng_pos.generate(thread_id)
                 i_id = item_ids[i_index]
-                j_id = rng_neg.generate(thread_id)
+                j_index = rng_neg.generate(thread_id)
+                j_id = neg_item_ids[j_index]
 
                 # if the user has liked the item j, skip this for now
                 if has_non_zero(indptr, item_ids, user_ids[i_index], j_id):

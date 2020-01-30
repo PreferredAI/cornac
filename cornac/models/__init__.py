@@ -47,4 +47,5 @@ from .svd import SVD
 from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
+from .bpr import WBPR
 from .wmf import WMF
