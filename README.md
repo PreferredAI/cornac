@@ -153,6 +153,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 | 2014 | [Explicit Factor Model (EFM)](cornac/models/efm), [paper](http://yongfeng.me/attach/efm-zhang.pdf) | N/A | [efm_exp.py](examples/efm_example.py)
 |      | [Social Bayesian Personalized Ranking (SBPR)](cornac/models/sbpr), [paper](https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf) | N/A | [sbpr_epinions.py](examples/sbpr_epinions.py)
 | 2013 | [Hidden Factors and Hidden Topics (HFT)](cornac/models/hft), [paper](https://cs.stanford.edu/people/jure/pubs/reviews-recsys13.pdf) | N/A | [hft_exp.py](examples/hft_example.py)
+| 2012 | [Weighted Bayesian Personalized Ranking (WBPR)](cornac/models/bpr), [paper](http://proceedings.mlr.press/v18/gantner12a/gantner12a.pdf) | N/A | [bpr_netflix.py](examples/bpr_netflix.py)
 | 2011 | [Collaborative Topic Modeling (CTR)](cornac/models/ctr), [paper](http://www.cs.columbia.edu/~blei/papers/WangBlei2011.pdf) | N/A | [ctr_citeulike.py](examples/ctr_example_citeulike.py)
 | Earlier | [Baseline Only](cornac/models/baseline_only), [paper](http://courses.ischool.berkeley.edu/i290-dm/s11/SECURE/a1-koren.pdf) | N/A | [svd_exp.py](examples/svd_example.py)
 |      | [Bayesian Personalized Ranking (BPR)](cornac/models/bpr), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | N/A | [bpr_netflix.py](examples/bpr_netflix.py)
