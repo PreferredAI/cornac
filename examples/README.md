@@ -62,7 +62,7 @@
 
 [ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
 
-[mmmf_exp.py](mmmf_exp.py) - Maximum Margin Matrix Factorization (MF) with MovieLens 100K dataset.
+[mmmf_exp.py](mmmf_exp.py) - Maximum Margin Matrix Factorization (MMMF) with MovieLens 100K dataset.
 
 [ncf_example.py](ncf_example.py) - Neural Collaborative Filtering (GMF, MLP, NeuMF) with Amazon Clothing dataset.
 
