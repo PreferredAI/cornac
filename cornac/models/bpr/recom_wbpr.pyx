@@ -17,19 +17,12 @@
 
 cimport cython
 from cython cimport floating, integral
-from cython.parallel import parallel, prange
-from libc.math cimport exp
-from libcpp cimport bool
-from libcpp.algorithm cimport binary_search
 
 import numpy as np
 cimport numpy as np
 
 from ..recommender import Recommender
-from ...exception import ScoreException
 from ...utils import get_rng
-from ...utils import fast_dot
-from ...utils.common import scale
 
 from .recom_bpr import BPR
 from .recom_bpr cimport RNGVector
@@ -136,7 +129,7 @@ class WBPR(BPR):
 
         cdef:
             int num_threads = self.num_threads
-            # user the same RNG for weighted sampling with negative items            
+            # user the same RNG for weighted sampling with negative items
             RNGVector rng_vec = RNGVector(num_threads, len(user_ids) - 1, rng.randint(2 ** 31))
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
@@ -144,8 +137,10 @@ class WBPR(BPR):
                 correct, skipped = self._fit_sgd(rng_vec, rng_vec, num_threads,
                                                  user_ids, X.indices, X.indices, X.indptr,
                                                  self.u_factors, self.i_factors, self.i_biases)
-                progress.set_postfix({"correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
-                                      "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))})
+                progress.set_postfix({
+                    "correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
+                    "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))
+                })
         if self.verbose:
             print('Optimization finished!')
 
