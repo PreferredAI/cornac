@@ -26,9 +26,6 @@ from scipy.sparse import csr_matrix
 from tqdm import trange
 
 from ..recommender import Recommender
-from ...exception import ScoreException
-from ...utils import fast_dot
-
 from ..bpr.recom_bpr import BPR
 from ..bpr.recom_bpr cimport RNGVector, has_non_zero
 
