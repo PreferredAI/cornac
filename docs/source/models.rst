@@ -150,6 +150,11 @@ Matrix Factorization (MF)
 .. automodule:: cornac.models.mf.recom_mf
    :members:
 
+Maximum Margin Matrix Factorization (MMMF)
+---------------------------------------------
+.. automodule:: cornac.models.mmmf.recom_mmmf
+   :members:
+
 Most Popular (MostPop)
 -----------------------------------------------------
 .. automodule:: cornac.models.most_pop.recom_most_pop
