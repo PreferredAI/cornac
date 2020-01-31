@@ -23,11 +23,13 @@ from libc.math cimport exp, floor
 import numpy as np
 cimport numpy as np
 from scipy.sparse import csr_matrix
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import fast_dot
-from ...utils.common import scale
+
+from ..bpr.recom_bpr import BPR
 from ..bpr.recom_bpr cimport RNGVector, has_non_zero
 
 
@@ -35,7 +37,7 @@ cdef extern from "../bpr/recom_bpr.h" namespace "recom_bpr" nogil:
     cdef int get_thread_num()
 
 
-class SBPR(Recommender):
+class SBPR(BPR):
     """Social Bayesian Personalized Ranking.
 
     Parameters
@@ -78,23 +80,39 @@ class SBPR(Recommender):
     def __init__(self, name='SBPR', k=10, max_iter=100, learning_rate=0.001,
                  lambda_u=0.01, lambda_v=0.01, lambda_b=0.01,
                  num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
-        super().__init__(name=name, trainable=trainable, verbose=verbose)
-        self.k = k
-        self.max_iter = max_iter
-        self.learning_rate = learning_rate
+        super().__init__(
+            name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, 
+            num_threads=num_threads, trainable=trainable, 
+            verbose=verbose, init_params=init_params, seed=seed
+        )
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.lambda_b = lambda_b
-        self.init_params = {} if init_params is None else init_params
-        self.seed = seed
 
-        import multiprocessing
-        if seed is not None:
-            self.num_threads = 1
-        elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
-            self.num_threads = num_threads
-        else:
-            self.num_threads = multiprocessing.cpu_count()
+    def _prepare_social_data(self, train_set):
+        X = train_set.matrix # csr_matrix
+        n_users, n_items = train_set.num_users, train_set.num_items
+
+        # construct social feedback in the sparse format
+        (rid, cid, val) = train_set.user_graph.get_train_triplet(train_set.user_indices,
+                                                                 train_set.user_indices)
+        Y = csr_matrix((val, (rid, cid)), shape=(n_users, n_users))
+        social_item_ids = []
+        social_item_counts = []
+        social_indptr = [0]
+        for uid in trange(n_users, disable=not self.verbose, desc='Building social data'):
+            real_pos_items = np.unique(X[uid].indices)
+            social_pos_items, counts = np.unique(X[Y[uid].indices].indices, return_counts=True)
+            mask = np.in1d(social_pos_items, real_pos_items, assume_unique=True)
+            social_item_ids.extend(social_pos_items[~mask])
+            social_item_counts.extend(counts[~mask])
+            social_indptr.append(len(social_item_ids))
+
+        social_item_ids = np.asarray(social_item_ids).astype(X.indices.dtype)
+        social_item_counts = np.asarray(social_item_counts).astype(X.indices.dtype)
+        social_indptr = np.asarray(social_indptr).astype(X.indices.dtype)
+
+        return social_item_ids, social_item_counts, social_indptr
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -113,60 +131,27 @@ class SBPR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        n_users, n_items = train_set.num_users, train_set.num_items
-
-        from tqdm import trange
-        from ...utils import get_rng
-        from ...utils.init_utils import zeros, uniform
-
-        rng = get_rng(self.seed)
-        self.u_factors = self.init_params.get('U', (uniform((n_users, self.k), random_state=rng) - 0.5) / self.k)
-        self.i_factors = self.init_params.get('V', (uniform((n_items, self.k), random_state=rng) - 0.5) / self.k)
-        self.i_biases = self.init_params.get('Bi', zeros(n_items))
+        self._init(train_set)
 
         if not self.trainable:
             return self
 
-        # construct implicit feedback
-        X = train_set.matrix # csr_matrix
-        # this basically calculates the 'row' attribute of a COO matrix
-        # without requiring us to get the whole COO matrix
-        user_counts = np.ediff1d(X.indptr)
-        user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
-
-        # construct social feedback
-        (rid, cid, val) = train_set.user_graph.get_train_triplet(train_set.user_indices,
-                                                                     train_set.user_indices)
-        Y = csr_matrix((val, (rid, cid)), shape=(n_users, n_users))
-        social_item_ids = []
-        social_item_counts = []
-        social_indptr = [0]
-        for uid in trange(n_users, disable=not self.verbose, desc='Building social data'):
-            real_pos_items = np.unique(X[uid].indices)
-            social_pos_items, counts = np.unique(X[Y[uid].indices].indices,
-                                                     return_counts=True)
-            mask = np.in1d(social_pos_items, real_pos_items, assume_unique=True)
-            social_item_ids.extend(social_pos_items[~mask])
-            social_item_counts.extend(counts[~mask])
-            social_indptr.append(len(social_item_ids))
-
-        social_item_ids = np.asarray(social_item_ids).astype(X.indices.dtype)
-        social_item_counts = np.asarray(social_item_counts).astype(X.indices.dtype)
-        social_indptr = np.asarray(social_indptr).astype(X.indices.dtype)
+        X, user_counts, user_ids = self._prepare_data(train_set)
+        s_item_ids, s_item_counts, s_indptr = self._prepare_social_data(train_set)
 
         # construct random generators
         cdef:
             int num_threads = self.num_threads
-            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, rng.randint(2 ** 31))
-            RNGVector rng_neg = RNGVector(num_threads, n_items - 1, rng.randint(2 ** 31))
+            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, self.rng.randint(2 ** 31))
+            RNGVector rng_neg = RNGVector(num_threads, train_set.num_items - 1, self.rng.randint(2 ** 31))
 
         # start training
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
                 skipped = self._fit_sgd(rng_pos, rng_neg, num_threads,
-                                                 user_ids, X.indices, X.indptr,
-                                                 social_item_ids, social_item_counts, social_indptr,
-                                                 self.u_factors, self.i_factors, self.i_biases)
+                                        user_ids, X.indices, X.indptr,
+                                        s_item_ids, s_item_counts, s_indptr,
+                                        self.u_factors, self.i_factors, self.i_biases)
                 progress.set_postfix({"skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))})
         if self.verbose:
             print('Optimization finished!')
@@ -263,9 +248,9 @@ class SBPR(Recommender):
                 # update the factors via sgd.
                 for f in range(factors):
                     u_temp = user[f]
-                    user[f] += lr * (z_ik * (item_i[f] - item_k[f]) * s_uk +
-                                         z_kj * (item_k[f] - item_j[f]) -
-                                         lbd_u * user[f])
+                    user[f] += lr * (z_ik * (item_i[f] - item_k[f]) * s_uk + 
+                                     z_kj * (item_k[f] - item_j[f]) -
+                                     lbd_u * user[f])
                     item_i[f] += lr * (z_ik * u_temp * s_uk - lbd_v * item_i[f])
                     item_j[f] += lr * (-z_kj * u_temp - lbd_v * item_j[f])
                     item_k[f] += lr * (z_kj * u_temp - z_ik * u_temp * s_uk - lbd_v * item_k[f])
@@ -276,38 +261,3 @@ class SBPR(Recommender):
                 B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
 
         return skipped
-
-    def score(self, user_idx, item_idx=None):
-        """Predict the scores/ratings of a user for an item.
-
-        Parameters
-        ----------
-        user_idx: int, required
-            The index of the user for whom to perform score prediction.
-
-        item_idx: int, optional, default: None
-            The index of the item for that to perform score prediction.
-            If None, scores for all known items will be returned.
-
-        Returns
-        -------
-        res : A scalar or a Numpy array
-            Relative scores that the user gives to the item or to all known items
-
-        """
-        unk_user = self.train_set.is_unk_user(user_idx)
-
-        if item_idx is None:
-            known_item_scores = np.copy(self.i_biases)
-            if not unk_user:
-                fast_dot(self.u_factors[user_idx], self.i_factors, known_item_scores)
-            return known_item_scores
-        else:
-            if self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
-            item_score = self.i_biases[item_idx]
-            if not unk_user:
-                item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
-            if self.train_set.min_rating != self.train_set.max_rating:
-                item_score = scale(item_score, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
-            return item_score
