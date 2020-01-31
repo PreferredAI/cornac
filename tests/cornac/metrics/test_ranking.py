@@ -84,6 +84,19 @@ class TestRanking(unittest.TestCase):
         rec_list = np.asarray([1, 2, 0])  # [2, 3, 1]
         self.assertEqual(0.5, ncrr_2.compute(ground_truth, rec_list))
 
+        ground_truth = np.asarray([0, 0, 1])  # [3]
+        rec_list = np.asarray([4, 1, 2])  # [5, 2, 3]
+        self.assertEqual(0.0, ncrr_2.compute(ground_truth, rec_list))
+
+        ground_truth = np.asarray([1, 1, 1])  # [1, 2, 3]
+        rec_list = np.asarray([5, 1, 6])  # [6, 2, 7]
+        self.assertEqual(1./3., ncrr_2.compute(ground_truth, rec_list))
+
+        ncrr_3 = NCRR(k=3)
+        ground_truth = np.asarray([1, 1])  # [1, 2]
+        rec_list = np.asarray([5, 1, 6, 8])  # [6, 2, 7, 9]
+        self.assertEqual(1./3., ncrr_3.compute(ground_truth, rec_list))
+
     def test_mrr(self):
         mrr = MRR()
 
