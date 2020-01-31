@@ -105,6 +105,7 @@ class BPR(Recommender):
         self.lambda_reg = lambda_reg
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
+        self.rng = get_rng(self.seed)
 
         import multiprocessing
         if seed is not None:
@@ -113,6 +114,28 @@ class BPR(Recommender):
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
+
+    def _init(self, train_set):
+        from ...utils.init_utils import zeros, uniform
+
+        self.u_factors = self.init_params.get(
+            'U', 
+            (uniform((train_set.total_users, self.k), random_state=self.rng) - 0.5) / self.k
+        )
+        self.i_factors = self.init_params.get(
+            'V', 
+            (uniform((train_set.total_items, self.k), random_state=self.rng) - 0.5) / self.k
+        )
+        self.i_biases = self.init_params.get('Bi', zeros(train_set.total_items))
+
+    def _prepare_data(self, train_set):
+        X = train_set.matrix # csr_matrix
+        # this basically calculates the 'row' attribute of a COO matrix
+        # without requiring us to get the whole COO matrix
+        user_counts = np.ediff1d(X.indptr)
+        user_ids = np.repeat(np.arange(train_set.num_users), user_counts).astype(X.indices.dtype)
+
+        return X, user_counts, user_ids
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -131,35 +154,20 @@ class BPR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from tqdm import trange
-        from ...utils import get_rng
-        from ...utils.init_utils import zeros, uniform
-
-        rng = get_rng(self.seed)
-        self.u_factors = self.init_params.get(
-            'U', 
-            (uniform((train_set.total_users, self.k), random_state=rng) - 0.5) / self.k
-        )
-        self.i_factors = self.init_params.get(
-            'V', 
-            (uniform((train_set.total_items, self.k), random_state=rng) - 0.5) / self.k
-        )
-        self.i_biases = self.init_params.get('Bi', zeros(train_set.total_items))
+        self._init(train_set)
 
         if not self.trainable:
             return
 
-        X = train_set.matrix # csr_matrix
-        # this basically calculates the 'row' attribute of a COO matrix
-        # without requiring us to get the whole COO matrix
-        user_counts = np.ediff1d(X.indptr)
-        user_ids = np.repeat(np.arange(train_set.num_users), user_counts).astype(X.indices.dtype)
+        X, user_counts, user_ids = self._prepare_data(train_set)
         neg_item_ids = np.arange(train_set.num_items, dtype=np.int32)
 
         cdef:
             int num_threads = self.num_threads
-            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, rng.randint(2 ** 31))
-            RNGVector rng_neg = RNGVector(num_threads, train_set.num_items - 1, rng.randint(2 ** 31))
+            RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, self.rng.randint(2 ** 31))
+            RNGVector rng_neg = RNGVector(num_threads, train_set.num_items - 1, self.rng.randint(2 ** 31))
+
+        from tqdm import trange
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
