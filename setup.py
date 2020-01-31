@@ -161,6 +161,14 @@ extensions = [
         extra_link_args=link_args,
     ),
     Extension(
+        name="cornac.models.mmmf.recom_mmmf",
+        sources=["cornac/models/mmmf/recom_mmmf" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
         name="cornac.models.baseline_only.recom_bo",
         sources=["cornac/models/baseline_only/recom_bo" + ext],
         include_dirs=[np.get_include()],

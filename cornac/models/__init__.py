@@ -17,6 +17,7 @@ from .recommender import Recommender
 
 from .baseline_only import BaselineOnly
 from .bpr import BPR
+from .bpr import WBPR
 from .c2pf import C2PF
 from .cdl import CDL
 from .cdr import CDR
@@ -31,6 +32,7 @@ from .hpf import HPF
 from .ibpr import IBPR
 from .mcf import MCF
 from .mf import MF
+from .mmmf import MMMF
 from .most_pop import MostPop
 from .mter import MTER
 from .ncf import GMF
@@ -47,5 +49,4 @@ from .svd import SVD
 from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
-from .bpr import WBPR
 from .wmf import WMF
