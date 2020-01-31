@@ -68,23 +68,13 @@ class WBPR(BPR):
     "Personalized ranking for non-uniformly sampled items." In Proceedings of KDD Cup 2011, pp. 231-247. 2012.
     """
 
-    def __init__(self, name='WBPR', k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01,
+    def __init__(self, name="WBPR", k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01,
                  num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
-        super().__init__(name=name, trainable=trainable, verbose=verbose)
-        self.k = k
-        self.max_iter = max_iter
-        self.learning_rate = learning_rate
-        self.lambda_reg = lambda_reg
-        self.init_params = {} if init_params is None else init_params
-        self.seed = seed
-
-        import multiprocessing
-        if seed is not None:
-            self.num_threads = 1
-        elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
-            self.num_threads = num_threads
-        else:
-            self.num_threads = multiprocessing.cpu_count()
+        super().__init__(
+            name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, 
+            lambda_reg=lambda_reg, num_threads=num_threads, trainable=trainable, 
+            verbose=verbose, init_params=init_params, seed=seed
+        )
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -103,34 +93,19 @@ class WBPR(BPR):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from tqdm import trange
-        from ...utils import get_rng
-        from ...utils.init_utils import zeros, uniform
-
-        rng = get_rng(self.seed)
-        self.u_factors = self.init_params.get(
-            'U', 
-            (uniform((train_set.total_users, self.k), random_state=rng) - 0.5) / self.k
-        )
-        self.i_factors = self.init_params.get(
-            'V', 
-            (uniform((train_set.total_items, self.k), random_state=rng) - 0.5) / self.k
-        )
-        self.i_biases = self.init_params.get('Bi', zeros(train_set.total_items))
+        self._init(train_set)
 
         if not self.trainable:
             return
 
-        X = train_set.matrix # csr_matrix
-        # this basically calculates the 'row' attribute of a COO matrix
-        # without requiring us to get the whole COO matrix
-        user_counts = np.ediff1d(X.indptr)
-        user_ids = np.repeat(np.arange(train_set.num_users), user_counts).astype(X.indices.dtype)
+        X, user_counts, user_ids = self._prepare_data(train_set)
 
         cdef:
             int num_threads = self.num_threads
             # user the same RNG for weighted sampling with negative items
-            RNGVector rng_vec = RNGVector(num_threads, len(user_ids) - 1, rng.randint(2 ** 31))
+            RNGVector rng_vec = RNGVector(num_threads, len(user_ids) - 1, self.rng.randint(2 ** 31))
+
+        from tqdm import trange
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
