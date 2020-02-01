@@ -23,7 +23,7 @@ from libcpp.vector cimport vector
 cdef bool has_non_zero(integral[:], integral[:], integral, integral) nogil
 
 
-cdef extern from "<random>" namespace "std":
+cdef extern from "<boost/random.hpp>" namespace "boost::random":
     cdef cppclass mt19937:
         mt19937(unsigned int)
 
