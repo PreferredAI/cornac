@@ -22,7 +22,8 @@
         ],
         "include_dirs": [
             "cornac/models/bpr",
-            "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include"
+            "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include",
+            "cornac/utils/external"
         ],
         "language": "c++",
         "name": "cornac.models.bpr.recom_bpr",
@@ -641,7 +642,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "stdexcept"
 #include "typeinfo"
 #include <vector>
-#include <random>
+#include <boost/random.hpp>
 #include <math.h>
 #include <algorithm>
 #include <string.h>
@@ -1262,8 +1263,8 @@ typedef npy_cdouble __pyx_t_5numpy_complex_t;
 struct __pyx_obj_6cornac_6models_3bpr_9recom_bpr_RNGVector {
   PyObject_HEAD
   struct __pyx_vtabstruct_6cornac_6models_3bpr_9recom_bpr_RNGVector *__pyx_vtab;
-  std::vector<std::mt19937>  rng;
-  std::vector<std::uniform_int_distribution<long> >  dist;
+  std::vector<boost::random::mt19937>  rng;
+  std::vector<boost::random::uniform_int_distribution<long> >  dist;
 };
 
 
@@ -3469,7 +3470,7 @@ static int __pyx_pf_6cornac_6models_3bpr_9recom_bpr_9RNGVector___init__(struct _
     __pyx_t_8 = __Pyx_PyInt_As_unsigned_int(__pyx_t_1); if (unlikely((__pyx_t_8 == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 51, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     try {
-      __pyx_v_self->rng.push_back(std::mt19937(__pyx_t_8));
+      __pyx_v_self->rng.push_back(boost::random::mt19937(__pyx_t_8));
     } catch(...) {
       __Pyx_CppExn2PyErr();
       __PYX_ERR(0, 51, __pyx_L1_error)
@@ -3483,7 +3484,7 @@ static int __pyx_pf_6cornac_6models_3bpr_9recom_bpr_9RNGVector___init__(struct _
  *     cdef inline long generate(self, int thread_id) nogil:
  */
     try {
-      __pyx_v_self->dist.push_back(std::uniform_int_distribution<long> (0, __pyx_v_rows));
+      __pyx_v_self->dist.push_back(boost::random::uniform_int_distribution<long> (0, __pyx_v_rows));
     } catch(...) {
       __Pyx_CppExn2PyErr();
       __PYX_ERR(0, 52, __pyx_L1_error)
@@ -26482,8 +26483,8 @@ static PyObject *__pyx_tp_new_6cornac_6models_3bpr_9recom_bpr_RNGVector(PyTypeOb
   if (unlikely(!o)) return 0;
   p = ((struct __pyx_obj_6cornac_6models_3bpr_9recom_bpr_RNGVector *)o);
   p->__pyx_vtab = __pyx_vtabptr_6cornac_6models_3bpr_9recom_bpr_RNGVector;
-  new((void*)&(p->rng)) std::vector<std::mt19937> ();
-  new((void*)&(p->dist)) std::vector<std::uniform_int_distribution<long> > ();
+  new((void*)&(p->rng)) std::vector<boost::random::mt19937> ();
+  new((void*)&(p->dist)) std::vector<boost::random::uniform_int_distribution<long> > ();
   return o;
 }
 

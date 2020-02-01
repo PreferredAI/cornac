@@ -161,14 +161,6 @@ extensions = [
         extra_link_args=link_args,
     ),
     Extension(
-        name="cornac.models.mmmf.recom_mmmf",
-        sources=["cornac/models/mmmf/recom_mmmf" + ext],
-        include_dirs=[np.get_include()],
-        language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
-    ),
-    Extension(
         name="cornac.models.baseline_only.recom_bo",
         sources=["cornac/models/baseline_only/recom_bo" + ext],
         include_dirs=[np.get_include()],
@@ -185,7 +177,7 @@ extensions = [
     Extension(
         name="cornac.models.bpr.recom_bpr",
         sources=["cornac/models/bpr/recom_bpr" + ext],
-        include_dirs=[np.get_include()],
+        include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args,
@@ -193,7 +185,7 @@ extensions = [
     Extension(
         name="cornac.models.bpr.recom_wbpr",
         sources=["cornac/models/bpr/recom_wbpr" + ext],
-        include_dirs=[np.get_include()],
+        include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args,
@@ -201,7 +193,15 @@ extensions = [
     Extension(
         name="cornac.models.sbpr.recom_sbpr",
         sources=["cornac/models/sbpr/recom_sbpr" + ext],
-        include_dirs=[np.get_include()],
+        include_dirs=[np.get_include(), "cornac/utils/external"],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.models.mmmf.recom_mmmf",
+        sources=["cornac/models/mmmf/recom_mmmf" + ext],
+        include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args,
