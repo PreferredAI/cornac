@@ -127,7 +127,7 @@ class NCRR(RankingMetric):
 
     Parameters
     ----------
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
