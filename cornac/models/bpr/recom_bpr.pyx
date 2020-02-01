@@ -31,8 +31,6 @@ from ...utils import get_rng
 from ...utils import fast_dot
 from ...utils.common import scale
 
-from libc.stdio cimport printf
-
 
 cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
     cdef int get_thread_num()
