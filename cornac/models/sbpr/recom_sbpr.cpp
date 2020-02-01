@@ -22,7 +22,8 @@
         ],
         "include_dirs": [
             "cornac/models/sbpr",
-            "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include"
+            "/home/tuantruong/anaconda3/envs/cn/lib/python3.6/site-packages/numpy-1.16.2-py3.6-linux-x86_64.egg/numpy/core/include",
+            "cornac/utils/external"
         ],
         "language": "c++",
         "name": "cornac.models.sbpr.recom_sbpr",
@@ -646,7 +647,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "stdexcept"
 #include "typeinfo"
 #include <vector>
-#include <random>
+#include <boost/random.hpp>
 #include "../bpr/recom_bpr.h"
 #include "pythread.h"
 #include <stdlib.h>
@@ -1262,8 +1263,8 @@ typedef npy_cdouble __pyx_t_5numpy_complex_t;
 struct __pyx_obj_6cornac_6models_3bpr_9recom_bpr_RNGVector {
   PyObject_HEAD
   struct __pyx_vtabstruct_6cornac_6models_3bpr_9recom_bpr_RNGVector *__pyx_vtab;
-  std::vector<std::mt19937>  rng;
-  std::vector<std::uniform_int_distribution<long> >  dist;
+  std::vector<boost::random::mt19937>  rng;
+  std::vector<boost::random::uniform_int_distribution<long> >  dist;
 };
 
 
