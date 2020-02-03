@@ -15,6 +15,8 @@
 
 # cython: language_level=3
 
+import multiprocessing
+
 cimport cython
 from cython.parallel import prange
 from cython cimport floating, integral
@@ -27,6 +29,8 @@ cimport numpy as np
 from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import fast_dot
+from ...utils import get_rng
+from ...utils.init_utils import normal, zeros
 
 
 
@@ -89,13 +93,34 @@ class MF(Recommender):
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
-        import multiprocessing
         if seed is not None:
             self.num_threads = 1
         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.u_factors = init_params.get('U', None)
+        self.i_factors = init_params.get('V', None)
+        self.u_biases = init_params.get('Bu', None)
+        self.i_biases = init_params.get('Bi', None)
+        self.global_mean = 0.0
+
+    def _init(self, train_set):
+        """Init model parameters if not provided"""
+        self.global_mean = train_set.global_mean if self.use_bias else 0.0
+
+        rng = get_rng(self.seed)
+        if self.u_factors is None:
+            self.u_factors = normal([train_set.num_users, self.k], std=0.01, random_state=rng) 
+        if self.i_factors is None:
+            self.i_factors = normal([train_set.num_items, self.k], std=0.01, random_state=rng)
+        if self.u_biases is None:
+            self.u_biases = zeros(train_set.num_users)
+        if self.i_biases is None:
+            self.i_biases = zeros(train_set.num_items)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -114,22 +139,13 @@ class MF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        n_users, n_items = train_set.num_users, train_set.num_items
-        self.global_mean = train_set.global_mean if self.use_bias else 0.
-
-        from ...utils import get_rng
-        from ...utils.init_utils import normal, zeros
-
-        rng = get_rng(self.seed)
-        self.u_factors = self.init_params.get('U', normal([n_users, self.k], std=0.01, random_state=rng))
-        self.i_factors = self.init_params.get('V', normal([n_items, self.k], std=0.01, random_state=rng))
-        self.u_biases = self.init_params.get('Bu', zeros(n_users))
-        self.i_biases = self.init_params.get('Bi', zeros(n_items))
-
         if self.trainable:
+            self._init(train_set)
+
             (rid, cid, val) = train_set.uir_tuple
             self._fit_sgd(rid, cid, val.astype(np.float32),
-                          self.u_factors, self.i_factors, self.u_biases, self.i_biases)
+                          self.u_factors, self.i_factors, 
+                          self.u_biases, self.i_biases)
 
         return self
 
