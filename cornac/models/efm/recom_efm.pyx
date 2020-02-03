@@ -146,7 +146,6 @@ class EFM(Recommender):
         self.lambda_v = lambda_v
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
         if seed is not None:
