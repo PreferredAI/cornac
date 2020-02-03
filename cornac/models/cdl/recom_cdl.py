@@ -14,9 +14,12 @@
 # ============================================================================
 
 import numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import xavier_uniform
 
 
 class CDL(Recommender):
@@ -94,12 +97,29 @@ class CDL(Recommender):
     * Hao Wang, Naiyan Wang, Dit-Yan Yeung. CDL: Collaborative Deep Learning for Recommender Systems. In : SIGKDD. 2015. p. 1235-1244.
     """
 
-    def __init__(self, name='CDL',
-                 k=50, autoencoder_structure=None, act_fn='relu',
-                 lambda_u=0.1, lambda_v=10, lambda_w=0.1, lambda_n=1000,
-                 a=1, b=0.01, corruption_rate=0.3, learning_rate=0.001, vocab_size=8000,
-                 dropout_rate=0.1, batch_size=128, max_iter=100, trainable=True, verbose=True,
-                 init_params=None, seed=None):
+    def __init__(
+        self,
+        name="CDL",
+        k=50,
+        autoencoder_structure=None,
+        act_fn="relu",
+        lambda_u=0.1,
+        lambda_v=10,
+        lambda_w=0.1,
+        lambda_n=1000,
+        a=1,
+        b=0.01,
+        corruption_rate=0.3,
+        learning_rate=0.001,
+        vocab_size=8000,
+        dropout_rate=0.1,
+        batch_size=128,
+        max_iter=100,
+        trainable=True,
+        verbose=True,
+        init_params=None,
+        seed=None,
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.lambda_u = lambda_u
@@ -119,8 +139,19 @@ class CDL(Recommender):
         self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
-        self.init_params = {} if not init_params else init_params
         self.seed = seed
+        self.rng = get_rng(seed)
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.U = init_params.get("U", None)
+        self.V = init_params.get("V", None)
+
+    def _init(self, train_set):
+        if self.U is None:
+            self.U = xavier_uniform((train_set.num_users, self.k), self.rng)
+        if self.V is None:
+            self.V = xavier_uniform((train_set.num_items, self.k), self.rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -139,36 +170,52 @@ class CDL(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import xavier_uniform
-
-        self.rng = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.rng))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.rng))
-
         if self.trainable:
+            self._init(train_set)
             self._fit_cdl()
 
         return self
 
-    def _fit_cdl(self, ):
+    def _fit_cdl(self):
         import tensorflow.compat.v1 as tf
-        from tqdm import trange
         from .cdl import Model
 
         R = self.train_set.csc_matrix  # csc for efficient slicing over items
-        n_users, n_items, = self.train_set.num_users, self.train_set.num_items
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
 
-        text_feature = self.train_set.item_text.batch_bow(np.arange(n_items))  # bag of word feature
-        text_feature = (text_feature - text_feature.min()) / (text_feature.max() - text_feature.min())  # normalization
+        text_feature = self.train_set.item_text.batch_bow(
+            np.arange(n_items)
+        )  # bag of word feature
+        text_feature = (text_feature - text_feature.min()) / (
+            text_feature.max() - text_feature.min()
+        )  # normalization
 
         # Build model
-        layer_sizes = [self.vocab_size] + self.ae_structure + [self.k] + self.ae_structure + [self.vocab_size]
+        layer_sizes = (
+            [self.vocab_size]
+            + self.ae_structure
+            + [self.k]
+            + self.ae_structure
+            + [self.vocab_size]
+        )
         tf.set_random_seed(self.seed)
-        model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w, lambda_n=self.lambda_n,
-                      lr=self.learning_rate, dropout_rate=self.dropout_rate, U=self.U, V=self.V,
-                      act_fn=self.act_fn, seed=self.seed)
+        model = Model(
+            n_users=n_users,
+            n_items=n_items,
+            n_vocab=self.vocab_size,
+            k=self.k,
+            layers=layer_sizes,
+            lambda_u=self.lambda_u,
+            lambda_v=self.lambda_v,
+            lambda_w=self.lambda_w,
+            lambda_n=self.lambda_n,
+            lr=self.learning_rate,
+            dropout_rate=self.dropout_rate,
+            U=self.U,
+            V=self.V,
+            act_fn=self.act_fn,
+            seed=self.seed,
+        )
 
         # Training model
         config = tf.ConfigProto()
@@ -178,11 +225,14 @@ class CDL(Recommender):
 
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
-                corruption_mask = self.rng.binomial(1, 1 - self.corruption_rate,
-                                                    size=(n_items, self.vocab_size))
+                corruption_mask = self.rng.binomial(
+                    1, 1 - self.corruption_rate, size=(n_items, self.vocab_size)
+                )
                 sum_loss = 0
                 count = 0
-                for i, batch_ids in enumerate(self.train_set.item_iter(self.batch_size, shuffle=True)):
+                for i, batch_ids in enumerate(
+                    self.train_set.item_iter(self.batch_size, shuffle=True)
+                ):
                     batch_R = R[:, batch_ids]
                     batch_C = np.ones(batch_R.shape) * self.b
                     batch_C[batch_R.nonzero()] = self.a
@@ -192,10 +242,12 @@ class CDL(Recommender):
                         model.text_input: text_feature[batch_ids],
                         model.ratings: batch_R.A,
                         model.C: batch_C,
-                        model.item_ids: batch_ids
+                        model.item_ids: batch_ids,
                     }
                     sess.run(model.opt1, feed_dict)  # train U, V
-                    _, _loss = sess.run([model.opt2, model.loss], feed_dict)  # train SDAE
+                    _, _loss = sess.run(
+                        [model.opt2, model.loss], feed_dict
+                    )  # train SDAE
 
                     sum_loss += _loss
                     count += len(batch_ids)
@@ -207,7 +259,7 @@ class CDL(Recommender):
         tf.reset_default_graph()
 
         if self.verbose:
-            print('Learning completed!')
+            print("Learning completed!")
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -228,12 +280,19 @@ class CDL(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
             return user_pred
