@@ -50,9 +50,10 @@ class GMF(NCFBase):
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments: 
         
-         - `min_delta`: the minimum increase in monitored value on validation set to be considered as improvement, \
+        - `min_delta`: the minimum increase in monitored value on validation set to be considered as improvement, \
            i.e. an increment of less than min_delta will count as no improvement.
-         - `patience`: number of epochs with no improvement after which training should be stopped.
+        
+        - `patience`: number of epochs with no improvement after which training should be stopped.
 
     name: string, optional, default: 'GMF'
         Name of the recommender model.

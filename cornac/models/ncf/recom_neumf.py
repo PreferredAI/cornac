@@ -63,9 +63,10 @@ class NeuMF(NCFBase):
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments: 
         
-         - `min_delta`: the minimum increase in monitored value on validation set to be considered as improvement, \
+        - `min_delta`: the minimum increase in monitored value on validation set to be considered as improvement, \
            i.e. an increment of less than min_delta will count as no improvement.
-         - `patience`: number of epochs with no improvement after which training should be stopped.
+        
+        - `patience`: number of epochs with no improvement after which training should be stopped.
 
     name: string, optional, default: 'NeuMF'
         Name of the recommender model.
@@ -122,7 +123,16 @@ class NeuMF(NCFBase):
         self.reg_mf = reg_mf
         self.reg_layers = reg_layers
         self.pretrained = False
-        self.ignored_attrs.extend(["gmf_user_id", "mlp_user_id"])
+        self.ignored_attrs.extend(
+            [
+                "gmf_user_id",
+                "mlp_user_id",
+                "pretrained",
+                "gmf_model",
+                "mlp_model",
+                "alpha",
+            ]
+        )
 
     def pretrain(self, gmf_model, mlp_model, alpha=0.5):
         """Provide pre-trained GMF and MLP models. Section 3.4.1 of the paper.
@@ -241,37 +251,17 @@ class NeuMF(NCFBase):
                 elif v.name.startswith("logits/bias"):
                     self.sess.run(tf.assign(v, logits_bias))
 
-    def _fit_tf(self):
-        import tensorflow.compat.v1 as tf
-
-        loop = trange(self.num_epochs, disable=not self.verbose)
-        for _ in loop:
-            count = 0
-            sum_loss = 0
-            for i, (batch_users, batch_items, batch_ratings) in enumerate(
-                self.train_set.uir_iter(
-                    self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg
-                )
-            ):
-                _, _loss = self.sess.run(
-                    [self.train_op, self.loss],
-                    feed_dict={
-                        self.gmf_user_id: batch_users,
-                        self.mlp_user_id: batch_users,
-                        self.item_id: batch_items,
-                        self.labels: batch_ratings.reshape(-1, 1),
-                    },
-                )
-                count += len(batch_ratings)
-                sum_loss += _loss * len(batch_ratings)
-                if i % 10 == 0:
-                    loop.set_postfix(loss=(sum_loss / count))
-
-            if self.early_stopping is not None and self.early_stop(
-                **self.early_stopping
-            ):
-                break
-        loop.close()
+    def _step_update(self, batch_users, batch_items, batch_ratings):
+        _, _loss = self.sess.run(
+            [self.train_op, self.loss],
+            feed_dict={
+                self.gmf_user_id: batch_users,
+                self.mlp_user_id: batch_users,
+                self.item_id: batch_items,
+                self.labels: batch_ratings.reshape(-1, 1),
+            },
+        )
+        return _loss
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.

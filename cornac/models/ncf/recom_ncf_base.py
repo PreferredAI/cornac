@@ -125,9 +125,10 @@ class NCFBase(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
-            self.num_users = self.train_set.num_users
-            self.num_items = self.train_set.num_items
-            self._build_graph()
+            if not hasattr(self, "graph"):
+                self.num_users = self.train_set.num_users
+                self.num_items = self.train_set.num_items
+                self._build_graph()
             self._fit_tf()
 
         return self
@@ -143,6 +144,17 @@ class NCFBase(Recommender):
         self.sess = tf.Session(graph=self.graph, config=config)
         self.sess.run(self.initializer)
 
+    def _step_update(self, batch_users, batch_items, batch_ratings):
+        _, _loss = self.sess.run(
+            [self.train_op, self.loss],
+            feed_dict={
+                self.user_id: batch_users,
+                self.item_id: batch_items,
+                self.labels: batch_ratings.reshape(-1, 1),
+            },
+        )
+        return _loss
+
     def _fit_tf(self):
         import tensorflow.compat.v1 as tf
 
@@ -155,15 +167,7 @@ class NCFBase(Recommender):
                     self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg
                 )
             ):
-                _, _loss = self.sess.run(
-                    [self.train_op, self.loss],
-                    feed_dict={
-                        self.user_id: batch_users,
-                        self.item_id: batch_items,
-                        self.labels: batch_ratings.reshape(-1, 1),
-                    },
-                )
-
+                _loss = self._step_update(batch_users, batch_items, batch_ratings)
                 count += len(batch_ratings)
                 sum_loss += _loss * len(batch_ratings)
                 if i % 10 == 0:
@@ -192,11 +196,12 @@ class NCFBase(Recommender):
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         model_file = os.path.join(model_dir, f"{timestamp}")
 
+        # save TF weights
         self.saver.save(self.sess, model_file + ".cpt")
 
+        # save model hyper-params
         saved_model = copy.deepcopy(self)
-        saved_model.pretrained = False  # a dirty fix for NeuMF
-
+        saved_model.pretrained = False  # a quick fix for NeuMF
         pickle.dump(
             saved_model,
             open(model_file + ".pkl", "wb"),
@@ -236,7 +241,7 @@ class NCFBase(Recommender):
 
         model._build_graph()
         model.saver.restore(model.sess, model_file.replace(".pkl", ".cpt"))
-        
+
         return model
 
     def monitor_value(self):
