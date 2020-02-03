@@ -99,14 +99,16 @@ class Recommender:
         model_dir = os.path.join(save_dir, self.name)
         os.makedirs(model_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        model_file = os.path.join(model_dir, "{}-{}.pkl".format(self.name, timestamp))
+        model_file = os.path.join(model_dir, f"{timestamp}.pkl")
 
         # remove references to train_set and val_set
         saved_model = copy.deepcopy(self)
         delattr(saved_model, "train_set")
         delattr(saved_model, "val_set")
 
-        pickle.dump(saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(
+            saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
+        )
 
         if self.verbose:
             print(f"{self.name} model is saved to {model_file}")
@@ -139,10 +141,12 @@ class Recommender:
 
         model = pickle.load(open(model_file, "rb"))
         model.trainable = trainable
-        
+
         if verbose:
-            print(f"{model.name} model is loaded from {model_file}, trainable={trainable}")
-        
+            print(
+                f"{model.name} model is loaded from {model_file}, trainable={trainable}"
+            )
+
         return model
 
     def fit(self, train_set, val_set=None):
