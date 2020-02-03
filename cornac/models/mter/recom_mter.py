@@ -25,6 +25,8 @@ from ..recommender import Recommender
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import uniform
 
 
 class MTER(Recommender):
@@ -79,21 +81,27 @@ class MTER(Recommender):
     verbose: boolean, optional, default: False
         When True, running logs are displayed.
 
-    init_params: dictionary, optional, default: {}
+    init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U':U, 'I':I, 'A':A, 'O':O, 'G1':G1, 'G2':G2, 'G3':G3}
 
         U: ndarray, shape (n_users, n_user_factors)
             The user latent factors, optional initialization via init_params
+            
         I: ndarray, shape (n_items, n_item_factors)
             The item latent factors, optional initialization via init_params
+        
         A: ndarray, shape (num_aspects+1, n_aspect_factors)
             The aspect latent factors, optional initialization via init_params
+        
         O: ndarray, shape (num_opinions, n_opinion_factors)
             The opinion latent factors, optional initialization via init_params
+        
         G1: ndarray, shape (n_user_factors, n_item_factors, n_aspect_factors)
             The core tensor for user, item, and aspect factors, optional initialization via init_params
+        
         G2: ndarray, shape (n_user_factors, n_aspect_factors, n_opinion_factors)
             The core tensor for user, aspect, and opinion factors, optional initialization via init_params
+        
         G3: ndarray, shape (n_item_factors, n_aspect_factors, n_opinion_factors)
             The core tensor for item, aspect, and opinion factors, optional initialization via init_params
 
@@ -108,22 +116,27 @@ class MTER(Recommender):
     ACM, New York, NY, USA, 165-174. DOI: https://doi.org/10.1145/3209978.3210010
     """
 
-    def __init__(self, name="MTER",
-                 rating_scale=5.0,
-                 n_user_factors=15,
-                 n_item_factors=15,
-                 n_aspect_factors=12,
-                 n_opinion_factors=12,
-                 n_bpr_samples=1000,
-                 n_element_samples=50,
-                 lambda_reg=0.1,
-                 lambda_bpr=10,
-                 n_epochs=200000,
-                 lr=0.1,
-                 n_threads=0, trainable=True, verbose=False,
-                 init_params={}, seed=None):
-        Recommender.__init__(
-            self, name=name, trainable=trainable, verbose=verbose)
+    def __init__(
+        self,
+        name="MTER",
+        rating_scale=5.0,
+        n_user_factors=15,
+        n_item_factors=15,
+        n_aspect_factors=12,
+        n_opinion_factors=12,
+        n_bpr_samples=1000,
+        n_element_samples=50,
+        lambda_reg=0.1,
+        lambda_bpr=10,
+        n_epochs=200000,
+        lr=0.1,
+        n_threads=0,
+        trainable=True,
+        verbose=False,
+        init_params=None,
+        seed=None,
+    ):
+        Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
         self.rating_scale = rating_scale
         self.n_user_factors = n_user_factors
@@ -136,14 +149,65 @@ class MTER(Recommender):
         self.lambda_bpr = lambda_bpr
         self.n_epochs = n_epochs
         self.lr = lr
-        self.init_params = init_params
         self.seed = seed
+
         if seed is not None:
             self.n_threads = 1
         elif n_threads > 0 and n_threads < mp.cpu_count():
             self.n_threads = n_threads
         else:
             self.n_threads = mp.cpu_count()
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.G1 = init_params.get("G1", None)
+        self.G2 = init_params.get("G2", None)
+        self.G3 = init_params.get("G3", None)
+        self.U = init_params.get("U", None)
+        self.I = init_params.get("I", None)
+        self.A = init_params.get("A", None)
+        self.O = init_params.get("O", None)
+
+    def _init(self):
+        U_shape = (self.train_set.num_users, self.n_user_factors)
+        I_shape = (self.train_set.num_items, self.n_item_factors)
+        A_shape = (self.train_set.sentiment.num_aspects + 1, self.n_aspect_factors)
+        O_shape = (self.train_set.sentiment.num_opinions, self.n_opinion_factors)
+        G1_shape = (self.n_user_factors, self.n_item_factors, self.n_aspect_factors)
+        G2_shape = (self.n_user_factors, self.n_aspect_factors, self.n_opinion_factors)
+        G3_shape = (self.n_item_factors, self.n_aspect_factors, self.n_opinion_factors)
+
+        rng = get_rng(self.seed)
+        if self.G1 is None:
+            self.G1 = uniform(np.product(G1_shape), random_state=rng)
+        if self.G2 is None:
+            self.G2 = uniform(np.product(G2_shape), random_state=rng)
+        if self.G3 is None:
+            self.G3 = uniform(np.product(G3_shape), random_state=rng)
+        if self.U is None:
+            self.U = uniform(np.product(U_shape), random_state=rng)
+        if self.I is None:
+            self.I = uniform(np.product(I_shape), random_state=rng)
+        if self.A is None:
+            self.A = uniform(np.product(A_shape), random_state=rng)
+        if self.O is None:
+            self.O = uniform(np.product(O_shape), random_state=rng)
+
+        mp_U = mp.Array(c.c_double, self.U.flatten())
+        mp_I = mp.Array(c.c_double, self.I.flatten())
+        mp_A = mp.Array(c.c_double, self.A.flatten())
+        mp_O = mp.Array(c.c_double, self.O.flatten())
+        mp_G1 = mp.Array(c.c_double, self.G1.flatten())
+        mp_G2 = mp.Array(c.c_double, self.G2.flatten())
+        mp_G3 = mp.Array(c.c_double, self.G3.flatten())
+
+        self.G1 = np.frombuffer(mp_G1.get_obj()).reshape(G1_shape)
+        self.G2 = np.frombuffer(mp_G2.get_obj()).reshape(G2_shape)
+        self.G3 = np.frombuffer(mp_G3.get_obj()).reshape(G3_shape)
+        self.U = np.frombuffer(mp_U.get_obj()).reshape(U_shape)
+        self.I = np.frombuffer(mp_I.get_obj()).reshape(I_shape)
+        self.A = np.frombuffer(mp_A.get_obj()).reshape(A_shape)
+        self.O = np.frombuffer(mp_O.get_obj()).reshape(O_shape)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -163,69 +227,63 @@ class MTER(Recommender):
 
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import uniform
-        rng = get_rng(self.seed)
+        if self.trainable:
+            self._init()
+            
+            (
+                rating_matrix,
+                user_item_aspect,
+                user_aspect_opinion,
+                item_aspect_opinion,
+                user_item_pairs,
+            ) = self._build_data(self.train_set)
 
-        (rating_matrix, user_item_aspect, user_aspect_opinion,
-         item_aspect_opinion, user_item_pairs) = self._build_data(self.train_set)
+            self.G1, self.G2, self.G3, self.U, self.I, self.A, self.O = self._fit_mter(
+                self.n_epochs,
+                self.n_threads,
+                self.lr,
+                self.n_element_samples,
+                self.n_bpr_samples,
+                self.lambda_bpr,
+                self.lambda_reg,
+                rating_matrix,
+                user_item_aspect,
+                user_aspect_opinion,
+                item_aspect_opinion,
+                user_item_pairs,
+                self.G1,
+                self.G2,
+                self.G3,
+                self.U,
+                self.I,
+                self.A,
+                self.O,
+            )
 
-        U_shape = (self.train_set.num_users, self.n_user_factors)
-        I_shape = (self.train_set.num_items, self.n_item_factors)
-        A_shape = (self.train_set.sentiment.num_aspects+1, self.n_aspect_factors)
-        O_shape = (self.train_set.sentiment.num_opinions,
-                   self.n_opinion_factors)
-        G1_shape = (self.n_user_factors, self.n_item_factors,
-                    self.n_aspect_factors)
-        G2_shape = (self.n_user_factors, self.n_aspect_factors,
-                    self.n_opinion_factors)
-        G3_shape = (self.n_item_factors, self.n_aspect_factors,
-                    self.n_opinion_factors)
+        return self
 
-        mp_U = mp.Array(
-            c.c_double, self.init_params.get(
-                'U', uniform(np.product(U_shape), random_state=rng)).flatten())
-        mp_I = mp.Array(
-            c.c_double, self.init_params.get(
-                'I', uniform(np.product(I_shape), random_state=rng)).flatten())
-        mp_A = mp.Array(
-            c.c_double, self.init_params.get(
-                'A', uniform(np.product(A_shape), random_state=rng)).flatten())
-        mp_O = mp.Array(
-            c.c_double, self.init_params.get(
-                'O', uniform(np.product(O_shape), random_state=rng)).flatten())
-        mp_G1 = mp.Array(
-            c.c_double, self.init_params.get(
-                'G1', uniform(np.product(G1_shape), random_state=rng)).flatten())
-        mp_G2 = mp.Array(
-            c.c_double, self.init_params.get(
-                'G2', uniform(np.product(G2_shape), random_state=rng)).flatten())
-        mp_G3 = mp.Array(
-            c.c_double, self.init_params.get(
-                'G3', uniform(np.product(G3_shape), random_state=rng)).flatten())
-
-        self.G1 = np.frombuffer(mp_G1.get_obj()).reshape(G1_shape)
-        self.G2 = np.frombuffer(mp_G2.get_obj()).reshape(G2_shape)
-        self.G3 = np.frombuffer(mp_G3.get_obj()).reshape(G3_shape)
-        self.U = np.frombuffer(mp_U.get_obj()).reshape(U_shape)
-        self.I = np.frombuffer(mp_I.get_obj()).reshape(I_shape)
-        self.A = np.frombuffer(mp_A.get_obj()).reshape(A_shape)
-        self.O = np.frombuffer(mp_O.get_obj()).reshape(O_shape)
-
-        if not self.trainable:
-            return
-
-        self.G1, self.G2, self.G3, self.U, self.I, self.A, self.O = self._fit_mter(
-            self.n_epochs, self.n_threads, self.lr, self.n_element_samples, self.n_bpr_samples,
-            self.lambda_bpr, self.lambda_reg,
-            rating_matrix, user_item_aspect, user_aspect_opinion, item_aspect_opinion, user_item_pairs,
-            self.G1, self.G2, self.G3, self.U, self.I, self.A, self.O)
-
-    def _fit_mter(self,
-                  n_epochs, n_threads, lr, n_element_samples, n_bpr_samples,
-                  lambda_bpr, lambda_reg,
-                  rating_matrix, user_item_aspect, user_aspect_opinion, item_aspect_opinion, user_item_pairs,
-                  G1, G2, G3, U, I, A, O):
+    def _fit_mter(
+        self,
+        n_epochs,
+        n_threads,
+        lr,
+        n_element_samples,
+        n_bpr_samples,
+        lambda_bpr,
+        lambda_reg,
+        rating_matrix,
+        user_item_aspect,
+        user_aspect_opinion,
+        item_aspect_opinion,
+        user_item_pairs,
+        G1,
+        G2,
+        G3,
+        U,
+        I,
+        A,
+        O,
+    ):
         from .mter import paraserver, grad_worker_mse, grad_worker_bpr
 
         mp_del_g1_arr = mp.Array(c.c_double, int(np.product(G1.shape)))
@@ -248,35 +306,103 @@ class MTER(Recommender):
         q_samples_mse = mp.Queue()
         q_samples_bpr = mp.Queue()
 
-        num_grad = mp.Value('i', 0)
-        error_square = mp.Value('d', 0)
-        error_bpr = mp.Value('d', 0)
+        num_grad = mp.Value("i", 0)
+        error_square = mp.Value("d", 0)
+        error_bpr = mp.Value("d", 0)
 
         processes = []
-        ps = mp.Process(target=paraserver,
-                        args=(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspect_opinion,
-                              n_element_samples, n_bpr_samples, lambda_reg, n_epochs, lr,
-                              G1, G2, G3, U, I, A, O,
-                              error_square, error_bpr, q_samples_mse, q_samples_bpr,
-                              del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad, n_threads, self.seed, self.verbose))
+        ps = mp.Process(
+            target=paraserver,
+            args=(
+                user_item_pairs,
+                user_item_aspect,
+                user_aspect_opinion,
+                item_aspect_opinion,
+                n_element_samples,
+                n_bpr_samples,
+                lambda_reg,
+                n_epochs,
+                lr,
+                G1,
+                G2,
+                G3,
+                U,
+                I,
+                A,
+                O,
+                error_square,
+                error_bpr,
+                q_samples_mse,
+                q_samples_bpr,
+                del_g1,
+                del_g2,
+                del_g3,
+                del_u,
+                del_i,
+                del_a,
+                del_o,
+                num_grad,
+                n_threads,
+                self.seed,
+                self.verbose,
+            ),
+        )
 
         ps.start()
         processes.append(ps)
 
         for _ in range(n_threads):
-            p = mp.Process(target=grad_worker_mse,
-                           args=(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
-                                 G1, G2, G3, U, I, A, O,
-                                 error_square, error_bpr, lock, q_samples_mse,
-                                 del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad))
+            p = mp.Process(
+                target=grad_worker_mse,
+                args=(
+                    user_item_aspect,
+                    user_aspect_opinion,
+                    item_aspect_opinion,
+                    G1,
+                    G2,
+                    G3,
+                    U,
+                    I,
+                    A,
+                    O,
+                    error_square,
+                    error_bpr,
+                    lock,
+                    q_samples_mse,
+                    del_g1,
+                    del_g2,
+                    del_g3,
+                    del_u,
+                    del_i,
+                    del_a,
+                    del_o,
+                    num_grad,
+                ),
+            )
             processes.append(p)
             p.start()
 
         for _ in range(n_threads):
-            p = mp.Process(target=grad_worker_bpr,
-                           args=(rating_matrix, lambda_bpr,
-                                 G1, U, I, A, error_square, error_bpr, lock, q_samples_bpr,
-                                 del_g1, del_u, del_i, del_a, num_grad))
+            p = mp.Process(
+                target=grad_worker_bpr,
+                args=(
+                    rating_matrix,
+                    lambda_bpr,
+                    G1,
+                    U,
+                    I,
+                    A,
+                    error_square,
+                    error_bpr,
+                    lock,
+                    q_samples_bpr,
+                    del_g1,
+                    del_u,
+                    del_i,
+                    del_a,
+                    num_grad,
+                ),
+            )
             processes.append(p)
             p.start()
 
@@ -287,13 +413,16 @@ class MTER(Recommender):
 
     def _build_data(self, data_set):
         import time
+
         start_time = time.time()
         if self.verbose:
-            print('Building data started!')
+            print("Building data started!")
         sentiment = self.train_set.sentiment
         (u_indices, i_indices, r_values) = data_set.uir_tuple
-        rating_matrix = sp.csr_matrix((r_values, (u_indices, i_indices)),
-                                      shape=(self.train_set.num_users, self.train_set.num_items))
+        rating_matrix = sp.csr_matrix(
+            (r_values, (u_indices, i_indices)),
+            shape=(self.train_set.num_users, self.train_set.num_items),
+        )
         user_item_pairs = list(dict.fromkeys(zip(u_indices, i_indices)))
         user_item_aspect = {}
         user_aspect_opinion = {}
@@ -302,34 +431,56 @@ class MTER(Recommender):
             if self.train_set.is_unk_user(user_idx):
                 continue
             for item_idx, tup_idx in sentiment_tup_ids_by_item.items():
-                user_item_aspect[(
-                    user_idx, item_idx, sentiment.num_aspects)] = rating_matrix[user_idx, item_idx]
+                user_item_aspect[
+                    (user_idx, item_idx, sentiment.num_aspects)
+                ] = rating_matrix[user_idx, item_idx]
                 for aspect_idx, opinion_idx, polarity in sentiment.sentiment[tup_idx]:
-                    user_item_aspect[(user_idx, item_idx, aspect_idx)] = user_item_aspect.get(
-                        (user_idx, item_idx, aspect_idx), 0) + polarity
-                    if polarity > 0:  # only include opinion with positive sentiment polarity
-                        user_aspect_opinion[(user_idx, aspect_idx, opinion_idx)] = user_aspect_opinion.get(
-                            (user_idx, aspect_idx, opinion_idx), 0) + 1
-                        item_aspect_opinion[(item_idx, aspect_idx, opinion_idx)] = item_aspect_opinion.get(
-                            (item_idx, aspect_idx, opinion_idx), 0) + 1
+                    user_item_aspect[(user_idx, item_idx, aspect_idx)] = (
+                        user_item_aspect.get((user_idx, item_idx, aspect_idx), 0)
+                        + polarity
+                    )
+                    if (
+                        polarity > 0
+                    ):  # only include opinion with positive sentiment polarity
+                        user_aspect_opinion[(user_idx, aspect_idx, opinion_idx)] = (
+                            user_aspect_opinion.get(
+                                (user_idx, aspect_idx, opinion_idx), 0
+                            )
+                            + 1
+                        )
+                        item_aspect_opinion[(item_idx, aspect_idx, opinion_idx)] = (
+                            item_aspect_opinion.get(
+                                (item_idx, aspect_idx, opinion_idx), 0
+                            )
+                            + 1
+                        )
 
         for key in user_item_aspect.keys():
             if key[2] != sentiment.num_aspects:
                 user_item_aspect[key] = self._compute_quality_score(
-                    user_item_aspect[key])
+                    user_item_aspect[key]
+                )
 
         for key in user_aspect_opinion.keys():
             user_aspect_opinion[key] = self._compute_attention_score(
-                user_aspect_opinion[key])
+                user_aspect_opinion[key]
+            )
 
         for key in item_aspect_opinion.keys():
             item_aspect_opinion[key] = self._compute_attention_score(
-                item_aspect_opinion[key])
+                item_aspect_opinion[key]
+            )
 
         if self.verbose:
             total_time = time.time() - start_time
-            print('Building data completed in %d s' % total_time)
-        return rating_matrix, user_item_aspect, user_aspect_opinion, item_aspect_opinion, user_item_pairs
+            print("Building data completed in %d s" % total_time)
+        return (
+            rating_matrix,
+            user_item_aspect,
+            user_aspect_opinion,
+            item_aspect_opinion,
+            user_item_pairs,
+        )
 
     def _compute_attention_score(self, count):
         return 1 + (self.rating_scale - 1) * (2 / (1 + np.exp(-count)) - 1)
@@ -356,16 +507,26 @@ class MTER(Recommender):
 
         """
         from .mter import get_value
+
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
                 raise ScoreException(
-                    "Can't make score prediction for (user_id=%d" & user_idx)
-            tensor_value1 = np.einsum('abc,Ma->Mbc', self.G1, self.U[user_idx, :].reshape(1, self.n_user_factors))
-            tensor_value2 = np.einsum('Mbc,Nb->MNc', tensor_value1, self.I)
-            item_scores = np.einsum('MNc,c->MN', tensor_value2, self.A[-1]).flatten()
+                    "Can't make score prediction for (user_id=%d" & user_idx
+                )
+            tensor_value1 = np.einsum(
+                "abc,Ma->Mbc",
+                self.G1,
+                self.U[user_idx, :].reshape(1, self.n_user_factors),
+            )
+            tensor_value2 = np.einsum("Mbc,Nb->MNc", tensor_value1, self.I)
+            item_scores = np.einsum("MNc,c->MN", tensor_value2, self.A[-1]).flatten()
             return item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
                 raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
             return get_value(self.G1, self.U, self.I, self.A, (user_idx, item_idx, -1))
