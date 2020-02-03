@@ -17,9 +17,12 @@ import time
 import math
 
 import numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import xavier_uniform
 
 
 class ConvMF(Recommender):
@@ -66,14 +69,25 @@ class ConvMF(Recommender):
     In :10th ACM Conference on Recommender Systems Pages 233-240
     """
 
-    def __init__(self, give_item_weight=True, cnn_epochs=5,
-                 n_epochs=50, lambda_u=1, lambda_v=100, k=50,
-                 name="convmf", trainable=True,
-                 verbose=False, dropout_rate=0.2, emb_dim=200,
-                 max_len=300, num_kernel_per_ws=100, init_params=None, seed=None):
-
+    def __init__(
+        self,
+        give_item_weight=True,
+        cnn_epochs=5,
+        n_epochs=50,
+        lambda_u=1,
+        lambda_v=100,
+        k=50,
+        name="ConvMF",
+        trainable=True,
+        verbose=False,
+        dropout_rate=0.2,
+        emb_dim=200,
+        max_len=300,
+        num_kernel_per_ws=100,
+        init_params=None,
+        seed=None,
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
-
         self.give_item_weight = give_item_weight
         self.max_iter = n_epochs
         self.lambda_u = lambda_u
@@ -86,8 +100,25 @@ class ConvMF(Recommender):
         self.name = name
         self.verbose = verbose
         self.cnn_epochs = cnn_epochs
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.U = init_params.get("U", None)
+        self.V = init_params.get("V", None)
+        self.W = init_params.get("W", None)
+
+    def _init(self):
+        rng = get_rng(self.seed)
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+        vocab_size = self.train_set.item_text.vocab.size
+
+        if self.U is None:
+            self.U = xavier_uniform((n_users, self.dimension), rng)
+        if self.V is None:
+            self.V = xavier_uniform((n_items, self.dimension), rng)
+        if self.W is None:
+            self.W = xavier_uniform((vocab_size, self.emb_dim), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -106,16 +137,8 @@ class ConvMF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import xavier_uniform
-
-        rng = get_rng(self.seed)
-
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.dimension), rng))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.dimension), rng))
-        self.W = self.init_params.get('W', xavier_uniform((self.train_set.item_text.vocab.size, self.emb_dim), rng))
-
         if self.trainable:
+            self._init()
             self._fit_convmf()
 
         return self
@@ -145,8 +168,7 @@ class ConvMF(Recommender):
         R_item = item_data[1]
 
         if self.give_item_weight:
-            item_weight = np.array([math.sqrt(len(i))
-                                    for i in R_item], dtype=float)
+            item_weight = np.array([math.sqrt(len(i)) for i in R_item], dtype=float)
             item_weight = (float(n_item) / item_weight.sum()) * item_weight
         else:
             item_weight = np.ones(n_item, dtype=float)
@@ -154,11 +176,16 @@ class ConvMF(Recommender):
         # Initialize cnn module
         from .convmf import CNN_module
         import tensorflow as tf
-        from tqdm import trange
 
-        cnn_module = CNN_module(output_dimension=self.dimension, dropout_rate=self.dropout_rate,
-                                emb_dim=self.emb_dim, max_len=self.max_len,
-                                nb_filters=self.num_kernel_per_ws, seed=self.seed, init_W=self.W)
+        cnn_module = CNN_module(
+            output_dimension=self.dimension,
+            dropout_rate=self.dropout_rate,
+            emb_dim=self.emb_dim,
+            max_len=self.max_len,
+            nb_filters=self.num_kernel_per_ws,
+            seed=self.seed,
+            init_W=self.W,
+        )
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -166,7 +193,9 @@ class ConvMF(Recommender):
 
         sess.run(tf.global_variables_initializer())  # init variable
 
-        document = self.train_set.item_text.batch_seq(np.arange(n_item), max_length=self.max_len)
+        document = self.train_set.item_text.batch_seq(
+            np.arange(n_item), max_length=self.max_len
+        )
 
         feed_dict = {cnn_module.model_input: document}
         theta = sess.run(cnn_module.model_output, feed_dict=feed_dict)
@@ -198,31 +227,51 @@ class ConvMF(Recommender):
                 U_j = self.U[idx_user]
                 R_j = R_item[j]
 
-                A = self.lambda_v * item_weight[j] * np.eye(self.dimension) + U_j.T.dot(U_j)
-                B = (U_j * (np.tile(R_j, (self.dimension, 1)).T)).sum(0) \
-                    + self.lambda_v * item_weight[j] * theta[j]
+                A = self.lambda_v * item_weight[j] * np.eye(self.dimension) + U_j.T.dot(
+                    U_j
+                )
+                B = (U_j * (np.tile(R_j, (self.dimension, 1)).T)).sum(
+                    0
+                ) + self.lambda_v * item_weight[j] * theta[j]
                 self.V[j] = np.linalg.solve(A, B)
 
                 item_loss[j] = -np.square(R_j - U_j.dot(self.V[j])).sum()
 
-            loop = trange(self.cnn_epochs, desc='CNN', disable=not self.verbose)
+            loop = trange(self.cnn_epochs, desc="CNN", disable=not self.verbose)
             for _ in loop:
                 for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
-                    batch_seq = self.train_set.item_text.batch_seq(batch_ids, max_length=self.max_len)
-                    feed_dict = {cnn_module.model_input: batch_seq,
-                                 cnn_module.v: self.V[batch_ids],
-                                 cnn_module.sample_weight: item_weight[batch_ids]}
+                    batch_seq = self.train_set.item_text.batch_seq(
+                        batch_ids, max_length=self.max_len
+                    )
+                    feed_dict = {
+                        cnn_module.model_input: batch_seq,
+                        cnn_module.v: self.V[batch_ids],
+                        cnn_module.sample_weight: item_weight[batch_ids],
+                    }
 
                     sess.run([cnn_module.optimizer], feed_dict=feed_dict)
 
-            feed_dict = {cnn_module.model_input: document, cnn_module.v: self.V, cnn_module.sample_weight: item_weight}
-            theta, cnn_loss = sess.run([cnn_module.model_output, cnn_module.weighted_loss], feed_dict=feed_dict)
+            feed_dict = {
+                cnn_module.model_input: document,
+                cnn_module.v: self.V,
+                cnn_module.sample_weight: item_weight,
+            }
+            theta, cnn_loss = sess.run(
+                [cnn_module.model_output, cnn_module.weighted_loss], feed_dict=feed_dict
+            )
 
-            loss = loss + np.sum(user_loss) + np.sum(item_loss) - 0.5 * self.lambda_v * cnn_loss
+            loss = (
+                loss
+                + np.sum(user_loss)
+                + np.sum(item_loss)
+                - 0.5 * self.lambda_v * cnn_loss
+            )
             toc = time.time()
             elapsed = toc - tic
             converge = abs((loss - history) / history)
-            print("Loss: %.5f Elpased: %.4fs Converge: %.6f " % (loss, elapsed, converge))
+            print(
+                "Loss: %.5f Elpased: %.4fs Converge: %.6f " % (loss, elapsed, converge)
+            )
             history = loss
             if converge < converge_threshold:
                 endure -= 1
@@ -251,13 +300,20 @@ class ConvMF(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
 
