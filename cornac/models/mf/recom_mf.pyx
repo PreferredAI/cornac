@@ -90,7 +90,6 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
         if seed is not None:
@@ -109,18 +108,17 @@ class MF(Recommender):
         self.global_mean = 0.0
 
     def _init(self, train_set):
-        """Init model parameters if not provided"""
-        self.global_mean = train_set.global_mean if self.use_bias else 0.0
-
         rng = get_rng(self.seed)
+        n_users, n_items = train_set.num_users, train_set.num_items
+
         if self.u_factors is None:
-            self.u_factors = normal([train_set.num_users, self.k], std=0.01, random_state=rng) 
+            self.u_factors = normal([n_users, self.k], std=0.01, random_state=rng) 
         if self.i_factors is None:
-            self.i_factors = normal([train_set.num_items, self.k], std=0.01, random_state=rng)
-        if self.u_biases is None:
-            self.u_biases = zeros(train_set.num_users)
-        if self.i_biases is None:
-            self.i_biases = zeros(train_set.num_items)
+            self.i_factors = normal([n_items, self.k], std=0.01, random_state=rng)
+            
+        self.u_biases = zeros(n_users) if self.u_biases is None else self.u_biases
+        self.i_biases = zeros(n_items) if self.i_biases is None else self.i_biases
+        self.global_mean = train_set.global_mean if self.use_bias else 0.0
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
