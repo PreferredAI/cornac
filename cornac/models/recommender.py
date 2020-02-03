@@ -13,8 +13,12 @@
 # limitations under the License.
 # ============================================================================
 
+import os
 import copy
 import inspect
+import pickle
+from glob import glob
+from datetime import datetime
 
 import numpy as np
 
@@ -79,6 +83,63 @@ class Recommender:
         init_params = {**init_params, **new_params}
 
         return self.__class__(**init_params)
+
+    def save(self, save_dir=None):
+        """Save a recommender model to the filesystem.
+
+        Parameters
+        ----------
+        save_dir: str, default: None
+            Path to the directory for model saving.
+
+        """
+        if save_dir is None:
+            return
+
+        model_dir = os.path.join(save_dir, self.name)
+        os.makedirs(model_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        model_file = os.path.join(model_dir, "{}-{}.pkl".format(self.name, timestamp))
+
+        pickle.dump(self, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+
+        if self.verbose:
+            print(f"{self.name} model is saved to {model_file}")
+
+    @staticmethod
+    def load(model_path, trainable=False, verbose=False):
+        """Load a recommender model from the filesystem.
+
+        Parameters
+        ----------
+        model_path: str, required
+            Path to the file or directory where the model is stored. If a directory is
+            provided, the latest model will be loaded.
+
+        trainable: boolean, optional, default: False
+            Set it to True if you would like to finetune the model. By default, 
+            the model parameters are assumed to be fixed after being loaded.
+
+        verbose: boolean, optional, default: False
+            When True, logs will be displayed.
+        
+        Returns
+        -------
+        self : object
+        """
+        if os.path.isdir(model_path):
+            model_file = sorted(glob(f"{model_path}/*.pkl"))[-1]
+        else:
+            model_file = model_path
+
+        model = pickle.load(open(model_file, "rb"))
+        model.trainable = trainable
+        
+        if verbose:
+            print(f"{model.name} model is loaded from {model_file}, trainable={trainable}")
+        
+        return model
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
