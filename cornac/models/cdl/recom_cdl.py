@@ -147,11 +147,13 @@ class CDL(Recommender):
         self.U = init_params.get("U", None)
         self.V = init_params.get("V", None)
 
-    def _init(self, train_set):
+    def _init(self):
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+        
         if self.U is None:
-            self.U = xavier_uniform((train_set.num_users, self.k), self.rng)
+            self.U = xavier_uniform((n_users, self.k), self.rng)
         if self.V is None:
-            self.V = xavier_uniform((train_set.num_items, self.k), self.rng)
+            self.V = xavier_uniform((n_items, self.k), self.rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -171,7 +173,7 @@ class CDL(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
-            self._init(train_set)
+            self._init()
             self._fit_cdl()
 
         return self

@@ -93,10 +93,10 @@ class BaselineOnly(Recommender):
         self.i_biases = init_params.get('Bi', None)
         self.global_mean = 0.0
 
-    def _init(self, train_set):
-        n_users, n_items = train_set.num_users, train_set.num_items
-        
-        self.global_mean = train_set.global_mean
+    def _init(self):
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+
+        self.global_mean = self.train_set.global_mean
         self.u_biases = zeros(n_users) if self.u_biases is None else self.u_biases
         self.i_biases = zeros(n_items) if self.i_biases is None else self.i_biases
 
@@ -118,7 +118,7 @@ class BaselineOnly(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
-            self._init(train_set)
+            self._init()
 
             (rid, cid, val) = train_set.uir_tuple
             self._fit_sgd(rid, cid, val.astype(np.float32), self.u_biases, self.i_biases)
