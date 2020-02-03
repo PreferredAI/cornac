@@ -114,7 +114,7 @@ class Recommender:
             print(f"{self.name} model is saved to {model_file}")
 
     @staticmethod
-    def load(model_path, trainable=False, verbose=False):
+    def load(model_path, trainable=False):
         """Load a recommender model from the filesystem.
 
         Parameters
@@ -126,9 +126,6 @@ class Recommender:
         trainable: boolean, optional, default: False
             Set it to True if you would like to finetune the model. By default, 
             the model parameters are assumed to be fixed after being loaded.
-
-        verbose: boolean, optional, default: False
-            When True, logs will be displayed.
         
         Returns
         -------
@@ -141,11 +138,6 @@ class Recommender:
 
         model = pickle.load(open(model_file, "rb"))
         model.trainable = trainable
-
-        if verbose:
-            print(
-                f"{model.name} model is loaded from {model_file}, trainable={trainable}"
-            )
 
         return model
 
