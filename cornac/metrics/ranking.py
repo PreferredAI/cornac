@@ -50,7 +50,7 @@ class NDCG(RankingMetric):
 
     Parameters
     ----------
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
@@ -127,7 +127,7 @@ class NCRR(RankingMetric):
 
     Parameters
     ----------
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
@@ -184,12 +184,6 @@ class NCRR(RankingMetric):
 class MRR(RankingMetric):
     """Mean Reciprocal Rank.
 
-    Parameters
-    ----------
-    k: int, optional, default: -1 (all)
-        The number of items in the top@k list.
-        If None, all items will be considered.
-
     References
     ----------
     https://en.wikipedia.org/wiki/Mean_reciprocal_rank
@@ -232,7 +226,7 @@ class MeasureAtK(RankingMetric):
 
     Attributes
     ----------
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
@@ -286,7 +280,7 @@ class Precision(MeasureAtK):
 
     Parameters
     ----------
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
@@ -323,7 +317,7 @@ class Recall(MeasureAtK):
 
     Parameters
     ----------
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
@@ -356,11 +350,11 @@ class Recall(MeasureAtK):
 
 
 class FMeasure(MeasureAtK):
-    """F-measure@K@.
+    """F-measure@K.
 
     Parameters
     ----------
-    k: int, optional, default: -1 (all)
+    k: int or list, optional, default: -1 (all)
         The number of items in the top@k list.
         If None, all items will be considered.
 
