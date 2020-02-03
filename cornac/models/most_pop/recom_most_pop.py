@@ -26,11 +26,10 @@ class MostPop(Recommender):
     ----------
     name: string, default: 'MostPop'
         The name of the recommender model.
-
     """
 
-    def __init__(self, name='MostPop'):
-        super().__init__(name=name, trainable=False)
+    def __init__(self, name="MostPop"):
+        super().__init__(name=name)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -74,5 +73,8 @@ class MostPop(Recommender):
             return self.item_pop
         else:
             if self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
             return self.item_pop[item_idx]
