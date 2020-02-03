@@ -17,6 +17,8 @@ import numpy as np
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import normal
 
 
 class HFT(Recommender):
@@ -79,11 +81,22 @@ class HFT(Recommender):
     RecSys '13 Proceedings of the 7th ACM conference on Recommender systems Pages 165-172
     """
 
-    def __init__(self, name='HFT', k=10, max_iter=50, grad_iter=50, 
-                 lambda_text=0.1, l2_reg=0.001, vocab_size=8000,
-                 init_params=None, trainable=True, verbose=True, seed=None):
+    def __init__(
+        self,
+        name="HFT",
+        k=10,
+        max_iter=50,
+        grad_iter=50,
+        lambda_text=0.1,
+        l2_reg=0.001,
+        vocab_size=8000,
+        init_params=None,
+        trainable=True,
+        verbose=True,
+        seed=None,
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
-        
+
         self.k = k
         self.lambda_text = lambda_text
         self.l2_reg = l2_reg
@@ -91,9 +104,32 @@ class HFT(Recommender):
         self.name = name
         self.max_iter = max_iter
         self.verbose = verbose
-        self.init_params = {} if not init_params else init_params
         self.seed = seed
         self.vocab_size = vocab_size
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.alpha = init_params.get("alpha", None)
+        self.beta_u = init_params.get("beta_u", None)
+        self.beta_i = init_params.get("beta_i", None)
+        self.gamma_u = init_params.get("gamma_u", None)
+        self.gamma_i = init_params.get("gamma_i", None)
+
+    def _init(self):
+        rng = get_rng(self.seed)
+        self.n_item = self.train_set.num_items
+        self.n_user = self.train_set.num_users
+
+        if self.alpha is None:
+            self.alpha = self.train_set.global_mean
+        if self.beta_u is None:
+            self.beta_u = normal(self.n_user, std=0.01, random_state=rng)
+        if self.beta_i is None:
+            self.beta_i = normal(self.n_item, std=0.01, random_state=rng)
+        if self.gamma_u is None:
+            self.gamma_u = normal((self.n_user, self.k), std=0.01, random_state=rng)
+        if self.gamma_i is None:
+            self.gamma_i = normal((self.n_item, self.k), std=0.01, random_state=rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -111,18 +147,9 @@ class HFT(Recommender):
         self : object
         """
         Recommender.fit(self, train_set, val_set)
-        from ...utils.init_utils import normal
-
-        self.n_item = self.train_set.num_items
-        self.n_user = self.train_set.num_users
-
-        self.alpha = self.init_params.get('alpha', train_set.global_mean)
-        self.beta_u = self.init_params.get('beta_u', normal(self.n_user, std=0.01, random_state=self.seed))
-        self.beta_i = self.init_params.get('beta_i', normal(self.n_item, std=0.01, random_state=self.seed))
-        self.gamma_u = self.init_params.get('gamma_u', normal((self.n_user, self.k), std=0.01, random_state=self.seed))
-        self.gamma_i = self.init_params.get('gamma_i', normal((self.n_item, self.k), std=0.01, random_state=self.seed))
 
         if self.trainable:
+            self._init()
             self._fit_hft()
 
         return self
@@ -142,15 +169,28 @@ class HFT(Recommender):
         from tqdm import trange
 
         # document data
-        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
+        bow_mat = self.train_set.item_text.batch_bow(
+            np.arange(self.n_item), keep_sparse=True
+        )
         documents, _ = self._build_data(bow_mat)  # bag of word feature
         # Rating data
         user_data = self._build_data(self.train_set.matrix)
         item_data = self._build_data(self.train_set.matrix.T.tocsr())
 
-        model = Model(n_user=self.n_user, n_item=self.n_item, alpha=self.alpha, beta_u=self.beta_u, beta_i=self.beta_i,
-                      gamma_u=self.gamma_u, gamma_i=self.gamma_i, n_vocab=self.vocab_size, k=self.k,
-                      lambda_text=self.lambda_text, l2_reg=self.l2_reg, grad_iter=self.grad_iter)
+        model = Model(
+            n_user=self.n_user,
+            n_item=self.n_item,
+            alpha=self.alpha,
+            beta_u=self.beta_u,
+            beta_i=self.beta_i,
+            gamma_u=self.gamma_u,
+            gamma_i=self.gamma_i,
+            n_vocab=self.vocab_size,
+            k=self.k,
+            lambda_text=self.lambda_text,
+            l2_reg=self.l2_reg,
+            grad_iter=self.grad_iter,
+        )
 
         model.init_count(docs=documents)
 
@@ -161,10 +201,12 @@ class HFT(Recommender):
             loss = model.update_params(rating_data=(user_data, item_data))
             loop.set_postfix(loss=loss)
 
-        self.alpha, self.beta_u, self.beta_i, self.gamma_u, self.gamma_i = model.get_parameter()
+        self.alpha, self.beta_u, self.beta_i, self.gamma_u, self.gamma_i = (
+            model.get_parameter()
+        )
 
         if self.verbose:
-            print('Learning completed!')
+            print("Learning completed!")
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -185,16 +227,31 @@ class HFT(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
-            known_item_scores = self.alpha + self.beta_u[user_idx] + self.beta_i + self.gamma_i.dot(
-                self.gamma_u[user_idx, :])
+            known_item_scores = (
+                self.alpha
+                + self.beta_u[user_idx]
+                + self.beta_i
+                + self.gamma_i.dot(self.gamma_u[user_idx, :])
+            )
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
-            user_pred = self.alpha + self.beta_u[user_idx] + self.beta_i[item_idx] + self.gamma_i[item_idx, :].dot(
-                self.gamma_u[user_idx, :])
+            user_pred = (
+                self.alpha
+                + self.beta_u[user_idx]
+                + self.beta_i[item_idx]
+                + self.gamma_i[item_idx, :].dot(self.gamma_u[user_idx, :])
+            )
 
             return user_pred
