@@ -13,13 +13,15 @@
 # limitations under the License.
 # ============================================================================
 
+import os
+
 import numpy as np
 
-from ..recommender import Recommender
+from .recom_ncf_base import NCFBase
 from ...exception import ScoreException
 
 
-class GMF(Recommender):
+class GMF(NCFBase):
     """Generalized Matrix Factorization.
 
     Parameters
@@ -71,117 +73,81 @@ class GMF(Recommender):
     In Proceedings of the 26th international conference on world wide web (pp. 173-182).
     """
 
-    def __init__(self, name='GMF',
-                 num_factors=8, regs=(0., 0.), num_epochs=20, batch_size=256, num_neg=4,
-                 lr=0.001, learner='adam', early_stopping=None, trainable=True, verbose=True, seed=None):
-        super().__init__(name=name, trainable=trainable, verbose=verbose)
-
+    def __init__(
+        self,
+        name="GMF",
+        num_factors=8,
+        regs=(0.0, 0.0),
+        num_epochs=20,
+        batch_size=256,
+        num_neg=4,
+        lr=0.001,
+        learner="adam",
+        early_stopping=None,
+        trainable=True,
+        verbose=True,
+        seed=None,
+    ):
+        super().__init__(
+            name=name,
+            trainable=trainable,
+            verbose=verbose,
+            num_epochs=num_epochs,
+            batch_size=batch_size,
+            num_neg=num_neg,
+            lr=lr,
+            learner=learner,
+            early_stopping=early_stopping,
+            seed=seed,
+        )
         self.num_factors = num_factors
         self.regs = regs
-        self.num_epochs = num_epochs
-        self.batch_size = batch_size
-        self.num_neg = num_neg
-        self.learning_rate = lr
-        self.learner = learner
-        self.early_stopping = early_stopping
-        self.seed = seed
 
-    def fit(self, train_set, val_set=None):
-        """Fit the model to observations.
-
-        Parameters
-        ----------
-        train_set: :obj:`cornac.data.Dataset`, required
-            User-Item preference data as well as additional modalities.
-
-        val_set: :obj:`cornac.data.Dataset`, optional, default: None
-            User-Item preference data for model selection purposes (e.g., early stopping).
-
-        Returns
-        -------
-        self : object
-        """
-        Recommender.fit(self, train_set, val_set)
-
-        if self.trainable:
-            self._fit_gmf()
-
-        return self
-
-    def _fit_gmf(self):
-        import os
-        import tensorflow as tf
-        from tqdm import trange
+    def _build_graph(self):
+        import tensorflow.compat.v1 as tf
         from .ops import gmf, loss_fn, train_fn
 
-        np.random.seed(self.seed)
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-        tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+        tf.logging.set_verbosity(tf.logging.ERROR)
 
-        graph = tf.Graph()
-        with graph.as_default():
+        self.graph = tf.Graph()
+        with self.graph.as_default():
             tf.set_random_seed(self.seed)
 
-            self.user_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='user_id')
-            self.item_id = tf.placeholder(shape=[None, ], dtype=tf.int32, name='item_id')
-            self.labels = tf.placeholder(shape=[None, 1], dtype=tf.float32, name='labels')
+            self.user_id = tf.placeholder(shape=[None], dtype=tf.int32, name="user_id")
+            self.item_id = tf.placeholder(shape=[None], dtype=tf.int32, name="item_id")
+            self.labels = tf.placeholder(
+                shape=[None, 1], dtype=tf.float32, name="labels"
+            )
 
-            self.interaction = gmf(uid=self.user_id, iid=self.item_id, num_users=self.train_set.num_users,
-                                   num_items=self.train_set.num_items, emb_size=self.num_factors,
-                                   reg_user=self.regs[0], reg_item=self.regs[1], seed=self.seed)
+            self.interaction = gmf(
+                uid=self.user_id,
+                iid=self.item_id,
+                num_users=self.num_users,
+                num_items=self.num_items,
+                emb_size=self.num_factors,
+                reg_user=self.regs[0],
+                reg_item=self.regs[1],
+                seed=self.seed,
+            )
 
-            logits = tf.layers.dense(self.interaction, units=1, name='logits',
-                                     kernel_initializer=tf.initializers.lecun_uniform(self.seed))
+            logits = tf.layers.dense(
+                self.interaction,
+                units=1,
+                name="logits",
+                kernel_initializer=tf.initializers.lecun_uniform(self.seed),
+            )
             self.prediction = tf.nn.sigmoid(logits)
 
             self.loss = loss_fn(labels=self.labels, logits=logits)
-            train_op = train_fn(self.loss, learning_rate=self.learning_rate, learner=self.learner)
+            self.train_op = train_fn(
+                self.loss, learning_rate=self.learning_rate, learner=self.learner
+            )
 
-            initializer = tf.global_variables_initializer()
+            self.initializer = tf.global_variables_initializer()
+            self.saver = tf.train.Saver()
 
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(graph=graph, config=config)
-        self.sess.run(initializer)
-
-        loop = trange(self.num_epochs, disable=not self.verbose)
-        for _ in loop:
-            count = 0
-            sum_loss = 0
-            for i, (batch_users, batch_items, batch_ratings) in enumerate(
-                    self.train_set.uir_iter(self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg)):
-                _, _loss = self.sess.run([train_op, self.loss],
-                                         feed_dict={
-                                             self.user_id: batch_users,
-                                             self.item_id: batch_items,
-                                             self.labels: batch_ratings.reshape(-1, 1)
-                                         })
-
-                count += len(batch_ratings)
-                sum_loss += _loss * len(batch_ratings)
-                if i % 10 == 0:
-                    loop.set_postfix(loss=(sum_loss / count))
-
-            if self.early_stopping is not None and self.early_stop(**self.early_stopping):
-                break
-        loop.close()
-
-    def monitor_value(self):
-        """Calculating monitored value used for early stopping on validation set (`val_set`).
-        This function will be called by `early_stop()` function.
-
-        Returns
-        -------
-        res : float
-            Monitored value on validation set.
-            Return `None` if `val_set` is `None`.
-        """
-        if self.val_set is None:
-            return None
-
-        from .ops import ndcg
-
-        return ndcg(self, self.train_set, self.val_set)
+        self._sess_init()
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -202,17 +168,29 @@ class GMF(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
-            known_item_scores = self.sess.run(self.prediction, feed_dict={
-                self.user_id: [user_idx], self.item_id: np.arange(self.train_set.num_items)
-            })
+            known_item_scores = self.sess.run(
+                self.prediction,
+                feed_dict={
+                    self.user_id: [user_idx],
+                    self.item_id: np.arange(self.train_set.num_items),
+                },
+            )
             return known_item_scores.ravel()
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
-            user_pred = self.sess.run(self.prediction, feed_dict={
-                self.user_id: [user_idx], self.item_id: [item_idx]
-            })
+            user_pred = self.sess.run(
+                self.prediction,
+                feed_dict={self.user_id: [user_idx], self.item_id: [item_idx]},
+            )
             return user_pred.ravel()

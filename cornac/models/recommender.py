@@ -45,6 +45,8 @@ class Recommender:
         self.verbose = verbose
         self.train_set = None
         self.val_set = None
+        # attributes to be ignored when being saved
+        self.ignored_attrs = ["train_set", "val_set"]
 
     def reset_info(self):
         self.best_value = -np.Inf
@@ -53,6 +55,15 @@ class Recommender:
         self.stopped_epoch = 0
         self.wait = 0
 
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        for k, v in self.__dict__.items():
+            if k in self.ignored_attrs:
+                continue
+            setattr(result, k, copy.deepcopy(v))
+        return result
+    
     @classmethod
     def _get_init_params(cls):
         """Get initial parameters from the model constructor"""
@@ -101,10 +112,7 @@ class Recommender:
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         model_file = os.path.join(model_dir, f"{timestamp}.pkl")
 
-        # remove references to train_set and val_set
         saved_model = copy.deepcopy(self)
-        delattr(saved_model, "train_set")
-        delattr(saved_model, "val_set")
 
         pickle.dump(
             saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
