@@ -13,6 +13,9 @@
 # limitations under the License.
 # ============================================================================
 
+import os
+from datetime import datetime
+
 from .result import ExperimentResult
 from .result import CVExperimentResult
 from ..metrics.rating import RatingMetric
@@ -42,6 +45,10 @@ class Experiment:
 
     show_validation: bool, optional, default: True 
         Whether to show the results on validation set (if exists).
+        
+    save_dir: str, optional, default: None
+        Path to a directory for storing trained models and logs. If None, 
+        models will NOT be stored and logs will be saved in the current working directory.
 
     Attributes
     ----------
@@ -63,6 +70,7 @@ class Experiment:
         user_based=True,
         show_validation=True,
         verbose=False,
+        save_dir=None,
     ):
         self.eval_method = eval_method
         self.models = self._validate_models(models)
@@ -70,6 +78,7 @@ class Experiment:
         self.user_based = user_based
         self.show_validation = show_validation
         self.verbose = verbose
+        self.save_dir = save_dir
         self.result = None
         self.val_result = None
 
@@ -110,6 +119,7 @@ class Experiment:
                 self.val_result = ExperimentResult()
 
     def run(self):
+        """Run the Cornac experiment"""
         self._create_result()
         
         for model in self.models:
@@ -119,11 +129,22 @@ class Experiment:
                 user_based=self.user_based,
                 show_validation=self.show_validation,
             )
+
             self.result.append(test_result)
             if self.val_result is not None:
                 self.val_result.append(val_result)
 
-        if self.val_result is not None:
-            print("\nVALIDATION:\n...\n{}".format(self.val_result))
+            model.save(self.save_dir)
 
-        print("\nTEST:\n...\n{}".format(self.result))
+        output = ""
+        if self.val_result is not None:
+            output += "\nVALIDATION:\n...\n{}".format(self.val_result)
+        output += "\nTEST:\n...\n{}".format(self.result)
+
+        print(output)
+
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        save_dir = "." if self.save_dir is None else self.save_dir
+        output_file = os.path.join(save_dir, f"CornacExp-{timestamp}.log")
+        with open(output_file, "w") as f:
+            f.write(output)

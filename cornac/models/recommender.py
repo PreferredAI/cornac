@@ -90,7 +90,7 @@ class Recommender:
         Parameters
         ----------
         save_dir: str, default: None
-            Path to the directory for model saving.
+            Path to a directory for the model to be stored.
 
         """
         if save_dir is None:
@@ -114,7 +114,7 @@ class Recommender:
         Parameters
         ----------
         model_path: str, required
-            Path to the file or directory where the model is stored. If a directory is
+            Path to a file or directory where the model is stored. If a directory is
             provided, the latest model will be loaded.
 
         trainable: boolean, optional, default: False
