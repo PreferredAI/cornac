@@ -17,6 +17,8 @@ import numpy as np
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import xavier_uniform
 
 
 class CVAE(Recommender):
@@ -85,11 +87,28 @@ class CVAE(Recommender):
 
     """
 
-    def __init__(self, name="CVAE", z_dim=50, n_epochs=100,
-                 lambda_u=1e-4, lambda_v=0.001, lambda_r=10, lambda_w=1e-4,
-                 lr=0.001, a=1, b=0.01, input_dim=8000,
-                 vae_layers=[200, 100], act_fn='sigmoid', loss_type='cross-entropy',
-                 batch_size=128, init_params=None, trainable=True, seed=None, verbose=True):
+    def __init__(
+        self,
+        name="CVAE",
+        z_dim=50,
+        n_epochs=100,
+        lambda_u=1e-4,
+        lambda_v=0.001,
+        lambda_r=10,
+        lambda_w=1e-4,
+        lr=0.001,
+        a=1,
+        b=0.01,
+        input_dim=8000,
+        vae_layers=[200, 100],
+        act_fn="sigmoid",
+        loss_type="cross-entropy",
+        batch_size=128,
+        init_params=None,
+        trainable=True,
+        seed=None,
+        verbose=True,
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
         self.lambda_u = lambda_u
@@ -106,8 +125,21 @@ class CVAE(Recommender):
         self.act_fn = act_fn
         self.lr = lr
         self.batch_size = batch_size
-        self.init_params = {} if not init_params else init_params
         self.seed = seed
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.U = init_params.get("U", None)
+        self.V = init_params.get("V", None)
+
+    def _init(self):
+        rng = get_rng(self.seed)
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+
+        if self.U is None:
+            self.U = xavier_uniform((n_users, self.n_z), rng)
+        if self.V is None:
+            self.V = xavier_uniform((n_items, self.n_z), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -126,33 +158,43 @@ class CVAE(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import xavier_uniform
-
-        rng = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.n_z), rng))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.n_z), rng))
-
         if self.trainable:
+            self._init()
             self._fit_cvae()
 
         return self
 
     def _fit_cvae(self):
         R = self.train_set.csc_matrix  # csc for efficient slicing over items
-        document = self.train_set.item_text.batch_bow(np.arange(self.train_set.num_items))  # bag of word feature
-        document = (document - document.min()) / (document.max() - document.min())  # normalization
+        document = self.train_set.item_text.batch_bow(
+            np.arange(self.train_set.num_items)
+        )  # bag of word feature
+        document = (document - document.min()) / (
+            document.max() - document.min()
+        )  # normalization
 
         # VAE initialization
         from .cvae import Model
         import tensorflow as tf
         from tqdm import trange
 
-        model = Model(n_users=self.train_set.num_users, n_items=self.train_set.num_items,
-                      input_dim=self.input_dim, U=self.U, V=self.V, n_z=self.n_z,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_r=self.lambda_r,
-                      lambda_w=self.lambda_w, layers=self.dimensions, loss_type=self.loss_type,
-                      act_fn=self.act_fn, seed=self.seed, lr=self.lr)
+        model = Model(
+            n_users=self.train_set.num_users,
+            n_items=self.train_set.num_items,
+            input_dim=self.input_dim,
+            U=self.U,
+            V=self.V,
+            n_z=self.n_z,
+            lambda_u=self.lambda_u,
+            lambda_v=self.lambda_v,
+            lambda_r=self.lambda_r,
+            lambda_w=self.lambda_w,
+            layers=self.dimensions,
+            loss_type=self.loss_type,
+            act_fn=self.act_fn,
+            seed=self.seed,
+            lr=self.lr,
+        )
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
@@ -162,15 +204,19 @@ class CVAE(Recommender):
         loop = trange(self.n_epochs, disable=not self.verbose)
         for _ in loop:
             cf_loss, vae_loss, count = 0, 0, 0
-            for i, batch_ids in enumerate(self.train_set.item_iter(self.batch_size, shuffle=True)):
+            for i, batch_ids in enumerate(
+                self.train_set.item_iter(self.batch_size, shuffle=True)
+            ):
                 batch_R = R[:, batch_ids]
                 batch_C = np.ones(batch_R.shape) * self.b
                 batch_C[batch_R.nonzero()] = self.a
 
-                feed_dict = {model.x: document[batch_ids],
-                             model.ratings: batch_R.A,
-                             model.C: batch_C,
-                             model.item_ids: batch_ids}
+                feed_dict = {
+                    model.x: document[batch_ids],
+                    model.ratings: batch_R.A,
+                    model.C: batch_C,
+                    model.item_ids: batch_ids,
+                }
                 _, _vae_los = sess.run([model.vae_update, model.vae_loss], feed_dict)
                 _, _cf_loss = sess.run([model.cf_update, model.cf_loss], feed_dict)
 
@@ -178,8 +224,9 @@ class CVAE(Recommender):
                 vae_loss += _vae_los
                 count += len(batch_ids)
                 if i % 10 == 0:
-                    loop.set_postfix(vae_loss=(vae_loss / count),
-                                     cf_loss=(cf_loss / count))
+                    loop.set_postfix(
+                        vae_loss=(vae_loss / count), cf_loss=(cf_loss / count)
+                    )
 
         self.U, self.V = sess.run([model.U, model.V])
 
@@ -205,13 +252,20 @@ class CVAE(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
 
