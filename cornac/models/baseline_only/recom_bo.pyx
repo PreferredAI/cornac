@@ -15,6 +15,8 @@
 
 # cython: language_level=3
 
+import multiprocessing
+
 cimport cython
 from cython.parallel import prange
 from cython cimport floating, integral
@@ -23,8 +25,10 @@ from libc.math cimport abs
 
 import numpy as np
 cimport numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
+from ...utils.init_utils import zeros
 
 
 class BaselineOnly(Recommender):
@@ -74,16 +78,27 @@ class BaselineOnly(Recommender):
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
         self.early_stop = early_stop
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
-        import multiprocessing
         if seed is not None:
             self.num_threads = 1
         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.u_biases = init_params.get('Bu', None)
+        self.i_biases = init_params.get('Bi', None)
+        self.global_mean = 0.0
+
+    def _init(self, train_set):
+        n_users, n_items = train_set.num_users, train_set.num_items
+        
+        self.global_mean = train_set.global_mean
+        self.u_biases = zeros(n_users) if self.u_biases is None else self.u_biases
+        self.i_biases = zeros(n_items) if self.i_biases is None else self.i_biases
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -102,14 +117,9 @@ class BaselineOnly(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        n_users, n_items = train_set.num_users, train_set.num_items
-        self.global_mean = train_set.global_mean
-
-        from ...utils.init_utils import zeros
-        self.u_biases = self.init_params.get('Bu', zeros(n_users))
-        self.i_biases = self.init_params.get('Bi', zeros(n_items))
-
         if self.trainable:
+            self._init(train_set)
+
             (rid, cid, val) = train_set.uir_tuple
             self._fit_sgd(rid, cid, val.astype(np.float32), self.u_biases, self.i_biases)
 
@@ -139,7 +149,6 @@ class BaselineOnly(Recommender):
             floating r, r_pred, error, delta_loss
             integral u, i, j
 
-        from tqdm import trange
         progress = trange(max_iter, disable=not self.verbose)
         for epoch in progress:
             last_loss = loss
