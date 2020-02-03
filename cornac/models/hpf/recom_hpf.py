@@ -45,26 +45,50 @@ class HPF(Recommender):
     hierarchical: boolean, optional, default: True
         When False, PF is used instead of HPF.
 
-    init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}
-        List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}, \
-        where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below). \
-        They represent respectively the "shape" and "rate" parameters of Gamma distribution over \
-        Theta. Similarly, L_s, L_r are the shape and rate parameters of the Gamma over Beta.
-      
-    Theta: csc_matrix, shape (n_users,k)
-        The expected user latent factors.
+    init_params: dict, optional, default: {"Theta": None, "Beta": None, "G_s": None, "G_r": None, "L_s": None, "L_r": None}
+        Initial parameters of the model.
+        
+        Theta: ndarray, shape (n_users, k)
+            The expected user latent factors.
+        
+        Beta: ndarray, shape (n_items, k)
+            The expected item latent factors.
 
-    Beta: csc_matrix, shape (n_items,k)
-        The expected item latent factors.
+        G_s: ndarray, shape (n_users, k)
+            This represents "shape" parameters of Gamma distribution over Theta.
 
+        G_r: ndarray, shape (n_users, k)
+            This represents "rate" parameters of Gamma distribution over Theta.
+            
+        L_s: ndarray, shape (n_items, k)
+            This represents "shape" parameters of Gamma distribution over Beta.
+        
+        L_r: ndarray, shape (n_items, k)
+            This represents "rate" parameters of Gamma distribution over Beta.
+        
     References
     ----------
     * Gopalan, Prem, Jake M. Hofman, and David M. Blei. Scalable Recommendation with \
     Hierarchical Poisson Factorization. In UAI, pp. 326-335. 2015.
     """
 
-    def __init__(self, k=5, max_iter=100, name="HPF", trainable=True,
-                 verbose=False, hierarchical=True, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
+    def __init__(
+        self,
+        k=5,
+        max_iter=100,
+        name="HPF",
+        trainable=True,
+        verbose=False,
+        hierarchical=True,
+        init_params={
+            "Theta": None,
+            "Beta": None,
+            "G_s": None,
+            "G_r": None,
+            "L_s": None,
+            "L_r": None,
+        },
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
@@ -75,8 +99,9 @@ class HPF(Recommender):
         self.etp_c = np.full(max_iter, 0)
         self.eps = 0.000000001
         self.hierarchical = hierarchical
-        self.Theta = None  # matrix of user factors
-        self.Beta = None  # matrix of item factors
+
+        self.Theta = init_params.get("Theta", None)  # matrix of user factors
+        self.Beta = init_params.get("Beta", None)  # matrix of item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -94,25 +119,33 @@ class HPF(Recommender):
         self : object
         """
         Recommender.fit(self, train_set, val_set)
-        X = sp.csc_matrix(self.train_set.matrix)
-
-        # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
-        (rid, cid, val) = sp.find(X)
-        val = np.array(val, dtype='float32')
-        rid = np.array(rid, dtype='int32')
-        cid = np.array(cid, dtype='int32')
-        tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
-        del rid, cid, val
 
         if self.trainable:
+            X = sp.csc_matrix(self.train_set.matrix)
+            # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
+            (rid, cid, val) = sp.find(X)
+            val = np.array(val, dtype="float32")
+            rid = np.array(rid, dtype="int32")
+            cid = np.array(cid, dtype="int32")
+            tX = np.concatenate(
+                (np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))),
+                axis=1,
+            )
+            del rid, cid, val
+
             if self.hierarchical:
-                res = hpf.hpf(tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params)
+                res = hpf.hpf(
+                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params
+                )
             else:
-                res = hpf.pf(tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params)
-            self.Theta = np.asarray(res['Z'])
-            self.Beta = np.asarray(res['W'])
+                res = hpf.pf(
+                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params
+                )
+            self.Theta = np.asarray(res["Z"])
+            self.Beta = np.asarray(res["W"])
+
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))
+            print("%s is trained already (trainable = False)" % (self.name))
 
         return self
 
@@ -141,13 +174,18 @@ class HPF(Recommender):
                 u_representation = self.Theta[user_idx, :]
 
             known_item_scores = self.Beta.dot(u_representation)
-            known_item_scores = np.array(known_item_scores, dtype='float64').flatten()
+            known_item_scores = np.array(known_item_scores, dtype="float64").flatten()
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.Beta[item_idx, :].dot(self.Theta[user_idx, :])
-            user_pred = np.array(user_pred, dtype='float64').flatten()[0]
+            user_pred = np.array(user_pred, dtype="float64").flatten()[0]
 
             return user_pred
