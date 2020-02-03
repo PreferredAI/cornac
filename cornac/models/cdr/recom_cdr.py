@@ -14,9 +14,12 @@
 # ============================================================================
 
 import numpy as np
-
+from tqdm import trange
+        
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import xavier_uniform
 
 
 class CDR(Recommender):
@@ -108,8 +111,22 @@ class CDR(Recommender):
         self.batch_size = batch_size
         self.verbose = verbose
         self.vocab_size = vocab_size
-        self.init_params = init_params if init_params is not None else {}
         self.seed = seed
+        self.rng = get_rng(seed)
+        
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.U = init_params.get('U', None)
+        self.V = init_params.get('V', None)
+
+    def _init(self):
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+        
+        if self.U is None:
+            self.U = xavier_uniform((n_users, self.k), self.rng)
+        if self.V is None:
+            self.V = xavier_uniform((n_items, self.k), self.rng)
+
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -128,21 +145,14 @@ class CDR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import xavier_uniform
-
-        self.seed = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), self.seed))
-
         if self.trainable:
+            self._init()
             self._fit_cdr()
 
         return self
 
     def _fit_cdr(self):
         import tensorflow as tf
-        from tqdm import trange
         from .model import Model
 
         n_users = self.train_set.num_users
