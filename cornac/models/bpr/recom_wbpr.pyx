@@ -20,6 +20,7 @@ from cython cimport floating, integral
 
 import numpy as np
 cimport numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...utils import get_rng
@@ -93,19 +94,17 @@ class WBPR(BPR):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init(train_set)
-
         if not self.trainable:
-            return
+            return self
 
+        self._init(train_set)
+        
         X, user_counts, user_ids = self._prepare_data(train_set)
 
         cdef:
             int num_threads = self.num_threads
             # user the same RNG for weighted sampling with negative items
             RNGVector rng_vec = RNGVector(num_threads, len(user_ids) - 1, self.rng.randint(2 ** 31))
-
-        from tqdm import trange
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:

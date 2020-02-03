@@ -15,6 +15,8 @@
 
 # cython: language_level=3
 
+import multiprocessing
+
 cimport cython
 from cython cimport floating, integral
 from cython.parallel import parallel, prange
@@ -24,12 +26,14 @@ from libcpp.algorithm cimport binary_search
 
 import numpy as np
 cimport numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import get_rng
 from ...utils import fast_dot
 from ...utils.common import scale
+from ...utils.init_utils import zeros, uniform
 
 
 cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
@@ -103,11 +107,9 @@ class BPR(Recommender):
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
-        self.rng = get_rng(self.seed)
+        self.rng = get_rng(seed)
 
-        import multiprocessing
         if seed is not None:
             self.num_threads = 1
         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
@@ -115,18 +117,19 @@ class BPR(Recommender):
         else:
             self.num_threads = multiprocessing.cpu_count()
 
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.u_factors = init_params.get('U', None)
+        self.i_factors = init_params.get('V', None)
+        self.i_biases = init_params.get('Bi', None)
+    
     def _init(self, train_set):
-        from ...utils.init_utils import zeros, uniform
-
-        self.u_factors = self.init_params.get(
-            'U', 
-            (uniform((train_set.total_users, self.k), random_state=self.rng) - 0.5) / self.k
-        )
-        self.i_factors = self.init_params.get(
-            'V', 
-            (uniform((train_set.total_items, self.k), random_state=self.rng) - 0.5) / self.k
-        )
-        self.i_biases = self.init_params.get('Bi', zeros(train_set.total_items))
+        if self.u_factors is None:
+            self.u_factors = (uniform((train_set.total_users, self.k), random_state=self.rng) - 0.5) / self.k
+        if self.i_factors is None:
+            self.i_factors = (uniform((train_set.total_items, self.k), random_state=self.rng) - 0.5) / self.k
+        if self.i_biases is None:
+            self.i_biases = zeros(train_set.total_items)
 
     def _prepare_data(self, train_set):
         X = train_set.matrix # csr_matrix
@@ -154,10 +157,10 @@ class BPR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init(train_set)
-
         if not self.trainable:
-            return
+            return self
+
+        self._init(train_set)
 
         X, user_counts, user_ids = self._prepare_data(train_set)
         neg_item_ids = np.arange(train_set.num_items, dtype=np.int32)
@@ -167,17 +170,16 @@ class BPR(Recommender):
             RNGVector rng_pos = RNGVector(num_threads, len(user_ids) - 1, self.rng.randint(2 ** 31))
             RNGVector rng_neg = RNGVector(num_threads, train_set.num_items - 1, self.rng.randint(2 ** 31))
 
-        from tqdm import trange
-
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
                 correct, skipped = self._fit_sgd(rng_pos, rng_neg, num_threads,
-                                                 user_ids, X.indices, neg_item_ids, X.indptr,
-                                                 self.u_factors, self.i_factors, self.i_biases)
+                                                user_ids, X.indices, neg_item_ids, X.indptr,
+                                                self.u_factors, self.i_factors, self.i_biases)
                 progress.set_postfix({
                     "correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
                     "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))
                 })
+
         if self.verbose:
             print('Optimization finished!')
 
