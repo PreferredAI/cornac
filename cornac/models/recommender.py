@@ -146,7 +146,7 @@ class Recommender:
         self : object
         """
         if os.path.isdir(model_path):
-            model_file = sorted(glob(f"{model_path}/*.pkl"))[-1]
+            model_file = sorted(glob("{}/*.pkl".format(model_path)))[-1]
         else:
             model_file = model_path
 
