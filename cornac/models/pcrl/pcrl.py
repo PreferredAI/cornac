@@ -172,7 +172,6 @@ class PCRL_:
         # shape gamma_uk matrix (dgCMatrix)
         if init_params["G_s"] is None:
             G_s = np.random.gamma(50, scale=0.3 / 50, size=n * k).reshape(n, k)
-            init_params["G_s"] = G_s
         else:
             G_s = init_params["G_s"]
         G_s = sp.csc_matrix(G_s, dtype=np.float64)
@@ -180,7 +179,6 @@ class PCRL_:
         ## rate gamma_uk matrix (dgCMatrix)
         if init_params["G_r"] is None:
             G_r = np.random.gamma(50, scale=0.3 / 50, size=n * k).reshape(n, k)
-            init_params["G_r"] = G_r
         else:
             G_r = init_params["G_r"]
         G_r = sp.csc_matrix(G_r, dtype=np.float64)
@@ -188,7 +186,6 @@ class PCRL_:
         # shape lamda_ik matrix (dgCMatrix)
         if init_params["L_s"] is None:
             L_s = np.random.gamma(50, scale=0.3 / 50, size=d * k).reshape(d, k)
-            init_params["L_s"] = L_s
         else:
             L_s = init_params["L_s"]
         L_s = sp.csc_matrix(L_s, dtype=np.float64)
@@ -196,7 +193,6 @@ class PCRL_:
         ## rate lamda_ik matrix (dgCMatrix)
         if init_params["L_r"] is None:
             L_r = np.random.gamma(50, scale=0.3 / 50, size=d * k).reshape(d, k)
-            init_params["L_r"] = L_r
         else:
             L_r = init_params["L_r"]
         L_r = sp.csc_matrix(L_r, dtype=np.float64)
@@ -244,9 +240,11 @@ class PCRL_:
 
         res = {
             "Z": G_s / G_r,
+            "W": L_s / L_r,
             "G_s": G_s,
             "G_r": G_r,
-            "W": L_s / L_r,
+            "L_s": L_s,
+            "L_r": L_r,
             "Lt": Lt,
             "Lb": Lb,
             "Zik": np.array(Zik, dtype="float32"),
@@ -425,5 +423,7 @@ class PCRL_:
             )
         self.Gs = resPF["G_s"]
         self.Gr = resPF["G_r"]
-        print("learning done succefully")
+        print("learning done successfully")
         # End of traning
+
+        return self

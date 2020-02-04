@@ -77,7 +77,7 @@ class PCRL(Recommender):
         max_iter=300,
         batch_size=300,
         learning_rate=0.001,
-        name="pcrl",
+        name="PCRL",
         trainable=True,
         verbose=False,
         w_determinist=True,
@@ -113,11 +113,11 @@ class PCRL(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from .pcrl import PCRL_
-
         # X = sp.csc_matrix(self.train_set.matrix)
 
         if self.trainable:
+            from .pcrl import PCRL_
+
             # instanciate pcrl
             # train_aux_info = train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
             pcrl_ = PCRL_(
@@ -130,10 +130,17 @@ class PCRL(Recommender):
                 B=1,
                 w_determinist=self.w_determinist,
                 init_params=self.init_params,
-            )
-            pcrl_.learn()
+            ).learn()
+
             self.Theta = np.array(pcrl_.Gs) / np.array(pcrl_.Gr)
             self.Beta = np.array(pcrl_.Ls) / np.array(pcrl_.Lr)
+
+            # overwrite init_params for future fine-tuning
+            self.init_params["G_s"] = pcrl_.Gs
+            self.init_params["G_r"] = pcrl_.Gr
+            self.init_params["L_s"] = pcrl_.Ls
+            self.init_params["L_r"] = pcrl_.Lr
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 
