@@ -203,7 +203,7 @@ class NeuMF(NCFBase):
 
             self.loss = loss_fn(labels=self.labels, logits=logits)
             self.train_op = train_fn(
-                self.loss, learning_rate=self.learning_rate, learner=self.learner
+                self.loss, learning_rate=self.lr, learner=self.learner
             )
 
             self.initializer = tf.global_variables_initializer()

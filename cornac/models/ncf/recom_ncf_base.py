@@ -82,7 +82,7 @@ class NCFBase(Recommender):
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.num_neg = num_neg
-        self.learning_rate = lr
+        self.lr = lr
         self.learner = learner
         self.early_stopping = early_stopping
         self.seed = seed
