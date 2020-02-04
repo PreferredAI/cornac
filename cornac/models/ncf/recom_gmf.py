@@ -105,7 +105,7 @@ class GMF(NCFBase):
     def _build_graph(self):
         import tensorflow.compat.v1 as tf
         from .ops import gmf, loss_fn, train_fn
-        
+
         super()._build_graph()
         with self.graph.as_default():
             tf.set_random_seed(self.seed)

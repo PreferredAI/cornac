@@ -74,13 +74,31 @@ class SBPR(BPR):
     personalized ranking for collaborative filtering. CIKM 2014 (pp. 261-270).
     """
 
-    def __init__(self, name='SBPR', k=10, max_iter=100, learning_rate=0.001,
-                 lambda_u=0.01, lambda_v=0.01, lambda_b=0.01,
-                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+    def __init__(
+        self, 
+        name='SBPR', 
+        k=10,
+        max_iter=100, 
+        learning_rate=0.001,
+        lambda_u=0.01, 
+        lambda_v=0.01, 
+        lambda_b=0.01,
+        num_threads=0, 
+        trainable=True, 
+        verbose=False, 
+        init_params=None, 
+        seed=None
+    ):
         super().__init__(
-            name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, 
-            num_threads=num_threads, trainable=trainable, 
-            verbose=verbose, init_params=init_params, seed=seed
+            name=name, 
+            k=k, 
+            max_iter=max_iter, 
+            learning_rate=learning_rate, 
+            num_threads=num_threads, 
+            trainable=trainable, 
+            verbose=verbose, 
+            init_params=init_params, 
+            seed=seed
         )
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
@@ -129,10 +147,10 @@ class SBPR(BPR):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+
         if not self.trainable:
             return self
-
-        self._init()
         
         X, user_counts, user_ids = self._prepare_data()
         s_item_ids, s_item_counts, s_indptr = self._prepare_social_data()

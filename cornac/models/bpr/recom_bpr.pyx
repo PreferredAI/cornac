@@ -107,6 +107,7 @@ class BPR(Recommender):
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
+        self.init_params = init_params
         self.seed = seed
         self.rng = get_rng(seed)
 
@@ -118,7 +119,6 @@ class BPR(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.u_factors = init_params.get('U', None)
         self.i_factors = init_params.get('V', None)
         self.i_biases = init_params.get('Bi', None)
@@ -158,10 +158,10 @@ class BPR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+
         if not self.trainable:
             return self
-
-        self._init()
 
         X, user_counts, user_ids = self._prepare_data()
         neg_item_ids = np.arange(train_set.num_items, dtype=np.int32)

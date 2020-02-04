@@ -123,10 +123,10 @@ class VMF(Recommender):
         self.eps = 0.000000001
         self.seed = seed
 
-        self.U = self.init_params.get("U", None)  # user factors
-        self.V = self.init_params.get("V", None)  # item factors
-        self.P = self.init_params.get("P", None)  # user visual factors
-        self.E = self.init_params.get("E", None)  # Kernel embedding matrix
+        self.U = init_params.get("U", None)  # user factors
+        self.V = init_params.get("V", None)  # item factors
+        self.P = init_params.get("P", None)  # user visual factors
+        self.E = init_params.get("E", None)  # Kernel embedding matrix
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -188,6 +188,7 @@ class VMF(Recommender):
 
             if self.verbose:
                 print("Learning completed")
+                
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 

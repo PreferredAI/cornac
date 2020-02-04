@@ -25,19 +25,39 @@ EPS = 1e-9
 
 
 def get_value(G, U, I, F, key):
-    tensor_value1 = np.einsum('abc,a->bc', G, U[key[0]])
-    tensor_value2 = np.einsum('bc,b->c', tensor_value1, I[key[1]])
-    return np.einsum('c,c-> ', tensor_value2, F[key[2]])
+    tensor_value1 = np.einsum("abc,a->bc", G, U[key[0]])
+    tensor_value2 = np.einsum("bc,b->c", tensor_value1, I[key[1]])
+    return np.einsum("c,c-> ", tensor_value2, F[key[2]])
 
 
 def sign(a, b):
     return 1 if a > b else -1
 
 
-def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
-                    G1, G2, G3, U, I, A, O,
-                    error_square, error_bpr, lock, q_samples_mse,
-                    del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad):
+def grad_worker_mse(
+    user_item_aspect,
+    user_aspect_opinion,
+    item_aspect_opinion,
+    G1,
+    G2,
+    G3,
+    U,
+    I,
+    A,
+    O,
+    error_square,
+    error_bpr,
+    lock,
+    q_samples_mse,
+    del_g1,
+    del_g2,
+    del_g3,
+    del_u,
+    del_i,
+    del_a,
+    del_o,
+    num_grad,
+):
     while 1:
         if not q_samples_mse.empty():
             sample = q_samples_mse.get()
@@ -53,22 +73,20 @@ def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
                 del_sqerror = 2 * (pred_rating - score)
                 lock.acquire()
                 error_square.value += (pred_rating - score) ** 2
-                del_g1 += del_sqerror * \
-                    np.einsum('ab,c->abc',
-                              np.einsum('a,b->ab', U[user_idx], I[item_idx]),
-                              A[aspect_idx])
-                del_u[user_idx] += del_sqerror * \
-                    np.einsum('ac,c->a',
-                              np.einsum('abc,b->ac', G1, I[item_idx]),
-                              A[aspect_idx])
-                del_i[item_idx] += del_sqerror * \
-                    np.einsum('bc,c->b',
-                              np.einsum('abc,a->bc', G1, U[user_idx]),
-                              A[aspect_idx])
-                del_a[aspect_idx] += del_sqerror * \
-                    np.einsum('bc,b->c',
-                              np.einsum('abc,a->bc', G1, U[user_idx]),
-                              I[item_idx])
+                del_g1 += del_sqerror * np.einsum(
+                    "ab,c->abc",
+                    np.einsum("a,b->ab", U[user_idx], I[item_idx]),
+                    A[aspect_idx],
+                )
+                del_u[user_idx] += del_sqerror * np.einsum(
+                    "ac,c->a", np.einsum("abc,b->ac", G1, I[item_idx]), A[aspect_idx]
+                )
+                del_i[item_idx] += del_sqerror * np.einsum(
+                    "bc,c->b", np.einsum("abc,a->bc", G1, U[user_idx]), A[aspect_idx]
+                )
+                del_a[aspect_idx] += del_sqerror * np.einsum(
+                    "bc,b->c", np.einsum("abc,a->bc", G1, U[user_idx]), I[item_idx]
+                )
                 lock.release()
 
             for [user_idx, aspect_idx, opinion_idx] in uao_samples:
@@ -78,22 +96,20 @@ def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
                 del_sqerror = 2 * (pred_rating - score)
                 lock.acquire()
                 error_square.value += (pred_rating - score) ** 2
-                del_g2 += del_sqerror * \
-                    np.einsum('ab,c->abc',
-                              np.einsum('a,b->ab', U[user_idx], A[aspect_idx]),
-                              O[opinion_idx])
-                del_u[user_idx] += del_sqerror * \
-                    np.einsum('ac,c->a',
-                              np.einsum('abc,b->ac', G2, A[aspect_idx]),
-                              O[opinion_idx])
-                del_a[aspect_idx] += del_sqerror * \
-                    np.einsum('bc,c->b',
-                              np.einsum('abc,a->bc', G2, U[user_idx]),
-                              O[opinion_idx])
-                del_o[opinion_idx] += del_sqerror * \
-                    np.einsum('bc,b->c',
-                              np.einsum('abc,a->bc', G2, U[user_idx]),
-                              A[aspect_idx])
+                del_g2 += del_sqerror * np.einsum(
+                    "ab,c->abc",
+                    np.einsum("a,b->ab", U[user_idx], A[aspect_idx]),
+                    O[opinion_idx],
+                )
+                del_u[user_idx] += del_sqerror * np.einsum(
+                    "ac,c->a", np.einsum("abc,b->ac", G2, A[aspect_idx]), O[opinion_idx]
+                )
+                del_a[aspect_idx] += del_sqerror * np.einsum(
+                    "bc,c->b", np.einsum("abc,a->bc", G2, U[user_idx]), O[opinion_idx]
+                )
+                del_o[opinion_idx] += del_sqerror * np.einsum(
+                    "bc,b->c", np.einsum("abc,a->bc", G2, U[user_idx]), A[aspect_idx]
+                )
                 lock.release()
 
             for [item_idx, aspect_idx, opinion_idx] in iao_samples:
@@ -103,22 +119,20 @@ def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
                 del_sqerror = 2 * (pred_rating - score)
                 lock.acquire()
                 error_square.value += (pred_rating - score) ** 2
-                del_g3 += del_sqerror * \
-                    np.einsum('ab,c->abc',
-                              np.einsum('a,b->ab', I[item_idx], A[aspect_idx]),
-                              O[opinion_idx])
-                del_i[item_idx] += del_sqerror * \
-                    np.einsum('ac,c->a',
-                              np.einsum('abc,b->ac', G3, A[aspect_idx]),
-                              O[opinion_idx])
-                del_a[aspect_idx] += del_sqerror * \
-                    np.einsum('bc,c->b',
-                              np.einsum('abc,a->bc', G3, I[item_idx]),
-                              O[opinion_idx])
-                del_o[opinion_idx] += del_sqerror * \
-                    np.einsum('bc,b->c',
-                              np.einsum('abc,a->bc', G3, I[item_idx]),
-                              A[aspect_idx])
+                del_g3 += del_sqerror * np.einsum(
+                    "ab,c->abc",
+                    np.einsum("a,b->ab", I[item_idx], A[aspect_idx]),
+                    O[opinion_idx],
+                )
+                del_i[item_idx] += del_sqerror * np.einsum(
+                    "ac,c->a", np.einsum("abc,b->ac", G3, A[aspect_idx]), O[opinion_idx]
+                )
+                del_a[aspect_idx] += del_sqerror * np.einsum(
+                    "bc,c->b", np.einsum("abc,a->bc", G3, I[item_idx]), O[opinion_idx]
+                )
+                del_o[opinion_idx] += del_sqerror * np.einsum(
+                    "bc,b->c", np.einsum("abc,a->bc", G3, I[item_idx]), A[aspect_idx]
+                )
                 lock.release()
 
             lock.acquire()
@@ -126,9 +140,23 @@ def grad_worker_mse(user_item_aspect, user_aspect_opinion, item_aspect_opinion,
             lock.release()
 
 
-def grad_worker_bpr(rating_matrix, lambda_bpr,
-                    G1, U, I, A, error_square, error_bpr, lock, q_samples_bpr,
-                    del_g1, del_u, del_i, del_a, num_grad):
+def grad_worker_bpr(
+    rating_matrix,
+    lambda_bpr,
+    G1,
+    U,
+    I,
+    A,
+    error_square,
+    error_bpr,
+    lock,
+    q_samples_bpr,
+    del_g1,
+    del_u,
+    del_i,
+    del_a,
+    num_grad,
+):
     while 1:
         if not q_samples_bpr.empty():
             sample = q_samples_bpr.get()
@@ -142,35 +170,34 @@ def grad_worker_bpr(rating_matrix, lambda_bpr,
                 user_item_vector = rating_matrix[user_idx, :].A.flatten()
 
                 if user_item_vector[item_idx1] != user_item_vector[item_idx2]:
-                    pred_x_ij = ((get_value(G1, U, I, A, (user_idx, item_idx1, -1)) - get_value(G1, U, I, A, (user_idx, item_idx2, -1)))
-                                 * sign(user_item_vector[item_idx1], user_item_vector[item_idx2]))
-                    del_bpr = (lambda_bpr
-                               * (np.exp(-pred_x_ij) / (1 + np.exp(-pred_x_ij)))
-                               * sign(user_item_vector[item_idx1], user_item_vector[item_idx2]))
+                    pred_x_ij = (
+                        get_value(G1, U, I, A, (user_idx, item_idx1, -1))
+                        - get_value(G1, U, I, A, (user_idx, item_idx2, -1))
+                    ) * sign(user_item_vector[item_idx1], user_item_vector[item_idx2])
+                    del_bpr = (
+                        lambda_bpr
+                        * (np.exp(-pred_x_ij) / (1 + np.exp(-pred_x_ij)))
+                        * sign(user_item_vector[item_idx1], user_item_vector[item_idx2])
+                    )
 
                     lock.acquire()
                     error_bpr.value += np.log(1 / (1 + np.exp(-pred_x_ij)))
                     item_diff = I[item_idx1] - I[item_idx2]
-                    del_g1 -= del_bpr * \
-                        np.einsum('ab,c->abc',
-                                  np.einsum('a,b->ab', U[user_idx], item_diff),
-                                  A[-1])
-                    del_u[user_idx] -= del_bpr * \
-                        np.einsum('ac,c->a',
-                                  np.einsum('abc,b->ac', G1, item_diff),
-                                  A[-1])
-                    del_i[item_idx1] -= del_bpr * \
-                        np.einsum('bc,c->b',
-                                  np.einsum('abc,a->bc', G1, U[user_idx]),
-                                  A[-1])
-                    del_i[item_idx2] += del_bpr * \
-                        np.einsum('bc,c->b',
-                                  np.einsum('abc,a->bc', G1, U[user_idx]),
-                                  A[-1])
-                    del_a[-1] -= del_bpr * \
-                        np.einsum('bc,b->c',
-                                  np.einsum('abc,a->bc', G1, U[user_idx]),
-                                  item_diff)
+                    del_g1 -= del_bpr * np.einsum(
+                        "ab,c->abc", np.einsum("a,b->ab", U[user_idx], item_diff), A[-1]
+                    )
+                    del_u[user_idx] -= del_bpr * np.einsum(
+                        "ac,c->a", np.einsum("abc,b->ac", G1, item_diff), A[-1]
+                    )
+                    del_i[item_idx1] -= del_bpr * np.einsum(
+                        "bc,c->b", np.einsum("abc,a->bc", G1, U[user_idx]), A[-1]
+                    )
+                    del_i[item_idx2] += del_bpr * np.einsum(
+                        "bc,c->b", np.einsum("abc,a->bc", G1, U[user_idx]), A[-1]
+                    )
+                    del_a[-1] -= del_bpr * np.einsum(
+                        "bc,b->c", np.einsum("abc,a->bc", G1, U[user_idx]), item_diff
+                    )
                     lock.release()
 
             lock.acquire()
@@ -178,13 +205,42 @@ def grad_worker_bpr(rating_matrix, lambda_bpr,
             lock.release()
 
 
-def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspect_opinion,
-               n_element_samples, n_bpr_samples, lambda_reg, n_epochs, lr,
-               G1, G2, G3, U, I, A, O,
-               error_square, error_bpr, q_samples_mse, q_samples_bpr,
-               del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o, num_grad, n_threads, seed=None, verbose=False):
+def paraserver(
+    user_item_pairs,
+    user_item_aspect,
+    user_aspect_opinion,
+    item_aspect_opinion,
+    n_element_samples,
+    n_bpr_samples,
+    lambda_reg,
+    n_epochs,
+    lr,
+    G1,
+    G2,
+    G3,
+    U,
+    I,
+    A,
+    O,
+    error_square,
+    error_bpr,
+    q_samples_mse,
+    q_samples_bpr,
+    del_g1,
+    del_g2,
+    del_g3,
+    del_u,
+    del_i,
+    del_a,
+    del_o,
+    num_grad,
+    n_threads,
+    seed=None,
+    verbose=False,
+):
 
     from ...utils import get_rng
+
     rng = get_rng(seed)
 
     sum_square_gradients_G1 = np.zeros_like(G1)
@@ -205,18 +261,22 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
     for epoch in range(n_epochs):
         start_time = time.time()
         if verbose:
-            print('iteration:', epoch + 1, '/', n_epochs)
+            print("iteration:", epoch + 1, "/", n_epochs)
 
         error_square.value = 0
         error_bpr.value = 0
         uia_samples = user_item_aspect_keys[
-            rng.choice(len(user_item_aspect_keys), size=n_element_samples)]
+            rng.choice(len(user_item_aspect_keys), size=n_element_samples)
+        ]
         uao_samples = user_aspect_opinion_keys[
-            rng.choice(len(user_aspect_opinion_keys), size=n_element_samples)]
+            rng.choice(len(user_aspect_opinion_keys), size=n_element_samples)
+        ]
         iao_samples = item_aspect_opinion_keys[
-            rng.choice(len(item_aspect_opinion_keys), size=n_element_samples)]
+            rng.choice(len(item_aspect_opinion_keys), size=n_element_samples)
+        ]
         bpr_sample_ele = user_item_pairs_keys[
-            rng.choice(len(user_item_pairs_keys), size=n_bpr_samples)]
+            rng.choice(len(user_item_pairs_keys), size=n_bpr_samples)
+        ]
         item2_sample = rng.choice(range(0, I.shape[0]), size=n_bpr_samples)
 
         num_grad.value = 0
@@ -230,12 +290,18 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
 
         for i in range(n_threads):
             q_samples_mse.put(
-                (uia_samples[mse_per_proc * i:mse_per_proc * (i + 1)],
-                 uao_samples[mse_per_proc * i:mse_per_proc * (i + 1)],
-                 iao_samples[mse_per_proc * i:mse_per_proc * (i + 1)]))
+                (
+                    uia_samples[mse_per_proc * i : mse_per_proc * (i + 1)],
+                    uao_samples[mse_per_proc * i : mse_per_proc * (i + 1)],
+                    iao_samples[mse_per_proc * i : mse_per_proc * (i + 1)],
+                )
+            )
             q_samples_bpr.put(
-                (bpr_sample_ele[bpr_per_proc * i:bpr_per_proc * (i + 1)],
-                 item2_sample[bpr_per_proc * i:bpr_per_proc * (i + 1)]))
+                (
+                    bpr_sample_ele[bpr_per_proc * i : bpr_per_proc * (i + 1)],
+                    item2_sample[bpr_per_proc * i : bpr_per_proc * (i + 1)],
+                )
+            )
 
         while 1:
             if num_grad.value == 2 * n_threads:
@@ -284,18 +350,30 @@ def paraserver(user_item_pairs, user_item_aspect, user_aspect_opinion, item_aspe
 
         if verbose:
             if n_element_samples:
-                print('RMSE:', np.sqrt(error_square.value / 3 / n_element_samples))
+                print("RMSE:", np.sqrt(error_square.value / 3 / n_element_samples))
             if n_bpr_samples:
-                print('BPR:', error_bpr.value / n_bpr_samples)
+                print("BPR:", error_bpr.value / n_bpr_samples)
 
             timeleft = (time.time() - start_time) * (n_epochs - epoch - 1)
 
             if (timeleft / 60) > 60:
-                print('time left: ' + str(int(timeleft / 3600)) + ' hr ' +
-                      str(int(timeleft / 60 % 60)) + ' min ' + str(int(timeleft % 60)) + ' s')
+                print(
+                    "time left: "
+                    + str(int(timeleft / 3600))
+                    + " hr "
+                    + str(int(timeleft / 60 % 60))
+                    + " min "
+                    + str(int(timeleft % 60))
+                    + " s"
+                )
             else:
-                print("time left: " + str(int(timeleft / 60)) +
-                      ' min ' + str(int(timeleft % 60)) + ' s')
+                print(
+                    "time left: "
+                    + str(int(timeleft / 60))
+                    + " min "
+                    + str(int(timeleft % 60))
+                    + " s"
+                )
 
     for _ in range(n_threads):
         q_samples_bpr.put(0)

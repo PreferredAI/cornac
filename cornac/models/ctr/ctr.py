@@ -70,7 +70,7 @@ def _optimize_simplex(gamma, v, lambda_v, opt_x, s=1):
         opt_x = np.copy(opt_x_old)
         opt_x += t * x_bar
         f_new = _f_simplex(gamma, v, lambda_v, opt_x)
-        if (f_new > f_old + r * t):
+        if f_new > f_old + r * t:
             t *= beta
         else:
             break
@@ -82,9 +82,22 @@ def _optimize_simplex(gamma, v, lambda_v, opt_x, s=1):
 
 
 class Model:
-
-    def __init__(self, U, V, n_user, n_item, n_vocab, k=200, lambda_u=0.01, lambda_v=0.01, eta=0.01,
-                 a=1, b=0.01, max_iter=100, seed=None):
+    def __init__(
+        self,
+        U,
+        V,
+        n_user,
+        n_item,
+        n_vocab,
+        k=200,
+        lambda_u=0.01,
+        lambda_v=0.01,
+        eta=0.01,
+        a=1,
+        b=0.01,
+        max_iter=100,
+        seed=None,
+    ):
         self.k = k
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
@@ -134,7 +147,9 @@ class Model:
 
             UU_j = UU + (self.a - self.b) * (U_j.T.dot(U_j))
             A = UU_j + self.lambda_v * np.eye(self.k)
-            x = (self.a * U_j * (np.tile(R_j, (self.k, 1)).T)).sum(0) + self.lambda_v * self.theta[j]
+            x = (self.a * U_j * (np.tile(R_j, (self.k, 1)).T)).sum(
+                0
+            ) + self.lambda_v * self.theta[j]
             self.V[j] = np.linalg.solve(A, x)
 
             cf_loss += 0.5 * self.a * np.square(R_j).sum()
@@ -159,8 +174,13 @@ class Model:
             phi = phi / phi.sum(1)[:, np.newaxis]
             gamma = np.array(doc_cnt[vi])[:, np.newaxis] * phi
 
-            self.theta[vi, :], lda_loss = _optimize_simplex(gamma=gamma, v=self.V[vi, :], opt_x=self.theta[vi, :],
-                                                            lambda_v=self.lambda_v, s=1)
+            self.theta[vi, :], lda_loss = _optimize_simplex(
+                gamma=gamma,
+                v=self.V[vi, :],
+                opt_x=self.theta[vi, :],
+                lambda_v=self.lambda_v,
+                s=1,
+            )
             loss += lda_loss
 
             self.phi_sum[w, :] += gamma

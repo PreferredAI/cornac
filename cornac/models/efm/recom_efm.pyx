@@ -146,6 +146,7 @@ class EFM(Recommender):
         self.lambda_v = lambda_v
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
+        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -156,7 +157,6 @@ class EFM(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.U1 = init_params.get('U1', None)
         self.U2 = init_params.get('U2', None)
         self.V = init_params.get('V', None)
@@ -200,9 +200,9 @@ class EFM(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        if self.trainable:
-            self._init()
+        self._init()
 
+        if self.trainable:
             A, X, Y = self._build_matrices(self.train_set)
             A_user_counts = np.ediff1d(A.indptr)
             A_item_counts = np.ediff1d(A.tocsc().indptr)

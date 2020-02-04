@@ -109,9 +109,9 @@ class SoRec(Recommender):
         self.eps = 0.000000001
         self.seed = seed
 
-        self.U = self.init_params.get("U", None)  # matrix of user factors
-        self.V = self.init_params.get("V", None)  # matrix of item factors
-        self.Z = self.init_params.get("Z", None)  # matrix of social network factors
+        self.U = init_params.get("U", None)  # matrix of user factors
+        self.V = init_params.get("V", None)  # matrix of item factors
+        self.Z = init_params.get("Z", None)  # matrix of social network factors
 
         if self.U is not None and self.U.shape[1] != self.k:
             raise ValueError("initial parameters U dimension error")

@@ -78,6 +78,7 @@ class BaselineOnly(Recommender):
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
         self.early_stop = early_stop
+        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -88,7 +89,6 @@ class BaselineOnly(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.u_biases = init_params.get('Bu', None)
         self.i_biases = init_params.get('Bi', None)
         self.global_mean = 0.0

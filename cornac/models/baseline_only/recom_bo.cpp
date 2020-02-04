@@ -3162,7 +3162,6 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   int __pyx_t_4;
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_INCREF(__pyx_v_init_params);
 
   /* "cornac/models/baseline_only/recom_bo.pyx":76
  *     def __init__(self, name='BaselineOnly', max_iter=20, learning_rate=0.01, lambda_reg=0.02,
@@ -3222,7 +3221,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
  *         self.learning_rate = learning_rate
  *         self.lambda_reg = lambda_reg             # <<<<<<<<<<<<<<
  *         self.early_stop = early_stop
- *         self.seed = seed
+ *         self.init_params = init_params
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_lambda_reg, __pyx_v_lambda_reg) < 0) __PYX_ERR(0, 79, __pyx_L1_error)
 
@@ -3230,21 +3229,30 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
  *         self.learning_rate = learning_rate
  *         self.lambda_reg = lambda_reg
  *         self.early_stop = early_stop             # <<<<<<<<<<<<<<
+ *         self.init_params = init_params
  *         self.seed = seed
- * 
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_early_stop, __pyx_v_early_stop) < 0) __PYX_ERR(0, 80, __pyx_L1_error)
 
   /* "cornac/models/baseline_only/recom_bo.pyx":81
  *         self.lambda_reg = lambda_reg
  *         self.early_stop = early_stop
+ *         self.init_params = init_params             # <<<<<<<<<<<<<<
+ *         self.seed = seed
+ * 
+ */
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_init_params, __pyx_v_init_params) < 0) __PYX_ERR(0, 81, __pyx_L1_error)
+
+  /* "cornac/models/baseline_only/recom_bo.pyx":82
+ *         self.early_stop = early_stop
+ *         self.init_params = init_params
  *         self.seed = seed             # <<<<<<<<<<<<<<
  * 
  *         if seed is not None:
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_seed, __pyx_v_seed) < 0) __PYX_ERR(0, 81, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_seed, __pyx_v_seed) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
 
-  /* "cornac/models/baseline_only/recom_bo.pyx":83
+  /* "cornac/models/baseline_only/recom_bo.pyx":84
  *         self.seed = seed
  * 
  *         if seed is not None:             # <<<<<<<<<<<<<<
@@ -3255,16 +3263,16 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   __pyx_t_5 = (__pyx_t_4 != 0);
   if (__pyx_t_5) {
 
-    /* "cornac/models/baseline_only/recom_bo.pyx":84
+    /* "cornac/models/baseline_only/recom_bo.pyx":85
  * 
  *         if seed is not None:
  *             self.num_threads = 1             # <<<<<<<<<<<<<<
  *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
  *             self.num_threads = num_threads
  */
-    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_int_1) < 0) __PYX_ERR(0, 84, __pyx_L1_error)
+    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_int_1) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
 
-    /* "cornac/models/baseline_only/recom_bo.pyx":83
+    /* "cornac/models/baseline_only/recom_bo.pyx":84
  *         self.seed = seed
  * 
  *         if seed is not None:             # <<<<<<<<<<<<<<
@@ -3274,24 +3282,24 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
     goto __pyx_L3;
   }
 
-  /* "cornac/models/baseline_only/recom_bo.pyx":85
+  /* "cornac/models/baseline_only/recom_bo.pyx":86
  *         if seed is not None:
  *             self.num_threads = 1
  *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():             # <<<<<<<<<<<<<<
  *             self.num_threads = num_threads
  *         else:
  */
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 85, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
   } else {
     __pyx_t_5 = __pyx_t_4;
     goto __pyx_L4_bool_binop_done;
   }
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_multiprocessing); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_multiprocessing); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = NULL;
@@ -3306,27 +3314,27 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   }
   __pyx_t_3 = (__pyx_t_1) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 85, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_t_3, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_2 = PyObject_RichCompare(__pyx_v_num_threads, __pyx_t_3, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_5 = __pyx_t_4;
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_5) {
 
-    /* "cornac/models/baseline_only/recom_bo.pyx":86
+    /* "cornac/models/baseline_only/recom_bo.pyx":87
  *             self.num_threads = 1
  *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
  *             self.num_threads = num_threads             # <<<<<<<<<<<<<<
  *         else:
  *             self.num_threads = multiprocessing.cpu_count()
  */
-    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_v_num_threads) < 0) __PYX_ERR(0, 86, __pyx_L1_error)
+    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_v_num_threads) < 0) __PYX_ERR(0, 87, __pyx_L1_error)
 
-    /* "cornac/models/baseline_only/recom_bo.pyx":85
+    /* "cornac/models/baseline_only/recom_bo.pyx":86
  *         if seed is not None:
  *             self.num_threads = 1
  *         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():             # <<<<<<<<<<<<<<
@@ -3336,7 +3344,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
     goto __pyx_L3;
   }
 
-  /* "cornac/models/baseline_only/recom_bo.pyx":88
+  /* "cornac/models/baseline_only/recom_bo.pyx":89
  *             self.num_threads = num_threads
  *         else:
  *             self.num_threads = multiprocessing.cpu_count()             # <<<<<<<<<<<<<<
@@ -3344,9 +3352,9 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
  *         # Init params if provided
  */
   /*else*/ {
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_multiprocessing); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_multiprocessing); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 89, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_cpu_count); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_3 = NULL;
@@ -3361,37 +3369,17 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
     }
     __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_t_2) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
+    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_num_threads, __pyx_t_2) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __pyx_L3:;
 
-  /* "cornac/models/baseline_only/recom_bo.pyx":91
+  /* "cornac/models/baseline_only/recom_bo.pyx":92
  * 
  *         # Init params if provided
- *         init_params = init_params if isinstance(init_params, dict) else {}             # <<<<<<<<<<<<<<
- *         self.u_biases = init_params.get('Bu', None)
- *         self.i_biases = init_params.get('Bi', None)
- */
-  __pyx_t_5 = PyDict_Check(__pyx_v_init_params); 
-  if ((__pyx_t_5 != 0)) {
-    __Pyx_INCREF(__pyx_v_init_params);
-    __pyx_t_2 = __pyx_v_init_params;
-  } else {
-    __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __pyx_t_1;
-    __pyx_t_1 = 0;
-  }
-  __Pyx_DECREF_SET(__pyx_v_init_params, __pyx_t_2);
-  __pyx_t_2 = 0;
-
-  /* "cornac/models/baseline_only/recom_bo.pyx":92
- *         # Init params if provided
- *         init_params = init_params if isinstance(init_params, dict) else {}
  *         self.u_biases = init_params.get('Bu', None)             # <<<<<<<<<<<<<<
  *         self.i_biases = init_params.get('Bi', None)
  *         self.global_mean = 0.0
@@ -3405,7 +3393,7 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "cornac/models/baseline_only/recom_bo.pyx":93
- *         init_params = init_params if isinstance(init_params, dict) else {}
+ *         # Init params if provided
  *         self.u_biases = init_params.get('Bu', None)
  *         self.i_biases = init_params.get('Bi', None)             # <<<<<<<<<<<<<<
  *         self.global_mean = 0.0
@@ -3446,7 +3434,6 @@ static PyObject *__pyx_pf_6cornac_6models_13baseline_only_8recom_bo_12BaselineOn
   __Pyx_AddTraceback("cornac.models.baseline_only.recom_bo.BaselineOnly.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_init_params);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -26322,8 +26309,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
   /* "cornac/models/baseline_only/recom_bo.pyx":92
+ * 
  *         # Init params if provided
- *         init_params = init_params if isinstance(init_params, dict) else {}
  *         self.u_biases = init_params.get('Bu', None)             # <<<<<<<<<<<<<<
  *         self.i_biases = init_params.get('Bi', None)
  *         self.global_mean = 0.0
@@ -26333,7 +26320,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple_);
 
   /* "cornac/models/baseline_only/recom_bo.pyx":93
- *         init_params = init_params if isinstance(init_params, dict) else {}
+ *         # Init params if provided
  *         self.u_biases = init_params.get('Bu', None)
  *         self.i_biases = init_params.get('Bi', None)             # <<<<<<<<<<<<<<
  *         self.global_mean = 0.0

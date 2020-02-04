@@ -104,11 +104,11 @@ class HFT(Recommender):
         self.name = name
         self.max_iter = max_iter
         self.verbose = verbose
+        self.init_params = init_params
         self.seed = seed
         self.vocab_size = vocab_size
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.alpha = init_params.get("alpha", None)
         self.beta_u = init_params.get("beta_u", None)
         self.beta_i = init_params.get("beta_i", None)
@@ -148,8 +148,9 @@ class HFT(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+
         if self.trainable:
-            self._init()
             self._fit_hft()
 
         return self

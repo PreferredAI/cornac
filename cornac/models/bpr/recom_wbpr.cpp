@@ -3203,7 +3203,7 @@ static PyObject *__pyx_pf_6cornac_6models_3bpr_10recom_wbpr_4WBPR_2fit(CYTHON_UN
  *         """
  *         Recommender.fit(self, train_set, val_set)             # <<<<<<<<<<<<<<
  * 
- *         if not self.trainable:
+ *         self._init()
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_Recommender); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -3263,46 +3263,11 @@ static PyObject *__pyx_pf_6cornac_6models_3bpr_10recom_wbpr_4WBPR_2fit(CYTHON_UN
   /* "cornac/models/bpr/recom_wbpr.pyx":97
  *         Recommender.fit(self, train_set, val_set)
  * 
- *         if not self.trainable:             # <<<<<<<<<<<<<<
- *             return self
- * 
- */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_trainable); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 97, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_7 = ((!__pyx_t_6) != 0);
-  if (__pyx_t_7) {
-
-    /* "cornac/models/bpr/recom_wbpr.pyx":98
- * 
- *         if not self.trainable:
- *             return self             # <<<<<<<<<<<<<<
- * 
- *         self._init()
- */
-    __Pyx_XDECREF(__pyx_r);
-    __Pyx_INCREF(__pyx_v_self);
-    __pyx_r = __pyx_v_self;
-    goto __pyx_L0;
-
-    /* "cornac/models/bpr/recom_wbpr.pyx":97
- *         Recommender.fit(self, train_set, val_set)
- * 
- *         if not self.trainable:             # <<<<<<<<<<<<<<
- *             return self
- * 
- */
-  }
-
-  /* "cornac/models/bpr/recom_wbpr.pyx":100
- *             return self
- * 
  *         self._init()             # <<<<<<<<<<<<<<
  * 
- *         X, user_counts, user_ids = self._prepare_data()
+ *         if not self.trainable:
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_init_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3316,13 +3281,48 @@ static PyObject *__pyx_pf_6cornac_6models_3bpr_10recom_wbpr_4WBPR_2fit(CYTHON_UN
   }
   __pyx_t_1 = (__pyx_t_5) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 100, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cornac/models/bpr/recom_wbpr.pyx":102
+  /* "cornac/models/bpr/recom_wbpr.pyx":99
  *         self._init()
+ * 
+ *         if not self.trainable:             # <<<<<<<<<<<<<<
+ *             return self
+ * 
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_trainable); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 99, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 99, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_7 = ((!__pyx_t_6) != 0);
+  if (__pyx_t_7) {
+
+    /* "cornac/models/bpr/recom_wbpr.pyx":100
+ * 
+ *         if not self.trainable:
+ *             return self             # <<<<<<<<<<<<<<
+ * 
+ *         X, user_counts, user_ids = self._prepare_data()
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_INCREF(__pyx_v_self);
+    __pyx_r = __pyx_v_self;
+    goto __pyx_L0;
+
+    /* "cornac/models/bpr/recom_wbpr.pyx":99
+ *         self._init()
+ * 
+ *         if not self.trainable:             # <<<<<<<<<<<<<<
+ *             return self
+ * 
+ */
+  }
+
+  /* "cornac/models/bpr/recom_wbpr.pyx":102
+ *             return self
  * 
  *         X, user_counts, user_ids = self._prepare_data()             # <<<<<<<<<<<<<<
  * 

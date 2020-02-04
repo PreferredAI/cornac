@@ -94,10 +94,10 @@ class WBPR(BPR):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+
         if not self.trainable:
             return self
-
-        self._init()
         
         X, user_counts, user_ids = self._prepare_data()
 

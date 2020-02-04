@@ -110,10 +110,10 @@ class WMF(Recommender):
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.verbose = verbose
+        self.init_params = init_params
         self.seed = seed
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.U = init_params.get("U", None)
         self.V = init_params.get("V", None)
 
@@ -143,8 +143,9 @@ class WMF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+
         if self.trainable:
-            self._init()
             self._fit_cf()
 
         return self

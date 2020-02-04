@@ -139,17 +139,17 @@ class CDL(Recommender):
         self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
+        self.init_params = init_params
         self.seed = seed
         self.rng = get_rng(seed)
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.U = init_params.get("U", None)
         self.V = init_params.get("V", None)
 
     def _init(self):
         n_users, n_items = self.train_set.num_users, self.train_set.num_items
-        
+
         if self.U is None:
             self.U = xavier_uniform((n_users, self.k), self.rng)
         if self.V is None:
@@ -172,8 +172,9 @@ class CDL(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+
         if self.trainable:
-            self._init()
             self._fit_cdl()
 
         return self

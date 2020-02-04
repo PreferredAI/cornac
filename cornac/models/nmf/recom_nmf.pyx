@@ -102,6 +102,7 @@ class NMF(Recommender):
         self.lambda_bu = lambda_bu
         self.lambda_bi = lambda_bi
         self.use_bias = use_bias
+        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -112,7 +113,6 @@ class NMF(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.u_factors = init_params.get('U', None)
         self.i_factors = init_params.get('V', None)
         self.u_biases = init_params.get('Bu', None)
@@ -149,6 +149,8 @@ class NMF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+        
         if self.trainable:
             n_users, n_items = self.train_set.num_users, self.train_set.num_items
             X = train_set.matrix # csr_matrix
@@ -156,7 +158,6 @@ class NMF(Recommender):
             user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
             item_counts = np.ediff1d(X.tocsc().indptr).astype(X.indices.dtype)
 
-            self._init()
             self._fit_sgd(
                 user_ids, X.indices, X.data.astype(np.float32), 
                 user_counts, item_counts,

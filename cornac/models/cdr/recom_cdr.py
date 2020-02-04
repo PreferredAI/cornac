@@ -15,7 +15,7 @@
 
 import numpy as np
 from tqdm import trange
-        
+
 from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import get_rng
@@ -90,11 +90,27 @@ class CDR(Recommender):
 
     """
 
-    def __init__(self, name="CDR", k=50, autoencoder_structure=None, act_fn='relu',
-                 lambda_u=0.1, lambda_v=100, lambda_w=0.1, lambda_n=1000,
-                 corruption_rate=0.3, learning_rate=0.001, dropout_rate=0.1,
-                 batch_size=128, max_iter=100, trainable=True, verbose=True,
-                 vocab_size=8000, init_params=None, seed=None):
+    def __init__(
+        self,
+        name="CDR",
+        k=50,
+        autoencoder_structure=None,
+        act_fn="relu",
+        lambda_u=0.1,
+        lambda_v=100,
+        lambda_w=0.1,
+        lambda_n=1000,
+        corruption_rate=0.3,
+        learning_rate=0.001,
+        dropout_rate=0.1,
+        batch_size=128,
+        max_iter=100,
+        trainable=True,
+        verbose=True,
+        vocab_size=8000,
+        init_params=None,
+        seed=None,
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.lambda_u = lambda_u
@@ -111,22 +127,21 @@ class CDR(Recommender):
         self.batch_size = batch_size
         self.verbose = verbose
         self.vocab_size = vocab_size
+        self.init_params = init_params
         self.seed = seed
         self.rng = get_rng(seed)
-        
+
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
-        self.U = init_params.get('U', None)
-        self.V = init_params.get('V', None)
+        self.U = init_params.get("U", None)
+        self.V = init_params.get("V", None)
 
     def _init(self):
         n_users, n_items = self.train_set.num_users, self.train_set.num_items
-        
+
         if self.U is None:
             self.U = xavier_uniform((n_users, self.k), self.rng)
         if self.V is None:
             self.V = xavier_uniform((n_items, self.k), self.rng)
-
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -158,16 +173,39 @@ class CDR(Recommender):
         n_users = self.train_set.num_users
         n_items = self.train_set.num_items
 
-        text_feature = self.train_set.item_text.batch_bow(np.arange(n_items))  # bag of word feature
-        text_feature = (text_feature - text_feature.min()) / (text_feature.max() - text_feature.min())  # normalization
+        text_feature = self.train_set.item_text.batch_bow(
+            np.arange(n_items)
+        )  # bag of word feature
+        text_feature = (text_feature - text_feature.min()) / (
+            text_feature.max() - text_feature.min()
+        )  # normalization
 
         # Build model
-        layer_sizes = [self.vocab_size] + self.ae_structure + [self.k] + self.ae_structure + [self.vocab_size]
+        layer_sizes = (
+            [self.vocab_size]
+            + self.ae_structure
+            + [self.k]
+            + self.ae_structure
+            + [self.vocab_size]
+        )
 
-        model = Model(n_users=n_users, n_items=n_items, n_vocab=self.vocab_size, k=self.k, layers=layer_sizes,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_w=self.lambda_w,
-                      lambda_n=self.lambda_n, lr=self.learning_rate, dropout_rate=self.dropout_rate,
-                      U=self.U, V=self.V, act_fn=self.act_fn, seed=self.seed)
+        model = Model(
+            n_users=n_users,
+            n_items=n_items,
+            n_vocab=self.vocab_size,
+            k=self.k,
+            layers=layer_sizes,
+            lambda_u=self.lambda_u,
+            lambda_v=self.lambda_v,
+            lambda_w=self.lambda_w,
+            lambda_n=self.lambda_n,
+            lr=self.learning_rate,
+            dropout_rate=self.dropout_rate,
+            U=self.U,
+            V=self.V,
+            act_fn=self.act_fn,
+            seed=self.seed,
+        )
 
         # Training model
         config = tf.ConfigProto()
@@ -177,22 +215,27 @@ class CDR(Recommender):
 
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
-                corruption_mask = np.random.binomial(1, 1 - self.corruption_rate,
-                                                     (n_items, self.vocab_size))
+                corruption_mask = np.random.binomial(
+                    1, 1 - self.corruption_rate, (n_items, self.vocab_size)
+                )
                 sum_loss = 0
                 count = 0
                 batch_count = 0
-                for batch_u, batch_i, batch_j in self.train_set.uij_iter(batch_size=self.batch_size, shuffle=True):
+                for batch_u, batch_i, batch_j in self.train_set.uij_iter(
+                    batch_size=self.batch_size, shuffle=True
+                ):
                     feed_dict = {
                         model.mask_input: corruption_mask[batch_i, :],
                         model.text_input: text_feature[batch_i, :],
                         model.batch_u: batch_u,
                         model.batch_i: batch_i,
-                        model.batch_j: batch_j
+                        model.batch_j: batch_j,
                     }
 
                     sess.run(model.opt1, feed_dict)  # train U, V
-                    _, _loss = sess.run([model.opt2, model.loss], feed_dict)  # train SDAE
+                    _, _loss = sess.run(
+                        [model.opt2, model.loss], feed_dict
+                    )  # train SDAE
 
                     sum_loss += _loss
                     count += len(batch_u)
@@ -205,7 +248,7 @@ class CDR(Recommender):
         tf.reset_default_graph()
 
         if self.verbose:
-            print('\nLearning completed')
+            print("\nLearning completed")
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -228,13 +271,20 @@ class CDR(Recommender):
 
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
 
             return user_pred

@@ -84,7 +84,7 @@ class COE(Recommender):
         self.learning_rate = learning_rate
         self.lamda = lamda
         self.batch_size = batch_size
-        self.init_params = init_params if isinstance(init_params, dict) else {}
+        self.init_params = init_params
 
         # Init params if provided
         self.U = init_params.get("U", None)  # matrix of user factors

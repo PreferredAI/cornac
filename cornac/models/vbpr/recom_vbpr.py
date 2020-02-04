@@ -102,7 +102,7 @@ class VBPR(Recommender):
         self.lambda_b = lambda_b
         self.lambda_e = lambda_e
         self.use_gpu = use_gpu
-        self.init_params = {} if init_params is None else init_params
+        self.init_params = init_params
         self.seed = seed
 
     def _init(self, n_users, n_items, features):

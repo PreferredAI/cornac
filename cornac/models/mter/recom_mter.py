@@ -149,6 +149,7 @@ class MTER(Recommender):
         self.lambda_bpr = lambda_bpr
         self.n_epochs = n_epochs
         self.lr = lr
+        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -159,7 +160,6 @@ class MTER(Recommender):
             self.n_threads = mp.cpu_count()
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.G1 = init_params.get("G1", None)
         self.G2 = init_params.get("G2", None)
         self.G3 = init_params.get("G3", None)
@@ -227,9 +227,9 @@ class MTER(Recommender):
 
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+
         if self.trainable:
-            self._init()
-            
             (
                 rating_matrix,
                 user_item_aspect,

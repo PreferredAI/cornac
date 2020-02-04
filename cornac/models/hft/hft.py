@@ -18,9 +18,22 @@ import scipy.optimize as opt
 
 
 class Model:
-
-    def __init__(self, n_user, n_item, n_vocab, alpha, beta_u, beta_i, gamma_u, gamma_i, k=10,
-                 lambda_text=0.1, l2_reg=0.001, max_iter=50, grad_iter=50):
+    def __init__(
+        self,
+        n_user,
+        n_item,
+        n_vocab,
+        alpha,
+        beta_u,
+        beta_i,
+        gamma_u,
+        gamma_i,
+        k=10,
+        lambda_text=0.1,
+        l2_reg=0.001,
+        max_iter=50,
+        grad_iter=50,
+    ):
         self.k = k
         self.lambda_text = lambda_text
         self.l2_reg = l2_reg
@@ -41,28 +54,44 @@ class Model:
 
     def _init_params(self):
         params_length = np.array(
-            [1, 1, self.n_user, self.n_item, self.n_user * self.k, self.n_item * self.k, self.n_vocab * self.k])
+            [
+                1,
+                1,
+                self.n_user,
+                self.n_item,
+                self.n_user * self.k,
+                self.n_item * self.k,
+                self.n_vocab * self.k,
+            ]
+        )
         self.params_idx = params_length.cumsum()
 
         self.params = np.zeros(params_length.sum())
         self.params[0] = self.alpha
         self.params[1] = 1.0  # kappa init
-        self.params[self.params_idx[3]:self.params_idx[4]] = self.gamma_u.ravel()
-        self.params[self.params_idx[4]:self.params_idx[5]] = self.gamma_i.ravel()
+        self.params[self.params_idx[3] : self.params_idx[4]] = self.gamma_u.ravel()
+        self.params[self.params_idx[4] : self.params_idx[5]] = self.gamma_i.ravel()
 
     def init_count(self, docs):
         # Counter
-        self.item_topic_cnt = np.zeros(shape=(self.n_item, self.k),
-                                       dtype=int)  # given item, count number of time each topic occur
+        self.item_topic_cnt = np.zeros(
+            shape=(self.n_item, self.k), dtype=int
+        )  # given item, count number of time each topic occur
 
-        self.word_topic_cnt = np.zeros(shape=(self.n_vocab, self.k),
-                                       dtype=int)  # given word, count number of time each topic occur
+        self.word_topic_cnt = np.zeros(
+            shape=(self.n_vocab, self.k), dtype=int
+        )  # given word, count number of time each topic occur
 
-        self.item_word = np.zeros(shape=(self.n_item, 1), dtype=int)  # number of word for each item
-        self.topic_cnt = np.zeros(shape=(1, self.k), dtype=int)  # number of time topic occur
+        self.item_word = np.zeros(
+            shape=(self.n_item, 1), dtype=int
+        )  # number of word for each item
+        self.topic_cnt = np.zeros(
+            shape=(1, self.k), dtype=int
+        )  # number of time topic occur
         self.total_word = 0  # total number word in corpus
-        self.background_word = np.zeros(shape=(self.n_vocab, 1),
-                                        dtype=float)  # background weights for each word [n_vocab, 1]
+        self.background_word = np.zeros(
+            shape=(self.n_vocab, 1), dtype=float
+        )  # background weights for each word [n_vocab, 1]
 
         self.topic_assignment = list()
 
@@ -94,7 +123,9 @@ class Model:
         return new_topic
 
     def assign_word_topics(self, docs):
-        _, self.kappa, _, _, _, self.gamma_i, self.topic_word = self._get_view(self.params)
+        _, self.kappa, _, _, _, self.gamma_i, self.topic_word = self._get_view(
+            self.params
+        )
 
         for di in range(len(docs)):
             doc = docs[di]
@@ -105,7 +136,10 @@ class Model:
                 old_topic = topics[wi]
                 word = doc[wi]
                 topic_score = np.exp(
-                    self.kappa * self.gamma_i[di] + self.background_word[word] + self.topic_word[word])
+                    self.kappa * self.gamma_i[di]
+                    + self.background_word[word]
+                    + self.topic_word[word]
+                )
                 topic_score = topic_score / np.sum(topic_score)
                 new_topic = self._sampling_from_dist(topic_score)
                 if new_topic != old_topic:
@@ -122,7 +156,9 @@ class Model:
         self.background_word += average
 
     def update_params(self, rating_data):
-        res = opt.fmin_l_bfgs_b(self._func, x0=self.params, args=rating_data, maxiter=self.grad_iter)
+        res = opt.fmin_l_bfgs_b(
+            self._func, x0=self.params, args=rating_data, maxiter=self.grad_iter
+        )
         self.params = res[0]
         return res[1]
 
@@ -133,13 +169,13 @@ class Model:
     def _get_view(self, params):
         idx = self.params_idx
 
-        alpha = params[0:idx[0], ]
-        kappa = params[idx[0]:idx[1], ]
-        beta_u = params[idx[1]:idx[2], ]
-        beta_i = params[idx[2]:idx[3], ]
-        gamma_u = params[idx[3]:idx[4], ].reshape(self.n_user, self.k)
-        gamma_i = params[idx[4]:idx[5], ].reshape(self.n_item, self.k)
-        topic_word = params[idx[5]:, ].reshape(self.n_vocab, self.k)
+        alpha = params[0 : idx[0],]
+        kappa = params[idx[0] : idx[1],]
+        beta_u = params[idx[1] : idx[2],]
+        beta_i = params[idx[2] : idx[3],]
+        gamma_u = params[idx[3] : idx[4],].reshape(self.n_user, self.k)
+        gamma_i = params[idx[4] : idx[5],].reshape(self.n_item, self.k)
+        topic_word = params[idx[5] :,].reshape(self.n_vocab, self.k)
 
         return alpha, kappa, beta_u, beta_i, gamma_u, gamma_i, topic_word
 
@@ -149,8 +185,12 @@ class Model:
         R_user = user_data[1]
         R_item = item_data[1]
         grad = np.zeros_like(X)
-        alpha, kappa, beta_u, beta_i, gamma_u, gamma_i, topic_word = self._get_view(params=X)
-        dalpha, dkappa, dbeta_u, dbeta_i, dgamma_u, dgamma_i, dtopic_word = self._get_view(params=grad)
+        alpha, kappa, beta_u, beta_i, gamma_u, gamma_i, topic_word = self._get_view(
+            params=X
+        )
+        dalpha, dkappa, dbeta_u, dbeta_i, dgamma_u, dgamma_i, dtopic_word = self._get_view(
+            params=grad
+        )
         cf_loss = 0.0
         reg_loss = 0.0
         corpus_likelihood = 0.0
@@ -190,16 +230,22 @@ class Model:
 
         e_theta = np.exp(self.kappa * self.gamma_i)
         t_z = e_theta.sum(axis=1, keepdims=True)
-        corpus_likelihood += self.lambda_text * np.sum(self.item_topic_cnt * (self.kappa * self.gamma_i - np.log(t_z)))
+        corpus_likelihood += self.lambda_text * np.sum(
+            self.item_topic_cnt * (self.kappa * self.gamma_i - np.log(t_z))
+        )
 
         e_phi = np.exp(self.background_word + topic_word)
         word_z = e_phi.sum(axis=0, keepdims=True)
-        corpus_likelihood += self.lambda_text * np.sum(self.word_topic_cnt * (self.background_word + topic_word - np.log(word_z)))
+        corpus_likelihood += self.lambda_text * np.sum(
+            self.word_topic_cnt * (self.background_word + topic_word - np.log(word_z))
+        )
 
-        q = - self.lambda_text * (self.item_topic_cnt - self.item_word * e_theta / t_z)
+        q = -self.lambda_text * (self.item_topic_cnt - self.item_word * e_theta / t_z)
         dgamma_i += kappa * q
         dkappa += np.sum(gamma_i * q)
-        dtopic_word += - self.lambda_text * (self.word_topic_cnt - self.topic_cnt * e_phi / word_z)
+        dtopic_word += -self.lambda_text * (
+            self.word_topic_cnt - self.topic_cnt * e_phi / word_z
+        )
 
         loss = cf_loss + reg_loss - corpus_likelihood
 

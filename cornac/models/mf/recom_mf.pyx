@@ -81,8 +81,21 @@ class MF(Recommender):
     In Computer, (8), 30-37. 2009.
     """
 
-    def __init__(self, name='MF', k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02, use_bias=True,
-                 early_stop=False, num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+    def __init__(
+        self, 
+        name='MF', 
+        k=10, 
+        max_iter=20, 
+        learning_rate=0.01, 
+        lambda_reg=0.02, 
+        use_bias=True,
+        early_stop=False, 
+        num_threads=0, 
+        trainable=True, 
+        verbose=False, 
+        init_params=None, 
+        seed=None
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.max_iter = max_iter
@@ -90,6 +103,7 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
+        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -100,7 +114,6 @@ class MF(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.u_factors = init_params.get('U', None)
         self.i_factors = init_params.get('V', None)
         self.u_biases = init_params.get('Bu', None)
@@ -137,9 +150,9 @@ class MF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        if self.trainable:
-            self._init()
+        self._init()
 
+        if self.trainable:
             (rid, cid, val) = train_set.uir_tuple
             self._fit_sgd(rid, cid, val.astype(np.float32),
                           self.u_factors, self.i_factors, 

@@ -94,8 +94,8 @@ class PMF(Recommender):
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = self.init_params.get("U")  # matrix of user factors
-        self.V = self.init_params.get("V")  # matrix of item factors
+        self.U = init_params.get("U", None)  # matrix of user factors
+        self.V = init_params.get("V", None)  # matrix of item factors
         self.seed = seed
 
     def fit(self, train_set, val_set=None):

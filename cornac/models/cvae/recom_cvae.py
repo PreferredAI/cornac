@@ -125,10 +125,10 @@ class CVAE(Recommender):
         self.act_fn = act_fn
         self.lr = lr
         self.batch_size = batch_size
+        self.init_params = init_params
         self.seed = seed
 
         # Init params if provided
-        init_params = init_params if isinstance(init_params, dict) else {}
         self.U = init_params.get("U", None)
         self.V = init_params.get("V", None)
 
@@ -158,8 +158,9 @@ class CVAE(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+        
         if self.trainable:
-            self._init()
             self._fit_cvae()
 
         return self
