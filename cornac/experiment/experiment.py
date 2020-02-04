@@ -143,7 +143,7 @@ class Experiment:
 
         print(output)
 
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
         save_dir = "." if self.save_dir is None else self.save_dir
         output_file = os.path.join(save_dir, f"CornacExp-{timestamp}.log")
         with open(output_file, "w") as f:

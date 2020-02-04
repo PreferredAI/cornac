@@ -113,7 +113,7 @@ class Recommender:
 
         model_dir = os.path.join(save_dir, self.name)
         os.makedirs(model_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
         model_file = os.path.join(model_dir, f"{timestamp}.pkl")
 
         saved_model = copy.deepcopy(self)
