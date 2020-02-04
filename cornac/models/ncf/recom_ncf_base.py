@@ -14,11 +14,7 @@
 # ============================================================================
 
 import os
-import pickle
 import copy
-from datetime import datetime
-from glob import glob
-
 from tqdm import trange
 
 from ..recommender import Recommender
@@ -134,7 +130,13 @@ class NCFBase(Recommender):
         return self
 
     def _build_graph(self):
-        raise NotImplementedError()
+        import tensorflow.compat.v1 as tf
+
+        # less verbose TF
+        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+        tf.logging.set_verbosity(tf.logging.ERROR)
+
+        self.graph = tf.Graph()
 
     def _sess_init(self):
         import tensorflow.compat.v1 as tf
@@ -191,25 +193,11 @@ class NCFBase(Recommender):
         if save_dir is None:
             return
 
-        model_dir = os.path.join(save_dir, self.name)
-        os.makedirs(model_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        model_file = os.path.join(model_dir, f"{timestamp}")
-
+        model_file = Recommender.save(self, save_dir)
         # save TF weights
-        self.saver.save(self.sess, model_file + ".cpt")
+        self.saver.save(self.sess, model_file.replace(".pkl", ".cpt"))
 
-        # save model hyper-params
-        saved_model = copy.deepcopy(self)
-        saved_model.pretrained = False  # a quick fix for NeuMF
-        pickle.dump(
-            saved_model,
-            open(model_file + ".pkl", "wb"),
-            protocol=pickle.HIGHEST_PROTOCOL,
-        )
-
-        if self.verbose:
-            print(f"{self.name} model is saved to {model_file}")
+        return model_file
 
     @staticmethod
     def load(model_path, trainable=False):
@@ -229,18 +217,12 @@ class NCFBase(Recommender):
         -------
         self : object
         """
-        import tensorflow.compat.v1 as tf
-
-        if os.path.isdir(model_path):
-            model_file = sorted(glob(f"{model_path}/*.pkl"))[-1]
-        else:
-            model_file = model_path + ".pkl"
-
-        model = pickle.load(open(model_file, "rb"))
-        model.trainable = trainable
+        model = Recommender.load(model_path, trainable)
+        if hasattr(model, "pretrained"):  # NeuMF
+            model.pretrained = False
 
         model._build_graph()
-        model.saver.restore(model.sess, model_file.replace(".pkl", ".cpt"))
+        model.saver.restore(model.sess, model.load_from.replace(".pkl", ".cpt"))
 
         return model
 

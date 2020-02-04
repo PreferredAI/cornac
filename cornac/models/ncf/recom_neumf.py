@@ -13,8 +13,6 @@
 # limitations under the License.
 # ============================================================================
 
-import os
-
 import numpy as np
 from tqdm import trange
 
@@ -127,7 +125,6 @@ class NeuMF(NCFBase):
             [
                 "gmf_user_id",
                 "mlp_user_id",
-                "pretrained",
                 "gmf_model",
                 "mlp_model",
                 "alpha",
@@ -159,10 +156,7 @@ class NeuMF(NCFBase):
         import tensorflow.compat.v1 as tf
         from .ops import gmf, mlp, loss_fn, train_fn
 
-        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-        tf.logging.set_verbosity(tf.logging.ERROR)
-
-        self.graph = tf.Graph()
+        super()._build_graph()
         with self.graph.as_default():
             tf.set_random_seed(self.seed)
 

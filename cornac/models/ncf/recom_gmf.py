@@ -13,8 +13,6 @@
 # limitations under the License.
 # ============================================================================
 
-import os
-
 import numpy as np
 
 from .recom_ncf_base import NCFBase
@@ -107,11 +105,8 @@ class GMF(NCFBase):
     def _build_graph(self):
         import tensorflow.compat.v1 as tf
         from .ops import gmf, loss_fn, train_fn
-
-        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-        tf.logging.set_verbosity(tf.logging.ERROR)
-
-        self.graph = tf.Graph()
+        
+        super()._build_graph()
         with self.graph.as_default():
             tf.set_random_seed(self.seed)
 
