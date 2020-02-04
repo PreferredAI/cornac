@@ -57,7 +57,16 @@ class SKMeans(Recommender):
     via a weighted clustering approach." Neurocomputing 175 (2016): 206-215.
     """
 
-    def __init__(self, k=5, max_iter=100, name="Skmeans", trainable=True, tol=1e-6, verbose=True, init_par=None):
+    def __init__(
+        self,
+        k=5,
+        max_iter=100,
+        name="Skmeans",
+        trainable=True,
+        tol=1e-6,
+        verbose=True,
+        init_par=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_par = init_par
@@ -83,24 +92,37 @@ class SKMeans(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from .skmeans import skmeans
-
         X = self.train_set.matrix
         X = sp.csr_matrix(X)
 
         # Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.
         X1 = X.copy()
-        X1 = X1.multiply(sp.csc_matrix(1. / (np.sqrt(X1.multiply(X1).sum(1).A1) + 1e-20)).T)
+        X1 = X1.multiply(
+            sp.csc_matrix(1.0 / (np.sqrt(X1.multiply(X1).sum(1).A1) + 1e-20)).T
+        )
 
         if self.trainable:
-            res = skmeans(X1, k=self.k, max_iter=self.max_iter, tol=self.tol, verbose=self.verbose,
-                          init_par=self.init_par)
-            self.centroids = res['centroids']
-            self.final_par = res['partition']
+            from .skmeans import skmeans
+
+            res = skmeans(
+                X1,
+                k=self.k,
+                max_iter=self.max_iter,
+                tol=self.tol,
+                verbose=self.verbose,
+                init_par=self.init_par,
+            )
+            self.centroids = res["centroids"]
+            self.final_par = res["partition"]
+            # overwrite init_par for future fine-tuning
+            self.init_par = self.final_par
         else:
-            print('%s is trained already (trainable = False)' % (self.name))
-        self.user_center_sim = X1 * self.centroids.T  # user-centroid cosine similarity matrix
-        del (X1)
+            print("%s is trained already (trainable = False)" % (self.name))
+
+        self.user_center_sim = (
+            X1 * self.centroids.T
+        )  # user-centroid cosine similarity matrix
+        del X1
 
         return self
 
@@ -124,19 +146,32 @@ class SKMeans(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
-            known_item_scores = self.centroids.multiply(self.user_center_sim[user_idx, :].T)
+            known_item_scores = self.centroids.multiply(
+                self.user_center_sim[user_idx, :].T
+            )
             known_item_scores = known_item_scores.sum(0).A1 / (
-                    self.user_center_sim[user_idx, :].sum() + 1e-20)  # weighted average of cluster centroids
+                self.user_center_sim[user_idx, :].sum() + 1e-20
+            )  # weighted average of cluster centroids
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
-            user_pred = self.centroids[item_idx, :].multiply(self.user_center_sim[user_idx, :].T)
+            user_pred = self.centroids[item_idx, :].multiply(
+                self.user_center_sim[user_idx, :].T
+            )
             # transform user_pred to a flatten array
             user_pred = user_pred.sum(0).A1 / (
-                    self.user_center_sim[user_idx, :].sum() + 1e-20)  # weighted average of cluster centroids
+                self.user_center_sim[user_idx, :].sum() + 1e-20
+            )  # weighted average of cluster centroids
 
             return user_pred
