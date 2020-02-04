@@ -198,6 +198,17 @@ class C2PF(Recommender):
             self.Theta = sp.csc_matrix(res["Z"]).todense()
             self.Beta = sp.csc_matrix(res["W"]).todense()
             self.Xi = sp.csc_matrix(res["Q"]).todense()
+
+            # overwrite init_params for future fine-tuning
+            self.init_params["G_s"] = np.asarray(res["G_s"])
+            self.init_params["G_r"] = np.asarray(res["G_r"])
+            self.init_params["L_s"] = np.asarray(res["L_s"])
+            self.init_params["L_r"] = np.asarray(res["L_r"])
+            self.init_params["L2_s"] = np.asarray(res["L2_s"])
+            self.init_params["L2_r"] = np.asarray(res["L2_r"])
+            self.init_params["L3_s"] = np.asarray(res["L3_s"])
+            self.init_params["L3_r"] = np.asarray(res["L3_r"])
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 
