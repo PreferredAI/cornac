@@ -79,15 +79,15 @@ class OnlineIBPR(Recommender):
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.name = name
         self.learning_rate = learning_rate
         self.lamda = lamda
         self.batch_size = batch_size
 
-        self.U = init_params.get("U", None)  # matrix of user factors
-        self.V = init_params.get("V", None)  # matrix of item factors
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.

@@ -110,12 +110,12 @@ class WMF(Recommender):
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.verbose = verbose
-        self.init_params = init_params
         self.seed = seed
 
         # Init params if provided
-        self.U = init_params.get("U", None)
-        self.V = init_params.get("V", None)
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)
+        self.V = self.init_params.get("V", None)
 
     def _init(self):
         rng = get_rng(self.seed)

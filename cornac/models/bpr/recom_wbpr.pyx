@@ -69,12 +69,30 @@ class WBPR(BPR):
     "Personalized ranking for non-uniformly sampled items." In Proceedings of KDD Cup 2011, pp. 231-247. 2012.
     """
 
-    def __init__(self, name="WBPR", k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01,
-                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+    def __init__(
+        self, 
+        name="WBPR", 
+        k=10, 
+        max_iter=100, 
+        learning_rate=0.001, 
+        lambda_reg=0.01,
+        num_threads=0, 
+        trainable=True, 
+        verbose=False, 
+        init_params=None, 
+        seed=None
+    ):
         super().__init__(
-            name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, 
-            lambda_reg=lambda_reg, num_threads=num_threads, trainable=trainable, 
-            verbose=verbose, init_params=init_params, seed=seed
+            name=name, 
+            k=k, 
+            max_iter=max_iter, 
+            learning_rate=learning_rate, 
+            lambda_reg=lambda_reg, 
+            num_threads=num_threads, 
+            trainable=trainable, 
+            verbose=verbose, 
+            init_params=init_params, 
+            seed=seed
         )
 
     def fit(self, train_set, val_set=None):

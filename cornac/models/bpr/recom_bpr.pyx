@@ -100,14 +100,24 @@ class BPR(Recommender):
     BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.
     """
 
-    def __init__(self, name='BPR', k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01,
-                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+    def __init__(
+        self, 
+        name='BPR', 
+        k=10, 
+        max_iter=100, 
+        learning_rate=0.001, 
+        lambda_reg=0.01,
+        num_threads=0, 
+        trainable=True, 
+        verbose=False, 
+        init_params=None, 
+        seed=None
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
-        self.init_params = init_params
         self.seed = seed
         self.rng = get_rng(seed)
 
@@ -119,9 +129,10 @@ class BPR(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        self.u_factors = init_params.get('U', None)
-        self.i_factors = init_params.get('V', None)
-        self.i_biases = init_params.get('Bi', None)
+        self.init_params = {} if init_params is None else init_params
+        self.u_factors = self.init_params.get('U', None)
+        self.i_factors = self.init_params.get('V', None)
+        self.i_biases = self.init_params.get('Bi', None)
     
     def _init(self):
         n_users, n_items = self.train_set.total_users, self.train_set.total_items

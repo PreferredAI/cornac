@@ -100,13 +100,13 @@ class ConvMF(Recommender):
         self.name = name
         self.verbose = verbose
         self.cnn_epochs = cnn_epochs
-        self.init_params = init_params
         self.seed = seed
 
         # Init params if provided
-        self.U = init_params.get("U", None)
-        self.V = init_params.get("V", None)
-        self.W = init_params.get("W", None)
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)
+        self.V = self.init_params.get("V", None)
+        self.W = self.init_params.get("W", None)
 
     def _init(self):
         rng = get_rng(self.seed)

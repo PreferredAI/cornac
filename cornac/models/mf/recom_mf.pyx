@@ -103,7 +103,6 @@ class MF(Recommender):
         self.lambda_reg = lambda_reg
         self.use_bias = use_bias
         self.early_stop = early_stop
-        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -114,10 +113,11 @@ class MF(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        self.u_factors = init_params.get('U', None)
-        self.i_factors = init_params.get('V', None)
-        self.u_biases = init_params.get('Bu', None)
-        self.i_biases = init_params.get('Bi', None)
+        self.init_params = {} if init_params is None else init_params
+        self.u_factors = self.init_params.get('U', None)
+        self.i_factors = self.init_params.get('V', None)
+        self.u_biases = self.init_params.get('Bu', None)
+        self.i_biases = self.init_params.get('Bi', None)
         self.global_mean = 0.0
 
     def _init(self):

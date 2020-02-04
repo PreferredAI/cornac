@@ -149,7 +149,6 @@ class MTER(Recommender):
         self.lambda_bpr = lambda_bpr
         self.n_epochs = n_epochs
         self.lr = lr
-        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -160,13 +159,14 @@ class MTER(Recommender):
             self.n_threads = mp.cpu_count()
 
         # Init params if provided
-        self.G1 = init_params.get("G1", None)
-        self.G2 = init_params.get("G2", None)
-        self.G3 = init_params.get("G3", None)
-        self.U = init_params.get("U", None)
-        self.I = init_params.get("I", None)
-        self.A = init_params.get("A", None)
-        self.O = init_params.get("O", None)
+        self.init_params = {} if init_params is None else init_params
+        self.G1 = self.init_params.get("G1", None)
+        self.G2 = self.init_params.get("G2", None)
+        self.G3 = self.init_params.get("G3", None)
+        self.U = self.init_params.get("U", None)
+        self.I = self.init_params.get("I", None)
+        self.A = self.init_params.get("A", None)
+        self.O = self.init_params.get("O", None)
 
     def _init(self):
         U_shape = (self.train_set.num_users, self.n_user_factors)

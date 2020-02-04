@@ -146,7 +146,6 @@ class EFM(Recommender):
         self.lambda_v = lambda_v
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
-        self.init_params = init_params
         self.seed = seed
 
         if seed is not None:
@@ -157,11 +156,12 @@ class EFM(Recommender):
             self.num_threads = multiprocessing.cpu_count()
 
         # Init params if provided
-        self.U1 = init_params.get('U1', None)
-        self.U2 = init_params.get('U2', None)
-        self.V = init_params.get('V', None)
-        self.H1 = init_params.get('H1', None)
-        self.H2 = init_params.get('H2', None)
+        self.init_params = {} if init_params is None else init_params
+        self.U1 = self.init_params.get('U1', None)
+        self.U2 = self.init_params.get('U2', None)
+        self.V = self.init_params.get('V', None)
+        self.H1 = self.init_params.get('H1', None)
+        self.H2 = self.init_params.get('H2', None)
 
     def _init(self):
         rng = get_rng(self.seed)

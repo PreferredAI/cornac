@@ -127,13 +127,13 @@ class CDR(Recommender):
         self.batch_size = batch_size
         self.verbose = verbose
         self.vocab_size = vocab_size
-        self.init_params = init_params
         self.seed = seed
         self.rng = get_rng(seed)
 
         # Init params if provided
-        self.U = init_params.get("U", None)
-        self.V = init_params.get("V", None)
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)
+        self.V = self.init_params.get("V", None)
 
     def _init(self):
         n_users, n_items = self.train_set.num_users, self.train_set.num_items

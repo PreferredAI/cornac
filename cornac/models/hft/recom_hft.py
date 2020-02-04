@@ -104,16 +104,16 @@ class HFT(Recommender):
         self.name = name
         self.max_iter = max_iter
         self.verbose = verbose
-        self.init_params = init_params
         self.seed = seed
         self.vocab_size = vocab_size
 
         # Init params if provided
-        self.alpha = init_params.get("alpha", None)
-        self.beta_u = init_params.get("beta_u", None)
-        self.beta_i = init_params.get("beta_i", None)
-        self.gamma_u = init_params.get("gamma_u", None)
-        self.gamma_i = init_params.get("gamma_i", None)
+        self.init_params = {} if init_params is None else init_params
+        self.alpha = self.init_params.get("alpha", None)
+        self.beta_u = self.init_params.get("beta_u", None)
+        self.beta_i = self.init_params.get("beta_i", None)
+        self.gamma_u = self.init_params.get("gamma_u", None)
+        self.gamma_i = self.init_params.get("gamma_i", None)
 
     def _init(self):
         rng = get_rng(self.seed)

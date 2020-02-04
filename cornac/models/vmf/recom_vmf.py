@@ -188,7 +188,7 @@ class VMF(Recommender):
 
             if self.verbose:
                 print("Learning completed")
-                
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 
