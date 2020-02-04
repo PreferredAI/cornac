@@ -65,9 +65,18 @@ class OnlineIBPR(Recommender):
       In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate=0.05, lamda=0.001, batch_size=100, name="online_ibpr",
-                 trainable=True,
-                 verbose=False, init_params=None):
+    def __init__(
+        self,
+        k=20,
+        max_iter=100,
+        learning_rate=0.05,
+        lamda=0.001,
+        batch_size=100,
+        name="online_ibpr",
+        trainable=True,
+        verbose=False,
+        init_params=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
@@ -77,8 +86,8 @@ class OnlineIBPR(Recommender):
         self.lamda = lamda
         self.batch_size = batch_size
 
-        self.U = init_params['U']  # matrix of user factors
-        self.V = init_params['V']  # matrix of item factors
+        self.U = init_params.get("U", None)  # matrix of user factors
+        self.V = init_params.get("V", None)  # matrix of item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -95,26 +104,30 @@ class OnlineIBPR(Recommender):
         -------
         self : object
         """
-        from .online_ibpr import online_ibpr
 
         Recommender.fit(self, train_set, val_set)
 
-        X = self.train_set.matrix
-        # change the data to original user Id item Id and rating format
-        X = X.tocoo()  # convert sparse matrix to COOrdiante format
-        triplets = np.ndarray(shape=(len(X.data), 3), dtype=float)
-        triplets[:, 0] = X.row
-        triplets[:, 1] = X.col
-        triplets[:, 2] = X.data
+        if self.trainable:
+            from .online_ibpr import online_ibpr
 
-        if self.verbose:
-            print('Learning...')
-        res = online_ibpr(triplets, k=self.k, n_epochs=self.max_iter, lamda=self.lamda,
-                          learning_rate=self.learning_rate, batch_size=self.batch_size, init_params=self.init_params)
-        self.U = np.asarray(res['U'])
-        self.V = np.asarray(res['V'])
-        if self.verbose:
-            print('Learning completed')
+            res = online_ibpr(
+                train_set,
+                k=self.k,
+                n_epochs=self.max_iter,
+                lamda=self.lamda,
+                learning_rate=self.learning_rate,
+                batch_size=self.batch_size,
+                init_params=self.init_params,
+            )
+            self.U = np.asarray(res["U"])
+            self.V = np.asarray(res["V"])
+
+            # overwrite init_params for futher fine-tuning
+            self.init_params["U"] = self.U
+            self.init_params["V"] = self.V
+
+            if self.verbose:
+                print("Learning completed")
 
         return self
 
@@ -138,13 +151,20 @@ class OnlineIBPR(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
             return user_pred
