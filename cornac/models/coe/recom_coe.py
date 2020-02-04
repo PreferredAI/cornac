@@ -114,7 +114,7 @@ class COE(Recommender):
 
             if self.verbose:
                 print("Learning...")
-                
+
             res = coe(
                 X,
                 k=self.k,
@@ -126,6 +126,10 @@ class COE(Recommender):
             )
             self.U = np.asarray(res["U"])
             self.V = np.asarray(res["V"])
+
+            # overwrite init_params for futher fine-tuning
+            self.init_params["U"] = self.U
+            self.init_params["V"] = self.V
 
             if self.verbose:
                 print("Learning completed")
