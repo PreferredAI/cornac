@@ -90,8 +90,7 @@ class Recommender:
         """
         init_params = {}
         for name in self._get_init_params():
-            init_params[name] = copy.deepcopy(getattr(self, name))
-        init_params = {**init_params, **new_params}
+            init_params[name] = new_params.get(name, copy.deepcopy(getattr(self, name)))
 
         return self.__class__(**init_params)
 
