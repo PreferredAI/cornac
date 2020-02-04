@@ -63,7 +63,7 @@ class Recommender:
                 continue
             setattr(result, k, copy.deepcopy(v))
         return result
-    
+
     @classmethod
     def _get_init_params(cls):
         """Get initial parameters from the model constructor"""
@@ -103,13 +103,17 @@ class Recommender:
         save_dir: str, default: None
             Path to a directory for the model to be stored.
 
+        Returns
+        -------
+        model_file : str
+            Path to the model file stored on the filesystem.
         """
         if save_dir is None:
             return
 
         model_dir = os.path.join(save_dir, self.name)
         os.makedirs(model_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
         model_file = os.path.join(model_dir, f"{timestamp}.pkl")
 
         saved_model = copy.deepcopy(self)
@@ -120,6 +124,8 @@ class Recommender:
 
         if self.verbose:
             print(f"{self.name} model is saved to {model_file}")
+
+        return model_file
 
     @staticmethod
     def load(model_path, trainable=False):
@@ -146,6 +152,7 @@ class Recommender:
 
         model = pickle.load(open(model_file, "rb"))
         model.trainable = trainable
+        model.load_from = model_file  # for further loading
 
         return model
 
