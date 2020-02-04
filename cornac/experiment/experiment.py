@@ -145,6 +145,6 @@ class Experiment:
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
         save_dir = "." if self.save_dir is None else self.save_dir
-        output_file = os.path.join(save_dir, f"CornacExp-{timestamp}.log")
+        output_file = os.path.join(save_dir, "CornacExp-{}.log".format(timestamp))
         with open(output_file, "w") as f:
             f.write(output)

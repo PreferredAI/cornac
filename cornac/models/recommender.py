@@ -114,7 +114,7 @@ class Recommender:
         model_dir = os.path.join(save_dir, self.name)
         os.makedirs(model_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
-        model_file = os.path.join(model_dir, f"{timestamp}.pkl")
+        model_file = os.path.join(model_dir, "{}.pkl".format(timestamp))
 
         saved_model = copy.deepcopy(self)
 
@@ -123,7 +123,7 @@ class Recommender:
         )
 
         if self.verbose:
-            print(f"{self.name} model is saved to {model_file}")
+            print("{} model is saved to {}".format(self.name, model_file))
 
         return model_file
 
