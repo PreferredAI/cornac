@@ -134,7 +134,8 @@ class Experiment:
             if self.val_result is not None:
                 self.val_result.append(val_result)
 
-            model.save(self.save_dir)
+            if not isinstance(self.result, CVExperimentResult):
+                model.save(self.save_dir)
 
         output = ""
         if self.val_result is not None:
