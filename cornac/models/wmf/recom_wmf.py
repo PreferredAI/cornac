@@ -13,10 +13,15 @@
 # limitations under the License.
 # ============================================================================
 
+import os
+
 import numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import xavier_uniform
 
 
 class WMF(Recommender):
@@ -60,6 +65,7 @@ class WMF(Recommender):
 
         U: ndarray, shape (n_users,k)
             The user latent factors, optional initialization via init_params.
+            
         V: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
 
@@ -76,9 +82,22 @@ class WMF(Recommender):
 
     """
 
-    def __init__(self, name='WMF', k=200, lambda_u=0.01, lambda_v=0.01,
-                 a=1, b=0.01, learning_rate=0.001, batch_size=128, max_iter=100,
-                 trainable=True, verbose=True, init_params=None, seed=None):
+    def __init__(
+        self,
+        name="WMF",
+        k=200,
+        lambda_u=0.01,
+        lambda_v=0.01,
+        a=1,
+        b=0.01,
+        learning_rate=0.001,
+        batch_size=128,
+        max_iter=100,
+        trainable=True,
+        verbose=True,
+        init_params=None,
+        seed=None,
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.lambda_u = lambda_u
@@ -91,8 +110,21 @@ class WMF(Recommender):
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.verbose = verbose
-        self.init_params = {} if not init_params else init_params
         self.seed = seed
+
+        # Init params if provided
+        init_params = init_params if isinstance(init_params, dict) else {}
+        self.U = init_params.get("U", None)
+        self.V = init_params.get("V", None)
+
+    def _init(self):
+        rng = get_rng(self.seed)
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+
+        if self.U is None:
+            self.U = xavier_uniform((n_users, self.k), rng)
+        if self.V is None:
+            self.V = xavier_uniform((n_items, self.k), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -111,26 +143,18 @@ class WMF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import xavier_uniform
-
-        rng = get_rng(self.seed)
-        self.U = self.init_params.get('U', xavier_uniform((self.train_set.num_users, self.k), rng))
-        self.V = self.init_params.get('V', xavier_uniform((self.train_set.num_items, self.k), rng))
-
         if self.trainable:
+            self._init()
             self._fit_cf()
 
         return self
 
-    def _fit_cf(self, ):
-        import os
+    def _fit_cf(self,):
         import tensorflow as tf
-        from tqdm import trange
         from .wmf import Model
 
         np.random.seed(self.seed)
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
         R = self.train_set.csc_matrix  # csc for efficient slicing over items
@@ -140,9 +164,16 @@ class WMF(Recommender):
         graph = tf.Graph()
         with graph.as_default():
             tf.set_random_seed(self.seed)
-            model = Model(n_users=n_users, n_items=n_items, k=self.k,
-                          lambda_u=self.lambda_u, lambda_v=self.lambda_v,
-                          lr=self.learning_rate, U=self.U, V=self.V)
+            model = Model(
+                n_users=n_users,
+                n_items=n_items,
+                k=self.k,
+                lambda_u=self.lambda_u,
+                lambda_v=self.lambda_v,
+                lr=self.learning_rate,
+                U=self.U,
+                V=self.V,
+            )
 
         # Training model
         config = tf.ConfigProto()
@@ -155,16 +186,20 @@ class WMF(Recommender):
 
                 sum_loss = 0
                 count = 0
-                for i, batch_ids in enumerate(self.train_set.item_iter(self.batch_size, shuffle=True)):
+                for i, batch_ids in enumerate(
+                    self.train_set.item_iter(self.batch_size, shuffle=True)
+                ):
                     batch_R = R[:, batch_ids]
                     batch_C = np.ones(batch_R.shape) * self.b
                     batch_C[batch_R.nonzero()] = self.a
                     feed_dict = {
                         model.ratings: batch_R.A,
                         model.C: batch_C,
-                        model.item_ids: batch_ids
+                        model.item_ids: batch_ids,
                     }
-                    _, _loss = sess.run([model.opt, model.loss], feed_dict)  # train U, V
+                    _, _loss = sess.run(
+                        [model.opt, model.loss], feed_dict
+                    )  # train U, V
 
                     sum_loss += _loss
                     count += len(batch_ids)
@@ -176,7 +211,7 @@ class WMF(Recommender):
         tf.reset_default_graph()
 
         if self.verbose:
-            print('Learning completed!')
+            print("Learning completed!")
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -197,12 +232,19 @@ class WMF(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
             return user_pred
