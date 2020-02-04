@@ -144,6 +144,12 @@ class HPF(Recommender):
             self.Theta = np.asarray(res["Z"])
             self.Beta = np.asarray(res["W"])
 
+            # overwrite init_params for future fine-tuning
+            self.init_params["G_s"] = np.asarray(res["G_s"])
+            self.init_params["G_r"] = np.asarray(res["G_r"])
+            self.init_params["L_s"] = np.asarray(res["L_s"])
+            self.init_params["L_r"] = np.asarray(res["L_r"])
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 
