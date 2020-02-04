@@ -71,11 +71,29 @@ class C2PF(Recommender):
     In IJCAI, pp. 2667-2674. 2018.
     """
 
-    def __init__(self, k=100, max_iter=100, variant='c2pf', name=None, trainable=True, verbose=False,
-                 init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None, 'L2_s': None, 'L2_r': None,
-                              'L3_s': None, 'L3_r': None}):
+    def __init__(
+        self,
+        k=100,
+        max_iter=100,
+        variant="c2pf",
+        name=None,
+        trainable=True,
+        verbose=False,
+        init_params={
+            "G_s": None,
+            "G_r": None,
+            "L_s": None,
+            "L_r": None,
+            "L2_s": None,
+            "L2_r": None,
+            "L3_s": None,
+            "L3_r": None,
+        },
+    ):
         if name is None:
-            Recommender.__init__(self, name=variant.upper(), trainable=trainable, verbose=verbose)
+            Recommender.__init__(
+                self, name=variant.upper(), trainable=trainable, verbose=verbose
+            )
         else:
             Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
@@ -112,39 +130,76 @@ class C2PF(Recommender):
 
         # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
         (rid, cid, val) = sp.find(X)
-        val = np.array(val, dtype='float32')
-        rid = np.array(rid, dtype='int32')
-        cid = np.array(cid, dtype='int32')
-        tX = np.concatenate((np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))), axis=1)
+        val = np.array(val, dtype="float32")
+        rid = np.array(rid, dtype="int32")
+        cid = np.array(cid, dtype="int32")
+        tX = np.concatenate(
+            (np.concatenate(([rid], [cid]), axis=0).T, val.reshape((len(val), 1))),
+            axis=1,
+        )
         del rid, cid, val
 
         if self.trainable:
             map_iid = train_set.item_indices
             (rid, cid, val) = train_set.item_graph.get_train_triplet(map_iid, map_iid)
-            context_info = np.hstack((rid.reshape(-1, 1), cid.reshape(-1, 1), val.reshape(-1, 1)))
+            context_info = np.hstack(
+                (rid.reshape(-1, 1), cid.reshape(-1, 1), val.reshape(-1, 1))
+            )
 
-            if self.variant == 'c2pf':
-                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
-                                self.max_iter,
-                                self.init_params)
-            elif self.variant == 'tc2pf':
-                res = c2pf.t_c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
-                                  self.max_iter,
-                                  self.init_params)
-            elif self.variant == 'rc2pf':
-                res = c2pf.r_c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
-                                  self.max_iter,
-                                  self.init_params)
+            if self.variant == "c2pf":
+                res = c2pf.c2pf(
+                    tX,
+                    X.shape[0],
+                    X.shape[1],
+                    context_info,
+                    X.shape[1],
+                    X.shape[1],
+                    self.k,
+                    self.max_iter,
+                    self.init_params,
+                )
+            elif self.variant == "tc2pf":
+                res = c2pf.t_c2pf(
+                    tX,
+                    X.shape[0],
+                    X.shape[1],
+                    context_info,
+                    X.shape[1],
+                    X.shape[1],
+                    self.k,
+                    self.max_iter,
+                    self.init_params,
+                )
+            elif self.variant == "rc2pf":
+                res = c2pf.r_c2pf(
+                    tX,
+                    X.shape[0],
+                    X.shape[1],
+                    context_info,
+                    X.shape[1],
+                    X.shape[1],
+                    self.k,
+                    self.max_iter,
+                    self.init_params,
+                )
             else:
-                res = c2pf.c2pf(tX, X.shape[0], X.shape[1], context_info, X.shape[1], X.shape[1], self.k,
-                                self.max_iter,
-                                self.init_params)
+                res = c2pf.c2pf(
+                    tX,
+                    X.shape[0],
+                    X.shape[1],
+                    context_info,
+                    X.shape[1],
+                    X.shape[1],
+                    self.k,
+                    self.max_iter,
+                    self.init_params,
+                )
 
-            self.Theta = sp.csc_matrix(res['Z']).todense()
-            self.Beta = sp.csc_matrix(res['W']).todense()
-            self.Xi = sp.csc_matrix(res['Q']).todense()
+            self.Theta = sp.csc_matrix(res["Z"]).todense()
+            self.Beta = sp.csc_matrix(res["W"]).todense()
+            self.Xi = sp.csc_matrix(res["Q"]).todense()
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))
+            print("%s is trained already (trainable = False)" % (self.name))
 
         return self
 
@@ -166,22 +221,34 @@ class C2PF(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if self.variant == 'c2pf' or self.variant == 'tc2pf':
+        if self.variant == "c2pf" or self.variant == "tc2pf":
             if item_idx is None:
-                user_pred = self.Beta * self.Theta[user_idx, :].T + self.Xi * self.Theta[user_idx, :].T
+                user_pred = (
+                    self.Beta * self.Theta[user_idx, :].T
+                    + self.Xi * self.Theta[user_idx, :].T
+                )
             else:
-                user_pred = self.Beta[item_idx, :] * self.Theta[user_idx, :].T + self.Xi * self.Theta[user_idx, :].T
-        elif self.variant == 'rc2pf':
+                user_pred = (
+                    self.Beta[item_idx, :] * self.Theta[user_idx, :].T
+                    + self.Xi * self.Theta[user_idx, :].T
+                )
+        elif self.variant == "rc2pf":
             if item_idx is None:
                 user_pred = self.Xi * self.Theta[user_idx, :].T
             else:
                 user_pred = self.Xi[item_idx,] * self.Theta[user_idx, :].T
         else:
             if item_idx is None:
-                user_pred = self.Beta * self.Theta[user_idx, :].T + self.Xi * self.Theta[user_idx, :].T
+                user_pred = (
+                    self.Beta * self.Theta[user_idx, :].T
+                    + self.Xi * self.Theta[user_idx, :].T
+                )
             else:
-                user_pred = self.Beta[item_idx, :] * self.Theta[user_idx, :].T + self.Xi * self.Theta[user_idx, :].T
+                user_pred = (
+                    self.Beta[item_idx, :] * self.Theta[user_idx, :].T
+                    + self.Xi * self.Theta[user_idx, :].T
+                )
         # transform user_pred to a flatten array,
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+        user_pred = np.array(user_pred, dtype="float64").flatten()
 
         return user_pred
