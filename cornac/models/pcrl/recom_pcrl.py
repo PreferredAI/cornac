@@ -70,14 +70,26 @@ class PCRL(Recommender):
     In UAI 2018.
     """
 
-    def __init__(self, k=100, z_dims=[300], max_iter=300, batch_size=300, learning_rate=0.001, name="pcrl",
-                 trainable=True,
-                 verbose=False, w_determinist=True, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
+    def __init__(
+        self,
+        k=100,
+        z_dims=[300],
+        max_iter=300,
+        batch_size=300,
+        learning_rate=0.001,
+        name="pcrl",
+        trainable=True,
+        verbose=False,
+        w_determinist=True,
+        init_params={"G_s": None, "G_r": None, "L_s": None, "L_r": None},
+    ):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
         self.k = k
-        self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
+        self.z_dims = (
+            z_dims
+        )  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -103,19 +115,27 @@ class PCRL(Recommender):
 
         from .pcrl import PCRL_
 
-        #X = sp.csc_matrix(self.train_set.matrix)
+        # X = sp.csc_matrix(self.train_set.matrix)
 
         if self.trainable:
             # instanciate pcrl
-            #train_aux_info = train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
-            pcrl_ = PCRL_(train_set=train_set, k=self.k, z_dims=self.z_dims, n_epoch=self.max_iter,
-                          batch_size=self.batch_size, learning_rate=self.learning_rate, B=1,
-                          w_determinist=self.w_determinist, init_params=self.init_params)
+            # train_aux_info = train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
+            pcrl_ = PCRL_(
+                train_set=train_set,
+                k=self.k,
+                z_dims=self.z_dims,
+                n_epoch=self.max_iter,
+                batch_size=self.batch_size,
+                learning_rate=self.learning_rate,
+                B=1,
+                w_determinist=self.w_determinist,
+                init_params=self.init_params,
+            )
             pcrl_.learn()
             self.Theta = np.array(pcrl_.Gs) / np.array(pcrl_.Gr)
             self.Beta = np.array(pcrl_.Ls) / np.array(pcrl_.Lr)
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))
+            print("%s is trained already (trainable = False)" % (self.name))
 
         return self
 
@@ -143,6 +163,6 @@ class PCRL(Recommender):
         else:
             user_pred = self.Beta[item_idx, :] * self.Theta[user_idx, :].T
         # transform user_pred to a flatten array
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+        user_pred = np.array(user_pred, dtype="float64").flatten()
 
         return user_pred
