@@ -63,8 +63,10 @@ class SoRec(Recommender):
 
         U: a ndarray of shape (n_users, k)
             Containing the user latent factors.
+            
         V: a ndarray of shape (n_items, k)
             Containing the item latent factors.
+            
         Z: a ndarray of shape (n_users, k)
             Containing the social network latent factors.
 
@@ -78,8 +80,21 @@ class SoRec(Recommender):
 
     """
 
-    def __init__(self, name="SoRec", k=5, max_iter=100, learning_rate=0.001, lamda_c=10, lamda=0.001, gamma=0.9,
-                 weight_link = True, trainable=True, verbose=False, init_params={}, seed=None):
+    def __init__(
+        self,
+        name="SoRec",
+        k=5,
+        max_iter=100,
+        learning_rate=0.001,
+        lamda_c=10,
+        lamda=0.001,
+        gamma=0.9,
+        weight_link=True,
+        trainable=True,
+        verbose=False,
+        init_params={},
+        seed=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.init_params = init_params
@@ -92,19 +107,20 @@ class SoRec(Recommender):
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = self.init_params.get('U')  # matrix of user factors
-        self.V = self.init_params.get('V')  # matrix of item factors
-        self.Z = self.init_params.get('Z')  # matrix of social network factors
         self.seed = seed
 
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
+        self.Z = self.init_params.get("Z", None)  # matrix of social network factors
+
         if self.U is not None and self.U.shape[1] != self.k:
-            raise ValueError('initial parameters U dimension error')
+            raise ValueError("initial parameters U dimension error")
 
         if self.V is not None and self.V.shape[1] != self.k:
-            raise ValueError('initial parameters V dimension error')
+            raise ValueError("initial parameters V dimension error")
 
         if self.Z is not None and self.Z.shape[1] != self.k:
-            raise ValueError('initial parameters Z dimension error')
+            raise ValueError("initial parameters Z dimension error")
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -132,52 +148,78 @@ class SoRec(Recommender):
 
             # user social network
             map_uid = train_set.user_indices
-            (net_uid, net_jid, net_val) = train_set.user_graph.get_train_triplet(map_uid, map_uid)
+            (net_uid, net_jid, net_val) = train_set.user_graph.get_train_triplet(
+                map_uid, map_uid
+            )
 
             if self.weight_link:
                 degree = train_set.user_graph.get_node_degree(map_uid, map_uid)
                 weighted_net_val = []
                 for u, j, val in zip(net_uid, net_jid, net_val):
                     u_out = degree[int(u)][1]
-                    j_in =  degree[int(j)][0]
+                    j_in = degree[int(j)][0]
                     val_weighted = math.sqrt(j_in / (j_in + u_out)) * val
                     weighted_net_val.append(val_weighted)
                 net_val = weighted_net_val
 
-
-
             if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
                 if self.train_set.min_rating == self.train_set.max_rating:
-                    rat_val = scale(rat_val, 0., 1., 0., self.train_set.max_rating)
+                    rat_val = scale(rat_val, 0.0, 1.0, 0.0, self.train_set.max_rating)
                 else:
-                    rat_val = scale(rat_val, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
+                    rat_val = scale(
+                        rat_val,
+                        0.0,
+                        1.0,
+                        self.train_set.min_rating,
+                        self.train_set.max_rating,
+                    )
 
-            rat_val = np.array(rat_val, dtype='float32')
-            rat_uid = np.array(rat_uid, dtype='int32')
-            rat_iid = np.array(rat_iid, dtype='int32')
+            rat_val = np.array(rat_val, dtype="float32")
+            rat_uid = np.array(rat_uid, dtype="int32")
+            rat_iid = np.array(rat_iid, dtype="int32")
 
-            net_val = np.array(net_val, dtype='float32')
-            net_uid = np.array(net_uid, dtype='int32')
-            net_jid = np.array(net_jid, dtype='int32')
-
-            if self.verbose:
-                print('Learning...')
-
-            res = sorec.sorec(rat_uid, rat_iid, rat_val, net_uid, net_jid, net_val, k=self.k,
-                              n_users=train_set.num_users,
-                              n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val),
-                              n_epochs=self.max_iter, lamda_c=self.lamda_c,
-                              lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                              init_params=self.init_params, verbose=self.verbose, seed=self.seed)
-
-            self.U = np.asarray(res['U'])
-            self.V = np.asarray(res['V'])
-            self.Z = np.asarray(res['Z'])
+            net_val = np.array(net_val, dtype="float32")
+            net_uid = np.array(net_uid, dtype="int32")
+            net_jid = np.array(net_jid, dtype="int32")
 
             if self.verbose:
-                print('Learning completed')
+                print("Learning...")
+
+            res = sorec.sorec(
+                rat_uid,
+                rat_iid,
+                rat_val,
+                net_uid,
+                net_jid,
+                net_val,
+                k=self.k,
+                n_users=train_set.num_users,
+                n_items=train_set.num_items,
+                n_ratings=len(rat_val),
+                n_edges=len(net_val),
+                n_epochs=self.max_iter,
+                lamda_c=self.lamda_c,
+                lamda=self.lamda,
+                learning_rate=self.learning_rate,
+                gamma=self.gamma,
+                init_params=self.init_params,
+                verbose=self.verbose,
+                seed=self.seed,
+            )
+
+            self.U = np.asarray(res["U"])
+            self.V = np.asarray(res["V"])
+            self.Z = np.asarray(res["Z"])
+
+            # overwrite init_params for future fine-tuning
+            self.init_params["U"] = self.U
+            self.init_params["V"] = self.V
+            self.init_params["Z"] = self.Z
+
+            if self.verbose:
+                print("Learning completed")
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % self.name)
+            print("%s is trained already (trainable = False)" % self.name)
 
         return self
 
@@ -197,19 +239,32 @@ class SoRec(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
             user_pred = sigmoid(user_pred)
             if self.train_set.min_rating == self.train_set.max_rating:
-                user_pred = scale(user_pred, 0., self.train_set.max_rating, 0., 1.)
+                user_pred = scale(user_pred, 0.0, self.train_set.max_rating, 0.0, 1.0)
             else:
-                user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+                user_pred = scale(
+                    user_pred,
+                    self.train_set.min_rating,
+                    self.train_set.max_rating,
+                    0.0,
+                    1.0,
+                )
 
             return user_pred
