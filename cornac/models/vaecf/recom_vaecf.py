@@ -124,7 +124,7 @@ class VAECF(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         import torch
-        from .vaecf import learn
+        from .vaecf import VAE, learn
 
         self.device = (
             torch.device("cuda:0")
@@ -133,20 +133,30 @@ class VAECF(Recommender):
         )
 
         if self.trainable:
-            self.vae = learn(
+            if self.seed is not None:
+                torch.manual_seed(self.seed)
+                torch.cuda.manual_seed(self.seed)
+
+            if not hasattr(self, "vae"):
+                data_dim = train_set.matrix.shape[1]
+                self.vae = VAE(
+                    self.k,
+                    [data_dim] + self.autoencoder_structure,
+                    self.act_fn,
+                    self.likelihood,
+                ).to(self.device)
+
+            learn(
+                self.vae,
                 self.train_set,
-                z_dim=self.k,
-                ae_structure=self.autoencoder_structure,
-                act_fn=self.act_fn,
-                likelihood=self.likelihood,
                 n_epochs=self.n_epochs,
                 batch_size=self.batch_size,
                 learn_rate=self.learning_rate,
                 beta=self.beta,
                 verbose=self.verbose,
-                seed=self.seed,
                 device=self.device,
             )
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 

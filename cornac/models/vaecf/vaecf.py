@@ -108,27 +108,15 @@ class VAE(nn.Module):
 
 
 def learn(
+    vae,
     train_set,
-    z_dim,
-    ae_structure,
-    act_fn,
-    likelihood,
     n_epochs,
     batch_size,
     learn_rate,
     beta,
     verbose,
-    seed=None,
     device=torch.device("cpu"),
 ):
-    if seed is not None:
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed(seed)
-
-    # Instantiations
-    data_dim = train_set.matrix.shape[1]
-    vae = VAE(z_dim, [data_dim] + ae_structure, act_fn, likelihood).to(device)
-
     optimizer = torch.optim.Adam(params=vae.parameters(), lr=learn_rate)
     num_steps = estimate_batches(train_set.num_users, batch_size)
 
