@@ -87,10 +87,25 @@ class VMF(Recommender):
 
     """
 
-    def __init__(self, name="VMF", k=10, d=10, n_epochs=100, batch_size=100, learning_rate=0.001, gamma=0.9,
-                 lambda_u=0.001, lambda_v=0.001, lambda_p=1., lambda_e=10.,
-                 trainable=True, verbose=False, use_gpu=False,
-                 init_params={}, seed=None):
+    def __init__(
+        self,
+        name="VMF",
+        k=10,
+        d=10,
+        n_epochs=100,
+        batch_size=100,
+        learning_rate=0.001,
+        gamma=0.9,
+        lambda_u=0.001,
+        lambda_v=0.001,
+        lambda_p=1.0,
+        lambda_e=10.0,
+        trainable=True,
+        verbose=False,
+        use_gpu=False,
+        init_params={},
+        seed=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.d = d
@@ -106,11 +121,12 @@ class VMF(Recommender):
         self.use_gpu = use_gpu
         self.loss = np.full(n_epochs, 0)
         self.eps = 0.000000001
-        self.U = self.init_params.get('U')  # user factors
-        self.V = self.init_params.get('V')  # item factors
-        self.P = self.init_params.get('P')  # user visual factors
-        self.E = self.init_params.get('E')  # Kernel embedding matrix
         self.seed = seed
+
+        self.U = self.init_params.get("U", None)  # user factors
+        self.V = self.init_params.get("V", None)  # item factors
+        self.P = self.init_params.get("P", None)  # user visual factors
+        self.E = self.init_params.get("E", None)  # Kernel embedding matrix
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -131,30 +147,49 @@ class VMF(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
-
             # Item visual cnn-features
-            self.item_features = train_set.item_image.features[:self.train_set.num_items]
+            item_features = train_set.item_image.features[: self.train_set.num_items]
 
             if self.verbose:
-                print('Learning...')
+                print("Learning...")
 
             from .vmf import vmf
-            res = vmf(self.train_set, self.item_features, k=self.k, d=self.d, n_epochs=self.n_epochs,
-                      batch_size=self.batch_size,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, lambda_p=self.lambda_p,
-                      lambda_e=self.lambda_e, learning_rate=self.learning_rate, gamma=self.gamma,
-                      init_params=self.init_params, use_gpu=self.use_gpu, verbose=self.verbose, seed=self.seed)
 
-            self.U = res['U']
-            self.V = res['V']
-            self.P = res['P']
-            self.E = res['E']
-            self.Q = res['Q']
+            res = vmf(
+                self.train_set,
+                item_features,
+                k=self.k,
+                d=self.d,
+                n_epochs=self.n_epochs,
+                batch_size=self.batch_size,
+                lambda_u=self.lambda_u,
+                lambda_v=self.lambda_v,
+                lambda_p=self.lambda_p,
+                lambda_e=self.lambda_e,
+                learning_rate=self.learning_rate,
+                gamma=self.gamma,
+                init_params=self.init_params,
+                use_gpu=self.use_gpu,
+                verbose=self.verbose,
+                seed=self.seed,
+            )
+
+            self.U = res["U"]
+            self.V = res["V"]
+            self.P = res["P"]
+            self.E = res["E"]
+            self.Q = res["Q"]
+
+            # overwrite init_params for future fine-tuning
+            self.init_params["U"] = self.U
+            self.init_params["V"] = self.V
+            self.init_params["P"] = self.P
+            self.init_params["E"] = self.E
 
             if self.verbose:
-                print('Learning completed')
+                print("Learning completed")
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))
+            print("%s is trained already (trainable = False)" % (self.name))
 
         return self
 
@@ -178,19 +213,36 @@ class VMF(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
-            known_item_scores = self.V.dot(self.U[user_idx, :]) + self.Q.dot(self.P[user_idx, :])
+            known_item_scores = self.V.dot(self.U[user_idx, :]) + self.Q.dot(
+                self.P[user_idx, :]
+            )
             # known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
             # fast_dot(self.U[user_id], self.V, known_item_scores)
             # fast_dot(self.P[user_id], self.Q, known_item_scores)
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
-            user_pred = self.V[item_idx, :].dot(self.U[user_idx, :]) + self.Q[item_idx, :].dot(self.P[user_idx, :])
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
+            user_pred = self.V[item_idx, :].dot(self.U[user_idx, :]) + self.Q[
+                item_idx, :
+            ].dot(self.P[user_idx, :])
             user_pred = sigmoid(user_pred)
 
-            user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+            user_pred = scale(
+                user_pred,
+                self.train_set.min_rating,
+                self.train_set.max_rating,
+                0.0,
+                1.0,
+            )
 
             return user_pred
