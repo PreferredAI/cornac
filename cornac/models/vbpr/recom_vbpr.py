@@ -20,6 +20,8 @@ from ...exception import CornacException
 from ...exception import ScoreException
 from ...utils import fast_dot
 from ...utils.common import intersects
+from ...utils import get_rng
+from ...utils.init_utils import zeros, xavier_uniform
 
 
 class VBPR(Recommender):
@@ -103,11 +105,9 @@ class VBPR(Recommender):
         self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
-    def _init_factors(self, n_users, n_items, features):
-        from ...utils import get_rng
-        from ...utils.init_utils import zeros, xavier_uniform
-
+    def _init(self, n_users, n_items, features):
         rng = get_rng(self.seed)
+
         self.beta_item = self.init_params.get("Bi", zeros(n_items))
         self.gamma_user = self.init_params.get(
             "Gu", xavier_uniform((n_users, self.k), rng)
@@ -150,7 +150,8 @@ class VBPR(Recommender):
 
         # Item visual feature from CNN
         train_features = train_set.item_image.features[: self.train_set.total_items]
-        self._init_factors(
+        train_features = train_features.astype(np.float32)
+        self._init(
             n_users=train_set.total_users,
             n_items=train_set.total_items,
             features=train_features,
@@ -158,6 +159,14 @@ class VBPR(Recommender):
 
         if self.trainable:
             self._fit_torch(train_features)
+
+            # overwrite init_params for future fine-tuning
+            self.init_params["Bi"] = self.beta_item
+            self.init_params["Gu"] = self.gamma_user
+            self.init_params["Gi"] = self.gamma_item
+            self.init_params["Tu"] = self.theta_user
+            self.init_params["E"] = self.emb_matrix
+            self.init_params["Bp"] = self.beta_prime
 
         return self
 
@@ -265,6 +274,7 @@ class VBPR(Recommender):
         self.gamma_item = Gi.data.cpu().numpy()
         self.theta_user = Tu.data.cpu().numpy()
         self.emb_matrix = E.data.cpu().numpy()
+        self.beta_prime = Bp.data.cpu().numpy()
         # pre-computed for faster evaluation
         self.theta_item = F.mm(E).data.cpu().numpy()
         self.visual_bias = F.mm(Bp).data.cpu().numpy().ravel()
