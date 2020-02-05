@@ -52,18 +52,27 @@ class PCRL(Recommender):
         When True, determinist wheights "W" are used for the generator network, \
         otherwise "W" is stochastic as in the original paper.
 
-    init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}
-        List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}, \
-        where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below). \
-        They represent respectively the "shape" and "rate" parameters of Gamma distribution over \
-        Theta. It is the same for L_s, L_r and Beta.
+    init_params: dictionary, optional, default: None
+        List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}.
+        
+        Theta: ndarray, shape (n_users, k)
+            The expected user latent factors.
 
-    Theta: csc_matrix, shape (n_users,k)
-        The expected user latent factors.
+        Beta: ndarray, shape (n_items, k)
+            The expected item latent factors.
 
-    Beta: csc_matrix, shape (n_items,k)
-        The expected item latent factors.
-
+        G_s: ndarray, shape (n_users, k)
+            Represent the "shape" parameters of Gamma distribution over Theta.
+            
+        G_r: ndarray, shape (n_users, k)
+            Represent the "rate" parameters of Gamma distribution over Theta. 
+        
+        L_s: ndarray, shape (n_items, k)
+            Represent the "shape" parameters of Gamma distribution over Beta.
+            
+        L_r: ndarray, shape (n_items, k)
+            Represent the "rate" parameters of Gamma distribution over Beta. 
+        
     References
     ----------
     * Salah, Aghiles, and Hady W. Lauw. Probabilistic Collaborative Representation Learning for Personalized Item Recommendation. \
@@ -81,7 +90,7 @@ class PCRL(Recommender):
         trainable=True,
         verbose=False,
         w_determinist=True,
-        init_params={"G_s": None, "G_r": None, "L_s": None, "L_r": None},
+        init_params=None,
     ):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
@@ -93,8 +102,16 @@ class PCRL(Recommender):
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.init_params = init_params
         self.w_determinist = w_determinist
+
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.Theta = self.init_params.get("Theta", None)
+        self.Beta = self.init_params.get("Beta", None)
+        self.Gs = self.init_params.get("G_s", None)
+        self.Gr = self.init_params.get("G_r", None)
+        self.Ls = self.init_params.get("L_s", None)
+        self.Lr = self.init_params.get("L_r", None)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -118,6 +135,14 @@ class PCRL(Recommender):
         if self.trainable:
             from .pcrl import PCRL_
 
+            # use pre-trained params if exists, otherwise from constructor
+            init_params = {
+                "G_s": self.Gs,
+                "G_r": self.Gr,
+                "L_s": self.Ls,
+                "L_r": self.Lr,
+            }
+
             # instanciate pcrl
             # train_aux_info = train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
             pcrl_ = PCRL_(
@@ -129,17 +154,17 @@ class PCRL(Recommender):
                 learning_rate=self.learning_rate,
                 B=1,
                 w_determinist=self.w_determinist,
-                init_params=self.init_params,
+                init_params=init_params,
             ).learn()
 
             self.Theta = np.array(pcrl_.Gs) / np.array(pcrl_.Gr)
             self.Beta = np.array(pcrl_.Ls) / np.array(pcrl_.Lr)
 
             # overwrite init_params for future fine-tuning
-            self.init_params["G_s"] = pcrl_.Gs
-            self.init_params["G_r"] = pcrl_.Gr
-            self.init_params["L_s"] = pcrl_.Ls
-            self.init_params["L_r"] = pcrl_.Lr
+            self.Gs = pcrl_.Gs
+            self.Gr = pcrl_.Gr
+            self.Ls = pcrl_.Ls
+            self.Lr = pcrl_.Lr
 
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
