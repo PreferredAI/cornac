@@ -45,7 +45,7 @@ class HPF(Recommender):
     hierarchical: boolean, optional, default: True
         When False, PF is used instead of HPF.
 
-    init_params: dict, optional, default: {"Theta": None, "Beta": None, "G_s": None, "G_r": None, "L_s": None, "L_r": None}
+    init_params: dict, optional, default: None
         Initial parameters of the model.
         
         Theta: ndarray, shape (n_users, k)
@@ -80,18 +80,10 @@ class HPF(Recommender):
         trainable=True,
         verbose=False,
         hierarchical=True,
-        init_params={
-            "Theta": None,
-            "Beta": None,
-            "G_s": None,
-            "G_r": None,
-            "L_s": None,
-            "L_r": None,
-        },
+        init_params=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
 
         self.ll = np.full(max_iter, 0)
@@ -100,8 +92,14 @@ class HPF(Recommender):
         self.eps = 0.000000001
         self.hierarchical = hierarchical
 
-        self.Theta = init_params.get("Theta", None)  # matrix of user factors
-        self.Beta = init_params.get("Beta", None)  # matrix of item factors
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.Theta = self.init_params.get("Theta", None)  # matrix of user factors
+        self.Beta = self.init_params.get("Beta", None)  # matrix of item factors
+        self.Gs = self.init_params.get("G_s", None)
+        self.Gr = self.init_params.get("G_r", None)
+        self.Ls = self.init_params.get("L_s", None)
+        self.Lr = self.init_params.get("L_r", None)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -121,6 +119,14 @@ class HPF(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
+            # use pre-trained params if exists, otherwise from constructor
+            init_params = {
+                "G_s": self.Gs,
+                "G_r": self.Gr,
+                "L_s": self.Ls,
+                "L_r": self.Lr,
+            }
+
             X = sp.csc_matrix(self.train_set.matrix)
             # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
             (rid, cid, val) = sp.find(X)
@@ -135,20 +141,20 @@ class HPF(Recommender):
 
             if self.hierarchical:
                 res = hpf.hpf(
-                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params
+                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, init_params
                 )
             else:
                 res = hpf.pf(
-                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.init_params
+                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, init_params
                 )
             self.Theta = np.asarray(res["Z"])
             self.Beta = np.asarray(res["W"])
 
             # overwrite init_params for future fine-tuning
-            self.init_params["G_s"] = np.asarray(res["G_s"])
-            self.init_params["G_r"] = np.asarray(res["G_r"])
-            self.init_params["L_s"] = np.asarray(res["L_s"])
-            self.init_params["L_r"] = np.asarray(res["L_r"])
+            self.Gs = np.asarray(res["G_s"])
+            self.Gr = np.asarray(res["G_r"])
+            self.Ls = np.asarray(res["L_s"])
+            self.Lr = np.asarray(res["L_r"])
 
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
