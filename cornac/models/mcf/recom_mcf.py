@@ -54,7 +54,7 @@ class MCF(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {}
+    init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U': U, 'V': V, 'Z', Z}.
 
         U: ndarray, shape (n_users, k)
@@ -86,23 +86,25 @@ class MCF(Recommender):
         name="MCF",
         trainable=True,
         verbose=False,
-        init_params={},
+        init_params=None,
         seed=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.lamda = lamda
+        self.seed = seed
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
+
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
         self.U = self.init_params.get("U", None)  # matrix of user factors
         self.V = self.init_params.get("V", None)  # matrix of item factors
         self.Z = self.init_params.get("Z", None)  # matrix of Also-Viewed item factors
-        self.seed = seed
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -177,7 +179,7 @@ class MCF(Recommender):
                 lamda=self.lamda,
                 learning_rate=self.learning_rate,
                 gamma=self.gamma,
-                init_params=self.init_params,
+                init_params={"U": self.U, "V": self.V, "Z": self.Z},
                 verbose=self.verbose,
                 seed=self.seed,
             )
