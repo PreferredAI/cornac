@@ -76,18 +76,19 @@ class Recommender:
 
         return sorted([p.name for p in parameters])
 
-    def clone(self, new_params):
+    def clone(self, new_params=None):
         """Clone an instance of the model object.
 
         Parameters
         ----------
-        new_params: dict, required
+        new_params: dict, optional, default: None
             New parameters for the cloned instance.
 
         Returns
         -------
         object: :obj:`cornac.models.Recommender`
         """
+        new_params = {} if new_params is None else new_params
         init_params = {}
         for name in self._get_init_params():
             init_params[name] = new_params.get(name, copy.deepcopy(getattr(self, name)))

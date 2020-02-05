@@ -131,7 +131,7 @@ class CrossValidation(BaseMethod):
 
         for _ in range(self.n_folds):
             self._get_train_test()
-            new_model = model.clone({"init_params": {}})  # completely new model
+            new_model = model.clone()  # clone a completely new model
             fold_result, _ = BaseMethod.evaluate(
                 self, new_model, metrics, user_based, show_validation=False
             )
