@@ -69,10 +69,10 @@ class SKMeans(Recommender):
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_par = init_par
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
+        self.init_par = init_par
         self.centroids = None  # matrix of cluster centroids
 
     def fit(self, train_set, val_set=None):
@@ -110,12 +110,10 @@ class SKMeans(Recommender):
                 max_iter=self.max_iter,
                 tol=self.tol,
                 verbose=self.verbose,
-                init_par=self.init_par,
+                init_par=getattr(self, "final_par", self.init_par),
             )
             self.centroids = res["centroids"]
             self.final_par = res["partition"]
-            # overwrite init_par for future fine-tuning
-            self.init_par = self.final_par
         else:
             print("%s is trained already (trainable = False)" % (self.name))
 
