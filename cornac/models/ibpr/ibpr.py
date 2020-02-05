@@ -35,16 +35,16 @@ def ibpr(
     if init_params["U"] is None:
         U = torch.randn(X.shape[0], k, requires_grad=True)
     else:
-        U = init_params["U"]
-        U = torch.from_numpy(U)
+        U = torch.from_numpy(init_params["U"])
+        U.requires_grad = True
 
     # Initial item factors
     if init_params["V"] is None:
         V = torch.randn(X.shape[1], k, requires_grad=True)
     else:
-        V = init_params["V"]
-        V = torch.from_numpy(V)
-
+        V = torch.from_numpy(init_params["V"])
+        V.requires_grad = True
+        
     optimizer = torch.optim.Adam([U, V], lr=learning_rate)
 
     for epoch in range(1, n_epochs + 1):
