@@ -109,8 +109,6 @@ class COE(Recommender):
         if self.trainable:
             from .coe import coe
 
-            init_params = {"U": self.U, "V": self.V}
-
             if self.verbose:
                 print("Learning...")
 
@@ -121,7 +119,7 @@ class COE(Recommender):
                 lamda=self.lamda,
                 learning_rate=self.learning_rate,
                 batch_size=self.batch_size,
-                init_params=init_params,
+                init_params={"U": self.U, "V": self.V},
             )
             self.U = np.asarray(res["U"])
             self.V = np.asarray(res["V"])
