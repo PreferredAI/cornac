@@ -116,15 +116,11 @@ class IBPR(Recommender):
                 lamda=self.lamda,
                 learning_rate=self.learning_rate,
                 batch_size=self.batch_size,
-                init_params=self.init_params,
+                init_params={"U": self.U, "V": self.V},
                 verbose=self.verbose,
             )
             self.U = np.asarray(res["U"])
             self.V = np.asarray(res["V"])
-
-            # overwrite init_params for futher fine-tuning
-            self.init_params["U"] = self.U
-            self.init_params["V"] = self.V
 
         return self
 
