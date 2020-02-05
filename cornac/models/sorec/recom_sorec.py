@@ -58,7 +58,7 @@ class SoRec(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {'U':None, 'V':None}
+    init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U':U, 'V':V, 'Z':Z}.
 
         U: a ndarray of shape (n_users, k)
@@ -92,12 +92,11 @@ class SoRec(Recommender):
         weight_link=True,
         trainable=True,
         verbose=False,
-        init_params={},
+        init_params=None,
         seed=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lamda_c = lamda_c
@@ -109,9 +108,11 @@ class SoRec(Recommender):
         self.eps = 0.000000001
         self.seed = seed
 
-        self.U = init_params.get("U", None)  # matrix of user factors
-        self.V = init_params.get("V", None)  # matrix of item factors
-        self.Z = init_params.get("Z", None)  # matrix of social network factors
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
+        self.Z = self.init_params.get("Z", None)  # matrix of social network factors
 
         if self.U is not None and self.U.shape[1] != self.k:
             raise ValueError("initial parameters U dimension error")
@@ -202,7 +203,7 @@ class SoRec(Recommender):
                 lamda=self.lamda,
                 learning_rate=self.learning_rate,
                 gamma=self.gamma,
-                init_params=self.init_params,
+                init_params={"U": self.U, "V": self.V, "Z": self.Z},
                 verbose=self.verbose,
                 seed=self.seed,
             )
@@ -211,13 +212,9 @@ class SoRec(Recommender):
             self.V = np.asarray(res["V"])
             self.Z = np.asarray(res["Z"])
 
-            # overwrite init_params for future fine-tuning
-            self.init_params["U"] = self.U
-            self.init_params["V"] = self.V
-            self.init_params["Z"] = self.Z
-
             if self.verbose:
                 print("Learning completed")
+                
         elif self.verbose:
             print("%s is trained already (trainable = False)" % self.name)
 
