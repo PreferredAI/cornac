@@ -69,7 +69,7 @@ class VMF(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {}
+    init_params: dictionary, optional, default: None
         List of initial parameters, e.g., init_params = {'U':U, 'V':V, 'P': P, 'E': E}.
 
         U: numpy array of shape (n_users,k), user latent factors.
@@ -103,14 +103,13 @@ class VMF(Recommender):
         trainable=True,
         verbose=False,
         use_gpu=False,
-        init_params={},
+        init_params=None,
         seed=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.d = d
         self.batch_size = batch_size
-        self.init_params = init_params
         self.n_epochs = n_epochs
         self.learning_rate = learning_rate
         self.gamma = gamma
@@ -123,10 +122,12 @@ class VMF(Recommender):
         self.eps = 0.000000001
         self.seed = seed
 
-        self.U = init_params.get("U", None)  # user factors
-        self.V = init_params.get("V", None)  # item factors
-        self.P = init_params.get("P", None)  # user visual factors
-        self.E = init_params.get("E", None)  # Kernel embedding matrix
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # user factors
+        self.V = self.init_params.get("V", None)  # item factors
+        self.P = self.init_params.get("P", None)  # user visual factors
+        self.E = self.init_params.get("E", None)  # Kernel embedding matrix
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -168,7 +169,7 @@ class VMF(Recommender):
                 lambda_e=self.lambda_e,
                 learning_rate=self.learning_rate,
                 gamma=self.gamma,
-                init_params=self.init_params,
+                init_params={"U": self.U, "V": self.V, "P": self.P, "E": self.E},
                 use_gpu=self.use_gpu,
                 verbose=self.verbose,
                 seed=self.seed,
@@ -179,12 +180,6 @@ class VMF(Recommender):
             self.P = res["P"]
             self.E = res["E"]
             self.Q = res["Q"]
-
-            # overwrite init_params for future fine-tuning
-            self.init_params["U"] = self.U
-            self.init_params["V"] = self.V
-            self.init_params["P"] = self.P
-            self.init_params["E"] = self.E
 
             if self.verbose:
                 print("Learning completed")
