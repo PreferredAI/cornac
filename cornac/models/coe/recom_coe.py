@@ -50,14 +50,13 @@ class COE(Recommender):
         When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
-        please see below the definition of U and V.
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}.
 
-    U: csc_matrix, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
+        U: ndarray, shape (n_users, k)
+            The user latent factors.
 
-    V: csc_matrix, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
+        V: ndarray, shape (n_items, k)
+            The item latent factors.
 
     References
     ----------
@@ -110,26 +109,22 @@ class COE(Recommender):
         if self.trainable:
             from .coe import coe
 
-            X = self.train_set.matrix
+            init_params = {"U": self.U, "V": self.V}
 
             if self.verbose:
                 print("Learning...")
 
             res = coe(
-                X,
+                self.train_set.matrix,
                 k=self.k,
                 n_epochs=self.max_iter,
                 lamda=self.lamda,
                 learning_rate=self.learning_rate,
                 batch_size=self.batch_size,
-                init_params=self.init_params,
+                init_params=init_params,
             )
             self.U = np.asarray(res["U"])
             self.V = np.asarray(res["V"])
-
-            # overwrite init_params for futher fine-tuning
-            self.init_params["U"] = self.U
-            self.init_params["V"] = self.V
 
             if self.verbose:
                 print("Learning completed")
