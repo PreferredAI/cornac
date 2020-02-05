@@ -55,10 +55,14 @@ class PMF(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {}
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
-        U: a csc_matrix of shape (n_users,k), containing the user latent factors. \
-        V: a csc_matrix of shape (n_items,k), containing the item latent factors.
+    init_params: dict, optional, default: None
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}.
+        
+        U: ndarray, shape (n_users, k) 
+            User latent factors.
+        
+        V: ndarray, shape (n_items, k)
+            Item latent factors.
 
     seed: int, optional, default: None
         Random seed for parameters initialization.
@@ -80,23 +84,25 @@ class PMF(Recommender):
         variant="non_linear",
         trainable=True,
         verbose=False,
-        init_params={},
+        init_params=None,
         seed=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.lambda_reg = lambda_reg
         self.variant = variant
+        self.seed = seed
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = init_params.get("U", None)  # matrix of user factors
-        self.V = init_params.get("V", None)  # matrix of item factors
-        self.seed = seed
+        
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -135,6 +141,9 @@ class PMF(Recommender):
 
             if self.verbose:
                 print("Learning...")
+                
+            # use pre-trained params if exists, otherwise from constructor
+            init_params = {"U": self.U, "V": self.V}
 
             if self.variant == "linear":
                 res = pmf.pmf_linear(
@@ -149,7 +158,7 @@ class PMF(Recommender):
                     lambda_reg=self.lambda_reg,
                     learning_rate=self.learning_rate,
                     gamma=self.gamma,
-                    init_params=self.init_params,
+                    init_params=init_params,
                     verbose=self.verbose,
                     seed=self.seed,
                 )
@@ -166,7 +175,7 @@ class PMF(Recommender):
                     lambda_reg=self.lambda_reg,
                     learning_rate=self.learning_rate,
                     gamma=self.gamma,
-                    init_params=self.init_params,
+                    init_params=init_params,
                     verbose=self.verbose,
                     seed=self.seed,
                 )
@@ -176,13 +185,9 @@ class PMF(Recommender):
             self.U = np.asarray(res["U"])
             self.V = np.asarray(res["V"])
 
-            # overwrite init_params for future fine-tuning
-            self.init_params["U"] = self.U
-            self.init_params["V"] = self.V
-
             if self.verbose:
                 print("Learning completed")
-                
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 
