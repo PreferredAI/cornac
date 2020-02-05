@@ -53,11 +53,11 @@ class OnlineIBPR(Recommender):
         List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
         please see below the definition of U and V.
 
-    U: csc_matrix, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
+        U: csc_matrix, shape (n_users,k)
+            The user latent factors, optional initialization via init_params.
 
-    V: csc_matrix, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
+        V: csc_matrix, shape (n_items,k)
+            The item latent factors, optional initialization via init_params.
 
     References
     ----------
@@ -117,14 +117,10 @@ class OnlineIBPR(Recommender):
                 lamda=self.lamda,
                 learning_rate=self.learning_rate,
                 batch_size=self.batch_size,
-                init_params=self.init_params,
+                init_params={"U": self.U, "V": self.V},
             )
             self.U = np.asarray(res["U"])
             self.V = np.asarray(res["V"])
-
-            # overwrite init_params for futher fine-tuning
-            self.init_params["U"] = self.U
-            self.init_params["V"] = self.V
 
             if self.verbose:
                 print("Learning completed")
