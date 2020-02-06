@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+# cython: language_level=3
+
 from libc.math cimport exp
 from libc.math cimport sqrt
 
@@ -33,6 +35,20 @@ cdef float sigmoid(float z):
         else:
             s = 1.0 / (1.0 + exp(-z))
             return s
+
+
+def _init_factors(n, d, k, init_params, seed):
+    rng = get_rng(seed)
+
+    U = init_params.get('U', None)
+    if U is None:
+        U = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+    
+    V = init_params.get('V', None)
+    if V is None:
+        V = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+
+    return U, V
 
 
 #PMF (Gaussian linear-model version), SGD_RMSProp optimizer
@@ -56,10 +72,7 @@ def pmf_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_items, i
         int u_, i_, k_, r, epoch
         double val, s, e, norm_u, norm_v
         
-    # Initialize user factors
-    rng = get_rng(seed)
-    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
-    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
+    U, V = _init_factors(n, d, k, init_params, seed)
   
     #Optimization
     for epoch in range(n_epochs):
@@ -118,9 +131,7 @@ def pmf_non_linear(int[:] uid, int[:] iid, float[:] rat, int n_users, int n_item
         int u_, i_, r, k_, epoch 
         double val, s, e, we, sg, norm_u, norm_v
   
-    rng = get_rng(seed)
-    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
-    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
+    U, V = _init_factors(n, d, k, init_params, seed)
   
     #Optimization
     for epoch in range(n_epochs):

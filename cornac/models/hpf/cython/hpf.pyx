@@ -66,7 +66,6 @@ cpdef pf(Mat & X, int n_X, int d_X, int & k, int & iter_max, init_param = None):
     ## shape lamda_ik matrix (dgCMatrix)
     if init_param['L_s'] is None:
         L_s = np.random.gamma(c_, scale=d_ / c_, size=d * k).reshape(d, k)
-
     else:
         L_s = init_param['L_s']
     #L_s = sp.csc_matrix(L_s,dtype=np.float64)
@@ -87,7 +86,14 @@ cpdef pf(Mat & X, int n_X, int d_X, int & k, int & iter_max, init_param = None):
     pf_cpp(X, k, G_s, G_r, L_s, L_r, K_r, T_r, iter_max)
     print('Learning completed!')
 
-    res = {'Z': np.array(G_s) / np.array(G_r), 'W': np.array(L_s) / np.array(L_r)}
+    res = {
+        "Z": np.array(G_s) / np.array(G_r), 
+        "W": np.array(L_s) / np.array(L_r),
+        "G_s": np.array(G_s),
+        "G_r": np.array(G_r),
+        "L_s": np.array(L_s),
+        "L_r": np.array(L_r),
+    }
 
     return res
 
@@ -132,7 +138,6 @@ cpdef hpf(Mat & X, int n_X, int d_X, int & k, int & iter_max, init_param = None)
     ## shape lamda_ik matrix (dgCMatrix)
     if init_param['L_s'] is None:
         L_s = np.random.gamma(c_, scale=d_ / c_, size=d * k).reshape(d, k)
-
     else:
         L_s = init_param['L_s']
     #L_s = sp.csc_matrix(L_s,dtype=np.float64)
@@ -151,6 +156,13 @@ cpdef hpf(Mat & X, int n_X, int d_X, int & k, int & iter_max, init_param = None)
     hpf_cpp(X, k, G_s, G_r, L_s, L_r, K_r, T_r, iter_max)
     print('Learning completed!')
 
-    res = {'Z': np.array(G_s) / np.array(G_r), 'W': np.array(L_s) / np.array(L_r)}
+    res = {
+        "Z": np.array(G_s) / np.array(G_r), 
+        "W": np.array(L_s) / np.array(L_r),
+        "G_s": np.array(G_s),
+        "G_r": np.array(G_r),
+        "L_s": np.array(L_s),
+        "L_r": np.array(L_r),
+    }
 
     return res

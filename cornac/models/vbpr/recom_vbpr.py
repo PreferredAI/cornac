@@ -20,6 +20,8 @@ from ...exception import CornacException
 from ...exception import ScoreException
 from ...utils import fast_dot
 from ...utils.common import intersects
+from ...utils import get_rng
+from ...utils.init_utils import zeros, xavier_uniform
 
 
 class VBPR(Recommender):
@@ -100,30 +102,32 @@ class VBPR(Recommender):
         self.lambda_b = lambda_b
         self.lambda_e = lambda_e
         self.use_gpu = use_gpu
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
 
-    def _init_factors(self, n_users, n_items, features):
-        from ...utils import get_rng
-        from ...utils.init_utils import zeros, xavier_uniform
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.beta_item = self.init_params.get("Bi", None)
+        self.gamma_user = self.init_params.get("Gu", None)
+        self.gamma_item = self.init_params.get("Gi", None)
+        self.theta_user = self.init_params.get("Tu", None)
+        self.emb_matrix = self.init_params.get("E", None)
+        self.beta_prime = self.init_params.get("Bp", None)
 
+    def _init(self, n_users, n_items, features):
         rng = get_rng(self.seed)
-        self.beta_item = self.init_params.get("Bi", zeros(n_items))
-        self.gamma_user = self.init_params.get(
-            "Gu", xavier_uniform((n_users, self.k), rng)
-        )
-        self.gamma_item = self.init_params.get(
-            "Gi", xavier_uniform((n_items, self.k), rng)
-        )
-        self.theta_user = self.init_params.get(
-            "Tu", xavier_uniform((n_users, self.k2), rng)
-        )
-        self.emb_matrix = self.init_params.get(
-            "E", xavier_uniform((features.shape[1], self.k2), rng)
-        )
-        self.beta_prime = self.init_params.get(
-            "Bp", xavier_uniform((features.shape[1], 1), rng)
-        )
+
+        self.beta_item = zeros(n_items) if self.beta_item is None else self.beta_item
+        if self.gamma_user is None:
+            self.gamma_user = xavier_uniform((n_users, self.k), rng)
+        if self.gamma_item is None:
+            self.gamma_item = xavier_uniform((n_items, self.k), rng)
+        if self.theta_user is None:
+            self.theta_user = xavier_uniform((n_users, self.k2), rng)
+        if self.emb_matrix is None:
+            self.emb_matrix = xavier_uniform((features.shape[1], self.k2), rng)
+        if self.beta_prime is None:
+            self.beta_prime = xavier_uniform((features.shape[1], 1), rng)
+
         # pre-computed for faster evaluation
         self.theta_item = np.matmul(features, self.emb_matrix)
         self.visual_bias = np.matmul(features, self.beta_prime).ravel()
@@ -150,7 +154,8 @@ class VBPR(Recommender):
 
         # Item visual feature from CNN
         train_features = train_set.item_image.features[: self.train_set.total_items]
-        self._init_factors(
+        train_features = train_features.astype(np.float32)
+        self._init(
             n_users=train_set.total_users,
             n_items=train_set.total_items,
             features=train_features,
@@ -265,6 +270,7 @@ class VBPR(Recommender):
         self.gamma_item = Gi.data.cpu().numpy()
         self.theta_user = Tu.data.cpu().numpy()
         self.emb_matrix = E.data.cpu().numpy()
+        self.beta_prime = Bp.data.cpu().numpy()
         # pre-computed for faster evaluation
         self.theta_item = F.mm(E).data.cpu().numpy()
         self.visual_bias = F.mm(Bp).data.cpu().numpy().ravel()

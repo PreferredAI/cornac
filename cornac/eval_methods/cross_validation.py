@@ -128,13 +128,17 @@ class CrossValidation(BaseMethod):
 
     def evaluate(self, model, metrics, user_based, show_validation):
         result = CVResult(model.name)
+
         for _ in range(self.n_folds):
             self._get_train_test()
+            new_model = model.clone()  # clone a completely new model
             fold_result, _ = BaseMethod.evaluate(
-                self, model, metrics, user_based, show_validation=False
+                self, new_model, metrics, user_based, show_validation=False
             )
             result.append(fold_result)
             self._next_fold()
+
         result.organize()
+
         return result, None  # no validation result of CV
 

@@ -14,9 +14,12 @@
 # ============================================================================
 
 import numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+from ...utils import get_rng
+from ...utils.init_utils import xavier_uniform
 
 
 class CTR(Recommender):
@@ -70,9 +73,21 @@ class CTR(Recommender):
 
     """
 
-    def __init__(self, name='CTR', k=200, lambda_u=0.01, lambda_v=0.01, eta=0.01,
-                 a=1, b=0.01, max_iter=100, trainable=True, verbose=True, init_params=None,
-                 seed=None):
+    def __init__(
+        self,
+        name="CTR",
+        k=200,
+        lambda_u=0.01,
+        lambda_v=0.01,
+        eta=0.01,
+        a=1,
+        b=0.01,
+        max_iter=100,
+        trainable=True,
+        verbose=True,
+        init_params=None,
+        seed=None,
+    ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.lambda_u = lambda_u
@@ -83,8 +98,22 @@ class CTR(Recommender):
         self.name = name
         self.max_iter = max_iter
         self.verbose = verbose
-        self.init_params = {} if not init_params else init_params
         self.seed = seed
+
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)
+        self.V = self.init_params.get("V", None)
+
+    def _init(self):
+        rng = get_rng(self.seed)
+        self.n_item = self.train_set.num_items
+        self.n_user = self.train_set.num_users
+
+        if self.U is None:
+            self.U = xavier_uniform((self.n_user, self.k), rng)
+        if self.V is None:
+            self.V = xavier_uniform((self.n_item, self.k), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -103,13 +132,7 @@ class CTR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils.init_utils import xavier_uniform
-
-        self.n_item = self.train_set.num_items
-        self.n_user = self.train_set.num_users
-
-        self.U = self.init_params.get('U', xavier_uniform((self.n_user, self.k), self.seed))
-        self.V = self.init_params.get('V', xavier_uniform((self.n_item, self.k), self.seed))
+        self._init()
 
         if self.trainable:
             self._fit_ctr()
@@ -126,30 +149,43 @@ class CTR(Recommender):
             rating_list.append(csr_mat.data[j:k])
         return index_list, rating_list
 
-    def _fit_ctr(self, ):
+    def _fit_ctr(self,):
         from .ctr import Model
-        from tqdm import trange
 
         user_data = self._build_data(self.train_set.matrix)
         item_data = self._build_data(self.train_set.matrix.T.tocsr())
 
-        bow_mat = self.train_set.item_text.batch_bow(np.arange(self.n_item), keep_sparse=True)
+        bow_mat = self.train_set.item_text.batch_bow(
+            np.arange(self.n_item), keep_sparse=True
+        )
         doc_ids, doc_cnt = self._build_data(bow_mat)  # bag of word feature
 
-        model = Model(n_user=self.n_user, n_item=self.n_item, U=self.U, V=self.V, k=self.k,
-                      n_vocab=self.train_set.item_text.vocab.size,
-                      lambda_u=self.lambda_u, lambda_v=self.lambda_v, a=self.a,
-                      b=self.b, max_iter=self.max_iter, seed=self.seed)
+        model = Model(
+            n_user=self.n_user,
+            n_item=self.n_item,
+            U=self.U,
+            V=self.V,
+            k=self.k,
+            n_vocab=self.train_set.item_text.vocab.size,
+            lambda_u=self.lambda_u,
+            lambda_v=self.lambda_v,
+            a=self.a,
+            b=self.b,
+            max_iter=self.max_iter,
+            seed=self.seed,
+        )
 
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
-            cf_loss = model.update_cf(user_data=user_data, item_data=item_data)  # u and v updating
+            cf_loss = model.update_cf(
+                user_data=user_data, item_data=item_data
+            )  # u and v updating
             lda_loss = model.update_theta(doc_ids=doc_ids, doc_cnt=doc_cnt)
             model.update_beta()
             loop.set_postfix(cf_loss=cf_loss, lda_likelihood=-lda_loss)
 
         if self.verbose:
-            print('Learning completed!')
+            print("Learning completed!")
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -170,12 +206,19 @@ class CTR(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
             return user_pred

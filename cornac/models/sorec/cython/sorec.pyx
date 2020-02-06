@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+# cython: language_level=3
+
 from libc.math cimport exp
 from libc.math cimport sqrt
 
@@ -59,13 +61,21 @@ def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[
 
     # Initialize factors
     rng = get_rng(seed)
-    U = init_params.get('U', normal((n,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
-    V = init_params.get('V', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
-    Z = init_params.get('Z', normal((d,k), mean=0.0, std=0.001, random_state=rng, dtype=np.double))
+
+    U = init_params.get('U', None)
+    if U is None:
+        U = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+    
+    V = init_params.get('V', None)
+    if V is None:
+        V = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+    
+    Z = init_params.get('Z', None)
+    if Z is None:
+        Z = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
 
 
-
-# Optimization
+    # Optimization
     for epoch in range(n_epochs):
 
         for ed in range(n_edges):

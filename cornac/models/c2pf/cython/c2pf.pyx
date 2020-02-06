@@ -131,7 +131,20 @@ cpdef c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max, 
     M3 = sp.csc_matrix((np.array(L3_s)[:,2]/np.array(L3_r)[:,2], (np.array(L3_s)[:,0], np.array(L3_s)[:,1])), shape=(d, d2))
     Q = M3*(np.array(L2_s)/np.array(L2_r))
     
-    res = {'Z':np.array(G_s)/np.array(G_r),'W':np.array(L_s)/np.array(L_r),'ll': None, 'Q':Q}
+    res = {
+        "Z": np.array(G_s) / np.array(G_r),
+        "W": np.array(L_s) / np.array(L_r),
+        "ll": None, 
+        "Q": Q,
+        "G_s": np.array(G_s),
+        "G_r": np.array(G_r),
+        "L_s": np.array(L_s),
+        "L_r": np.array(L_r),
+        "L2_s": np.array(L2_s),
+        "L2_r": np.array(L2_r),
+        "L3_s": np.array(L3_s),
+        "L3_r": np.array(L3_r),
+    }
     
     return res
     
@@ -226,8 +239,21 @@ cpdef t_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
     M3 = sp.csc_matrix((np.array(L3_s)[:,2]/np.array(L3_r)[:,2], (np.array(L3_s)[:,0], np.array(L3_s)[:,1])), shape=(d, d2))
     Q = M3*(np.array(L_s)/np.array(L_r))
     
-    res = {'Z':np.array(G_s)/np.array(G_r),'W':np.array(L_s)/np.array(L_r),'ll': None, 'Q':Q}
-    
+    res = {
+        "Z": np.array(G_s) / np.array(G_r),
+        "W": np.array(L_s) / np.array(L_r),
+        "ll": None, 
+        "Q": Q,
+        "G_s": np.array(G_s),
+        "G_r": np.array(G_r),
+        "L_s": np.array(L_s),
+        "L_r": np.array(L_r),
+        "L2_s": None,
+        "L2_r": None,
+        "L3_s": np.array(L3_s),
+        "L3_r": np.array(L3_r),
+    }
+
     return res  
   
   
@@ -311,6 +337,19 @@ cpdef r_c2pf(Mat &X, int n_X, int d_X, C,int n_C, int d_C, int &k, int &iter_max
     M3 = sp.csc_matrix((np.array(L3_s)[:,2]/np.array(L3_r)[:,2], (np.array(L3_s)[:,0], np.array(L3_s)[:,1])), shape=(d, d2))
     Q = M3*(np.array(L2_s)/np.array(L2_r))
     
-    res = {'Z':np.array(G_s)/np.array(G_r),'W':Q,'ll': None, 'Q':Q}
-    
+    res = {
+        "Z": np.array(G_s) / np.array(G_r),
+        "W": Q,
+        "ll": None, 
+        "Q": Q,
+        "G_s": np.array(G_s),
+        "G_r": np.array(G_r),
+        "L_s": None,
+        "L_r": None,
+        "L2_s": np.array(L2_s),
+        "L2_r": np.array(L2_r),
+        "L3_s": np.array(L3_s),
+        "L3_r": np.array(L3_r),
+    }
+
     return res

@@ -24,7 +24,7 @@ def skmeans(X, k=5, max_iter=100, tol=1e-6, verbose=True, init_par=None):
     print(n)
     print(k)
     # normalize rows of X so as they lie on a unit hypersphere
-    X = X.multiply(sp.csc_matrix(1. / (np.sqrt(X.multiply(X).sum(1).A1) + 1e-20)).T)
+    X = X.multiply(sp.csc_matrix(1.0 / (np.sqrt(X.multiply(X).sum(1).A1) + 1e-20)).T)
     if init_par is None:
         par = np.random.randint(k, size=n)
     else:
@@ -43,7 +43,7 @@ def skmeans(X, k=5, max_iter=100, tol=1e-6, verbose=True, init_par=None):
         # Update centroids
         MU = Z.T * X
         # project centroids to the unit hypersphere
-        MU = MU.multiply(sp.csc_matrix(1. / np.sqrt(MU.multiply(MU).sum(1).A1)).T)
+        MU = MU.multiply(sp.csc_matrix(1.0 / np.sqrt(MU.multiply(MU).sum(1).A1)).T)
         # MU = sp.csc_matrix(MU)
 
         # Object Assignements
@@ -58,7 +58,7 @@ def skmeans(X, k=5, max_iter=100, tol=1e-6, verbose=True, init_par=None):
 
         if np.abs(l_t - l_init) > tol:
             if verbose:
-                print('Iter %i, likelihood: %f' % (iter_, l_t))
+                print("Iter %i, likelihood: %f" % (iter_, l_t))
             l_init = l_t
             change = True
             l.append(l_t)

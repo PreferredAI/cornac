@@ -54,12 +54,17 @@ class MCF(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {}
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V}.
+    init_params: dictionary, optional, default: None
+        List of initial parameters, e.g., init_params = {'U': U, 'V': V, 'Z', Z}.
 
-        U: a csc_matrix of shape (n_users,k), containing the user latent factors.
-        V: a csc_matrix of shape (n_items,k), containing the item latent factors.
-        Z: a csc_matrix of shape (n_items,k), containing the "Also-Viewed" item latent factors.
+        U: ndarray, shape (n_users, k)
+            User latent factors.
+        
+        V: ndarray, shape (n_items, k)
+            Item latent factors.
+        
+        Z: ndarray, shape (n_items, k)
+            The "Also-Viewed" item latent factors.
 
     seed: int, optional, default: None
         Random seed for parameters initialization.
@@ -71,22 +76,35 @@ class MCF(Recommender):
 
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lamda=0.001, name="MCF",
-                 trainable=True, verbose=False, init_params={}, seed=None):
+    def __init__(
+        self,
+        k=5,
+        max_iter=100,
+        learning_rate=0.001,
+        gamma=0.9,
+        lamda=0.001,
+        name="MCF",
+        trainable=True,
+        verbose=False,
+        init_params=None,
+        seed=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.lamda = lamda
+        self.seed = seed
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = self.init_params.get('U')  # matrix of user factors
-        self.V = self.init_params.get('V')  # matrix of item factors
-        self.Z = self.init_params.get('Z')  # matrix of Also-Viewed item factors
-        self.seed = seed
+
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
+        self.Z = self.init_params.get("Z", None)  # matrix of Also-Viewed item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -103,7 +121,6 @@ class MCF(Recommender):
         -------
         self : object
         """
-        from cornac.models.mcf import mcf
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
@@ -112,44 +129,69 @@ class MCF(Recommender):
 
             # item-item affinity network
             map_iid = train_set.item_indices
-            (net_iid, net_jid, net_val) = train_set.item_graph.get_train_triplet(map_iid, map_iid)
+            (net_iid, net_jid, net_val) = train_set.item_graph.get_train_triplet(
+                map_iid, map_iid
+            )
             if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
                 if self.train_set.min_rating == self.train_set.max_rating:
-                    rat_val = scale(rat_val, 0., 1., 0., self.train_set.max_rating)
+                    rat_val = scale(rat_val, 0.0, 1.0, 0.0, self.train_set.max_rating)
                 else:
-                    rat_val = scale(rat_val, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
+                    rat_val = scale(
+                        rat_val,
+                        0.0,
+                        1.0,
+                        self.train_set.min_rating,
+                        self.train_set.max_rating,
+                    )
 
             if [min(net_val), max(net_val)] != [0, 1]:
                 if min(net_val) == max(net_val):
-                    net_val = scale(net_val, 0., 1., 0., max(net_val))
+                    net_val = scale(net_val, 0.0, 1.0, 0.0, max(net_val))
                 else:
-                    net_val = scale(net_val, 0., 1., min(net_val), max(net_val))
+                    net_val = scale(net_val, 0.0, 1.0, min(net_val), max(net_val))
 
-            rat_val = np.array(rat_val, dtype='float32')
-            rat_uid = np.array(rat_uid, dtype='int32')
-            rat_iid = np.array(rat_iid, dtype='int32')
+            rat_val = np.array(rat_val, dtype="float32")
+            rat_uid = np.array(rat_uid, dtype="int32")
+            rat_iid = np.array(rat_iid, dtype="int32")
 
-            net_val = np.array(net_val, dtype='float32')
-            net_iid = np.array(net_iid, dtype='int32')
-            net_jid = np.array(net_jid, dtype='int32')
-
-            if self.verbose:
-                print('Learning...')
-
-            res = mcf.mcf(rat_uid, rat_iid, rat_val, net_iid, net_jid, net_val, k=self.k, n_users=train_set.num_users,
-                          n_items=train_set.num_items, n_ratings=len(rat_val), n_edges=len(net_val),
-                          n_epochs=self.max_iter,
-                          lamda=self.lamda, learning_rate=self.learning_rate, gamma=self.gamma,
-                          init_params=self.init_params, verbose=self.verbose, seed=self.seed)
-
-            self.U = np.asarray(res['U'])
-            self.V = np.asarray(res['V'])
-            self.Z = np.asarray(res['Z'])
+            net_val = np.array(net_val, dtype="float32")
+            net_iid = np.array(net_iid, dtype="int32")
+            net_jid = np.array(net_jid, dtype="int32")
 
             if self.verbose:
-                print('Learning completed')
+                print("Learning...")
+
+            from cornac.models.mcf import mcf
+
+            res = mcf.mcf(
+                rat_uid,
+                rat_iid,
+                rat_val,
+                net_iid,
+                net_jid,
+                net_val,
+                k=self.k,
+                n_users=train_set.num_users,
+                n_items=train_set.num_items,
+                n_ratings=len(rat_val),
+                n_edges=len(net_val),
+                n_epochs=self.max_iter,
+                lamda=self.lamda,
+                learning_rate=self.learning_rate,
+                gamma=self.gamma,
+                init_params={"U": self.U, "V": self.V, "Z": self.Z},
+                verbose=self.verbose,
+                seed=self.seed,
+            )
+
+            self.U = np.asarray(res["U"])
+            self.V = np.asarray(res["V"])
+            self.Z = np.asarray(res["Z"])
+
+            if self.verbose:
+                print("Learning completed")
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % self.name)
+            print("%s is trained already (trainable = False)" % self.name)
 
         return self
 
@@ -173,20 +215,33 @@ class MCF(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
 
             user_pred = sigmoid(user_pred)
             if self.train_set.min_rating == self.train_set.max_rating:
-                user_pred = scale(user_pred, 0., self.train_set.max_rating, 0., 1.)
+                user_pred = scale(user_pred, 0.0, self.train_set.max_rating, 0.0, 1.0)
             else:
-                user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+                user_pred = scale(
+                    user_pred,
+                    self.train_set.min_rating,
+                    self.train_set.max_rating,
+                    0.0,
+                    1.0,
+                )
 
             return user_pred

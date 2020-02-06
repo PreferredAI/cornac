@@ -64,8 +64,31 @@ class SVD(MF):
     In TKDD, 2010.
     """
 
-    def __init__(self, name='SVD', k=10, max_iter=20, learning_rate=0.01, lambda_reg=0.02,
-                 early_stop=False, num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
-        super().__init__(name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, lambda_reg=lambda_reg,
-                         use_bias=True, early_stop=early_stop, num_threads=num_threads, trainable=trainable,
-                         verbose=verbose, init_params=init_params, seed=seed)
+    def __init__(
+        self,
+        name="SVD",
+        k=10,
+        max_iter=20,
+        learning_rate=0.01,
+        lambda_reg=0.02,
+        early_stop=False,
+        num_threads=0,
+        trainable=True,
+        verbose=False,
+        init_params=None,
+        seed=None,
+    ):
+        super().__init__(
+            name=name,
+            k=k,
+            max_iter=max_iter,
+            learning_rate=learning_rate,
+            lambda_reg=lambda_reg,
+            use_bias=True,
+            early_stop=early_stop,
+            num_threads=num_threads,
+            trainable=trainable,
+            verbose=verbose,
+            init_params=init_params,
+            seed=seed,
+        )

@@ -15,6 +15,8 @@
 
 # cython: language_level=3
 
+import multiprocessing
+
 cimport cython
 from cython.parallel import prange
 from cython cimport floating, integral
@@ -26,6 +28,8 @@ cimport numpy as np
 from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import fast_dot
+from ...utils import get_rng
+from ...utils.init_utils import uniform, zeros
 
 
 class NMF(Recommender):
@@ -98,15 +102,35 @@ class NMF(Recommender):
         self.lambda_bu = lambda_bu
         self.lambda_bi = lambda_bi
         self.use_bias = use_bias
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
-        import multiprocessing
+
         if seed is not None:
             self.num_threads = 1
         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
             self.num_threads = num_threads
         else:
             self.num_threads = multiprocessing.cpu_count()
+
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.u_factors = self.init_params.get('U', None)
+        self.i_factors = self.init_params.get('V', None)
+        self.u_biases = self.init_params.get('Bu', None)
+        self.i_biases = self.init_params.get('Bi', None)
+        self.global_mean = self.init_params.get('mu', None)
+
+    def _init(self):
+        rng = get_rng(self.seed)
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+
+        if self.u_factors is None:
+            self.u_factors = uniform((n_users, self.k), random_state=rng)
+        if self.i_factors is None:
+            self.i_factors = uniform((n_items, self.k), random_state=rng)
+
+        self.u_biases = zeros(n_users) if self.u_biases is None else self.u_biases
+        self.i_biases = zeros(n_items) if self.i_biases is None else self.i_biases
+        self.global_mean = self.train_set.global_mean if self.use_bias else 0.0
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -125,25 +149,21 @@ class NMF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from ...utils import get_rng
-        from ...utils.init_utils import uniform, zeros
-
-        rng = get_rng(self.seed)
-        n_users, n_items = train_set.num_users, train_set.num_items
-        self.u_factors = self.init_params.get('U', uniform((n_users, self.k), random_state=rng))
-        self.i_factors = self.init_params.get('V', uniform((n_items, self.k), random_state=rng))
-        self.u_biases = self.init_params.get('Bu', zeros(n_users))
-        self.i_biases = self.init_params.get('Bi', zeros(n_items))
-        self.global_mean = self.init_params.get('mu', train_set.global_mean) if self.use_bias else 0.
+        self._init()
 
         if self.trainable:
+            n_users, n_items = self.train_set.num_users, self.train_set.num_items
             X = train_set.matrix # csr_matrix
             user_counts = np.ediff1d(X.indptr)
             user_ids = np.repeat(np.arange(n_users), user_counts).astype(X.indices.dtype)
             item_counts = np.ediff1d(X.tocsc().indptr).astype(X.indices.dtype)
 
-            self._fit_sgd(user_ids, X.indices, X.data.astype(np.float32), user_counts, item_counts,
-                          self.u_factors, self.i_factors, self.u_biases, self.i_biases)
+            self._fit_sgd(
+                user_ids, X.indices, X.data.astype(np.float32), 
+                user_counts, item_counts,
+                self.u_factors, self.i_factors, 
+                self.u_biases, self.i_biases
+            )
 
         return self
 
