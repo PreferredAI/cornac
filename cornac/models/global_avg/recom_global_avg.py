@@ -30,7 +30,7 @@ class GlobalAvg(Recommender):
 
     """
 
-    def __init__(self, name='GlobalAvg'):
+    def __init__(self, name="GlobalAvg"):
         super().__init__(name=name, trainable=False)
 
     def score(self, user_idx, item_idx=None):

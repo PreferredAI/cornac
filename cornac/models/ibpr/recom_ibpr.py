@@ -53,11 +53,11 @@ class IBPR(Recommender):
         List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
         please see below the definition of U and V.
 
-    U: csc_matrix, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
+        U: csc_matrix, shape (n_users,k)
+            The user latent factors, optional initialization via init_params.
 
-    V: csc_matrix, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
+        V: csc_matrix, shape (n_items,k)
+            The item latent factors, optional initialization via init_params.
 
     References
     ----------
@@ -65,19 +65,29 @@ class IBPR(Recommender):
       In Proceedings of the 2017 ACM on Conference on Information and Knowledge Management (pp. 1389-1398). ACM.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate=0.05, lamda=0.001, batch_size=100, name="IBPR", trainable=True,
-                 verbose=False, init_params=None):
+    def __init__(
+        self,
+        k=20,
+        max_iter=100,
+        learning_rate=0.05,
+        lamda=0.001,
+        batch_size=100,
+        name="IBPR",
+        trainable=True,
+        verbose=False,
+        init_params=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.name = name
         self.learning_rate = learning_rate
         self.lamda = lamda
         self.batch_size = batch_size
 
-        self.U = init_params['U']  # matrix of user factors
-        self.V = init_params['V']  # matrix of item factors
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -96,12 +106,21 @@ class IBPR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from .ibpr import ibpr
+        if self.trainable:
+            from .ibpr import ibpr
 
-        res = ibpr(self.train_set, k=self.k, n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
-                   batch_size=self.batch_size, init_params=self.init_params, verbose=self.verbose)
-        self.U = np.asarray(res['U'])
-        self.V = np.asarray(res['V'])
+            res = ibpr(
+                self.train_set,
+                k=self.k,
+                n_epochs=self.max_iter,
+                lamda=self.lamda,
+                learning_rate=self.learning_rate,
+                batch_size=self.batch_size,
+                init_params={"U": self.U, "V": self.V},
+                verbose=self.verbose,
+            )
+            self.U = np.asarray(res["U"])
+            self.V = np.asarray(res["V"])
 
         return self
 
@@ -125,13 +144,20 @@ class IBPR(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
             return user_pred

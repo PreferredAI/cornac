@@ -50,14 +50,13 @@ class COE(Recommender):
         When True, some running logs are displayed.
 
     init_params: dictionary, optional, default: None
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V} \
-        please see below the definition of U and V.
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}.
 
-    U: csc_matrix, shape (n_users,k)
-        The user latent factors, optional initialization via init_params.
+        U: ndarray, shape (n_users, k)
+            The user latent factors.
 
-    V: csc_matrix, shape (n_items,k)
-        The item latent factors, optional initialization via init_params.
+        V: ndarray, shape (n_items, k)
+            The item latent factors.
 
     References
     ----------
@@ -65,19 +64,30 @@ class COE(Recommender):
      In Proceedings of the 2016 SIAM International Conference on Data Mining (pp. 396-404). Society for Industrial and Applied Mathematics.
     """
 
-    def __init__(self, k=20, max_iter=100, learning_rate=0.05, lamda=0.001, batch_size=1000, name="coe", trainable=True,
-                 verbose=False, init_params=None):
+    def __init__(
+        self,
+        k=20,
+        max_iter=100,
+        learning_rate=0.05,
+        lamda=0.001,
+        batch_size=1000,
+        name="coe",
+        trainable=True,
+        verbose=False,
+        init_params=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.name = name
         self.learning_rate = learning_rate
         self.lamda = lamda
         self.batch_size = batch_size
 
-        self.U = init_params['U']  # matrix of user factors
-        self.V = init_params['V']  # matrix of item factors
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -96,19 +106,26 @@ class COE(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from .coe import coe
+        if self.trainable:
+            from .coe import coe
 
-        X = self.train_set.matrix
+            if self.verbose:
+                print("Learning...")
 
-        if self.verbose:
-            print('Learning...')
-        res = coe(X, k=self.k, n_epochs=self.max_iter, lamda=self.lamda, learning_rate=self.learning_rate,
-                  batch_size=self.batch_size, init_params=self.init_params)
-        self.U = np.asarray(res['U'])
-        self.V = np.asarray(res['V'])
+            res = coe(
+                self.train_set.matrix,
+                k=self.k,
+                n_epochs=self.max_iter,
+                lamda=self.lamda,
+                learning_rate=self.learning_rate,
+                batch_size=self.batch_size,
+                init_params={"U": self.U, "V": self.V},
+            )
+            self.U = np.asarray(res["U"])
+            self.V = np.asarray(res["V"])
 
-        if self.verbose:
-            print('Learning completed')
+            if self.verbose:
+                print("Learning completed")
 
         return self
 
@@ -135,13 +152,24 @@ class COE(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
-            known_item_scores = np.sum(np.abs(self.V - self.U[user_idx, :]) ** 2, axis=-1) ** (1. / 2)
+            known_item_scores = np.sum(
+                np.abs(self.V - self.U[user_idx, :]) ** 2, axis=-1
+            ) ** (1.0 / 2)
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
-            user_pred = np.sum(np.abs(self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1) ** (1. / 2)
+            user_pred = np.sum(
+                np.abs(self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1
+            ) ** (1.0 / 2)
             return user_pred

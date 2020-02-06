@@ -52,37 +52,66 @@ class PCRL(Recommender):
         When True, determinist wheights "W" are used for the generator network, \
         otherwise "W" is stochastic as in the original paper.
 
-    init_params: dictionary, optional, default: {'G_s':None, 'G_r':None, 'L_s':None, 'L_r':None}
-        List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}, \
-        where G_s and G_r are of type csc_matrix or np.array with the same shape as Theta, see below). \
-        They represent respectively the "shape" and "rate" parameters of Gamma distribution over \
-        Theta. It is the same for L_s, L_r and Beta.
+    init_params: dictionary, optional, default: None
+        List of initial parameters, e.g., init_params = {'G_s':G_s, 'G_r':G_r, 'L_s':L_s, 'L_r':L_r}.
+        
+        Theta: ndarray, shape (n_users, k)
+            The expected user latent factors.
 
-    Theta: csc_matrix, shape (n_users,k)
-        The expected user latent factors.
+        Beta: ndarray, shape (n_items, k)
+            The expected item latent factors.
 
-    Beta: csc_matrix, shape (n_items,k)
-        The expected item latent factors.
-
+        G_s: ndarray, shape (n_users, k)
+            Represent the "shape" parameters of Gamma distribution over Theta.
+            
+        G_r: ndarray, shape (n_users, k)
+            Represent the "rate" parameters of Gamma distribution over Theta. 
+        
+        L_s: ndarray, shape (n_items, k)
+            Represent the "shape" parameters of Gamma distribution over Beta.
+            
+        L_r: ndarray, shape (n_items, k)
+            Represent the "rate" parameters of Gamma distribution over Beta. 
+        
     References
     ----------
     * Salah, Aghiles, and Hady W. Lauw. Probabilistic Collaborative Representation Learning for Personalized Item Recommendation. \
     In UAI 2018.
     """
 
-    def __init__(self, k=100, z_dims=[300], max_iter=300, batch_size=300, learning_rate=0.001, name="pcrl",
-                 trainable=True,
-                 verbose=False, w_determinist=True, init_params={'G_s': None, 'G_r': None, 'L_s': None, 'L_r': None}):
+    def __init__(
+        self,
+        k=100,
+        z_dims=[300],
+        max_iter=300,
+        batch_size=300,
+        learning_rate=0.001,
+        name="PCRL",
+        trainable=True,
+        verbose=False,
+        w_determinist=True,
+        init_params=None,
+    ):
 
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
         self.k = k
-        self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
+        self.z_dims = (
+            z_dims
+        )  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.init_params = init_params
         self.w_determinist = w_determinist
+
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.Theta = self.init_params.get("Theta", None)
+        self.Beta = self.init_params.get("Beta", None)
+        self.Gs = self.init_params.get("G_s", None)
+        self.Gr = self.init_params.get("G_r", None)
+        self.Ls = self.init_params.get("L_s", None)
+        self.Lr = self.init_params.get("L_r", None)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -101,21 +130,44 @@ class PCRL(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        from .pcrl import PCRL_
-
-        #X = sp.csc_matrix(self.train_set.matrix)
+        # X = sp.csc_matrix(self.train_set.matrix)
 
         if self.trainable:
+            from .pcrl import PCRL_
+
+            # use pre-trained params if exists, otherwise from constructor
+            init_params = {
+                "G_s": self.Gs,
+                "G_r": self.Gr,
+                "L_s": self.Ls,
+                "L_r": self.Lr,
+            }
+
             # instanciate pcrl
-            #train_aux_info = train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
-            pcrl_ = PCRL_(train_set=train_set, k=self.k, z_dims=self.z_dims, n_epoch=self.max_iter,
-                          batch_size=self.batch_size, learning_rate=self.learning_rate, B=1,
-                          w_determinist=self.w_determinist, init_params=self.init_params)
-            pcrl_.learn()
+            # train_aux_info = train_set.item_graph.matrix[:self.train_set.num_items, :self.train_set.num_items]
+            pcrl_ = PCRL_(
+                train_set=train_set,
+                k=self.k,
+                z_dims=self.z_dims,
+                n_epoch=self.max_iter,
+                batch_size=self.batch_size,
+                learning_rate=self.learning_rate,
+                B=1,
+                w_determinist=self.w_determinist,
+                init_params=init_params,
+            ).learn()
+
             self.Theta = np.array(pcrl_.Gs) / np.array(pcrl_.Gr)
             self.Beta = np.array(pcrl_.Ls) / np.array(pcrl_.Lr)
+
+            # overwrite init_params for future fine-tuning
+            self.Gs = pcrl_.Gs
+            self.Gr = pcrl_.Gr
+            self.Ls = pcrl_.Ls
+            self.Lr = pcrl_.Lr
+
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))
+            print("%s is trained already (trainable = False)" % (self.name))
 
         return self
 
@@ -143,6 +195,6 @@ class PCRL(Recommender):
         else:
             user_pred = self.Beta[item_idx, :] * self.Theta[user_idx, :].T
         # transform user_pred to a flatten array
-        user_pred = np.array(user_pred, dtype='float64').flatten()
+        user_pred = np.array(user_pred, dtype="float64").flatten()
 
         return user_pred

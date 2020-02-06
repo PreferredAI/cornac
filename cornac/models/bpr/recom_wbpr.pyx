@@ -20,6 +20,7 @@ from cython cimport floating, integral
 
 import numpy as np
 cimport numpy as np
+from tqdm import trange
 
 from ..recommender import Recommender
 from ...utils import get_rng
@@ -68,12 +69,30 @@ class WBPR(BPR):
     "Personalized ranking for non-uniformly sampled items." In Proceedings of KDD Cup 2011, pp. 231-247. 2012.
     """
 
-    def __init__(self, name="WBPR", k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01,
-                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+    def __init__(
+        self, 
+        name="WBPR", 
+        k=10, 
+        max_iter=100, 
+        learning_rate=0.001, 
+        lambda_reg=0.01,
+        num_threads=0, 
+        trainable=True, 
+        verbose=False, 
+        init_params=None, 
+        seed=None
+    ):
         super().__init__(
-            name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, 
-            lambda_reg=lambda_reg, num_threads=num_threads, trainable=trainable, 
-            verbose=verbose, init_params=init_params, seed=seed
+            name=name, 
+            k=k, 
+            max_iter=max_iter, 
+            learning_rate=learning_rate, 
+            lambda_reg=lambda_reg, 
+            num_threads=num_threads, 
+            trainable=trainable, 
+            verbose=verbose, 
+            init_params=init_params, 
+            seed=seed
         )
 
     def fit(self, train_set, val_set=None):
@@ -93,19 +112,17 @@ class WBPR(BPR):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init(train_set)
+        self._init()
 
         if not self.trainable:
-            return
-
-        X, user_counts, user_ids = self._prepare_data(train_set)
+            return self
+        
+        X, user_counts, user_ids = self._prepare_data()
 
         cdef:
             int num_threads = self.num_threads
             # user the same RNG for weighted sampling with negative items
             RNGVector rng_vec = RNGVector(num_threads, len(user_ids) - 1, self.rng.randint(2 ** 31))
-
-        from tqdm import trange
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
