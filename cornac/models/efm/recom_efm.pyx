@@ -15,19 +15,24 @@
 
 # cython: language_level=3
 
+import multiprocessing
+from collections import Counter, OrderedDict
+
 cimport cython
 from cython.parallel import prange, parallel
 from cython cimport floating, integral
 from libc.math cimport sqrt
-from scipy.linalg.cython_blas cimport sdot, ddot
-from ...exception import ScoreException
-from ...utils.common import intersects
 
-from ..recommender import Recommender
-from collections import Counter, OrderedDict
-import scipy.sparse as sp
 import numpy as np
 cimport numpy as np
+import scipy.sparse as sp
+from scipy.linalg.cython_blas cimport sdot, ddot
+
+from ..recommender import Recommender
+from ...exception import ScoreException
+from ...utils.common import intersects
+from ...utils import get_rng
+from ...utils.init_utils import uniform
 
 
 cdef floating _dot(int n, floating *x, int incx,
@@ -141,9 +146,8 @@ class EFM(Recommender):
         self.lambda_v = lambda_v
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
-        self.init_params = {} if init_params is None else init_params
         self.seed = seed
-        import multiprocessing
+
         if seed is not None:
             self.num_threads = 1
         elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
@@ -151,23 +155,33 @@ class EFM(Recommender):
         else:
             self.num_threads = multiprocessing.cpu_count()
 
-    def _init_params(self):
-        from ...utils import get_rng
-        from ...utils.init_utils import uniform
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U1 = self.init_params.get('U1', None)
+        self.U2 = self.init_params.get('U2', None)
+        self.V = self.init_params.get('V', None)
+        self.H1 = self.init_params.get('H1', None)
+        self.H2 = self.init_params.get('H2', None)
 
+    def _init(self):
         rng = get_rng(self.seed)
-        num_factors = self.num_explicit_factors + self.num_latent_factors
-        high = np.sqrt(self.rating_scale / num_factors)
-        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors),
-                                                     high=high, random_state=rng))
-        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors),
-                                                     high=high, random_state=rng))
-        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors),
-                                                   high=high, random_state=rng))
-        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors),
-                                                     high=high, random_state=rng))
-        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors),
-                                                     high=high, random_state=rng))
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+        n_aspects = self.train_set.sentiment.num_aspects
+        n_efactors = self.num_explicit_factors
+        n_lfactors = self.num_latent_factors
+        n_factors = n_efactors + n_lfactors
+        high = np.sqrt(self.rating_scale / n_factors)
+        
+        if self.U1 is None:
+            self.U1 = uniform((n_users, n_efactors), high=high, random_state=rng)
+        if self.U2 is None:
+            self.U2 = uniform((n_items, n_efactors), high=high, random_state=rng)
+        if self.V is None:
+            self.V = uniform((n_aspects, n_efactors), high=high, random_state=rng)
+        if self.H1 is None:
+            self.H1 = uniform((n_users, n_lfactors), high=high, random_state=rng)
+        if self.H2 is None:
+            self.H2 = uniform((n_items, n_lfactors), high=high, random_state=rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -186,26 +200,30 @@ class EFM(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init_params()
+        self._init()
 
-        if not self.trainable:
-            return
+        if self.trainable:
+            A, X, Y = self._build_matrices(self.train_set)
+            A_user_counts = np.ediff1d(A.indptr)
+            A_item_counts = np.ediff1d(A.tocsc().indptr)
+            A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
+            X_user_counts = np.ediff1d(X.indptr)
+            X_aspect_counts = np.ediff1d(X.tocsc().indptr)
+            X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)
+            Y_item_counts = np.ediff1d(Y.indptr)
+            Y_aspect_counts = np.ediff1d(Y.tocsc().indptr)
+            Y_iids = np.repeat(np.arange(self.train_set.num_items), Y_item_counts).astype(Y.indices.dtype)
+            
+            self._fit_efm(
+                self.num_threads,
+                A.data.astype(np.float32), A_uids, A.indices, A_user_counts, A_item_counts,
+                X.data.astype(np.float32), X_uids, X.indices, X_user_counts, X_aspect_counts,
+                Y.data.astype(np.float32), Y_iids, Y.indices, Y_item_counts, Y_aspect_counts,
+                self.U1, self.U2, self.V, self.H1, self.H2
+            )
 
-        A, X, Y = self._build_matrices(self.train_set)
-        A_user_counts = np.ediff1d(A.indptr)
-        A_item_counts = np.ediff1d(A.tocsc().indptr)
-        A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
-        X_user_counts = np.ediff1d(X.indptr)
-        X_aspect_counts = np.ediff1d(X.tocsc().indptr)
-        X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)
-        Y_item_counts = np.ediff1d(Y.indptr)
-        Y_aspect_counts = np.ediff1d(Y.tocsc().indptr)
-        Y_iids = np.repeat(np.arange(self.train_set.num_items), Y_item_counts).astype(Y.indices.dtype)
-        self._fit_efm(self.num_threads,
-                      A.data.astype(np.float32), A_uids, A.indices, A_user_counts, A_item_counts,
-                      X.data.astype(np.float32), X_uids, X.indices, X_user_counts, X_aspect_counts,
-                      Y.data.astype(np.float32), Y_iids, Y.indices, Y_item_counts, Y_aspect_counts,
-                      self.U1, self.U2, self.V, self.H1, self.H2)
+        return self        
+
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

@@ -13,8 +13,12 @@
 # limitations under the License.
 # ============================================================================
 
+import os
 import copy
 import inspect
+import pickle
+from glob import glob
+from datetime import datetime
 
 import numpy as np
 
@@ -41,6 +45,8 @@ class Recommender:
         self.verbose = verbose
         self.train_set = None
         self.val_set = None
+        # attributes to be ignored when being saved
+        self.ignored_attrs = ["train_set", "val_set"]
 
     def reset_info(self):
         self.best_value = -np.Inf
@@ -48,6 +54,15 @@ class Recommender:
         self.current_epoch = 0
         self.stopped_epoch = 0
         self.wait = 0
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        for k, v in self.__dict__.items():
+            if k in self.ignored_attrs:
+                continue
+            setattr(result, k, copy.deepcopy(v))
+        return result
 
     @classmethod
     def _get_init_params(cls):
@@ -61,24 +76,85 @@ class Recommender:
 
         return sorted([p.name for p in parameters])
 
-    def clone(self, new_params):
+    def clone(self, new_params=None):
         """Clone an instance of the model object.
 
         Parameters
         ----------
-        new_params: dict, required
+        new_params: dict, optional, default: None
             New parameters for the cloned instance.
 
         Returns
         -------
         object: :obj:`cornac.models.Recommender`
         """
+        new_params = {} if new_params is None else new_params
         init_params = {}
         for name in self._get_init_params():
-            init_params[name] = copy.deepcopy(getattr(self, name))
-        init_params = {**init_params, **new_params}
+            init_params[name] = new_params.get(name, copy.deepcopy(getattr(self, name)))
 
         return self.__class__(**init_params)
+
+    def save(self, save_dir=None):
+        """Save a recommender model to the filesystem.
+
+        Parameters
+        ----------
+        save_dir: str, default: None
+            Path to a directory for the model to be stored.
+
+        Returns
+        -------
+        model_file : str
+            Path to the model file stored on the filesystem.
+        """
+        if save_dir is None:
+            return
+
+        model_dir = os.path.join(save_dir, self.name)
+        os.makedirs(model_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+        model_file = os.path.join(model_dir, "{}.pkl".format(timestamp))
+
+        saved_model = copy.deepcopy(self)
+
+        pickle.dump(
+            saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
+        )
+
+        if self.verbose:
+            print("{} model is saved to {}".format(self.name, model_file))
+
+        return model_file
+
+    @staticmethod
+    def load(model_path, trainable=False):
+        """Load a recommender model from the filesystem.
+
+        Parameters
+        ----------
+        model_path: str, required
+            Path to a file or directory where the model is stored. If a directory is
+            provided, the latest model will be loaded.
+
+        trainable: boolean, optional, default: False
+            Set it to True if you would like to finetune the model. By default, 
+            the model parameters are assumed to be fixed after being loaded.
+        
+        Returns
+        -------
+        self : object
+        """
+        if os.path.isdir(model_path):
+            model_file = sorted(glob("{}/*.pkl".format(model_path)))[-1]
+        else:
+            model_file = model_path
+
+        model = pickle.load(open(model_file, "rb"))
+        model.trainable = trainable
+        model.load_from = model_file  # for further loading
+
+        return model
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.

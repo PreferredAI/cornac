@@ -55,10 +55,14 @@ class PMF(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
-    init_params: dictionary, optional, default: {}
-        List of initial parameters, e.g., init_params = {'U':U, 'V':V}. \
-        U: a csc_matrix of shape (n_users,k), containing the user latent factors. \
-        V: a csc_matrix of shape (n_items,k), containing the item latent factors.
+    init_params: dict, optional, default: None
+        List of initial parameters, e.g., init_params = {'U':U, 'V':V}.
+        
+        U: ndarray, shape (n_users, k) 
+            User latent factors.
+        
+        V: ndarray, shape (n_items, k)
+            Item latent factors.
 
     seed: int, optional, default: None
         Random seed for parameters initialization.
@@ -69,22 +73,36 @@ class PMF(Recommender):
     In NIPS, pp. 1257-1264. 2008.
     """
 
-    def __init__(self, k=5, max_iter=100, learning_rate=0.001, gamma=0.9, lambda_reg=0.001, name="PMF", variant='non_linear',
-                 trainable=True, verbose=False, init_params={}, seed=None):
+    def __init__(
+        self,
+        k=5,
+        max_iter=100,
+        learning_rate=0.001,
+        gamma=0.9,
+        lambda_reg=0.001,
+        name="PMF",
+        variant="non_linear",
+        trainable=True,
+        verbose=False,
+        init_params=None,
+        seed=None,
+    ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
-        self.init_params = init_params
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.lambda_reg = lambda_reg
         self.variant = variant
+        self.seed = seed
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        self.U = self.init_params.get('U')  # matrix of user factors
-        self.V = self.init_params.get('V')  # matrix of item factors
-        self.seed = seed
+        
+        # Init params if provided
+        self.init_params = {} if init_params is None else init_params
+        self.U = self.init_params.get("U", None)  # matrix of user factors
+        self.V = self.init_params.get("V", None)  # matrix of item factors
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -108,36 +126,70 @@ class PMF(Recommender):
         if self.trainable:
             # converting data to the triplet format (needed for cython function pmf)
             (uid, iid, rat) = train_set.uir_tuple
-            rat = np.array(rat, dtype='float32')
-            if self.variant == 'non_linear':  # need to map the ratings to [0,1]
+            rat = np.array(rat, dtype="float32")
+            if self.variant == "non_linear":  # need to map the ratings to [0,1]
                 if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                    rat = scale(rat, 0., 1., self.train_set.min_rating, self.train_set.max_rating)
-            uid = np.array(uid, dtype='int32')
-            iid = np.array(iid, dtype='int32')
+                    rat = scale(
+                        rat,
+                        0.0,
+                        1.0,
+                        self.train_set.min_rating,
+                        self.train_set.max_rating,
+                    )
+            uid = np.array(uid, dtype="int32")
+            iid = np.array(iid, dtype="int32")
 
             if self.verbose:
-                print('Learning...')
+                print("Learning...")
+                
+            # use pre-trained params if exists, otherwise from constructor
+            init_params = {"U": self.U, "V": self.V}
 
-            if self.variant == 'linear':
-                res = pmf.pmf_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users, n_items=train_set.num_items,
-                                     n_ratings=len(rat), n_epochs=self.max_iter,
-                                     lambda_reg=self.lambda_reg, learning_rate=self.learning_rate, gamma=self.gamma,
-                                     init_params=self.init_params, verbose=self.verbose, seed=self.seed)
-            elif self.variant == 'non_linear':
-                res = pmf.pmf_non_linear(uid, iid, rat, k=self.k, n_users=train_set.num_users,
-                                         n_items=train_set.num_items, n_ratings=len(rat), n_epochs=self.max_iter,
-                                         lambda_reg=self.lambda_reg, learning_rate=self.learning_rate, gamma=self.gamma,
-                                         init_params=self.init_params, verbose=self.verbose, seed=self.seed)
+            if self.variant == "linear":
+                res = pmf.pmf_linear(
+                    uid,
+                    iid,
+                    rat,
+                    k=self.k,
+                    n_users=train_set.num_users,
+                    n_items=train_set.num_items,
+                    n_ratings=len(rat),
+                    n_epochs=self.max_iter,
+                    lambda_reg=self.lambda_reg,
+                    learning_rate=self.learning_rate,
+                    gamma=self.gamma,
+                    init_params=init_params,
+                    verbose=self.verbose,
+                    seed=self.seed,
+                )
+            elif self.variant == "non_linear":
+                res = pmf.pmf_non_linear(
+                    uid,
+                    iid,
+                    rat,
+                    k=self.k,
+                    n_users=train_set.num_users,
+                    n_items=train_set.num_items,
+                    n_ratings=len(rat),
+                    n_epochs=self.max_iter,
+                    lambda_reg=self.lambda_reg,
+                    learning_rate=self.learning_rate,
+                    gamma=self.gamma,
+                    init_params=init_params,
+                    verbose=self.verbose,
+                    seed=self.seed,
+                )
             else:
                 raise ValueError('variant must be one of {"linear","non_linear"}')
 
-            self.U = np.asarray(res['U'])
-            self.V = np.asarray(res['V'])
+            self.U = np.asarray(res["U"])
+            self.V = np.asarray(res["V"])
 
             if self.verbose:
-                print('Learning completed')
+                print("Learning completed")
+
         elif self.verbose:
-            print('%s is trained already (trainable = False)' % (self.name))
+            print("%s is trained already (trainable = False)" % (self.name))
 
         return self
 
@@ -161,18 +213,31 @@ class PMF(Recommender):
         """
         if item_idx is None:
             if self.train_set.is_unk_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
 
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
 
             if self.variant == "non_linear":
                 user_pred = sigmoid(user_pred)
-                user_pred = scale(user_pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+                user_pred = scale(
+                    user_pred,
+                    self.train_set.min_rating,
+                    self.train_set.max_rating,
+                    0.0,
+                    1.0,
+                )
 
             return user_pred

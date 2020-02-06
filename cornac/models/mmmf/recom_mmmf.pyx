@@ -71,12 +71,30 @@ class MMMF(BPR):
     * Weimer, M., Karatzoglou, A., & Smola, A. (2008). Improving maximum margin matrix factorization. Machine Learning, 72(3), 263-276.
     """
 
-    def __init__(self, name='MMMF', k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.01,
-                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+    def __init__(
+        self, 
+        name='MMMF', 
+        k=10, 
+        max_iter=100, 
+        learning_rate=0.001, 
+        lambda_reg=0.01,
+        num_threads=0, 
+        trainable=True, 
+        verbose=False, 
+        init_params=None, 
+        seed=None,
+    ):
         super().__init__(
-            name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, 
-            lambda_reg=lambda_reg, num_threads=num_threads, trainable=trainable, 
-            verbose=verbose, init_params=init_params, seed=seed
+            name=name, 
+            k=k, 
+            max_iter=max_iter, 
+            learning_rate=learning_rate, 
+            lambda_reg=lambda_reg, 
+            num_threads=num_threads, 
+            trainable=trainable, 
+            verbose=verbose, 
+            init_params=init_params, 
+            seed=seed,
         )
 
     @cython.cdivision(True)

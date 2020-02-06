@@ -54,23 +54,31 @@ def sample_triplet(X, batch_size):
     return sampled_data
 
 
-def coe(X, k, lamda=0.05, n_epochs=150, learning_rate=0.001, batch_size=1000, init_params=None):
+def coe(
+    X,
+    k,
+    lamda=0.05,
+    n_epochs=150,
+    learning_rate=0.001,
+    batch_size=1000,
+    init_params=None,
+):
     # Data = Dataset(data)
 
     # Initial user factors
-    if init_params['U'] is None:
-        U = torch.randn(X.shape[0], k, requires_grad=True, device="cuda")
+    if init_params["U"] is None:
+        U = torch.randn(X.shape[0], k, requires_grad=True)
     else:
-        U = init_params['U']
-        U = torch.from_numpy(U)
+        U = torch.from_numpy(init_params["U"])
+        U.requires_grad = True
 
     # Initial item factors
-    if init_params['V'] is None:
-        V = torch.randn(X.shape[1], k, requires_grad=True, device="cuda")
+    if init_params["V"] is None:
+        V = torch.randn(X.shape[1], k, requires_grad=True)
     else:
-        V = init_params['V']
-        V = torch.from_numpy(V)
-
+        V = torch.from_numpy(init_params["V"])
+        V.requires_grad = True
+        
     optimizer = torch.optim.Adam([U, V], lr=learning_rate)
     for epoch in range(n_epochs):
         #        num_steps = int(Data.data.shape[0]/batch_size)
@@ -89,16 +97,18 @@ def coe(X, k, lamda=0.05, n_epochs=150, learning_rate=0.001, batch_size=1000, in
         Scorei = torch.norm(regU - regI, dim=1)
         Scorej = torch.norm(regU - regJ, dim=1)
 
-        loss = lamda * (regU_unq.norm().pow(2) + regI_unq.norm().pow(2)) - torch.log(
-            torch.sigmoid(Scorej - Scorei)).sum()
+        loss = (
+            lamda * (regU_unq.norm().pow(2) + regI_unq.norm().pow(2))
+            - torch.log(torch.sigmoid(Scorej - Scorei)).sum()
+        )
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        print('epoch:', epoch, 'loss:', loss)
+        print("epoch:", epoch, "loss:", loss)
 
     U = U.data.cpu().numpy()
     V = V.data.cpu().numpy()
 
-    res = {'U': U, 'V': V}
+    res = {"U": U, "V": V}
 
     return res

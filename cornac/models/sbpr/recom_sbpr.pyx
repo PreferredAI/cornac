@@ -74,25 +74,44 @@ class SBPR(BPR):
     personalized ranking for collaborative filtering. CIKM 2014 (pp. 261-270).
     """
 
-    def __init__(self, name='SBPR', k=10, max_iter=100, learning_rate=0.001,
-                 lambda_u=0.01, lambda_v=0.01, lambda_b=0.01,
-                 num_threads=0, trainable=True, verbose=False, init_params=None, seed=None):
+    def __init__(
+        self, 
+        name='SBPR', 
+        k=10,
+        max_iter=100, 
+        learning_rate=0.001,
+        lambda_u=0.01, 
+        lambda_v=0.01, 
+        lambda_b=0.01,
+        num_threads=0, 
+        trainable=True, 
+        verbose=False, 
+        init_params=None, 
+        seed=None
+    ):
         super().__init__(
-            name=name, k=k, max_iter=max_iter, learning_rate=learning_rate, 
-            num_threads=num_threads, trainable=trainable, 
-            verbose=verbose, init_params=init_params, seed=seed
+            name=name, 
+            k=k, 
+            max_iter=max_iter, 
+            learning_rate=learning_rate, 
+            num_threads=num_threads, 
+            trainable=trainable, 
+            verbose=verbose, 
+            init_params=init_params, 
+            seed=seed
         )
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.lambda_b = lambda_b
 
-    def _prepare_social_data(self, train_set):
-        X = train_set.matrix # csr_matrix
-        n_users, n_items = train_set.num_users, train_set.num_items
+    def _prepare_social_data(self):
+        X = self.train_set.matrix # csr_matrix
+        n_users, n_items = self.train_set.num_users, self.train_set.num_items
 
         # construct social feedback in the sparse format
-        (rid, cid, val) = train_set.user_graph.get_train_triplet(train_set.user_indices,
-                                                                 train_set.user_indices)
+        (rid, cid, val) = self.train_set.user_graph.get_train_triplet(
+            self.train_set.user_indices, self.train_set.user_indices
+        )
         Y = csr_matrix((val, (rid, cid)), shape=(n_users, n_users))
         social_item_ids = []
         social_item_counts = []
@@ -128,13 +147,13 @@ class SBPR(BPR):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init(train_set)
+        self._init()
 
         if not self.trainable:
             return self
-
-        X, user_counts, user_ids = self._prepare_data(train_set)
-        s_item_ids, s_item_counts, s_indptr = self._prepare_social_data(train_set)
+        
+        X, user_counts, user_ids = self._prepare_data()
+        s_item_ids, s_item_counts, s_indptr = self._prepare_social_data()
 
         # construct random generators
         cdef:
