@@ -24,32 +24,34 @@ from cornac import metrics
 from cornac.models import C2PF
 from cornac.datasets import amazon_office as office
 
+
 # In addition to user-item feedback, C2PF integrates item-to-item contextual relationships
 # The necessary data can be loaded as follows
 ratings = office.load_feedback()
 contexts = office.load_graph()
 
-# Instantiate a GraphModality, it make it convenient to work with graph (network) auxiliary information
+# Instantiate a GraphModality, it makes it convenient to work with graph (network) auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
 item_graph_modality = GraphModality(data=contexts)
 
 # Define an evaluation method to split feedback into train and test sets
-ratio_split = RatioSplit(data=ratings,
-                         test_size=0.2, rating_threshold=3.5,
-                         exclude_unknowns=True, verbose=True,
-                         item_graph=item_graph_modality)
+ratio_split = RatioSplit(
+    data=ratings,
+    test_size=0.2,
+    rating_threshold=3.5,
+    exclude_unknowns=True,
+    verbose=True,
+    item_graph=item_graph_modality,
+)
 
 # Instantiate C2PF
-c2pf = C2PF(k=100, max_iter=80, variant='c2pf')
+c2pf = C2PF(k=100, max_iter=80, variant="c2pf")
 
 # Evaluation metrics
-nDgc = metrics.NDCG(k=-1)
+ndcg = metrics.NDCG(k=-1)
 mrr = metrics.MRR()
 rec = metrics.Recall(k=20)
 pre = metrics.Precision(k=20)
 
 # Put everything together into an experiment and run it
-exp = Experiment(eval_method=ratio_split,
-                 models=[c2pf],
-                 metrics=[nDgc, mrr, rec, pre])
-exp.run()
+Experiment(eval_method=ratio_split, models=[c2pf], metrics=[ndcg, mrr, rec, pre]).run()

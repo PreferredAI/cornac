@@ -24,7 +24,7 @@ from cornac.eval_methods import RatioSplit
 feedback = amazon_clothing.load_feedback()
 features, item_ids = amazon_clothing.load_image()
 
-# Instantiate a ImageModality, it make it convenient to work with visual auxiliary information
+# Instantiate a ImageModality, it makes it convenient to work with visual auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
 item_image_modality = ImageModality(features=features, ids=item_ids, normalized=True)
 
