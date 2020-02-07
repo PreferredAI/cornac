@@ -32,7 +32,7 @@ ratio_split = RatioSplit(
     verbose=True,
 )
 
-# Instantiate the most popular baseline and BPR model
+# Instantiate the most popular baseline, BPR, and WBPR models
 most_pop = cornac.models.MostPop()
 bpr = cornac.models.BPR(
     k=50, max_iter=200, learning_rate=0.001, lambda_reg=0.001, verbose=True
