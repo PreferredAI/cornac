@@ -19,31 +19,41 @@ from cornac.data import Reader, GraphModality
 from cornac.datasets import epinions
 from cornac.eval_methods import RatioSplit
 
+
 # SBPR integrates user social network into Bayesian Personalized Ranking.
 # The necessary data can be loaded as follows
 feedback = epinions.load_feedback(
-    Reader(bin_threshold=4.0))  # feedback is binarised (turned into implicit) using Reader.
+    Reader(bin_threshold=4.0)
+)  # feedback is binarised (turned into implicit) using Reader.
 trust = epinions.load_trust()
 
-# Instantiate a GraphModality, it make it convenient to work with graph (network) auxiliary information
+# Instantiate a GraphModality, it makes it convenient to work with graph (network) auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
 user_graph_modality = GraphModality(data=trust)
 
 # Define an evaluation method to split feedback into train and test sets
-ratio_split = RatioSplit(data=feedback,
-                         test_size=0.1, rating_threshold=0.5,
-                         exclude_unknowns=True, verbose=True,
-                         user_graph=user_graph_modality)
+ratio_split = RatioSplit(
+    data=feedback,
+    test_size=0.1,
+    rating_threshold=0.5,
+    exclude_unknowns=True,
+    verbose=True,
+    user_graph=user_graph_modality,
+)
 
-# Instantiate SBPR
-sbpr = cornac.models.SBPR(k=10, max_iter=50, learning_rate=0.001,
-                          lambda_u=0.015, lambda_v=0.025, lambda_b=0.01,
-                          verbose=True)
+# Instantiate SBPR model
+sbpr = cornac.models.SBPR(
+    k=10,
+    max_iter=50,
+    learning_rate=0.001,
+    lambda_u=0.015,
+    lambda_v=0.025,
+    lambda_b=0.01,
+    verbose=True,
+)
 
 # Use Recall@10 for evaluation
 rec_10 = cornac.metrics.Recall(k=10)
 
 # Put everything together into an experiment and run it
-cornac.Experiment(eval_method=ratio_split,
-                  models=[sbpr],
-                  metrics=[rec_10]).run()
+cornac.Experiment(eval_method=ratio_split, models=[sbpr], metrics=[rec_10]).run()
