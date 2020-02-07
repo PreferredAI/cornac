@@ -16,22 +16,26 @@
 
 import cornac as cn
 
+
 # Load the MovieLens 100K dataset
 ml_100k = cn.datasets.movielens.load_feedback()
 
 # Instantiate an evaluation method to split data into train and test sets.
-ratio_split = cn.eval_methods.RatioSplit(data=ml_100k, test_size=0.2,
-                                         rating_threshold=4.0, verbose=True)
+ratio_split = cn.eval_methods.RatioSplit(
+    data=ml_100k, test_size=0.2, rating_threshold=4.0, verbose=True
+)
 
 # Instantiate the models of interest
-bo = cn.models.BaselineOnly(max_iter=30, learning_rate=0.01, lambda_reg=0.02, verbose=True)
-svd = cn.models.SVD(k=10, max_iter=30, learning_rate=0.01, lambda_reg=0.02, verbose=True)
+bo = cn.models.BaselineOnly(
+    max_iter=30, learning_rate=0.01, lambda_reg=0.02, verbose=True
+)
+svd = cn.models.SVD(
+    k=10, max_iter=30, learning_rate=0.01, lambda_reg=0.02, verbose=True
+)
 
 # Instantiate evaluation measures
 mae = cn.metrics.MAE()
 rmse = cn.metrics.RMSE()
 
 # Instantiate and run an experiment.
-cn.Experiment(eval_method=ratio_split,
-              models=[bo, svd],
-              metrics=[mae, rmse]).run()
+cn.Experiment(eval_method=ratio_split, models=[bo, svd], metrics=[mae, rmse]).run()

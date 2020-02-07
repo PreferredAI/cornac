@@ -22,13 +22,28 @@ from cornac.eval_methods import RatioSplit
 ml_100k = movielens.load_feedback()
 
 # Instantiate an evaluation method.
-eval_method = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0,
-                         exclude_unknowns=True, verbose=True, seed=123)
+eval_method = RatioSplit(
+    data=ml_100k,
+    test_size=0.2,
+    rating_threshold=4.0,
+    exclude_unknowns=True,
+    verbose=True,
+    seed=123,
+)
 
 # Instantiate a NMF recommender model.
-nmf = cornac.models.NMF(k=15, max_iter=50, learning_rate=.005,
-                        lambda_u=.06, lambda_v=.06, lambda_bu=.02, lambda_bi=.02,
-                        use_bias=False, verbose=True, seed=123)
+nmf = cornac.models.NMF(
+    k=15,
+    max_iter=50,
+    learning_rate=0.005,
+    lambda_u=0.06,
+    lambda_v=0.06,
+    lambda_bu=0.02,
+    lambda_bi=0.02,
+    use_bias=False,
+    verbose=True,
+    seed=123,
+)
 
 # Instantiate evaluation metrics.
 mae = cornac.metrics.MAE()
@@ -37,8 +52,9 @@ rec_20 = cornac.metrics.Recall(k=20)
 pre_20 = cornac.metrics.Precision(k=20)
 
 # Instantiate and then run an experiment.
-exp = cornac.Experiment(eval_method=eval_method,
-                        models=[nmf],
-                        metrics=[mae, rmse, rec_20, pre_20],
-                        user_based=True)
-exp.run()
+cornac.Experiment(
+    eval_method=eval_method,
+    models=[nmf],
+    metrics=[mae, rmse, rec_20, pre_20],
+    user_based=True,
+).run()

@@ -21,22 +21,28 @@ from cornac import metrics
 from cornac.models import SoRec
 from cornac.datasets import filmtrust
 
+
 # SoRec leverages social relationships among users (e.g., trust), it jointly factorizes the user-item and user-user matrices
 # The necessary data can be loaded as follows
 ratings = filmtrust.load_feedback()
 trust = filmtrust.load_trust()
 
-# Instantiate a GraphModality, it make it convenient to work with graph (network) auxiliary information
+# Instantiate a GraphModality, it makes it convenient to work with graph (network) auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
 user_graph_modality = GraphModality(data=trust)
 
 # Define an evaluation method to split feedback into train and test sets
-ratio_split = RatioSplit(data=ratings,
-                         test_size=0.2, rating_threshold=2.5,
-                         exclude_unknowns=True, verbose=True,
-                         user_graph=user_graph_modality, seed=123)
+ratio_split = RatioSplit(
+    data=ratings,
+    test_size=0.2,
+    rating_threshold=2.5,
+    exclude_unknowns=True,
+    verbose=True,
+    user_graph=user_graph_modality,
+    seed=123,
+)
 
-# Instantiate SoRec
+# Instantiate SoRec model
 sorec = SoRec(k=10, max_iter=50, learning_rate=0.001, verbose=False, seed=123)
 
 # Evaluation metrics
@@ -46,10 +52,10 @@ rec = metrics.Recall(k=20)
 pre = metrics.Precision(k=20)
 
 # Put everything together into an experiment and run it
-exp = Experiment(eval_method=ratio_split,
-                 models=[sorec],
-                 metrics=[rmse, ndcg, pre, rec])
-exp.run()
+Experiment(
+    eval_method=ratio_split, models=[sorec], metrics=[rmse, ndcg, pre, rec]
+).run()
+
 
 """
 Output:
