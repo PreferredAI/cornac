@@ -21,29 +21,38 @@ from cornac.eval_methods import RatioSplit
 from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
+
 # CTR composes the LDA topic model with matrix factorization to model item (article) texts and user-item preferences
 # The necessary data can be loaded as follows
 docs, item_ids = citeulike.load_text()
 feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
-# Instantiate a TextModality, it make it convenient to work with text auxiliary information
+# Instantiate a TextModality, it makes it convenient to work with text auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
-item_text_modality = TextModality(corpus=docs, ids=item_ids,
-                                  tokenizer=BaseTokenizer(sep=' ', stop_words='english'),
-                                  max_vocab=8000, max_doc_freq=0.5)
+item_text_modality = TextModality(
+    corpus=docs,
+    ids=item_ids,
+    tokenizer=BaseTokenizer(sep=" ", stop_words="english"),
+    max_vocab=8000,
+    max_doc_freq=0.5,
+)
 
 # Define an evaluation method to split feedback into train and test sets
-ratio_split = RatioSplit(data=feedback, test_size=0.2, exclude_unknowns=True,
-                         item_text=item_text_modality, verbose=True, seed=123, rating_threshold=0.5)
+ratio_split = RatioSplit(
+    data=feedback,
+    test_size=0.2,
+    exclude_unknowns=True,
+    item_text=item_text_modality,
+    verbose=True,
+    seed=123,
+    rating_threshold=0.5,
+)
 
-# Instantiate CTR
+# Instantiate CTR model
 ctr = cornac.models.CTR(k=50, max_iter=50, lambda_v=1)
 
 # Use Recall@300 for evaluation
 rec_300 = cornac.metrics.Recall(k=300)
 
 # Put everything together into an experiment and run it
-exp = cornac.Experiment(eval_method=ratio_split,
-                        models=[ctr],
-                        metrics=[rec_300])
-exp.run()
+cornac.Experiment(eval_method=ratio_split, models=[ctr], metrics=[rec_300]).run()

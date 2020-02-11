@@ -18,6 +18,7 @@ import cornac
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 
+
 # Load user-item feedback
 data = citeulike.load_feedback()
 
