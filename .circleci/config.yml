@@ -4,7 +4,7 @@ jobs:
   build:
     working_directory: ~/cornac
     docker:
-      - image: circleci/python:3.6.4
+      - image: circleci/python:3.6.9
         environment:
           PIPENV_VENV_IN_PROJECT: true
     steps:
@@ -17,13 +17,6 @@ jobs:
           command: |
             sudo pip install --upgrade pip
             sudo pip install --only-binary=numpy,scipy numpy scipy pytest pytest-cov codecov
-
-            # Install TensorFlow CPU version.
-            #sudo pip install tensorflow==1.12.0
-
-            # Install PyTorch CPU version.
-            #sudo pip install https://download.pytorch.org/whl/cpu/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
-
             sudo pip install -e .[tests]
       - save_cache:
           key: deps9-{{ .Branch }}
