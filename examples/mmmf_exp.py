@@ -25,6 +25,7 @@ feedback = cornac.datasets.movielens.load_feedback(
 # Define an evaluation method to split feedback into train and test sets
 ratio_split = cornac.eval_methods.RatioSplit(data=feedback, test_size=0.2, verbose=True)
 
+# Instantiate MMMF model
 mmmf = cornac.models.MMMF(k=10, max_iter=200, learning_rate=0.01, verbose=True)
 
 # Use NDCG@10 for evaluation

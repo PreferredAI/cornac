@@ -21,30 +21,47 @@ from cornac.eval_methods import RatioSplit
 from cornac.data import TextModality
 from cornac.data.text import BaseTokenizer
 
+
 # HFT jointly models the user-item preferences and item texts (e.g., product reviews) with shared item factors
 # Below we fit HFT to the MovieLens 1M dataset. We need  both the ratings and movie plots information
 plots, movie_ids = movielens.load_plot()
-ml_1m = movielens.load_feedback(variant='1M', reader=Reader(item_set=movie_ids))
+ml_1m = movielens.load_feedback(variant="1M", reader=Reader(item_set=movie_ids))
 
-# Instantiate a TextModality, it make it convenient to work with text auxiliary information
+# Instantiate a TextModality, it makes it convenient to work with text auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
-item_text_modality = TextModality(corpus=plots, ids=movie_ids,
-                                  tokenizer=BaseTokenizer(sep='\t', stop_words='english'),
-                                  max_vocab=5000, max_doc_freq=0.5)
+item_text_modality = TextModality(
+    corpus=plots,
+    ids=movie_ids,
+    tokenizer=BaseTokenizer(sep="\t", stop_words="english"),
+    max_vocab=5000,
+    max_doc_freq=0.5,
+)
 
 # Define an evaluation method to split feedback into train and test sets
-ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=True,
-                         item_text=item_text_modality, verbose=True, seed=123)
+ratio_split = RatioSplit(
+    data=ml_1m,
+    test_size=0.2,
+    exclude_unknowns=True,
+    item_text=item_text_modality,
+    verbose=True,
+    seed=123,
+)
 
-# Instantiate HFT
-hft = cornac.models.HFT(k=10, max_iter=40, grad_iter=5, l2_reg=0.001, lambda_text=0.01, vocab_size=5000, seed=123)
+# Instantiate HFT model
+hft = cornac.models.HFT(
+    k=10,
+    max_iter=40,
+    grad_iter=5,
+    l2_reg=0.001,
+    lambda_text=0.01,
+    vocab_size=5000,
+    seed=123,
+)
 
 # Instantiate MSE for evaluation
 mse = cornac.metrics.MSE()
 
 # Put everything together into an experiment and run it
-exp = cornac.Experiment(eval_method=ratio_split,
-                        models=[hft],
-                        metrics=[mse],
-                        user_based=False)
-exp.run()
+cornac.Experiment(
+    eval_method=ratio_split, models=[hft], metrics=[mse], user_based=False
+).run()

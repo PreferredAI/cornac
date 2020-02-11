@@ -60,7 +60,6 @@ rs_mf = RandomSearch(
     n_trails=30,
 )
 
-
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
