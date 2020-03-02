@@ -215,6 +215,12 @@ extensions = [
         extra_link_args=link_args,
     ),
     Extension(
+        name="cornac.utils.fast_dict",
+        sources=["cornac/utils/fast_dict" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+    ),
+    Extension(
         name="cornac.utils.fast_dot",
         sources=["cornac/utils/fast_dot" + ext],
         language="c++",

@@ -20,11 +20,7 @@ import multiprocessing as mp
 cimport cython
 from cython cimport floating, integral
 from cython.parallel import parallel, prange
-from libc.math cimport sqrt, log, exp, floor
-from libcpp cimport bool
-from cython.operator cimport dereference as deref, preincrement as inc, predecrement as dec
-from libcpp.utility cimport pair
-from libcpp.map cimport map as cpp_map
+from libc.math cimport sqrt, log, exp
 
 import scipy.sparse as sp
 import numpy as np
@@ -34,14 +30,10 @@ from tqdm import trange
 from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import get_rng
-from ...utils import fast_dot
-from ...utils.common import scale
-from ...utils.init_utils import zeros, uniform
-
+from ...utils.fast_dict cimport IntFloatDict
+from ...utils.init_utils import uniform
 from ..bpr.recom_bpr cimport RNGVector, has_non_zero
 
-
-np.import_array()
 
 cdef extern from "../bpr/recom_bpr.h" namespace "recom_bpr" nogil:
     cdef int get_thread_num()
@@ -51,115 +43,17 @@ cdef int get_key(int i_id, int j_id) nogil:
     return int((i_id + j_id) * (i_id + j_id + 1) / 2 + j_id)
 
 
-cdef class IntFloatDict:
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    def __init__(self, np.ndarray[ITYPE_t, ndim=1] keys,
-                       np.ndarray[DTYPE_t, ndim=1] values):
-        cdef int i
-        cdef int size = values.size
-        # Should check that sizes for keys and values are equal, and
-        # after should boundcheck(False)
-        for i in range(size):
-            self.my_map[keys[i]] = values[i]
-
-    def __len__(self):
-        return self.my_map.size()
-
-    def __getitem__(self, int key):
-        # key = self._get_key(i_id, j_id)
-        cdef cpp_map[ITYPE_t, DTYPE_t].iterator it = self.my_map.find(key)
-        if it == self.my_map.end():
-            # The key is not in the dict
-            raise KeyError('%i' % key)
-        return deref(it).second
-
-    def __setitem__(self, int key, float value):
-        self.my_map[key] = value
-
-    def __iter__(self):
-        cdef int size = self.my_map.size()
-        cdef ITYPE_t [:] keys = np.empty(size, dtype=np.intp)
-        cdef DTYPE_t [:] values = np.empty(size, dtype=np.float64)
-        self._to_arrays(keys, values)
-        cdef int idx
-        cdef ITYPE_t key
-        cdef DTYPE_t value
-        for idx in range(size):
-            key = keys[idx]
-            value = values[idx]
-            yield key, value
-
-    def to_arrays(self):
-        """Return the key, value representation of the IntFloatDict
-           object.
-           Returns
-           =======
-           keys : ndarray, shape (n_items, ), dtype=int
-                The indices of the data points
-           values : ndarray, shape (n_items, ), dtype=float
-                The values of the data points
-        """
-        cdef int size = self.my_map.size()
-        cdef np.ndarray[ITYPE_t, ndim=1] keys = np.empty(size,
-                                                         dtype=np.intp)
-        cdef np.ndarray[DTYPE_t, ndim=1] values = np.empty(size,
-                                                           dtype=np.float64)
-        self._to_arrays(keys, values)
-        return keys, values
-
-    cdef _to_arrays(self, ITYPE_t [:] keys, DTYPE_t [:] values):
-        # Internal version of to_arrays that takes already-initialized arrays
-        cdef cpp_map[ITYPE_t, DTYPE_t].iterator it = self.my_map.begin()
-        cdef cpp_map[ITYPE_t, DTYPE_t].iterator end = self.my_map.end()
-        cdef int index = 0
-        while it != end:
-            keys[index] = deref(it).first
-            values[index] = deref(it).second
-            inc(it)
-            index += 1
-
-    def update(self, IntFloatDict other):
-        cdef cpp_map[ITYPE_t, DTYPE_t].iterator it = other.my_map.begin()
-        cdef cpp_map[ITYPE_t, DTYPE_t].iterator end = other.my_map.end()
-        while it != end:
-            self.my_map[deref(it).first] = deref(it).second
-            inc(it)
-
-    def copy(self):
-        cdef IntFloatDict out_obj = IntFloatDict.__new__(IntFloatDict)
-        # The '=' operator is a copy operator for C++ maps
-        out_obj.my_map = self.my_map
-        return out_obj
-
-    def append(self, ITYPE_t key, DTYPE_t value):
-        cdef cpp_map[ITYPE_t, DTYPE_t].iterator end = self.my_map.end()
-        # Decrement the iterator
-        dec(end)
-        # Construct our arguments
-        cdef pair[ITYPE_t, DTYPE_t] args
-        args.first = key
-        args.second = value
-        self.my_map.insert(end, args)
-
-
-
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef floating get_score(floating[:, :, :] G, int dim1, int dim2, int dim3, floating[:, :] U, floating[:, :] I, floating[:, :] A, int u_idx, int i_idx, int a_idx) nogil:
+cdef floating get_score(floating[:, :, :] G, int dim1, int dim2, int dim3,
+                        floating[:, :] U, floating[:, :] I, floating[:, :] A,
+                        int u_idx, int i_idx, int a_idx) nogil:
     cdef floating score = 0.
     for i in range(dim1):
         for j in range(dim2):
             for k in range(dim3):
                 score = score + G[i, j, k] * U[u_idx, i] * I[i_idx, j] * A[a_idx, k]
     return score
-
-
-cdef int sign(float a, float b) nogil:
-    if a > b:
-        return 1
-    return -1
 
 
 class MTER(Recommender):
@@ -333,8 +227,11 @@ class MTER(Recommender):
         start_time = time.time()
         if self.verbose:
             print("Building data started!")
+
         sentiment = self.train_set.sentiment
         (u_indices, i_indices, r_values) = data_set.uir_tuple
+        keys = np.array([get_key(u, i) for u, i in zip(u_indices, i_indices)], dtype=np.intp)
+        cdef IntFloatDict rating_dict = IntFloatDict(keys, np.array(r_values, dtype=np.float64))
         rating_matrix = sp.csr_matrix(
             (r_values, (u_indices, i_indices)),
             shape=(self.train_set.num_users, self.train_set.num_items),
@@ -391,6 +288,7 @@ class MTER(Recommender):
             print("Building data completed in %d s" % total_time)
         return (
             rating_matrix,
+            rating_dict,
             user_item_aspect,
             user_aspect_opinion,
             item_aspect_opinion,
@@ -426,6 +324,7 @@ class MTER(Recommender):
 
         (
             rating_matrix,
+            rating_dict,
             user_item_aspect,
             user_aspect_opinion,
             item_aspect_opinion,
@@ -477,11 +376,6 @@ class MTER(Recommender):
             RNGVector rng_pos_iao = RNGVector(n_threads, len(item_aspect_opinion) - 1, self.rng.randint(2 ** 31))
             RNGVector rng_pos = RNGVector(n_threads, len(user_ids) - 1, self.rng.randint(2 ** 31))
             RNGVector rng_neg = RNGVector(n_threads, train_set.num_items - 1, self.rng.randint(2 ** 31))
-            IntFloatDict user_item_ratings = IntFloatDict(np.array([], dtype=np.intp), np.array([], dtype=np.float64))
-
-
-        for u_idx, i_idx, score in zip(user_ids, rating_matrix.indices, rating_matrix.data):
-            user_item_ratings[get_key(u_idx, i_idx)] = score
 
         sgrad_G1 = np.zeros_like(self.G1).astype(np.float32)
         sgrad_G2 = np.zeros_like(self.G2).astype(np.float32)
@@ -490,6 +384,20 @@ class MTER(Recommender):
         sgrad_I = np.zeros_like(self.I).astype(np.float32)
         sgrad_A = np.zeros_like(self.A).astype(np.float32)
         sgrad_O = np.zeros_like(self.O).astype(np.float32)
+        del_g1 = np.zeros_like(self.G1).astype(np.float32)
+        del_g2 = np.zeros_like(self.G2).astype(np.float32)
+        del_g3 = np.zeros_like(self.G3).astype(np.float32)
+        del_u = np.zeros_like(self.U).astype(np.float32)
+        del_i = np.zeros_like(self.I).astype(np.float32)
+        del_a = np.zeros_like(self.A).astype(np.float32)
+        del_o = np.zeros_like(self.O).astype(np.float32)
+        del_g1_reg = np.zeros_like(self.G1).astype(np.float32)
+        del_g2_reg = np.zeros_like(self.G2).astype(np.float32)
+        del_g3_reg = np.zeros_like(self.G3).astype(np.float32)
+        del_u_reg = np.zeros_like(self.U).astype(np.float32)
+        del_i_reg = np.zeros_like(self.I).astype(np.float32)
+        del_a_reg = np.zeros_like(self.A).astype(np.float32)
+        del_o_reg = np.zeros_like(self.O).astype(np.float32)
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
@@ -499,10 +407,12 @@ class MTER(Recommender):
                     X, X_uids, X_iids, X_aids,
                     YU, YU_uids, YU_aids, YU_oids,
                     YI, YI_iids, YI_aids, YI_oids,
-                    user_item_ratings,
+                    rating_dict,
                     user_ids, rating_matrix.indices, neg_item_ids, rating_matrix.indptr,
                     self.G1, self.G2, self.G3, self.U, self.I, self.A, self.O,
-                    sgrad_G1, sgrad_G2, sgrad_G3, sgrad_U, sgrad_I, sgrad_A, sgrad_O
+                    sgrad_G1, sgrad_G2, sgrad_G3, sgrad_U, sgrad_I, sgrad_A, sgrad_O,
+                    del_g1, del_g2, del_g3, del_u, del_i, del_a, del_o,
+                    del_g1_reg, del_g2_reg, del_g3_reg, del_u_reg, del_i_reg, del_a_reg, del_o_reg
                 )
 
                 progress.set_postfix({
@@ -531,7 +441,7 @@ class MTER(Recommender):
         floating[:] X, integral[:] X_uids, integral[:] X_iids, integral[:] X_aids,
         floating[:] YU, integral[:] YU_uids, integral[:] YU_aids, integral[:] YU_oids,
         floating[:] YI, integral[:] YI_iids, integral[:] YI_aids, integral[:] YI_oids,
-        IntFloatDict user_item_ratings,
+        IntFloatDict rating_dict,
         integral[:] user_ids, integral[:] item_ids, integral[:] neg_item_ids, integral[:] indptr,
         floating[:, :, :] G1,
         floating[:, :, :] G2,
@@ -546,8 +456,21 @@ class MTER(Recommender):
         floating[:, :] sgrad_U,
         floating[:, :] sgrad_I,
         floating[:, :] sgrad_A,
-        floating[:, :] sgrad_O
-        ):
+        floating[:, :] sgrad_O,
+        np.ndarray[np.float32_t, ndim=3] del_g1,
+        np.ndarray[np.float32_t, ndim=3] del_g2,
+        np.ndarray[np.float32_t, ndim=3] del_g3,
+        np.ndarray[np.float32_t, ndim=2] del_u,
+        np.ndarray[np.float32_t, ndim=2] del_i,
+        np.ndarray[np.float32_t, ndim=2] del_a,
+        np.ndarray[np.float32_t, ndim=2] del_o,
+        np.ndarray[np.float32_t, ndim=3] del_g1_reg,
+        np.ndarray[np.float32_t, ndim=3] del_g2_reg,
+        np.ndarray[np.float32_t, ndim=3] del_g3_reg,
+        np.ndarray[np.float32_t, ndim=2] del_u_reg,
+        np.ndarray[np.float32_t, ndim=2] del_i_reg,
+        np.ndarray[np.float32_t, ndim=2] del_a_reg,
+        np.ndarray[np.float32_t, ndim=2] del_o_reg):
         """Fit the model parameters (G1, G2, G3, U, I, A, O)
         """
         cdef:
@@ -571,22 +494,6 @@ class MTER(Recommender):
             floating lr = self.lr
             floating ld_reg = self.lambda_reg
             floating ld_bpr = self.lambda_bpr
-
-            np.ndarray[np.float32_t, ndim=3] del_g1 = np.empty((n_user_factors, n_item_factors, n_aspect_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=3] del_g2 = np.empty((n_user_factors, n_aspect_factors, n_opinion_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=3] del_g3 = np.empty((n_item_factors, n_aspect_factors, n_opinion_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_u = np.empty((n_users, n_user_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_i = np.empty((n_items, n_item_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_a = np.empty((n_aspects + 1, n_aspect_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_o = np.empty((n_opinions, n_opinion_factors), dtype=np.float32)
-
-            np.ndarray[np.float32_t, ndim=3] del_g1_reg = np.empty((n_user_factors, n_item_factors, n_aspect_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=3] del_g2_reg = np.empty((n_user_factors, n_aspect_factors, n_opinion_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=3] del_g3_reg = np.empty((n_item_factors, n_aspect_factors, n_opinion_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_u_reg = np.empty((n_users, n_user_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_i_reg = np.empty((n_items, n_item_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_a_reg = np.empty((n_aspects + 1, n_aspect_factors), dtype=np.float32)
-            np.ndarray[np.float32_t, ndim=2] del_o_reg = np.empty((n_opinions, n_opinion_factors), dtype=np.float32)
 
         del_g1.fill(0)
         del_g2.fill(0)
@@ -670,12 +577,13 @@ class MTER(Recommender):
                 s = 1
                 # if the user has rated the item j, change sign if item j > item i
                 if has_non_zero(indptr, item_ids, user_ids[i_idx], j_idx):
-                    i_score = user_item_ratings.my_map[get_key(u_idx, i_idx)]
-                    j_score = user_item_ratings.my_map[get_key(u_idx, j_idx)]
+                    i_score = rating_dict.my_map[get_key(u_idx, i_idx)]
+                    j_score = rating_dict.my_map[get_key(u_idx, j_idx)]
                     if i_score == j_score:
                         skipped += 1
                         continue
-                    s = sign(i_score, j_score)
+                    elif i_score < j_score:
+                        s = -1
 
                 pred = (
                     get_score(G1, n_user_factors, n_item_factors, n_aspect_factors, U, I, A, u_idx, i_idx, n_aspects)
