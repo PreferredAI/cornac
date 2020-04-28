@@ -13,4 +13,5 @@
 # limitations under the License.
 # ============================================================================
 
+from .recom_knn import ItemKNN
 from .recom_knn import UserKNN

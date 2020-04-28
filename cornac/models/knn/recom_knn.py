@@ -17,7 +17,7 @@ import multiprocessing
 
 import numpy as np
 from scipy.sparse import csr_matrix
-from tqdm import trange
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
@@ -54,6 +54,9 @@ class UserKNN(Recommender):
     similarity: str, optional, default: 'cosine'
         The similarity measurement. Supported types: ['cosine', 'pearson']
         
+    amplify: float, optional, default: 1.0
+        Amplifying the influence on similarity weights.
+        
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
         If seed is not None, num_threads=1 to remove randomness from parallelization.
@@ -73,6 +76,7 @@ class UserKNN(Recommender):
         name="UserKNN",
         k=20,
         similarity="cosine",
+        amplify=1.0,
         num_threads=0,
         trainable=True,
         verbose=True,
@@ -81,6 +85,7 @@ class UserKNN(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.similarity = similarity
+        self.amplify = amplify
         self.seed = seed
         self.rng = get_rng(seed)
 
@@ -116,17 +121,18 @@ class UserKNN(Recommender):
         self.ui_mat = self.train_set.matrix.copy()
         self.mean_arr = np.zeros(self.ui_mat.shape[0])
 
-        if self.similarity == "pearson":
+        if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
             self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
 
-        normalized_ui_mat = self.ui_mat.copy()
-        inplace_csr_row_normalize_l2(normalized_ui_mat)
+        if self.similarity == "cosine":
+            weight_mat = self.train_set.matrix.copy()
+        elif self.similarity == "pearson":
+            weight_mat = self.ui_mat.copy()
+
+        inplace_csr_row_normalize_l2(weight_mat)
         self.sim_mat = compute_similarity(
-            normalized_ui_mat,
-            k=self.k,
-            num_threads=self.num_threads,
-            verbose=self.verbose,
-        )
+            weight_mat, k=self.k, num_threads=self.num_threads, verbose=self.verbose
+        ).power(self.amplify)
 
         return self
 
@@ -159,10 +165,149 @@ class UserKNN(Recommender):
 
         user_weights = self.sim_mat[user_idx]
         user_weights = user_weights / (
-            user_weights.sum() + EPS
+            np.abs(user_weights).sum() + EPS
         )  # normalize for rating prediction
         known_item_scores = (
             self.mean_arr[user_idx] + user_weights.dot(self.ui_mat).A.ravel()
+        )
+
+        if item_idx is not None:
+            return known_item_scores[item_idx]
+
+        return known_item_scores
+
+
+class ItemKNN(Recommender):
+    """Item-Based Nearest Neighbor.
+
+    Parameters
+    ----------
+    name: string, default: 'ItemKNN'
+        The name of the recommender model.
+
+    k: int, optional, default: 20
+        The number of nearest neighbors.
+               
+    amplify: float, optional, default: 1.0
+        Amplifying the influence on similarity weights.
+
+    similarity: str, optional, default: 'cosine'
+        The similarity measurement. Supported types: ['cosine', 'adjusted', 'pearson']
+        
+    num_threads: int, optional, default: 0
+        Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
+        If seed is not None, num_threads=1 to remove randomness from parallelization.
+
+    seed: int, optional, default: None
+        Random seed for weight initialization.
+
+    References
+    ----------
+    
+    """
+
+    SIMILARITIES = ["cosine", "adjusted", "pearson"]
+
+    def __init__(
+        self,
+        name="ItemKNN",
+        k=20,
+        amplify=1.0,
+        similarity="cosine",
+        num_threads=0,
+        trainable=True,
+        verbose=True,
+        seed=None,
+    ):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+        self.k = k
+        self.similarity = similarity
+        self.amplify = amplify
+        self.seed = seed
+        self.rng = get_rng(seed)
+
+        if self.similarity not in self.SIMILARITIES:
+            raise ValueError(
+                "Invalid similarity choice, supported {}".format(self.SIMILARITIES)
+            )
+
+        if seed is not None:
+            self.num_threads = 1
+        elif num_threads > 0 and num_threads < multiprocessing.cpu_count():
+            self.num_threads = num_threads
+        else:
+            self.num_threads = multiprocessing.cpu_count()
+
+    def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
+        """
+        Recommender.fit(self, train_set, val_set)
+
+        self.ui_mat = self.train_set.matrix.copy()
+        self.mean_arr = np.zeros(self.ui_mat.shape[0])
+
+        if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
+            self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
+
+        if self.similarity == "cosine":
+            weight_mat = self.train_set.matrix.T.tocsr()
+        elif self.similarity == "adjusted":
+            weight_mat = self.ui_mat.T.tocsr()  # mean-centered by rows
+        elif self.similarity == "pearson":
+            weight_mat, _ = _mean_centered(
+                self.train_set.matrix.T.tocsr()
+            )  # mean-centered by columns
+
+        inplace_csr_row_normalize_l2(weight_mat)
+        self.sim_mat = compute_similarity(
+            weight_mat, k=self.k, num_threads=self.num_threads, verbose=self.verbose
+        ).power(self.amplify)
+
+        return self
+
+    def score(self, user_idx, item_idx=None):
+        """Predict the scores/ratings of a user for an item.
+
+        Parameters
+        ----------
+        user_idx: int, required
+            The index of the user for whom to perform score prediction.
+
+        item_idx: int, optional, default: None
+            The index of the item for that to perform score prediction.
+            If None, scores for all known items will be returned.
+
+        Returns
+        -------
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+        """
+        if self.train_set.is_unk_user(user_idx):
+            raise ScoreException(
+                "Can't make score prediction for (user_id=%d)" % user_idx
+            )
+
+        if item_idx is not None and self.train_set.is_unk_item(item_idx):
+            raise ScoreException(
+                "Can't make score prediction for (item_id=%d)" % item_idx
+            )
+
+        user_profile = self.ui_mat[user_idx]
+        known_item_scores = self.mean_arr[user_idx] + (
+            user_profile.dot(self.sim_mat).A.ravel()
+            / (np.abs(self.sim_mat).sum(axis=0).A.ravel() + EPS)
         )
 
         if item_idx is not None:
