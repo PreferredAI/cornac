@@ -207,6 +207,14 @@ extensions = [
         extra_link_args=link_args,
     ),
     Extension(
+        name="cornac.models.knn.similarity",
+        sources=["cornac/models/knn/similarity" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
         name="cornac.utils.fast_dot",
         sources=["cornac/utils/fast_dot" + ext],
         language="c++",

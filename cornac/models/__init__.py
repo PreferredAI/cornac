@@ -30,6 +30,8 @@ from .global_avg import GlobalAvg
 from .hft import HFT
 from .hpf import HPF
 from .ibpr import IBPR
+from .knn import UserKNN
+# from .knn import ItemKNN
 from .mcf import MCF
 from .mf import MF
 from .mmmf import MMMF
