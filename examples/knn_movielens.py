@@ -15,7 +15,6 @@
 """Example for Nearest Neighborhood-based methods with MovieLens 100K dataset"""
 
 import cornac
-from cornac.data import Reader
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 
