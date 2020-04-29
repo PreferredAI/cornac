@@ -106,7 +106,8 @@ class UserKNN(Recommender):
 
     References
     ----------
-    
+    * CarlKadie, J. B. D. (1998). Empirical analysis of predictive algorithms for collaborative filtering. Microsoft Research Microsoft Corporation One Microsoft Way Redmond, WA, 98052.
+    * Aggarwal, C. C. (2016). Recommender systems (Vol. 1). Cham: Springer International Publishing.
     """
 
     SIMILARITIES = ["cosine", "pearson"]
@@ -261,7 +262,8 @@ class ItemKNN(Recommender):
 
     References
     ----------
-    
+    * Sarwar, B., Karypis, G., Konstan, J., & Riedl, J. (2001, April). Item-based collaborative filtering recommendation algorithms. In Proceedings of the 10th international conference on World Wide Web (pp. 285-295).
+    * Aggarwal, C. C. (2016). Recommender systems (Vol. 1). Cham: Springer International Publishing.
     """
 
     SIMILARITIES = ["cosine", "adjusted", "pearson"]
