@@ -64,6 +64,8 @@
 
 [ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
 
+[knn_movielens.py](knn_movielens.py) - Example to run Neighborhood-based models with MovieLens 100K dataset.
+
 [mmmf_exp.py](mmmf_exp.py) - Maximum Margin Matrix Factorization (MMMF) with MovieLens 100K dataset.
 
 [ncf_example.py](ncf_example.py) - Neural Collaborative Filtering (GMF, MLP, NeuMF) with Amazon Clothing dataset.
