@@ -48,6 +48,8 @@
 
 [hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLen 1m dataset.
 
+[mter_example.py](mter_example.py) - Multi-Task Explainable Recommendation (MTER) with Amazon Toy and Games dataset.
+
 ### Image
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
