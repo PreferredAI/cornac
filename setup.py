@@ -199,12 +199,26 @@ extensions = [
         extra_link_args=link_args,
     ),
     Extension(
+        name="cornac.models.mter.recom_mter",
+        sources=["cornac/models/mter/recom_mter" + ext],
+        include_dirs=[np.get_include(), "cornac/utils/external"],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
         name="cornac.models.mmmf.recom_mmmf",
         sources=["cornac/models/mmmf/recom_mmmf" + ext],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args,
+    ),
+    Extension(
+        name="cornac.utils.fast_dict",
+        sources=["cornac/utils/fast_dict" + ext],
+        include_dirs=[np.get_include()],
+        language="c++",
     ),
     Extension(
         name="cornac.utils.fast_dot",
