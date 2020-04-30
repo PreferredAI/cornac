@@ -145,6 +145,11 @@ Global Average (GlobalAvg)
 .. automodule:: cornac.models.global_avg.recom_global_avg
    :members:
 
+Item K-Nearest-Neighbors (ItemKNN)
+--------------------------------------------------
+.. autoclass:: cornac.models.knn.recom_knn.ItemKNN
+   :members:
+
 Matrix Factorization (MF)
 ------------------------------------------
 .. automodule:: cornac.models.mf.recom_mf
@@ -179,6 +184,11 @@ Social Recommendation using PMF (SoRec)
 ------------------------------------------------
 .. automodule:: cornac.models.sorec.recom_sorec
    :members:
+
+User K-Nearest-Neighbors (UserKNN)
+--------------------------------------------------
+.. autoclass:: cornac.models.knn.recom_knn.UserKNN
+   :members:   
 
 Weighted Matrix Factorization (WMF)
 --------------------------------------------------
