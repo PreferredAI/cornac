@@ -19,10 +19,11 @@ import cython
 from cython cimport floating, integral
 from cython.operator import dereference
 from cython.parallel import parallel, prange
-from libc.math cimport sqrt
+from libc.math cimport sqrt, fabs
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
+from libcpp.algorithm cimport binary_search
 import threading
 
 import numpy as np
@@ -38,11 +39,12 @@ cdef extern from "similarity.h" namespace "cornac_knn" nogil:
         TopK(size_t K)
         vector[pair[Value, Index]] results
 
-    cdef cppclass SparseMatrixMultiplier[Index, Value]:
-        SparseMatrixMultiplier(Index n_rows)
-        void add(Index index, Value value)
+    cdef cppclass SparseNeighbors[Index, Value]:
+        SparseNeighbors(Index max_neighbors)
+        void set(Index index, Value weight, Value score)
         void foreach[Function](Function & f)
-        vector[Value] sums
+        vector[Value] weights
+        vector[Value] scores
 
 
 @cython.boundscheck(False)
@@ -61,46 +63,113 @@ def compute_similarity(data_mat, unsigned int k=20, unsigned int num_threads=0, 
 
     cdef int[:] col_indptr = col_mat.indptr, col_indices = col_mat.indices
     cdef double[:] col_data = col_mat.data
-
-    cdef SparseMatrixMultiplier[int, double] * neighbours
-    cdef TopK[int, double] * topk
-    cdef pair[double, int] result
-
-    # holds triples of output similarity matrix
-    cdef double[:] values = np.zeros(n_rows * k)
-    cdef long[:] rows = np.zeros(n_rows * k, dtype=int)
-    cdef long[:] cols = np.zeros(n_rows * k, dtype=int)
+    cdef double[:, :] sim_mat = np.zeros((n_rows, n_rows))
 
     progress = tqdm(total=n_rows, disable=not verbose)
     with nogil, parallel(num_threads=num_threads):
-        # allocate memory per thread
-        neighbours = new SparseMatrixMultiplier[int, double](n_rows)
-        topk = new TopK[int, double](k)
-
-        try:
-            for r in prange(n_rows, schedule='guided'):
-                for i in range(row_indptr[r], row_indptr[r + 1]):
-                    c = row_indices[i]
-                    w = row_data[i]
-
-                    for j in range(col_indptr[c], col_indptr[c + 1]):
-                        neighbours.add(col_indices[j], col_data[j] * w)
-
-                topk.results.clear()
-                neighbours.foreach(dereference(topk))
-
-                i = k * r
-                for result in topk.results:
-                    rows[i] = r
-                    cols[i] = result.second
-                    values[i] = result.first
-                    i = i + 1
-                with gil:
-                    progress.update(1)
-
-        finally:
-            del neighbours
-            del topk
+        for r in prange(n_rows, schedule='guided'):
+            for i in range(row_indptr[r], row_indptr[r + 1]):
+                c, w = row_indices[i], row_data[i]
+                for j in range(col_indptr[c], col_indptr[c + 1]):
+                    sim_mat[r, col_indices[j]] += col_data[j] * w
+            with gil:
+                progress.update(1)
     progress.close()
 
-    return csr_matrix((values, (rows, cols)), shape=(n_rows, n_rows))
+    sparse_sim_mat = csr_matrix(sim_mat)
+    del sim_mat
+
+    return sparse_sim_mat
+
+
+@cython.boundscheck(False)
+def compute_score_single(
+    bool user_mode,
+    floating[:] sim_arr, 
+    int ptr1, 
+    int ptr2, 
+    int[:] indices, 
+    floating[:] data, 
+    int k
+):
+    cdef int max_neighbors = sim_arr.shape[0]
+    cdef int nn, j
+    cdef double w, s, nom, denom, output
+
+    cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)
+    cdef TopK[double, double] * topk = new TopK[double, double](k)
+    cdef pair[double, double] result
+
+    for j in range(ptr1, ptr2):
+        nn, s = indices[j], data[j]
+        if sim_arr[nn] != 0:
+            neighbours.set(nn, sim_arr[nn], s)
+        
+    topk.results.clear()
+    neighbours.foreach(dereference(topk))
+
+    nom = 0
+    denom = 0
+    for result in topk.results:
+        w = result.first
+        s = result.second
+        nom = nom + w * s
+        denom = denom + fabs(w)
+
+    output = nom / (denom + 1e-8)
+
+    del topk
+    del neighbours
+
+    return output
+
+
+@cython.boundscheck(False)
+def compute_score(
+    bool user_mode,
+    floating[:] sim_arr,
+    int[:] indptr, 
+    int[:] indices, 
+    floating[:] data,
+    unsigned int k, 
+    unsigned int num_threads, 
+    floating[:] output
+):
+    cdef int max_neighbors = sim_arr.shape[0]
+    cdef int n_items = output.shape[0]
+    cdef int nn, i, j
+    cdef double w, s, nom, denom
+
+    cdef SparseNeighbors[int, double] * neighbours
+    cdef TopK[double, double] * topk
+    cdef pair[double, double] result
+
+    with nogil, parallel(num_threads=num_threads):
+        for i in prange(n_items, schedule='guided'):
+            # allocate memory per thread
+            neighbours = new SparseNeighbors[int, double](max_neighbors)
+            topk = new TopK[double, double](k)
+
+            for j in range(indptr[i], indptr[i + 1]):
+                nn, s = indices[j], data[j]
+                if sim_arr[nn] != 0:
+                    if user_mode:
+                        neighbours.set(nn, sim_arr[nn], s)
+                    else:
+                        neighbours.set(nn, s, sim_arr[nn]) 
+                
+            topk.results.clear()
+            neighbours.foreach(dereference(topk))
+
+            nom = 0
+            denom = 0
+            for result in topk.results:
+                w = result.first
+                s = result.second
+                nom = nom + w * s
+                denom = denom + fabs(w)
+            
+            output[i] = nom / (denom + 1e-8)
+                
+            del neighbours
+            del topk

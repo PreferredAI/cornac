@@ -24,10 +24,13 @@ from ...exception import ScoreException
 from ...utils import get_rng
 from ...utils.fast_sparse_funcs import inplace_csr_row_normalize_l2
 
-from .similarity import compute_similarity
+from .similarity import compute_similarity, compute_score, compute_score_single
 
 
 EPS = 1e-8
+
+SIMILARITIES = ["cosine", "pearson"]
+WEIGHTING_OPTIONS = ["idf", "bm25"]
 
 
 def _mean_centered(csr_mat):
@@ -41,15 +44,27 @@ def _mean_centered(csr_mat):
     return csr_mat, mean_arr
 
 
-def _tfidf_weight(csr_mat):
-    """Weight the matrix with TF-IDF"""
-    # calculate IDF
-    N = float(csr_mat.shape[1])
-    idf = np.log(N) - np.log1p(np.bincount(csr_mat.indices))
+def _amplify(csr_mat, alpha=1.0):
+    """Exponentially amplify values of similarity matrix"""
+    if alpha == 1.0:
+        return csr_mat
 
-    # apply TF-IDF adjustment
-    csr_mat.data *= np.sqrt(idf[csr_mat.indices])
+    for i, w in enumerate(csr_mat.data):
+        csr_mat.data[i] = w ** alpha if w >= 0 else -(-w) ** alpha
     return csr_mat
+
+
+def _idf_weight(csr_mat):
+    """Weight the matrix Inverse Document (Item) Frequency"""
+    X = coo_matrix(csr_mat)
+
+    # calculate IDF
+    N = float(X.shape[0])
+    idf = np.log(N) - np.log1p(np.bincount(X.col))
+    
+    weights = idf[csr_mat.indices]
+    print(weights.min(), weights.max(), weights.mean())
+    return weights
 
 
 def _bm25_weight(csr_mat):
@@ -57,23 +72,21 @@ def _bm25_weight(csr_mat):
     K1 = 1.2
     B = 0.8
 
-    # calculate IDF
-    N = float(csr_mat.shape[1])
-    idf = np.log(N) - np.log1p(np.bincount(csr_mat.indices))
+    X = coo_matrix(csr_mat)
+    X.data = np.ones_like(X.data)
+
+    N = float(X.shape[0])
+    idf = np.log(N) - np.log1p(np.bincount(X.col))
 
     # calculate length_norm per document
-    row_sums = np.ravel(csr_mat.sum(axis=1))
+    row_sums = np.ravel(X.sum(axis=1))
     average_length = row_sums.mean()
     length_norm = (1.0 - B) + B * row_sums / average_length
 
-    # weight matrix rows by BM25
-    row_counts = np.ediff1d(csr_mat.indptr)
-    row_inds = np.repeat(np.arange(csr_mat.shape[0]), row_counts)
-    weights = (
-        (K1 + 1.0) / (K1 * length_norm[row_inds] + csr_mat.data) * idf[csr_mat.indices]
-    )
-    csr_mat.data *= np.sqrt(weights)
-    return csr_mat
+    # bm25 weights
+    weights = (K1 + 1.0) / (K1 * length_norm[X.row] + X.data) * idf[X.col]
+    print(weights.min(), weights.max(), weights.mean())
+    return weights
 
 
 class UserKNN(Recommender):
@@ -90,8 +103,12 @@ class UserKNN(Recommender):
     similarity: str, optional, default: 'cosine'
         The similarity measurement. Supported types: ['cosine', 'pearson']
     
+    mean_centered: bool, optional, default: False
+        Whether values of the user-item rating matrix will be centered by mean
+        of their corresponding rows (mean rating of each user).  
+    
     weighting: str, optional, default: None
-        The option for re-weighting the rating matrix. Supported types: [tf-idf', 'bm25'].
+        The option for re-weighting the rating matrix. Supported types: ['idf', 'bm25'].
         If None, no weighting is applied.
           
     amplify: float, optional, default: 1.0
@@ -110,14 +127,12 @@ class UserKNN(Recommender):
     * Aggarwal, C. C. (2016). Recommender systems (Vol. 1). Cham: Springer International Publishing.
     """
 
-    SIMILARITIES = ["cosine", "pearson"]
-    WEIGHTING_OPTIONS = ["tf-idf", "bm25"]
-
     def __init__(
         self,
         name="UserKNN",
         k=20,
         similarity="cosine",
+        mean_centered=False,
         weighting=None,
         amplify=1.0,
         num_threads=0,
@@ -128,19 +143,20 @@ class UserKNN(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.similarity = similarity
+        self.mean_centered = mean_centered
         self.weighting = weighting
         self.amplify = amplify
         self.seed = seed
         self.rng = get_rng(seed)
 
-        if self.similarity not in self.SIMILARITIES:
+        if self.similarity not in SIMILARITIES:
             raise ValueError(
-                "Invalid similarity choice, supported {}".format(self.SIMILARITIES)
+                "Invalid similarity choice, supported {}".format(SIMILARITIES)
             )
 
-        if self.weighting is not None and self.weighting not in self.WEIGHTING_OPTIONS:
+        if self.weighting is not None and self.weighting not in WEIGHTING_OPTIONS:
             raise ValueError(
-                "Invalid weighting choice, supported {}".format(self.WEIGHTING_OPTIONS)
+                "Invalid weighting choice, supported {}".format(WEIGHTING_OPTIONS)
             )
 
         if seed is not None:
@@ -173,21 +189,26 @@ class UserKNN(Recommender):
         if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
             self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
 
-        if self.similarity == "cosine":
-            weight_mat = self.train_set.matrix.copy()
-        elif self.similarity == "pearson":
+        if self.mean_centered or self.similarity == "pearson":
             weight_mat = self.ui_mat.copy()
+        else:
+            weight_mat = self.train_set.matrix.copy()
 
-        # rating matrix re-weighting
-        if self.weighting == "tf-idf":
-            weight_mat = _tfidf_weight(weight_mat)
+        # re-weighting
+        if self.weighting == "idf":
+            weight_mat.data *= np.sqrt(_idf_weight(self.train_set.matrix))
         elif self.weighting == "bm25":
-            weight_mat = _bm25_weight(weight_mat)
+            weight_mat.data *= np.sqrt(_bm25_weight(self.train_set.matrix))
+
+        # only need item-user matrix for prediction
+        self.iu_mat = self.ui_mat.T.tocsr()
+        del self.ui_mat
 
         inplace_csr_row_normalize_l2(weight_mat)
         self.sim_mat = compute_similarity(
             weight_mat, k=self.k, num_threads=self.num_threads, verbose=self.verbose
-        ).power(self.amplify)
+        )
+        self.sim_mat = _amplify(self.sim_mat, self.amplify)
 
         return self
 
@@ -218,16 +239,30 @@ class UserKNN(Recommender):
                 "Can't make score prediction for (item_id=%d)" % item_idx
             )
 
-        user_weights = self.sim_mat[user_idx]
-        user_weights = user_weights / (
-            np.abs(user_weights).sum() + EPS
-        )  # normalize for rating prediction
-        known_item_scores = (
-            self.mean_arr[user_idx] + user_weights.dot(self.ui_mat).A.ravel()
-        )
-
         if item_idx is not None:
-            return known_item_scores[item_idx]
+            weighted_avg = compute_score_single(
+                True,
+                self.sim_mat[user_idx].A.ravel(),
+                self.iu_mat.indptr[item_idx],
+                self.iu_mat.indptr[item_idx + 1],
+                self.iu_mat.indices,
+                self.iu_mat.data,
+                k=self.k,
+            )
+            return self.mean_arr[user_idx] + weighted_avg
+
+        weighted_avg = np.zeros(self.train_set.num_items)
+        compute_score(
+            True,
+            self.sim_mat[user_idx].A.ravel(),
+            self.iu_mat.indptr,
+            self.iu_mat.indices,
+            self.iu_mat.data,
+            k=self.k,
+            num_threads=self.num_threads,
+            output=weighted_avg,
+        )
+        known_item_scores = self.mean_arr[user_idx] + weighted_avg
 
         return known_item_scores
 
@@ -244,10 +279,14 @@ class ItemKNN(Recommender):
         The number of nearest neighbors.
 
     similarity: str, optional, default: 'cosine'
-        The similarity measurement. Supported types: ['cosine', 'adjusted', 'pearson']
-       
+        The similarity measurement. Supported types: ['cosine', 'pearson']
+      
+    mean_centered: bool, optional, default: False
+        Whether values of the user-item rating matrix will be centered by mean
+        of their corresponding rows (mean rating of each user).  
+         
     weighting: str, optional, default: None
-        The option for re-weighting the rating matrix. Supported types: [tf-idf', 'bm25'].
+        The option for re-weighting the rating matrix. Supported types: ['idf', 'bm25'].
         If None, no weighting is applied.
                
     amplify: float, optional, default: 1.0
@@ -266,14 +305,12 @@ class ItemKNN(Recommender):
     * Aggarwal, C. C. (2016). Recommender systems (Vol. 1). Cham: Springer International Publishing.
     """
 
-    SIMILARITIES = ["cosine", "adjusted", "pearson"]
-    WEIGHTING_OPTIONS = ["tf-idf", "bm25"]
-
     def __init__(
         self,
         name="ItemKNN",
         k=20,
         similarity="cosine",
+        mean_centered=False,
         weighting=None,
         amplify=1.0,
         num_threads=0,
@@ -284,19 +321,20 @@ class ItemKNN(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.similarity = similarity
+        self.mean_centered = mean_centered
         self.weighting = weighting
         self.amplify = amplify
         self.seed = seed
         self.rng = get_rng(seed)
 
-        if self.similarity not in self.SIMILARITIES:
+        if self.similarity not in SIMILARITIES:
             raise ValueError(
-                "Invalid similarity choice, supported {}".format(self.SIMILARITIES)
+                "Invalid similarity choice, supported {}".format(SIMILARITIES)
             )
 
-        if self.weighting is not None and self.weighting not in self.WEIGHTING_OPTIONS:
+        if self.weighting is not None and self.weighting not in WEIGHTING_OPTIONS:
             raise ValueError(
-                "Invalid weighting choice, supported {}".format(self.WEIGHTING_OPTIONS)
+                "Invalid weighting choice, supported {}".format(WEIGHTING_OPTIONS)
             )
 
         if seed is not None:
@@ -326,31 +364,30 @@ class ItemKNN(Recommender):
         self.ui_mat = self.train_set.matrix.copy()
         self.mean_arr = np.zeros(self.ui_mat.shape[0])
 
-        explicit_feedback = self.train_set.min_rating != self.train_set.max_rating
-        if explicit_feedback: 
+        if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
             self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
 
-        if self.similarity == "cosine":
+        if self.mean_centered:
+            weight_mat = self.ui_mat.copy()
+        else:
             weight_mat = self.train_set.matrix.copy()
-        elif self.similarity == "adjusted":
-            weight_mat = self.ui_mat.copy()  # mean-centered by rows
-        elif self.similarity == "pearson" and explicit_feedback:
-            weight_mat, _ = _mean_centered(
-                self.train_set.matrix.T.tocsr()
-            )  # mean-centered by columns
+
+        if self.similarity == "pearson":  # mean-centered by columns
+            weight_mat, _ = _mean_centered(weight_mat.T.tocsr())
             weight_mat = weight_mat.T.tocsr()
 
-        # rating matrix re-weighting
-        if self.weighting == "tf-idf":
-            weight_mat = _tfidf_weight(weight_mat)
+        # re-weighting
+        if self.weighting == "idf":
+            weight_mat.data *= np.sqrt(_idf_weight(self.train_set.matrix))
         elif self.weighting == "bm25":
-            weight_mat = _bm25_weight(weight_mat)
+            weight_mat.data *= np.sqrt(_bm25_weight(self.train_set.matrix))
 
         weight_mat = weight_mat.T.tocsr()
         inplace_csr_row_normalize_l2(weight_mat)
         self.sim_mat = compute_similarity(
             weight_mat, k=self.k, num_threads=self.num_threads, verbose=self.verbose
-        ).power(self.amplify)
+        )
+        self.sim_mat = _amplify(self.sim_mat, self.amplify)
 
         return self
 
@@ -381,13 +418,29 @@ class ItemKNN(Recommender):
                 "Can't make score prediction for (item_id=%d)" % item_idx
             )
 
-        user_profile = self.ui_mat[user_idx]
-        known_item_scores = self.mean_arr[user_idx] + (
-            user_profile.dot(self.sim_mat).A.ravel()
-            / (np.abs(self.sim_mat).sum(axis=0).A.ravel() + EPS)
-        )
-
         if item_idx is not None:
-            return known_item_scores[item_idx]
+            weighted_avg = compute_score_single(
+                False,
+                self.ui_mat[user_idx].A.ravel(),
+                self.sim_mat.indptr[item_idx],
+                self.sim_mat.indptr[item_idx + 1],
+                self.sim_mat.indices,
+                self.sim_mat.data,
+                k=self.k,
+            )
+            return self.mean_arr[user_idx] + weighted_avg
+
+        weighted_avg = np.zeros(self.train_set.num_items)
+        compute_score(
+            False,
+            self.ui_mat[user_idx].A.ravel(),
+            self.sim_mat.indptr,
+            self.sim_mat.indices,
+            self.sim_mat.data,
+            k=self.k,
+            num_threads=self.num_threads,
+            output=weighted_avg,
+        )
+        known_item_scores = self.mean_arr[user_idx] + weighted_avg
 
         return known_item_scores

@@ -37,24 +37,19 @@ struct TopK
     std::greater<std::pair<Value, Index>> heap_order;
 };
 
-/** A utility class to multiply rows of a sparse matrix
- Implements the sparse matrix multiplication algorithm
- described in the paper 'Sparse Matrix Multiplication Package (SMMP)'
- http://www.i2m.univ-amu.fr/~bradji/multp_sparse.pdf
-*/
 template <typename Index, typename Value>
-class SparseMatrixMultiplier
+class SparseNeighbors
 {
 public:
-    explicit SparseMatrixMultiplier(Index count)
-        : sums(count, 0), nonzeros(count, -1), head(-2), length(0)
+    explicit SparseNeighbors(Index count)
+        : weights(count, 0), scores(count, 0), nonzeros(count, -1), head(-2), length(0)
     {
     }
 
-    /** Adds value to the element at index */
-    void add(Index index, Value value)
+    void set(Index index, Value weight, Value score)
     {
-        sums[index] += value;
+        weights[index] = weight;
+        scores[index] = score;
 
         if (nonzeros[index] == -1)
         {
@@ -64,18 +59,18 @@ public:
         }
     }
 
-    /** Calls a function once per non-zero entry, also clears state for next run*/
     template <typename Function>
     void foreach (Function &f)
     { // NOLINT(*)
         for (int i = 0; i < length; ++i)
         {
             Index index = head;
-            f(index, sums[index]);
+            f(weights[index], scores[index]);
 
             // clear up memory and advance linked list
             head = nonzeros[head];
-            sums[index] = 0;
+            weights[index] = 0;
+            scores[index] = 0;
             nonzeros[index] = -1;
         }
 
@@ -85,11 +80,13 @@ public:
 
     Index nnz() const { return length; }
 
-    std::vector<Value> sums;
+    std::vector<Value> weights;
+    std::vector<Value> scores;
 
 protected:
     std::vector<Index> nonzeros;
     Index head, length;
 };
+
 } // namespace cornac_knn
 #endif // CORNAC_SIMILARITY_H_
