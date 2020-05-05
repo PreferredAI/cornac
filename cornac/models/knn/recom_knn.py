@@ -104,7 +104,7 @@ class UserKNN(Recommender):
         The similarity measurement. Supported types: ['cosine', 'pearson']
     
     mean_centered: bool, optional, default: False
-        Whether values of the user-item rating matrix will be centered by mean
+        Whether values of the user-item rating matrix will be centered by the mean
         of their corresponding rows (mean rating of each user).  
     
     weighting: str, optional, default: None
@@ -280,7 +280,7 @@ class ItemKNN(Recommender):
         The similarity measurement. Supported types: ['cosine', 'pearson']
       
     mean_centered: bool, optional, default: False
-        Whether values of the user-item rating matrix will be centered by mean
+        Whether values of the user-item rating matrix will be centered by the mean
         of their corresponding rows (mean rating of each user).  
          
     weighting: str, optional, default: None
