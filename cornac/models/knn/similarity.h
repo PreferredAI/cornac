@@ -65,7 +65,7 @@ public:
         for (int i = 0; i < length; ++i)
         {
             Index index = head;
-            f(weights[index], scores[index]);
+            f(scores[index], weights[index]);
 
             // clear up memory and advance linked list
             head = nonzeros[head];

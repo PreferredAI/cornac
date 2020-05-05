@@ -643,14 +643,13 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "typeinfo"
 #include <vector>
 #include <utility>
-#include <algorithm>
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
 #include "similarity.h"
 #include "pythread.h"
-#include <stdlib.h>
 #include "pystate.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -2296,11 +2295,11 @@ static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memo
 
 /* Module declarations from 'libcpp.utility' */
 
-/* Module declarations from 'libcpp.algorithm' */
+/* Module declarations from 'libc.string' */
+
+/* Module declarations from 'libc.stdlib' */
 
 /* Module declarations from 'cpython.buffer' */
-
-/* Module declarations from 'libc.string' */
 
 /* Module declarations from 'libc.stdio' */
 
@@ -2405,7 +2404,7 @@ static const char __pyx_k_id[] = "id";
 static const char __pyx_k_nn[] = "nn";
 static const char __pyx_k_np[] = "np";
 static const char __pyx_k_new[] = "__new__";
-static const char __pyx_k_nom[] = "nom";
+static const char __pyx_k_num[] = "num";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_args[] = "args";
 static const char __pyx_k_base[] = "base";
@@ -2442,6 +2441,8 @@ static const char __pyx_k_strip[] = "strip";
 static const char __pyx_k_tocsr[] = "tocsr";
 static const char __pyx_k_total[] = "total";
 static const char __pyx_k_zeros[] = "zeros";
+static const char __pyx_k_denom1[] = "denom1";
+static const char __pyx_k_denom2[] = "denom2";
 static const char __pyx_k_double[] = "double";
 static const char __pyx_k_encode[] = "encode";
 static const char __pyx_k_format[] = "format";
@@ -2612,6 +2613,8 @@ static PyObject *__pyx_n_s_data;
 static PyObject *__pyx_n_s_data_mat;
 static PyObject *__pyx_n_s_defaults;
 static PyObject *__pyx_n_s_denom;
+static PyObject *__pyx_n_s_denom1;
+static PyObject *__pyx_n_s_denom2;
 static PyObject *__pyx_n_s_dict;
 static PyObject *__pyx_n_s_disable;
 static PyObject *__pyx_n_s_double;
@@ -2653,8 +2656,8 @@ static PyObject *__pyx_n_s_neighbours;
 static PyObject *__pyx_n_s_new;
 static PyObject *__pyx_n_s_nn;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
-static PyObject *__pyx_n_s_nom;
 static PyObject *__pyx_n_s_np;
+static PyObject *__pyx_n_s_num;
 static PyObject *__pyx_n_s_num_threads;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_kp_u_numpy_core_multiarray_failed_to;
@@ -2722,8 +2725,8 @@ static PyObject *__pyx_n_s_w;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_data_mat, CYTHON_UNUSED unsigned int __pyx_v_k, unsigned int __pyx_v_num_threads, PyObject *__pyx_v_verbose); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
-static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k); /* proto */
-static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_8compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k); /* proto */
+static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k); /* proto */
+static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_8compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_signatures, PyObject *__pyx_v_args, PyObject *__pyx_v_kwargs, CYTHON_UNUSED PyObject *__pyx_v_defaults); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTHON_UNUSED PyObject *__pyx_self, bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, __Pyx_memviewslice __pyx_v_indptr, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, unsigned int __pyx_v_k, unsigned int __pyx_v_num_threads, __Pyx_memviewslice __pyx_v_output); /* proto */
 static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTHON_UNUSED PyObject *__pyx_self, bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, __Pyx_memviewslice __pyx_v_indptr, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, unsigned int __pyx_v_k, unsigned int __pyx_v_num_threads, __Pyx_memviewslice __pyx_v_output); /* proto */
@@ -2939,6 +2942,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   int __pyx_v_i;
   int __pyx_v_j;
   double __pyx_v_w;
+  double __pyx_v_denom;
   __Pyx_memviewslice __pyx_v_row_indptr = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_row_indices = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_row_data = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -2946,6 +2950,8 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   __Pyx_memviewslice __pyx_v_col_indices = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_col_data = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_sim_mat = { 0, 0, { 0 }, { 0 }, { 0 } };
+  double *__pyx_v_denom1;
+  double *__pyx_v_denom2;
   PyObject *__pyx_v_progress = NULL;
   PyObject *__pyx_v_sparse_sim_mat = NULL;
   PyObject *__pyx_r = NULL;
@@ -2962,23 +2968,34 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   int __pyx_t_10;
   int __pyx_t_11;
   int __pyx_t_12;
-  Py_ssize_t __pyx_t_13;
+  int __pyx_t_13;
   int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
+  int __pyx_t_15;
   int __pyx_t_16;
-  int __pyx_t_17;
+  Py_ssize_t __pyx_t_17;
   Py_ssize_t __pyx_t_18;
-  int __pyx_t_19;
-  Py_ssize_t __pyx_t_20;
-  double __pyx_t_21;
-  Py_ssize_t __pyx_t_22;
+  Py_ssize_t __pyx_t_19;
+  int __pyx_t_20;
+  Py_ssize_t __pyx_t_21;
+  double __pyx_t_22;
   Py_ssize_t __pyx_t_23;
-  int __pyx_t_24;
+  Py_ssize_t __pyx_t_24;
   int __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
+  int __pyx_t_26;
   Py_ssize_t __pyx_t_27;
   Py_ssize_t __pyx_t_28;
   Py_ssize_t __pyx_t_29;
+  Py_ssize_t __pyx_t_30;
+  Py_ssize_t __pyx_t_31;
+  Py_ssize_t __pyx_t_32;
+  int __pyx_t_33;
+  Py_ssize_t __pyx_t_34;
+  Py_ssize_t __pyx_t_35;
+  Py_ssize_t __pyx_t_36;
+  Py_ssize_t __pyx_t_37;
+  Py_ssize_t __pyx_t_38;
+  Py_ssize_t __pyx_t_39;
+  Py_ssize_t __pyx_t_40;
   __Pyx_RefNannySetupContext("compute_similarity", 0);
 
   /* "cornac/models/knn/similarity.pyx":54
@@ -3043,7 +3060,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
  * 
  *     cdef int n_rows = row_mat.shape[0]             # <<<<<<<<<<<<<<
  *     cdef int r, c, i, j
- *     cdef double w
+ *     cdef double w, denom
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_row_mat, __pyx_n_s_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -3055,7 +3072,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   __pyx_v_n_rows = __pyx_t_4;
 
   /* "cornac/models/knn/similarity.pyx":61
- *     cdef double w
+ *     cdef double w, denom
  * 
  *     cdef int[:] row_indptr = row_mat.indptr, row_indices = row_mat.indices             # <<<<<<<<<<<<<<
  *     cdef double[:] row_data = row_mat.data
@@ -3118,7 +3135,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
  *     cdef int[:] col_indptr = col_mat.indptr, col_indices = col_mat.indices
  *     cdef double[:] col_data = col_mat.data             # <<<<<<<<<<<<<<
  *     cdef double[:, :] sim_mat = np.zeros((n_rows, n_rows))
- * 
+ *     cdef double * denom1
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_col_mat, __pyx_n_s_data); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -3132,8 +3149,8 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
  *     cdef int[:] col_indptr = col_mat.indptr, col_indices = col_mat.indices
  *     cdef double[:] col_data = col_mat.data
  *     cdef double[:, :] sim_mat = np.zeros((n_rows, n_rows))             # <<<<<<<<<<<<<<
- * 
- *     progress = tqdm(total=n_rows, disable=not verbose)
+ *     cdef double * denom1
+ *     cdef double * denom2
  */
   __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 66, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -3174,39 +3191,39 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "cornac/models/knn/similarity.pyx":68
- *     cdef double[:, :] sim_mat = np.zeros((n_rows, n_rows))
+  /* "cornac/models/knn/similarity.pyx":70
+ *     cdef double * denom2
  * 
  *     progress = tqdm(total=n_rows, disable=not verbose)             # <<<<<<<<<<<<<<
  *     with nogil, parallel(num_threads=num_threads):
  *         for r in prange(n_rows, schedule='guided'):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_tqdm); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_tqdm); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_n_rows); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_n_rows); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_total, __pyx_t_8) < 0) __PYX_ERR(0, 68, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_total, __pyx_t_8) < 0) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_v_verbose); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 68, __pyx_L1_error)
-  __pyx_t_8 = __Pyx_PyBool_FromLong((!__pyx_t_10)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_v_verbose); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyBool_FromLong((!__pyx_t_10)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_disable, __pyx_t_8) < 0) __PYX_ERR(0, 68, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_disable, __pyx_t_8) < 0) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_progress = __pyx_t_8;
   __pyx_t_8 = 0;
 
-  /* "cornac/models/knn/similarity.pyx":69
+  /* "cornac/models/knn/similarity.pyx":71
  * 
  *     progress = tqdm(total=n_rows, disable=not verbose)
  *     with nogil, parallel(num_threads=num_threads):             # <<<<<<<<<<<<<<
  *         for r in prange(n_rows, schedule='guided'):
- *             for i in range(row_indptr[r], row_indptr[r + 1]):
+ *             denom1 = <double *> malloc(sizeof(double) * n_rows)
  */
   {
       #ifdef WITH_THREAD
@@ -3227,7 +3244,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                 #define unlikely(x) (x)
             #endif
             #ifdef _OPENMP
-            #pragma omp parallel  private(__pyx_t_11, __pyx_t_12, __pyx_t_13, __pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_4) firstprivate(__pyx_t_2, __pyx_t_3, __pyx_t_8) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb) num_threads(__pyx_v_num_threads)
+            #pragma omp parallel  private(__pyx_t_10, __pyx_t_11, __pyx_t_12, __pyx_t_13, __pyx_t_14, __pyx_t_15, __pyx_t_16, __pyx_t_17, __pyx_t_18, __pyx_t_19, __pyx_t_20, __pyx_t_21, __pyx_t_22, __pyx_t_23, __pyx_t_24, __pyx_t_25, __pyx_t_26, __pyx_t_27, __pyx_t_28, __pyx_t_29, __pyx_t_30, __pyx_t_31, __pyx_t_32, __pyx_t_33, __pyx_t_34, __pyx_t_35, __pyx_t_36, __pyx_t_37, __pyx_t_38, __pyx_t_39, __pyx_t_4, __pyx_t_40) firstprivate(__pyx_t_2, __pyx_t_3, __pyx_t_8) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb) num_threads(__pyx_v_num_threads)
             #endif /* _OPENMP */
             {
                 #ifdef _OPENMP
@@ -3237,21 +3254,24 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                 Py_BEGIN_ALLOW_THREADS
                 #endif /* _OPENMP */
 
-                /* "cornac/models/knn/similarity.pyx":70
+                /* "cornac/models/knn/similarity.pyx":72
  *     progress = tqdm(total=n_rows, disable=not verbose)
  *     with nogil, parallel(num_threads=num_threads):
  *         for r in prange(n_rows, schedule='guided'):             # <<<<<<<<<<<<<<
- *             for i in range(row_indptr[r], row_indptr[r + 1]):
- *                 c, w = row_indices[i], row_data[i]
+ *             denom1 = <double *> malloc(sizeof(double) * n_rows)
+ *             denom2 = <double *> malloc(sizeof(double) * n_rows)
  */
                 __pyx_t_4 = __pyx_v_n_rows;
                 if (1 == 0) abort();
                 {
                     int __pyx_parallel_temp0 = ((int)0xbad0bad0);
-                    int __pyx_parallel_temp1 = ((int)0xbad0bad0);
-                    int __pyx_parallel_temp2 = ((int)0xbad0bad0);
-                    int __pyx_parallel_temp3 = ((int)0xbad0bad0);
-                    double __pyx_parallel_temp4 = ((double)__PYX_NAN());
+                    double __pyx_parallel_temp1 = ((double)__PYX_NAN());
+                    double * __pyx_parallel_temp2 = ((double *)1);
+                    double * __pyx_parallel_temp3 = ((double *)1);
+                    int __pyx_parallel_temp4 = ((int)0xbad0bad0);
+                    int __pyx_parallel_temp5 = ((int)0xbad0bad0);
+                    int __pyx_parallel_temp6 = ((int)0xbad0bad0);
+                    double __pyx_parallel_temp7 = ((double)__PYX_NAN());
                     const char *__pyx_parallel_filename = NULL; int __pyx_parallel_lineno = 0, __pyx_parallel_clineno = 0;
                     PyObject *__pyx_parallel_exc_type = NULL, *__pyx_parallel_exc_value = NULL, *__pyx_parallel_exc_tb = NULL;
                     int __pyx_parallel_why;
@@ -3260,7 +3280,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                     if (__pyx_t_12 > 0)
                     {
                         #ifdef _OPENMP
-                        #pragma omp for lastprivate(__pyx_v_c) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) firstprivate(__pyx_v_r) lastprivate(__pyx_v_r) lastprivate(__pyx_v_w) schedule(guided)
+                        #pragma omp for lastprivate(__pyx_v_c) lastprivate(__pyx_v_denom) lastprivate(__pyx_v_denom1) lastprivate(__pyx_v_denom2) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) firstprivate(__pyx_v_r) lastprivate(__pyx_v_r) lastprivate(__pyx_v_w) schedule(guided)
                         #endif /* _OPENMP */
                         for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_12; __pyx_t_11++){
                             if (__pyx_parallel_why < 2)
@@ -3268,80 +3288,301 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                                 __pyx_v_r = (int)(0 + 1 * __pyx_t_11);
                                 /* Initialize private variables to invalid values */
                                 __pyx_v_c = ((int)0xbad0bad0);
+                                __pyx_v_denom = ((double)__PYX_NAN());
+                                __pyx_v_denom1 = ((double *)1);
+                                __pyx_v_denom2 = ((double *)1);
                                 __pyx_v_i = ((int)0xbad0bad0);
                                 __pyx_v_j = ((int)0xbad0bad0);
                                 __pyx_v_w = ((double)__PYX_NAN());
 
-                                /* "cornac/models/knn/similarity.pyx":71
+                                /* "cornac/models/knn/similarity.pyx":73
  *     with nogil, parallel(num_threads=num_threads):
  *         for r in prange(n_rows, schedule='guided'):
+ *             denom1 = <double *> malloc(sizeof(double) * n_rows)             # <<<<<<<<<<<<<<
+ *             denom2 = <double *> malloc(sizeof(double) * n_rows)
+ *             if denom1 is NULL or denom2 is NULL:
+ */
+                                __pyx_v_denom1 = ((double *)malloc(((sizeof(double)) * __pyx_v_n_rows)));
+
+                                /* "cornac/models/knn/similarity.pyx":74
+ *         for r in prange(n_rows, schedule='guided'):
+ *             denom1 = <double *> malloc(sizeof(double) * n_rows)
+ *             denom2 = <double *> malloc(sizeof(double) * n_rows)             # <<<<<<<<<<<<<<
+ *             if denom1 is NULL or denom2 is NULL:
+ *                 abort()
+ */
+                                __pyx_v_denom2 = ((double *)malloc(((sizeof(double)) * __pyx_v_n_rows)));
+
+                                /* "cornac/models/knn/similarity.pyx":75
+ *             denom1 = <double *> malloc(sizeof(double) * n_rows)
+ *             denom2 = <double *> malloc(sizeof(double) * n_rows)
+ *             if denom1 is NULL or denom2 is NULL:             # <<<<<<<<<<<<<<
+ *                 abort()
+ * 
+ */
+                                __pyx_t_13 = ((__pyx_v_denom1 == NULL) != 0);
+                                if (!__pyx_t_13) {
+                                } else {
+                                  __pyx_t_10 = __pyx_t_13;
+                                  goto __pyx_L15_bool_binop_done;
+                                }
+                                __pyx_t_13 = ((__pyx_v_denom2 == NULL) != 0);
+                                __pyx_t_10 = __pyx_t_13;
+                                __pyx_L15_bool_binop_done:;
+                                if (__pyx_t_10) {
+
+                                  /* "cornac/models/knn/similarity.pyx":76
+ *             denom2 = <double *> malloc(sizeof(double) * n_rows)
+ *             if denom1 is NULL or denom2 is NULL:
+ *                 abort()             # <<<<<<<<<<<<<<
+ * 
+ *             for i in range(n_rows):
+ */
+                                  abort();
+
+                                  /* "cornac/models/knn/similarity.pyx":75
+ *             denom1 = <double *> malloc(sizeof(double) * n_rows)
+ *             denom2 = <double *> malloc(sizeof(double) * n_rows)
+ *             if denom1 is NULL or denom2 is NULL:             # <<<<<<<<<<<<<<
+ *                 abort()
+ * 
+ */
+                                }
+
+                                /* "cornac/models/knn/similarity.pyx":78
+ *                 abort()
+ * 
+ *             for i in range(n_rows):             # <<<<<<<<<<<<<<
+ *                 denom1[i] = 0
+ *                 denom2[i] = 0
+ */
+                                __pyx_t_14 = __pyx_v_n_rows;
+                                __pyx_t_15 = __pyx_t_14;
+                                for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
+                                  __pyx_v_i = __pyx_t_16;
+
+                                  /* "cornac/models/knn/similarity.pyx":79
+ * 
+ *             for i in range(n_rows):
+ *                 denom1[i] = 0             # <<<<<<<<<<<<<<
+ *                 denom2[i] = 0
+ * 
+ */
+                                  (__pyx_v_denom1[__pyx_v_i]) = 0.0;
+
+                                  /* "cornac/models/knn/similarity.pyx":80
+ *             for i in range(n_rows):
+ *                 denom1[i] = 0
+ *                 denom2[i] = 0             # <<<<<<<<<<<<<<
+ * 
+ *             for i in range(row_indptr[r], row_indptr[r + 1]):
+ */
+                                  (__pyx_v_denom2[__pyx_v_i]) = 0.0;
+                                }
+
+                                /* "cornac/models/knn/similarity.pyx":82
+ *                 denom2[i] = 0
+ * 
  *             for i in range(row_indptr[r], row_indptr[r + 1]):             # <<<<<<<<<<<<<<
  *                 c, w = row_indices[i], row_data[i]
- *                 for j in range(col_indptr[c], col_indptr[c + 1]):
+ *                 for j in range(col_indptr[c], col_indptr[c + 1]):  # neighbors
  */
-                                __pyx_t_13 = (__pyx_v_r + 1);
-                                if (__pyx_t_13 < 0) __pyx_t_13 += __pyx_v_row_indptr.shape[0];
-                                __pyx_t_14 = (*((int *) ( /* dim=0 */ (__pyx_v_row_indptr.data + __pyx_t_13 * __pyx_v_row_indptr.strides[0]) )));
-                                __pyx_t_15 = __pyx_v_r;
-                                if (__pyx_t_15 < 0) __pyx_t_15 += __pyx_v_row_indptr.shape[0];
-                                __pyx_t_16 = __pyx_t_14;
-                                for (__pyx_t_17 = (*((int *) ( /* dim=0 */ (__pyx_v_row_indptr.data + __pyx_t_15 * __pyx_v_row_indptr.strides[0]) ))); __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
-                                  __pyx_v_i = __pyx_t_17;
+                                __pyx_t_17 = (__pyx_v_r + 1);
+                                if (__pyx_t_17 < 0) __pyx_t_17 += __pyx_v_row_indptr.shape[0];
+                                __pyx_t_14 = (*((int *) ( /* dim=0 */ (__pyx_v_row_indptr.data + __pyx_t_17 * __pyx_v_row_indptr.strides[0]) )));
+                                __pyx_t_18 = __pyx_v_r;
+                                if (__pyx_t_18 < 0) __pyx_t_18 += __pyx_v_row_indptr.shape[0];
+                                __pyx_t_15 = __pyx_t_14;
+                                for (__pyx_t_16 = (*((int *) ( /* dim=0 */ (__pyx_v_row_indptr.data + __pyx_t_18 * __pyx_v_row_indptr.strides[0]) ))); __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
+                                  __pyx_v_i = __pyx_t_16;
 
-                                  /* "cornac/models/knn/similarity.pyx":72
- *         for r in prange(n_rows, schedule='guided'):
+                                  /* "cornac/models/knn/similarity.pyx":83
+ * 
  *             for i in range(row_indptr[r], row_indptr[r + 1]):
  *                 c, w = row_indices[i], row_data[i]             # <<<<<<<<<<<<<<
- *                 for j in range(col_indptr[c], col_indptr[c + 1]):
+ *                 for j in range(col_indptr[c], col_indptr[c + 1]):  # neighbors
  *                     sim_mat[r, col_indices[j]] += col_data[j] * w
  */
-                                  __pyx_t_18 = __pyx_v_i;
-                                  if (__pyx_t_18 < 0) __pyx_t_18 += __pyx_v_row_indices.shape[0];
-                                  __pyx_t_19 = (*((int *) ( /* dim=0 */ (__pyx_v_row_indices.data + __pyx_t_18 * __pyx_v_row_indices.strides[0]) )));
-                                  __pyx_t_20 = __pyx_v_i;
-                                  if (__pyx_t_20 < 0) __pyx_t_20 += __pyx_v_row_data.shape[0];
-                                  __pyx_t_21 = (*((double *) ( /* dim=0 */ (__pyx_v_row_data.data + __pyx_t_20 * __pyx_v_row_data.strides[0]) )));
-                                  __pyx_v_c = __pyx_t_19;
-                                  __pyx_v_w = __pyx_t_21;
+                                  __pyx_t_19 = __pyx_v_i;
+                                  if (__pyx_t_19 < 0) __pyx_t_19 += __pyx_v_row_indices.shape[0];
+                                  __pyx_t_20 = (*((int *) ( /* dim=0 */ (__pyx_v_row_indices.data + __pyx_t_19 * __pyx_v_row_indices.strides[0]) )));
+                                  __pyx_t_21 = __pyx_v_i;
+                                  if (__pyx_t_21 < 0) __pyx_t_21 += __pyx_v_row_data.shape[0];
+                                  __pyx_t_22 = (*((double *) ( /* dim=0 */ (__pyx_v_row_data.data + __pyx_t_21 * __pyx_v_row_data.strides[0]) )));
+                                  __pyx_v_c = __pyx_t_20;
+                                  __pyx_v_w = __pyx_t_22;
 
-                                  /* "cornac/models/knn/similarity.pyx":73
+                                  /* "cornac/models/knn/similarity.pyx":84
  *             for i in range(row_indptr[r], row_indptr[r + 1]):
  *                 c, w = row_indices[i], row_data[i]
- *                 for j in range(col_indptr[c], col_indptr[c + 1]):             # <<<<<<<<<<<<<<
+ *                 for j in range(col_indptr[c], col_indptr[c + 1]):  # neighbors             # <<<<<<<<<<<<<<
  *                     sim_mat[r, col_indices[j]] += col_data[j] * w
- *             with gil:
+ *                     if w != 0 and col_data[j] != 0:
  */
-                                  __pyx_t_22 = (__pyx_v_c + 1);
-                                  if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_v_col_indptr.shape[0];
-                                  __pyx_t_19 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indptr.data + __pyx_t_22 * __pyx_v_col_indptr.strides[0]) )));
-                                  __pyx_t_23 = __pyx_v_c;
+                                  __pyx_t_23 = (__pyx_v_c + 1);
                                   if (__pyx_t_23 < 0) __pyx_t_23 += __pyx_v_col_indptr.shape[0];
-                                  __pyx_t_24 = __pyx_t_19;
-                                  for (__pyx_t_25 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indptr.data + __pyx_t_23 * __pyx_v_col_indptr.strides[0]) ))); __pyx_t_25 < __pyx_t_24; __pyx_t_25+=1) {
-                                    __pyx_v_j = __pyx_t_25;
+                                  __pyx_t_20 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indptr.data + __pyx_t_23 * __pyx_v_col_indptr.strides[0]) )));
+                                  __pyx_t_24 = __pyx_v_c;
+                                  if (__pyx_t_24 < 0) __pyx_t_24 += __pyx_v_col_indptr.shape[0];
+                                  __pyx_t_25 = __pyx_t_20;
+                                  for (__pyx_t_26 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indptr.data + __pyx_t_24 * __pyx_v_col_indptr.strides[0]) ))); __pyx_t_26 < __pyx_t_25; __pyx_t_26+=1) {
+                                    __pyx_v_j = __pyx_t_26;
 
-                                    /* "cornac/models/knn/similarity.pyx":74
+                                    /* "cornac/models/knn/similarity.pyx":85
  *                 c, w = row_indices[i], row_data[i]
- *                 for j in range(col_indptr[c], col_indptr[c + 1]):
+ *                 for j in range(col_indptr[c], col_indptr[c + 1]):  # neighbors
  *                     sim_mat[r, col_indices[j]] += col_data[j] * w             # <<<<<<<<<<<<<<
- *             with gil:
- *                 progress.update(1)
+ *                     if w != 0 and col_data[j] != 0:
+ *                         denom1[col_indices[j]] += w * w
  */
-                                    __pyx_t_26 = __pyx_v_j;
-                                    if (__pyx_t_26 < 0) __pyx_t_26 += __pyx_v_col_data.shape[0];
                                     __pyx_t_27 = __pyx_v_j;
-                                    if (__pyx_t_27 < 0) __pyx_t_27 += __pyx_v_col_indices.shape[0];
-                                    __pyx_t_28 = __pyx_v_r;
-                                    __pyx_t_29 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indices.data + __pyx_t_27 * __pyx_v_col_indices.strides[0]) )));
-                                    if (__pyx_t_28 < 0) __pyx_t_28 += __pyx_v_sim_mat.shape[0];
-                                    if (__pyx_t_29 < 0) __pyx_t_29 += __pyx_v_sim_mat.shape[1];
-                                    *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sim_mat.data + __pyx_t_28 * __pyx_v_sim_mat.strides[0]) ) + __pyx_t_29 * __pyx_v_sim_mat.strides[1]) )) += ((*((double *) ( /* dim=0 */ (__pyx_v_col_data.data + __pyx_t_26 * __pyx_v_col_data.strides[0]) ))) * __pyx_v_w);
+                                    if (__pyx_t_27 < 0) __pyx_t_27 += __pyx_v_col_data.shape[0];
+                                    __pyx_t_28 = __pyx_v_j;
+                                    if (__pyx_t_28 < 0) __pyx_t_28 += __pyx_v_col_indices.shape[0];
+                                    __pyx_t_29 = __pyx_v_r;
+                                    __pyx_t_30 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indices.data + __pyx_t_28 * __pyx_v_col_indices.strides[0]) )));
+                                    if (__pyx_t_29 < 0) __pyx_t_29 += __pyx_v_sim_mat.shape[0];
+                                    if (__pyx_t_30 < 0) __pyx_t_30 += __pyx_v_sim_mat.shape[1];
+                                    *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sim_mat.data + __pyx_t_29 * __pyx_v_sim_mat.strides[0]) ) + __pyx_t_30 * __pyx_v_sim_mat.strides[1]) )) += ((*((double *) ( /* dim=0 */ (__pyx_v_col_data.data + __pyx_t_27 * __pyx_v_col_data.strides[0]) ))) * __pyx_v_w);
+
+                                    /* "cornac/models/knn/similarity.pyx":86
+ *                 for j in range(col_indptr[c], col_indptr[c + 1]):  # neighbors
+ *                     sim_mat[r, col_indices[j]] += col_data[j] * w
+ *                     if w != 0 and col_data[j] != 0:             # <<<<<<<<<<<<<<
+ *                         denom1[col_indices[j]] += w * w
+ *                         denom2[col_indices[j]] += col_data[j] * col_data[j]
+ */
+                                    __pyx_t_13 = ((__pyx_v_w != 0.0) != 0);
+                                    if (__pyx_t_13) {
+                                    } else {
+                                      __pyx_t_10 = __pyx_t_13;
+                                      goto __pyx_L24_bool_binop_done;
+                                    }
+                                    __pyx_t_31 = __pyx_v_j;
+                                    if (__pyx_t_31 < 0) __pyx_t_31 += __pyx_v_col_data.shape[0];
+                                    __pyx_t_13 = (((*((double *) ( /* dim=0 */ (__pyx_v_col_data.data + __pyx_t_31 * __pyx_v_col_data.strides[0]) ))) != 0.0) != 0);
+                                    __pyx_t_10 = __pyx_t_13;
+                                    __pyx_L24_bool_binop_done:;
+                                    if (__pyx_t_10) {
+
+                                      /* "cornac/models/knn/similarity.pyx":87
+ *                     sim_mat[r, col_indices[j]] += col_data[j] * w
+ *                     if w != 0 and col_data[j] != 0:
+ *                         denom1[col_indices[j]] += w * w             # <<<<<<<<<<<<<<
+ *                         denom2[col_indices[j]] += col_data[j] * col_data[j]
+ * 
+ */
+                                      __pyx_t_32 = __pyx_v_j;
+                                      if (__pyx_t_32 < 0) __pyx_t_32 += __pyx_v_col_indices.shape[0];
+                                      __pyx_t_33 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indices.data + __pyx_t_32 * __pyx_v_col_indices.strides[0]) )));
+                                      (__pyx_v_denom1[__pyx_t_33]) = ((__pyx_v_denom1[__pyx_t_33]) + (__pyx_v_w * __pyx_v_w));
+
+                                      /* "cornac/models/knn/similarity.pyx":88
+ *                     if w != 0 and col_data[j] != 0:
+ *                         denom1[col_indices[j]] += w * w
+ *                         denom2[col_indices[j]] += col_data[j] * col_data[j]             # <<<<<<<<<<<<<<
+ * 
+ *             for i in range(n_rows):
+ */
+                                      __pyx_t_34 = __pyx_v_j;
+                                      if (__pyx_t_34 < 0) __pyx_t_34 += __pyx_v_col_indices.shape[0];
+                                      __pyx_t_33 = (*((int *) ( /* dim=0 */ (__pyx_v_col_indices.data + __pyx_t_34 * __pyx_v_col_indices.strides[0]) )));
+                                      __pyx_t_35 = __pyx_v_j;
+                                      if (__pyx_t_35 < 0) __pyx_t_35 += __pyx_v_col_data.shape[0];
+                                      __pyx_t_36 = __pyx_v_j;
+                                      if (__pyx_t_36 < 0) __pyx_t_36 += __pyx_v_col_data.shape[0];
+                                      (__pyx_v_denom2[__pyx_t_33]) = ((__pyx_v_denom2[__pyx_t_33]) + ((*((double *) ( /* dim=0 */ (__pyx_v_col_data.data + __pyx_t_35 * __pyx_v_col_data.strides[0]) ))) * (*((double *) ( /* dim=0 */ (__pyx_v_col_data.data + __pyx_t_36 * __pyx_v_col_data.strides[0]) )))));
+
+                                      /* "cornac/models/knn/similarity.pyx":86
+ *                 for j in range(col_indptr[c], col_indptr[c + 1]):  # neighbors
+ *                     sim_mat[r, col_indices[j]] += col_data[j] * w
+ *                     if w != 0 and col_data[j] != 0:             # <<<<<<<<<<<<<<
+ *                         denom1[col_indices[j]] += w * w
+ *                         denom2[col_indices[j]] += col_data[j] * col_data[j]
+ */
+                                    }
                                   }
                                 }
 
-                                /* "cornac/models/knn/similarity.pyx":75
- *                 for j in range(col_indptr[c], col_indptr[c + 1]):
- *                     sim_mat[r, col_indices[j]] += col_data[j] * w
+                                /* "cornac/models/knn/similarity.pyx":90
+ *                         denom2[col_indices[j]] += col_data[j] * col_data[j]
+ * 
+ *             for i in range(n_rows):             # <<<<<<<<<<<<<<
+ *                 if sim_mat[r, i] != 0:
+ *                     denom = sqrt(denom1[i]) * sqrt(denom2[i])
+ */
+                                __pyx_t_14 = __pyx_v_n_rows;
+                                __pyx_t_15 = __pyx_t_14;
+                                for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
+                                  __pyx_v_i = __pyx_t_16;
+
+                                  /* "cornac/models/knn/similarity.pyx":91
+ * 
+ *             for i in range(n_rows):
+ *                 if sim_mat[r, i] != 0:             # <<<<<<<<<<<<<<
+ *                     denom = sqrt(denom1[i]) * sqrt(denom2[i])
+ *                     sim_mat[r, i] /= denom
+ */
+                                  __pyx_t_37 = __pyx_v_r;
+                                  __pyx_t_38 = __pyx_v_i;
+                                  if (__pyx_t_37 < 0) __pyx_t_37 += __pyx_v_sim_mat.shape[0];
+                                  if (__pyx_t_38 < 0) __pyx_t_38 += __pyx_v_sim_mat.shape[1];
+                                  __pyx_t_10 = (((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sim_mat.data + __pyx_t_37 * __pyx_v_sim_mat.strides[0]) ) + __pyx_t_38 * __pyx_v_sim_mat.strides[1]) ))) != 0.0) != 0);
+                                  if (__pyx_t_10) {
+
+                                    /* "cornac/models/knn/similarity.pyx":92
+ *             for i in range(n_rows):
+ *                 if sim_mat[r, i] != 0:
+ *                     denom = sqrt(denom1[i]) * sqrt(denom2[i])             # <<<<<<<<<<<<<<
+ *                     sim_mat[r, i] /= denom
+ * 
+ */
+                                    __pyx_v_denom = (sqrt((__pyx_v_denom1[__pyx_v_i])) * sqrt((__pyx_v_denom2[__pyx_v_i])));
+
+                                    /* "cornac/models/knn/similarity.pyx":93
+ *                 if sim_mat[r, i] != 0:
+ *                     denom = sqrt(denom1[i]) * sqrt(denom2[i])
+ *                     sim_mat[r, i] /= denom             # <<<<<<<<<<<<<<
+ * 
+ *             free(denom1)
+ */
+                                    __pyx_t_39 = __pyx_v_r;
+                                    __pyx_t_40 = __pyx_v_i;
+                                    if (__pyx_t_39 < 0) __pyx_t_39 += __pyx_v_sim_mat.shape[0];
+                                    if (__pyx_t_40 < 0) __pyx_t_40 += __pyx_v_sim_mat.shape[1];
+                                    *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_sim_mat.data + __pyx_t_39 * __pyx_v_sim_mat.strides[0]) ) + __pyx_t_40 * __pyx_v_sim_mat.strides[1]) )) /= __pyx_v_denom;
+
+                                    /* "cornac/models/knn/similarity.pyx":91
+ * 
+ *             for i in range(n_rows):
+ *                 if sim_mat[r, i] != 0:             # <<<<<<<<<<<<<<
+ *                     denom = sqrt(denom1[i]) * sqrt(denom2[i])
+ *                     sim_mat[r, i] /= denom
+ */
+                                  }
+                                }
+
+                                /* "cornac/models/knn/similarity.pyx":95
+ *                     sim_mat[r, i] /= denom
+ * 
+ *             free(denom1)             # <<<<<<<<<<<<<<
+ *             free(denom2)
+ * 
+ */
+                                free(__pyx_v_denom1);
+
+                                /* "cornac/models/knn/similarity.pyx":96
+ * 
+ *             free(denom1)
+ *             free(denom2)             # <<<<<<<<<<<<<<
+ * 
+ *             with gil:
+ */
+                                free(__pyx_v_denom2);
+
+                                /* "cornac/models/knn/similarity.pyx":98
+ *             free(denom2)
+ * 
  *             with gil:             # <<<<<<<<<<<<<<
  *                 progress.update(1)
  *     progress.close()
@@ -3352,14 +3593,14 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                                     #endif
                                     /*try:*/ {
 
-                                      /* "cornac/models/knn/similarity.pyx":76
- *                     sim_mat[r, col_indices[j]] += col_data[j] * w
+                                      /* "cornac/models/knn/similarity.pyx":99
+ * 
  *             with gil:
  *                 progress.update(1)             # <<<<<<<<<<<<<<
  *     progress.close()
  * 
  */
-                                      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_progress, __pyx_n_s_update); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L21_error)
+                                      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_progress, __pyx_n_s_update); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 99, __pyx_L32_error)
                                       __Pyx_GOTREF(__pyx_t_2);
                                       __pyx_t_3 = NULL;
                                       if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3373,15 +3614,15 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                                       }
                                       __pyx_t_8 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_int_1) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_int_1);
                                       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-                                      if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 76, __pyx_L21_error)
+                                      if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 99, __pyx_L32_error)
                                       __Pyx_GOTREF(__pyx_t_8);
                                       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
                                       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
                                     }
 
-                                    /* "cornac/models/knn/similarity.pyx":75
- *                 for j in range(col_indptr[c], col_indptr[c + 1]):
- *                     sim_mat[r, col_indices[j]] += col_data[j] * w
+                                    /* "cornac/models/knn/similarity.pyx":98
+ *             free(denom2)
+ * 
  *             with gil:             # <<<<<<<<<<<<<<
  *                 progress.update(1)
  *     progress.close()
@@ -3391,18 +3632,18 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                                         #ifdef WITH_THREAD
                                         __Pyx_PyGILState_Release(__pyx_gilstate_save);
                                         #endif
-                                        goto __pyx_L22;
+                                        goto __pyx_L33;
                                       }
-                                      __pyx_L21_error: {
+                                      __pyx_L32_error: {
                                         #ifdef WITH_THREAD
                                         __Pyx_PyGILState_Release(__pyx_gilstate_save);
                                         #endif
                                         goto __pyx_L12_error;
                                       }
-                                      __pyx_L22:;
+                                      __pyx_L33:;
                                     }
                                 }
-                                goto __pyx_L24;
+                                goto __pyx_L35;
                                 __pyx_L12_error:;
                                 {
                                     #ifdef WITH_THREAD
@@ -3421,19 +3662,22 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                                     #endif
                                 }
                                 __pyx_parallel_why = 4;
-                                goto __pyx_L23;
-                                __pyx_L23:;
+                                goto __pyx_L34;
+                                __pyx_L34:;
                                 #ifdef _OPENMP
                                 #pragma omp critical(__pyx_parallel_lastprivates0)
                                 #endif /* _OPENMP */
                                 {
                                     __pyx_parallel_temp0 = __pyx_v_c;
-                                    __pyx_parallel_temp1 = __pyx_v_i;
-                                    __pyx_parallel_temp2 = __pyx_v_j;
-                                    __pyx_parallel_temp3 = __pyx_v_r;
-                                    __pyx_parallel_temp4 = __pyx_v_w;
+                                    __pyx_parallel_temp1 = __pyx_v_denom;
+                                    __pyx_parallel_temp2 = __pyx_v_denom1;
+                                    __pyx_parallel_temp3 = __pyx_v_denom2;
+                                    __pyx_parallel_temp4 = __pyx_v_i;
+                                    __pyx_parallel_temp5 = __pyx_v_j;
+                                    __pyx_parallel_temp6 = __pyx_v_r;
+                                    __pyx_parallel_temp7 = __pyx_v_w;
                                 }
-                                __pyx_L24:;
+                                __pyx_L35:;
                                 #ifdef _OPENMP
                                 #pragma omp flush(__pyx_parallel_why)
                                 #endif /* _OPENMP */
@@ -3446,10 +3690,13 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                     }
                     if (__pyx_parallel_why) {
                       __pyx_v_c = __pyx_parallel_temp0;
-                      __pyx_v_i = __pyx_parallel_temp1;
-                      __pyx_v_j = __pyx_parallel_temp2;
-                      __pyx_v_r = __pyx_parallel_temp3;
-                      __pyx_v_w = __pyx_parallel_temp4;
+                      __pyx_v_denom = __pyx_parallel_temp1;
+                      __pyx_v_denom1 = __pyx_parallel_temp2;
+                      __pyx_v_denom2 = __pyx_parallel_temp3;
+                      __pyx_v_i = __pyx_parallel_temp4;
+                      __pyx_v_j = __pyx_parallel_temp5;
+                      __pyx_v_r = __pyx_parallel_temp6;
+                      __pyx_v_w = __pyx_parallel_temp7;
                       switch (__pyx_parallel_why) {
                             case 4:
                         {
@@ -3467,7 +3714,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                       }
                     }
                 }
-                goto __pyx_L26;
+                goto __pyx_L37;
                 __pyx_L8_error:;
                 {
                     #ifdef WITH_THREAD
@@ -3486,8 +3733,8 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
                     #endif
                 }
                 __pyx_parallel_why = 4;
-                goto __pyx_L26;
-                __pyx_L26:;
+                goto __pyx_L37;
+                __pyx_L37:;
                 #ifdef _OPENMP
                 Py_END_ALLOW_THREADS
                 #else
@@ -3540,12 +3787,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
         #endif
       }
 
-      /* "cornac/models/knn/similarity.pyx":69
+      /* "cornac/models/knn/similarity.pyx":71
  * 
  *     progress = tqdm(total=n_rows, disable=not verbose)
  *     with nogil, parallel(num_threads=num_threads):             # <<<<<<<<<<<<<<
  *         for r in prange(n_rows, schedule='guided'):
- *             for i in range(row_indptr[r], row_indptr[r + 1]):
+ *             denom1 = <double *> malloc(sizeof(double) * n_rows)
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -3566,14 +3813,14 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
       }
   }
 
-  /* "cornac/models/knn/similarity.pyx":77
+  /* "cornac/models/knn/similarity.pyx":100
  *             with gil:
  *                 progress.update(1)
  *     progress.close()             # <<<<<<<<<<<<<<
  * 
  *     sparse_sim_mat = csr_matrix(sim_mat)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_progress, __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_progress, __pyx_n_s_close); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3587,21 +3834,21 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   }
   __pyx_t_8 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 77, __pyx_L1_error)
+  if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "cornac/models/knn/similarity.pyx":79
+  /* "cornac/models/knn/similarity.pyx":102
  *     progress.close()
  * 
  *     sparse_sim_mat = csr_matrix(sim_mat)             # <<<<<<<<<<<<<<
  *     del sim_mat
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_csr_matrix); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 79, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_csr_matrix); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_sim_mat, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_sim_mat, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_7 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -3616,13 +3863,13 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   __pyx_t_8 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_7, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 79, __pyx_L1_error)
+  if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_sparse_sim_mat = __pyx_t_8;
   __pyx_t_8 = 0;
 
-  /* "cornac/models/knn/similarity.pyx":80
+  /* "cornac/models/knn/similarity.pyx":103
  * 
  *     sparse_sim_mat = csr_matrix(sim_mat)
  *     del sim_mat             # <<<<<<<<<<<<<<
@@ -3631,7 +3878,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
  */
   __PYX_XDEC_MEMVIEW(&__pyx_v_sim_mat, 1);
 
-  /* "cornac/models/knn/similarity.pyx":82
+  /* "cornac/models/knn/similarity.pyx":105
  *     del sim_mat
  * 
  *     return sparse_sim_mat             # <<<<<<<<<<<<<<
@@ -3680,7 +3927,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_compute_similarity(C
   return __pyx_r;
 }
 
-/* "cornac/models/knn/similarity.pyx":86
+/* "cornac/models/knn/similarity.pyx":109
  * 
  * @cython.boundscheck(False)
  * def compute_score_single(             # <<<<<<<<<<<<<<
@@ -3726,23 +3973,23 @@ static PyObject *__pyx_pw_6cornac_6models_3knn_10similarity_3compute_score_singl
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_args)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 1); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 1); __PYX_ERR(0, 109, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_kwargs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 2); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 2); __PYX_ERR(0, 109, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_defaults)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 3); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 3); __PYX_ERR(0, 109, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_fused_cpdef") < 0)) __PYX_ERR(0, 86, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_fused_cpdef") < 0)) __PYX_ERR(0, 109, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -3759,7 +4006,7 @@ static PyObject *__pyx_pw_6cornac_6models_3knn_10similarity_3compute_score_singl
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 86, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 109, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cornac.models.knn.similarity.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3810,7 +4057,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
   int __pyx_t_18;
   __Pyx_RefNannySetupContext("compute_score_single", 0);
   __Pyx_INCREF(__pyx_v_kwargs);
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
@@ -3824,7 +4071,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
     __pyx_t_2 = __pyx_t_4;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_kwargs); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_kwargs); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
   __pyx_t_3 = ((!__pyx_t_4) != 0);
   __pyx_t_2 = __pyx_t_3;
   __pyx_L4_bool_binop_done:;
@@ -3832,21 +4079,21 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
     __Pyx_INCREF(Py_None);
     __Pyx_DECREF_SET(__pyx_v_kwargs, Py_None);
   }
-  __pyx_t_1 = ((PyObject *)__Pyx_ImportNumPyArrayTypeIfAvailable()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__Pyx_ImportNumPyArrayTypeIfAvailable()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_ndarray = ((PyTypeObject*)__pyx_t_1);
   __pyx_t_1 = 0;
   __pyx_v_itemsize = -1L;
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 86, __pyx_L1_error)
+    __PYX_ERR(0, 109, __pyx_L1_error)
   }
-  __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
   __pyx_t_2 = ((1 < __pyx_t_5) != 0);
   if (__pyx_t_2) {
     if (unlikely(__pyx_v_args == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 86, __pyx_L1_error)
+      __PYX_ERR(0, 109, __pyx_L1_error)
     }
     __pyx_t_1 = PyTuple_GET_ITEM(((PyObject*)__pyx_v_args), 1);
     __Pyx_INCREF(__pyx_t_1);
@@ -3863,18 +4110,18 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
   }
   if (unlikely(__pyx_v_kwargs == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 86, __pyx_L1_error)
+    __PYX_ERR(0, 109, __pyx_L1_error)
   }
-  __pyx_t_4 = (__Pyx_PyDict_ContainsTF(__pyx_n_s_sim_arr, ((PyObject*)__pyx_v_kwargs), Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_4 = (__Pyx_PyDict_ContainsTF(__pyx_n_s_sim_arr, ((PyObject*)__pyx_v_kwargs), Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
   __pyx_t_3 = (__pyx_t_4 != 0);
   __pyx_t_2 = __pyx_t_3;
   __pyx_L7_bool_binop_done:;
   if (__pyx_t_2) {
     if (unlikely(__pyx_v_kwargs == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 86, __pyx_L1_error)
+      __PYX_ERR(0, 109, __pyx_L1_error)
     }
-    __pyx_t_1 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_kwargs), __pyx_n_s_sim_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_kwargs), __pyx_n_s_sim_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_v_arg = __pyx_t_1;
     __pyx_t_1 = 0;
@@ -3883,12 +4130,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
   /*else*/ {
     if (unlikely(__pyx_v_args == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-      __PYX_ERR(0, 86, __pyx_L1_error)
+      __PYX_ERR(0, 109, __pyx_L1_error)
     }
-    __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 86, __pyx_L1_error)
-    __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_INCREF(__pyx_int_7);
     __Pyx_GIVEREF(__pyx_int_7);
@@ -3899,15 +4146,15 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_Expected_at_least_d_argument_s_g, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_Expected_at_least_d_argument_s_g, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_TypeError, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_TypeError, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 86, __pyx_L1_error)
+    __PYX_ERR(0, 109, __pyx_L1_error)
   }
   __pyx_L6:;
   while (1) {
@@ -3917,7 +4164,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
       __pyx_t_3 = __Pyx_TypeCheck(__pyx_v_arg, __pyx_v_ndarray); 
       __pyx_t_2 = (__pyx_t_3 != 0);
       if (__pyx_t_2) {
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __pyx_v_dtype = __pyx_t_6;
         __pyx_t_6 = 0;
@@ -3926,14 +4173,14 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
       __pyx_t_2 = __pyx_memoryview_check(__pyx_v_arg); 
       __pyx_t_3 = (__pyx_t_2 != 0);
       if (__pyx_t_3) {
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_base); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_base); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __pyx_v_arg_base = __pyx_t_6;
         __pyx_t_6 = 0;
         __pyx_t_3 = __Pyx_TypeCheck(__pyx_v_arg_base, __pyx_v_ndarray); 
         __pyx_t_2 = (__pyx_t_3 != 0);
         if (__pyx_t_2) {
-          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg_base, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg_base, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           __pyx_v_dtype = __pyx_t_6;
           __pyx_t_6 = 0;
@@ -3955,14 +4202,14 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
       __pyx_t_2 = (__pyx_v_dtype != Py_None);
       __pyx_t_3 = (__pyx_t_2 != 0);
       if (__pyx_t_3) {
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_itemsize); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_itemsize); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_v_itemsize = __pyx_t_5;
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_7 = __Pyx_PyObject_Ord(__pyx_t_6); if (unlikely(__pyx_t_7 == ((long)(long)(Py_UCS4)-1))) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyObject_Ord(__pyx_t_6); if (unlikely(__pyx_t_7 == ((long)(long)(Py_UCS4)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_v_kind = __pyx_t_7;
         __pyx_v_dtype_signed = (__pyx_v_kind == 'i');
@@ -3977,15 +4224,15 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
             __pyx_t_3 = __pyx_t_2;
             goto __pyx_L16_bool_binop_done;
           }
-          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
-          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L1_error)
+          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 109, __pyx_L1_error)
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           __pyx_t_2 = ((((Py_ssize_t)__pyx_t_5) == 1) != 0);
           __pyx_t_3 = __pyx_t_2;
           __pyx_L16_bool_binop_done:;
           if (__pyx_t_3) {
-            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
             goto __pyx_L10_break;
           }
           __pyx_t_2 = (((sizeof(double)) == __pyx_v_itemsize) != 0);
@@ -3994,15 +4241,15 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
             __pyx_t_3 = __pyx_t_2;
             goto __pyx_L19_bool_binop_done;
           }
-          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
-          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L1_error)
+          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 109, __pyx_L1_error)
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           __pyx_t_2 = ((((Py_ssize_t)__pyx_t_5) == 1) != 0);
           __pyx_t_3 = __pyx_t_2;
           __pyx_L19_bool_binop_done:;
           if (__pyx_t_3) {
-            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
             goto __pyx_L10_break;
           }
           break;
@@ -4029,7 +4276,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
       __pyx_t_3 = (__pyx_v_memslice.memview != 0);
       if (__pyx_t_3) {
         __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1); 
-        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
         goto __pyx_L10_break;
       }
       /*else*/ {
@@ -4051,27 +4298,27 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
       __pyx_t_3 = (__pyx_v_memslice.memview != 0);
       if (__pyx_t_3) {
         __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1); 
-        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
         goto __pyx_L10_break;
       }
       /*else*/ {
         PyErr_Clear(); 
       }
     }
-    if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, Py_None, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, Py_None, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
     goto __pyx_L10_break;
   }
   __pyx_L10_break:;
-  __pyx_t_6 = PyList_New(0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_v_candidates = ((PyObject*)__pyx_t_6);
   __pyx_t_6 = 0;
   __pyx_t_5 = 0;
   if (unlikely(__pyx_v_signatures == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 86, __pyx_L1_error)
+    __PYX_ERR(0, 109, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_dict_iterator(((PyObject*)__pyx_v_signatures), 1, ((PyObject *)NULL), (&__pyx_t_9), (&__pyx_t_10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_dict_iterator(((PyObject*)__pyx_v_signatures), 1, ((PyObject *)NULL), (&__pyx_t_9), (&__pyx_t_10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_6);
   __pyx_t_6 = __pyx_t_1;
@@ -4079,12 +4326,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
   while (1) {
     __pyx_t_11 = __Pyx_dict_iter_next(__pyx_t_6, __pyx_t_9, &__pyx_t_5, &__pyx_t_1, NULL, NULL, __pyx_t_10);
     if (unlikely(__pyx_t_11 == 0)) break;
-    if (unlikely(__pyx_t_11 == -1)) __PYX_ERR(0, 86, __pyx_L1_error)
+    if (unlikely(__pyx_t_11 == -1)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_XDECREF_SET(__pyx_v_sig, __pyx_t_1);
     __pyx_t_1 = 0;
     __pyx_v_match_found = 0;
-    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_sig, __pyx_n_s_strip); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_sig, __pyx_n_s_strip); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_14 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_13))) {
@@ -4098,10 +4345,10 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
     }
     __pyx_t_12 = (__pyx_t_14) ? __Pyx_PyObject_Call2Args(__pyx_t_13, __pyx_t_14, __pyx_kp_s_) : __Pyx_PyObject_CallOneArg(__pyx_t_13, __pyx_kp_s_);
     __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
-    if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 86, __pyx_L1_error)
+    if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_12);
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_split); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_split); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
     __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
     __pyx_t_12 = NULL;
@@ -4116,27 +4363,27 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
     }
     __pyx_t_1 = (__pyx_t_12) ? __Pyx_PyObject_Call2Args(__pyx_t_13, __pyx_t_12, __pyx_kp_s__2) : __Pyx_PyObject_CallOneArg(__pyx_t_13, __pyx_kp_s__2);
     __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
     __Pyx_XDECREF_SET(__pyx_v_src_sig, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_15 = PyList_GET_SIZE(__pyx_v_dest_sig); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_15 = PyList_GET_SIZE(__pyx_v_dest_sig); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
     __pyx_t_16 = __pyx_t_15;
     for (__pyx_t_17 = 0; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
       __pyx_v_i = __pyx_t_17;
-      __pyx_t_1 = __Pyx_GetItemInt_List(__pyx_v_dest_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetItemInt_List(__pyx_v_dest_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_XDECREF_SET(__pyx_v_dst_type, __pyx_t_1);
       __pyx_t_1 = 0;
       __pyx_t_3 = (__pyx_v_dst_type != Py_None);
       __pyx_t_2 = (__pyx_t_3 != 0);
       if (__pyx_t_2) {
-        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_src_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_src_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_13 = PyObject_RichCompare(__pyx_t_1, __pyx_v_dst_type, Py_EQ); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_13 = PyObject_RichCompare(__pyx_t_1, __pyx_v_dst_type, Py_EQ); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_13); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_13); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 109, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
         if (__pyx_t_2) {
           __pyx_v_match_found = 1;
@@ -4152,35 +4399,35 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
     __pyx_L32_break:;
     __pyx_t_2 = (__pyx_v_match_found != 0);
     if (__pyx_t_2) {
-      __pyx_t_18 = __Pyx_PyList_Append(__pyx_v_candidates, __pyx_v_sig); if (unlikely(__pyx_t_18 == ((int)-1))) __PYX_ERR(0, 86, __pyx_L1_error)
+      __pyx_t_18 = __Pyx_PyList_Append(__pyx_v_candidates, __pyx_v_sig); if (unlikely(__pyx_t_18 == ((int)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
     }
   }
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_t_2 = (PyList_GET_SIZE(__pyx_v_candidates) != 0);
   __pyx_t_3 = ((!__pyx_t_2) != 0);
   if (__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 86, __pyx_L1_error)
+    __PYX_ERR(0, 109, __pyx_L1_error)
   }
-  __pyx_t_9 = PyList_GET_SIZE(__pyx_v_candidates); if (unlikely(__pyx_t_9 == ((Py_ssize_t)-1))) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_9 = PyList_GET_SIZE(__pyx_v_candidates); if (unlikely(__pyx_t_9 == ((Py_ssize_t)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
   __pyx_t_3 = ((__pyx_t_9 > 1) != 0);
   if (__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 86, __pyx_L1_error)
+    __PYX_ERR(0, 109, __pyx_L1_error)
   }
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
     if (unlikely(__pyx_v_signatures == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 86, __pyx_L1_error)
+      __PYX_ERR(0, 109, __pyx_L1_error)
     }
-    __pyx_t_6 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_signatures), PyList_GET_ITEM(__pyx_v_candidates, 0)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_signatures), PyList_GET_ITEM(__pyx_v_candidates, 0)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_r = __pyx_t_6;
     __pyx_t_6 = 0;
@@ -4216,7 +4463,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_2compute_score_singl
 static PyObject *__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_7compute_score_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyMethodDef __pyx_fuse_0__pyx_mdef_6cornac_6models_3knn_10similarity_7compute_score_single = {"__pyx_fuse_0compute_score_single", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_7compute_score_single, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_7compute_score_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  CYTHON_UNUSED bool __pyx_v_user_mode;
+  bool __pyx_v_user_mode;
   __Pyx_memviewslice __pyx_v_sim_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_ptr1;
   int __pyx_v_ptr2;
@@ -4259,41 +4506,41 @@ static PyObject *__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_7compute
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sim_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 1); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 1); __PYX_ERR(0, 109, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ptr1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 2); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 2); __PYX_ERR(0, 109, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ptr2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 3); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 3); __PYX_ERR(0, 109, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_indices)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 4); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 4); __PYX_ERR(0, 109, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 5); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 5); __PYX_ERR(0, 109, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_k)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 6); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 6); __PYX_ERR(0, 109, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score_single") < 0)) __PYX_ERR(0, 86, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score_single") < 0)) __PYX_ERR(0, 109, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 7) {
       goto __pyx_L5_argtuple_error;
@@ -4306,17 +4553,17 @@ static PyObject *__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_7compute
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
       values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
     }
-    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 87, __pyx_L3_error)
-    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 88, __pyx_L3_error)
-    __pyx_v_ptr1 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_ptr1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 89, __pyx_L3_error)
-    __pyx_v_ptr2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_ptr2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 90, __pyx_L3_error)
-    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 91, __pyx_L3_error)
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 92, __pyx_L3_error)
-    __pyx_v_k = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_k == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
+    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 110, __pyx_L3_error)
+    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 111, __pyx_L3_error)
+    __pyx_v_ptr1 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_ptr1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 112, __pyx_L3_error)
+    __pyx_v_ptr2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_ptr2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 113, __pyx_L3_error)
+    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 114, __pyx_L3_error)
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 115, __pyx_L3_error)
+    __pyx_v_k = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_k == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 116, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 86, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 109, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cornac.models.knn.similarity.compute_score_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4329,13 +4576,13 @@ static PyObject *__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_7compute
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k) {
+static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k) {
   int __pyx_v_max_neighbors;
   int __pyx_v_nn;
   int __pyx_v_j;
   double __pyx_v_w;
   double __pyx_v_s;
-  double __pyx_v_nom;
+  double __pyx_v_num;
   double __pyx_v_denom;
   double __pyx_v_output;
   cornac_knn::SparseNeighbors<int,double>  *__pyx_v_neighbours;
@@ -4353,24 +4600,25 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
   Py_ssize_t __pyx_t_8;
   int __pyx_t_9;
   Py_ssize_t __pyx_t_10;
-  std::vector<std::pair<double,double> > ::iterator __pyx_t_11;
-  std::vector<std::pair<double,double> >  *__pyx_t_12;
-  std::pair<double,double>  __pyx_t_13;
-  double __pyx_t_14;
-  PyObject *__pyx_t_15 = NULL;
+  Py_ssize_t __pyx_t_11;
+  std::vector<std::pair<double,double> > ::iterator __pyx_t_12;
+  std::vector<std::pair<double,double> >  *__pyx_t_13;
+  std::pair<double,double>  __pyx_t_14;
+  double __pyx_t_15;
+  PyObject *__pyx_t_16 = NULL;
   __Pyx_RefNannySetupContext("__pyx_fuse_0compute_score_single", 0);
 
-  /* "cornac/models/knn/similarity.pyx":95
+  /* "cornac/models/knn/similarity.pyx":118
  *     int k
  * ):
  *     cdef int max_neighbors = sim_arr.shape[0]             # <<<<<<<<<<<<<<
  *     cdef int nn, j
- *     cdef double w, s, nom, denom, output
+ *     cdef double w, s, num, denom, output
  */
   __pyx_v_max_neighbors = (__pyx_v_sim_arr.shape[0]);
 
-  /* "cornac/models/knn/similarity.pyx":99
- *     cdef double w, s, nom, denom, output
+  /* "cornac/models/knn/similarity.pyx":122
+ *     cdef double w, s, num, denom, output
  * 
  *     cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)             # <<<<<<<<<<<<<<
  *     cdef TopK[double, double] * topk = new TopK[double, double](k)
@@ -4378,7 +4626,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
  */
   __pyx_v_neighbours = new cornac_knn::SparseNeighbors<int,double> (__pyx_v_max_neighbors);
 
-  /* "cornac/models/knn/similarity.pyx":100
+  /* "cornac/models/knn/similarity.pyx":123
  * 
  *     cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)
  *     cdef TopK[double, double] * topk = new TopK[double, double](k)             # <<<<<<<<<<<<<<
@@ -4387,7 +4635,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
  */
   __pyx_v_topk = new cornac_knn::TopK<double,double> (__pyx_v_k);
 
-  /* "cornac/models/knn/similarity.pyx":103
+  /* "cornac/models/knn/similarity.pyx":126
  *     cdef pair[double, double] result
  * 
  *     for j in range(ptr1, ptr2):             # <<<<<<<<<<<<<<
@@ -4399,12 +4647,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
   for (__pyx_t_3 = __pyx_v_ptr1; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_j = __pyx_t_3;
 
-    /* "cornac/models/knn/similarity.pyx":104
+    /* "cornac/models/knn/similarity.pyx":127
  * 
  *     for j in range(ptr1, ptr2):
  *         nn, s = indices[j], data[j]             # <<<<<<<<<<<<<<
  *         if sim_arr[nn] != 0:
- *             neighbours.set(nn, sim_arr[nn], s)
+ *             if user_mode:
  */
     __pyx_t_4 = __pyx_v_j;
     if (__pyx_t_4 < 0) __pyx_t_4 += __pyx_v_indices.shape[0];
@@ -4415,41 +4663,75 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
     __pyx_v_nn = __pyx_t_5;
     __pyx_v_s = __pyx_t_7;
 
-    /* "cornac/models/knn/similarity.pyx":105
+    /* "cornac/models/knn/similarity.pyx":128
  *     for j in range(ptr1, ptr2):
  *         nn, s = indices[j], data[j]
  *         if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
- *             neighbours.set(nn, sim_arr[nn], s)
- * 
+ *             if user_mode:
+ *                 neighbours.set(nn, sim_arr[nn], s)
  */
     __pyx_t_8 = __pyx_v_nn;
     if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_sim_arr.shape[0];
     __pyx_t_9 = (((*((float *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_8 * __pyx_v_sim_arr.strides[0]) ))) != 0.0) != 0);
     if (__pyx_t_9) {
 
-      /* "cornac/models/knn/similarity.pyx":106
+      /* "cornac/models/knn/similarity.pyx":129
  *         nn, s = indices[j], data[j]
  *         if sim_arr[nn] != 0:
- *             neighbours.set(nn, sim_arr[nn], s)             # <<<<<<<<<<<<<<
+ *             if user_mode:             # <<<<<<<<<<<<<<
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ *             else:
+ */
+      __pyx_t_9 = (__pyx_v_user_mode != 0);
+      if (__pyx_t_9) {
+
+        /* "cornac/models/knn/similarity.pyx":130
+ *         if sim_arr[nn] != 0:
+ *             if user_mode:
+ *                 neighbours.set(nn, sim_arr[nn], s)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 neighbours.set(nn, s, sim_arr[nn])
+ */
+        __pyx_t_10 = __pyx_v_nn;
+        if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_sim_arr.shape[0];
+        __pyx_v_neighbours->set(__pyx_v_nn, (*((float *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_10 * __pyx_v_sim_arr.strides[0]) ))), __pyx_v_s);
+
+        /* "cornac/models/knn/similarity.pyx":129
+ *         nn, s = indices[j], data[j]
+ *         if sim_arr[nn] != 0:
+ *             if user_mode:             # <<<<<<<<<<<<<<
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ *             else:
+ */
+        goto __pyx_L6;
+      }
+
+      /* "cornac/models/knn/similarity.pyx":132
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ *             else:
+ *                 neighbours.set(nn, s, sim_arr[nn])             # <<<<<<<<<<<<<<
  * 
  *     topk.results.clear()
  */
-      __pyx_t_10 = __pyx_v_nn;
-      if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_sim_arr.shape[0];
-      __pyx_v_neighbours->set(__pyx_v_nn, (*((float *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_10 * __pyx_v_sim_arr.strides[0]) ))), __pyx_v_s);
+      /*else*/ {
+        __pyx_t_11 = __pyx_v_nn;
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_sim_arr.shape[0];
+        __pyx_v_neighbours->set(__pyx_v_nn, __pyx_v_s, (*((float *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_11 * __pyx_v_sim_arr.strides[0]) ))));
+      }
+      __pyx_L6:;
 
-      /* "cornac/models/knn/similarity.pyx":105
+      /* "cornac/models/knn/similarity.pyx":128
  *     for j in range(ptr1, ptr2):
  *         nn, s = indices[j], data[j]
  *         if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
- *             neighbours.set(nn, sim_arr[nn], s)
- * 
+ *             if user_mode:
+ *                 neighbours.set(nn, sim_arr[nn], s)
  */
     }
   }
 
-  /* "cornac/models/knn/similarity.pyx":108
- *             neighbours.set(nn, sim_arr[nn], s)
+  /* "cornac/models/knn/similarity.pyx":134
+ *                 neighbours.set(nn, s, sim_arr[nn])
  * 
  *     topk.results.clear()             # <<<<<<<<<<<<<<
  *     neighbours.foreach(dereference(topk))
@@ -4457,88 +4739,88 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
  */
   __pyx_v_topk->results.clear();
 
-  /* "cornac/models/knn/similarity.pyx":109
+  /* "cornac/models/knn/similarity.pyx":135
  * 
  *     topk.results.clear()
  *     neighbours.foreach(dereference(topk))             # <<<<<<<<<<<<<<
  * 
- *     nom = 0
+ *     num = 0
  */
   __pyx_v_neighbours->foreach((*__pyx_v_topk));
 
-  /* "cornac/models/knn/similarity.pyx":111
+  /* "cornac/models/knn/similarity.pyx":137
  *     neighbours.foreach(dereference(topk))
  * 
- *     nom = 0             # <<<<<<<<<<<<<<
+ *     num = 0             # <<<<<<<<<<<<<<
  *     denom = 0
  *     for result in topk.results:
  */
-  __pyx_v_nom = 0.0;
+  __pyx_v_num = 0.0;
 
-  /* "cornac/models/knn/similarity.pyx":112
+  /* "cornac/models/knn/similarity.pyx":138
  * 
- *     nom = 0
+ *     num = 0
  *     denom = 0             # <<<<<<<<<<<<<<
  *     for result in topk.results:
  *         w = result.first
  */
   __pyx_v_denom = 0.0;
 
-  /* "cornac/models/knn/similarity.pyx":113
- *     nom = 0
+  /* "cornac/models/knn/similarity.pyx":139
+ *     num = 0
  *     denom = 0
  *     for result in topk.results:             # <<<<<<<<<<<<<<
  *         w = result.first
  *         s = result.second
  */
-  __pyx_t_12 = &__pyx_v_topk->results;
-  __pyx_t_11 = __pyx_t_12->begin();
+  __pyx_t_13 = &__pyx_v_topk->results;
+  __pyx_t_12 = __pyx_t_13->begin();
   for (;;) {
-    if (!(__pyx_t_11 != __pyx_t_12->end())) break;
-    __pyx_t_13 = *__pyx_t_11;
-    ++__pyx_t_11;
-    __pyx_v_result = __pyx_t_13;
+    if (!(__pyx_t_12 != __pyx_t_13->end())) break;
+    __pyx_t_14 = *__pyx_t_12;
+    ++__pyx_t_12;
+    __pyx_v_result = __pyx_t_14;
 
-    /* "cornac/models/knn/similarity.pyx":114
+    /* "cornac/models/knn/similarity.pyx":140
  *     denom = 0
  *     for result in topk.results:
  *         w = result.first             # <<<<<<<<<<<<<<
  *         s = result.second
- *         nom = nom + w * s
+ *         num = num + w * s
  */
-    __pyx_t_14 = __pyx_v_result.first;
-    __pyx_v_w = __pyx_t_14;
+    __pyx_t_15 = __pyx_v_result.first;
+    __pyx_v_w = __pyx_t_15;
 
-    /* "cornac/models/knn/similarity.pyx":115
+    /* "cornac/models/knn/similarity.pyx":141
  *     for result in topk.results:
  *         w = result.first
  *         s = result.second             # <<<<<<<<<<<<<<
- *         nom = nom + w * s
+ *         num = num + w * s
  *         denom = denom + fabs(w)
  */
-    __pyx_t_14 = __pyx_v_result.second;
-    __pyx_v_s = __pyx_t_14;
+    __pyx_t_15 = __pyx_v_result.second;
+    __pyx_v_s = __pyx_t_15;
 
-    /* "cornac/models/knn/similarity.pyx":116
+    /* "cornac/models/knn/similarity.pyx":142
  *         w = result.first
  *         s = result.second
- *         nom = nom + w * s             # <<<<<<<<<<<<<<
+ *         num = num + w * s             # <<<<<<<<<<<<<<
  *         denom = denom + fabs(w)
  * 
  */
-    __pyx_v_nom = (__pyx_v_nom + (__pyx_v_w * __pyx_v_s));
+    __pyx_v_num = (__pyx_v_num + (__pyx_v_w * __pyx_v_s));
 
-    /* "cornac/models/knn/similarity.pyx":117
+    /* "cornac/models/knn/similarity.pyx":143
  *         s = result.second
- *         nom = nom + w * s
+ *         num = num + w * s
  *         denom = denom + fabs(w)             # <<<<<<<<<<<<<<
  * 
- *     output = nom / (denom + 1e-8)
+ *     output = num / (denom + 1e-8)
  */
     __pyx_v_denom = (__pyx_v_denom + fabs(__pyx_v_w));
 
-    /* "cornac/models/knn/similarity.pyx":113
- *     nom = 0
+    /* "cornac/models/knn/similarity.pyx":139
+ *     num = 0
  *     denom = 0
  *     for result in topk.results:             # <<<<<<<<<<<<<<
  *         w = result.first
@@ -4546,22 +4828,22 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
  */
   }
 
-  /* "cornac/models/knn/similarity.pyx":119
+  /* "cornac/models/knn/similarity.pyx":145
  *         denom = denom + fabs(w)
  * 
- *     output = nom / (denom + 1e-8)             # <<<<<<<<<<<<<<
+ *     output = num / (denom + 1e-8)             # <<<<<<<<<<<<<<
  * 
  *     del topk
  */
-  __pyx_t_14 = (__pyx_v_denom + 1e-8);
-  if (unlikely(__pyx_t_14 == 0)) {
+  __pyx_t_15 = (__pyx_v_denom + 1e-8);
+  if (unlikely(__pyx_t_15 == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 119, __pyx_L1_error)
+    __PYX_ERR(0, 145, __pyx_L1_error)
   }
-  __pyx_v_output = (__pyx_v_nom / __pyx_t_14);
+  __pyx_v_output = (__pyx_v_num / __pyx_t_15);
 
-  /* "cornac/models/knn/similarity.pyx":121
- *     output = nom / (denom + 1e-8)
+  /* "cornac/models/knn/similarity.pyx":147
+ *     output = num / (denom + 1e-8)
  * 
  *     del topk             # <<<<<<<<<<<<<<
  *     del neighbours
@@ -4569,7 +4851,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
  */
   delete __pyx_v_topk;
 
-  /* "cornac/models/knn/similarity.pyx":122
+  /* "cornac/models/knn/similarity.pyx":148
  * 
  *     del topk
  *     del neighbours             # <<<<<<<<<<<<<<
@@ -4578,7 +4860,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
  */
   delete __pyx_v_neighbours;
 
-  /* "cornac/models/knn/similarity.pyx":124
+  /* "cornac/models/knn/similarity.pyx":150
  *     del neighbours
  * 
  *     return output             # <<<<<<<<<<<<<<
@@ -4586,13 +4868,449 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_15 = PyFloat_FromDouble(__pyx_v_output); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_t_16 = PyFloat_FromDouble(__pyx_v_output); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __pyx_r = __pyx_t_16;
+  __pyx_t_16 = 0;
+  goto __pyx_L0;
+
+  /* "cornac/models/knn/similarity.pyx":109
+ * 
+ * @cython.boundscheck(False)
+ * def compute_score_single(             # <<<<<<<<<<<<<<
+ *     bool user_mode,
+ *     floating[:] sim_arr,
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_16);
+  __Pyx_AddTraceback("cornac.models.knn.similarity.compute_score_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __PYX_XDEC_MEMVIEW(&__pyx_v_sim_arr, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_indices, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_data, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_9compute_score_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_fuse_1__pyx_mdef_6cornac_6models_3knn_10similarity_9compute_score_single = {"__pyx_fuse_1compute_score_single", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_9compute_score_single, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_9compute_score_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  bool __pyx_v_user_mode;
+  __Pyx_memviewslice __pyx_v_sim_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_ptr1;
+  int __pyx_v_ptr2;
+  __Pyx_memviewslice __pyx_v_indices = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_data = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_k;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("compute_score_single (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_user_mode,&__pyx_n_s_sim_arr,&__pyx_n_s_ptr1,&__pyx_n_s_ptr2,&__pyx_n_s_indices,&__pyx_n_s_data,&__pyx_n_s_k,0};
+    PyObject* values[7] = {0,0,0,0,0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+        CYTHON_FALLTHROUGH;
+        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+        CYTHON_FALLTHROUGH;
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        CYTHON_FALLTHROUGH;
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_user_mode)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sim_arr)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 1); __PYX_ERR(0, 109, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ptr1)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 2); __PYX_ERR(0, 109, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ptr2)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 3); __PYX_ERR(0, 109, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  4:
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_indices)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 4); __PYX_ERR(0, 109, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  5:
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 5); __PYX_ERR(0, 109, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  6:
+        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_k)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 6); __PYX_ERR(0, 109, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score_single") < 0)) __PYX_ERR(0, 109, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 7) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
+      values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
+    }
+    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 110, __pyx_L3_error)
+    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 111, __pyx_L3_error)
+    __pyx_v_ptr1 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_ptr1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 112, __pyx_L3_error)
+    __pyx_v_ptr2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_ptr2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 113, __pyx_L3_error)
+    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 114, __pyx_L3_error)
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 115, __pyx_L3_error)
+    __pyx_v_k = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_k == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 116, __pyx_L3_error)
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 109, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("cornac.models.knn.similarity.compute_score_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_6cornac_6models_3knn_10similarity_8compute_score_single(__pyx_self, __pyx_v_user_mode, __pyx_v_sim_arr, __pyx_v_ptr1, __pyx_v_ptr2, __pyx_v_indices, __pyx_v_data, __pyx_v_k);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_8compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k) {
+  int __pyx_v_max_neighbors;
+  int __pyx_v_nn;
+  int __pyx_v_j;
+  double __pyx_v_w;
+  double __pyx_v_s;
+  double __pyx_v_num;
+  double __pyx_v_denom;
+  double __pyx_v_output;
+  cornac_knn::SparseNeighbors<int,double>  *__pyx_v_neighbours;
+  cornac_knn::TopK<double,double>  *__pyx_v_topk;
+  std::pair<double,double>  __pyx_v_result;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  int __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  double __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  int __pyx_t_9;
+  Py_ssize_t __pyx_t_10;
+  Py_ssize_t __pyx_t_11;
+  std::vector<std::pair<double,double> > ::iterator __pyx_t_12;
+  std::vector<std::pair<double,double> >  *__pyx_t_13;
+  std::pair<double,double>  __pyx_t_14;
+  PyObject *__pyx_t_15 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_fuse_1compute_score_single", 0);
+
+  /* "cornac/models/knn/similarity.pyx":118
+ *     int k
+ * ):
+ *     cdef int max_neighbors = sim_arr.shape[0]             # <<<<<<<<<<<<<<
+ *     cdef int nn, j
+ *     cdef double w, s, num, denom, output
+ */
+  __pyx_v_max_neighbors = (__pyx_v_sim_arr.shape[0]);
+
+  /* "cornac/models/knn/similarity.pyx":122
+ *     cdef double w, s, num, denom, output
+ * 
+ *     cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)             # <<<<<<<<<<<<<<
+ *     cdef TopK[double, double] * topk = new TopK[double, double](k)
+ *     cdef pair[double, double] result
+ */
+  __pyx_v_neighbours = new cornac_knn::SparseNeighbors<int,double> (__pyx_v_max_neighbors);
+
+  /* "cornac/models/knn/similarity.pyx":123
+ * 
+ *     cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)
+ *     cdef TopK[double, double] * topk = new TopK[double, double](k)             # <<<<<<<<<<<<<<
+ *     cdef pair[double, double] result
+ * 
+ */
+  __pyx_v_topk = new cornac_knn::TopK<double,double> (__pyx_v_k);
+
+  /* "cornac/models/knn/similarity.pyx":126
+ *     cdef pair[double, double] result
+ * 
+ *     for j in range(ptr1, ptr2):             # <<<<<<<<<<<<<<
+ *         nn, s = indices[j], data[j]
+ *         if sim_arr[nn] != 0:
+ */
+  __pyx_t_1 = __pyx_v_ptr2;
+  __pyx_t_2 = __pyx_t_1;
+  for (__pyx_t_3 = __pyx_v_ptr1; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
+    __pyx_v_j = __pyx_t_3;
+
+    /* "cornac/models/knn/similarity.pyx":127
+ * 
+ *     for j in range(ptr1, ptr2):
+ *         nn, s = indices[j], data[j]             # <<<<<<<<<<<<<<
+ *         if sim_arr[nn] != 0:
+ *             if user_mode:
+ */
+    __pyx_t_4 = __pyx_v_j;
+    if (__pyx_t_4 < 0) __pyx_t_4 += __pyx_v_indices.shape[0];
+    __pyx_t_5 = (*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_4 * __pyx_v_indices.strides[0]) )));
+    __pyx_t_6 = __pyx_v_j;
+    if (__pyx_t_6 < 0) __pyx_t_6 += __pyx_v_data.shape[0];
+    __pyx_t_7 = (*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )));
+    __pyx_v_nn = __pyx_t_5;
+    __pyx_v_s = __pyx_t_7;
+
+    /* "cornac/models/knn/similarity.pyx":128
+ *     for j in range(ptr1, ptr2):
+ *         nn, s = indices[j], data[j]
+ *         if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
+ *             if user_mode:
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ */
+    __pyx_t_8 = __pyx_v_nn;
+    if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_sim_arr.shape[0];
+    __pyx_t_9 = (((*((double *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_8 * __pyx_v_sim_arr.strides[0]) ))) != 0.0) != 0);
+    if (__pyx_t_9) {
+
+      /* "cornac/models/knn/similarity.pyx":129
+ *         nn, s = indices[j], data[j]
+ *         if sim_arr[nn] != 0:
+ *             if user_mode:             # <<<<<<<<<<<<<<
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ *             else:
+ */
+      __pyx_t_9 = (__pyx_v_user_mode != 0);
+      if (__pyx_t_9) {
+
+        /* "cornac/models/knn/similarity.pyx":130
+ *         if sim_arr[nn] != 0:
+ *             if user_mode:
+ *                 neighbours.set(nn, sim_arr[nn], s)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 neighbours.set(nn, s, sim_arr[nn])
+ */
+        __pyx_t_10 = __pyx_v_nn;
+        if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_sim_arr.shape[0];
+        __pyx_v_neighbours->set(__pyx_v_nn, (*((double *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_10 * __pyx_v_sim_arr.strides[0]) ))), __pyx_v_s);
+
+        /* "cornac/models/knn/similarity.pyx":129
+ *         nn, s = indices[j], data[j]
+ *         if sim_arr[nn] != 0:
+ *             if user_mode:             # <<<<<<<<<<<<<<
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ *             else:
+ */
+        goto __pyx_L6;
+      }
+
+      /* "cornac/models/knn/similarity.pyx":132
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ *             else:
+ *                 neighbours.set(nn, s, sim_arr[nn])             # <<<<<<<<<<<<<<
+ * 
+ *     topk.results.clear()
+ */
+      /*else*/ {
+        __pyx_t_11 = __pyx_v_nn;
+        if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_sim_arr.shape[0];
+        __pyx_v_neighbours->set(__pyx_v_nn, __pyx_v_s, (*((double *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_11 * __pyx_v_sim_arr.strides[0]) ))));
+      }
+      __pyx_L6:;
+
+      /* "cornac/models/knn/similarity.pyx":128
+ *     for j in range(ptr1, ptr2):
+ *         nn, s = indices[j], data[j]
+ *         if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
+ *             if user_mode:
+ *                 neighbours.set(nn, sim_arr[nn], s)
+ */
+    }
+  }
+
+  /* "cornac/models/knn/similarity.pyx":134
+ *                 neighbours.set(nn, s, sim_arr[nn])
+ * 
+ *     topk.results.clear()             # <<<<<<<<<<<<<<
+ *     neighbours.foreach(dereference(topk))
+ * 
+ */
+  __pyx_v_topk->results.clear();
+
+  /* "cornac/models/knn/similarity.pyx":135
+ * 
+ *     topk.results.clear()
+ *     neighbours.foreach(dereference(topk))             # <<<<<<<<<<<<<<
+ * 
+ *     num = 0
+ */
+  __pyx_v_neighbours->foreach((*__pyx_v_topk));
+
+  /* "cornac/models/knn/similarity.pyx":137
+ *     neighbours.foreach(dereference(topk))
+ * 
+ *     num = 0             # <<<<<<<<<<<<<<
+ *     denom = 0
+ *     for result in topk.results:
+ */
+  __pyx_v_num = 0.0;
+
+  /* "cornac/models/knn/similarity.pyx":138
+ * 
+ *     num = 0
+ *     denom = 0             # <<<<<<<<<<<<<<
+ *     for result in topk.results:
+ *         w = result.first
+ */
+  __pyx_v_denom = 0.0;
+
+  /* "cornac/models/knn/similarity.pyx":139
+ *     num = 0
+ *     denom = 0
+ *     for result in topk.results:             # <<<<<<<<<<<<<<
+ *         w = result.first
+ *         s = result.second
+ */
+  __pyx_t_13 = &__pyx_v_topk->results;
+  __pyx_t_12 = __pyx_t_13->begin();
+  for (;;) {
+    if (!(__pyx_t_12 != __pyx_t_13->end())) break;
+    __pyx_t_14 = *__pyx_t_12;
+    ++__pyx_t_12;
+    __pyx_v_result = __pyx_t_14;
+
+    /* "cornac/models/knn/similarity.pyx":140
+ *     denom = 0
+ *     for result in topk.results:
+ *         w = result.first             # <<<<<<<<<<<<<<
+ *         s = result.second
+ *         num = num + w * s
+ */
+    __pyx_t_7 = __pyx_v_result.first;
+    __pyx_v_w = __pyx_t_7;
+
+    /* "cornac/models/knn/similarity.pyx":141
+ *     for result in topk.results:
+ *         w = result.first
+ *         s = result.second             # <<<<<<<<<<<<<<
+ *         num = num + w * s
+ *         denom = denom + fabs(w)
+ */
+    __pyx_t_7 = __pyx_v_result.second;
+    __pyx_v_s = __pyx_t_7;
+
+    /* "cornac/models/knn/similarity.pyx":142
+ *         w = result.first
+ *         s = result.second
+ *         num = num + w * s             # <<<<<<<<<<<<<<
+ *         denom = denom + fabs(w)
+ * 
+ */
+    __pyx_v_num = (__pyx_v_num + (__pyx_v_w * __pyx_v_s));
+
+    /* "cornac/models/knn/similarity.pyx":143
+ *         s = result.second
+ *         num = num + w * s
+ *         denom = denom + fabs(w)             # <<<<<<<<<<<<<<
+ * 
+ *     output = num / (denom + 1e-8)
+ */
+    __pyx_v_denom = (__pyx_v_denom + fabs(__pyx_v_w));
+
+    /* "cornac/models/knn/similarity.pyx":139
+ *     num = 0
+ *     denom = 0
+ *     for result in topk.results:             # <<<<<<<<<<<<<<
+ *         w = result.first
+ *         s = result.second
+ */
+  }
+
+  /* "cornac/models/knn/similarity.pyx":145
+ *         denom = denom + fabs(w)
+ * 
+ *     output = num / (denom + 1e-8)             # <<<<<<<<<<<<<<
+ * 
+ *     del topk
+ */
+  __pyx_t_7 = (__pyx_v_denom + 1e-8);
+  if (unlikely(__pyx_t_7 == 0)) {
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    __PYX_ERR(0, 145, __pyx_L1_error)
+  }
+  __pyx_v_output = (__pyx_v_num / __pyx_t_7);
+
+  /* "cornac/models/knn/similarity.pyx":147
+ *     output = num / (denom + 1e-8)
+ * 
+ *     del topk             # <<<<<<<<<<<<<<
+ *     del neighbours
+ * 
+ */
+  delete __pyx_v_topk;
+
+  /* "cornac/models/knn/similarity.pyx":148
+ * 
+ *     del topk
+ *     del neighbours             # <<<<<<<<<<<<<<
+ * 
+ *     return output
+ */
+  delete __pyx_v_neighbours;
+
+  /* "cornac/models/knn/similarity.pyx":150
+ *     del neighbours
+ * 
+ *     return output             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_15 = PyFloat_FromDouble(__pyx_v_output); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_15);
   __pyx_r = __pyx_t_15;
   __pyx_t_15 = 0;
   goto __pyx_L0;
 
-  /* "cornac/models/knn/similarity.pyx":86
+  /* "cornac/models/knn/similarity.pyx":109
  * 
  * @cython.boundscheck(False)
  * def compute_score_single(             # <<<<<<<<<<<<<<
@@ -4614,408 +5332,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_6compute_score_singl
   return __pyx_r;
 }
 
-/* Python wrapper */
-static PyObject *__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_9compute_score_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_fuse_1__pyx_mdef_6cornac_6models_3knn_10similarity_9compute_score_single = {"__pyx_fuse_1compute_score_single", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_9compute_score_single, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_9compute_score_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  CYTHON_UNUSED bool __pyx_v_user_mode;
-  __Pyx_memviewslice __pyx_v_sim_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_ptr1;
-  int __pyx_v_ptr2;
-  __Pyx_memviewslice __pyx_v_indices = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_data = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_k;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("compute_score_single (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_user_mode,&__pyx_n_s_sim_arr,&__pyx_n_s_ptr1,&__pyx_n_s_ptr2,&__pyx_n_s_indices,&__pyx_n_s_data,&__pyx_n_s_k,0};
-    PyObject* values[7] = {0,0,0,0,0,0,0};
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
-        CYTHON_FALLTHROUGH;
-        case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
-        CYTHON_FALLTHROUGH;
-        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-        CYTHON_FALLTHROUGH;
-        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-        CYTHON_FALLTHROUGH;
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        CYTHON_FALLTHROUGH;
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        CYTHON_FALLTHROUGH;
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        CYTHON_FALLTHROUGH;
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_user_mode)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        CYTHON_FALLTHROUGH;
-        case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sim_arr)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 1); __PYX_ERR(0, 86, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  2:
-        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ptr1)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 2); __PYX_ERR(0, 86, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  3:
-        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ptr2)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 3); __PYX_ERR(0, 86, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  4:
-        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_indices)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 4); __PYX_ERR(0, 86, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  5:
-        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 5); __PYX_ERR(0, 86, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  6:
-        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_k)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, 6); __PYX_ERR(0, 86, __pyx_L3_error)
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score_single") < 0)) __PYX_ERR(0, 86, __pyx_L3_error)
-      }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 7) {
-      goto __pyx_L5_argtuple_error;
-    } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
-      values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
-      values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
-    }
-    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 87, __pyx_L3_error)
-    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 88, __pyx_L3_error)
-    __pyx_v_ptr1 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_ptr1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 89, __pyx_L3_error)
-    __pyx_v_ptr2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_ptr2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 90, __pyx_L3_error)
-    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 91, __pyx_L3_error)
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 92, __pyx_L3_error)
-    __pyx_v_k = __Pyx_PyInt_As_int(values[6]); if (unlikely((__pyx_v_k == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("compute_score_single", 1, 7, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 86, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("cornac.models.knn.similarity.compute_score_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cornac_6models_3knn_10similarity_8compute_score_single(__pyx_self, __pyx_v_user_mode, __pyx_v_sim_arr, __pyx_v_ptr1, __pyx_v_ptr2, __pyx_v_indices, __pyx_v_data, __pyx_v_k);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_8compute_score_single(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED bool __pyx_v_user_mode, __Pyx_memviewslice __pyx_v_sim_arr, int __pyx_v_ptr1, int __pyx_v_ptr2, __Pyx_memviewslice __pyx_v_indices, __Pyx_memviewslice __pyx_v_data, int __pyx_v_k) {
-  int __pyx_v_max_neighbors;
-  int __pyx_v_nn;
-  int __pyx_v_j;
-  double __pyx_v_w;
-  double __pyx_v_s;
-  double __pyx_v_nom;
-  double __pyx_v_denom;
-  double __pyx_v_output;
-  cornac_knn::SparseNeighbors<int,double>  *__pyx_v_neighbours;
-  cornac_knn::TopK<double,double>  *__pyx_v_topk;
-  std::pair<double,double>  __pyx_v_result;
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  int __pyx_t_2;
-  int __pyx_t_3;
-  Py_ssize_t __pyx_t_4;
-  int __pyx_t_5;
-  Py_ssize_t __pyx_t_6;
-  double __pyx_t_7;
-  Py_ssize_t __pyx_t_8;
-  int __pyx_t_9;
-  Py_ssize_t __pyx_t_10;
-  std::vector<std::pair<double,double> > ::iterator __pyx_t_11;
-  std::vector<std::pair<double,double> >  *__pyx_t_12;
-  std::pair<double,double>  __pyx_t_13;
-  PyObject *__pyx_t_14 = NULL;
-  __Pyx_RefNannySetupContext("__pyx_fuse_1compute_score_single", 0);
-
-  /* "cornac/models/knn/similarity.pyx":95
- *     int k
- * ):
- *     cdef int max_neighbors = sim_arr.shape[0]             # <<<<<<<<<<<<<<
- *     cdef int nn, j
- *     cdef double w, s, nom, denom, output
- */
-  __pyx_v_max_neighbors = (__pyx_v_sim_arr.shape[0]);
-
-  /* "cornac/models/knn/similarity.pyx":99
- *     cdef double w, s, nom, denom, output
- * 
- *     cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)             # <<<<<<<<<<<<<<
- *     cdef TopK[double, double] * topk = new TopK[double, double](k)
- *     cdef pair[double, double] result
- */
-  __pyx_v_neighbours = new cornac_knn::SparseNeighbors<int,double> (__pyx_v_max_neighbors);
-
-  /* "cornac/models/knn/similarity.pyx":100
- * 
- *     cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)
- *     cdef TopK[double, double] * topk = new TopK[double, double](k)             # <<<<<<<<<<<<<<
- *     cdef pair[double, double] result
- * 
- */
-  __pyx_v_topk = new cornac_knn::TopK<double,double> (__pyx_v_k);
-
-  /* "cornac/models/knn/similarity.pyx":103
- *     cdef pair[double, double] result
- * 
- *     for j in range(ptr1, ptr2):             # <<<<<<<<<<<<<<
- *         nn, s = indices[j], data[j]
- *         if sim_arr[nn] != 0:
- */
-  __pyx_t_1 = __pyx_v_ptr2;
-  __pyx_t_2 = __pyx_t_1;
-  for (__pyx_t_3 = __pyx_v_ptr1; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
-    __pyx_v_j = __pyx_t_3;
-
-    /* "cornac/models/knn/similarity.pyx":104
- * 
- *     for j in range(ptr1, ptr2):
- *         nn, s = indices[j], data[j]             # <<<<<<<<<<<<<<
- *         if sim_arr[nn] != 0:
- *             neighbours.set(nn, sim_arr[nn], s)
- */
-    __pyx_t_4 = __pyx_v_j;
-    if (__pyx_t_4 < 0) __pyx_t_4 += __pyx_v_indices.shape[0];
-    __pyx_t_5 = (*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_4 * __pyx_v_indices.strides[0]) )));
-    __pyx_t_6 = __pyx_v_j;
-    if (__pyx_t_6 < 0) __pyx_t_6 += __pyx_v_data.shape[0];
-    __pyx_t_7 = (*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )));
-    __pyx_v_nn = __pyx_t_5;
-    __pyx_v_s = __pyx_t_7;
-
-    /* "cornac/models/knn/similarity.pyx":105
- *     for j in range(ptr1, ptr2):
- *         nn, s = indices[j], data[j]
- *         if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
- *             neighbours.set(nn, sim_arr[nn], s)
- * 
- */
-    __pyx_t_8 = __pyx_v_nn;
-    if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_sim_arr.shape[0];
-    __pyx_t_9 = (((*((double *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_8 * __pyx_v_sim_arr.strides[0]) ))) != 0.0) != 0);
-    if (__pyx_t_9) {
-
-      /* "cornac/models/knn/similarity.pyx":106
- *         nn, s = indices[j], data[j]
- *         if sim_arr[nn] != 0:
- *             neighbours.set(nn, sim_arr[nn], s)             # <<<<<<<<<<<<<<
- * 
- *     topk.results.clear()
- */
-      __pyx_t_10 = __pyx_v_nn;
-      if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_sim_arr.shape[0];
-      __pyx_v_neighbours->set(__pyx_v_nn, (*((double *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_10 * __pyx_v_sim_arr.strides[0]) ))), __pyx_v_s);
-
-      /* "cornac/models/knn/similarity.pyx":105
- *     for j in range(ptr1, ptr2):
- *         nn, s = indices[j], data[j]
- *         if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
- *             neighbours.set(nn, sim_arr[nn], s)
- * 
- */
-    }
-  }
-
-  /* "cornac/models/knn/similarity.pyx":108
- *             neighbours.set(nn, sim_arr[nn], s)
- * 
- *     topk.results.clear()             # <<<<<<<<<<<<<<
- *     neighbours.foreach(dereference(topk))
- * 
- */
-  __pyx_v_topk->results.clear();
-
-  /* "cornac/models/knn/similarity.pyx":109
- * 
- *     topk.results.clear()
- *     neighbours.foreach(dereference(topk))             # <<<<<<<<<<<<<<
- * 
- *     nom = 0
- */
-  __pyx_v_neighbours->foreach((*__pyx_v_topk));
-
-  /* "cornac/models/knn/similarity.pyx":111
- *     neighbours.foreach(dereference(topk))
- * 
- *     nom = 0             # <<<<<<<<<<<<<<
- *     denom = 0
- *     for result in topk.results:
- */
-  __pyx_v_nom = 0.0;
-
-  /* "cornac/models/knn/similarity.pyx":112
- * 
- *     nom = 0
- *     denom = 0             # <<<<<<<<<<<<<<
- *     for result in topk.results:
- *         w = result.first
- */
-  __pyx_v_denom = 0.0;
-
-  /* "cornac/models/knn/similarity.pyx":113
- *     nom = 0
- *     denom = 0
- *     for result in topk.results:             # <<<<<<<<<<<<<<
- *         w = result.first
- *         s = result.second
- */
-  __pyx_t_12 = &__pyx_v_topk->results;
-  __pyx_t_11 = __pyx_t_12->begin();
-  for (;;) {
-    if (!(__pyx_t_11 != __pyx_t_12->end())) break;
-    __pyx_t_13 = *__pyx_t_11;
-    ++__pyx_t_11;
-    __pyx_v_result = __pyx_t_13;
-
-    /* "cornac/models/knn/similarity.pyx":114
- *     denom = 0
- *     for result in topk.results:
- *         w = result.first             # <<<<<<<<<<<<<<
- *         s = result.second
- *         nom = nom + w * s
- */
-    __pyx_t_7 = __pyx_v_result.first;
-    __pyx_v_w = __pyx_t_7;
-
-    /* "cornac/models/knn/similarity.pyx":115
- *     for result in topk.results:
- *         w = result.first
- *         s = result.second             # <<<<<<<<<<<<<<
- *         nom = nom + w * s
- *         denom = denom + fabs(w)
- */
-    __pyx_t_7 = __pyx_v_result.second;
-    __pyx_v_s = __pyx_t_7;
-
-    /* "cornac/models/knn/similarity.pyx":116
- *         w = result.first
- *         s = result.second
- *         nom = nom + w * s             # <<<<<<<<<<<<<<
- *         denom = denom + fabs(w)
- * 
- */
-    __pyx_v_nom = (__pyx_v_nom + (__pyx_v_w * __pyx_v_s));
-
-    /* "cornac/models/knn/similarity.pyx":117
- *         s = result.second
- *         nom = nom + w * s
- *         denom = denom + fabs(w)             # <<<<<<<<<<<<<<
- * 
- *     output = nom / (denom + 1e-8)
- */
-    __pyx_v_denom = (__pyx_v_denom + fabs(__pyx_v_w));
-
-    /* "cornac/models/knn/similarity.pyx":113
- *     nom = 0
- *     denom = 0
- *     for result in topk.results:             # <<<<<<<<<<<<<<
- *         w = result.first
- *         s = result.second
- */
-  }
-
-  /* "cornac/models/knn/similarity.pyx":119
- *         denom = denom + fabs(w)
- * 
- *     output = nom / (denom + 1e-8)             # <<<<<<<<<<<<<<
- * 
- *     del topk
- */
-  __pyx_t_7 = (__pyx_v_denom + 1e-8);
-  if (unlikely(__pyx_t_7 == 0)) {
-    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 119, __pyx_L1_error)
-  }
-  __pyx_v_output = (__pyx_v_nom / __pyx_t_7);
-
-  /* "cornac/models/knn/similarity.pyx":121
- *     output = nom / (denom + 1e-8)
- * 
- *     del topk             # <<<<<<<<<<<<<<
- *     del neighbours
- * 
- */
-  delete __pyx_v_topk;
-
-  /* "cornac/models/knn/similarity.pyx":122
- * 
- *     del topk
- *     del neighbours             # <<<<<<<<<<<<<<
- * 
- *     return output
- */
-  delete __pyx_v_neighbours;
-
-  /* "cornac/models/knn/similarity.pyx":124
- *     del neighbours
- * 
- *     return output             # <<<<<<<<<<<<<<
- * 
- * 
- */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_14 = PyFloat_FromDouble(__pyx_v_output); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 124, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_14);
-  __pyx_r = __pyx_t_14;
-  __pyx_t_14 = 0;
-  goto __pyx_L0;
-
-  /* "cornac/models/knn/similarity.pyx":86
- * 
- * @cython.boundscheck(False)
- * def compute_score_single(             # <<<<<<<<<<<<<<
- *     bool user_mode,
- *     floating[:] sim_arr,
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_14);
-  __Pyx_AddTraceback("cornac.models.knn.similarity.compute_score_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_sim_arr, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_indices, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_data, 1);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "cornac/models/knn/similarity.pyx":128
+/* "cornac/models/knn/similarity.pyx":154
  * 
  * @cython.boundscheck(False)
  * def compute_score(             # <<<<<<<<<<<<<<
@@ -5061,23 +5378,23 @@ static PyObject *__pyx_pw_6cornac_6models_3knn_10similarity_5compute_score(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_args)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 1); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 1); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_kwargs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 2); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 2); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_defaults)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 3); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, 3); __PYX_ERR(0, 154, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_fused_cpdef") < 0)) __PYX_ERR(0, 128, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_fused_cpdef") < 0)) __PYX_ERR(0, 154, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -5094,7 +5411,7 @@ static PyObject *__pyx_pw_6cornac_6models_3knn_10similarity_5compute_score(PyObj
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 128, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__pyx_fused_cpdef", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 154, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cornac.models.knn.similarity.__pyx_fused_cpdef", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5145,7 +5462,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
   int __pyx_t_18;
   __Pyx_RefNannySetupContext("compute_score", 0);
   __Pyx_INCREF(__pyx_v_kwargs);
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
@@ -5159,7 +5476,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
     __pyx_t_2 = __pyx_t_4;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_kwargs); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_kwargs); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
   __pyx_t_3 = ((!__pyx_t_4) != 0);
   __pyx_t_2 = __pyx_t_3;
   __pyx_L4_bool_binop_done:;
@@ -5167,21 +5484,21 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
     __Pyx_INCREF(Py_None);
     __Pyx_DECREF_SET(__pyx_v_kwargs, Py_None);
   }
-  __pyx_t_1 = ((PyObject *)__Pyx_ImportNumPyArrayTypeIfAvailable()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__Pyx_ImportNumPyArrayTypeIfAvailable()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_ndarray = ((PyTypeObject*)__pyx_t_1);
   __pyx_t_1 = 0;
   __pyx_v_itemsize = -1L;
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 128, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
   }
-  __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 154, __pyx_L1_error)
   __pyx_t_2 = ((1 < __pyx_t_5) != 0);
   if (__pyx_t_2) {
     if (unlikely(__pyx_v_args == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 128, __pyx_L1_error)
+      __PYX_ERR(0, 154, __pyx_L1_error)
     }
     __pyx_t_1 = PyTuple_GET_ITEM(((PyObject*)__pyx_v_args), 1);
     __Pyx_INCREF(__pyx_t_1);
@@ -5198,18 +5515,18 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
   }
   if (unlikely(__pyx_v_kwargs == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 128, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
   }
-  __pyx_t_4 = (__Pyx_PyDict_ContainsTF(__pyx_n_s_sim_arr, ((PyObject*)__pyx_v_kwargs), Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_4 = (__Pyx_PyDict_ContainsTF(__pyx_n_s_sim_arr, ((PyObject*)__pyx_v_kwargs), Py_EQ)); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
   __pyx_t_3 = (__pyx_t_4 != 0);
   __pyx_t_2 = __pyx_t_3;
   __pyx_L7_bool_binop_done:;
   if (__pyx_t_2) {
     if (unlikely(__pyx_v_kwargs == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 128, __pyx_L1_error)
+      __PYX_ERR(0, 154, __pyx_L1_error)
     }
-    __pyx_t_1 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_kwargs), __pyx_n_s_sim_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_kwargs), __pyx_n_s_sim_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_v_arg = __pyx_t_1;
     __pyx_t_1 = 0;
@@ -5218,12 +5535,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
   /*else*/ {
     if (unlikely(__pyx_v_args == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-      __PYX_ERR(0, 128, __pyx_L1_error)
+      __PYX_ERR(0, 154, __pyx_L1_error)
     }
-    __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 128, __pyx_L1_error)
-    __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_GET_SIZE(((PyObject*)__pyx_v_args)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_INCREF(__pyx_int_8);
     __Pyx_GIVEREF(__pyx_int_8);
@@ -5234,15 +5551,15 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_Expected_at_least_d_argument_s_g, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_Expected_at_least_d_argument_s_g, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_TypeError, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_builtin_TypeError, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 128, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
   }
   __pyx_L6:;
   while (1) {
@@ -5252,7 +5569,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
       __pyx_t_3 = __Pyx_TypeCheck(__pyx_v_arg, __pyx_v_ndarray); 
       __pyx_t_2 = (__pyx_t_3 != 0);
       if (__pyx_t_2) {
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __pyx_v_dtype = __pyx_t_6;
         __pyx_t_6 = 0;
@@ -5261,14 +5578,14 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
       __pyx_t_2 = __pyx_memoryview_check(__pyx_v_arg); 
       __pyx_t_3 = (__pyx_t_2 != 0);
       if (__pyx_t_3) {
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_base); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_base); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __pyx_v_arg_base = __pyx_t_6;
         __pyx_t_6 = 0;
         __pyx_t_3 = __Pyx_TypeCheck(__pyx_v_arg_base, __pyx_v_ndarray); 
         __pyx_t_2 = (__pyx_t_3 != 0);
         if (__pyx_t_2) {
-          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg_base, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg_base, __pyx_n_s_dtype); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
           __pyx_v_dtype = __pyx_t_6;
           __pyx_t_6 = 0;
@@ -5290,14 +5607,14 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
       __pyx_t_2 = (__pyx_v_dtype != Py_None);
       __pyx_t_3 = (__pyx_t_2 != 0);
       if (__pyx_t_3) {
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_itemsize); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_itemsize); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_v_itemsize = __pyx_t_5;
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_7 = __Pyx_PyObject_Ord(__pyx_t_6); if (unlikely(__pyx_t_7 == ((long)(long)(Py_UCS4)-1))) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyObject_Ord(__pyx_t_6); if (unlikely(__pyx_t_7 == ((long)(long)(Py_UCS4)-1))) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_v_kind = __pyx_t_7;
         __pyx_v_dtype_signed = (__pyx_v_kind == 'i');
@@ -5312,15 +5629,15 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
             __pyx_t_3 = __pyx_t_2;
             goto __pyx_L16_bool_binop_done;
           }
-          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
-          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 128, __pyx_L1_error)
+          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 154, __pyx_L1_error)
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           __pyx_t_2 = ((((Py_ssize_t)__pyx_t_5) == 1) != 0);
           __pyx_t_3 = __pyx_t_2;
           __pyx_L16_bool_binop_done:;
           if (__pyx_t_3) {
-            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
             goto __pyx_L10_break;
           }
           __pyx_t_2 = (((sizeof(double)) == __pyx_v_itemsize) != 0);
@@ -5329,15 +5646,15 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
             __pyx_t_3 = __pyx_t_2;
             goto __pyx_L19_bool_binop_done;
           }
-          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+          __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_arg, __pyx_n_s_ndim); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_6);
-          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 128, __pyx_L1_error)
+          __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_6); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 154, __pyx_L1_error)
           __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
           __pyx_t_2 = ((((Py_ssize_t)__pyx_t_5) == 1) != 0);
           __pyx_t_3 = __pyx_t_2;
           __pyx_L19_bool_binop_done:;
           if (__pyx_t_3) {
-            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+            if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
             goto __pyx_L10_break;
           }
           break;
@@ -5364,7 +5681,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
       __pyx_t_3 = (__pyx_v_memslice.memview != 0);
       if (__pyx_t_3) {
         __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1); 
-        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_float, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
         goto __pyx_L10_break;
       }
       /*else*/ {
@@ -5386,27 +5703,27 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
       __pyx_t_3 = (__pyx_v_memslice.memview != 0);
       if (__pyx_t_3) {
         __PYX_XDEC_MEMVIEW((&__pyx_v_memslice), 1); 
-        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+        if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, __pyx_n_s_double, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
         goto __pyx_L10_break;
       }
       /*else*/ {
         PyErr_Clear(); 
       }
     }
-    if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, Py_None, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+    if (unlikely(__Pyx_SetItemInt(__pyx_v_dest_sig, 0, Py_None, long, 1, __Pyx_PyInt_From_long, 1, 0, 0) < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
     goto __pyx_L10_break;
   }
   __pyx_L10_break:;
-  __pyx_t_6 = PyList_New(0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_v_candidates = ((PyObject*)__pyx_t_6);
   __pyx_t_6 = 0;
   __pyx_t_5 = 0;
   if (unlikely(__pyx_v_signatures == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 128, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
   }
-  __pyx_t_1 = __Pyx_dict_iterator(((PyObject*)__pyx_v_signatures), 1, ((PyObject *)NULL), (&__pyx_t_9), (&__pyx_t_10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_dict_iterator(((PyObject*)__pyx_v_signatures), 1, ((PyObject *)NULL), (&__pyx_t_9), (&__pyx_t_10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_6);
   __pyx_t_6 = __pyx_t_1;
@@ -5414,12 +5731,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
   while (1) {
     __pyx_t_11 = __Pyx_dict_iter_next(__pyx_t_6, __pyx_t_9, &__pyx_t_5, &__pyx_t_1, NULL, NULL, __pyx_t_10);
     if (unlikely(__pyx_t_11 == 0)) break;
-    if (unlikely(__pyx_t_11 == -1)) __PYX_ERR(0, 128, __pyx_L1_error)
+    if (unlikely(__pyx_t_11 == -1)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_XDECREF_SET(__pyx_v_sig, __pyx_t_1);
     __pyx_t_1 = 0;
     __pyx_v_match_found = 0;
-    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_sig, __pyx_n_s_strip); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_sig, __pyx_n_s_strip); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
     __pyx_t_14 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_13))) {
@@ -5433,10 +5750,10 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
     }
     __pyx_t_12 = (__pyx_t_14) ? __Pyx_PyObject_Call2Args(__pyx_t_13, __pyx_t_14, __pyx_kp_s_) : __Pyx_PyObject_CallOneArg(__pyx_t_13, __pyx_kp_s_);
     __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
-    if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 128, __pyx_L1_error)
+    if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_12);
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_split); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_split); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
     __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
     __pyx_t_12 = NULL;
@@ -5451,27 +5768,27 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
     }
     __pyx_t_1 = (__pyx_t_12) ? __Pyx_PyObject_Call2Args(__pyx_t_13, __pyx_t_12, __pyx_kp_s__2) : __Pyx_PyObject_CallOneArg(__pyx_t_13, __pyx_kp_s__2);
     __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
     __Pyx_XDECREF_SET(__pyx_v_src_sig, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_15 = PyList_GET_SIZE(__pyx_v_dest_sig); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_15 = PyList_GET_SIZE(__pyx_v_dest_sig); if (unlikely(__pyx_t_15 == ((Py_ssize_t)-1))) __PYX_ERR(0, 154, __pyx_L1_error)
     __pyx_t_16 = __pyx_t_15;
     for (__pyx_t_17 = 0; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
       __pyx_v_i = __pyx_t_17;
-      __pyx_t_1 = __Pyx_GetItemInt_List(__pyx_v_dest_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetItemInt_List(__pyx_v_dest_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_XDECREF_SET(__pyx_v_dst_type, __pyx_t_1);
       __pyx_t_1 = 0;
       __pyx_t_3 = (__pyx_v_dst_type != Py_None);
       __pyx_t_2 = (__pyx_t_3 != 0);
       if (__pyx_t_2) {
-        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_src_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_src_sig, __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_13 = PyObject_RichCompare(__pyx_t_1, __pyx_v_dst_type, Py_EQ); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_13 = PyObject_RichCompare(__pyx_t_1, __pyx_v_dst_type, Py_EQ); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_13); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 128, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_13); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
         if (__pyx_t_2) {
           __pyx_v_match_found = 1;
@@ -5487,35 +5804,35 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_4compute_score(CYTHO
     __pyx_L32_break:;
     __pyx_t_2 = (__pyx_v_match_found != 0);
     if (__pyx_t_2) {
-      __pyx_t_18 = __Pyx_PyList_Append(__pyx_v_candidates, __pyx_v_sig); if (unlikely(__pyx_t_18 == ((int)-1))) __PYX_ERR(0, 128, __pyx_L1_error)
+      __pyx_t_18 = __Pyx_PyList_Append(__pyx_v_candidates, __pyx_v_sig); if (unlikely(__pyx_t_18 == ((int)-1))) __PYX_ERR(0, 154, __pyx_L1_error)
     }
   }
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_t_2 = (PyList_GET_SIZE(__pyx_v_candidates) != 0);
   __pyx_t_3 = ((!__pyx_t_2) != 0);
   if (__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 128, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
   }
-  __pyx_t_9 = PyList_GET_SIZE(__pyx_v_candidates); if (unlikely(__pyx_t_9 == ((Py_ssize_t)-1))) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_9 = PyList_GET_SIZE(__pyx_v_candidates); if (unlikely(__pyx_t_9 == ((Py_ssize_t)-1))) __PYX_ERR(0, 154, __pyx_L1_error)
   __pyx_t_3 = ((__pyx_t_9 > 1) != 0);
   if (__pyx_t_3) {
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_Raise(__pyx_t_6, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __PYX_ERR(0, 128, __pyx_L1_error)
+    __PYX_ERR(0, 154, __pyx_L1_error)
   }
   /*else*/ {
     __Pyx_XDECREF(__pyx_r);
     if (unlikely(__pyx_v_signatures == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 128, __pyx_L1_error)
+      __PYX_ERR(0, 154, __pyx_L1_error)
     }
-    __pyx_t_6 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_signatures), PyList_GET_ITEM(__pyx_v_candidates, 0)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 128, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyDict_GetItem(((PyObject*)__pyx_v_signatures), PyList_GET_ITEM(__pyx_v_candidates, 0)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_r = __pyx_t_6;
     __pyx_t_6 = 0;
@@ -5597,47 +5914,47 @@ static PyObject *__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_13comput
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sim_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 1); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 1); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_indptr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 2); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 2); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_indices)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 3); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 3); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 4); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 4); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_k)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 5); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 5); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 6); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 6); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
         if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_output)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 7); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 7); __PYX_ERR(0, 154, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score") < 0)) __PYX_ERR(0, 128, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score") < 0)) __PYX_ERR(0, 154, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 8) {
       goto __pyx_L5_argtuple_error;
@@ -5651,18 +5968,18 @@ static PyObject *__pyx_fuse_0__pyx_pw_6cornac_6models_3knn_10similarity_13comput
       values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
       values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
     }
-    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
-    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 130, __pyx_L3_error)
-    __pyx_v_indptr = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indptr.memview)) __PYX_ERR(0, 131, __pyx_L3_error)
-    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 132, __pyx_L3_error)
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 133, __pyx_L3_error)
-    __pyx_v_k = __Pyx_PyInt_As_unsigned_int(values[5]); if (unlikely((__pyx_v_k == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 134, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_unsigned_int(values[6]); if (unlikely((__pyx_v_num_threads == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 135, __pyx_L3_error)
-    __pyx_v_output = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_output.memview)) __PYX_ERR(0, 136, __pyx_L3_error)
+    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 155, __pyx_L3_error)
+    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 156, __pyx_L3_error)
+    __pyx_v_indptr = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indptr.memview)) __PYX_ERR(0, 157, __pyx_L3_error)
+    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 158, __pyx_L3_error)
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 159, __pyx_L3_error)
+    __pyx_v_k = __Pyx_PyInt_As_unsigned_int(values[5]); if (unlikely((__pyx_v_k == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 160, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_unsigned_int(values[6]); if (unlikely((__pyx_v_num_threads == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 161, __pyx_L3_error)
+    __pyx_v_output = __Pyx_PyObject_to_MemoryviewSlice_ds_float(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_output.memview)) __PYX_ERR(0, 162, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 128, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 154, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cornac.models.knn.similarity.compute_score", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5683,7 +6000,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
   int __pyx_v_j;
   double __pyx_v_w;
   double __pyx_v_s;
-  double __pyx_v_nom;
+  double __pyx_v_num;
   double __pyx_v_denom;
   cornac_knn::SparseNeighbors<int,double>  *__pyx_v_neighbours;
   cornac_knn::TopK<double,double>  *__pyx_v_topk;
@@ -5713,7 +6030,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
   Py_ssize_t __pyx_t_21;
   __Pyx_RefNannySetupContext("__pyx_fuse_0compute_score", 0);
 
-  /* "cornac/models/knn/similarity.pyx":138
+  /* "cornac/models/knn/similarity.pyx":164
  *     floating[:] output
  * ):
  *     cdef int max_neighbors = sim_arr.shape[0]             # <<<<<<<<<<<<<<
@@ -5722,16 +6039,16 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
  */
   __pyx_v_max_neighbors = (__pyx_v_sim_arr.shape[0]);
 
-  /* "cornac/models/knn/similarity.pyx":139
+  /* "cornac/models/knn/similarity.pyx":165
  * ):
  *     cdef int max_neighbors = sim_arr.shape[0]
  *     cdef int n_items = output.shape[0]             # <<<<<<<<<<<<<<
  *     cdef int nn, i, j
- *     cdef double w, s, nom, denom
+ *     cdef double w, s, num, denom
  */
   __pyx_v_n_items = (__pyx_v_output.shape[0]);
 
-  /* "cornac/models/knn/similarity.pyx":147
+  /* "cornac/models/knn/similarity.pyx":173
  *     cdef pair[double, double] result
  * 
  *     with nogil, parallel(num_threads=num_threads):             # <<<<<<<<<<<<<<
@@ -5767,7 +6084,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                 Py_BEGIN_ALLOW_THREADS
                 #endif /* _OPENMP */
 
-                /* "cornac/models/knn/similarity.pyx":148
+                /* "cornac/models/knn/similarity.pyx":174
  * 
  *     with nogil, parallel(num_threads=num_threads):
  *         for i in prange(n_items, schedule='guided'):             # <<<<<<<<<<<<<<
@@ -5795,7 +6112,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                     if (__pyx_t_3 > 0)
                     {
                         #ifdef _OPENMP
-                        #pragma omp for lastprivate(__pyx_v_denom) firstprivate(__pyx_v_i) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_neighbours) lastprivate(__pyx_v_nn) lastprivate(__pyx_v_nom) lastprivate(__pyx_v_result) lastprivate(__pyx_v_s) lastprivate(__pyx_v_topk) lastprivate(__pyx_v_w) schedule(guided)
+                        #pragma omp for lastprivate(__pyx_v_denom) firstprivate(__pyx_v_i) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_neighbours) lastprivate(__pyx_v_nn) lastprivate(__pyx_v_num) lastprivate(__pyx_v_result) lastprivate(__pyx_v_s) lastprivate(__pyx_v_topk) lastprivate(__pyx_v_w) schedule(guided)
                         #endif /* _OPENMP */
                         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                             if (__pyx_parallel_why < 2)
@@ -5806,12 +6123,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                 __pyx_v_j = ((int)0xbad0bad0);
                                 __pyx_v_neighbours = ((cornac_knn::SparseNeighbors<int,double>  *)1);
                                 __pyx_v_nn = ((int)0xbad0bad0);
-                                __pyx_v_nom = ((double)__PYX_NAN());
+                                __pyx_v_num = ((double)__PYX_NAN());
                                 __pyx_v_s = ((double)__PYX_NAN());
                                 __pyx_v_topk = ((cornac_knn::TopK<double,double>  *)1);
                                 __pyx_v_w = ((double)__PYX_NAN());
 
-                                /* "cornac/models/knn/similarity.pyx":150
+                                /* "cornac/models/knn/similarity.pyx":176
  *         for i in prange(n_items, schedule='guided'):
  *             # allocate memory per thread
  *             neighbours = new SparseNeighbors[int, double](max_neighbors)             # <<<<<<<<<<<<<<
@@ -5820,7 +6137,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
  */
                                 __pyx_v_neighbours = new cornac_knn::SparseNeighbors<int,double> (__pyx_v_max_neighbors);
 
-                                /* "cornac/models/knn/similarity.pyx":151
+                                /* "cornac/models/knn/similarity.pyx":177
  *             # allocate memory per thread
  *             neighbours = new SparseNeighbors[int, double](max_neighbors)
  *             topk = new TopK[double, double](k)             # <<<<<<<<<<<<<<
@@ -5829,7 +6146,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
  */
                                 __pyx_v_topk = new cornac_knn::TopK<double,double> (__pyx_v_k);
 
-                                /* "cornac/models/knn/similarity.pyx":153
+                                /* "cornac/models/knn/similarity.pyx":179
  *             topk = new TopK[double, double](k)
  * 
  *             for j in range(indptr[i], indptr[i + 1]):             # <<<<<<<<<<<<<<
@@ -5845,7 +6162,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                 for (__pyx_t_8 = (*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_6 * __pyx_v_indptr.strides[0]) ))); __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
                                   __pyx_v_j = __pyx_t_8;
 
-                                  /* "cornac/models/knn/similarity.pyx":154
+                                  /* "cornac/models/knn/similarity.pyx":180
  * 
  *             for j in range(indptr[i], indptr[i + 1]):
  *                 nn, s = indices[j], data[j]             # <<<<<<<<<<<<<<
@@ -5861,7 +6178,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                   __pyx_v_nn = __pyx_t_10;
                                   __pyx_v_s = __pyx_t_12;
 
-                                  /* "cornac/models/knn/similarity.pyx":155
+                                  /* "cornac/models/knn/similarity.pyx":181
  *             for j in range(indptr[i], indptr[i + 1]):
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
@@ -5873,7 +6190,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                   __pyx_t_14 = (((*((float *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_13 * __pyx_v_sim_arr.strides[0]) ))) != 0.0) != 0);
                                   if (__pyx_t_14) {
 
-                                    /* "cornac/models/knn/similarity.pyx":156
+                                    /* "cornac/models/knn/similarity.pyx":182
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:
  *                     if user_mode:             # <<<<<<<<<<<<<<
@@ -5883,7 +6200,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                     __pyx_t_14 = (__pyx_v_user_mode != 0);
                                     if (__pyx_t_14) {
 
-                                      /* "cornac/models/knn/similarity.pyx":157
+                                      /* "cornac/models/knn/similarity.pyx":183
  *                 if sim_arr[nn] != 0:
  *                     if user_mode:
  *                         neighbours.set(nn, sim_arr[nn], s)             # <<<<<<<<<<<<<<
@@ -5894,7 +6211,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                       if (__pyx_t_15 < 0) __pyx_t_15 += __pyx_v_sim_arr.shape[0];
                                       __pyx_v_neighbours->set(__pyx_v_nn, (*((float *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_15 * __pyx_v_sim_arr.strides[0]) ))), __pyx_v_s);
 
-                                      /* "cornac/models/knn/similarity.pyx":156
+                                      /* "cornac/models/knn/similarity.pyx":182
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:
  *                     if user_mode:             # <<<<<<<<<<<<<<
@@ -5904,7 +6221,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                       goto __pyx_L17;
                                     }
 
-                                    /* "cornac/models/knn/similarity.pyx":159
+                                    /* "cornac/models/knn/similarity.pyx":185
  *                         neighbours.set(nn, sim_arr[nn], s)
  *                     else:
  *                         neighbours.set(nn, s, sim_arr[nn])             # <<<<<<<<<<<<<<
@@ -5918,7 +6235,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                     }
                                     __pyx_L17:;
 
-                                    /* "cornac/models/knn/similarity.pyx":155
+                                    /* "cornac/models/knn/similarity.pyx":181
  *             for j in range(indptr[i], indptr[i + 1]):
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
@@ -5928,7 +6245,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                   }
                                 }
 
-                                /* "cornac/models/knn/similarity.pyx":161
+                                /* "cornac/models/knn/similarity.pyx":187
  *                         neighbours.set(nn, s, sim_arr[nn])
  * 
  *             topk.results.clear()             # <<<<<<<<<<<<<<
@@ -5937,35 +6254,35 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
  */
                                 __pyx_v_topk->results.clear();
 
-                                /* "cornac/models/knn/similarity.pyx":162
+                                /* "cornac/models/knn/similarity.pyx":188
  * 
  *             topk.results.clear()
  *             neighbours.foreach(dereference(topk))             # <<<<<<<<<<<<<<
  * 
- *             nom = 0
+ *             num = 0
  */
                                 __pyx_v_neighbours->foreach((*__pyx_v_topk));
 
-                                /* "cornac/models/knn/similarity.pyx":164
+                                /* "cornac/models/knn/similarity.pyx":190
  *             neighbours.foreach(dereference(topk))
  * 
- *             nom = 0             # <<<<<<<<<<<<<<
+ *             num = 0             # <<<<<<<<<<<<<<
  *             denom = 0
  *             for result in topk.results:
  */
-                                __pyx_v_nom = 0.0;
+                                __pyx_v_num = 0.0;
 
-                                /* "cornac/models/knn/similarity.pyx":165
+                                /* "cornac/models/knn/similarity.pyx":191
  * 
- *             nom = 0
+ *             num = 0
  *             denom = 0             # <<<<<<<<<<<<<<
  *             for result in topk.results:
  *                 w = result.first
  */
                                 __pyx_v_denom = 0.0;
 
-                                /* "cornac/models/knn/similarity.pyx":166
- *             nom = 0
+                                /* "cornac/models/knn/similarity.pyx":192
+ *             num = 0
  *             denom = 0
  *             for result in topk.results:             # <<<<<<<<<<<<<<
  *                 w = result.first
@@ -5979,46 +6296,46 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                   ++__pyx_t_17;
                                   __pyx_v_result = __pyx_t_19;
 
-                                  /* "cornac/models/knn/similarity.pyx":167
+                                  /* "cornac/models/knn/similarity.pyx":193
  *             denom = 0
  *             for result in topk.results:
  *                 w = result.first             # <<<<<<<<<<<<<<
  *                 s = result.second
- *                 nom = nom + w * s
+ *                 num = num + w * s
  */
                                   __pyx_t_20 = __pyx_v_result.first;
                                   __pyx_v_w = __pyx_t_20;
 
-                                  /* "cornac/models/knn/similarity.pyx":168
+                                  /* "cornac/models/knn/similarity.pyx":194
  *             for result in topk.results:
  *                 w = result.first
  *                 s = result.second             # <<<<<<<<<<<<<<
- *                 nom = nom + w * s
+ *                 num = num + w * s
  *                 denom = denom + fabs(w)
  */
                                   __pyx_t_20 = __pyx_v_result.second;
                                   __pyx_v_s = __pyx_t_20;
 
-                                  /* "cornac/models/knn/similarity.pyx":169
+                                  /* "cornac/models/knn/similarity.pyx":195
  *                 w = result.first
  *                 s = result.second
- *                 nom = nom + w * s             # <<<<<<<<<<<<<<
+ *                 num = num + w * s             # <<<<<<<<<<<<<<
  *                 denom = denom + fabs(w)
  * 
  */
-                                  __pyx_v_nom = (__pyx_v_nom + (__pyx_v_w * __pyx_v_s));
+                                  __pyx_v_num = (__pyx_v_num + (__pyx_v_w * __pyx_v_s));
 
-                                  /* "cornac/models/knn/similarity.pyx":170
+                                  /* "cornac/models/knn/similarity.pyx":196
  *                 s = result.second
- *                 nom = nom + w * s
+ *                 num = num + w * s
  *                 denom = denom + fabs(w)             # <<<<<<<<<<<<<<
  * 
- *             output[i] = nom / (denom + 1e-8)
+ *             output[i] = num / (denom + 1e-8)
  */
                                   __pyx_v_denom = (__pyx_v_denom + fabs(__pyx_v_w));
 
-                                  /* "cornac/models/knn/similarity.pyx":166
- *             nom = 0
+                                  /* "cornac/models/knn/similarity.pyx":192
+ *             num = 0
  *             denom = 0
  *             for result in topk.results:             # <<<<<<<<<<<<<<
  *                 w = result.first
@@ -6026,10 +6343,10 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
  */
                                 }
 
-                                /* "cornac/models/knn/similarity.pyx":172
+                                /* "cornac/models/knn/similarity.pyx":198
  *                 denom = denom + fabs(w)
  * 
- *             output[i] = nom / (denom + 1e-8)             # <<<<<<<<<<<<<<
+ *             output[i] = num / (denom + 1e-8)             # <<<<<<<<<<<<<<
  * 
  *             del neighbours
  */
@@ -6042,21 +6359,21 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                   #ifdef WITH_THREAD
                                   __Pyx_PyGILState_Release(__pyx_gilstate_save);
                                   #endif
-                                  __PYX_ERR(0, 172, __pyx_L12_error)
+                                  __PYX_ERR(0, 198, __pyx_L12_error)
                                 }
                                 __pyx_t_21 = __pyx_v_i;
                                 if (__pyx_t_21 < 0) __pyx_t_21 += __pyx_v_output.shape[0];
-                                *((float *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_21 * __pyx_v_output.strides[0]) )) = (__pyx_v_nom / __pyx_t_20);
+                                *((float *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_21 * __pyx_v_output.strides[0]) )) = (__pyx_v_num / __pyx_t_20);
 
-                                /* "cornac/models/knn/similarity.pyx":174
- *             output[i] = nom / (denom + 1e-8)
+                                /* "cornac/models/knn/similarity.pyx":200
+ *             output[i] = num / (denom + 1e-8)
  * 
  *             del neighbours             # <<<<<<<<<<<<<<
  *             del topk
  */
                                 delete __pyx_v_neighbours;
 
-                                /* "cornac/models/knn/similarity.pyx":175
+                                /* "cornac/models/knn/similarity.pyx":201
  * 
  *             del neighbours
  *             del topk             # <<<<<<<<<<<<<<
@@ -6092,7 +6409,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                                     __pyx_parallel_temp2 = __pyx_v_j;
                                     __pyx_parallel_temp3 = __pyx_v_neighbours;
                                     __pyx_parallel_temp4 = __pyx_v_nn;
-                                    __pyx_parallel_temp5 = __pyx_v_nom;
+                                    __pyx_parallel_temp5 = __pyx_v_num;
                                     __pyx_parallel_temp6 = __pyx_v_result;
                                     __pyx_parallel_temp7 = __pyx_v_s;
                                     __pyx_parallel_temp8 = __pyx_v_topk;
@@ -6115,7 +6432,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
                       __pyx_v_j = __pyx_parallel_temp2;
                       __pyx_v_neighbours = __pyx_parallel_temp3;
                       __pyx_v_nn = __pyx_parallel_temp4;
-                      __pyx_v_nom = __pyx_parallel_temp5;
+                      __pyx_v_num = __pyx_parallel_temp5;
                       __pyx_v_result = __pyx_parallel_temp6;
                       __pyx_v_s = __pyx_parallel_temp7;
                       __pyx_v_topk = __pyx_parallel_temp8;
@@ -6204,7 +6521,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
         #endif
       }
 
-      /* "cornac/models/knn/similarity.pyx":147
+      /* "cornac/models/knn/similarity.pyx":173
  *     cdef pair[double, double] result
  * 
  *     with nogil, parallel(num_threads=num_threads):             # <<<<<<<<<<<<<<
@@ -6230,7 +6547,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_12compute_score(CYTH
       }
   }
 
-  /* "cornac/models/knn/similarity.pyx":128
+  /* "cornac/models/knn/similarity.pyx":154
  * 
  * @cython.boundscheck(False)
  * def compute_score(             # <<<<<<<<<<<<<<
@@ -6305,47 +6622,47 @@ static PyObject *__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_15comput
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_sim_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 1); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 1); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_indptr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 2); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 2); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_indices)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 3); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 3); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 4); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 4); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_k)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 5); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 5); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_threads)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 6); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 6); __PYX_ERR(0, 154, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
         if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_output)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 7); __PYX_ERR(0, 128, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, 7); __PYX_ERR(0, 154, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score") < 0)) __PYX_ERR(0, 128, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "compute_score") < 0)) __PYX_ERR(0, 154, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 8) {
       goto __pyx_L5_argtuple_error;
@@ -6359,18 +6676,18 @@ static PyObject *__pyx_fuse_1__pyx_pw_6cornac_6models_3knn_10similarity_15comput
       values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
       values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
     }
-    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
-    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 130, __pyx_L3_error)
-    __pyx_v_indptr = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indptr.memview)) __PYX_ERR(0, 131, __pyx_L3_error)
-    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 132, __pyx_L3_error)
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 133, __pyx_L3_error)
-    __pyx_v_k = __Pyx_PyInt_As_unsigned_int(values[5]); if (unlikely((__pyx_v_k == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 134, __pyx_L3_error)
-    __pyx_v_num_threads = __Pyx_PyInt_As_unsigned_int(values[6]); if (unlikely((__pyx_v_num_threads == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 135, __pyx_L3_error)
-    __pyx_v_output = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_output.memview)) __PYX_ERR(0, 136, __pyx_L3_error)
+    __pyx_v_user_mode = __Pyx_PyObject_IsTrue(values[0]); if (unlikely((__pyx_v_user_mode == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 155, __pyx_L3_error)
+    __pyx_v_sim_arr = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_sim_arr.memview)) __PYX_ERR(0, 156, __pyx_L3_error)
+    __pyx_v_indptr = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indptr.memview)) __PYX_ERR(0, 157, __pyx_L3_error)
+    __pyx_v_indices = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_indices.memview)) __PYX_ERR(0, 158, __pyx_L3_error)
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 159, __pyx_L3_error)
+    __pyx_v_k = __Pyx_PyInt_As_unsigned_int(values[5]); if (unlikely((__pyx_v_k == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 160, __pyx_L3_error)
+    __pyx_v_num_threads = __Pyx_PyInt_As_unsigned_int(values[6]); if (unlikely((__pyx_v_num_threads == (unsigned int)-1) && PyErr_Occurred())) __PYX_ERR(0, 161, __pyx_L3_error)
+    __pyx_v_output = __Pyx_PyObject_to_MemoryviewSlice_ds_double(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_output.memview)) __PYX_ERR(0, 162, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 128, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("compute_score", 1, 8, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 154, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("cornac.models.knn.similarity.compute_score", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -6391,7 +6708,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
   int __pyx_v_j;
   double __pyx_v_w;
   double __pyx_v_s;
-  double __pyx_v_nom;
+  double __pyx_v_num;
   double __pyx_v_denom;
   cornac_knn::SparseNeighbors<int,double>  *__pyx_v_neighbours;
   cornac_knn::TopK<double,double>  *__pyx_v_topk;
@@ -6420,7 +6737,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
   Py_ssize_t __pyx_t_20;
   __Pyx_RefNannySetupContext("__pyx_fuse_1compute_score", 0);
 
-  /* "cornac/models/knn/similarity.pyx":138
+  /* "cornac/models/knn/similarity.pyx":164
  *     floating[:] output
  * ):
  *     cdef int max_neighbors = sim_arr.shape[0]             # <<<<<<<<<<<<<<
@@ -6429,16 +6746,16 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
  */
   __pyx_v_max_neighbors = (__pyx_v_sim_arr.shape[0]);
 
-  /* "cornac/models/knn/similarity.pyx":139
+  /* "cornac/models/knn/similarity.pyx":165
  * ):
  *     cdef int max_neighbors = sim_arr.shape[0]
  *     cdef int n_items = output.shape[0]             # <<<<<<<<<<<<<<
  *     cdef int nn, i, j
- *     cdef double w, s, nom, denom
+ *     cdef double w, s, num, denom
  */
   __pyx_v_n_items = (__pyx_v_output.shape[0]);
 
-  /* "cornac/models/knn/similarity.pyx":147
+  /* "cornac/models/knn/similarity.pyx":173
  *     cdef pair[double, double] result
  * 
  *     with nogil, parallel(num_threads=num_threads):             # <<<<<<<<<<<<<<
@@ -6474,7 +6791,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                 Py_BEGIN_ALLOW_THREADS
                 #endif /* _OPENMP */
 
-                /* "cornac/models/knn/similarity.pyx":148
+                /* "cornac/models/knn/similarity.pyx":174
  * 
  *     with nogil, parallel(num_threads=num_threads):
  *         for i in prange(n_items, schedule='guided'):             # <<<<<<<<<<<<<<
@@ -6502,7 +6819,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                     if (__pyx_t_3 > 0)
                     {
                         #ifdef _OPENMP
-                        #pragma omp for lastprivate(__pyx_v_denom) firstprivate(__pyx_v_i) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_neighbours) lastprivate(__pyx_v_nn) lastprivate(__pyx_v_nom) lastprivate(__pyx_v_result) lastprivate(__pyx_v_s) lastprivate(__pyx_v_topk) lastprivate(__pyx_v_w) schedule(guided)
+                        #pragma omp for lastprivate(__pyx_v_denom) firstprivate(__pyx_v_i) lastprivate(__pyx_v_i) lastprivate(__pyx_v_j) lastprivate(__pyx_v_neighbours) lastprivate(__pyx_v_nn) lastprivate(__pyx_v_num) lastprivate(__pyx_v_result) lastprivate(__pyx_v_s) lastprivate(__pyx_v_topk) lastprivate(__pyx_v_w) schedule(guided)
                         #endif /* _OPENMP */
                         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2++){
                             if (__pyx_parallel_why < 2)
@@ -6513,12 +6830,12 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                 __pyx_v_j = ((int)0xbad0bad0);
                                 __pyx_v_neighbours = ((cornac_knn::SparseNeighbors<int,double>  *)1);
                                 __pyx_v_nn = ((int)0xbad0bad0);
-                                __pyx_v_nom = ((double)__PYX_NAN());
+                                __pyx_v_num = ((double)__PYX_NAN());
                                 __pyx_v_s = ((double)__PYX_NAN());
                                 __pyx_v_topk = ((cornac_knn::TopK<double,double>  *)1);
                                 __pyx_v_w = ((double)__PYX_NAN());
 
-                                /* "cornac/models/knn/similarity.pyx":150
+                                /* "cornac/models/knn/similarity.pyx":176
  *         for i in prange(n_items, schedule='guided'):
  *             # allocate memory per thread
  *             neighbours = new SparseNeighbors[int, double](max_neighbors)             # <<<<<<<<<<<<<<
@@ -6527,7 +6844,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
  */
                                 __pyx_v_neighbours = new cornac_knn::SparseNeighbors<int,double> (__pyx_v_max_neighbors);
 
-                                /* "cornac/models/knn/similarity.pyx":151
+                                /* "cornac/models/knn/similarity.pyx":177
  *             # allocate memory per thread
  *             neighbours = new SparseNeighbors[int, double](max_neighbors)
  *             topk = new TopK[double, double](k)             # <<<<<<<<<<<<<<
@@ -6536,7 +6853,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
  */
                                 __pyx_v_topk = new cornac_knn::TopK<double,double> (__pyx_v_k);
 
-                                /* "cornac/models/knn/similarity.pyx":153
+                                /* "cornac/models/knn/similarity.pyx":179
  *             topk = new TopK[double, double](k)
  * 
  *             for j in range(indptr[i], indptr[i + 1]):             # <<<<<<<<<<<<<<
@@ -6552,7 +6869,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                 for (__pyx_t_8 = (*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_6 * __pyx_v_indptr.strides[0]) ))); __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
                                   __pyx_v_j = __pyx_t_8;
 
-                                  /* "cornac/models/knn/similarity.pyx":154
+                                  /* "cornac/models/knn/similarity.pyx":180
  * 
  *             for j in range(indptr[i], indptr[i + 1]):
  *                 nn, s = indices[j], data[j]             # <<<<<<<<<<<<<<
@@ -6568,7 +6885,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                   __pyx_v_nn = __pyx_t_10;
                                   __pyx_v_s = __pyx_t_12;
 
-                                  /* "cornac/models/knn/similarity.pyx":155
+                                  /* "cornac/models/knn/similarity.pyx":181
  *             for j in range(indptr[i], indptr[i + 1]):
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
@@ -6580,7 +6897,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                   __pyx_t_14 = (((*((double *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_13 * __pyx_v_sim_arr.strides[0]) ))) != 0.0) != 0);
                                   if (__pyx_t_14) {
 
-                                    /* "cornac/models/knn/similarity.pyx":156
+                                    /* "cornac/models/knn/similarity.pyx":182
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:
  *                     if user_mode:             # <<<<<<<<<<<<<<
@@ -6590,7 +6907,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                     __pyx_t_14 = (__pyx_v_user_mode != 0);
                                     if (__pyx_t_14) {
 
-                                      /* "cornac/models/knn/similarity.pyx":157
+                                      /* "cornac/models/knn/similarity.pyx":183
  *                 if sim_arr[nn] != 0:
  *                     if user_mode:
  *                         neighbours.set(nn, sim_arr[nn], s)             # <<<<<<<<<<<<<<
@@ -6601,7 +6918,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                       if (__pyx_t_15 < 0) __pyx_t_15 += __pyx_v_sim_arr.shape[0];
                                       __pyx_v_neighbours->set(__pyx_v_nn, (*((double *) ( /* dim=0 */ (__pyx_v_sim_arr.data + __pyx_t_15 * __pyx_v_sim_arr.strides[0]) ))), __pyx_v_s);
 
-                                      /* "cornac/models/knn/similarity.pyx":156
+                                      /* "cornac/models/knn/similarity.pyx":182
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:
  *                     if user_mode:             # <<<<<<<<<<<<<<
@@ -6611,7 +6928,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                       goto __pyx_L17;
                                     }
 
-                                    /* "cornac/models/knn/similarity.pyx":159
+                                    /* "cornac/models/knn/similarity.pyx":185
  *                         neighbours.set(nn, sim_arr[nn], s)
  *                     else:
  *                         neighbours.set(nn, s, sim_arr[nn])             # <<<<<<<<<<<<<<
@@ -6625,7 +6942,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                     }
                                     __pyx_L17:;
 
-                                    /* "cornac/models/knn/similarity.pyx":155
+                                    /* "cornac/models/knn/similarity.pyx":181
  *             for j in range(indptr[i], indptr[i + 1]):
  *                 nn, s = indices[j], data[j]
  *                 if sim_arr[nn] != 0:             # <<<<<<<<<<<<<<
@@ -6635,7 +6952,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                   }
                                 }
 
-                                /* "cornac/models/knn/similarity.pyx":161
+                                /* "cornac/models/knn/similarity.pyx":187
  *                         neighbours.set(nn, s, sim_arr[nn])
  * 
  *             topk.results.clear()             # <<<<<<<<<<<<<<
@@ -6644,35 +6961,35 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
  */
                                 __pyx_v_topk->results.clear();
 
-                                /* "cornac/models/knn/similarity.pyx":162
+                                /* "cornac/models/knn/similarity.pyx":188
  * 
  *             topk.results.clear()
  *             neighbours.foreach(dereference(topk))             # <<<<<<<<<<<<<<
  * 
- *             nom = 0
+ *             num = 0
  */
                                 __pyx_v_neighbours->foreach((*__pyx_v_topk));
 
-                                /* "cornac/models/knn/similarity.pyx":164
+                                /* "cornac/models/knn/similarity.pyx":190
  *             neighbours.foreach(dereference(topk))
  * 
- *             nom = 0             # <<<<<<<<<<<<<<
+ *             num = 0             # <<<<<<<<<<<<<<
  *             denom = 0
  *             for result in topk.results:
  */
-                                __pyx_v_nom = 0.0;
+                                __pyx_v_num = 0.0;
 
-                                /* "cornac/models/knn/similarity.pyx":165
+                                /* "cornac/models/knn/similarity.pyx":191
  * 
- *             nom = 0
+ *             num = 0
  *             denom = 0             # <<<<<<<<<<<<<<
  *             for result in topk.results:
  *                 w = result.first
  */
                                 __pyx_v_denom = 0.0;
 
-                                /* "cornac/models/knn/similarity.pyx":166
- *             nom = 0
+                                /* "cornac/models/knn/similarity.pyx":192
+ *             num = 0
  *             denom = 0
  *             for result in topk.results:             # <<<<<<<<<<<<<<
  *                 w = result.first
@@ -6686,46 +7003,46 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                   ++__pyx_t_17;
                                   __pyx_v_result = __pyx_t_19;
 
-                                  /* "cornac/models/knn/similarity.pyx":167
+                                  /* "cornac/models/knn/similarity.pyx":193
  *             denom = 0
  *             for result in topk.results:
  *                 w = result.first             # <<<<<<<<<<<<<<
  *                 s = result.second
- *                 nom = nom + w * s
+ *                 num = num + w * s
  */
                                   __pyx_t_12 = __pyx_v_result.first;
                                   __pyx_v_w = __pyx_t_12;
 
-                                  /* "cornac/models/knn/similarity.pyx":168
+                                  /* "cornac/models/knn/similarity.pyx":194
  *             for result in topk.results:
  *                 w = result.first
  *                 s = result.second             # <<<<<<<<<<<<<<
- *                 nom = nom + w * s
+ *                 num = num + w * s
  *                 denom = denom + fabs(w)
  */
                                   __pyx_t_12 = __pyx_v_result.second;
                                   __pyx_v_s = __pyx_t_12;
 
-                                  /* "cornac/models/knn/similarity.pyx":169
+                                  /* "cornac/models/knn/similarity.pyx":195
  *                 w = result.first
  *                 s = result.second
- *                 nom = nom + w * s             # <<<<<<<<<<<<<<
+ *                 num = num + w * s             # <<<<<<<<<<<<<<
  *                 denom = denom + fabs(w)
  * 
  */
-                                  __pyx_v_nom = (__pyx_v_nom + (__pyx_v_w * __pyx_v_s));
+                                  __pyx_v_num = (__pyx_v_num + (__pyx_v_w * __pyx_v_s));
 
-                                  /* "cornac/models/knn/similarity.pyx":170
+                                  /* "cornac/models/knn/similarity.pyx":196
  *                 s = result.second
- *                 nom = nom + w * s
+ *                 num = num + w * s
  *                 denom = denom + fabs(w)             # <<<<<<<<<<<<<<
  * 
- *             output[i] = nom / (denom + 1e-8)
+ *             output[i] = num / (denom + 1e-8)
  */
                                   __pyx_v_denom = (__pyx_v_denom + fabs(__pyx_v_w));
 
-                                  /* "cornac/models/knn/similarity.pyx":166
- *             nom = 0
+                                  /* "cornac/models/knn/similarity.pyx":192
+ *             num = 0
  *             denom = 0
  *             for result in topk.results:             # <<<<<<<<<<<<<<
  *                 w = result.first
@@ -6733,10 +7050,10 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
  */
                                 }
 
-                                /* "cornac/models/knn/similarity.pyx":172
+                                /* "cornac/models/knn/similarity.pyx":198
  *                 denom = denom + fabs(w)
  * 
- *             output[i] = nom / (denom + 1e-8)             # <<<<<<<<<<<<<<
+ *             output[i] = num / (denom + 1e-8)             # <<<<<<<<<<<<<<
  * 
  *             del neighbours
  */
@@ -6749,21 +7066,21 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                   #ifdef WITH_THREAD
                                   __Pyx_PyGILState_Release(__pyx_gilstate_save);
                                   #endif
-                                  __PYX_ERR(0, 172, __pyx_L12_error)
+                                  __PYX_ERR(0, 198, __pyx_L12_error)
                                 }
                                 __pyx_t_20 = __pyx_v_i;
                                 if (__pyx_t_20 < 0) __pyx_t_20 += __pyx_v_output.shape[0];
-                                *((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_20 * __pyx_v_output.strides[0]) )) = (__pyx_v_nom / __pyx_t_12);
+                                *((double *) ( /* dim=0 */ (__pyx_v_output.data + __pyx_t_20 * __pyx_v_output.strides[0]) )) = (__pyx_v_num / __pyx_t_12);
 
-                                /* "cornac/models/knn/similarity.pyx":174
- *             output[i] = nom / (denom + 1e-8)
+                                /* "cornac/models/knn/similarity.pyx":200
+ *             output[i] = num / (denom + 1e-8)
  * 
  *             del neighbours             # <<<<<<<<<<<<<<
  *             del topk
  */
                                 delete __pyx_v_neighbours;
 
-                                /* "cornac/models/knn/similarity.pyx":175
+                                /* "cornac/models/knn/similarity.pyx":201
  * 
  *             del neighbours
  *             del topk             # <<<<<<<<<<<<<<
@@ -6799,7 +7116,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                                     __pyx_parallel_temp2 = __pyx_v_j;
                                     __pyx_parallel_temp3 = __pyx_v_neighbours;
                                     __pyx_parallel_temp4 = __pyx_v_nn;
-                                    __pyx_parallel_temp5 = __pyx_v_nom;
+                                    __pyx_parallel_temp5 = __pyx_v_num;
                                     __pyx_parallel_temp6 = __pyx_v_result;
                                     __pyx_parallel_temp7 = __pyx_v_s;
                                     __pyx_parallel_temp8 = __pyx_v_topk;
@@ -6822,7 +7139,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
                       __pyx_v_j = __pyx_parallel_temp2;
                       __pyx_v_neighbours = __pyx_parallel_temp3;
                       __pyx_v_nn = __pyx_parallel_temp4;
-                      __pyx_v_nom = __pyx_parallel_temp5;
+                      __pyx_v_num = __pyx_parallel_temp5;
                       __pyx_v_result = __pyx_parallel_temp6;
                       __pyx_v_s = __pyx_parallel_temp7;
                       __pyx_v_topk = __pyx_parallel_temp8;
@@ -6911,7 +7228,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
         #endif
       }
 
-      /* "cornac/models/knn/similarity.pyx":147
+      /* "cornac/models/knn/similarity.pyx":173
  *     cdef pair[double, double] result
  * 
  *     with nogil, parallel(num_threads=num_threads):             # <<<<<<<<<<<<<<
@@ -6937,7 +7254,7 @@ static PyObject *__pyx_pf_6cornac_6models_3knn_10similarity_14compute_score(CYTH
       }
   }
 
-  /* "cornac/models/knn/similarity.pyx":128
+  /* "cornac/models/knn/similarity.pyx":154
  * 
  * @cython.boundscheck(False)
  * def compute_score(             # <<<<<<<<<<<<<<
@@ -22929,6 +23246,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_data_mat, __pyx_k_data_mat, sizeof(__pyx_k_data_mat), 0, 0, 1, 1},
   {&__pyx_n_s_defaults, __pyx_k_defaults, sizeof(__pyx_k_defaults), 0, 0, 1, 1},
   {&__pyx_n_s_denom, __pyx_k_denom, sizeof(__pyx_k_denom), 0, 0, 1, 1},
+  {&__pyx_n_s_denom1, __pyx_k_denom1, sizeof(__pyx_k_denom1), 0, 0, 1, 1},
+  {&__pyx_n_s_denom2, __pyx_k_denom2, sizeof(__pyx_k_denom2), 0, 0, 1, 1},
   {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
   {&__pyx_n_s_disable, __pyx_k_disable, sizeof(__pyx_k_disable), 0, 0, 1, 1},
   {&__pyx_n_s_double, __pyx_k_double, sizeof(__pyx_k_double), 0, 0, 1, 1},
@@ -22970,8 +23289,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_new, __pyx_k_new, sizeof(__pyx_k_new), 0, 0, 1, 1},
   {&__pyx_n_s_nn, __pyx_k_nn, sizeof(__pyx_k_nn), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
-  {&__pyx_n_s_nom, __pyx_k_nom, sizeof(__pyx_k_nom), 0, 0, 1, 1},
   {&__pyx_n_s_np, __pyx_k_np, sizeof(__pyx_k_np), 0, 0, 1, 1},
+  {&__pyx_n_s_num, __pyx_k_num, sizeof(__pyx_k_num), 0, 0, 1, 1},
   {&__pyx_n_s_num_threads, __pyx_k_num_threads, sizeof(__pyx_k_num_threads), 0, 0, 1, 1},
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_kp_u_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 1, 0, 0},
@@ -23040,8 +23359,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 71, __pyx_L1_error)
-  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 78, __pyx_L1_error)
+  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(0, 109, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 272, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 856, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 1038, __pyx_L1_error)
@@ -23059,17 +23378,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "cornac/models/knn/similarity.pyx":86
+  /* "cornac/models/knn/similarity.pyx":109
  * 
  * @cython.boundscheck(False)
  * def compute_score_single(             # <<<<<<<<<<<<<<
  *     bool user_mode,
  *     floating[:] sim_arr,
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_No_matching_signature_found); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_No_matching_signature_found); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Function_call_with_ambiguous_arg); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Function_call_with_ambiguous_arg); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
@@ -23349,34 +23668,34 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     """ Compute similarity matrix (n_rows x n_rows) of a given data matrix.
  *     """
  */
-  __pyx_tuple__30 = PyTuple_Pack(21, __pyx_n_s_data_mat, __pyx_n_s_k, __pyx_n_s_num_threads, __pyx_n_s_verbose, __pyx_n_s_row_mat, __pyx_n_s_col_mat, __pyx_n_s_n_rows, __pyx_n_s_r, __pyx_n_s_c, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_w, __pyx_n_s_row_indptr, __pyx_n_s_row_indices, __pyx_n_s_row_data, __pyx_n_s_col_indptr, __pyx_n_s_col_indices, __pyx_n_s_col_data, __pyx_n_s_sim_mat, __pyx_n_s_progress, __pyx_n_s_sparse_sim_mat); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_tuple__30 = PyTuple_Pack(24, __pyx_n_s_data_mat, __pyx_n_s_k, __pyx_n_s_num_threads, __pyx_n_s_verbose, __pyx_n_s_row_mat, __pyx_n_s_col_mat, __pyx_n_s_n_rows, __pyx_n_s_r, __pyx_n_s_c, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_w, __pyx_n_s_denom, __pyx_n_s_row_indptr, __pyx_n_s_row_indices, __pyx_n_s_row_data, __pyx_n_s_col_indptr, __pyx_n_s_col_indices, __pyx_n_s_col_data, __pyx_n_s_sim_mat, __pyx_n_s_denom1, __pyx_n_s_denom2, __pyx_n_s_progress, __pyx_n_s_sparse_sim_mat); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(4, 0, 21, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_knn_similarity_pyx, __pyx_n_s_compute_similarity, 51, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(4, 0, 24, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_knn_similarity_pyx, __pyx_n_s_compute_similarity, 51, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 51, __pyx_L1_error)
 
-  /* "cornac/models/knn/similarity.pyx":86
+  /* "cornac/models/knn/similarity.pyx":109
  * 
  * @cython.boundscheck(False)
  * def compute_score_single(             # <<<<<<<<<<<<<<
  *     bool user_mode,
  *     floating[:] sim_arr,
  */
-  __pyx_tuple__32 = PyTuple_Pack(18, __pyx_n_s_user_mode, __pyx_n_s_sim_arr, __pyx_n_s_ptr1, __pyx_n_s_ptr2, __pyx_n_s_indices, __pyx_n_s_data, __pyx_n_s_k, __pyx_n_s_max_neighbors, __pyx_n_s_nn, __pyx_n_s_j, __pyx_n_s_w, __pyx_n_s_s, __pyx_n_s_nom, __pyx_n_s_denom, __pyx_n_s_output, __pyx_n_s_neighbours, __pyx_n_s_topk, __pyx_n_s_result); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(18, __pyx_n_s_user_mode, __pyx_n_s_sim_arr, __pyx_n_s_ptr1, __pyx_n_s_ptr2, __pyx_n_s_indices, __pyx_n_s_data, __pyx_n_s_k, __pyx_n_s_max_neighbors, __pyx_n_s_nn, __pyx_n_s_j, __pyx_n_s_w, __pyx_n_s_s, __pyx_n_s_num, __pyx_n_s_denom, __pyx_n_s_output, __pyx_n_s_neighbours, __pyx_n_s_topk, __pyx_n_s_result); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(7, 0, 18, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_knn_similarity_pyx, __pyx_n_s_compute_score_single, 86, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(7, 0, 18, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_knn_similarity_pyx, __pyx_n_s_compute_score_single, 109, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 109, __pyx_L1_error)
 
-  /* "cornac/models/knn/similarity.pyx":128
+  /* "cornac/models/knn/similarity.pyx":154
  * 
  * @cython.boundscheck(False)
  * def compute_score(             # <<<<<<<<<<<<<<
  *     bool user_mode,
  *     floating[:] sim_arr,
  */
-  __pyx_tuple__34 = PyTuple_Pack(20, __pyx_n_s_user_mode, __pyx_n_s_sim_arr, __pyx_n_s_indptr, __pyx_n_s_indices, __pyx_n_s_data, __pyx_n_s_k, __pyx_n_s_num_threads, __pyx_n_s_output, __pyx_n_s_max_neighbors, __pyx_n_s_n_items, __pyx_n_s_nn, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_w, __pyx_n_s_s, __pyx_n_s_nom, __pyx_n_s_denom, __pyx_n_s_neighbours, __pyx_n_s_topk, __pyx_n_s_result); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_tuple__34 = PyTuple_Pack(20, __pyx_n_s_user_mode, __pyx_n_s_sim_arr, __pyx_n_s_indptr, __pyx_n_s_indices, __pyx_n_s_data, __pyx_n_s_k, __pyx_n_s_num_threads, __pyx_n_s_output, __pyx_n_s_max_neighbors, __pyx_n_s_n_items, __pyx_n_s_nn, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_w, __pyx_n_s_s, __pyx_n_s_num, __pyx_n_s_denom, __pyx_n_s_neighbours, __pyx_n_s_topk, __pyx_n_s_result); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(8, 0, 20, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_knn_similarity_pyx, __pyx_n_s_compute_score, 128, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(8, 0, 20, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_knn_similarity_pyx, __pyx_n_s_compute_score, 154, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 154, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -23818,7 +24137,7 @@ if (!__Pyx_RefNanny) {
 
   /* "cornac/models/knn/similarity.pyx":27
  * from libcpp.utility cimport pair
- * from libcpp.algorithm cimport binary_search
+ * from libc.stdlib cimport abort, malloc, free
  * import threading             # <<<<<<<<<<<<<<
  * 
  * import numpy as np
@@ -23894,58 +24213,58 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_similarity, __pyx_t_1) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "cornac/models/knn/similarity.pyx":86
+  /* "cornac/models/knn/similarity.pyx":109
  * 
  * @cython.boundscheck(False)
  * def compute_score_single(             # <<<<<<<<<<<<<<
  *     bool user_mode,
  *     floating[:] sim_arr,
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_6cornac_6models_3knn_10similarity_7compute_score_single, 0, __pyx_n_s_compute_score_single, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_6cornac_6models_3knn_10similarity_7compute_score_single, 0, __pyx_n_s_compute_score_single, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_float, __pyx_t_2) < 0) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_float, __pyx_t_2) < 0) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_6cornac_6models_3knn_10similarity_9compute_score_single, 0, __pyx_n_s_compute_score_single, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_6cornac_6models_3knn_10similarity_9compute_score_single, 0, __pyx_n_s_compute_score_single, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_double, __pyx_t_2) < 0) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_double, __pyx_t_2) < 0) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_mdef_6cornac_6models_3knn_10similarity_3compute_score_single, 0, __pyx_n_s_compute_score_single, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_2 = __pyx_FusedFunction_NewEx(&__pyx_mdef_6cornac_6models_3knn_10similarity_3compute_score_single, 0, __pyx_n_s_compute_score_single, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_2)->__signatures__ = __pyx_t_1;
   __Pyx_GIVEREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_score_single, __pyx_t_2) < 0) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_score_single, __pyx_t_2) < 0) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cornac/models/knn/similarity.pyx":128
+  /* "cornac/models/knn/similarity.pyx":154
  * 
  * @cython.boundscheck(False)
  * def compute_score(             # <<<<<<<<<<<<<<
  *     bool user_mode,
  *     floating[:] sim_arr,
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_6cornac_6models_3knn_10similarity_13compute_score, 0, __pyx_n_s_compute_score, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_0__pyx_mdef_6cornac_6models_3knn_10similarity_13compute_score, 0, __pyx_n_s_compute_score, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_float, __pyx_t_4) < 0) __PYX_ERR(0, 128, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_float, __pyx_t_4) < 0) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_6cornac_6models_3knn_10similarity_15compute_score, 0, __pyx_n_s_compute_score, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_fuse_1__pyx_mdef_6cornac_6models_3knn_10similarity_15compute_score, 0, __pyx_n_s_compute_score, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_double, __pyx_t_4) < 0) __PYX_ERR(0, 128, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_double, __pyx_t_4) < 0) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_mdef_6cornac_6models_3knn_10similarity_5compute_score, 0, __pyx_n_s_compute_score, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_4 = __pyx_FusedFunction_NewEx(&__pyx_mdef_6cornac_6models_3knn_10similarity_5compute_score, 0, __pyx_n_s_compute_score, NULL, __pyx_n_s_cornac_models_knn_similarity, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_empty_tuple);
   ((__pyx_FusedFunctionObject *) __pyx_t_4)->__signatures__ = __pyx_t_3;
   __Pyx_GIVEREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_score, __pyx_t_4) < 0) __PYX_ERR(0, 128, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_compute_score, __pyx_t_4) < 0) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "cornac/models/knn/similarity.pyx":1

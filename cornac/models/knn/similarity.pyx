@@ -23,7 +23,7 @@ from libc.math cimport sqrt, fabs
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
-from libcpp.algorithm cimport binary_search
+from libc.stdlib cimport abort, malloc, free
 import threading
 
 import numpy as np
@@ -56,7 +56,7 @@ def compute_similarity(data_mat, unsigned int k=20, unsigned int num_threads=0, 
 
     cdef int n_rows = row_mat.shape[0]
     cdef int r, c, i, j
-    cdef double w
+    cdef double w, denom
 
     cdef int[:] row_indptr = row_mat.indptr, row_indices = row_mat.indices
     cdef double[:] row_data = row_mat.data
@@ -64,14 +64,37 @@ def compute_similarity(data_mat, unsigned int k=20, unsigned int num_threads=0, 
     cdef int[:] col_indptr = col_mat.indptr, col_indices = col_mat.indices
     cdef double[:] col_data = col_mat.data
     cdef double[:, :] sim_mat = np.zeros((n_rows, n_rows))
+    cdef double * denom1
+    cdef double * denom2
 
     progress = tqdm(total=n_rows, disable=not verbose)
     with nogil, parallel(num_threads=num_threads):
         for r in prange(n_rows, schedule='guided'):
+            denom1 = <double *> malloc(sizeof(double) * n_rows)
+            denom2 = <double *> malloc(sizeof(double) * n_rows) 
+            if denom1 is NULL or denom2 is NULL:
+                abort()
+
+            for i in range(n_rows):
+                denom1[i] = 0
+                denom2[i] = 0
+
             for i in range(row_indptr[r], row_indptr[r + 1]):
                 c, w = row_indices[i], row_data[i]
-                for j in range(col_indptr[c], col_indptr[c + 1]):
+                for j in range(col_indptr[c], col_indptr[c + 1]):  # neighbors
                     sim_mat[r, col_indices[j]] += col_data[j] * w
+                    if w != 0 and col_data[j] != 0:
+                        denom1[col_indices[j]] += w * w
+                        denom2[col_indices[j]] += col_data[j] * col_data[j]
+
+            for i in range(n_rows):
+                if sim_mat[r, i] != 0:
+                    denom = sqrt(denom1[i]) * sqrt(denom2[i])
+                    sim_mat[r, i] /= denom
+
+            free(denom1)
+            free(denom2)
+
             with gil:
                 progress.update(1)
     progress.close()
@@ -94,7 +117,7 @@ def compute_score_single(
 ):
     cdef int max_neighbors = sim_arr.shape[0]
     cdef int nn, j
-    cdef double w, s, nom, denom, output
+    cdef double w, s, num, denom, output
 
     cdef SparseNeighbors[int, double] * neighbours = new SparseNeighbors[int, double](max_neighbors)
     cdef TopK[double, double] * topk = new TopK[double, double](k)
@@ -103,20 +126,23 @@ def compute_score_single(
     for j in range(ptr1, ptr2):
         nn, s = indices[j], data[j]
         if sim_arr[nn] != 0:
-            neighbours.set(nn, sim_arr[nn], s)
+            if user_mode:
+                neighbours.set(nn, sim_arr[nn], s)
+            else:
+                neighbours.set(nn, s, sim_arr[nn]) 
         
     topk.results.clear()
     neighbours.foreach(dereference(topk))
 
-    nom = 0
+    num = 0
     denom = 0
     for result in topk.results:
         w = result.first
         s = result.second
-        nom = nom + w * s
+        num = num + w * s
         denom = denom + fabs(w)
 
-    output = nom / (denom + 1e-8)
+    output = num / (denom + 1e-8)
 
     del topk
     del neighbours
@@ -138,7 +164,7 @@ def compute_score(
     cdef int max_neighbors = sim_arr.shape[0]
     cdef int n_items = output.shape[0]
     cdef int nn, i, j
-    cdef double w, s, nom, denom
+    cdef double w, s, num, denom
 
     cdef SparseNeighbors[int, double] * neighbours
     cdef TopK[double, double] * topk
@@ -161,15 +187,15 @@ def compute_score(
             topk.results.clear()
             neighbours.foreach(dereference(topk))
 
-            nom = 0
+            num = 0
             denom = 0
             for result in topk.results:
                 w = result.first
                 s = result.second
-                nom = nom + w * s
+                num = num + w * s
                 denom = denom + fabs(w)
             
-            output[i] = nom / (denom + 1e-8)
+            output[i] = num / (denom + 1e-8)
                 
             del neighbours
             del topk

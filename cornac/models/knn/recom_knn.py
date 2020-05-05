@@ -23,7 +23,6 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 from ...utils import get_rng
 from ...utils.fast_sparse_funcs import inplace_csr_row_normalize_l2
-
 from .similarity import compute_similarity, compute_score, compute_score_single
 
 
@@ -33,59 +32,60 @@ SIMILARITIES = ["cosine", "pearson"]
 WEIGHTING_OPTIONS = ["idf", "bm25"]
 
 
-def _mean_centered(csr_mat):
+def _mean_centered(ui_mat):
     """Subtract every rating values with mean value of the corresponding rows"""
-    mean_arr = np.zeros(csr_mat.shape[0])
-    for i in range(csr_mat.shape[0]):
-        start_idx, end_idx = csr_mat.indptr[i : i + 2]
-        mean_arr[i] = np.mean(csr_mat.data[start_idx:end_idx])
-        csr_mat.data[start_idx:end_idx] -= mean_arr[i]
+    mean_arr = np.zeros(ui_mat.shape[0])
+    for i in range(ui_mat.shape[0]):
+        start_idx, end_idx = ui_mat.indptr[i : i + 2]
+        mean_arr[i] = np.mean(ui_mat.data[start_idx:end_idx])
+        row_data = ui_mat.data[start_idx:end_idx]
+        row_data -= mean_arr[i]
+        row_data[row_data == 0] = EPS
+        ui_mat.data[start_idx:end_idx] = row_data
 
-    return csr_mat, mean_arr
+    return ui_mat, mean_arr
 
 
-def _amplify(csr_mat, alpha=1.0):
+def _amplify(ui_mat, alpha=1.0):
     """Exponentially amplify values of similarity matrix"""
     if alpha == 1.0:
-        return csr_mat
+        return ui_mat
 
-    for i, w in enumerate(csr_mat.data):
-        csr_mat.data[i] = w ** alpha if w >= 0 else -(-w) ** alpha
-    return csr_mat
+    for i, w in enumerate(ui_mat.data):
+        ui_mat.data[i] = w ** alpha if w > 0 else -(-w) ** alpha
+    return ui_mat
 
 
-def _idf_weight(csr_mat):
+def _idf_weight(ui_mat):
     """Weight the matrix Inverse Document (Item) Frequency"""
-    X = coo_matrix(csr_mat)
+    X = coo_matrix(ui_mat)
 
     # calculate IDF
     N = float(X.shape[0])
-    idf = np.log(N) - np.log1p(np.bincount(X.col))
-    
-    weights = idf[csr_mat.indices]
-    print(weights.min(), weights.max(), weights.mean())
+    idf = np.log(N / np.bincount(X.col))
+
+    weights = idf[ui_mat.indices] + EPS
     return weights
 
 
-def _bm25_weight(csr_mat):
+def _bm25_weight(ui_mat):
     """Weight the matrix with BM25 algorithm"""
     K1 = 1.2
     B = 0.8
 
-    X = coo_matrix(csr_mat)
+    X = coo_matrix(ui_mat)
     X.data = np.ones_like(X.data)
 
     N = float(X.shape[0])
-    idf = np.log(N) - np.log1p(np.bincount(X.col))
+    idf = np.log(N / np.bincount(X.col))
 
-    # calculate length_norm per document
+    # calculate length_norm per document (user)
     row_sums = np.ravel(X.sum(axis=1))
     average_length = row_sums.mean()
     length_norm = (1.0 - B) + B * row_sums / average_length
 
     # bm25 weights
-    weights = (K1 + 1.0) / (K1 * length_norm[X.row] + X.data) * idf[X.col]
-    print(weights.min(), weights.max(), weights.mean())
+    weights = (K1 + 1.0) / (K1 * length_norm[X.row] + X.data) * idf[X.col] + EPS
     return weights
 
 
@@ -185,7 +185,6 @@ class UserKNN(Recommender):
 
         self.ui_mat = self.train_set.matrix.copy()
         self.mean_arr = np.zeros(self.ui_mat.shape[0])
-
         if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
             self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
 
@@ -204,7 +203,6 @@ class UserKNN(Recommender):
         self.iu_mat = self.ui_mat.T.tocsr()
         del self.ui_mat
 
-        inplace_csr_row_normalize_l2(weight_mat)
         self.sim_mat = compute_similarity(
             weight_mat, k=self.k, num_threads=self.num_threads, verbose=self.verbose
         )
@@ -363,7 +361,6 @@ class ItemKNN(Recommender):
 
         self.ui_mat = self.train_set.matrix.copy()
         self.mean_arr = np.zeros(self.ui_mat.shape[0])
-
         if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
             self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
 
@@ -372,7 +369,7 @@ class ItemKNN(Recommender):
         else:
             weight_mat = self.train_set.matrix.copy()
 
-        if self.similarity == "pearson":  # mean-centered by columns
+        if self.similarity == "pearson":  # centered by columns
             weight_mat, _ = _mean_centered(weight_mat.T.tocsr())
             weight_mat = weight_mat.T.tocsr()
 
@@ -383,7 +380,6 @@ class ItemKNN(Recommender):
             weight_mat.data *= np.sqrt(_bm25_weight(self.train_set.matrix))
 
         weight_mat = weight_mat.T.tocsr()
-        inplace_csr_row_normalize_l2(weight_mat)
         self.sim_mat = compute_similarity(
             weight_mat, k=self.k, num_threads=self.num_threads, verbose=self.verbose
         )
@@ -441,6 +437,4 @@ class ItemKNN(Recommender):
             num_threads=self.num_threads,
             output=weighted_avg,
         )
-        known_item_scores = self.mean_arr[user_idx] + weighted_avg
-
-        return known_item_scores
+        return self.mean_arr[user_idx] + weighted_avg
