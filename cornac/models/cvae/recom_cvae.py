@@ -14,6 +14,7 @@
 # ============================================================================
 
 import numpy as np
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
@@ -177,7 +178,6 @@ class CVAE(Recommender):
         # VAE initialization
         from .cvae import Model
         import tensorflow as tf
-        from tqdm import trange
 
         model = Model(
             n_users=self.train_set.num_users,
