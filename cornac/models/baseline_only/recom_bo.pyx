@@ -25,7 +25,7 @@ from libc.math cimport abs
 
 import numpy as np
 cimport numpy as np
-from tqdm import trange
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...utils.init_utils import zeros

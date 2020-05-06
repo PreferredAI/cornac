@@ -6838,7 +6838,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_10_fit_sgd(CYTHON
                               goto __pyx_L32;
                               __pyx_L32:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates18)
+                              #pragma omp critical(__pyx_parallel_lastprivates1)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -7068,7 +7068,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_10_fit_sgd(CYTHON
                               goto __pyx_L45;
                               __pyx_L45:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates19)
+                              #pragma omp critical(__pyx_parallel_lastprivates2)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -8661,7 +8661,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_12_fit_sgd(CYTHON
                               goto __pyx_L32;
                               __pyx_L32:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates20)
+                              #pragma omp critical(__pyx_parallel_lastprivates3)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -8891,7 +8891,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_12_fit_sgd(CYTHON
                               goto __pyx_L45;
                               __pyx_L45:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates21)
+                              #pragma omp critical(__pyx_parallel_lastprivates4)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -10482,7 +10482,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_14_fit_sgd(CYTHON
                               goto __pyx_L32;
                               __pyx_L32:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates22)
+                              #pragma omp critical(__pyx_parallel_lastprivates5)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -10712,7 +10712,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_14_fit_sgd(CYTHON
                               goto __pyx_L45;
                               __pyx_L45:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates23)
+                              #pragma omp critical(__pyx_parallel_lastprivates6)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -12303,7 +12303,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_16_fit_sgd(CYTHON
                               goto __pyx_L32;
                               __pyx_L32:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates24)
+                              #pragma omp critical(__pyx_parallel_lastprivates7)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -12533,7 +12533,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_16_fit_sgd(CYTHON
                               goto __pyx_L45;
                               __pyx_L45:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates25)
+                              #pragma omp critical(__pyx_parallel_lastprivates8)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -14125,7 +14125,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_18_fit_sgd(CYTHON
                               goto __pyx_L32;
                               __pyx_L32:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates26)
+                              #pragma omp critical(__pyx_parallel_lastprivates9)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -14355,7 +14355,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_18_fit_sgd(CYTHON
                               goto __pyx_L45;
                               __pyx_L45:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates27)
+                              #pragma omp critical(__pyx_parallel_lastprivates10)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -15947,7 +15947,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_20_fit_sgd(CYTHON
                               goto __pyx_L32;
                               __pyx_L32:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates28)
+                              #pragma omp critical(__pyx_parallel_lastprivates11)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;
@@ -16177,7 +16177,7 @@ static PyObject *__pyx_pf_6cornac_6models_3nmf_9recom_nmf_3NMF_20_fit_sgd(CYTHON
                               goto __pyx_L45;
                               __pyx_L45:;
                               #ifdef _OPENMP
-                              #pragma omp critical(__pyx_parallel_lastprivates29)
+                              #pragma omp critical(__pyx_parallel_lastprivates12)
                               #endif /* _OPENMP */
                               {
                                   __pyx_parallel_temp0 = __pyx_v_f;

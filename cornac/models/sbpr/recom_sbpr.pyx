@@ -23,7 +23,7 @@ from libc.math cimport exp, floor
 import numpy as np
 cimport numpy as np
 from scipy.sparse import csr_matrix
-from tqdm import trange
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ..bpr.recom_bpr import BPR
