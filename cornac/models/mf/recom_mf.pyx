@@ -25,6 +25,7 @@ from libc.math cimport abs
 
 import numpy as np
 cimport numpy as np
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
@@ -190,7 +191,6 @@ class MF(Recommender):
             floating * user
             floating * item
 
-        from tqdm import trange
         progress = trange(max_iter, disable=not self.verbose)
         for epoch in progress:
             last_loss = loss

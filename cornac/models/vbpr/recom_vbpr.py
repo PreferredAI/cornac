@@ -14,6 +14,7 @@
 # ============================================================================
 
 import numpy as np
+from tqdm.auto import tqdm
 
 from ..recommender import Recommender
 from ...exception import CornacException
@@ -168,7 +169,6 @@ class VBPR(Recommender):
 
     def _fit_torch(self, train_features):
         import torch
-        from tqdm import tqdm
 
         def _l2_loss(*tensors):
             l2_loss = 0

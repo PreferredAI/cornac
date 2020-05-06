@@ -15,7 +15,7 @@
 
 import os
 import copy
-from tqdm import trange
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException

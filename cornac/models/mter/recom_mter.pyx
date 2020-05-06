@@ -25,7 +25,7 @@ from libc.math cimport sqrt, log, exp
 import scipy.sparse as sp
 import numpy as np
 cimport numpy as np
-from tqdm import trange
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException

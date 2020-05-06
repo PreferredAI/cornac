@@ -14,6 +14,7 @@
 # ============================================================================
 
 import numpy as np
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
@@ -167,7 +168,6 @@ class HFT(Recommender):
 
     def _fit_hft(self):
         from .hft import Model
-        from tqdm import trange
 
         # document data
         bow_mat = self.train_set.item_text.batch_bow(

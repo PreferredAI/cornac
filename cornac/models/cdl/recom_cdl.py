@@ -14,7 +14,7 @@
 # ============================================================================
 
 import numpy as np
-from tqdm import trange
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
