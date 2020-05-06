@@ -20,7 +20,7 @@ from cython cimport floating, integral
 
 import numpy as np
 cimport numpy as np
-from tqdm import trange
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...utils import get_rng

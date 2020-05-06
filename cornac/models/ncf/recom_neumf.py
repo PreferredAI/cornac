@@ -14,7 +14,6 @@
 # ============================================================================
 
 import numpy as np
-from tqdm import trange
 
 from .recom_ncf_base import NCFBase
 from ...exception import ScoreException
