@@ -17,8 +17,8 @@ from collections import OrderedDict
 import time
 
 import numpy as np
-import tqdm
 from scipy.sparse import csr_matrix
+from tqdm.auto import tqdm
 
 from ..data import TextModality
 from ..data import ImageModality
@@ -31,7 +31,7 @@ from ..experiment.result import Result
 from ..utils import get_rng
 
 
-def rating_eval(model, metrics, test_set, user_based=False):
+def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
     """Evaluate model on provided rating metrics.
 
     Parameters
@@ -48,6 +48,9 @@ def rating_eval(model, metrics, test_set, user_based=False):
     user_based: bool, optional, default: False
         Evaluation mode. Whether results are averaging based on number of users or number of ratings.
 
+    verbose: bool, optional, default: False
+        Output evaluation progress.
+        
     Returns
     -------
     res: (List, List)
@@ -65,12 +68,17 @@ def rating_eval(model, metrics, test_set, user_based=False):
 
     (u_indices, i_indices, r_values) = test_set.uir_tuple
     r_preds = np.fromiter(
-        (
-            model.rate(user_idx, item_idx).item()
-            for user_idx, item_idx in zip(u_indices, i_indices)
+        tqdm(
+            (
+                model.rate(user_idx, item_idx).item()
+                for user_idx, item_idx in zip(u_indices, i_indices)
+            ),
+            desc="Rating",
+            disable=not verbose,
+            miniters=100,
+            total=len(u_indices),
         ),
         dtype=np.float,
-        count=len(u_indices),
     )
 
     gt_mat = test_set.csr_matrix
@@ -161,7 +169,9 @@ def ranking_eval(
             if rating >= rating_threshold
         ]
 
-    for user_idx in tqdm.tqdm(test_set.user_indices, disable=not verbose, miniters=100):
+    for user_idx in tqdm(
+        test_set.user_indices, desc="Ranking", disable=not verbose, miniters=100
+    ):
         test_pos_items = pos_items(gt_mat.getrow(user_idx))
         if len(test_pos_items) == 0:
             continue
@@ -522,6 +532,7 @@ class BaseMethod:
             metrics=self.rating_metrics,
             test_set=test_set,
             user_based=user_based,
+            verbose=self.verbose,
         )
         for i, mt in enumerate(self.rating_metrics):
             metric_avg_results[mt.name] = avg_results[i]
@@ -570,7 +581,7 @@ class BaseMethod:
             raise ValueError("train_set is required but None!")
         if self.test_set is None:
             raise ValueError("test_set is required but None!")
-        
+
         self._reset()
         self._organize_metrics(metrics)
 
@@ -674,4 +685,3 @@ class BaseMethod:
         return method.build(
             train_data=train_data, test_data=test_data, val_data=val_data
         )
-
