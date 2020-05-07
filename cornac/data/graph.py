@@ -66,6 +66,7 @@ class GraphModality(FeatureModality):
     def build(self, id_map=None):
         super().build(id_map)
 
+        self.__matrix = None
         if id_map is not None:
             self.__matrix_size = int(max(id_map.values()) + 1)
             self._build_triplet(id_map)
