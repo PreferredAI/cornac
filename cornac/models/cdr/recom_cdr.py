@@ -33,7 +33,7 @@ class CDR(Recommender):
     max_iter: int, optional, default: 100
         Maximum number of iterations or the number of epochs for SGD.
 
-    ae_structure: list, default: None
+    autoencoder_structure: list, default: None
         The number of neurons of encoder/decoder layer for SDAE.
         For example, autoencoder_structure = [200], the SDAE structure will be [vocab_size, 200, k, 200, vocab_size]
 
@@ -94,7 +94,7 @@ class CDR(Recommender):
         self,
         name="CDR",
         k=50,
-        ae_structure=None,
+        autoencoder_structure=None,
         act_fn="relu",
         lambda_u=0.1,
         lambda_v=100,
@@ -122,7 +122,7 @@ class CDR(Recommender):
         self.learning_rate = learning_rate
         self.name = name
         self.max_iter = max_iter
-        self.ae_structure = ae_structure
+        self.autoencoder_structure = autoencoder_structure
         self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
@@ -184,9 +184,9 @@ class CDR(Recommender):
         # Build model
         layer_sizes = (
             [self.vocab_size]
-            + self.ae_structure
+            + self.autoencoder_structure
             + [self.k]
-            + self.ae_structure
+            + self.autoencoder_structure
             + [self.vocab_size]
         )
         tf.set_random_seed(self.seed)
@@ -216,7 +216,7 @@ class CDR(Recommender):
 
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
-                corruption_mask = np.random.binomial(
+                corruption_mask = self.rng.binomial(
                     1, 1 - self.corruption_rate, (n_items, self.vocab_size)
                 )
                 sum_loss = 0

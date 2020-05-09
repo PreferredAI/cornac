@@ -32,7 +32,7 @@ class ConvMF(Recommender):
     k: int, optional, default: 50
         The dimension of the user and item latent factors.
 
-    max_iter: int, optional, default: 50
+    n_epochs: int, optional, default: 50
         Maximum number of epochs for training.
 
     lambda_u: float, optional, default: 1.0
@@ -73,7 +73,7 @@ class ConvMF(Recommender):
         self,
         give_item_weight=True,
         cnn_epochs=5,
-        max_iter=50,
+        n_epochs=50,
         lambda_u=1,
         lambda_v=100,
         k=50,
@@ -89,7 +89,7 @@ class ConvMF(Recommender):
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.give_item_weight = give_item_weight
-        self.max_iter = max_iter
+        self.n_epochs = n_epochs
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.k = k
@@ -207,7 +207,7 @@ class ConvMF(Recommender):
         history = 1e-50
         loss = 0
 
-        for iter in range(self.max_iter):
+        for iter in range(self.n_epochs):
             print("Iteration {}".format(iter + 1))
             tic = time.time()
 

@@ -31,7 +31,7 @@ class CVAE(Recommender):
     z_dim: int, optional, default: 50
         The dimension of the user and item latent factors.
 
-    max_iter: int, optional, default: 100
+    n_epochs: int, optional, default: 100
         Maximum number of epochs for training.
 
     lambda_u: float, optional, default: 1e-4
@@ -91,8 +91,8 @@ class CVAE(Recommender):
     def __init__(
         self,
         name="CVAE",
-        n_z=50,
-        max_iter=100,
+        z_dim=50,
+        n_epochs=100,
         lambda_u=1e-4,
         lambda_v=0.001,
         lambda_r=10,
@@ -118,10 +118,10 @@ class CVAE(Recommender):
         self.lambda_w = lambda_w
         self.a = a
         self.b = b
-        self.max_iter = max_iter
+        self.n_epochs = n_epochs
         self.input_dim = input_dim
         self.vae_layers = vae_layers
-        self.n_z = n_z
+        self.z_dim = z_dim
         self.loss_type = loss_type
         self.act_fn = act_fn
         self.lr = lr
@@ -138,9 +138,9 @@ class CVAE(Recommender):
         n_users, n_items = self.train_set.num_users, self.train_set.num_items
 
         if self.U is None:
-            self.U = xavier_uniform((n_users, self.n_z), rng)
+            self.U = xavier_uniform((n_users, self.z_dim), rng)
         if self.V is None:
-            self.V = xavier_uniform((n_items, self.n_z), rng)
+            self.V = xavier_uniform((n_items, self.z_dim), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -186,7 +186,7 @@ class CVAE(Recommender):
             input_dim=self.input_dim,
             U=self.U,
             V=self.V,
-            n_z=self.n_z,
+            n_z=self.z_dim,
             lambda_u=self.lambda_u,
             lambda_v=self.lambda_v,
             lambda_r=self.lambda_r,
@@ -203,7 +203,7 @@ class CVAE(Recommender):
         sess = tf.Session(config=config)
         sess.run(tf.global_variables_initializer())  # init variable
 
-        loop = trange(self.max_iter, disable=not self.verbose)
+        loop = trange(self.n_epochs, disable=not self.verbose)
         for _ in loop:
             cf_loss, vae_loss, count = 0, 0, 0
             for i, batch_ids in enumerate(
