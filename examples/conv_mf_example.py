@@ -48,7 +48,7 @@ ratio_split = RatioSplit(
 )
 
 # Instantiate ConvMF model
-convmf = cornac.models.ConvMF(n_epochs=5, verbose=True, seed=123)
+convmf = cornac.models.ConvMF(max_iter=5, verbose=True, seed=123)
 
 # Instantiate RMSE for evaluation
 rmse = cornac.metrics.RMSE()

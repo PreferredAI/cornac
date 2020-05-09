@@ -51,12 +51,13 @@ ratio_split = RatioSplit(
 # Instantiate CDL model
 cdl = cornac.models.CDL(
     k=50,
-    autoencoder_structure=[200],
+    ae_structure=[200],
     max_iter=30,
     lambda_u=0.1,
     lambda_v=1,
     lambda_w=0.1,
     lambda_n=1000,
+    seed=123
 )
 
 # Use Recall@300 for evaluation

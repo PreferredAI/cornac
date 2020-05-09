@@ -31,7 +31,7 @@ class CVAE(Recommender):
     z_dim: int, optional, default: 50
         The dimension of the user and item latent factors.
 
-    n_epochs: int, optional, default: 100
+    max_iter: int, optional, default: 100
         Maximum number of epochs for training.
 
     lambda_u: float, optional, default: 1e-4
@@ -91,8 +91,8 @@ class CVAE(Recommender):
     def __init__(
         self,
         name="CVAE",
-        z_dim=50,
-        n_epochs=100,
+        n_z=50,
+        max_iter=100,
         lambda_u=1e-4,
         lambda_v=0.001,
         lambda_r=10,
@@ -118,10 +118,10 @@ class CVAE(Recommender):
         self.lambda_w = lambda_w
         self.a = a
         self.b = b
-        self.n_epochs = n_epochs
+        self.max_iter = max_iter
         self.input_dim = input_dim
-        self.dimensions = vae_layers
-        self.n_z = z_dim
+        self.vae_layers = vae_layers
+        self.n_z = n_z
         self.loss_type = loss_type
         self.act_fn = act_fn
         self.lr = lr
@@ -179,6 +179,7 @@ class CVAE(Recommender):
         from .cvae import Model
         import tensorflow as tf
 
+        tf.set_random_seed(self.seed)
         model = Model(
             n_users=self.train_set.num_users,
             n_items=self.train_set.num_items,
@@ -190,7 +191,7 @@ class CVAE(Recommender):
             lambda_v=self.lambda_v,
             lambda_r=self.lambda_r,
             lambda_w=self.lambda_w,
-            layers=self.dimensions,
+            layers=self.vae_layers,
             loss_type=self.loss_type,
             act_fn=self.act_fn,
             seed=self.seed,
@@ -202,7 +203,7 @@ class CVAE(Recommender):
         sess = tf.Session(config=config)
         sess.run(tf.global_variables_initializer())  # init variable
 
-        loop = trange(self.n_epochs, disable=not self.verbose)
+        loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
             cf_loss, vae_loss, count = 0, 0, 0
             for i, batch_ids in enumerate(

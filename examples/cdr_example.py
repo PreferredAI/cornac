@@ -51,7 +51,7 @@ ratio_split = RatioSplit(
 # Instantiate CDR model
 cdr = cornac.models.CDR(
     k=50,
-    autoencoder_structure=[200],
+    ae_structure=[200],
     max_iter=100,
     batch_size=128,
     lambda_u=0.01,
@@ -60,6 +60,7 @@ cdr = cornac.models.CDR(
     lambda_n=5,
     learning_rate=0.001,
     vocab_size=8000,
+    seed=123
 )
 
 # Use Recall@300 for evaluation

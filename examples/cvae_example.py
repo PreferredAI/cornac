@@ -50,13 +50,13 @@ ratio_split = RatioSplit(
 
 # Instantiate CVAE model
 cvae = cornac.models.CVAE(
-    z_dim=50,
+    n_z=50,
     vae_layers=[200, 100],
     act_fn="sigmoid",
     input_dim=8000,
     lr=0.001,
     batch_size=128,
-    n_epochs=100,
+    max_iter=100,
     lambda_u=1e-4,
     lambda_v=0.001,
     lambda_r=10,

@@ -101,7 +101,7 @@ class CDL(Recommender):
         self,
         name="CDL",
         k=50,
-        autoencoder_structure=None,
+        ae_structure=None,
         act_fn="relu",
         lambda_u=0.1,
         lambda_v=10,
@@ -134,7 +134,7 @@ class CDL(Recommender):
         self.vocab_size = vocab_size
         self.name = name
         self.max_iter = max_iter
-        self.ae_structure = autoencoder_structure
+        self.ae_structure = ae_structure
         self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
