@@ -57,6 +57,7 @@ cdl = cornac.models.CDL(
     lambda_v=1,
     lambda_w=0.1,
     lambda_n=1000,
+    seed=123
 )
 
 # Use Recall@300 for evaluation

@@ -120,8 +120,8 @@ class CVAE(Recommender):
         self.b = b
         self.n_epochs = n_epochs
         self.input_dim = input_dim
-        self.dimensions = vae_layers
-        self.n_z = z_dim
+        self.vae_layers = vae_layers
+        self.z_dim = z_dim
         self.loss_type = loss_type
         self.act_fn = act_fn
         self.lr = lr
@@ -138,9 +138,9 @@ class CVAE(Recommender):
         n_users, n_items = self.train_set.num_users, self.train_set.num_items
 
         if self.U is None:
-            self.U = xavier_uniform((n_users, self.n_z), rng)
+            self.U = xavier_uniform((n_users, self.z_dim), rng)
         if self.V is None:
-            self.V = xavier_uniform((n_items, self.n_z), rng)
+            self.V = xavier_uniform((n_items, self.z_dim), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -179,18 +179,19 @@ class CVAE(Recommender):
         from .cvae import Model
         import tensorflow as tf
 
+        tf.set_random_seed(self.seed)
         model = Model(
             n_users=self.train_set.num_users,
             n_items=self.train_set.num_items,
             input_dim=self.input_dim,
             U=self.U,
             V=self.V,
-            n_z=self.n_z,
+            n_z=self.z_dim,
             lambda_u=self.lambda_u,
             lambda_v=self.lambda_v,
             lambda_r=self.lambda_r,
             lambda_w=self.lambda_w,
-            layers=self.dimensions,
+            layers=self.vae_layers,
             loss_type=self.loss_type,
             act_fn=self.act_fn,
             seed=self.seed,
