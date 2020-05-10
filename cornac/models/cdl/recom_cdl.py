@@ -134,7 +134,7 @@ class CDL(Recommender):
         self.vocab_size = vocab_size
         self.name = name
         self.max_iter = max_iter
-        self.ae_structure = autoencoder_structure
+        self.autoencoder_structure = autoencoder_structure
         self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
@@ -195,9 +195,9 @@ class CDL(Recommender):
         # Build model
         layer_sizes = (
             [self.vocab_size]
-            + self.ae_structure
+            + self.autoencoder_structure
             + [self.k]
-            + self.ae_structure
+            + self.autoencoder_structure
             + [self.vocab_size]
         )
         tf.set_random_seed(self.seed)

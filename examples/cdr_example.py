@@ -60,6 +60,7 @@ cdr = cornac.models.CDR(
     lambda_n=5,
     learning_rate=0.001,
     vocab_size=8000,
+    seed=123
 )
 
 # Use Recall@300 for evaluation

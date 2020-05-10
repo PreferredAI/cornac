@@ -89,10 +89,10 @@ class ConvMF(Recommender):
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.give_item_weight = give_item_weight
-        self.max_iter = n_epochs
+        self.n_epochs = n_epochs
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
-        self.dimension = k
+        self.k = k
         self.dropout_rate = dropout_rate
         self.emb_dim = emb_dim
         self.max_len = max_len
@@ -114,9 +114,9 @@ class ConvMF(Recommender):
         vocab_size = self.train_set.item_text.vocab.size
 
         if self.U is None:
-            self.U = xavier_uniform((n_users, self.dimension), rng)
+            self.U = xavier_uniform((n_users, self.k), rng)
         if self.V is None:
-            self.V = xavier_uniform((n_items, self.dimension), rng)
+            self.V = xavier_uniform((n_items, self.k), rng)
         if self.W is None:
             self.W = xavier_uniform((vocab_size, self.emb_dim), rng)
 
@@ -178,8 +178,9 @@ class ConvMF(Recommender):
         from .convmf import CNN_module
         import tensorflow as tf
 
+        tf.set_random_seed(self.seed)
         cnn_module = CNN_module(
-            output_dimension=self.dimension,
+            output_dimension=self.k,
             dropout_rate=self.dropout_rate,
             emb_dim=self.emb_dim,
             max_len=self.max_len,
@@ -206,7 +207,7 @@ class ConvMF(Recommender):
         history = 1e-50
         loss = 0
 
-        for iter in range(self.max_iter):
+        for iter in range(self.n_epochs):
             print("Iteration {}".format(iter + 1))
             tic = time.time()
 
@@ -216,8 +217,8 @@ class ConvMF(Recommender):
                 V_i = self.V[idx_item]
                 R_i = R_user[i]
 
-                A = self.lambda_u * np.eye(self.dimension) + V_i.T.dot(V_i)
-                B = (V_i * (np.tile(R_i, (self.dimension, 1)).T)).sum(0)
+                A = self.lambda_u * np.eye(self.k) + V_i.T.dot(V_i)
+                B = (V_i * (np.tile(R_i, (self.k, 1)).T)).sum(0)
                 self.U[i] = np.linalg.solve(A, B)
 
                 user_loss[i] = -0.5 * self.lambda_u * np.dot(self.U[i], self.U[i])
@@ -228,10 +229,10 @@ class ConvMF(Recommender):
                 U_j = self.U[idx_user]
                 R_j = R_item[j]
 
-                A = self.lambda_v * item_weight[j] * np.eye(self.dimension) + U_j.T.dot(
+                A = self.lambda_v * item_weight[j] * np.eye(self.k) + U_j.T.dot(
                     U_j
                 )
-                B = (U_j * (np.tile(R_j, (self.dimension, 1)).T)).sum(
+                B = (U_j * (np.tile(R_j, (self.k, 1)).T)).sum(
                     0
                 ) + self.lambda_v * item_weight[j] * theta[j]
                 self.V[j] = np.linalg.solve(A, B)
