@@ -122,7 +122,7 @@ class CDR(Recommender):
         self.learning_rate = learning_rate
         self.name = name
         self.max_iter = max_iter
-        self.ae_structure = autoencoder_structure
+        self.autoencoder_structure = autoencoder_structure
         self.act_fn = act_fn
         self.batch_size = batch_size
         self.verbose = verbose
@@ -160,8 +160,9 @@ class CDR(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
+        self._init()
+        
         if self.trainable:
-            self._init()
             self._fit_cdr()
 
         return self
@@ -183,12 +184,12 @@ class CDR(Recommender):
         # Build model
         layer_sizes = (
             [self.vocab_size]
-            + self.ae_structure
+            + self.autoencoder_structure
             + [self.k]
-            + self.ae_structure
+            + self.autoencoder_structure
             + [self.vocab_size]
         )
-
+        tf.set_random_seed(self.seed)
         model = Model(
             n_users=n_users,
             n_items=n_items,
@@ -215,7 +216,7 @@ class CDR(Recommender):
 
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
-                corruption_mask = np.random.binomial(
+                corruption_mask = self.rng.binomial(
                     1, 1 - self.corruption_rate, (n_items, self.vocab_size)
                 )
                 sum_loss = 0
