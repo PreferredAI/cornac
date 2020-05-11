@@ -252,7 +252,7 @@ if USE_CYTHON:
 
 setup(
     name="cornac",
-    version="1.5.1",
+    version="1.5.2",
     description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
