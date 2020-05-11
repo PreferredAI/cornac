@@ -15,7 +15,7 @@
 
 import scipy.sparse as sp
 import numpy as np
-from tqdm import trange
+from tqdm.auto import trange
 
 from . import FeatureModality
 
