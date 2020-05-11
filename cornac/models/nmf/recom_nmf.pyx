@@ -24,6 +24,7 @@ from libcpp cimport bool
 
 import numpy as np
 cimport numpy as np
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
@@ -45,6 +46,9 @@ class NMF(Recommender):
 
     learning_rate: float, optional, default: 0.005
         The learning rate.
+
+    lambda_reg: float, optional, default: 0.0
+        The lambda value used for regularization of all parameters.
 
     lambda_u: float, optional, default: 0.06
         The regularization parameter for user factors U.
@@ -90,19 +94,26 @@ class NMF(Recommender):
     """
 
     def __init__(self, name='NMF', k=15, max_iter=50, learning_rate=.005,
-                 lambda_u=.06, lambda_v=.06, lambda_bu=.02, lambda_bi=.02,
-                 use_bias=False, num_threads=0,
+                 lambda_reg=0.0, lambda_u=.06, lambda_v=.06, lambda_bu=.02, 
+                 lambda_bi=.02, use_bias=False, num_threads=0,
                  trainable=True, verbose=False, init_params=None, seed=None):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.max_iter = max_iter
         self.learning_rate = learning_rate
+        self.lambda_reg = lambda_reg
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.lambda_bu = lambda_bu
         self.lambda_bi = lambda_bi
         self.use_bias = use_bias
         self.seed = seed
+
+        if self.lambda_reg > 0:
+            self.lambda_u = self.lambda_reg
+            self.lambda_v = self.lambda_reg
+            self.lambda_bu = self.lambda_reg
+            self.lambda_bi = self.lambda_reg
 
         if seed is not None:
             self.num_threads = 1
@@ -201,7 +212,6 @@ class NMF(Recommender):
 
             long u, i, f, j
 
-        from tqdm import trange
         progress = trange(max_iter, disable=not verbose)
         for epoch in progress:
             loss = 0.
