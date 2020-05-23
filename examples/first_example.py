@@ -39,15 +39,16 @@ bpr = cornac.models.BPR(
 # Define metrics used to evaluate the models
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
-recall = cornac.metrics.Recall(k=[10, 20])
-ndcg = cornac.metrics.NDCG(k=[10, 20])
+prec = cornac.metrics.Precision(k=10)
+recall = cornac.metrics.Recall(k=10)
+ndcg = cornac.metrics.NDCG(k=10)
 auc = cornac.metrics.AUC()
+mAP = cornac.metrics.MAP()
 
 # Put it together into an experiment and run
 cornac.Experiment(
     eval_method=rs,
     models=[mf, pmf, bpr],
-    metrics=[mae, rmse, recall, ndcg, auc],
+    metrics=[mae, rmse, prec, recall, ndcg, auc, mAP],
     user_based=True,
 ).run()
-
