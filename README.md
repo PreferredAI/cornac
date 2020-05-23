@@ -110,10 +110,12 @@ mAP = cornac.metrics.MAP()
 Put everything together into an experiment and run it:
   
 ```python
-cornac.Experiment(eval_method=rs,
-                  models=[mf, pmf, bpr],
-                  metrics=[mae, rmse, recall, ndcg, auc, mAP],
-                  user_based=True).run()
+cornac.Experiment(
+  eval_method=rs,
+  models=[mf, pmf, bpr],
+  metrics=[mae, rmse, recall, ndcg, auc, mAP],
+  user_based=True
+).run()
 ```
 
 **Output:**
