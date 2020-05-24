@@ -31,6 +31,10 @@ Fmeasure (F1)
 -------------------
 .. autoclass:: FMeasure
 
+Mean Average Precision (MAP)
+----------------------------
+.. autoclass:: MAP
+
 Mean Reciprocal Rank (MRR)
 -------------------------------------------
 .. autoclass:: MRR

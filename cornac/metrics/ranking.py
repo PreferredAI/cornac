@@ -14,6 +14,7 @@
 # ============================================================================
 
 import numpy as np
+from scipy.stats import rankdata
 
 
 class RankingMetric:
@@ -34,9 +35,9 @@ class RankingMetric:
     """
 
     def __init__(self, name=None, k=-1, higher_better=True):
-        assert hasattr(k, '__len__') or k == -1 or k > 0
+        assert hasattr(k, "__len__") or k == -1 or k > 0
 
-        self.type = 'ranking'
+        self.type = "ranking"
         self.name = name
         self.k = k
         self.higher_better = higher_better
@@ -61,7 +62,7 @@ class NDCG(RankingMetric):
     """
 
     def __init__(self, k=-1):
-        RankingMetric.__init__(self, name='NDCG@{}'.format(k), k=k)
+        RankingMetric.__init__(self, name="NDCG@{}".format(k), k=k)
 
     @staticmethod
     def dcg_score(gt_pos, pd_rank, k=-1):
@@ -134,7 +135,7 @@ class NCRR(RankingMetric):
     """
 
     def __init__(self, k=-1):
-        RankingMetric.__init__(self, name='NCRR@{}'.format(k), k=k)
+        RankingMetric.__init__(self, name="NCRR@{}".format(k), k=k)
 
     def compute(self, gt_pos, pd_rank, **kwargs):
         """Compute Normalized Cumulative Reciprocal Rank score.
@@ -156,7 +157,7 @@ class NCRR(RankingMetric):
 
         """
         if self.k > 0:
-            truncated_pd_rank = pd_rank[:self.k]
+            truncated_pd_rank = pd_rank[: self.k]
         else:
             truncated_pd_rank = pd_rank
 
@@ -167,13 +168,13 @@ class NCRR(RankingMetric):
         if len(rec_rank) == 0:
             return 0.0
         rec_rank = rec_rank + 1  # +1 because indices starts from 0 in python
-        crr = np.sum(1. / rec_rank)
+        crr = np.sum(1.0 / rec_rank)
 
         # Compute Ideal CRR
-        max_nb_pos = min(len(gt_pos_items[0]),len(truncated_pd_rank))
+        max_nb_pos = min(len(gt_pos_items[0]), len(truncated_pd_rank))
         ideal_rank = np.arange(max_nb_pos)
         ideal_rank = ideal_rank + 1  # +1 because indices starts from 0 in python
-        icrr = np.sum(1. / ideal_rank)
+        icrr = np.sum(1.0 / ideal_rank)
 
         # Compute nDCG
         ncrr_i = crr / icrr
@@ -190,7 +191,7 @@ class MRR(RankingMetric):
     """
 
     def __init__(self):
-        RankingMetric.__init__(self, name='MRR')
+        RankingMetric.__init__(self, name="MRR")
 
     def compute(self, gt_pos, pd_rank, **kwargs):
         """Compute Mean Reciprocal Rank score.
@@ -215,9 +216,13 @@ class MRR(RankingMetric):
         matched_items = np.nonzero(np.in1d(pd_rank, gt_pos_items))[0]
 
         if len(matched_items) == 0:
-            raise ValueError('No matched between ground-truth items and recommendations')
+            raise ValueError(
+                "No matched between ground-truth items and recommendations"
+            )
 
-        mrr = np.divide(1, (matched_items[0] + 1))  # +1 because indices start from 0 in python
+        mrr = np.divide(
+            1, (matched_items[0] + 1)
+        )  # +1 because indices start from 0 in python
         return mrr
 
 
@@ -261,7 +266,7 @@ class MeasureAtK(RankingMetric):
 
         """
         if self.k > 0:
-            truncated_pd_rank = pd_rank[:self.k]
+            truncated_pd_rank = pd_rank[: self.k]
         else:
             truncated_pd_rank = pd_rank
 
@@ -404,7 +409,7 @@ class AUC(RankingMetric):
     """
 
     def __init__(self):
-        RankingMetric.__init__(self, name='AUC')
+        RankingMetric.__init__(self, name="AUC")
 
     def compute(self, pd_scores, gt_pos, gt_neg=None, **kwargs):
         """Compute Area Under the ROC Curve (AUC).
@@ -438,3 +443,42 @@ class AUC(RankingMetric):
         uj_scores = np.tile(neg_scores, len(pos_scores))
 
         return (ui_scores > uj_scores).sum() / len(uj_scores)
+
+
+class MAP(RankingMetric):
+    """Mean Average Precision (MAP).
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Mean_average_precision
+
+    """
+
+    def __init__(self):
+        RankingMetric.__init__(self, name="MAP")
+
+    def compute(self, pd_scores, gt_pos, **kwargs):
+        """Compute Average Precision.
+
+        Parameters
+        ----------
+        pd_scores: Numpy array
+            Prediction scores for items.
+
+        gt_pos: Numpy array
+            Binary vector of positive items.
+
+        **kwargs: For compatibility
+
+        Returns
+        -------
+        res: A scalar
+            AP score.
+
+        """
+        relevant = gt_pos.astype(np.bool)
+        rank = rankdata(-pd_scores, "max")[relevant]
+        L = rankdata(-pd_scores[relevant], "max")
+        ans = (L / rank).mean()
+
+        return ans
