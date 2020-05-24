@@ -100,30 +100,33 @@ Define metrics used to evaluate the models:
 ```python
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
-recall = cornac.metrics.Recall(k=[10, 20])
-ndcg = cornac.metrics.NDCG(k=[10, 20])
+prec = cornac.metrics.Precision(k=10)
+recall = cornac.metrics.Recall(k=10)
+ndcg = cornac.metrics.NDCG(k=10)
 auc = cornac.metrics.AUC()
-
+mAP = cornac.metrics.MAP()
 ```
 
 Put everything together into an experiment and run it:
   
 ```python
-cornac.Experiment(eval_method=rs,
-                  models=[mf, pmf, bpr],
-                  metrics=[mae, rmse, recall, ndcg, auc],
-                  user_based=True).run()
+cornac.Experiment(
+  eval_method=rs,
+  models=[mf, pmf, bpr],
+  metrics=[mae, rmse, recall, ndcg, auc, mAP],
+  user_based=True
+).run()
 ```
 
 **Output:**
 
-|                          |    MAE |   RMSE |    AUC | NDCG@10 | NDCG@20 | Recall@10 | Recall@20 |  Train (s) | Test (s) |
-| ------------------------ | -----: | -----: | -----: | ------: | ------: | --------: | --------: | ---------: | -------: |
-| [MF](cornac/models/mf)   | 0.7430 | 0.8998 | 0.7445 |  0.0479 |  0.0556 |    0.0352 |    0.0654 |       0.13 |     1.57 |
-| [PMF](cornac/models/pmf) | 0.7534 | 0.9138 | 0.7744 |  0.0617 |  0.0719 |    0.0479 |    0.0880 |       2.18 |     1.64 |
-| [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.0975 |  0.1129 |    0.0891 |    0.1449 |       3.74 |     1.49 |
+|                          |    MAE |   RMSE |    AUC |     MAP | NDCG@10 | Precision@10 | Recall@10 |  Train (s) | Test (s) |
+| ------------------------ | -----: | -----: | -----: | ------: | ------: | -----------: | --------: | ---------: | -------: |
+| [MF](cornac/models/mf)   | 0.7430 | 0.8998 | 0.7445 |  0.0407 |  0.0479 |       0.0437 |    0.0352 |       0.13 |     1.57 |
+| [PMF](cornac/models/pmf) | 0.7534 | 0.9138 | 0.7744 |  0.0491 |  0.0617 |       0.0533 |    0.0479 |       2.18 |     1.64 |
+| [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.0753 |  0.0975 |       0.0727 |    0.0891 |       3.74 |     1.49 |
 
-For more details, please take a look at our [examples](examples).
+For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials).
 
 ## Models
 
