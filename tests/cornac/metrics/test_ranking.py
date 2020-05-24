@@ -26,14 +26,14 @@ from cornac.metrics import Precision
 from cornac.metrics import Recall
 from cornac.metrics import FMeasure
 from cornac.metrics import AUC
+from cornac.metrics import MAP
 
 
 class TestRanking(unittest.TestCase):
-
     def test_ranking_metric(self):
         metric = RankingMetric()
 
-        self.assertEqual(metric.type, 'ranking')
+        self.assertEqual(metric.type, "ranking")
         self.assertIsNone(metric.name)
         self.assertEqual(metric.k, -1)
 
@@ -45,8 +45,8 @@ class TestRanking(unittest.TestCase):
     def test_ndcg(self):
         ndcg = NDCG()
 
-        self.assertEqual(ndcg.type, 'ranking')
-        self.assertEqual(ndcg.name, 'NDCG@-1')
+        self.assertEqual(ndcg.type, "ranking")
+        self.assertEqual(ndcg.name, "NDCG@-1")
 
         self.assertEqual(1, ndcg.compute(np.asarray([1]), np.asarray([0])))
 
@@ -59,13 +59,15 @@ class TestRanking(unittest.TestCase):
 
         ground_truth = np.asarray([0, 0, 1])  # [3]
         rec_list = np.asarray([1, 2, 0])  # [2, 3, 1]
-        self.assertEqual(0.63, float('{:.2f}'.format(ndcg_2.compute(ground_truth, rec_list))))
+        self.assertEqual(
+            0.63, float("{:.2f}".format(ndcg_2.compute(ground_truth, rec_list)))
+        )
 
     def test_ncrr(self):
         ncrr = NCRR()
 
-        self.assertEqual(ncrr.type, 'ranking')
-        self.assertEqual(ncrr.name, 'NCRR@-1')
+        self.assertEqual(ncrr.type, "ranking")
+        self.assertEqual(ncrr.name, "NCRR@-1")
 
         self.assertEqual(1, ncrr.compute(np.asarray([1]), np.asarray([0])))
 
@@ -75,7 +77,9 @@ class TestRanking(unittest.TestCase):
 
         ground_truth = np.asarray([1, 0, 1])  # [1, 3]
         rec_list = np.asarray([1, 2, 0])  # [2, 3, 1]
-        self.assertEqual(((1 / 3 + 1 / 2) / (1 + 1 / 2)), ncrr.compute(ground_truth, rec_list))
+        self.assertEqual(
+            ((1 / 3 + 1 / 2) / (1 + 1 / 2)), ncrr.compute(ground_truth, rec_list)
+        )
 
         ncrr_2 = NCRR(k=2)
         self.assertEqual(ncrr_2.k, 2)
@@ -90,18 +94,18 @@ class TestRanking(unittest.TestCase):
 
         ground_truth = np.asarray([1, 1, 1])  # [1, 2, 3]
         rec_list = np.asarray([5, 1, 6])  # [6, 2, 7]
-        self.assertEqual(1./3., ncrr_2.compute(ground_truth, rec_list))
+        self.assertEqual(1.0 / 3.0, ncrr_2.compute(ground_truth, rec_list))
 
         ncrr_3 = NCRR(k=3)
         ground_truth = np.asarray([1, 1])  # [1, 2]
         rec_list = np.asarray([5, 1, 6, 8])  # [6, 2, 7, 9]
-        self.assertEqual(1./3., ncrr_3.compute(ground_truth, rec_list))
+        self.assertEqual(1.0 / 3.0, ncrr_3.compute(ground_truth, rec_list))
 
     def test_mrr(self):
         mrr = MRR()
 
-        self.assertEqual(mrr.type, 'ranking')
-        self.assertEqual(mrr.name, 'MRR')
+        self.assertEqual(mrr.type, "ranking")
+        self.assertEqual(mrr.name, "MRR")
 
         self.assertEqual(1, mrr.compute(np.asarray([1]), np.asarray([0])))
 
@@ -123,7 +127,7 @@ class TestRanking(unittest.TestCase):
     def test_measure_at_k(self):
         measure_at_k = MeasureAtK()
 
-        self.assertEqual(measure_at_k.type, 'ranking')
+        self.assertEqual(measure_at_k.type, "ranking")
         assert measure_at_k.name is None
         self.assertEqual(measure_at_k.k, -1)
 
@@ -142,8 +146,8 @@ class TestRanking(unittest.TestCase):
     def test_precision(self):
         prec = Precision()
 
-        self.assertEqual(prec.type, 'ranking')
-        self.assertEqual(prec.name, 'Precision@-1')
+        self.assertEqual(prec.type, "ranking")
+        self.assertEqual(prec.name, "Precision@-1")
 
         self.assertEqual(1, prec.compute(np.asarray([1]), np.asarray([0])))
 
@@ -165,8 +169,8 @@ class TestRanking(unittest.TestCase):
     def test_recall(self):
         rec = Recall()
 
-        self.assertEqual(rec.type, 'ranking')
-        self.assertEqual(rec.name, 'Recall@-1')
+        self.assertEqual(rec.type, "ranking")
+        self.assertEqual(rec.name, "Recall@-1")
 
         self.assertEqual(1, rec.compute(np.asarray([1]), np.asarray([0])))
 
@@ -188,8 +192,8 @@ class TestRanking(unittest.TestCase):
     def test_f_measure(self):
         f1 = FMeasure()
 
-        self.assertEqual(f1.type, 'ranking')
-        self.assertEqual(f1.name, 'F1@-1')
+        self.assertEqual(f1.type, "ranking")
+        self.assertEqual(f1.name, "F1@-1")
 
         self.assertEqual(1, f1.compute(np.asarray([1]), np.asarray([0])))
 
@@ -215,8 +219,8 @@ class TestRanking(unittest.TestCase):
     def test_auc(self):
         auc = AUC()
 
-        self.assertEqual(auc.type, 'ranking')
-        self.assertEqual(auc.name, 'AUC')
+        self.assertEqual(auc.type, "ranking")
+        self.assertEqual(auc.name, "AUC")
 
         gt_pos = np.array([0, 0, 1, 1])
         pd_scores = np.array([0.1, 0.4, 0.35, 0.8])
@@ -234,6 +238,24 @@ class TestRanking(unittest.TestCase):
         auc_score = auc.compute(pd_scores, gt_pos, gt_neg)
         self.assertEqual(0.5, auc_score)
 
+    def test_map(self):
+        mAP = MAP()
 
-if __name__ == '__main__':
+        self.assertEqual(mAP.type, "ranking")
+        self.assertEqual(mAP.name, "MAP")
+
+        gt_pos = np.array([1, 0, 0])
+        pd_scores = np.array([0.75, 0.5, 1])
+        self.assertEqual(0.5, mAP.compute(pd_scores, gt_pos))
+
+        gt_pos = np.array([0, 0, 1])
+        pd_scores = np.array([1, 0.2, 0.1])
+        self.assertEqual(1 / 3, mAP.compute(pd_scores, gt_pos))
+
+        gt_pos = np.array([0, 1, 0, 1, 0, 1, 0, 0, 0, 0])
+        pd_scores = np.linspace(0.0, 1.0, len(gt_pos))[::-1]
+        self.assertEqual(0.5, mAP.compute(pd_scores, gt_pos))
+
+
+if __name__ == "__main__":
     unittest.main()
