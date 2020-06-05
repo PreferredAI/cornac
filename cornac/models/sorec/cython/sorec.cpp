@@ -3349,7 +3349,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  * 
  *     Z = init_params.get('Z', None)             # <<<<<<<<<<<<<<
  *     if Z is None:
- *         Z = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+ *         Z = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_init_params, __pyx_n_s_get); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -3366,7 +3366,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  * 
  *     Z = init_params.get('Z', None)
  *     if Z is None:             # <<<<<<<<<<<<<<
- *         Z = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+ *         Z = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
  * 
  */
   __pyx_t_9 = ((((PyObject *) __pyx_v_Z.memview) == Py_None) != 0);
@@ -3375,13 +3375,13 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
     /* "cornac/models/sorec/cython/sorec.pyx":75
  *     Z = init_params.get('Z', None)
  *     if Z is None:
- *         Z = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)             # <<<<<<<<<<<<<<
+ *         Z = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)             # <<<<<<<<<<<<<<
  * 
  * 
  */
     __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_normal); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 75, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_k); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 75, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
@@ -3426,7 +3426,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  * 
  *     Z = init_params.get('Z', None)
  *     if Z is None:             # <<<<<<<<<<<<<<
- *         Z = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+ *         Z = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
  * 
  */
   }
@@ -18652,7 +18652,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  *     Z = init_params.get('Z', None)             # <<<<<<<<<<<<<<
  *     if Z is None:
- *         Z = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+ *         Z = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
  */
   __pyx_tuple__3 = PyTuple_Pack(2, __pyx_n_u_Z, Py_None); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
