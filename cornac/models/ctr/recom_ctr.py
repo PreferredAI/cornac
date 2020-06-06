@@ -160,7 +160,7 @@ class CTR(Recommender):
         )
         doc_ids, doc_cnt = self._build_data(bow_mat)  # bag of word feature
 
-        model = Model(
+        self.model = Model(
             n_user=self.n_user,
             n_item=self.n_item,
             U=self.U,
@@ -177,11 +177,11 @@ class CTR(Recommender):
 
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
-            cf_loss = model.update_cf(
+            cf_loss = self.model.update_cf(
                 user_data=user_data, item_data=item_data
             )  # u and v updating
-            lda_loss = model.update_theta(doc_ids=doc_ids, doc_cnt=doc_cnt)
-            model.update_beta()
+            lda_loss = self.model.update_theta(doc_ids=doc_ids, doc_cnt=doc_cnt)
+            self.model.update_beta()
             loop.set_postfix(cf_loss=cf_loss, lda_likelihood=-lda_loss)
 
         if self.verbose:
