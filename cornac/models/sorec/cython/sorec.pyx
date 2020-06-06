@@ -72,7 +72,7 @@ def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[
     
     Z = init_params.get('Z', None)
     if Z is None:
-        Z = normal((d, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
+        Z = normal((n, k), mean=0.0, std=0.001, random_state=rng, dtype=np.double)
 
 
     # Optimization
