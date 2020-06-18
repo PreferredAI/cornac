@@ -180,6 +180,27 @@ Your contributions at any level of the library are welcome. If you intend to con
 
 You can also post bug reports and feature requests in [GitHub issues](https://github.com/PreferredAI/cornac/issues).
 
+## Citation
+
+If you use Cornac in a scientific publication, we would appreciate citations to the following paper:
+
+[Cornac: A Comparative Framework for Multimodal Recommender Systems](http://jmlr.org/papers/v21/19-805.html), Salah *et al.*, JMLR 21, pp. 1-5, 2020.
+
+Bibtex entry:
+
+```
+@article{cornac,
+  author  = {Aghiles Salah and Quoc-Tuan Truong and Hady W. Lauw},
+  title   = {Cornac: A Comparative Framework for Multimodal Recommender Systems},
+  journal = {Journal of Machine Learning Research},
+  year    = {2020},
+  volume  = {21},
+  number  = {95},
+  pages   = {1-5},
+  url     = {http://jmlr.org/papers/v21/19-805.html}
+}
+```
+
 ## License
 
 [Apache License 2.0](LICENSE)
