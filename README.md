@@ -10,6 +10,7 @@
 [Examples](https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory) |
 [Models](#models) |
 [Datasets](./cornac/datasets/README.md#datasets) |
+[Paper](http://www.jmlr.org/papers/volume21/19-805/19-805.pdf) |
 [Preferred.AI](https://preferred.ai/)
 
 [![TravisCI](https://img.shields.io/travis/PreferredAI/cornac/master.svg?logo=travis)](https://www.travis-ci.org/PreferredAI/cornac)
