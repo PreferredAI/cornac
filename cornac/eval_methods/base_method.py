@@ -20,7 +20,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from tqdm.auto import tqdm
 
-from ..data import TextModality
+from ..data import TextModality, ReviewModality
 from ..data import ImageModality
 from ..data import GraphModality
 from ..data import SentimentModality
@@ -479,6 +479,14 @@ class BaseMethod:
         self.train_set.total_items = self.total_items
 
     def _build_modalities(self):
+        for modality in [self.sentiment, self.user_text, self.item_text]:
+            if modality is None or not isinstance(modality, (SentimentModality, ReviewModality)):
+                continue
+            modality.build(
+                uid_map=self.train_set.uid_map,
+                iid_map=self.train_set.iid_map,
+                dok_matrix=self.train_set.dok_matrix,
+            )
         for user_modality in [self.user_text, self.user_image, self.user_graph]:
             if user_modality is None:
                 continue
@@ -488,13 +496,6 @@ class BaseMethod:
             if item_modality is None:
                 continue
             item_modality.build(id_map=self.global_iid_map)
-
-        if self.sentiment is not None:
-            self.sentiment.build(
-                uid_map=self.train_set.uid_map,
-                iid_map=self.train_set.iid_map,
-                dok_matrix=self.train_set.dok_matrix,
-            )
 
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None:

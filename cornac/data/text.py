@@ -973,3 +973,106 @@ class TextModality(FeatureModality):
         """
         tfidf_mat = self.tfidf_matrix[batch_ids]
         return tfidf_mat if keep_sparse else tfidf_mat.A
+
+class ReviewModality(TextModality):
+    """Review modality
+
+    Parameters
+    ----------
+    data: List[tuple], required
+        A triplet list of user, item, and review \
+        e.g., data=[('user1', 'item1', 'review1'), ('user2', 'item2', 'review2)].
+
+    filter_by: 'user' or 'item, required, default = 'user'
+        Filter mode. Whether reviews are grouped based on users or items.
+
+    tokenizer: Tokenizer, optional, default = None
+        Tokenizer for text splitting. If None, the BaseTokenizer will be used.
+
+    vocab: Vocabulary, optional, default = None
+        Vocabulary of tokens. It contains mapping between tokens to their
+        integer ids and vice versa.
+
+    max_vocab: int, optional, default = None
+        The maximum size of the vocabulary.
+        If vocab is provided, this will be ignored.
+
+    max_doc_freq: float in range [0.0, 1.0] or int, default=1.0
+        When building the vocabulary ignore terms that have a document
+        frequency strictly higher than the given threshold (corpus-specific
+        stop words).
+        If float, the value represents a proportion of documents, int for absolute counts.
+        If `vocab` is not None, this will be ignored.
+
+    min_doc_freq: float in range [0.0, 1.0] or int, default=1
+        When building the vocabulary ignore terms that have a document
+        frequency strictly lower than the given threshold. This value is also
+        called cut-off in the literature.
+        If float, the value represents a proportion of documents, int absolute counts.
+        If `vocab` is not None, this will be ignored.
+
+    tfidf_params: dict or None, optional, default=None
+        If `None`, a default arguments of :obj:`<cornac.data.text.IfidfVectorizer>` will be used.
+        List of parameters:
+
+        'binary' : boolean, default=False
+            If True, all non zero counts are set to 1.
+        'norm' : 'l1', 'l2' or None, optional, default='l2'
+            Each output row will have unit norm, either:
+            * 'l2': Sum of squares of vector elements is 1. The cosine
+            similarity between two vectors is their dot product when l2 norm has
+            been applied.
+            * 'l1': Sum of absolute values of vector elements is 1.
+            See :func:`utils.common.normalize`
+        'use_idf' : boolean, default=True
+            Enable inverse-document-frequency reweighting.
+        'smooth_idf' : boolean, default=True
+            Smooth idf weights by adding one to document frequencies, as if an
+            extra document was seen containing every term in the collection
+            exactly once. Prevents zero divisions.
+        'sublinear_tf' : boolean (default=False)
+            Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
+
+    """
+    def __init__(self,
+                 data: List[tuple] = None,
+                 filter_by: str = 'user',
+                 tokenizer: Tokenizer = None,
+                 vocab: Vocabulary = None,
+                 max_vocab: int = None,
+                 max_doc_freq: Union[float, int] = 1.0,
+                 min_doc_freq: int = 1,
+                 tfidf_params: Dict = None,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.raw_data = data
+        if filter_by not in ['user', 'item']:
+            raise ValueError("filter_by should be either 'user' or 'item'")
+        self.filter_by = filter_by
+        self.tokenizer = BaseTokenizer() if tokenizer is None else tokenizer
+        self.vocab = vocab
+        self.max_vocab = max_vocab
+        self.max_doc_freq = max_doc_freq
+        self.min_doc_freq = min_doc_freq
+        self.tfidf_params = tfidf_params
+        self.sequences = None
+        self.count_matrix = None
+        self.__tfidf_matrix = None
+
+    def build(self, uid_map=None, iid_map=None, dok_matrix=None, **kwargs):
+        """Build the model based on provided list of ordered ids
+        """
+        if uid_map is not None and iid_map is not None and dok_matrix is not None:
+            id_map = uid_map if self.filter_by == 'user' else iid_map
+            corpus = ['' for _ in range(len(id_map))]
+            for raw_uid, raw_iid, review in self.raw_data:
+                user_idx = uid_map.get(raw_uid, None)
+                item_idx = iid_map.get(raw_iid, None)
+                if user_idx is None or item_idx is None or dok_matrix[user_idx, item_idx] == 0:
+                    continue
+                _idx = user_idx if self.filter_by == 'user' else item_idx
+                corpus[_idx] = ' '.join([corpus[_idx], review]).strip()
+            self.corpus = corpus
+            super().build(id_map=id_map)
+
+        return self
