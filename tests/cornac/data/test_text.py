@@ -19,7 +19,7 @@ from collections import defaultdict
 import numpy as np
 import numpy.testing as npt
 
-from cornac.data import TextModality
+from cornac.data import TextModality, ReviewModality
 from cornac.data.text import (
     SPECIAL_TOKENS,
     DEFAULT_PRE_RULES,
@@ -347,6 +347,32 @@ class TestTextModality(unittest.TestCase):
             self.assertFalse(np.array_equal(modality.batch_tfidf([1]),
                                             self.modality.batch_tfidf([1])))
 
+class TestReviewModality(unittest.TestCase):
+    def setUp(self):
+        self.tokens = ['a', 'b', 'c', 'd', 'e', 'f']
+        self.review_data = [
+            ('u1', 'i1', 'a b c'),
+            ('u1', 'i2', 'b c c')
+        ]
+        self.uid_map = {'u1': 0, 'u2': 1, 'u3': 2}
+        self.iid_map = {'i1': 0, 'i2': 1, 'i3': 2}
+        self.dok_matrix = np.array([
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ], dtype=np.int)
+
+    def test_init(self):
+        try:
+            ReviewModality(filter_by='something')
+        except ValueError:
+            assert True
+
+    def test_build(self):
+        ReviewModality().build()
+        ReviewModality(data=[]).build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
+        ReviewModality(data=self.review_data, filter_by='user').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
+        ReviewModality(data=self.review_data, filter_by='item').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
 
 if __name__ == '__main__':
     unittest.main()
