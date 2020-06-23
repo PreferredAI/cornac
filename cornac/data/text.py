@@ -870,7 +870,7 @@ class TextModality(FeatureModality):
         # Reset other lazy-built properties (e.g. tfidf)
         self.__tfidf_matrix = None
 
-    def build(self, id_map=None):
+    def build(self, id_map=None, **kwargs):
         """Build the model based on provided list of ordered ids
 
         Parameters
@@ -885,7 +885,7 @@ class TextModality(FeatureModality):
             An object of type `TextModality`.
 
         """
-        super().build(id_map)
+        super().build(id_map=id_map)
         self._build_text(id_map)
         return self
 
