@@ -369,10 +369,13 @@ class TestReviewModality(unittest.TestCase):
             assert True
 
     def test_build(self):
-        ReviewModality().build()
         ReviewModality(data=[]).build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
         ReviewModality(data=self.review_data, filter_by='user').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
         ReviewModality(data=self.review_data, filter_by='item').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
+        try:
+            ReviewModality().build()
+        except ValueError:
+            assert True
 
 if __name__ == '__main__':
     unittest.main()

@@ -1044,35 +1044,36 @@ class ReviewModality(TextModality):
                  min_doc_freq: int = 1,
                  tfidf_params: Dict = None,
                  **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(
+            tokenizer=tokenizer,
+            vocab=vocab,
+            max_vocab=max_vocab,
+            max_doc_freq=max_doc_freq,
+            min_doc_freq=min_doc_freq,
+            tfidf_params=tfidf_params,
+            **kwargs
+        )
         self.raw_data = data
         if filter_by not in ['user', 'item']:
             raise ValueError("filter_by should be either 'user' or 'item'")
         self.filter_by = filter_by
-        self.tokenizer = BaseTokenizer() if tokenizer is None else tokenizer
-        self.vocab = vocab
-        self.max_vocab = max_vocab
-        self.max_doc_freq = max_doc_freq
-        self.min_doc_freq = min_doc_freq
-        self.tfidf_params = tfidf_params
-        self.sequences = None
-        self.count_matrix = None
-        self.__tfidf_matrix = None
 
     def build(self, uid_map=None, iid_map=None, dok_matrix=None, **kwargs):
         """Build the model based on provided list of ordered ids
         """
-        if uid_map is not None and iid_map is not None and dok_matrix is not None:
-            id_map = uid_map if self.filter_by == 'user' else iid_map
-            corpus = ['' for _ in range(len(id_map))]
-            for raw_uid, raw_iid, review in self.raw_data:
-                user_idx = uid_map.get(raw_uid, None)
-                item_idx = iid_map.get(raw_iid, None)
-                if user_idx is None or item_idx is None or dok_matrix[user_idx, item_idx] == 0:
-                    continue
-                _idx = user_idx if self.filter_by == 'user' else item_idx
-                corpus[_idx] = ' '.join([corpus[_idx], review]).strip()
-            self.corpus = corpus
-            super().build(id_map=id_map)
+        if uid_map is None or iid_map is None or dok_matrix is None:
+            raise ValueError('uid_map, iid_map, and dok_matrix are required')
+
+        id_map = uid_map if self.filter_by == 'user' else iid_map
+        corpus = ['' for _ in range(len(id_map))]
+        for raw_uid, raw_iid, review in self.raw_data:
+            user_idx = uid_map.get(raw_uid, None)
+            item_idx = iid_map.get(raw_iid, None)
+            if user_idx is None or item_idx is None or dok_matrix[user_idx, item_idx] == 0:
+                continue
+            _idx = user_idx if self.filter_by == 'user' else item_idx
+            corpus[_idx] = ' '.join([corpus[_idx], review]).strip()
+        self.corpus = corpus
+        super().build(id_map=id_map)
 
         return self
