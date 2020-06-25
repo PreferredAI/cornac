@@ -1,0 +1,5 @@
+76	93	Sample text 1
+76	257	Sample text 2
+642	257	Sample text 3
+930	257	Sample text 4
+329	705	Sample text 5

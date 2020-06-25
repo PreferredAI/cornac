@@ -63,8 +63,8 @@ class GraphModality(FeatureModality):
         self.map_cid = np.asarray(self.map_cid, dtype=np.int)
         self.val = np.asarray(self.val, dtype=np.float)
 
-    def build(self, id_map=None):
-        super().build(id_map)
+    def build(self, id_map=None, **kwargs):
+        super().build(id_map=id_map)
 
         self.__matrix = None
         if id_map is not None:
