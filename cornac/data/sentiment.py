@@ -21,7 +21,7 @@ class SentimentModality(Modality):
     """Aspect module
     Parameters
     ----------
-    data: List[str], required
+    data: List[tuple], required
         A triplet list of user, item, and sentiment information \
         which also a triplet list of aspect, opinion, and sentiment, \
         e.g., data=[('user1', 'item1', [('aspect1', 'opinion1', 'sentiment1')])].
@@ -109,9 +109,9 @@ class SentimentModality(Modality):
         self.aspect_id_map = aid_map
         self.opinion_id_map = oid_map
 
-    def build(self, uid_map=None, iid_map=None, dok_matrix=None):
+    def build(self, uid_map=None, iid_map=None, dok_matrix=None, **kwargs):
         """Build the model based on provided list of ordered ids
         """
-        if uid_map is not None and iid_map is not None:
+        if uid_map is not None and iid_map is not None and dok_matrix is not None:
             self._build_sentiment(uid_map, iid_map, dok_matrix)
         return self
