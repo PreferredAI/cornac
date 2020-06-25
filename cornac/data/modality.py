@@ -23,7 +23,6 @@ class Modality:
     def __init__(self, **kwargs):
         pass
 
-
 def fallback_feature(func):
     """Decorator to fallback to `batch_feature` in FeatureModality
     """
@@ -88,7 +87,7 @@ class FeatureModality(Modality):
         self.features = new_feats
         self.ids = new_ids
 
-    def build(self, id_map=None):
+    def build(self, id_map=None, **kwargs):
         """Build the feature matrix.
         Features will be swapped if the id_map is provided
         """

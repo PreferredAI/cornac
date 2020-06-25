@@ -36,7 +36,7 @@ class ImageModality(FeatureModality):
         self.images = kwargs.get('images', None)
         self.paths = kwargs.get('paths', None)
 
-    def build(self, id_map=None):
+    def build(self, id_map=None, **kwargs):
         """Build the model based on provided list of ordered ids
 
         Parameters
@@ -51,7 +51,7 @@ class ImageModality(FeatureModality):
             An object of type `ImageModality`.
 
         """
-        super().build(id_map)
+        super().build(id_map=id_map)
         return self
 
     def batch_image(self, batch_ids,

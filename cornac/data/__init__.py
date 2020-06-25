@@ -15,7 +15,7 @@
 
 from .modality import Modality
 from .modality import FeatureModality
-from .text import TextModality
+from .text import TextModality, ReviewModality
 from .image import ImageModality
 from .graph import GraphModality
 from .sentiment import SentimentModality
@@ -24,6 +24,7 @@ from .dataset import Dataset
 
 __all__ = ['FeatureModality',
            'TextModality',
+           'ReviewModality',
            'ImageModality',
            'GraphModality',
            'SentimentModality',

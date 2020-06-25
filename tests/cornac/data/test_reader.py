@@ -65,6 +65,13 @@ class TestReader(unittest.TestCase):
         self.assertEqual(tup_data[6][1], '478')
         self.assertEqual(tup_data[8][0], '543')
 
+    def test_read_review(self):
+        review_data = self.reader.read('./tests/review.txt', fmt='UIReview')
+        self.assertEqual(len(review_data), 5)
+        self.assertEqual(review_data[0][2], 'Sample text 1')
+        self.assertEqual(review_data[1][1], '257')
+        self.assertEqual(review_data[4][0], '329')
+
     def test_filter(self):
         reader = Reader(bin_threshold=4.0)
         data = reader.read(self.data_file)
