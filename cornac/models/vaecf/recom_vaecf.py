@@ -36,7 +36,7 @@ class VAECF(Recommender):
         Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'relu6']
 
     likelihood: str, default: 'mult'
-        Name of the likelihood function used for fitting the obserations.
+        Name of the likelihood function used for modeling the observations.
         Supported choices:
         
         mult: Multinomial likelihood
