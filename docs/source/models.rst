@@ -30,6 +30,11 @@ VAE for Collaborative Filtering (VAECF)
 .. automodule:: cornac.models.vaecf.recom_vaecf
    :members:
 
+Conditional VAE for Collaborative Filtering (CVAECF)
+-------------------------------------------------------
+.. automodule:: cornac.models.cvaecf.recom_cvaecf
+   :members:
+
 Collaborative Variational Autoencoder (CVAE)
 ----------------------------------------------
 .. automodule:: cornac.models.cvae.recom_cvae
