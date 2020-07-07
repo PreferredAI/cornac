@@ -37,7 +37,7 @@ ACT = {
 class CVAE(nn.Module):
     def __init__(self, z_dim, h_dim, ae_structure_z, ae_structure_h, act_fn, likelihood):
         super(CVAE, self).__init__()
-                
+
         self.likelihood = likelihood
         self.act_fn = ACT.get(act_fn, None)
         if self.act_fn is None:
@@ -110,7 +110,7 @@ class CVAE(nn.Module):
         return self.enc_ph_mu(o), self.enc_ph_logvar(o)
 
     def decode(self, z, h):
-        zh = torch.cat([z,h],1)
+        zh = torch.cat([z, h], 1)
         h = self.decoder(zh)
         if self.likelihood == "mult":
             return torch.softmax(h, dim=1)
@@ -133,7 +133,8 @@ class CVAE(nn.Module):
 
         return self.decode(z, h_q), mu_qz, logvar_qz, mu_qhx, logvar_qhx, mu_qhy, logvar_qhy, mu_ph, logvar_ph
 
-    def loss(self, x, x_, mu_qz, logvar_qz, mu_qhx, logvar_qhx, mu_qhy, logvar_qhy, mu_ph, logvar_ph, beta, alpha_1, alpha_2):
+    def loss(self, x, x_, mu_qz, logvar_qz, mu_qhx, logvar_qhx, mu_qhy, logvar_qhy, mu_ph, logvar_ph, beta, alpha_1,
+             alpha_2):
         # Likelihood
         ll_choices = {
             "mult": x * torch.log(x_ + EPS),
@@ -159,30 +160,29 @@ class CVAE(nn.Module):
         std_ph = torch.exp(0.5 * logvar_ph)
 
         # KL(q(h|x)||p(h|x))
-        kld_hx = -0.5 * (1 + 2.0 * torch.log(std_qhx) - (mu_qhx - mu_ph).pow(2) - std_qhx.pow(2)) # assuming std_ph is 1 for now
+        kld_hx = -0.5 * (1 + 2.0 * torch.log(std_qhx) - (mu_qhx - mu_ph).pow(2) - std_qhx.pow(
+            2))  # assuming std_ph is 1 for now
         kld_hx = torch.sum(kld_hx, dim=1)
 
         # KL(q(h|x)||q(h|y))
-        kld_hy = -0.5 * (1 + 2.0 * torch.log(std_qhx) - 2.0 * torch.log(std_qhy) - ((mu_qhx - mu_qhy).pow(2) + std_qhx.pow(2))/std_qhy.pow(2)) # assuming std_ph is 1 for now
+        kld_hy = -0.5 * (1 + 2.0 * torch.log(std_qhx) - 2.0 * torch.log(std_qhy) - (
+                    (mu_qhx - mu_qhy).pow(2) + std_qhx.pow(2)) / std_qhy.pow(2))  # assuming std_ph is 1 for now
         kld_hy = torch.sum(kld_hy, dim=1)
 
-
-
-        return torch.mean(beta * kld_z + alpha_1 * kld_hx  + alpha_2 * kld_hy - ll)
-
+        return torch.mean(beta * kld_z + alpha_1 * kld_hx + alpha_2 * kld_hy - ll)
 
 
 def learn(
-    cvae,
-    train_set,
-    n_epochs,
-    batch_size,
-    learn_rate,
-    beta,
-    alpha_1,
-    alpha_2,
-    verbose,
-    device=torch.device("cpu"),
+        cvae,
+        train_set,
+        n_epochs,
+        batch_size,
+        learn_rate,
+        beta,
+        alpha_1,
+        alpha_2,
+        verbose,
+        device=torch.device("cpu"),
 ):
     optimizer = torch.optim.Adam(params=cvae.parameters(), lr=learn_rate)
 
@@ -193,7 +193,7 @@ def learn(
         sum_loss = 0.0
         count = 0
         for batch_id, u_ids in enumerate(
-            train_set.user_iter(batch_size, shuffle=False)
+                train_set.user_iter(batch_size, shuffle=False)
         ):
             y_batch = y[u_ids, :]
             y_batch.data = np.ones(len(y_batch.data))  # Binarize data
@@ -205,9 +205,11 @@ def learn(
             x_batch = torch.tensor(x_batch, dtype=torch.float32, device=device)
 
             # Reconstructed batch
-            y_batch_, mu_qz, logvar_qz, mu_qhx, logvar_qhx, mu_qhy, logvar_qhy, mu_ph, logvar_ph = cvae(y_batch, x_batch)
+            y_batch_, mu_qz, logvar_qz, mu_qhx, logvar_qhx, mu_qhy, logvar_qhy, mu_ph, logvar_ph = cvae(y_batch,
+                                                                                                        x_batch)
 
-            loss = cvae.loss(y_batch, y_batch_, mu_qz, logvar_qz, mu_qhx, logvar_qhx, mu_qhy, logvar_qhy, mu_ph, logvar_ph, alpha_1, alpha_2, beta)
+            loss = cvae.loss(y_batch, y_batch_, mu_qz, logvar_qz, mu_qhx, logvar_qhx, mu_qhy, logvar_qhy, mu_ph,
+                             logvar_ph, alpha_1, alpha_2, beta)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

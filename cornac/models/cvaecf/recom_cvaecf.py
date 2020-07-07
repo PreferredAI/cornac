@@ -17,6 +17,7 @@ import numpy as np
 from ..recommender import Recommender
 from ...exception import ScoreException
 
+
 class CVAECF(Recommender):
     """Conditional Variational Autoencoder for Collaborative Filtering.
 
@@ -91,25 +92,24 @@ class CVAECF(Recommender):
      with auxiliary information." Proceedings of ACM CIKM. 2017.
     """
 
-
     def __init__(
-        self,
-        name="CVAECF",
-        z_dim=20,
-        h_dim=20,
-        autoencoder_structure=[20],
-        act_fn="tanh",
-        likelihood="mult",
-        n_epochs=100,
-        batch_size=128,
-        learning_rate=0.001,
-        beta=1.0,
-        alpha_1=1.0,
-        alpha_2=1.0,
-        trainable=True,
-        verbose=False,
-        seed=None,
-        use_gpu=False,
+            self,
+            name="CVAECF",
+            z_dim=20,
+            h_dim=20,
+            autoencoder_structure=[20],
+            act_fn="tanh",
+            likelihood="mult",
+            n_epochs=100,
+            batch_size=128,
+            learning_rate=0.001,
+            beta=1.0,
+            alpha_1=1.0,
+            alpha_2=1.0,
+            trainable=True,
+            verbose=False,
+            seed=None,
+            use_gpu=False,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.z_dim = z_dim
@@ -228,7 +228,7 @@ class CVAECF(Recommender):
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
+                    item_idx
             ):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
