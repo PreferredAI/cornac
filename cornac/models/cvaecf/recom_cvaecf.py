@@ -83,7 +83,7 @@ class CVAECF(Recommender):
     use_gpu: boolean, optional, default: False
         If True and your system supports CUDA then training is performed on GPUs.
 
-    user auxiliary data : See "cornac/examples/pcrl_example.py" for an example of how to use \
+    user auxiliary data : See "cornac/examples/cvaecf_filmtrust.py" for an example of how to use \
         cornac's graph modality to load and provide the ``user network'' for CVAECF.
 
     References
