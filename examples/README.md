@@ -24,6 +24,8 @@
 
 [c2pf_example.py](c2pf_example.py) - Collaborative Context Poisson Factorization (C2PF) with Amazon Office dataset.
 
+[cvaecf_filmtrust.py](cvaecf_filmtrust.py) - Fit and evaluate Conditional VAE (CVAECF) on the FilmTrust dataset.
+
 [mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
 
 [pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
