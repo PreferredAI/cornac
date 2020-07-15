@@ -92,7 +92,7 @@ class ConvMF(Recommender):
         n_epochs=50,
         cnn_epochs=5,
         cnn_bs=128,
-        cnn_lr=128,
+        cnn_lr=0.001,
         lambda_u=1,
         lambda_v=100,
         emb_dim=200,
