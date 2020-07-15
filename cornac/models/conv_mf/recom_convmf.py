@@ -13,6 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
+import os
 import time
 import math
 
@@ -35,6 +36,9 @@ class ConvMF(Recommender):
     n_epochs: int, optional, default: 50
         Maximum number of epochs for training.
 
+    cnn_epochs: int, optional, default: 5
+        Number of epochs for optimizing the CNN for each overall training epoch.
+
     lambda_u: float, optional, default: 1.0
         The regularization hyper-parameter for user latent factor.
 
@@ -47,8 +51,14 @@ class ConvMF(Recommender):
     max_len: int, optional, default 300
         The maximum length of item's document
 
-    num_kernel_per_ws: int, optional, default: 100
-        The number of kernel filter in convolutional layer
+    filter_sizes: list, optional, default: [3, 4, 5]
+        The length of filters in convolutional layer
+
+    num_filters: int, optional, default: 100
+        The number of filters in convolutional layer
+        
+    hidden_dim: int, optional, default: 200
+        The dimension of hidden layer after the pooling of all convolutional layers
 
     dropout_rate: float, optional, default: 0.2
         Dropout rate while training CNN
@@ -71,19 +81,21 @@ class ConvMF(Recommender):
 
     def __init__(
         self,
-        give_item_weight=True,
-        cnn_epochs=5,
+        name="ConvMF",
+        k=50,
         n_epochs=50,
+        cnn_epochs=5,
         lambda_u=1,
         lambda_v=100,
-        k=50,
-        name="ConvMF",
-        trainable=True,
-        verbose=False,
-        dropout_rate=0.2,
         emb_dim=200,
         max_len=300,
-        num_kernel_per_ws=100,
+        filter_sizes=[3, 4, 5],
+        num_filters=100,
+        hidden_dim=200,
+        dropout_rate=0.2,
+        give_item_weight=True,
+        trainable=True,
+        verbose=False,
         init_params=None,
         seed=None,
     ):
@@ -96,7 +108,9 @@ class ConvMF(Recommender):
         self.dropout_rate = dropout_rate
         self.emb_dim = emb_dim
         self.max_len = max_len
-        self.num_kernel_per_ws = num_kernel_per_ws
+        self.filter_sizes = filter_sizes
+        self.num_filters = num_filters
+        self.hidden_dim = hidden_dim
         self.name = name
         self.verbose = verbose
         self.cnn_epochs = cnn_epochs
@@ -138,7 +152,7 @@ class ConvMF(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         self._init()
-            
+
         if self.trainable:
             self._fit_convmf()
 
@@ -175,8 +189,12 @@ class ConvMF(Recommender):
             item_weight = np.ones(n_item, dtype=float)
 
         # Initialize cnn module
+        import tensorflow.compat.v1 as tf
         from .convmf import CNN_module
-        import tensorflow as tf
+        
+        # less verbose TF
+        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+        tf.logging.set_verbosity(tf.logging.ERROR)
 
         tf.set_random_seed(self.seed)
         cnn_module = CNN_module(
@@ -184,7 +202,9 @@ class ConvMF(Recommender):
             dropout_rate=self.dropout_rate,
             emb_dim=self.emb_dim,
             max_len=self.max_len,
-            nb_filters=self.num_kernel_per_ws,
+            filter_sizes=self.filter_sizes,
+            num_filters=self.num_filters,
+            hidden_dim=self.hidden_dim,
             seed=self.seed,
             init_W=self.W,
         )
@@ -207,8 +227,10 @@ class ConvMF(Recommender):
         history = 1e-50
         loss = 0
 
-        for iter in range(self.n_epochs):
-            print("Iteration {}".format(iter + 1))
+        for epoch in range(1, self.n_epochs + 1):
+            if self.verbose:
+                print("Epoch: {}/{}".format(epoch, self.n_epochs))
+            
             tic = time.time()
 
             user_loss = np.zeros(n_user)
@@ -229,9 +251,7 @@ class ConvMF(Recommender):
                 U_j = self.U[idx_user]
                 R_j = R_item[j]
 
-                A = self.lambda_v * item_weight[j] * np.eye(self.k) + U_j.T.dot(
-                    U_j
-                )
+                A = self.lambda_v * item_weight[j] * np.eye(self.k) + U_j.T.dot(U_j)
                 B = (U_j * (np.tile(R_j, (self.k, 1)).T)).sum(
                     0
                 ) + self.lambda_v * item_weight[j] * theta[j]
@@ -239,7 +259,7 @@ class ConvMF(Recommender):
 
                 item_loss[j] = -np.square(R_j - U_j.dot(self.V[j])).sum()
 
-            loop = trange(self.cnn_epochs, desc="CNN", disable=not self.verbose)
+            loop = trange(self.cnn_epochs, desc="Optimizing CNN", disable=not self.verbose)
             for _ in loop:
                 for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
                     batch_seq = self.train_set.item_text.batch_seq(
@@ -271,9 +291,12 @@ class ConvMF(Recommender):
             toc = time.time()
             elapsed = toc - tic
             converge = abs((loss - history) / history)
-            print(
-                "Loss: %.5f Elpased: %.4fs Converge: %.6f " % (loss, elapsed, converge)
-            )
+            
+            if self.verbose:
+                print(
+                    "Loss: %.5f Elpased: %.4fs Converge: %.6f " % (loss, elapsed, converge)
+                )
+                
             history = loss
             if converge < converge_threshold:
                 endure -= 1
