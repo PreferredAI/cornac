@@ -39,8 +39,11 @@ class ConvMF(Recommender):
     cnn_epochs: int, optional, default: 5
         Number of epochs for optimizing the CNN for each overall training epoch.
     
-    cnn_batch_size: int, optional, default: 128
+    cnn_bs: int, optional, default: 128
         Batch size for optimizing CNN.
+        
+    cnn_lr: float, optional, default: 0.001
+        Learning rate for optimizing CNN.
 
     lambda_u: float, optional, default: 1.0
         The regularization hyper-parameter for user latent factor.
@@ -88,7 +91,8 @@ class ConvMF(Recommender):
         k=50,
         n_epochs=50,
         cnn_epochs=5,
-        cnn_batch_size=128,
+        cnn_bs=128,
+        cnn_lr=128,
         lambda_u=1,
         lambda_v=100,
         emb_dim=200,
@@ -106,7 +110,8 @@ class ConvMF(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.give_item_weight = give_item_weight
         self.n_epochs = n_epochs
-        self.cnn_batch_size = cnn_batch_size
+        self.cnn_bs = cnn_bs
+        self.cnn_lr = cnn_lr
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.k = k
@@ -212,6 +217,7 @@ class ConvMF(Recommender):
             hidden_dim=self.hidden_dim,
             seed=self.seed,
             init_W=self.W,
+            learning_rate=self.cnn_lr,
         )
 
         config = tf.ConfigProto()
@@ -269,7 +275,7 @@ class ConvMF(Recommender):
             )
             for _ in loop:
                 for batch_ids in self.train_set.item_iter(
-                    batch_size=self.cnn_batch_size, shuffle=True
+                    batch_size=self.cnn_bs, shuffle=True
                 ):
                     batch_seq = self.train_set.item_text.batch_seq(
                         batch_ids, max_length=self.max_len
