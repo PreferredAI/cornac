@@ -38,6 +38,12 @@ class ConvMF(Recommender):
 
     cnn_epochs: int, optional, default: 5
         Number of epochs for optimizing the CNN for each overall training epoch.
+    
+    cnn_bs: int, optional, default: 128
+        Batch size for optimizing CNN.
+        
+    cnn_lr: float, optional, default: 0.001
+        Learning rate for optimizing CNN.
 
     lambda_u: float, optional, default: 1.0
         The regularization hyper-parameter for user latent factor.
@@ -85,6 +91,8 @@ class ConvMF(Recommender):
         k=50,
         n_epochs=50,
         cnn_epochs=5,
+        cnn_bs=128,
+        cnn_lr=128,
         lambda_u=1,
         lambda_v=100,
         emb_dim=200,
@@ -102,6 +110,8 @@ class ConvMF(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.give_item_weight = give_item_weight
         self.n_epochs = n_epochs
+        self.cnn_bs = cnn_bs
+        self.cnn_lr = cnn_lr
         self.lambda_u = lambda_u
         self.lambda_v = lambda_v
         self.k = k
@@ -191,7 +201,7 @@ class ConvMF(Recommender):
         # Initialize cnn module
         import tensorflow.compat.v1 as tf
         from .convmf import CNN_module
-        
+
         # less verbose TF
         os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
         tf.logging.set_verbosity(tf.logging.ERROR)
@@ -207,6 +217,7 @@ class ConvMF(Recommender):
             hidden_dim=self.hidden_dim,
             seed=self.seed,
             init_W=self.W,
+            learning_rate=self.cnn_lr,
         )
 
         config = tf.ConfigProto()
@@ -230,10 +241,10 @@ class ConvMF(Recommender):
         for epoch in range(1, self.n_epochs + 1):
             if self.verbose:
                 print("Epoch: {}/{}".format(epoch, self.n_epochs))
-            
+
             tic = time.time()
 
-            user_loss = np.zeros(n_user)
+            user_loss = 0.0
             for i in range(n_user):
                 idx_item = user_data[0][i]
                 V_i = self.V[idx_item]
@@ -243,9 +254,9 @@ class ConvMF(Recommender):
                 B = (V_i * (np.tile(R_i, (self.k, 1)).T)).sum(0)
                 self.U[i] = np.linalg.solve(A, B)
 
-                user_loss[i] = -0.5 * self.lambda_u * np.dot(self.U[i], self.U[i])
+                user_loss += self.lambda_u * np.dot(self.U[i], self.U[i])
 
-            item_loss = np.zeros(n_item)
+            item_loss = 0.0
             for j in range(n_item):
                 idx_user = item_data[0][j]
                 U_j = self.U[idx_user]
@@ -257,11 +268,15 @@ class ConvMF(Recommender):
                 ) + self.lambda_v * item_weight[j] * theta[j]
                 self.V[j] = np.linalg.solve(A, B)
 
-                item_loss[j] = -np.square(R_j - U_j.dot(self.V[j])).sum()
+                item_loss += np.square(R_j - U_j.dot(self.V[j])).sum()
 
-            loop = trange(self.cnn_epochs, desc="Optimizing CNN", disable=not self.verbose)
+            loop = trange(
+                self.cnn_epochs, desc="Optimizing CNN", disable=not self.verbose
+            )
             for _ in loop:
-                for batch_ids in self.train_set.item_iter(batch_size=128, shuffle=True):
+                for batch_ids in self.train_set.item_iter(
+                    batch_size=self.cnn_bs, shuffle=True
+                ):
                     batch_seq = self.train_set.item_text.batch_seq(
                         batch_ids, max_length=self.max_len
                     )
@@ -282,21 +297,18 @@ class ConvMF(Recommender):
                 [cnn_module.model_output, cnn_module.weighted_loss], feed_dict=feed_dict
             )
 
-            loss = (
-                loss
-                + np.sum(user_loss)
-                + np.sum(item_loss)
-                - 0.5 * self.lambda_v * cnn_loss
-            )
+            loss = 0.5 * (user_loss + item_loss + self.lambda_v * cnn_loss)
+
             toc = time.time()
             elapsed = toc - tic
             converge = abs((loss - history) / history)
-            
+
             if self.verbose:
                 print(
-                    "Loss: %.5f Elpased: %.4fs Converge: %.6f " % (loss, elapsed, converge)
+                    "Loss: %.5f Elapsed: %.4fs Converge: %.6f "
+                    % (loss, elapsed, converge)
                 )
-                
+
             history = loss
             if converge < converge_threshold:
                 endure -= 1
