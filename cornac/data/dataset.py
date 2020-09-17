@@ -602,4 +602,5 @@ class Dataset(object):
         self.user_graph = kwargs.get("user_graph", None)
         self.item_graph = kwargs.get("item_graph", None)
         self.sentiment = kwargs.get("sentiment", None)
+        self.review_text = kwargs.get("review_text", None)
 
