@@ -14,7 +14,7 @@
 # ============================================================================
 
 from typing import List, Dict, Callable, Union
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, OrderedDict
 import string
 import pickle
 import re
@@ -983,8 +983,8 @@ class ReviewModality(TextModality):
         A triplet list of user, item, and review \
         e.g., data=[('user1', 'item1', 'review1'), ('user2', 'item2', 'review2)].
 
-    filter_by: 'user' or 'item, required, default = 'user'
-        Filter mode. Whether reviews are grouped based on users or items.
+    group_by: 'user', 'item', or None, required, default = None
+        Group mode. Whether reviews are grouped based on users, items, or not.
 
     tokenizer: Tokenizer, optional, default = None
         Tokenizer for text splitting. If None, the BaseTokenizer will be used.
@@ -1036,7 +1036,7 @@ class ReviewModality(TextModality):
     """
     def __init__(self,
                  data: List[tuple] = None,
-                 filter_by: str = 'user',
+                 group_by: str = None,
                  tokenizer: Tokenizer = None,
                  vocab: Vocabulary = None,
                  max_vocab: int = None,
@@ -1054,26 +1054,50 @@ class ReviewModality(TextModality):
             **kwargs
         )
         self.raw_data = data
-        if filter_by not in ['user', 'item']:
-            raise ValueError("filter_by should be either 'user' or 'item'")
-        self.filter_by = filter_by
+        if group_by not in ['user', 'item', None]:
+            raise ValueError("group_by should be in ['user', 'item', None]")
+        self.group_by = group_by
+
+    def _build_corpus(self, uid_map, iid_map, dok_matrix):
+        id_map = None
+        corpus = None
+        if self.group_by is None:
+            self.user_review = OrderedDict()
+            self.item_review = OrderedDict()
+
+            reviews = OrderedDict()
+            corpus = []
+            for raw_uid, raw_iid, review in self.raw_data:
+                user_idx = uid_map.get(raw_uid, None)
+                item_idx = iid_map.get(raw_iid, None)
+                if user_idx is None or item_idx is None or dok_matrix[user_idx, item_idx] == 0:
+                    continue
+                idx = len(reviews)
+                reviews.setdefault(idx, review)
+                user_dict = self.user_review.setdefault(user_idx, OrderedDict())
+                user_dict[item_idx] = idx
+                item_dict = self.item_review.setdefault(item_idx, OrderedDict())
+                item_dict[user_idx] = idx
+                corpus.append(review)
+            self.reviews = reviews
+        else:
+            id_map = uid_map if self.group_by == 'user' else iid_map
+            corpus = ['' for _ in range(len(id_map))]
+            for raw_uid, raw_iid, review in self.raw_data:
+                user_idx = uid_map.get(raw_uid, None)
+                item_idx = iid_map.get(raw_iid, None)
+                if user_idx is None or item_idx is None or dok_matrix[user_idx, item_idx] == 0:
+                    continue
+                _idx = user_idx if self.group_by == 'user' else item_idx
+                corpus[_idx] = ' '.join([corpus[_idx], review.strip()])
+        return corpus, id_map
 
     def build(self, uid_map=None, iid_map=None, dok_matrix=None, **kwargs):
         """Build the model based on provided list of ordered ids
         """
         if uid_map is None or iid_map is None or dok_matrix is None:
             raise ValueError('uid_map, iid_map, and dok_matrix are required')
-
-        id_map = uid_map if self.filter_by == 'user' else iid_map
-        corpus = ['' for _ in range(len(id_map))]
-        for raw_uid, raw_iid, review in self.raw_data:
-            user_idx = uid_map.get(raw_uid, None)
-            item_idx = iid_map.get(raw_iid, None)
-            if user_idx is None or item_idx is None or dok_matrix[user_idx, item_idx] == 0:
-                continue
-            _idx = user_idx if self.filter_by == 'user' else item_idx
-            corpus[_idx] = ' '.join([corpus[_idx], review]).strip()
-        self.corpus = corpus
+        self.corpus, id_map = self._build_corpus(uid_map, iid_map, dok_matrix)
         super().build(id_map=id_map)
 
         return self

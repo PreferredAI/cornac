@@ -351,27 +351,28 @@ class TestReviewModality(unittest.TestCase):
     def setUp(self):
         self.tokens = ['a', 'b', 'c', 'd', 'e', 'f']
         self.review_data = [
-            ('u1', 'i1', 'a b c'),
-            ('u1', 'i2', 'b c c')
+            ('76', '93', 'a b c'),
+            ('76', '257', 'b c c')
         ]
-        self.uid_map = {'u1': 0, 'u2': 1, 'u3': 2}
-        self.iid_map = {'i1': 0, 'i2': 1, 'i3': 2}
+        self.uid_map = {'76': 0, '642': 1, '930': 2}
+        self.iid_map = {'93': 0, '257': 1, '705': 2}
         self.dok_matrix = np.array([
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0],
+            [4, 4, 0],
+            [0, 4, 0],
+            [0, 4, 0],
         ], dtype=np.int)
 
     def test_init(self):
         try:
-            ReviewModality(filter_by='something')
+            ReviewModality(group_by='something')
         except ValueError:
             assert True
 
     def test_build(self):
         ReviewModality(data=[]).build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
-        ReviewModality(data=self.review_data, filter_by='user').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
-        ReviewModality(data=self.review_data, filter_by='item').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
+        ReviewModality(data=self.review_data).build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
+        ReviewModality(data=self.review_data, group_by='user').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
+        ReviewModality(data=self.review_data, group_by='item').build(uid_map=self.uid_map, iid_map=self.iid_map, dok_matrix=self.dok_matrix)
         try:
             ReviewModality().build()
         except ValueError:
