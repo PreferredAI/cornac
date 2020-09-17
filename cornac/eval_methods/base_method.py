@@ -261,6 +261,7 @@ class BaseMethod:
         self.item_image = kwargs.get("item_image", None)
         self.item_graph = kwargs.get("item_graph", None)
         self.sentiment = kwargs.get("sentiment", None)
+        self.review_text = kwargs.get("review_text", None)
 
         if verbose:
             print("rating_threshold = {:.1f}".format(rating_threshold))
@@ -373,6 +374,22 @@ class BaseMethod:
                 )
             )
         self.__sentiment = input_modality
+
+    @property
+    def review_text(self):
+        return self.__review_text
+
+    @review_text.setter
+    def review_text(self, input_modality):
+        if input_modality is not None and not isinstance(
+            input_modality, ReviewModality
+        ):
+            raise ValueError(
+                "input_modality has to be instance of ReviewModality but {}".format(
+                    type(input_modality)
+                )
+            )
+        self.__review_text = input_modality
 
     def _reset(self):
         """Reset the random number generator for reproducibility"""
@@ -499,8 +516,10 @@ class BaseMethod:
                 dok_matrix=self.train_set.dok_matrix,
             )
 
-        if self.sentiment is not None:
-            self.sentiment.build(
+        for modality in [self.sentiment, self.review_text]:
+            if modality is None:
+                continue
+            modality.build(
                 uid_map=self.train_set.uid_map,
                 iid_map=self.train_set.iid_map,
                 dok_matrix=self.train_set.dok_matrix,
@@ -517,6 +536,7 @@ class BaseMethod:
                 item_image=self.item_image,
                 item_graph=self.item_graph,
                 sentiment=self.sentiment,
+                review_text=self.review_text,
             )
 
     def build(self, train_data, test_data, val_data=None):
