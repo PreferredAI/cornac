@@ -10,6 +10,11 @@ Amazon Clothing
 .. automodule:: cornac.datasets.amazon_clothing
    :members:
 
+Amazon Digital Music
+-----------------------------------------------
+.. automodule:: cornac.datasets.amazon_digital_music
+   :members:
+
 Amazon Office
 ---------------------------------------------
 .. automodule:: cornac.datasets.amazon_office
