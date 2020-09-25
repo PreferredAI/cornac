@@ -27,11 +27,22 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.amazon_clothing">Amazon Clothing</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
     <td align="right">5,377</td>
     <td align="right">3,393</td>
-    <td align="right">13, 689</td>
+    <td align="right">13,689</td>
     <td align="center">INT<br>[1,5]</td>
     <td align="center">&#10004;</td>
     <td align="center">&#10004;</td>
     <td align="center">&#10004;</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.amazon_digital_music">Amazon Digital Music</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
+    <td align="right">5,541</td>
+    <td align="right">3,568</td>
+    <td align="right">64,706</td>
+    <td align="center">INT<br>[1,5]</td>
+    <td align="center">&#10004;</td>
+    <td align="center"></td>
+    <td align="center"></td>
     <td></td>
   </tr>
   <tr>
