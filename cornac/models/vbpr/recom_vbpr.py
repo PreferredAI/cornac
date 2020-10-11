@@ -284,7 +284,7 @@ class VBPR(Recommender):
             The index of the user for whom to perform score prediction.
 
         item_idx: int, optional, default: None
-            The index of the item for that to perform score prediction.
+            The index of the item for which to perform score prediction.
             If None, scores for all known items will be returned.
 
         Returns
