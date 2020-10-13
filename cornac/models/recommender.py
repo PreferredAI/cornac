@@ -277,9 +277,8 @@ class Recommender:
             item_scores = all_item_scores[: self.train_set.num_items]
             item_rank = item_scores.argsort()[::-1]
         else:
-            item_scores = all_item_scores[: len(item_indices)]
-            item_rank = item_scores.argsort()[::-1]
-            item_scores = item_scores[item_indices]
+            item_scores = all_item_scores[item_indices]
+            item_rank = np.array(item_indices)[item_scores.argsort()[::-1]]
 
         return item_rank, item_scores
 
