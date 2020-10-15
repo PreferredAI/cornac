@@ -246,13 +246,12 @@ class Recommender:
         item_indices: 1d array, optional, default: None
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned.
-            ASSUMPTION: list of item indices are continuous from 0 to len(item_indices).
 
         Returns
         -------
-        Tuple of `item_rank`, and `item_scores`. The order of values
-        in item_scores are corresponding to the order of their ids in item_ids
-
+        (item_rank, item_scores): tuple
+            `item_rank` contains item indices being ranked by their scores.
+            `item_scores` contains scores of items corresponding to their indices in the `item_indices` input.
         """
         # obtain item scores from the model
         try:
@@ -277,9 +276,8 @@ class Recommender:
             item_scores = all_item_scores[: self.train_set.num_items]
             item_rank = item_scores.argsort()[::-1]
         else:
-            item_scores = all_item_scores[: len(item_indices)]
-            item_rank = item_scores.argsort()[::-1]
-            item_scores = item_scores[item_indices]
+            item_scores = all_item_scores[item_indices]
+            item_rank = np.array(item_indices)[item_scores.argsort()[::-1]]
 
         return item_rank, item_scores
 
