@@ -15,27 +15,31 @@
 
 import numpy as np
 
-NUM_FMT = '{:.4f}'
+NUM_FMT = "{:.4f}"
 
 
 def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
     if headers is not None:
         data.insert(0, headers)
     if index is not None:
-        index.insert(0, '')
+        index.insert(0, "")
         for idx, row in zip(index, data):
             row.insert(0, idx)
 
     column_widths = np.asarray([[len(str(v)) for v in row] for row in data]).max(axis=0)
 
-    row_fmt = ' | '.join(['{:>%d}' % (w + extra_spaces) for w in column_widths][1:]) + '\n'
+    row_fmt = (
+        " | ".join(["{:>%d}" % (w + extra_spaces) for w in column_widths][1:]) + "\n"
+    )
     if index is not None:
-        row_fmt = '{:<%d} | ' % (column_widths[0] + extra_spaces) + row_fmt
+        row_fmt = "{:<%d} | " % (column_widths[0] + extra_spaces) + row_fmt
 
-    output = ''
+    output = ""
     for i, row in enumerate(data):
         if h_bars is not None and i in h_bars:
-            output += row_fmt.format(*['-' * (w + extra_spaces) for w in column_widths]).replace('|', '+')
+            output += row_fmt.format(
+                *["-" * (w + extra_spaces) for w in column_widths]
+            ).replace("|", "+")
         output += row_fmt.format(*row)
     return output
 
@@ -52,7 +56,7 @@ class Result:
     metric_avg_results: :obj:`OrderedDict`, required
         A dictionary containing the average result per-metric.
 
-    metric_user_results: :obj:`defaultdict`, required
+    metric_user_results: :obj:`OrderedDict`, required
         A dictionary containing the average result per-user across different metrics.
     """
 
@@ -69,7 +73,12 @@ class Result:
 
 class CVResult(list):
     """
-    Cross Validation Result Class for a single model
+    Cross Validation Result Class for a single model. A list of :obj:`cornac.experiment.Result`.
+    
+    Parameters
+    ----------
+    model_name: string, required
+        The name of the recommender model.
     """
 
     def __init__(self, model_name):
@@ -77,26 +86,26 @@ class CVResult(list):
         self.model_name = model_name
 
     def __str__(self):
-        return '[{}]\n{}'.format(self.model_name, self.table)
+        return "[{}]\n{}".format(self.model_name, self.table)
 
     def organize(self):
         headers = list(self[0].metric_avg_results.keys())
         data, index = [], []
         for f, r in enumerate(self):
             data.append([r.metric_avg_results[m] for m in headers])
-            index.append('Fold %d' % f)
+            index.append("Fold %d" % f)
 
         data = np.asarray(data)
         mean, std = data.mean(axis=0), data.std(axis=0)
         data = np.vstack([data, mean, std])
         data = [[NUM_FMT.format(v) for v in row] for row in data]
-        index.extend(['Mean', 'Std'])
+        index.extend(["Mean", "Std"])
         self.table = _table_format(data, headers, index, h_bars=[1, len(data) - 1])
 
 
 class ExperimentResult(list):
     """
-    Result Class for an Experiment
+    Result Class for an Experiment. A list of :obj:`cornac.experiment.Result`. 
     """
 
     def __str__(self):
@@ -110,8 +119,8 @@ class ExperimentResult(list):
 
 class CVExperimentResult(ExperimentResult):
     """
-    Result Class for a cross-validation Experiment
+    Result Class for a cross-validation Experiment.
     """
-    
+
     def __str__(self):
-        return '\n'.join([r.__str__() for r in self])
+        return "\n".join([r.__str__() for r in self])
