@@ -91,25 +91,25 @@ class TestStratifiedSplit(unittest.TestCase):
         data = [(u, i, random.randint(1, 5), random.randint(0, 100))
                 for (u, i) in itertools.product(['u1', 'u2', 'u3', 'u4', 'u5'],
                                                 ['i1', 'i2', 'i3', 'i4', 'i5'])]
-        ratio_split = StratifiedSplit(data, fmt='UIRT', group_by='user', chrono=True, test_size=0.2, val_size=0.2, verbose=True)
-        self.assertTrue(isclose(0.6, ratio_split.train_size))
-        self.assertTrue(isclose(0.2, ratio_split.test_size))
-        self.assertTrue(isclose(0.2, ratio_split.val_size))
+        eval_method = StratifiedSplit(data, fmt='UIRT', group_by='user', chrono=True, test_size=0.2, val_size=0.2, verbose=True)
+        self.assertTrue(isclose(0.6, eval_method.train_size))
+        self.assertTrue(isclose(0.2, eval_method.test_size))
+        self.assertTrue(isclose(0.2, eval_method.val_size))
 
-        ratio_split = StratifiedSplit(data, fmt='UIRT', group_by='item', chrono=True, test_size=0.2, val_size=0.2, verbose=True)
-        self.assertTrue(isclose(0.6, ratio_split.train_size))
-        self.assertTrue(isclose(0.2, ratio_split.test_size))
-        self.assertTrue(isclose(0.2, ratio_split.val_size))
+        eval_method = StratifiedSplit(data, fmt='UIRT', group_by='item', chrono=True, test_size=0.2, val_size=0.2, verbose=True)
+        self.assertTrue(isclose(0.6, eval_method.train_size))
+        self.assertTrue(isclose(0.2, eval_method.test_size))
+        self.assertTrue(isclose(0.2, eval_method.val_size))
 
-        ratio_split = StratifiedSplit(data, fmt='UIR', group_by='user', chrono=False, test_size=0.2, val_size=0.2, verbose=True)
-        self.assertTrue(isclose(0.6, ratio_split.train_size))
-        self.assertTrue(isclose(0.2, ratio_split.test_size))
-        self.assertTrue(isclose(0.2, ratio_split.val_size))
+        eval_method = StratifiedSplit(data, fmt='UIR', group_by='user', chrono=False, test_size=0.2, val_size=0.2, verbose=True)
+        self.assertTrue(isclose(0.6, eval_method.train_size))
+        self.assertTrue(isclose(0.2, eval_method.test_size))
+        self.assertTrue(isclose(0.2, eval_method.val_size))
 
-        ratio_split = StratifiedSplit(data, fmt='UIR', group_by='item', chrono=False, test_size=0.2, val_size=0.2, verbose=True)
-        self.assertTrue(isclose(0.6, ratio_split.train_size))
-        self.assertTrue(isclose(0.2, ratio_split.test_size))
-        self.assertTrue(isclose(0.2, ratio_split.val_size))
+        eval_method = StratifiedSplit(data, fmt='UIR', group_by='item', chrono=False, test_size=0.2, val_size=0.2, verbose=True)
+        self.assertTrue(isclose(0.6, eval_method.train_size))
+        self.assertTrue(isclose(0.2, eval_method.test_size))
+        self.assertTrue(isclose(0.2, eval_method.val_size))
 
 
 
