@@ -28,10 +28,10 @@ class StratifiedSplit(BaseMethod):
     Parameters
     ----------
     data: array-like, required
-        Raw preference data in the triplet format [(user_id, item_id, rating_value, review_time)].
+        Raw preference data in the triplet format [(user_id, item_id, rating_value, timestamp)].
 
     group_by: str, optional, default: 'user'
-        Group option: either 'user' or 'item'
+        Grouping by 'user' or 'item'.
 
     chrono: bool, optional, default False
         Data is ordered by reviewed time or not. If this option is True, data must be in 'UIRT' format.
@@ -57,43 +57,81 @@ class StratifiedSplit(BaseMethod):
 
     """
 
-    def __init__(self, data, group_by='user', chrono=False, fmt='UIRT', test_size=0.2, val_size=0.0, rating_threshold=1.0,
-                 seed=None, exclude_unknowns=True, verbose=False, **kwargs):
-        super().__init__(data=data, fmt=fmt, rating_threshold=rating_threshold, seed=seed,
-                         exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
-        if group_by not in ['user', 'item']:
-            raise ValueError("group_by option must be either 'user' or 'item' but {}".format(group_by))
-        if chrono and (fmt != 'UIRT' or len(self._data[0]) != 4):
-            raise ValueError('Input data must be in "UIRT" format')
+    def __init__(
+        self,
+        data,
+        group_by="user",
+        chrono=False,
+        fmt="UIRT",
+        test_size=0.2,
+        val_size=0.0,
+        rating_threshold=1.0,
+        seed=None,
+        exclude_unknowns=True,
+        verbose=False,
+        **kwargs
+    ):
+        super().__init__(
+            data=data,
+            fmt=fmt,
+            rating_threshold=rating_threshold,
+            seed=seed,
+            exclude_unknowns=exclude_unknowns,
+            verbose=verbose,
+            **kwargs
+        )
+
+        if group_by not in ["user", "item"]:
+            raise ValueError(
+                "group_by option must be either 'user' or 'item' but {}".format(
+                    group_by
+                )
+            )
+
+        if chrono and (fmt != "UIRT" or len(self._data[0]) != 4):
+            raise ValueError(
+                'Input data must be in "UIRT" format for sorting chronologically.'
+            )
+
         self.chrono = chrono
         self.group_by = group_by
         self.val_size = val_size
         self.test_size = test_size
+
         self._split()
 
-
     def _split(self):
-        if self.chrono:
-            data = sorted(self._data, key=lambda x: x[3])
-        else:
-            data = self._data
-        grouped_data = defaultdict(list)
+        data = (
+            sorted(self._data, key=lambda x: x[3]) if self.chrono else self._data
+        )  # sort data chronologically
+
+        grouped_indices = defaultdict(list)
         for idx, (uid, iid, *_) in enumerate(data):
-            if self.group_by == 'user':
-                grouped_data[uid].append(idx)
+            if self.group_by == "user":
+                grouped_indices[uid].append(idx)
             else:
-                grouped_data[iid].append(idx)
+                grouped_indices[iid].append(idx)
 
         train_idx = []
         test_idx = []
         val_idx = []
-        for rating_indices in grouped_data.values():
+
+        for rating_indices in grouped_indices.values():
             n_ratings = len(rating_indices)
-            n_train, _, n_test = RatioSplit.validate_size(self.val_size, self.test_size, n_ratings)
-            if not self.chrono:
-                rating_indices = self.rng.permutation(rating_indices).tolist()
+            n_train, _, n_test = RatioSplit.validate_size(
+                self.val_size, self.test_size, n_ratings
+            )
+
+            if self.chrono:
+                # training portion is chronologically sorted
+                # validation and test portions are randomly selected
+                rating_indices = (
+                    rating_indices[:n_train]
+                    + self.rng.permutation(rating_indices[n_train:]).tolist()
+                )
             else:
-                rating_indices = rating_indices[:n_train] + self.rng.permutation(rating_indices[n_train:]).tolist()
+                rating_indices = self.rng.permutation(rating_indices).tolist()
+
             train_idx += rating_indices[:n_train]
             test_idx += rating_indices[-n_test:]
             val_idx += rating_indices[n_train:-n_test]
