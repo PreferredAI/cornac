@@ -21,21 +21,19 @@ from ..utils.common import safe_indexing
 
 
 class ChronoRatioSplit(BaseMethod):
-    """Splitting data into training, validation, and test sets based on provided sizes.
-    Data is always shuffled before split.
+    """Splitting data into training, validation, and test sets chronologically.
+    Validation and test data is always shuffled before split.
 
     Parameters
     ----------
     data: array-like, required
-        Raw preference data in the triplet format [(user_id, item_id, rating_value)].
+        Raw preference data in the triplet format [(user_id, item_id, rating_value, review_time)].
 
     test_size: float, optional, default: 0.2
-        The proportion of the test set, \
-        if > 1 then it is treated as the size of the test set.
+        The proportion of the test set.
 
     val_size: float, optional, default: 0.0
-        The proportion of the validation set, \
-        if > 1 then it is treated as the size of the validation set.
+        The proportion of the validation set.
 
     rating_threshold: float, optional, default: 1.0
         Threshold used to binarize rating values into positive or negative feedback for
