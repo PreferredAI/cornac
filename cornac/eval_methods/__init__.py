@@ -18,10 +18,10 @@ from .base_method import ranking_eval
 
 from .base_method import BaseMethod
 from .ratio_split import RatioSplit
-from .chrono_ratio_split import ChronoRatioSplit
+from .stratified_split import StratifiedSplit
 from .cross_validation import CrossValidation
 
 __all__ = ['BaseMethod',
            'RatioSplit',
-           'ChronoRatioSplit',
+           'StratifiedSplit',
            'CrossValidation']

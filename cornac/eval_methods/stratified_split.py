@@ -20,14 +20,19 @@ from ..utils import get_rng
 from ..utils.common import safe_indexing
 
 
-class ChronoRatioSplit(BaseMethod):
-    """Splitting data into training, validation, and test sets chronologically.
-    Validation and test data is always shuffled before split.
+class StratifiedSplit(BaseMethod):
+    """Grouping data by user or item then splitting data into training, validation, and test sets.
 
     Parameters
     ----------
     data: array-like, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value, review_time)].
+
+    group_by: str, optional, default: 'user'
+        Group option: either 'user' or 'item'
+
+    chrono: bool, optional, default False
+        Data is ordered by reviewed time or not. If this option is True, data must be in 'UIRT' format.
 
     test_size: float, optional, default: 0.2
         The proportion of the test set.
@@ -50,12 +55,16 @@ class ChronoRatioSplit(BaseMethod):
 
     """
 
-    def __init__(self, data, fmt='UIRT', test_size=0.2, val_size=0.0, rating_threshold=1.0,
+    def __init__(self, data, group_by='user', chrono=False, fmt='UIRT', test_size=0.2, val_size=0.0, rating_threshold=1.0,
                  seed=None, exclude_unknowns=True, verbose=False, **kwargs):
         super().__init__(data=data, fmt=fmt, rating_threshold=rating_threshold, seed=seed,
                          exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
-        if fmt != 'UIRT' or len(self._data[0]) != 4:
+        if group_by not in ['user', 'item']:
+            raise ValueError("group_by option must be either 'user' or 'item' but {}".format(group_by))
+        if chrono and (fmt != 'UIRT' or len(self._data[0]) != 4):
             raise ValueError('Input data must be in "UIRT" format')
+        self.chrono = chrono
+        self.group_by = group_by
         self.train_size, self.val_size, self.test_size = self.validate_size(val_size, test_size)
         self._split()
 
@@ -80,27 +89,34 @@ class ChronoRatioSplit(BaseMethod):
         return train_size, val_size, test_size
 
     def _split(self):
-        sorted_data = sorted(self._data, key=lambda x: x[3])
-
-        user_data = {}
-        for idx, tup in enumerate(sorted_data):
-            user_data.setdefault(tup[0], []).append(idx)
+        if self.chrono:
+            data = sorted(self._data, key=lambda x: x[3])
+        else:
+            data = self._data
+        grouped_data = {}
+        for idx, tup in enumerate(data):
+            if self.group_by == 'item':
+                grouped_data.setdefault(tup[1], []).append(idx)
+            else:
+                grouped_data.setdefault(tup[0], []).append(idx)
 
         train_idx = []
         test_idx = []
         val_idx = []
-        for items in user_data.values():
-            n_ratings = len(items)
+        for ratings in grouped_data.values():
+            n_ratings = len(ratings)
             n_test = int(self.test_size * n_ratings)
             n_val = int(self.val_size * n_ratings)
             n_train = n_ratings - n_test - n_val
+            if not self.chrono:
+                ratings = self.rng.permutation(ratings).tolist()
+            else:
+                ratings = ratings[:n_train] + self.rng.permutation(ratings[n_train:]).tolist()
+            train_idx += ratings[:n_train]
+            test_idx += ratings[-n_test:]
+            val_idx += ratings[n_train:-n_test]
 
-            non_training_idx = self.rng.permutation(items[n_train:]).tolist()
-            train_idx += items[:n_train]
-            test_idx += non_training_idx[-n_test:]
-            val_idx += non_training_idx[:-n_test]
-
-        train_data = safe_indexing(sorted_data, train_idx)
-        test_data = safe_indexing(sorted_data, test_idx)
-        val_data = safe_indexing(sorted_data, val_idx) if len(val_idx) > 0 else None
+        train_data = safe_indexing(data, train_idx)
+        test_data = safe_indexing(data, test_idx)
+        val_data = safe_indexing(data, val_idx) if len(val_idx) > 0 else None
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)

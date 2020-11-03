@@ -18,83 +18,99 @@ import itertools
 import random
 from math import isclose
 
-from cornac.eval_methods import ChronoRatioSplit
+from cornac.eval_methods import StratifiedSplit
 from cornac.data import Reader
 from cornac.models import MF
 from cornac.metrics import MAE, Recall
 
 
-class TestRatioSplit(unittest.TestCase):
+class TestStratifiedSplit(unittest.TestCase):
 
     def setUp(self):
         self.data = Reader().read('./tests/data.txt', fmt='UIRT', sep='\t')
 
     def test_data_fmt(self):
         try:
-            ChronoRatioSplit(self.data, fmt='UIR', verbose=True)
+            StratifiedSplit(self.data, fmt='UIR', chrono=True, verbose=True)
         except ValueError:
             assert True
 
         try:
             data = Reader().read('./tests/data.txt', fmt='UIR', sep='\t')
-            ChronoRatioSplit(data, verbose=True)
+            StratifiedSplit(data, chrono=True, verbose=True)
         except ValueError:
             assert True
 
     def test_validate_size(self):
-        train_size, val_size, test_size = ChronoRatioSplit.validate_size(0.1, 0.2)
+        train_size, val_size, test_size = StratifiedSplit.validate_size(0.1, 0.2)
         self.assertEqual(train_size, 0.7)
         self.assertEqual(val_size, 0.1)
         self.assertEqual(test_size, 0.2)
 
-        train_size, val_size, test_size = ChronoRatioSplit.validate_size(None, 0.2)
+        train_size, val_size, test_size = StratifiedSplit.validate_size(None, 0.2)
         self.assertEqual(train_size, 0.8)
         self.assertEqual(val_size, 0.0)
         self.assertEqual(test_size, 0.2)
 
-        train_size, val_size, test_size = ChronoRatioSplit.validate_size(None, None)
+        train_size, val_size, test_size = StratifiedSplit.validate_size(None, None)
         self.assertEqual(train_size, 1.0)
         self.assertEqual(val_size, 0.0)
         self.assertEqual(test_size, 0.0)
 
         try:
-            ChronoRatioSplit.validate_size(-0.1, 0.2)
+            StratifiedSplit.validate_size(-0.1, 0.2)
         except ValueError:
             assert True
 
         try:
-            ChronoRatioSplit.validate_size(2, 0.2)
+            StratifiedSplit.validate_size(2, 0.2)
         except ValueError:
             assert True
 
         try:
-            ChronoRatioSplit.validate_size(0.1, -0.2)
+            StratifiedSplit.validate_size(0.1, -0.2)
         except ValueError:
             assert True
 
         try:
-            ChronoRatioSplit.validate_size(0.1, 2)
+            StratifiedSplit.validate_size(0.1, 2)
         except ValueError:
             assert True
 
         try:
-            ChronoRatioSplit.validate_size(0.6, 0.6)
+            StratifiedSplit.validate_size(0.6, 0.6)
         except ValueError:
             assert True
 
     def test_splits(self):
         try:
-            ChronoRatioSplit(self.data, fmt='UIRT', test_size=0.1, val_size=0.1, verbose=True)
+            StratifiedSplit(self.data, fmt='UIRT', chrono=True, test_size=0.1, val_size=0.1, verbose=True)
         except ValueError: # test_data and val_data are empty
             assert True
 
         data = [(u, i, random.randint(1, 5), random.randint(0, 100))
-                for (u, i) in itertools.product(['u1', 'u2', 'u3', 'u4'],
+                for (u, i) in itertools.product(['u1', 'u2', 'u3', 'u4', 'u5'],
                                                 ['i1', 'i2', 'i3', 'i4', 'i5'])]
-        ratio_split = ChronoRatioSplit(data, test_size=0.2, val_size=0.2, verbose=True)
+        ratio_split = StratifiedSplit(data, fmt='UIRT', group_by='user', chrono=True, test_size=0.2, val_size=0.2, verbose=True)
         self.assertTrue(isclose(0.6, ratio_split.train_size))
         self.assertTrue(isclose(0.2, ratio_split.test_size))
         self.assertTrue(isclose(0.2, ratio_split.val_size))
+
+        ratio_split = StratifiedSplit(data, fmt='UIRT', group_by='item', chrono=True, test_size=0.2, val_size=0.2, verbose=True)
+        self.assertTrue(isclose(0.6, ratio_split.train_size))
+        self.assertTrue(isclose(0.2, ratio_split.test_size))
+        self.assertTrue(isclose(0.2, ratio_split.val_size))
+
+        ratio_split = StratifiedSplit(data, fmt='UIR', group_by='user', chrono=False, test_size=0.2, val_size=0.2, verbose=True)
+        self.assertTrue(isclose(0.6, ratio_split.train_size))
+        self.assertTrue(isclose(0.2, ratio_split.test_size))
+        self.assertTrue(isclose(0.2, ratio_split.val_size))
+
+        ratio_split = StratifiedSplit(data, fmt='UIR', group_by='item', chrono=False, test_size=0.2, val_size=0.2, verbose=True)
+        self.assertTrue(isclose(0.6, ratio_split.train_size))
+        self.assertTrue(isclose(0.2, ratio_split.test_size))
+        self.assertTrue(isclose(0.2, ratio_split.val_size))
+
 
 
 if __name__ == '__main__':
