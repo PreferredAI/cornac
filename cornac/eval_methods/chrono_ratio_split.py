@@ -65,18 +65,18 @@ class ChronoRatioSplit(BaseMethod):
     def validate_size(val_size, test_size):
         if val_size is None:
             val_size = 0.0
-        elif val_size < 0:
-            raise ValueError('val_size={} should be greater than zero'.format(val_size))
+        elif val_size < 0 or val_size > 1.0:
+            raise ValueError('val_size={} should be within range [0, 1]'.format(val_size))
 
         if test_size is None:
             test_size = 0.0
-        elif test_size < 0:
-            raise ValueError('test_size={} should be greater than zero'.format(test_size))
+        elif test_size < 0 or test_size > 1.0:
+            raise ValueError('test_size={} should be within range [0, 1]'.format(test_size))
 
         train_size = 1. - val_size - test_size
 
         if train_size < 0:
-            raise ValueError('The total of val_size={} and test_size={} should be less than 1'.format(
+            raise ValueError('The total sum of val_size={} and test_size={} should be less than 1.0'.format(
                 val_size, test_size))
 
         return train_size, val_size, test_size
@@ -94,25 +94,15 @@ class ChronoRatioSplit(BaseMethod):
         for items in user_data.values():
             n_ratings = len(items)
             n_test = int(self.test_size * n_ratings)
-            if n_test == 0:
-                n_test = 1
-            if self.val_size > 0:
-                n_val = int(self.val_size * n_ratings)
-                if n_val == 0:
-                    n_val = 1
-            else:
-                n_val = 0
+            n_val = int(self.val_size * n_ratings)
             n_train = n_ratings - n_test - n_val
 
-            if n_train == 0:
-                continue
-
-            test_idx += items[-n_test:]
+            non_training_idx = self.rng.permutation(items[n_train:]).tolist()
             train_idx += items[:n_train]
-            val_idx += items[n_train:-n_test]
+            test_idx += non_training_idx[-n_test:]
+            val_idx += non_training_idx[:-n_test]
 
         train_data = safe_indexing(sorted_data, train_idx)
         test_data = safe_indexing(sorted_data, test_idx)
         val_data = safe_indexing(sorted_data, val_idx) if len(val_idx) > 0 else None
-
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
