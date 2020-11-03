@@ -54,7 +54,7 @@ class ChronoRatioSplit(BaseMethod):
                  seed=None, exclude_unknowns=True, verbose=False, **kwargs):
         super().__init__(data=data, fmt=fmt, rating_threshold=rating_threshold, seed=seed,
                          exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
-        if fmt != 'UIRT':
+        if fmt != 'UIRT' or len(self._data[0]) != 4:
             raise ValueError('Input data must be in "UIRT" format')
         self.train_size, self.val_size, self.test_size = self.validate_size(val_size, test_size)
         self._split()

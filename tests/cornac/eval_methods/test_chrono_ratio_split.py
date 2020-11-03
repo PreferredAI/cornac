@@ -29,6 +29,18 @@ class TestRatioSplit(unittest.TestCase):
     def setUp(self):
         self.data = Reader().read('./tests/data.txt', fmt='UIRT', sep='\t')
 
+    def test_data_fmt(self):
+        try:
+            ChronoRatioSplit(self.data, fmt='UIR', verbose=True)
+        except ValueError:
+            assert True
+
+        try:
+            data = Reader().read('./tests/data.txt', fmt='UIR', sep='\t')
+            ChronoRatioSplit(data, verbose=True)
+        except ValueError:
+            assert True
+
     def test_validate_size(self):
         train_size, val_size, test_size = ChronoRatioSplit.validate_size(0.1, 0.2)
         self.assertEqual(train_size, 0.7)
@@ -72,8 +84,8 @@ class TestRatioSplit(unittest.TestCase):
 
     def test_splits(self):
         try:
-            ChronoRatioSplit(self.data, test_size=0.1, val_size=0.1, verbose=True)
-        except ValueError: # train_data is empty because in thi
+            ChronoRatioSplit(self.data, fmt='UIRT', test_size=0.1, val_size=0.1, verbose=True)
+        except ValueError: # test_data and val_data are empty
             assert True
 
         data = [(u, i, random.randint(1, 5), random.randint(0, 100))
