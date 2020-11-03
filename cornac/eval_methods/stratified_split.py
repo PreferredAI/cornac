@@ -14,8 +14,10 @@
 # ============================================================================
 
 from math import ceil
+from collections import defaultdict
 
 from .base_method import BaseMethod
+from .ratio_split import RatioSplit
 from ..utils import get_rng
 from ..utils.common import safe_indexing
 
@@ -65,58 +67,39 @@ class StratifiedSplit(BaseMethod):
             raise ValueError('Input data must be in "UIRT" format')
         self.chrono = chrono
         self.group_by = group_by
-        self.train_size, self.val_size, self.test_size = self.validate_size(val_size, test_size)
+        self.val_size = val_size
+        self.test_size = test_size
         self._split()
 
-    @staticmethod
-    def validate_size(val_size, test_size):
-        if val_size is None:
-            val_size = 0.0
-        elif val_size < 0 or val_size > 1.0:
-            raise ValueError('val_size={} should be within range [0, 1]'.format(val_size))
-
-        if test_size is None:
-            test_size = 0.0
-        elif test_size < 0 or test_size > 1.0:
-            raise ValueError('test_size={} should be within range [0, 1]'.format(test_size))
-
-        train_size = 1. - val_size - test_size
-
-        if train_size < 0:
-            raise ValueError('The total sum of val_size={} and test_size={} should be less than 1.0'.format(
-                val_size, test_size))
-
-        return train_size, val_size, test_size
 
     def _split(self):
         if self.chrono:
             data = sorted(self._data, key=lambda x: x[3])
         else:
             data = self._data
-        grouped_data = {}
-        for idx, tup in enumerate(data):
-            if self.group_by == 'item':
-                grouped_data.setdefault(tup[1], []).append(idx)
+        grouped_data = defaultdict(list)
+        for idx, (uid, iid, *_) in enumerate(data):
+            if self.group_by == 'user':
+                grouped_data[uid].append(idx)
             else:
-                grouped_data.setdefault(tup[0], []).append(idx)
+                grouped_data[iid].append(idx)
 
         train_idx = []
         test_idx = []
         val_idx = []
-        for ratings in grouped_data.values():
-            n_ratings = len(ratings)
-            n_test = int(self.test_size * n_ratings)
-            n_val = int(self.val_size * n_ratings)
-            n_train = n_ratings - n_test - n_val
+        for rating_indices in grouped_data.values():
+            n_ratings = len(rating_indices)
+            n_train, _, n_test = RatioSplit.validate_size(self.val_size, self.test_size, n_ratings)
             if not self.chrono:
-                ratings = self.rng.permutation(ratings).tolist()
+                rating_indices = self.rng.permutation(rating_indices).tolist()
             else:
-                ratings = ratings[:n_train] + self.rng.permutation(ratings[n_train:]).tolist()
-            train_idx += ratings[:n_train]
-            test_idx += ratings[-n_test:]
-            val_idx += ratings[n_train:-n_test]
+                rating_indices = rating_indices[:n_train] + self.rng.permutation(rating_indices[n_train:]).tolist()
+            train_idx += rating_indices[:n_train]
+            test_idx += rating_indices[-n_test:]
+            val_idx += rating_indices[n_train:-n_test]
 
         train_data = safe_indexing(data, train_idx)
         test_data = safe_indexing(data, test_idx)
         val_data = safe_indexing(data, val_idx) if len(val_idx) > 0 else None
+
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
