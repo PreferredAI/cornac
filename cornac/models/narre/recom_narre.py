@@ -286,16 +286,6 @@ class NARRE(Recommender):
         if self.verbose:
             print("Learning completed!")
 
-    def _idx_iter(self, idx_range, batch_size):
-        indices = np.arange(idx_range)
-        num_batches = estimate_batches(len(indices), batch_size)
-        for b in range(num_batches):
-            start_offset = batch_size * b
-            end_offset = batch_size * b + batch_size
-            end_offset = min(end_offset, len(indices))
-            batch_ids = indices[start_offset:end_offset]
-            yield batch_ids
-
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
