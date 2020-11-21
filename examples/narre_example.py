@@ -19,8 +19,6 @@ from cornac.datasets import amazon_digital_music
 from cornac.eval_methods import RatioSplit
 from cornac.data import ReviewModality
 from cornac.data.text import BaseTokenizer
-import pandas as pd
-import numpy as np
 
 
 feedback = amazon_digital_music.load_feedback()
@@ -47,10 +45,19 @@ ratio_split = RatioSplit(
 pretrained_word_embeddings = {}  # You can load pretrained word embedding here
 
 model = cornac.models.NARRE(
-    max_iter=20, word_embedding_size=100, review_len_u=200, review_len_i=200, dropout=0.5, seed=123,
-    init_params={
-        'pretrained_word_embeddings': pretrained_word_embeddings
-    }
+    embedding_dim=100,
+    id_embedding_dim=32,
+    n_factors=32,
+    attention_dim=16,
+    kernel_sizes=[3],
+    n_filters=64,
+    dropout_rate=0.5,
+    max_review_length=50,
+    batch_size=64,
+    max_iter=10,
+    init_params={'pretrained_word_embeddings': pretrained_word_embeddings},
+    verbose=True,
+    seed=123,
 )
 
 cornac.Experiment(

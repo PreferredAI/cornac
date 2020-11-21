@@ -23,6 +23,8 @@ from ...utils import get_rng, estimate_batches
 from ...utils.init_utils import xavier_uniform
 
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 class NARRE(Recommender):
     """Neural Attentional Rating Regression with Review-level Explanations
 
@@ -53,7 +55,7 @@ class NARRE(Recommender):
         Number of filters
     dropout: float, default: 0.8
         Dropout ratio
-    dropout_keep_prob: float, default:0.5
+    dropout_rate: float, default:0.5
         Dropout ratio in ncf
     allow_soft_placement: bool, default: True
     log_device_placement: bool, default: False
@@ -72,23 +74,16 @@ class NARRE(Recommender):
     def __init__(
         self,
         name="NARRE",
-        review_num_u=32,
-        review_num_i=32,
-        review_len_u=500,
-        review_len_i=500,
-        n_latent=32,
-        attention_size=32,
-        word_embedding_size=300,
-        id_embedding_size=32,
-        filter_sizes=[3],
-        n_filters=100,
-        dropout=0.8,
-        dropout_keep_prob=0.5,
-        allow_soft_placement=True,
-        log_device_placement=False,
-        l2_reg_lambda=0.001,
-        batch_size=100,
-        max_iter=50,
+        embedding_dim=100,
+        id_embedding_dim=32,
+        n_factors=32,
+        attention_dim=16,
+        kernel_sizes=[3],
+        n_filters=64,
+        dropout_rate=0.5,
+        max_review_length=50,
+        batch_size=64,
+        max_iter=10,
         trainable=True,
         verbose=True,
         init_params=None,
@@ -97,128 +92,129 @@ class NARRE(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.seed = seed
         self.rng = get_rng(seed)
-        self.review_num_u = review_num_u
-        self.review_num_i = review_num_i
-        self.review_len_u = review_len_u
-        self.review_len_i = review_len_i
-        self.n_latent = n_latent
-        self.attention_size = attention_size
-        self.word_embedding_size = word_embedding_size
-        self.id_embedding_size = id_embedding_size
-        self.filter_sizes = filter_sizes
+        self.embedding_dim = embedding_dim
+        self.id_embedding_dim = id_embedding_dim
+        self.n_factors = n_factors
+        self.attention_dim = attention_dim
         self.n_filters = n_filters
-        self.l2_reg_lambda = l2_reg_lambda
-        self.max_iter = max_iter
-        self.dropout = dropout
+        self.kernel_sizes = kernel_sizes
+        self.dropout_rate = dropout_rate
+        self.max_review_length = max_review_length
         self.batch_size = batch_size
-        self.allow_soft_placement = allow_soft_placement
-        self.log_device_placement = log_device_placement
-        self.dropout_keep_prob = dropout_keep_prob
+        self.max_iter = max_iter
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
 
     def _init(self):
         self.n_users, self.n_items = self.train_set.num_users, self.train_set.num_items
+        self.n_vocab = self.train_set.review_text.vocab.size
         self.pretrained_word_embeddings = self.init_params.get('pretrained_word_embeddings')
+        self._init_word_embedding_matrix()
 
-    def _build_graph(self):
-        from .narre import Model
-        import tensorflow.compat.v1 as tf
-        tf.disable_v2_behavior()
-        # less verbose TF
-        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-        tf.logging.set_verbosity(tf.logging.ERROR)
-        self.graph = tf.Graph()
-        with self.graph.as_default():
-            tf.set_random_seed(self.seed)
-            self.vocab = self.train_set.review_text.vocab
-            self.user_review = self.train_set.review_text.user_review
-            self.item_review = self.train_set.review_text.item_review
+    def _init_word_embedding_matrix(self):
+        self.embedding_matrix = np.random.uniform(-0.5, 0.5, (self.n_vocab, self.embedding_dim))
+        self.embedding_matrix[:4, :] = np.zeros((4, self.embedding_dim))
+        if self.pretrained_word_embeddings is not None:
+            oov_count = 0
+            for word, idx in self.train_set.review_text.vocab.tok2idx.items():
+                embedding_vector = self.pretrained_word_embeddings.get(word)
+                if embedding_vector is not None:
+                    self.embedding_matrix[idx] = embedding_vector
+                else:
+                    oov_count += 1
+            if self.verbose:
+                print("Number of OOV words: %d" % oov_count)
 
-            self.model = Model(
-                review_num_u=self.review_num_u,
-                review_num_i=self.review_num_i,
-                review_len_u=self.review_len_u,
-                review_len_i=self.review_len_i,
-                n_users=self.n_users,
-                n_items=self.n_items,
-                user_vocabulary=self.vocab,
-                item_vocabulary=self.vocab,
-                n_latent=self.n_latent,
-                id_embedding_size=self.id_embedding_size,
-                attention_size=self.attention_size,
-                word_embedding_size=self.word_embedding_size,
-                filter_sizes=self.filter_sizes,
-                n_filters=self.n_filters,
-                l2_reg_lambda=self.l2_reg_lambda,
-                pretrained_word_embeddings=self.pretrained_word_embeddings
+    def _init_model(self):
+        import tensorflow as tf
+        from tensorflow import keras
+        from tensorflow.keras import Input, layers, initializers, Model
+        from .narre import TextProcessor
+        tf.random.set_seed(self.seed)
+        self.i_user_id = Input(shape=(1,), dtype="int32", name="input_user_id")
+        self.i_item_id = Input(shape=(1,), dtype="int32", name="input_item_id")
+        self.i_user_review = Input(shape=(None, self.max_review_length), dtype="int32", name="input_user_review")
+        self.i_item_review = Input(shape=(None, self.max_review_length), dtype="int32", name="input_item_review")
+        self.i_user_iid_review = Input(shape=(None,), dtype="int32", name="input_user_iid_review")
+        self.i_item_uid_review = Input(shape=(None,), dtype="int32", name="input_item_iid_review")
+        self.l_user_review_embedding = layers.Embedding(self.n_vocab, self.embedding_dim, embeddings_initializer=initializers.Constant(self.embedding_matrix), name="layer_user_review_embedding")
+        self.l_item_review_embedding = layers.Embedding(self.n_vocab, self.embedding_dim, embeddings_initializer=initializers.Constant(self.embedding_matrix), name="layer_item_review_embedding")
+        self.l_user_iid_embedding = layers.Embedding(self.n_items, self.id_embedding_dim, embeddings_initializer="uniform", name="user_iid_embedding")
+        self.l_item_uid_embedding = layers.Embedding(self.n_users, self.id_embedding_dim, embeddings_initializer="uniform", name="item_uid_embedding")
+        self.l_user_embedding = layers.Embedding(self.n_users, self.id_embedding_dim, embeddings_initializer="uniform", name="user_embedding")
+        self.l_item_embedding = layers.Embedding(self.n_items, self.id_embedding_dim, embeddings_initializer="uniform", name="item_embedding")
+        self.user_bias = layers.Embedding(self.n_users, 1, embeddings_initializer=tf.initializers.Constant(0.1))
+        self.item_bias = layers.Embedding(self.n_items, 1, embeddings_initializer=tf.initializers.Constant(0.1))
+        self.global_bias = keras.backend.constant(self.train_set.global_mean, shape=(1,), name="global_mean")
+
+        self.user_text_processor = TextProcessor(self.max_review_length, filters=self.n_filters, kernel_sizes=self.kernel_sizes, dropout_rate=self.dropout_rate)
+        self.item_text_processor = TextProcessor(self.max_review_length, filters=self.n_filters, kernel_sizes=self.kernel_sizes, dropout_rate=self.dropout_rate)
+        user_review_h = self.user_text_processor(self.l_user_review_embedding(self.i_user_review), training=self.trainable)
+        item_review_h = self.item_text_processor(self.l_item_review_embedding(self.i_item_review), training=self.trainable)
+
+        self.user_attention = layers.Softmax(name="user_attention")(layers.Dense(self.n_filters, activation=None, use_bias=True, name="user_attention_dense")(
+            layers.ReLU()(
+                layers.Add()(
+                    [
+                        layers.Dense(self.attention_dim, use_bias=False)(user_review_h),
+                        layers.Dense(self.attention_dim, use_bias=False)(self.l_user_iid_embedding(self.i_user_iid_review)),
+                        layers.Embedding(self.n_users, 1, embeddings_initializer=tf.initializers.Constant(0.1))(self.i_user_id)
+                    ]
+                )
             )
-            self.initializer = tf.global_variables_initializer()
-            self.saver = tf.train.Saver()
+        ))
+        self.item_attention = layers.Softmax(name="item_attention")(layers.Dense(self.n_filters, activation=None, use_bias=True, name="item_attention_dense")(
+            layers.ReLU()(
+                layers.Add()(
+                    [
+                        layers.Dense(self.attention_dim, use_bias=False)(item_review_h),
+                        layers.Dense(self.attention_dim, use_bias=False)(self.l_item_uid_embedding(self.i_item_uid_review)),
+                        layers.Embedding(self.n_items, 1, embeddings_initializer=tf.initializers.Constant(0.1))(self.i_item_id)
+                    ]
+                )
+            )
+        ))
+        u = layers.Dropout(rate=self.dropout_rate)(tf.reduce_sum(layers.Multiply()([self.user_attention, user_review_h]), 1))
+        i = layers.Dropout(rate=self.dropout_rate)(tf.reduce_sum(layers.Multiply()([self.item_attention, item_review_h]), 1))
+        self.Xu = layers.Dense(self.n_factors, use_bias=True)(u)
+        self.Yi = layers.Dense(self.n_factors, use_bias=True)(i)
 
-        self._sess_init()
+        self.user_attention_review_pooling = Model(inputs=[self.i_user_id, self.i_user_review, self.i_user_iid_review], outputs=self.Xu)
+        self.item_attention_review_pooling = Model(inputs=[self.i_item_id, self.i_item_review, self.i_item_uid_review], outputs=self.Yi)
 
-    def _sess_init(self):
-        import tensorflow.compat.v1 as tf
-        tf.disable_v2_behavior()
-        config = tf.ConfigProto(
-            allow_soft_placement=self.allow_soft_placement,
-            log_device_placement=self.log_device_placement,
-        )
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(graph=self.graph, config=config)
-        self.sess.run(self.initializer)
+        h0 = layers.Multiply(name="h0")([
+            layers.Add()([self.l_user_embedding(self.i_user_id), self.Xu]), layers.Add()([self.l_item_embedding(self.i_item_id), self.Yi])
+        ])
 
-    def _get_data(self, batch_users, batch_items):
-        batch_user_reviews, batch_item_reviews = [], []
-        review_uids, review_iids = [], []
-        for iid in batch_items:
-            user_ids, review_ids = np.ones(self.review_num_i) * self.n_users, []
-            for idx, (user_idx, review_idx) in enumerate(self.train_set.review_text.item_review[iid].items()):
-                if idx + 1 > self.review_num_i:
-                    break
-                user_ids[idx] = user_idx
+        self.W1 = layers.Dense(1, activation=None, use_bias=False)
+        r = layers.Add()([
+            self.W1(h0),
+            self.user_bias(self.i_user_id),
+            self.item_bias(self.i_item_id),
+            self.global_bias,
+        ])
+        self.model = Model(inputs=[self.i_user_id, self.i_item_id, self.i_user_review, self.i_user_iid_review, self.i_item_review, self.i_item_uid_review], outputs=r)
+        if self.verbose:
+            self.model.summary()
+        self.loss = keras.losses.MeanSquaredError()
+        self.optimizer = keras.optimizers.Adam()
+        self.train_loss = keras.metrics.Mean(name="loss")
+
+    def _get_data(self, batch_ids, by='user'):
+        from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+        batch_reviews, batch_id_reviews = [], []
+        review_group = self.train_set.review_text.user_review if by == 'user' else self.train_set.review_text.item_review
+        for idx in batch_ids:
+            ids, review_ids = [], []
+            for jdx, review_idx in review_group[idx].items():
+                ids.append(jdx)
                 review_ids.append(review_idx)
-            review_uids.append(user_ids)
-            mapped_reviews = self.train_set.review_text.batch_seq(review_ids, max_length=self.review_len_i)
-            item_reviews = np.zeros((self.review_num_i, self.review_len_i))
-            item_reviews[:len(review_ids)] = mapped_reviews
-            batch_user_reviews.append(item_reviews)
-        for uid in batch_users:
-            item_ids, review_ids = np.ones(self.review_num_u) * self.n_items, []
-            for idx, (item_idx, review_idx) in enumerate(self.train_set.review_text.user_review[uid].items()):
-                if idx + 1 > self.review_num_u:
-                    break
-                item_ids[idx] = item_idx
-                review_ids.append(review_idx)
-            review_iids.append(item_ids)
-            mapped_reviews = self.train_set.review_text.batch_seq(review_ids, max_length=self.review_len_u)
-            user_reviews = np.zeros((self.review_num_u, self.review_len_u))
-            user_reviews[:len(review_ids)] = mapped_reviews
-            batch_item_reviews.append(user_reviews)
-        batch_item_reviews = np.array(batch_item_reviews, dtype=np.int32)
-        batch_user_reviews = np.array(batch_user_reviews, dtype=np.int32)
-        review_uids = np.array(review_uids, dtype=np.int32)
-        review_iids = np.array(review_iids, dtype=np.int32)
-        return batch_user_reviews, batch_item_reviews, review_uids, review_iids
-
-    def _step_update(self, batch_users, batch_items, batch_ratings):
-        batch_user_reviews, batch_item_reviews, review_uids, review_iids = self._get_data(batch_users, batch_items)
-        _, _loss = self.sess.run(
-            [self.model.opt, self.model.loss],
-            feed_dict={
-                self.model.input_u: batch_item_reviews,
-                self.model.input_i: batch_user_reviews,
-                self.model.input_uid: batch_users.reshape(-1, 1),
-                self.model.input_iid: batch_items.reshape(-1, 1),
-                self.model.input_y: batch_ratings.reshape(-1, 1),
-                self.model.input_reuid: review_iids,
-                self.model.input_reiid: review_uids,
-                self.model.drop0: self.dropout,
-                self.model.dropout_keep_prob: self.dropout_keep_prob,
-            },
-        )
-        return _loss
+            batch_id_reviews.append(ids)
+            reviews = self.train_set.review_text.batch_seq(review_ids, max_length=self.max_review_length)
+            batch_reviews.append(reviews)
+        batch_reviews = pad_sequences(batch_reviews, padding="post")
+        batch_id_reviews = pad_sequences(batch_id_reviews, padding="post")
+        return batch_reviews, batch_id_reviews
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -240,78 +236,55 @@ class NARRE(Recommender):
         self._init()
 
         if self.trainable:
-            if not hasattr(self, "graph"):
-                self._build_graph()
+            if not hasattr(self, "model"):
+                self._init_model()
             self._fit_narre()
 
         return self
 
     def _fit_narre(self):
-        import tensorflow.compat.v1 as tf
-        tf.disable_v2_behavior()
-
+        import tensorflow as tf
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
-            count = 0
-            sum_loss = 0
-            for i, (batch_users, batch_items, batch_ratings) in enumerate(
-                self.train_set.uir_iter(self.batch_size, shuffle=True)
-            ):
-                _loss = self._step_update(batch_users, batch_items, batch_ratings)
-                sum_loss += _loss * len(batch_ratings)
-                count += len(batch_ratings)
+            self.train_loss.reset_states()
+            for i, (batch_users, batch_items, batch_ratings) in enumerate(self.train_set.uir_iter(self.batch_size, shuffle=True)):
+                user_reviews, user_iid_reviews = self._get_data(batch_users, by='user')
+                item_reviews, item_uid_reviews = self._get_data(batch_items, by='item')
+                with tf.GradientTape() as tape:
+                    predictions = self.model(
+                        [batch_users, batch_items, user_reviews, user_iid_reviews, item_reviews, item_uid_reviews],
+                        training=True,
+                    )
+                    loss = self.loss(batch_ratings, predictions)
+                gradients = tape.gradient(loss, self.model.trainable_variables)
+                self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+                self.train_loss(loss)
                 if i % 10 == 0:
-                    loop.set_postfix(loss=(sum_loss / count))
-
+                    loop.set_postfix(loss=self.train_loss.result().numpy())
         loop.close()
+
+        # save weights for predictions
+        self.X = np.zeros((self.n_users, self.n_factors))
+        self.Y = np.zeros((self.n_items, self.n_factors))
+        for batch_users in self.train_set.user_iter(self.batch_size):
+            user_reviews, user_iid_reviews = self._get_data(batch_users, by='user')
+            Xu = self.user_attention_review_pooling([batch_users, user_reviews, user_iid_reviews], training=False)
+            self.X[batch_users] = Xu.numpy()
+
+        for batch_items in self.train_set.item_iter(self.batch_size):
+            item_reviews, item_uid_reviews = self._get_data(batch_items, by='item')
+            Yi = self.item_attention_review_pooling([batch_items, item_reviews, item_uid_reviews], training=False)
+            self.Y[batch_items] = Yi.numpy()
+
+        self.W1_weights = self.W1.get_weights()[0]
+        self.user_embedding = self.l_user_embedding.get_weights()[0]
+        self.item_embedding = self.l_item_embedding.get_weights()[0]
+        self.bu = self.user_bias.get_weights()[0]
+        self.bi = self.item_bias.get_weights()[0]
+        self.mu = self.global_bias.numpy()
 
         if self.verbose:
             print("Learning completed!")
-
-    def save(self, save_dir=None):
-        """Save a recommender model to the filesystem.
-
-        Parameters
-        ----------
-        save_dir: str, default: None
-            Path to a directory for the model to be stored.
-
-        """
-        if save_dir is None:
-            return
-
-        model_file = Recommender.save(self, save_dir)
-        # save TF weights
-        self.saver.save(self.sess, model_file.replace(".pkl", ".cpt"))
-
-        return model_file
-
-    @staticmethod
-    def load(model_path, trainable=False):
-        """Load a recommender model from the filesystem.
-
-        Parameters
-        ----------
-        model_path: str, required
-            Path to a file or directory where the model is stored. If a directory is
-            provided, the latest model will be loaded.
-
-        trainable: boolean, optional, default: False
-            Set it to True if you would like to finetune the model. By default, 
-            the model parameters are assumed to be fixed after being loaded.
-        
-        Returns
-        -------
-        self : object
-        """
-        model = Recommender.load(model_path, trainable)
-        if hasattr(model, "pretrained"):
-            model.pretrained = False
-
-        model._build_graph()
-        model.saver.restore(model.sess, model.load_from.replace(".pkl", ".cpt"))
-
-        return model
 
     def _idx_iter(self, idx_range, batch_size):
         indices = np.arange(idx_range)
@@ -345,8 +318,9 @@ class NARRE(Recommender):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-            batch_users = np.ones(self.train_set.num_items) * user_idx
-            batch_items = np.arange(self.train_set.num_items)
+            h0 = (self.user_embedding[user_idx] + self.X[user_idx]) * (self.item_embedding + self.Y)
+            known_item_scores = h0.dot(self.W1_weights) + self.bu[user_idx] + self.bi + self.mu
+            return known_item_scores.ravel()
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
                 item_idx
@@ -355,24 +329,6 @@ class NARRE(Recommender):
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-            batch_users = np.array([user_idx])
-            batch_items = np.array([item_idx])
-        known_item_scores = np.ones(len(batch_users))
-        for batch_ids in self._idx_iter(len(batch_users), self.batch_size):
-            _batch_users = batch_users[batch_ids]
-            _batch_items = batch_items[batch_ids]
-            batch_user_reviews, batch_item_reviews, review_uids, review_iids = self._get_data(_batch_users, _batch_items)
-            _known_item_scores = self.sess.run(
-                self.model.predictions,
-                feed_dict={
-                    self.model.input_u: batch_user_reviews,
-                    self.model.input_i: batch_item_reviews,
-                    self.model.input_uid: _batch_users.reshape(-1, 1),
-                    self.model.input_iid: _batch_items.reshape(-1, 1),
-                    self.model.input_reuid: review_uids,
-                    self.model.input_reiid: review_iids,
-                    self.model.dropout_keep_prob: 1,
-                }
-            )
-            known_item_scores[batch_ids] = _known_item_scores.ravel()
-        return known_item_scores.ravel()
+            h0 = (self.user_embedding[user_idx] + self.X[user_idx]) * (self.item_embedding[item_idx] + self.Y[item_idx])
+            known_item_score = h0.dot(self.W1_weights) + self.bu[user_idx] + self.bi[item_idx] + self.mu
+            return known_item_score
