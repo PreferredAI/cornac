@@ -45,10 +45,10 @@ ratio_split = RatioSplit(
 pretrained_word_embeddings = {}  # You can load pretrained word embedding here
 
 model = cornac.models.NARRE(
-    embedding_dim=100,
-    id_embedding_dim=32,
+    embedding_size=100,
+    id_embedding_size=32,
     n_factors=32,
-    attention_dim=16,
+    attention_size=16,
     kernel_sizes=[3],
     n_filters=64,
     dropout_rate=0.5,

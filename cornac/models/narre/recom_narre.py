@@ -33,38 +33,48 @@ class NARRE(Recommender):
     name: string, default: 'NARRE'
         The name of the recommender model.
 
-    review_num_u: int, default: 32
-        Number of review of user
-    review_num_i: int, default: 32
-        Number of review of item
-    review_len_u: int, default: 500
-        Max length each user review text
-    review_len_i: int, default: 500
-        Max length each item review text
-    n_latent: int, default: 32
-        Latent dimension size
-    attention_size: int, default: 32
-        Attention dimension size
-    word_embedding_size: int, default: 300
+    embedding_size: int, default: 100
         Word embedding size
+
     id_embedding_size: int, default: 32
-        Id embedding size
-    filter_sizes: list, default: [3]
-        List of filter sizes
-    n_filters: int, default: 100
+        User/item review id embedding size
+
+    n_factors: int, default: 32
+        The dimension of the user/item's latent factors.
+
+    attention_size: int, default: 16
+        Attention size
+
+    kernel_sizes: list, default: [3]
+        List of kernel sizes of conv2d
+
+    n_filters: int, default: 64
         Number of filters
-    dropout: float, default: 0.8
-        Dropout ratio
-    dropout_rate: float, default:0.5
-        Dropout ratio in ncf
-    allow_soft_placement: bool, default: True
-    log_device_placement: bool, default: False
-    l2_reg_lambda: float, default: 0.001
-        L2 regularization factor
-    batch_size: int, default: 100
+
+    dropout_rate: float, default: 0.5
+        Dropout rate of neural network dense layers
+
+    max_review_length: int, default: 50
+        Maximum number of tokens in a review instance
+
+    batch_size: int, default: 64
         Batch size
-    max_iter: int, default: 50,
+
+    max_iter: int, default: 10
         Max number of training epochs
+
+    trainable: boolean, optional, default: True
+        When False, the model will not be re-trained, and input of pre-trained parameters are required.
+
+    verbose: boolean, optional, default: True
+        When True, running logs are displayed.
+
+    init_params: dictionary, optional, default: None
+        Initial parameters, pretrained_word_embeddings could be initialized here, e.g., init_params={'pretrained_word_embeddings': pretrained_word_embeddings}
+
+    seed: int, optional, default: None
+        Random seed for weight initialization.
+        If specified, training will take longer because of single-thread (no parallelization).
 
     References
     ----------
@@ -74,10 +84,10 @@ class NARRE(Recommender):
     def __init__(
         self,
         name="NARRE",
-        embedding_dim=100,
-        id_embedding_dim=32,
+        embedding_size=100,
+        id_embedding_size=32,
         n_factors=32,
-        attention_dim=16,
+        attention_size=16,
         kernel_sizes=[3],
         n_filters=64,
         dropout_rate=0.5,
@@ -92,10 +102,10 @@ class NARRE(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.seed = seed
         self.rng = get_rng(seed)
-        self.embedding_dim = embedding_dim
-        self.id_embedding_dim = id_embedding_dim
+        self.embedding_size = embedding_size
+        self.id_embedding_size = id_embedding_size
         self.n_factors = n_factors
-        self.attention_dim = attention_dim
+        self.attention_size = attention_size
         self.n_filters = n_filters
         self.kernel_sizes = kernel_sizes
         self.dropout_rate = dropout_rate
@@ -112,8 +122,8 @@ class NARRE(Recommender):
         self._init_word_embedding_matrix()
 
     def _init_word_embedding_matrix(self):
-        self.embedding_matrix = np.random.uniform(-0.5, 0.5, (self.n_vocab, self.embedding_dim))
-        self.embedding_matrix[:4, :] = np.zeros((4, self.embedding_dim))
+        self.embedding_matrix = np.random.uniform(-0.5, 0.5, (self.n_vocab, self.embedding_size))
+        self.embedding_matrix[:4, :] = np.zeros((4, self.embedding_size))
         if self.pretrained_word_embeddings is not None:
             oov_count = 0
             for word, idx in self.train_set.review_text.vocab.tok2idx.items():
@@ -137,12 +147,12 @@ class NARRE(Recommender):
         self.i_item_review = Input(shape=(None, self.max_review_length), dtype="int32", name="input_item_review")
         self.i_user_iid_review = Input(shape=(None,), dtype="int32", name="input_user_iid_review")
         self.i_item_uid_review = Input(shape=(None,), dtype="int32", name="input_item_iid_review")
-        self.l_user_review_embedding = layers.Embedding(self.n_vocab, self.embedding_dim, embeddings_initializer=initializers.Constant(self.embedding_matrix), name="layer_user_review_embedding")
-        self.l_item_review_embedding = layers.Embedding(self.n_vocab, self.embedding_dim, embeddings_initializer=initializers.Constant(self.embedding_matrix), name="layer_item_review_embedding")
-        self.l_user_iid_embedding = layers.Embedding(self.n_items, self.id_embedding_dim, embeddings_initializer="uniform", name="user_iid_embedding")
-        self.l_item_uid_embedding = layers.Embedding(self.n_users, self.id_embedding_dim, embeddings_initializer="uniform", name="item_uid_embedding")
-        self.l_user_embedding = layers.Embedding(self.n_users, self.id_embedding_dim, embeddings_initializer="uniform", name="user_embedding")
-        self.l_item_embedding = layers.Embedding(self.n_items, self.id_embedding_dim, embeddings_initializer="uniform", name="item_embedding")
+        self.l_user_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=initializers.Constant(self.embedding_matrix), name="layer_user_review_embedding")
+        self.l_item_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=initializers.Constant(self.embedding_matrix), name="layer_item_review_embedding")
+        self.l_user_iid_embedding = layers.Embedding(self.n_items, self.id_embedding_size, embeddings_initializer="uniform", name="user_iid_embedding")
+        self.l_item_uid_embedding = layers.Embedding(self.n_users, self.id_embedding_size, embeddings_initializer="uniform", name="item_uid_embedding")
+        self.l_user_embedding = layers.Embedding(self.n_users, self.id_embedding_size, embeddings_initializer="uniform", name="user_embedding")
+        self.l_item_embedding = layers.Embedding(self.n_items, self.id_embedding_size, embeddings_initializer="uniform", name="item_embedding")
         self.user_bias = layers.Embedding(self.n_users, 1, embeddings_initializer=tf.initializers.Constant(0.1))
         self.item_bias = layers.Embedding(self.n_items, 1, embeddings_initializer=tf.initializers.Constant(0.1))
         self.global_bias = keras.backend.constant(self.train_set.global_mean, shape=(1,), name="global_mean")
@@ -156,8 +166,8 @@ class NARRE(Recommender):
             layers.ReLU()(
                 layers.Add()(
                     [
-                        layers.Dense(self.attention_dim, use_bias=False)(user_review_h),
-                        layers.Dense(self.attention_dim, use_bias=False)(self.l_user_iid_embedding(self.i_user_iid_review)),
+                        layers.Dense(self.attention_size, use_bias=False)(user_review_h),
+                        layers.Dense(self.attention_size, use_bias=False)(self.l_user_iid_embedding(self.i_user_iid_review)),
                         layers.Embedding(self.n_users, 1, embeddings_initializer=tf.initializers.Constant(0.1))(self.i_user_id)
                     ]
                 )
@@ -167,8 +177,8 @@ class NARRE(Recommender):
             layers.ReLU()(
                 layers.Add()(
                     [
-                        layers.Dense(self.attention_dim, use_bias=False)(item_review_h),
-                        layers.Dense(self.attention_dim, use_bias=False)(self.l_item_uid_embedding(self.i_item_uid_review)),
+                        layers.Dense(self.attention_size, use_bias=False)(item_review_h),
+                        layers.Dense(self.attention_size, use_bias=False)(self.l_item_uid_embedding(self.i_item_uid_review)),
                         layers.Embedding(self.n_items, 1, embeddings_initializer=tf.initializers.Constant(0.1))(self.i_item_id)
                     ]
                 )
