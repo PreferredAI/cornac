@@ -19,29 +19,29 @@ from tensorflow.keras import Model, layers
 
 
 class TextProcessor(Model):
-    def __init__(self, max_review_length, filters=64, kernel_sizes=[3], dropout_rate=0.5):
+    def __init__(self, max_text_length, filters=64, kernel_sizes=[3], dropout_rate=0.5):
         super(TextProcessor, self).__init__()
-        self.max_review_length = max_review_length
+        self.max_text_length = max_text_length
         self.filters = filters
         self.kernel_sizes = kernel_sizes
         self.conv = []
         self.maxpool = []
         for kernel_size in kernel_sizes:
             self.conv.append(layers.Conv2D(self.filters, kernel_size=(1, kernel_size), use_bias=True, activation="relu"))
-            self.maxpool.append(layers.MaxPooling2D(pool_size=(1, self.max_review_length - kernel_size + 1)))
+            self.maxpool.append(layers.MaxPooling2D(pool_size=(1, self.max_text_length - kernel_size + 1)))
         self.reshape = layers.Reshape(target_shape=(-1, self.filters * len(kernel_sizes)))
         self.dropout_rate = dropout_rate
         self.dropout = layers.Dropout(rate=self.dropout_rate)
 
     def call(self, inputs, training=False):
-        review = inputs
-        pooled_review_outputs = []
+        text = inputs
+        pooled_outputs = []
         for conv, maxpool in zip(self.conv, self.maxpool):
-            review_conv = conv(review)
-            review_conv_maxpool = maxpool(review_conv)
-            pooled_review_outputs.append(review_conv_maxpool)
-        review_h = self.reshape(tf.concat(pooled_review_outputs, axis=-1))
+            text_conv = conv(text)
+            text_conv_maxpool = maxpool(text_conv)
+            pooled_outputs.append(text_conv_maxpool)
+        text_h = self.reshape(tf.concat(pooled_outputs, axis=-1))
         if training:
-            review_h = self.dropout(review_h)
-        return review_h
+            text_h = self.dropout(text_h)
+        return text_h
 
