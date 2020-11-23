@@ -162,32 +162,25 @@ class NARRE(Recommender):
         user_review_h = self.user_text_processor(self.l_user_review_embedding(self.i_user_review), training=self.trainable)
         item_review_h = self.item_text_processor(self.l_item_review_embedding(self.i_item_review), training=self.trainable)
 
-        self.user_attention = layers.Softmax(name="user_attention")(layers.Dense(self.n_filters, activation=None, use_bias=True, name="user_attention_dense")(
-            layers.ReLU()(
-                layers.Add()(
-                    [
-                        layers.Dense(self.attention_size, use_bias=False)(user_review_h),
-                        layers.Dense(self.attention_size, use_bias=False)(self.l_user_iid_embedding(self.i_user_iid_review)),
-                        layers.Embedding(self.n_users, 1, embeddings_initializer=tf.initializers.Constant(0.1))(self.i_user_id)
-                    ]
+        self.user_attention = layers.Softmax(name="user_attention")(
+            layers.Dense(self.n_filters, activation=None, use_bias=True)(
+                layers.Dense(self.attention_size, activation="relu", use_bias=True)(
+                    tf.concat([user_review_h, self.l_user_iid_embedding(self.i_user_iid_review)], axis=-1)
                 )
             )
-        ))
-        self.item_attention = layers.Softmax(name="item_attention")(layers.Dense(self.n_filters, activation=None, use_bias=True, name="item_attention_dense")(
-            layers.ReLU()(
-                layers.Add()(
-                    [
-                        layers.Dense(self.attention_size, use_bias=False)(item_review_h),
-                        layers.Dense(self.attention_size, use_bias=False)(self.l_item_uid_embedding(self.i_item_uid_review)),
-                        layers.Embedding(self.n_items, 1, embeddings_initializer=tf.initializers.Constant(0.1))(self.i_item_id)
-                    ]
+        )
+        self.item_attention = layers.Softmax(name="item_attention")(
+            layers.Dense(self.n_filters, activation=None, use_bias=True)(
+                layers.Dense(self.attention_size, activation="relu", use_bias=True)(
+                    tf.concat([item_review_h, self.l_item_uid_embedding(self.i_item_uid_review)], axis=-1)
                 )
             )
-        ))
-        u = layers.Dropout(rate=self.dropout_rate)(tf.reduce_sum(layers.Multiply()([self.user_attention, user_review_h]), 1))
-        i = layers.Dropout(rate=self.dropout_rate)(tf.reduce_sum(layers.Multiply()([self.item_attention, item_review_h]), 1))
-        self.Xu = layers.Dense(self.n_factors, use_bias=True)(u)
-        self.Yi = layers.Dense(self.n_factors, use_bias=True)(i)
+        )
+
+        u = layers.Dropout(rate=self.dropout_rate, name="user_Oi")(tf.reduce_sum(layers.Multiply()([self.user_attention, user_review_h]), 1))
+        i = layers.Dropout(rate=self.dropout_rate, name="item_Oi")(tf.reduce_sum(layers.Multiply()([self.item_attention, item_review_h]), 1))
+        self.Xu = layers.Dense(self.n_factors, use_bias=True, name="Xu")(u)
+        self.Yi = layers.Dense(self.n_factors, use_bias=True, name="Yi")(i)
 
         self.user_attention_review_pooling = Model(inputs=[self.i_user_id, self.i_user_review, self.i_user_iid_review], outputs=self.Xu)
         self.item_attention_review_pooling = Model(inputs=[self.i_item_id, self.i_item_review, self.i_item_uid_review], outputs=self.Yi)
@@ -197,7 +190,7 @@ class NARRE(Recommender):
         ])
 
         self.W1 = layers.Dense(1, activation=None, use_bias=False)
-        r = layers.Add()([
+        r = layers.Add(name="prediction")([
             self.W1(h0),
             self.user_bias(self.i_user_id),
             self.item_bias(self.i_item_id),
