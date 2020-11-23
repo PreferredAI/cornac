@@ -19,8 +19,8 @@ from tensorflow.keras import Model, layers
 
 
 class TextProcessor(Model):
-    def __init__(self, max_text_length, filters=64, kernel_sizes=[3], dropout_rate=0.5):
-        super(TextProcessor, self).__init__()
+    def __init__(self, max_text_length, filters=64, kernel_sizes=[3], dropout_rate=0.5, name=''):
+        super(TextProcessor, self).__init__(name=name)
         self.max_text_length = max_text_length
         self.filters = filters
         self.kernel_sizes = kernel_sizes
