@@ -49,8 +49,8 @@ def load_feedback(reader: Reader = None) -> List:
     return reader.read(fpath, fmt='UI', sep=',')
 
 
-def load_feature():
-    """Load the item visual feature
+def load_visual_feature():
+    """Load item visual features
 
     Returns
     -------
