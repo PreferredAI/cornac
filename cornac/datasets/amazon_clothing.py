@@ -62,8 +62,8 @@ def load_text():
     return texts, ids
 
 
-def load_image():
-    """Load the item image in the form of visual features (extracted from pre-trained CNN)
+def load_visual_feature():
+    """Load item visual features (extracted from pre-trained CNN)
 
     Returns
     -------

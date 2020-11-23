@@ -26,7 +26,7 @@ from cornac.eval_methods import RatioSplit
 # VBPR extends Bayesian Personalized Randing to leverage item visual features (extracted from product images using CNN)
 # The necessary data can be loaded as follows
 feedback = tradesy.load_feedback()
-features, item_ids = tradesy.load_feature()  # BIG file
+features, item_ids = tradesy.load_visual_feature()  # BIG file
 
 # Instantiate a ImageModality, it makes it convenient to work with visual auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
