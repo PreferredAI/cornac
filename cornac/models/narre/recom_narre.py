@@ -163,14 +163,14 @@ class NARRE(Recommender):
         user_review_h = user_text_processor(l_user_review_embedding(i_user_review), training=self.trainable)
         item_review_h = item_text_processor(l_item_review_embedding(i_item_review), training=self.trainable)
 
-        user_attention = layers.Softmax(name="user_attention")(
+        user_attention = layers.Softmax(axis=1, name="user_attention")(
             layers.Dense(self.n_filters, activation=None, use_bias=True)(
                 layers.Dense(self.attention_size, activation="relu", use_bias=True)(
                     tf.concat([user_review_h, l_user_iid_embedding(i_user_iid_review)], axis=-1)
                 )
             )
         )
-        item_attention = layers.Softmax(name="item_attention")(
+        item_attention = layers.Softmax(axis=1, name="item_attention")(
             layers.Dense(self.n_filters, activation=None, use_bias=True)(
                 layers.Dense(self.attention_size, activation="relu", use_bias=True)(
                     tf.concat([item_review_h, l_item_uid_embedding(i_item_uid_review)], axis=-1)
