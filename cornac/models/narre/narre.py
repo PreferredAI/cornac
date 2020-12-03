@@ -13,12 +13,13 @@
 # limitations under the License.
 # ============================================================================
 
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import Model, layers
+from tensorflow.keras import layers, initializers, Input
 
 
-class TextProcessor(Model):
+class TextProcessor(keras.Model):
     def __init__(self, max_text_length, filters=64, kernel_sizes=[3], dropout_rate=0.5, name=''):
         super(TextProcessor, self).__init__(name=name)
         self.max_text_length = max_text_length
@@ -45,3 +46,128 @@ class TextProcessor(Model):
             text_h = self.dropout(text_h)
         return text_h
 
+
+def get_data(batch_ids, train_set, max_text_length, by='user'):
+    from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+    batch_reviews, batch_id_reviews, batch_num_reviews = [], [], []
+    review_group = train_set.review_text.user_review if by == 'user' else train_set.review_text.item_review
+    for idx in batch_ids:
+        ids, review_ids = [], []
+        for jdx, review_idx in review_group[idx].items():
+            ids.append(jdx)
+            review_ids.append(review_idx)
+        batch_id_reviews.append(ids)
+        reviews = train_set.review_text.batch_seq(review_ids, max_length=max_text_length)
+        batch_reviews.append(reviews)
+        batch_num_reviews.append(len(review_group[idx].items()))
+    batch_reviews = pad_sequences(batch_reviews, padding="post")
+    batch_id_reviews = pad_sequences(batch_id_reviews, padding="post")
+    batch_num_reviews = np.array(batch_num_reviews)
+    return batch_reviews, batch_id_reviews, batch_num_reviews
+
+
+class Model:
+    def __init__(self, n_users, n_items, n_vocab, global_mean, n_factors=32, embedding_size=100, id_embedding_size=32, attention_size=16, kernel_sizes=[3], n_filters=64, dropout_rate=0.5, max_text_length=50, embedding_matrix=None, verbose=False):
+        self.n_users = n_users
+        self.n_items = n_items
+        self.n_vocab = n_vocab
+        self.global_mean = global_mean
+        self.n_factors = n_factors
+        self.embedding_size = embedding_size
+        self.id_embedding_size = id_embedding_size
+        self.attention_size = attention_size
+        self.kernel_sizes = kernel_sizes
+        self.n_filters = n_filters
+        self.dropout_rate = dropout_rate
+        self.max_text_length = max_text_length
+        self.verbose = verbose
+        self.embedding_matrix = initializers.Constant(embedding_matrix) if embedding_matrix is not None else None
+        self._build_graph()
+
+    def _build_graph(self):
+        i_user_id = Input(shape=(1,), dtype="int32", name="input_user_id")
+        i_item_id = Input(shape=(1,), dtype="int32", name="input_item_id")
+        i_user_review = Input(shape=(None, self.max_text_length), dtype="int32", name="input_user_review")
+        i_item_review = Input(shape=(None, self.max_text_length), dtype="int32", name="input_item_review")
+        i_user_iid_review = Input(shape=(None,), dtype="int32", name="input_user_iid_review")
+        i_item_uid_review = Input(shape=(None,), dtype="int32", name="input_item_uid_review")
+        i_user_num_reviews = Input(shape=(1,), dtype="int32", name="input_user_number_of_review")
+        i_item_num_reviews = Input(shape=(1,), dtype="int32", name="input_item_number_of_review")
+
+        l_user_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=self.embedding_matrix, mask_zero=True, name="layer_user_review_embedding")
+        l_item_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=self.embedding_matrix, mask_zero=True, name="layer_item_review_embedding")
+        l_user_iid_embedding = layers.Embedding(self.n_items, self.id_embedding_size, embeddings_initializer="uniform", name="user_iid_embedding")
+        l_item_uid_embedding = layers.Embedding(self.n_users, self.id_embedding_size, embeddings_initializer="uniform", name="item_uid_embedding")
+        l_user_embedding = layers.Embedding(self.n_users, self.id_embedding_size, embeddings_initializer="uniform", name="user_embedding")
+        l_item_embedding = layers.Embedding(self.n_items, self.id_embedding_size, embeddings_initializer="uniform", name="item_embedding")
+        user_bias = layers.Embedding(self.n_users, 1, embeddings_initializer=tf.initializers.Constant(0.1), name="user_bias")
+        item_bias = layers.Embedding(self.n_items, 1, embeddings_initializer=tf.initializers.Constant(0.1), name="item_bias")
+
+        user_text_processor = TextProcessor(self.max_text_length, filters=self.n_filters, kernel_sizes=self.kernel_sizes, dropout_rate=self.dropout_rate, name='user_text_processor')
+        item_text_processor = TextProcessor(self.max_text_length, filters=self.n_filters, kernel_sizes=self.kernel_sizes, dropout_rate=self.dropout_rate, name='item_text_processor')
+
+        user_review_h = user_text_processor(l_user_review_embedding(i_user_review), training=True)
+        item_review_h = item_text_processor(l_item_review_embedding(i_item_review), training=True)
+        a_user = layers.Dense(1, activation=None, use_bias=True)(
+            layers.Dense(self.attention_size, activation="relu", use_bias=True)(
+                tf.concat([user_review_h, l_user_iid_embedding(i_user_iid_review)], axis=-1)
+            )
+        )
+        a_user_masking = tf.expand_dims(tf.sequence_mask(tf.reshape(i_user_num_reviews, [-1]), maxlen=i_user_review.shape[1]), -1)
+        a_user = tf.where(a_user_masking, a_user, tf.constant(-1e15) * tf.ones_like(a_user))
+        user_attention = layers.Softmax(axis=1, name="user_attention")(a_user)
+        a_item = layers.Dense(1, activation=None, use_bias=True)(
+            layers.Dense(self.attention_size, activation="relu", use_bias=True)(
+                tf.concat([item_review_h, l_item_uid_embedding(i_item_uid_review)], axis=-1)
+            )
+        )
+        a_item_masking = tf.expand_dims(tf.sequence_mask(tf.reshape(i_item_num_reviews, [-1]), maxlen=i_item_review.shape[1]), -1)
+        a_item = tf.where(a_item_masking, a_item, tf.constant(-1e15) * tf.ones_like(a_item))
+        item_attention = layers.Softmax(axis=1, name="item_attention")(a_item)
+
+        Xu = layers.Dense(self.n_factors, use_bias=True, name="Xu")(
+            layers.Dropout(rate=self.dropout_rate, name="user_Oi")(
+                tf.reduce_sum(layers.Multiply()([user_attention, user_review_h]), 1)
+            )
+        )
+        Yi = layers.Dense(self.n_factors, use_bias=True, name="Yi")(
+            layers.Dropout(rate=self.dropout_rate, name="item_Oi")(
+                tf.reduce_sum(layers.Multiply()([item_attention, item_review_h]), 1)
+            )
+        )
+
+        h0 = layers.Multiply(name="h0")([
+            layers.Add()([l_user_embedding(i_user_id), Xu]), layers.Add()([l_item_embedding(i_item_id), Yi])
+        ])
+
+        W1 = layers.Dense(1, activation=None, use_bias=False, name="W1")
+        r = layers.Add(name="prediction")([
+            W1(h0),
+            user_bias(i_user_id),
+            item_bias(i_item_id),
+            keras.backend.constant(self.global_mean, shape=(1,), name="global_mean"),
+        ])
+        self.graph = keras.Model(inputs=[i_user_id, i_item_id, i_user_review, i_user_iid_review, i_user_num_reviews, i_item_review, i_item_uid_review, i_item_num_reviews], outputs=r)
+        if self.verbose:
+            self.graph.summary()
+
+    def get_weights(self, train_set, batch_size=64):
+        user_attention_review_pooling = keras.Model(inputs=[self.graph.get_layer('input_user_review').input, self.graph.get_layer('input_user_iid_review').input, self.graph.get_layer('input_user_number_of_review').input], outputs=self.graph.get_layer('Xu').output)
+        item_attention_review_pooling = keras.Model(inputs=[self.graph.get_layer('input_item_review').input, self.graph.get_layer('input_item_uid_review').input, self.graph.get_layer('input_item_number_of_review').input], outputs=self.graph.get_layer('Yi').output)
+        X = np.zeros((self.n_users, self.n_factors))
+        Y = np.zeros((self.n_items, self.n_factors))
+        for batch_users in train_set.user_iter(batch_size):
+            user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, train_set, self.max_text_length, by='user')
+            Xu = user_attention_review_pooling([user_reviews, user_iid_reviews, user_num_reviews], training=False)
+            X[batch_users] = Xu.numpy()
+        for batch_items in train_set.item_iter(batch_size):
+            item_reviews, item_uid_reviews, item_num_reviews = get_data(batch_items, train_set, self.max_text_length, by='item')
+            Yi = item_attention_review_pooling([item_reviews, item_uid_reviews, item_num_reviews], training=False)
+            Y[batch_items] = Yi.numpy()
+        W1 = self.graph.get_layer('W1').get_weights()[0]
+        user_embedding = self.graph.get_layer('user_embedding').get_weights()[0]
+        item_embedding = self.graph.get_layer('item_embedding').get_weights()[0]
+        bu = self.graph.get_layer('user_bias').get_weights()[0]
+        bi = self.graph.get_layer('item_bias').get_weights()[0]
+        mu = self.global_mean
+        return X, Y, W1, user_embedding, item_embedding, bu, bi, mu
