@@ -20,6 +20,11 @@ Multi-Task Explainable Recommendation (MTER)
 .. automodule:: cornac.models.mter.recom_mter
    :members:
 
+Neural Attention Rating Regression with Review-level Explanations (NARRE)
+---------------------------------------------------------------------------
+.. automodule:: cornac.models.narre.recom_narre
+   :members:
+
 Probabilistic Collaborative Representation Learning (PCRL)
 ------------------------------------------------------------
 .. automodule:: cornac.models.pcrl.recom_pcrl
