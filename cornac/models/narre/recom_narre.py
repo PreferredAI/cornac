@@ -112,10 +112,6 @@ class NARRE(Recommender):
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
 
-    def _init(self):
-        self.n_users, self.n_items = self.train_set.num_users, self.train_set.num_items
-        self.n_vocab = self.train_set.review_text.vocab.size
-
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
@@ -133,14 +129,12 @@ class NARRE(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init()
-
         if self.trainable:
             if not hasattr(self, "model"):
                 from .narre import Model
                 self.model = Model(
-                    self.n_users,
-                    self.n_items,
+                    self.train_set.num_users,
+                    self.train_set.num_items,
                     self.train_set.review_text.vocab,
                     self.train_set.global_mean,
                     n_factors=self.n_factors,
