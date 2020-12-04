@@ -18,6 +18,9 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, initializers, Input
 
+from ...utils import get_rng
+from ...utils.init_utils import uniform
+
 
 class TextProcessor(keras.Model):
     def __init__(self, max_text_length, filters=64, kernel_sizes=[3], dropout_rate=0.5, name=''):
@@ -67,10 +70,10 @@ def get_data(batch_ids, train_set, max_text_length, by='user'):
 
 
 class Model:
-    def __init__(self, n_users, n_items, n_vocab, global_mean, n_factors=32, embedding_size=100, id_embedding_size=32, attention_size=16, kernel_sizes=[3], n_filters=64, dropout_rate=0.5, max_text_length=50, embedding_matrix=None, verbose=False):
+    def __init__(self, n_users, n_items, vocab, global_mean, n_factors=32, embedding_size=100, id_embedding_size=32, attention_size=16, kernel_sizes=[3], n_filters=64, dropout_rate=0.5, max_text_length=50, pretrained_word_embeddings=None, verbose=False, seed=None):
         self.n_users = n_users
         self.n_items = n_items
-        self.n_vocab = n_vocab
+        self.n_vocab = vocab.size
         self.global_mean = global_mean
         self.n_factors = n_factors
         self.embedding_size = embedding_size
@@ -81,10 +84,24 @@ class Model:
         self.dropout_rate = dropout_rate
         self.max_text_length = max_text_length
         self.verbose = verbose
-        self.embedding_matrix = initializers.Constant(embedding_matrix) if embedding_matrix is not None else None
-        self._build_graph()
+        if seed is not None:
+            self.rng = get_rng(seed)
+            tf.random.set_seed(seed)
 
-    def _build_graph(self):
+        embedding_matrix = uniform(shape=(self.n_vocab, self.embedding_size), low=-0.5, high=0.5, random_state=self.rng)
+        embedding_matrix[:4, :] = np.zeros((4, self.embedding_size))
+        if pretrained_word_embeddings is not None:
+            oov_count = 0
+            for word, idx in vocab.tok2idx.items():
+                embedding_vector = pretrained_word_embeddings.get(word)
+                if embedding_vector is not None:
+                    embedding_matrix[idx] = embedding_vector
+                else:
+                    oov_count += 1
+            if self.verbose:
+                print("Number of OOV words: %d" % oov_count)
+
+        embedding_matrix = initializers.Constant(embedding_matrix)
         i_user_id = Input(shape=(1,), dtype="int32", name="input_user_id")
         i_item_id = Input(shape=(1,), dtype="int32", name="input_item_id")
         i_user_review = Input(shape=(None, self.max_text_length), dtype="int32", name="input_user_review")
@@ -94,8 +111,8 @@ class Model:
         i_user_num_reviews = Input(shape=(1,), dtype="int32", name="input_user_number_of_review")
         i_item_num_reviews = Input(shape=(1,), dtype="int32", name="input_item_number_of_review")
 
-        l_user_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=self.embedding_matrix, mask_zero=True, name="layer_user_review_embedding")
-        l_item_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=self.embedding_matrix, mask_zero=True, name="layer_item_review_embedding")
+        l_user_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=embedding_matrix, mask_zero=True, name="layer_user_review_embedding")
+        l_item_review_embedding = layers.Embedding(self.n_vocab, self.embedding_size, embeddings_initializer=embedding_matrix, mask_zero=True, name="layer_item_review_embedding")
         l_user_iid_embedding = layers.Embedding(self.n_items, self.id_embedding_size, embeddings_initializer="uniform", name="user_iid_embedding")
         l_item_uid_embedding = layers.Embedding(self.n_users, self.id_embedding_size, embeddings_initializer="uniform", name="item_uid_embedding")
         l_user_embedding = layers.Embedding(self.n_users, self.id_embedding_size, embeddings_initializer="uniform", name="user_embedding")

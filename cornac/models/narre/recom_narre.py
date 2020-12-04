@@ -19,8 +19,6 @@ from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
-from ...utils import get_rng, estimate_batches
-from ...utils.init_utils import xavier_uniform
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -115,29 +113,8 @@ class NARRE(Recommender):
         self.init_params = {} if init_params is None else init_params
 
     def _init(self):
-        import tensorflow as tf
-        if self.seed is not None:
-            self.rng = get_rng(self.seed)
-            tf.random.set_seed(self.seed)
         self.n_users, self.n_items = self.train_set.num_users, self.train_set.num_items
         self.n_vocab = self.train_set.review_text.vocab.size
-        self.pretrained_word_embeddings = self.init_params.get('pretrained_word_embeddings')
-        self._init_word_embedding_matrix()
-
-    def _init_word_embedding_matrix(self):
-        from ...utils.init_utils import uniform
-        self.embedding_matrix = uniform(shape=(self.n_vocab, self.embedding_size), low=-0.5, high=0.5, random_state=self.rng)
-        self.embedding_matrix[:4, :] = np.zeros((4, self.embedding_size))
-        if self.pretrained_word_embeddings is not None:
-            oov_count = 0
-            for word, idx in self.train_set.review_text.vocab.tok2idx.items():
-                embedding_vector = self.pretrained_word_embeddings.get(word)
-                if embedding_vector is not None:
-                    self.embedding_matrix[idx] = embedding_vector
-                else:
-                    oov_count += 1
-            if self.verbose:
-                print("Number of OOV words: %d" % oov_count)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -164,7 +141,7 @@ class NARRE(Recommender):
                 self.model = Model(
                     self.n_users,
                     self.n_items,
-                    self.n_vocab,
+                    self.train_set.review_text.vocab,
                     self.train_set.global_mean,
                     n_factors=self.n_factors,
                     embedding_size=self.embedding_size,
@@ -174,8 +151,9 @@ class NARRE(Recommender):
                     n_filters=self.n_filters,
                     dropout_rate=self.dropout_rate,
                     max_text_length=self.max_text_length,
-                    embedding_matrix=self.embedding_matrix,
-                    verbose=self.verbose
+                    pretrained_word_embeddings=self.init_params.get('pretrained_word_embeddings'),
+                    verbose=self.verbose,
+                    seed=self.seed,
                 )
             self._fit_narre()
 
