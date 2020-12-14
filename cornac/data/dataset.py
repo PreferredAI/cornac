@@ -595,6 +595,8 @@ class Dataset(object):
         return item_idx >= self.num_items
 
     def add_modalities(self, **kwargs):
+        self.user_feature = kwargs.get("user_feature", None)
+        self.item_feature = kwargs.get("item_feature", None)
         self.user_text = kwargs.get("user_text", None)
         self.item_text = kwargs.get("item_text", None)
         self.user_image = kwargs.get("user_image", None)

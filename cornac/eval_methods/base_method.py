@@ -20,6 +20,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from tqdm.auto import tqdm
 
+from ..data import FeatureModality
 from ..data import TextModality, ReviewModality
 from ..data import ImageModality
 from ..data import GraphModality
@@ -254,9 +255,11 @@ class BaseMethod:
         self.global_uid_map = OrderedDict()
         self.global_iid_map = OrderedDict()
 
+        self.user_feature = kwargs.get("user_feature", None)
         self.user_text = kwargs.get("user_text", None)
         self.user_image = kwargs.get("user_image", None)
         self.user_graph = kwargs.get("user_graph", None)
+        self.item_feature = kwargs.get("item_feature", None)
         self.item_text = kwargs.get("item_text", None)
         self.item_image = kwargs.get("item_image", None)
         self.item_graph = kwargs.get("item_graph", None)
@@ -276,8 +279,22 @@ class BaseMethod:
         return len(self.global_iid_map)
 
     @property
+    def user_feature(self):
+        return self.__user_feature
+
+    @property
     def user_text(self):
         return self.__user_text
+
+    @user_feature.setter
+    def user_feature(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, FeatureModality):
+            raise ValueError(
+                "input_modality has to be instance of FeatureModality but {}".format(
+                    type(input_modality)
+                )
+            )
+        self.__user_feature = input_modality
 
     @user_text.setter
     def user_text(self, input_modality):
@@ -318,8 +335,22 @@ class BaseMethod:
         self.__user_graph = input_modality
 
     @property
+    def item_feature(self):
+        return self.__item_feature
+
+    @property
     def item_text(self):
         return self.__item_text
+
+    @item_feature.setter
+    def item_feature(self, input_modality):
+        if input_modality is not None and not isinstance(input_modality, FeatureModality):
+            raise ValueError(
+                "input_modality has to be instance of FeatureModality but {}".format(
+                    type(input_modality)
+                )
+            )
+        self.__item_feature = input_modality
 
     @item_text.setter
     def item_text(self, input_modality):
@@ -496,7 +527,7 @@ class BaseMethod:
         self.train_set.total_items = self.total_items
 
     def _build_modalities(self):
-        for user_modality in [self.user_text, self.user_image, self.user_graph]:
+        for user_modality in [self.user_feature, self.user_text, self.user_image, self.user_graph]:
             if user_modality is None:
                 continue
             user_modality.build(
@@ -506,7 +537,7 @@ class BaseMethod:
                 dok_matrix=self.train_set.dok_matrix,
             )
 
-        for item_modality in [self.item_text, self.item_image, self.item_graph]:
+        for item_modality in [self.item_feature, self.item_text, self.item_image, self.item_graph]:
             if item_modality is None:
                 continue
             item_modality.build(
@@ -529,9 +560,11 @@ class BaseMethod:
             if data_set is None:
                 continue
             data_set.add_modalities(
+                user_feature=self.user_feature,
                 user_text=self.user_text,
                 user_image=self.user_image,
                 user_graph=self.user_graph,
+                item_feature=self.item_feature,
                 item_text=self.item_text,
                 item_image=self.item_image,
                 item_graph=self.item_graph,
