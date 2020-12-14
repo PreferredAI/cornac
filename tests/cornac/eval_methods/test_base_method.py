@@ -16,7 +16,7 @@
 import unittest
 
 from cornac.eval_methods import BaseMethod
-from cornac.data import TextModality, ReviewModality, ImageModality, SentimentModality
+from cornac.data import FeatureModality, TextModality, ReviewModality, ImageModality, SentimentModality
 from cornac.data import Dataset, Reader
 from cornac.metrics import MAE, AUC
 from cornac.models import MF
@@ -83,7 +83,9 @@ class TestBaseMethod(unittest.TestCase):
         )
         bm = BaseMethod.from_splits(train_data=data[:-1], test_data=data[-1:])
 
+        self.assertIsNone(bm.user_feature)
         self.assertIsNone(bm.user_text)
+        self.assertIsNone(bm.item_feature)
         self.assertIsNone(bm.item_text)
         self.assertIsNone(bm.user_image)
         self.assertIsNone(bm.item_image)
@@ -98,7 +100,17 @@ class TestBaseMethod(unittest.TestCase):
         bm._build_modalities()
 
         try:
+            bm.user_image = FeatureModality()
+        except ValueError:
+            assert True
+
+        try:
             bm.user_text = ImageModality()
+        except ValueError:
+            assert True
+
+        try:
+            bm.item_text = FeatureModality()
         except ValueError:
             assert True
 
