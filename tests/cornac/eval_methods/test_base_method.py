@@ -93,6 +93,7 @@ class TestBaseMethod(unittest.TestCase):
         self.assertIsNone(bm.item_graph)
         self.assertIsNone(bm.sentiment)
 
+        bm.user_feature = FeatureModality()
         bm.user_text = TextModality()
         bm.item_text = ReviewModality(data=review_data, filter_by='item')
         bm.item_image = ImageModality()
@@ -100,17 +101,17 @@ class TestBaseMethod(unittest.TestCase):
         bm._build_modalities()
 
         try:
-            bm.user_image = FeatureModality()
+            bm.user_feature = ()
+        except ValueError:
+            assert True
+        
+        try:
+            bm.item_feature = ()
         except ValueError:
             assert True
 
         try:
             bm.user_text = ImageModality()
-        except ValueError:
-            assert True
-
-        try:
-            bm.item_text = FeatureModality()
         except ValueError:
             assert True
 
