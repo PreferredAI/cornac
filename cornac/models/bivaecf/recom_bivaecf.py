@@ -4,13 +4,9 @@
 @author: Aghiles Salah
 """
 
-import numpy as np
 from ..recommender import Recommender
-from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
-import torch
-import scipy.sparse as sp
 
 
 class BiVAECF(Recommender):

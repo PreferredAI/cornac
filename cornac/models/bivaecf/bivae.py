@@ -18,8 +18,6 @@ import torch
 import torch.nn as nn
 from tqdm.auto import trange
 
-from ...utils import estimate_batches
-
 torch.set_default_dtype(torch.float32)
 
 EPS = 1e-10
