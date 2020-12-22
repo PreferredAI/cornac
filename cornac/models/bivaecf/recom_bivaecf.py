@@ -66,7 +66,7 @@ class BiVAECF(Recommender):
     seed: int, optional, default: None
         Random seed for parameters initialization.
 
-    use_gpu: boolean, optional, default: False
+    use_gpu: boolean, optional, default: True
         If True and your system supports CUDA then training is performed on GPUs.
 
     References
@@ -90,7 +90,7 @@ class BiVAECF(Recommender):
             trainable=True,
             verbose=False,
             seed=None,
-            use_gpu=False,
+            use_gpu=True,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k

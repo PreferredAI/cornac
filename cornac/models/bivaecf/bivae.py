@@ -158,12 +158,12 @@ def learn(
                    {'params': bivae.item_std.parameters()}, \
                    ]
 
-    if bivae.cap_priors.get("user",False):
+    if bivae.cap_priors.get("user", False):
         user_params.append({'params': bivae.user_prior_encoder.parameters()})
         user_features = train_set.user_feature.features[: train_set.num_users]
         user_features = torch.from_numpy(user_features).float().to(device)
 
-    if bivae.cap_priors.get("item",False):
+    if bivae.cap_priors.get("item", False):
         item_params.append({'params': bivae.item_prior_encoder.parameters()})
         item_features = train_set.item_feature.features[: train_set.num_items]
         item_features = torch.from_numpy(item_features).float().to(device)
@@ -181,7 +181,7 @@ def learn(
     bivae.mu_prior = bivae.mu_prior.to(device=device)
 
     x = train_set.matrix.copy()
-    x.data = np.ones(len(x.data)) #Binarize data
+    x.data = np.ones(len(x.data))  # Binarize data
     tx = x.transpose()
 
     for _ in progress_bar:
@@ -192,7 +192,7 @@ def learn(
         for batch_id, i_ids in enumerate(
                 train_set.item_iter(batch_size, shuffle=False)
         ):
-            i_batch = tx[i_ids,:]
+            i_batch = tx[i_ids, :]
             i_batch = i_batch.A
             i_batch = torch.tensor(i_batch, dtype=torch.float32, device=device)
 
@@ -253,7 +253,7 @@ def learn(
 
     # infer mu_beta
     for batch_id, i_ids in enumerate(train_set.item_iter(batch_size, shuffle=False)):
-        i_batch = tx[i_ids,:]
+        i_batch = tx[i_ids, :]
         i_batch = i_batch.A
         i_batch = torch.tensor(i_batch, dtype=torch.float32, device=device)
 
@@ -267,6 +267,6 @@ def learn(
         u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
 
         theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta_)
-        bivae.mu_theta.data[u_ids] = u_mu.data    
-            
+        bivae.mu_theta.data[u_ids] = u_mu.data
+
     return bivae
