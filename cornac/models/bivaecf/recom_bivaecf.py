@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+import numpy as np
+
 from ..recommender import Recommender
 from ...utils.common import scale
 from ...exception import ScoreException
@@ -216,8 +218,9 @@ class BiVAECF(Recommender):
             theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
             beta = self.bivae.mu_beta
             known_item_scores = (
-                self.bivae.decode_user(theta_u, beta).detach().cpu().numpy().ravel()
+                self.bivae.decode_user(theta_u, beta).cpu().numpy().ravel()
             )
+
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
@@ -230,9 +233,7 @@ class BiVAECF(Recommender):
 
             theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
             beta_i = self.bivae.mu_beta[item_idx].view(1, -1)
-            pred = (
-                self.bivae.decode_user(theta_u, beta_i).detach().cpu().numpy().ravel()
-            )
+            pred = self.bivae.decode_user(theta_u, beta_i).cpu().numpy().ravel()
 
             pred = scale(
                 pred, self.train_set.min_rating, self.train_set.max_rating, 0.0, 1.0
