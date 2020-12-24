@@ -16,6 +16,7 @@
 from .recommender import Recommender
 
 from .baseline_only import BaselineOnly
+from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR
 from .c2pf import C2PF

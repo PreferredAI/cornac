@@ -10,6 +10,11 @@ Recommender (Generic Class)
 .. automodule:: cornac.models.recommender
    :members:
 
+Bilateral VAE for Collaborative Filtering (BiVAECF)
+----------------------------------------------------
+.. automodule:: cornac.models.bivaecf.recom_bivaecf
+   :members:
+
 Collaborative Context Poisson Factorization (C2PF)
 ----------------------------------------------------
 .. automodule:: cornac.models.c2pf.recom_c2pf
