@@ -162,14 +162,14 @@ class BiVAECF(Recommender):
                 num_items = train_set.matrix.shape[1]
                 num_users = train_set.matrix.shape[0]
                 self.bivae = BiVAE(
-                    self.k,
-                    [num_items] + self.encoder_structure,
-                    [num_users] + self.encoder_structure,
-                    self.act_fn,
-                    self.likelihood,
-                    self.cap_priors,
-                    feature_dim,
-                    self.batch_size,
+                    k=self.k,
+                    user_encoder_structure=[num_items] + self.encoder_structure,
+                    item_encoder_structure=[num_users] + self.encoder_structure,
+                    act_fn=self.act_fn,
+                    likelihood=self.likelihood,
+                    cap_priors=self.cap_priors,
+                    feature_dim=feature_dim,
+                    batch_size=self.batch_size,
                 ).to(self.device)
 
             learn(

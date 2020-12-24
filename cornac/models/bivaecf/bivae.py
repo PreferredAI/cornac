@@ -18,7 +18,11 @@ import torch
 import torch.nn as nn
 from tqdm.auto import trange
 
+
+torch.set_default_dtype(torch.float32)
+
 EPS = 1e-10
+
 ACT = {
     "sigmoid": nn.Sigmoid(),
     "tanh": nn.Tanh(),
@@ -32,8 +36,8 @@ class BiVAE(nn.Module):
     def __init__(
         self,
         k,
-        user_e_structure,
-        item_e_structure,
+        user_encoder_structure,
+        item_encoder_structure,
         act_fn,
         likelihood,
         cap_priors,
@@ -42,12 +46,12 @@ class BiVAE(nn.Module):
     ):
         super(BiVAE, self).__init__()
 
-        self.mu_theta = torch.zeros((item_e_structure[0], k))  # n_users*k
-        self.mu_beta = torch.zeros((user_e_structure[0], k))  # n_items*k
+        self.mu_theta = torch.zeros((item_encoder_structure[0], k))  # n_users*k
+        self.mu_beta = torch.zeros((user_encoder_structure[0], k))  # n_items*k
 
-        self.theta_ = torch.randn(item_e_structure[0], k) * 0.01
-        self.beta_ = torch.randn(user_e_structure[0], k) * 0.01
-        torch.nn.init.kaiming_uniform_(self.theta_, a=np.sqrt(5))
+        self.theta = torch.randn(item_encoder_structure[0], k) * 0.01
+        self.beta = torch.randn(user_encoder_structure[0], k) * 0.01
+        torch.nn.init.kaiming_uniform_(self.theta, a=np.sqrt(5))
 
         self.likelihood = likelihood
         self.act_fn = ACT.get(act_fn, None)
@@ -62,25 +66,25 @@ class BiVAE(nn.Module):
 
         # User Encoder
         self.user_encoder = nn.Sequential()
-        for i in range(len(user_e_structure) - 1):
+        for i in range(len(user_encoder_structure) - 1):
             self.user_encoder.add_module(
                 "fc{}".format(i),
-                nn.Linear(user_e_structure[i], user_e_structure[i + 1]),
+                nn.Linear(user_encoder_structure[i], user_encoder_structure[i + 1]),
             )
             self.user_encoder.add_module("act{}".format(i), self.act_fn)
-        self.user_mu = nn.Linear(user_e_structure[-1], k)  # mu
-        self.user_std = nn.Linear(user_e_structure[-1], k)
+        self.user_mu = nn.Linear(user_encoder_structure[-1], k)  # mu
+        self.user_std = nn.Linear(user_encoder_structure[-1], k)
 
         # Item Encoder
         self.item_encoder = nn.Sequential()
-        for i in range(len(item_e_structure) - 1):
+        for i in range(len(item_encoder_structure) - 1):
             self.item_encoder.add_module(
                 "fc{}".format(i),
-                nn.Linear(item_e_structure[i], item_e_structure[i + 1]),
+                nn.Linear(item_encoder_structure[i], item_encoder_structure[i + 1]),
             )
             self.item_encoder.add_module("act{}".format(i), self.act_fn)
-        self.item_mu = nn.Linear(item_e_structure[-1], k)  # mu
-        self.item_std = nn.Linear(item_e_structure[-1], k)
+        self.item_mu = nn.Linear(item_encoder_structure[-1], k)  # mu
+        self.item_std = nn.Linear(item_encoder_structure[-1], k)
 
     def encode_user_prior(self, x):
         h = self.user_prior_encoder(x)
@@ -176,9 +180,8 @@ def learn(
     u_optimizer = torch.optim.Adam(params=user_params, lr=learn_rate)
     i_optimizer = torch.optim.Adam(params=item_params, lr=learn_rate)
 
-    progress_bar = trange(1, n_epochs + 1, disable=not verbose)
-    bivae.beta_ = bivae.beta_.to(device=device)
-    bivae.theta_ = bivae.theta_.to(device=device)
+    bivae.beta = bivae.beta.to(device=device)
+    bivae.theta = bivae.theta.to(device=device)
 
     bivae.mu_beta = bivae.mu_beta.to(device=device)
     bivae.mu_theta = bivae.mu_theta.to(device=device)
@@ -187,6 +190,7 @@ def learn(
     x.data = np.ones_like(x.data)  # Binarize data
     tx = x.transpose()
 
+    progress_bar = trange(1, n_epochs + 1, disable=not verbose)
     for _ in progress_bar:
         # item side
         i_sum_loss = 0.0
@@ -197,7 +201,7 @@ def learn(
             i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
-            beta, i_batch_, i_mu, i_std = bivae(i_batch, user=False, theta=bivae.theta_)
+            beta, i_batch_, i_mu, i_std = bivae(i_batch, user=False, theta=bivae.theta)
 
             if bivae.cap_priors.get("item", False):
                 i_batch_f = torch.tensor(
@@ -215,9 +219,9 @@ def learn(
             i_sum_loss += i_loss.data.item()
             i_count += len(i_batch)
 
-            beta, _, i_mu, _ = bivae(i_batch, user=False, theta=bivae.theta_)
+            beta, _, i_mu, _ = bivae(i_batch, user=False, theta=bivae.theta)
 
-            bivae.beta_.data[i_ids] = beta.data
+            bivae.beta.data[i_ids] = beta.data
             bivae.mu_beta.data[i_ids] = i_mu.data
 
         # user side
@@ -229,7 +233,7 @@ def learn(
             u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
-            theta, u_batch_, u_mu, u_std = bivae(u_batch, user=True, beta=bivae.beta_)
+            theta, u_batch_, u_mu, u_std = bivae(u_batch, user=True, beta=bivae.beta)
 
             if bivae.cap_priors.get("user", False):
                 u_batch_f = torch.tensor(
@@ -247,8 +251,8 @@ def learn(
             u_sum_loss += u_loss.data.item()
             u_count += len(u_batch)
 
-            theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta_)
-            bivae.theta_.data[u_ids] = theta.data
+            theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta)
+            bivae.theta.data[u_ids] = theta.data
             bivae.mu_theta.data[u_ids] = u_mu.data
 
             progress_bar.set_postfix(
@@ -261,7 +265,7 @@ def learn(
         i_batch = i_batch.A
         i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
-        beta, _, i_mu, _ = bivae(i_batch, user=False, theta=bivae.theta_)
+        beta, _, i_mu, _ = bivae(i_batch, user=False, theta=bivae.theta)
         bivae.mu_beta.data[i_ids] = i_mu.data
 
     # infer mu_theta
@@ -270,7 +274,7 @@ def learn(
         u_batch = u_batch.A
         u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
-        theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta_)
+        theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta)
         bivae.mu_theta.data[u_ids] = u_mu.data
 
     return bivae
