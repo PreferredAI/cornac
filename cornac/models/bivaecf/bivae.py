@@ -86,6 +86,13 @@ class BiVAE(nn.Module):
         self.item_mu = nn.Linear(item_encoder_structure[-1], k)  # mu
         self.item_std = nn.Linear(item_encoder_structure[-1], k)
 
+    def to(self, device):
+        self.beta = self.beta.to(device=device)
+        self.theta = self.theta.to(device=device)
+        self.mu_beta = self.mu_beta.to(device=device)
+        self.mu_theta = self.mu_theta.to(device=device)
+        return super(BiVAE, self).to(device)
+
     def encode_user_prior(self, x):
         h = self.user_prior_encoder(x)
         return h
@@ -180,12 +187,6 @@ def learn(
     u_optimizer = torch.optim.Adam(params=user_params, lr=learn_rate)
     i_optimizer = torch.optim.Adam(params=item_params, lr=learn_rate)
 
-    bivae.beta = bivae.beta.to(device=device)
-    bivae.theta = bivae.theta.to(device=device)
-
-    bivae.mu_beta = bivae.mu_beta.to(device=device)
-    bivae.mu_theta = bivae.mu_theta.to(device=device)
-
     x = train_set.matrix.copy()
     x.data = np.ones_like(x.data)  # Binarize data
     tx = x.transpose()
@@ -203,12 +204,11 @@ def learn(
             # Reconstructed batch
             beta, i_batch_, i_mu, i_std = bivae(i_batch, user=False, theta=bivae.theta)
 
+            i_mu_prior = 0.0  # zero mean for standard normal prior if not CAP prior
             if bivae.cap_priors.get("item", False):
                 i_batch_f = item_features[i_ids]
                 i_batch_f = torch.tensor(i_batch_f, dtype=dtype, device=device)
                 i_mu_prior = bivae.encode_item_prior(i_batch_f)
-            else:
-                i_mu_prior = 0.0
 
             i_loss = bivae.loss(i_batch, i_batch_, i_mu, i_mu_prior, i_std, beta_kl)
             i_optimizer.zero_grad()
@@ -234,12 +234,11 @@ def learn(
             # Reconstructed batch
             theta, u_batch_, u_mu, u_std = bivae(u_batch, user=True, beta=bivae.beta)
 
+            u_mu_prior = 0.0  # zero mean for standard normal prior if not CAP prior
             if bivae.cap_priors.get("user", False):
                 u_batch_f = user_features[u_ids]
                 u_batch_f = torch.tensor(u_batch_f, dtype=dtype, device=device)
                 u_mu_prior = bivae.encode_user_prior(u_batch_f)
-            else:
-                u_mu_prior = 0.0
 
             u_loss = bivae.loss(u_batch, u_batch_, u_mu, u_mu_prior, u_std, beta_kl)
             u_optimizer.zero_grad()
