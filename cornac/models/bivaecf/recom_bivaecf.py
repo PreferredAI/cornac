@@ -1,8 +1,17 @@
-# -*- coding: utf-8 -*-
-
-"""
-@author: Aghiles Salah
-"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 from ..recommender import Recommender
 from ...utils.common import scale
@@ -72,21 +81,21 @@ class BiVAECF(Recommender):
     """
 
     def __init__(
-            self,
-            name="BiVAECF",
-            k=10,
-            encoder_structure=[20],
-            act_fn="tanh",
-            likelihood="pois",
-            n_epochs=100,
-            batch_size=100,
-            learning_rate=0.001,
-            beta_kl=1.0,
-            cap_priors={"user": False, "item": False},
-            trainable=True,
-            verbose=False,
-            seed=None,
-            use_gpu=True,
+        self,
+        name="BiVAECF",
+        k=10,
+        encoder_structure=[20],
+        act_fn="tanh",
+        likelihood="pois",
+        n_epochs=100,
+        batch_size=100,
+        learning_rate=0.001,
+        beta_kl=1.0,
+        cap_priors={"user": False, "item": False},
+        trainable=True,
+        verbose=False,
+        seed=None,
+        use_gpu=True,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -128,16 +137,20 @@ class BiVAECF(Recommender):
         )
 
         if self.trainable:
-            feature_dim = {"user":None, "item":None}
+            feature_dim = {"user": None, "item": None}
             if self.cap_priors.get("user", False):
                 if train_set.user_feature is None:
-                    raise ValueError("CAP priors for users is set to True but no user features are provided")
+                    raise ValueError(
+                        "CAP priors for users is set to True but no user features are provided"
+                    )
                 else:
                     feature_dim["user"] = train_set.user_feature.feature_dim
 
             if self.cap_priors.get("item", False):
                 if train_set.item_feature is None:
-                    raise ValueError("CAP priors for items is set to True but no item features are provided")
+                    raise ValueError(
+                        "CAP priors for items is set to True but no item features are provided"
+                    )
                 else:
                     feature_dim["item"] = train_set.item_feature.feature_dim
 
@@ -202,12 +215,13 @@ class BiVAECF(Recommender):
 
             theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
             beta = self.bivae.mu_beta
-            known_item_scores = self.bivae.decode_user(theta_u, beta).data.cpu().numpy().flatten()
-            # known_item_scores = np.dot(self.bivaecf.mu_beta.dot(self.s),self.bivaecf.mu_theta[user_idx])
+            known_item_scores = (
+                self.bivae.decode_user(theta_u, beta).data.cpu().numpy().flatten()
+            )
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                    item_idx
+                item_idx
             ):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
@@ -218,6 +232,8 @@ class BiVAECF(Recommender):
             beta_i = self.bivae.mu_beta[item_idx].view(1, -1)
             pred = self.bivae.decode_user(theta_u, beta_i).data.cpu().numpy().flatten()
 
-            pred = scale(pred, self.train_set.min_rating, self.train_set.max_rating, 0., 1.)
+            pred = scale(
+                pred, self.train_set.min_rating, self.train_set.max_rating, 0.0, 1.0
+            )
 
             return pred
