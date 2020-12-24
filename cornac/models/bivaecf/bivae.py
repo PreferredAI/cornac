@@ -13,13 +13,13 @@
 # limitations under the License.
 # ============================================================================
 
+import itertools as it
+
 import numpy as np
 import torch
 import torch.nn as nn
 from tqdm.auto import trange
 
-
-torch.set_default_dtype(torch.float32)
 
 EPS = 1e-10
 
@@ -157,24 +157,24 @@ def learn(
     device=torch.device("cpu"),
     dtype=torch.float32,
 ):
-    user_params = [
-        {"params": bivae.user_encoder.parameters()},
-        {"params": bivae.user_mu.parameters()},
-        {"params": bivae.user_std.parameters()},
-    ]
+    user_params = it.chain(
+        bivae.user_encoder.parameters(),
+        bivae.user_mu.parameters(),
+        bivae.user_std.parameters(),
+    )
 
-    item_params = [
-        {"params": bivae.item_encoder.parameters()},
-        {"params": bivae.item_mu.parameters()},
-        {"params": bivae.item_std.parameters()},
-    ]
+    item_params = it.chain(
+        bivae.item_encoder.parameters(),
+        bivae.item_mu.parameters(),
+        bivae.item_std.parameters(),
+    )
 
     if bivae.cap_priors.get("user", False):
-        user_params.append({"params": bivae.user_prior_encoder.parameters()})
+        user_params = it.chain(user_params, bivae.user_prior_encoder.parameters())
         user_features = train_set.user_feature.features[: train_set.num_users]
 
     if bivae.cap_priors.get("item", False):
-        item_params.append({"params": bivae.item_prior_encoder.parameters()})
+        item_params = it.chain(item_params, bivae.item_prior_encoder.parameters())
         item_features = train_set.item_feature.features[: train_set.num_items]
 
     u_optimizer = torch.optim.Adam(params=user_params, lr=learn_rate)
@@ -204,9 +204,8 @@ def learn(
             beta, i_batch_, i_mu, i_std = bivae(i_batch, user=False, theta=bivae.theta)
 
             if bivae.cap_priors.get("item", False):
-                i_batch_f = torch.tensor(
-                    item_features[i_ids], dtype=dtype, device=device
-                )
+                i_batch_f = item_features[i_ids]
+                i_batch_f = torch.tensor(i_batch_f, dtype=dtype, device=device)
                 i_mu_prior = bivae.encode_item_prior(i_batch_f)
             else:
                 i_mu_prior = 0.0
@@ -236,9 +235,8 @@ def learn(
             theta, u_batch_, u_mu, u_std = bivae(u_batch, user=True, beta=bivae.beta)
 
             if bivae.cap_priors.get("user", False):
-                u_batch_f = torch.tensor(
-                    user_features[u_ids], dtype=dtype, device=device
-                )
+                u_batch_f = user_features[u_ids]
+                u_batch_f = torch.tensor(u_batch_f, dtype=dtype, device=device)
                 u_mu_prior = bivae.encode_user_prior(u_batch_f)
             else:
                 u_mu_prior = 0.0
