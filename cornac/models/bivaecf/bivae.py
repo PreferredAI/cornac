@@ -48,9 +48,6 @@ class BiVAE(nn.Module):
         self.mu_theta = torch.zeros((item_e_structure[0], k))  # n_users*k
         self.mu_beta = torch.zeros((user_e_structure[0], k))  # n_items*k
 
-        # zero mean for standard normal prior
-        self.mu_prior = torch.zeros((batch_size, k), requires_grad=False)
-
         self.theta_ = torch.randn(item_e_structure[0], k) * 0.01
         self.beta_ = torch.randn(user_e_structure[0], k) * 0.01
         torch.nn.init.kaiming_uniform_(self.theta_, a=np.sqrt(5))
@@ -190,20 +187,15 @@ def learn(
     bivae.mu_beta = bivae.mu_beta.to(device=device)
     bivae.mu_theta = bivae.mu_theta.to(device=device)
 
-    bivae.mu_prior = bivae.mu_prior.to(device=device)
-
     x = train_set.matrix.copy()
     x.data = np.ones(len(x.data))  # Binarize data
     tx = x.transpose()
 
     for _ in progress_bar:
-
         # item side
         i_sum_loss = 0.0
         i_count = 0
-        for batch_id, i_ids in enumerate(
-            train_set.item_iter(batch_size, shuffle=False)
-        ):
+        for i_ids in train_set.item_iter(batch_size, shuffle=False):
             i_batch = tx[i_ids, :]
             i_batch = i_batch.A
             i_batch = torch.tensor(i_batch, dtype=torch.float32, device=device)
@@ -215,7 +207,7 @@ def learn(
                 i_batch_f = item_features[i_ids]
                 i_mu_prior = bivae.encode_item_prior(i_batch_f)
             else:
-                i_mu_prior = bivae.mu_prior[0 : len(i_batch)]
+                i_mu_prior = 0.0
 
             i_loss = bivae.loss(i_batch, i_batch_, i_mu, i_mu_prior, i_std, beta_kl)
             i_optimizer.zero_grad()
@@ -233,9 +225,7 @@ def learn(
         # user side
         u_sum_loss = 0.0
         u_count = 0
-        for batch_id, u_ids in enumerate(
-            train_set.user_iter(batch_size, shuffle=False)
-        ):
+        for u_ids in train_set.user_iter(batch_size, shuffle=False):
             u_batch = x[u_ids, :]
             u_batch = u_batch.A
             u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
@@ -247,7 +237,7 @@ def learn(
                 u_batch_f = user_features[u_ids]
                 u_mu_prior = bivae.encode_user_prior(u_batch_f)
             else:
-                u_mu_prior = bivae.mu_prior[0 : len(u_batch)]
+                u_mu_prior = 0.0
 
             u_loss = bivae.loss(u_batch, u_batch_, u_mu, u_mu_prior, u_std, beta_kl)
             u_optimizer.zero_grad()
@@ -266,7 +256,7 @@ def learn(
             )
 
     # infer mu_beta
-    for batch_id, i_ids in enumerate(train_set.item_iter(batch_size, shuffle=False)):
+    for i_ids in train_set.item_iter(batch_size, shuffle=False):
         i_batch = tx[i_ids, :]
         i_batch = i_batch.A
         i_batch = torch.tensor(i_batch, dtype=torch.float32, device=device)
@@ -275,7 +265,7 @@ def learn(
         bivae.mu_beta.data[i_ids] = i_mu.data
 
     # infer mu_theta
-    for batch_id, u_ids in enumerate(train_set.user_iter(batch_size, shuffle=False)):
+    for u_ids in train_set.user_iter(batch_size, shuffle=False):
         u_batch = x[u_ids, :]
         u_batch = u_batch.A
         u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
