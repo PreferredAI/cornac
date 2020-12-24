@@ -18,10 +18,7 @@ import torch
 import torch.nn as nn
 from tqdm.auto import trange
 
-torch.set_default_dtype(torch.float32)
-
 EPS = 1e-10
-
 ACT = {
     "sigmoid": nn.Sigmoid(),
     "tanh": nn.Tanh(),
@@ -154,6 +151,7 @@ def learn(
     beta_kl,
     verbose,
     device=torch.device("cpu"),
+    dtype=torch.float32,
 ):
     user_params = [
         {"params": bivae.user_encoder.parameters()},
@@ -170,12 +168,10 @@ def learn(
     if bivae.cap_priors.get("user", False):
         user_params.append({"params": bivae.user_prior_encoder.parameters()})
         user_features = train_set.user_feature.features[: train_set.num_users]
-        user_features = torch.from_numpy(user_features).float().to(device)
 
     if bivae.cap_priors.get("item", False):
         item_params.append({"params": bivae.item_prior_encoder.parameters()})
         item_features = train_set.item_feature.features[: train_set.num_items]
-        item_features = torch.from_numpy(item_features).float().to(device)
 
     u_optimizer = torch.optim.Adam(params=user_params, lr=learn_rate)
     i_optimizer = torch.optim.Adam(params=item_params, lr=learn_rate)
@@ -188,7 +184,7 @@ def learn(
     bivae.mu_theta = bivae.mu_theta.to(device=device)
 
     x = train_set.matrix.copy()
-    x.data = np.ones(len(x.data))  # Binarize data
+    x.data = np.ones_like(x.data)  # Binarize data
     tx = x.transpose()
 
     for _ in progress_bar:
@@ -198,13 +194,15 @@ def learn(
         for i_ids in train_set.item_iter(batch_size, shuffle=False):
             i_batch = tx[i_ids, :]
             i_batch = i_batch.A
-            i_batch = torch.tensor(i_batch, dtype=torch.float32, device=device)
+            i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
             beta, i_batch_, i_mu, i_std = bivae(i_batch, user=False, theta=bivae.theta_)
 
             if bivae.cap_priors.get("item", False):
-                i_batch_f = item_features[i_ids]
+                i_batch_f = torch.tensor(
+                    item_features[i_ids], dtype=dtype, device=device
+                )
                 i_mu_prior = bivae.encode_item_prior(i_batch_f)
             else:
                 i_mu_prior = 0.0
@@ -228,13 +226,15 @@ def learn(
         for u_ids in train_set.user_iter(batch_size, shuffle=False):
             u_batch = x[u_ids, :]
             u_batch = u_batch.A
-            u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
+            u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
             theta, u_batch_, u_mu, u_std = bivae(u_batch, user=True, beta=bivae.beta_)
 
             if bivae.cap_priors.get("user", False):
-                u_batch_f = user_features[u_ids]
+                u_batch_f = torch.tensor(
+                    user_features[u_ids], dtype=dtype, device=device
+                )
                 u_mu_prior = bivae.encode_user_prior(u_batch_f)
             else:
                 u_mu_prior = 0.0
@@ -259,7 +259,7 @@ def learn(
     for i_ids in train_set.item_iter(batch_size, shuffle=False):
         i_batch = tx[i_ids, :]
         i_batch = i_batch.A
-        i_batch = torch.tensor(i_batch, dtype=torch.float32, device=device)
+        i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
         beta, _, i_mu, _ = bivae(i_batch, user=False, theta=bivae.theta_)
         bivae.mu_beta.data[i_ids] = i_mu.data
@@ -268,7 +268,7 @@ def learn(
     for u_ids in train_set.user_iter(batch_size, shuffle=False):
         u_batch = x[u_ids, :]
         u_batch = u_batch.A
-        u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
+        u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
         theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta_)
         bivae.mu_theta.data[u_ids] = u_mu.data
