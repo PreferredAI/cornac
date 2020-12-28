@@ -34,6 +34,16 @@ class TestInitUtils(unittest.TestCase):
     def test_constant(self):
         npt.assert_array_equal(constant(self.shape, val=2.5), np.ones(self.shape, dtype=np.float32) * 2.5)
 
+    def test_gamma(self):
+        seed = np.random.randint(123)
+        size = 2
+        sh = 0.3
+        sc= 1.
+        x_gamma = gamma(sh,sc,size,seed)
+        np.random.seed(seed)
+        npt.assert_array_equal(x_gamma,
+                               np.random.gamma(sh, sc, size).astype(np.float32))
+
     def test_xavier(self):
         std = np.sqrt(2.0 / np.sum(self.shape))
         limit = np.sqrt(3.0) * std

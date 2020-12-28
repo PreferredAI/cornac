@@ -82,6 +82,37 @@ def normal(shape=None, mean=0.0, std=1.0, random_state=None, dtype=np.float32):
     return get_rng(random_state).normal(mean, std, shape).astype(dtype)
 
 
+def gamma(shape, scale=1.0, size=None, random_state=None, dtype=np.float32):
+    """
+    Draw samples from a Gamma distribution.
+
+    Parameters
+    ----------
+    shape : float or array_like of floats
+        The shape of the gamma distribution. Must be non-negative.
+        
+    scale : float or array_like of floats, optional
+        The scale of the gamma distribution. Must be non-negative. Default is equal to 1.
+        
+    size : int or tuple of ints, optional
+        Output shape. If the given shape is, e.g., (m, n, k), then m * n * k samples are drawn.\
+        If size is None (default), a single value is returned if shape and scale are both scalars.\
+        Otherwise, np.broadcast(shape, scale).size samples are drawn.
+        
+    random_state : int or np.random.RandomState, optional
+        If an integer is given, it will be used as seed value for creating a RandomState.
+        
+    dtype : str or dtype
+        Returned data-type for the output array.
+
+    Returns
+    -------
+    out : ndarray or scalar
+        Drawn samples from the parameterized gamma distribution.
+    """
+    return get_rng(random_state).gamma(shape, scale, size).astype(dtype)
+
+
 def xavier_uniform(shape, random_state=None, dtype=np.float32):
     """Return a numpy array by performing 'Xavier' initializer
     also known as 'Glorot' initializer on Uniform distribution.
