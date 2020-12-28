@@ -76,6 +76,8 @@
 
 [pmf_ratio.py](pmf_ratio.py) - Probabilistic Matrix Factorization (PMF) with RatioSplit.
 
+[skm_movielens.py](skm_movielens.py) - SKMeans vs BPR on MovieLens data.
+
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
 
 [vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
