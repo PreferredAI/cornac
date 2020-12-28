@@ -55,37 +55,27 @@ cpdef pf(Mat & X, int n_X, int d_X, int & k, int & iter_max, seed=None, init_par
         #Parameters Initialization
     if init_param['G_s'] is None:
         G_s = gamma(a_, scale=b_ / a_, size=n * k, random_state=rng).reshape(n, k)
-        #G_s = np.random.gamma(a_, scale=b_ / a_, size=n * k).reshape(n, k)
     else:
         G_s = init_param['G_s']
-
-    #G_s = sp.csc_matrix(G_s,dtype=np.float64)
 
     # rate gamma_uk matrix
     if init_param['G_r'] is None:
         G_r = gamma(a_, scale=b_ / a_, size=n * k, random_state=rng).reshape(n, k)
-        #G_r = np.random.gamma(a_, scale=b_ / a_, size=n * k).reshape(n, k)
     else:
         G_r = init_param['G_r']
-    #G_r = sp.csc_matrix(G_r,dtype=np.float64)
 
-    ## shape lamda_ik matrix (dgCMatrix)
+    ## shape lamda_ik matrix
     if init_param['L_s'] is None:
         L_s = gamma(c_, scale=d_ / c_, size=d * k, random_state=rng).reshape(d, k)
-        #L_s = np.random.gamma(c_, scale=d_ / c_, size=d * k).reshape(d, k)
     else:
         L_s = init_param['L_s']
-    #L_s = sp.csc_matrix(L_s,dtype=np.float64)
 
-    #rate lamda_ik matrix (dgCMatrix)
+    #rate lamda_ik matrix
     if init_param['L_r'] is None:
         L_r = gamma(c_, scale=d_ / c_, size=d * k, random_state=rng).reshape(d, k)
     else:
         L_r = init_param['L_r']
-    #L_r = sp.csc_matrix(L_r,dtype=np.float64)  
 
-    #  K_r = c1/b_ + a*rowSums(G_s/G_r)
-    #  T_r = c1/d_ + a*rowSums(L_s/L_r)
     K_r = np.repeat(1.0, n)
     T_r = np.repeat(1.0, d)
 
@@ -135,28 +125,23 @@ cpdef hpf(Mat & X, int n_X, int d_X, int & k, int & iter_max, seed=None, init_pa
     else:
         G_s = init_param['G_s']
 
-    #G_s = sp.csc_matrix(G_s,dtype=np.float64)
-
     # rate gamma_uk matrix
     if init_param['G_r'] is None:
         G_r = gamma(a_, scale=b_ / a_, size=n * k, random_state=rng).reshape(n, k)
     else:
         G_r = init_param['G_r']
-    #G_r = sp.csc_matrix(G_r,dtype=np.float64)
 
-    ## shape lamda_ik matrix (dgCMatrix)
+    ## shape lamda_ik matrix
     if init_param['L_s'] is None:
         L_s = gamma(c_, scale=d_ / c_, size=d * k, random_state=rng).reshape(d, k)
     else:
         L_s = init_param['L_s']
-    #L_s = sp.csc_matrix(L_s,dtype=np.float64)
 
-    #rate lamda_ik matrix (dgCMatrix)
+    #rate lamda_ik matrix
     if init_param['L_r'] is None:
         L_r = gamma(c_, scale=d_ / c_, size=d * k, random_state=rng).reshape(d, k)
     else:
         L_r = init_param['L_r']
-    #L_r = sp.csc_matrix(L_r,dtype=np.float64)  
 
     K_r = np.repeat(1.0, n)
     T_r = np.repeat(1.0, d)
