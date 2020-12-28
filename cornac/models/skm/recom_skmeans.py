@@ -44,6 +44,9 @@ class SKMeans(Recommender):
     verbose: boolean, optional, default: False
         When True, some running logs are displayed.
 
+    seed: int, optional, default: None
+        Random seed for parameters initialization.
+
     init_par: numpy 1d array, optional, default: None
         The initial object parition, 1d array contaning the cluster label (int type starting from 0) \
         of each object (user). If par = None, then skmeans is initialized randomly.
@@ -58,20 +61,22 @@ class SKMeans(Recommender):
     """
 
     def __init__(
-        self,
-        k=5,
-        max_iter=100,
-        name="Skmeans",
-        trainable=True,
-        tol=1e-6,
-        verbose=True,
-        init_par=None,
+            self,
+            k=5,
+            max_iter=100,
+            name="Skmeans",
+            trainable=True,
+            tol=1e-6,
+            verbose=True,
+            seed=None,
+            init_par=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
+        self.seed = seed
         self.init_par = init_par
         self.centroids = None  # matrix of cluster centroids
 
@@ -110,6 +115,7 @@ class SKMeans(Recommender):
                 max_iter=self.max_iter,
                 tol=self.tol,
                 verbose=self.verbose,
+                seed=self.seed,
                 init_par=getattr(self, "final_par", self.init_par),
             )
             self.centroids = res["centroids"]
@@ -118,7 +124,7 @@ class SKMeans(Recommender):
             print("%s is trained already (trainable = False)" % (self.name))
 
         self.user_center_sim = (
-            X1 * self.centroids.T
+                X1 * self.centroids.T
         )  # user-centroid cosine similarity matrix
         del X1
 
@@ -152,12 +158,12 @@ class SKMeans(Recommender):
                 self.user_center_sim[user_idx, :].T
             )
             known_item_scores = known_item_scores.sum(0).A1 / (
-                self.user_center_sim[user_idx, :].sum() + 1e-20
+                    self.user_center_sim[user_idx, :].sum() + 1e-20
             )  # weighted average of cluster centroids
             return known_item_scores
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
+                    item_idx
             ):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
@@ -169,7 +175,7 @@ class SKMeans(Recommender):
             )
             # transform user_pred to a flatten array
             user_pred = user_pred.sum(0).A1 / (
-                self.user_center_sim[user_idx, :].sum() + 1e-20
+                    self.user_center_sim[user_idx, :].sum() + 1e-20
             )  # weighted average of cluster centroids
 
             return user_pred
