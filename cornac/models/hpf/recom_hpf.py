@@ -44,6 +44,9 @@ class HPF(Recommender):
         
     hierarchical: boolean, optional, default: True
         When False, PF is used instead of HPF.
+        
+    seed: int, optional, default: None
+        Random seed for parameters initialization.
 
     init_params: dict, optional, default: None
         Initial parameters of the model.
@@ -80,6 +83,7 @@ class HPF(Recommender):
         trainable=True,
         verbose=False,
         hierarchical=True,
+        seed=None,
         init_params=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
@@ -91,6 +95,7 @@ class HPF(Recommender):
         self.etp_c = np.full(max_iter, 0)
         self.eps = 0.000000001
         self.hierarchical = hierarchical
+        self.seed = seed
 
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
@@ -141,11 +146,11 @@ class HPF(Recommender):
 
             if self.hierarchical:
                 res = hpf.hpf(
-                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, init_params
+                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.seed, init_params
                 )
             else:
                 res = hpf.pf(
-                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, init_params
+                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.seed, init_params
                 )
             self.Theta = np.asarray(res["Z"])
             self.Beta = np.asarray(res["W"])
