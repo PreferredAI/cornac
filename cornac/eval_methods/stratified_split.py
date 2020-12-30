@@ -37,10 +37,12 @@ class StratifiedSplit(BaseMethod):
         Data is ordered by reviewed time or not. If this option is True, data must be in 'UIRT' format.
 
     test_size: float, optional, default: 0.2
-        The proportion of the test set.
+        The proportion of the test set, \
+        if > 1 then it is treated as the size of the test set.
 
     val_size: float, optional, default: 0.0
-        The proportion of the validation set.
+        The proportion of the validation set, \
+        if > 1 then it is treated as the size of the validation set.
 
     rating_threshold: float, optional, default: 1.0
         Threshold used to binarize rating values into positive or negative feedback for
