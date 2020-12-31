@@ -243,7 +243,7 @@ extensions = [
     ),
 ]
 
-if not sys.platform.startswith("win"):  # Linux supported only
+if sys.platform.startswith("Linux"):  # Linux supported only
     extensions += [
         Extension(
             name="cornac.models.fm.recom_fm",
