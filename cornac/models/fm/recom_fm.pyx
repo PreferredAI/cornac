@@ -158,8 +158,11 @@ class FM(Recommender):
 
     References
     ----------
-    * Rendle, Steffen, Christoph Freudenthaler, Zeno Gantner, and Lars Schmidt-Thieme. \
-    BPR: Bayesian personalized ranking from implicit feedback. In UAI, pp. 452-461. 2009.
+    * Rendle, S. (2010, December). Factorization machines. \
+    In 2010 IEEE International Conference on Data Mining (pp. 995-1000). IEEE.
+    
+    * Rendle, S. (2012). Factorization machines with libfm. \
+    ACM Transactions on Intelligent Systems and Technology (TIST), 3(3), 1-22.
     """
 
     def __init__(
