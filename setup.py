@@ -243,6 +243,23 @@ extensions = [
     ),
 ]
 
+if sys.platform.startswith("Linux"):  # Linux supported only
+    extensions += [
+        Extension(
+            name="cornac.models.fm.recom_fm",
+            sources=["cornac/models/fm/recom_fm" + ext],
+            include_dirs=[
+                np.get_include(),
+                "cornac/models/fm/libfm/util",
+                "cornac/models/fm/libfm/fm_core/",
+                "cornac/models/fm/libfm/libfm/src/",
+            ],
+            language="c++",
+            extra_compile_args=compile_args,
+            extra_link_args=link_args,
+        )
+    ]
+
 cmdclass = {}
 
 # cythonize c++ modules
