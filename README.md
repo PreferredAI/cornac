@@ -164,6 +164,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 | 2011 | [Collaborative Topic Modeling (CTR)](cornac/models/ctr), [paper](http://www.cs.columbia.edu/~blei/papers/WangBlei2011.pdf) | N/A | [ctr_citeulike.py](examples/ctr_example_citeulike.py)
 | Earlier | [Baseline Only](cornac/models/baseline_only), [paper](http://courses.ischool.berkeley.edu/i290-dm/s11/SECURE/a1-koren.pdf) | N/A | [svd_exp.py](examples/svd_example.py)
 |      | [Bayesian Personalized Ranking (BPR)](cornac/models/bpr), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | N/A | [bpr_netflix.py](examples/bpr_netflix.py)
+|      | [Factorization Machines (FM)](cornac/models/fm), [paper](https://www.csie.ntu.edu.tw/~b97053/paper/Factorization%20Machines%20with%20libFM.pdf) | Linux only | [fm_example.py](examples/fm_example.py)
 |      | [Global Average (GlobalAvg)](cornac/models/global_avg), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | N/A | [biased_mf.py](examples/biased_mf.py)
 |      | [Item K-Nearest-Neighbors (ItemKNN)](cornac/models/knn), [paper](https://dl.acm.org/doi/pdf/10.1145/371920.372071) | N/A | [knn_movielens.py](examples/knn_movielens.py)
 |      | [Matrix Factorization (MF)](cornac/models/mf), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | N/A | [biased_mf.py](examples/biased_mf.py), [given_data.py](examples/given_data.py)
