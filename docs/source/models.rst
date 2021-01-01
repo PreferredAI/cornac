@@ -155,6 +155,11 @@ Bayesian Personalized Ranking (BPR)
 .. autoclass:: cornac.models.bpr.recom_bpr.BPR
    :members:
 
+Factorization Machines (FM)
+-------------------------------------------
+.. autoclass:: cornac.models.fm.recom_fm.FM
+   :members
+
 Global Average (GlobalAvg)
 ---------------------------------------------------------
 .. automodule:: cornac.models.global_avg.recom_global_avg

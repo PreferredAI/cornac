@@ -64,6 +64,8 @@
 
 [bpr_netflix.py](bpr_netflix.py) - Example to run Bayesian Personalized Ranking (BPR) with Netflix dataset.
 
+[fm_example.py](fm_example.py) - Example to run Factorization Machines (FM) with MovieLens 100K dataset.
+
 [hpf_movielens.py](hpf_movielens.py) - (Hierarchical) Poisson Factorization vs BPR on MovieLens data.
 
 [ibpr_example.py](ibpr_example.py) - Example to run Indexable Bayesian Personalized Ranking.
