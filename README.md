@@ -74,49 +74,28 @@ If you want to utilize your GPUs, you might consider:
 ![](flow.jpg)
 <p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
-Load the built-in [MovieLens 100K](https://grouplens.org/datasets/movielens/100k/) dataset (will be downloaded if not cached):
-
 ```python
 import cornac
+from cornac.eval_methods import RatioSplit
+from cornac.models import MF, PMF, BPR
+from cornac.metrics import MAE, RMSE, Precision, Recall, NDCG, AUC, MAP
 
-ml_100k = cornac.datasets.movielens.load_feedback(variant="100K")
-```
+# load the built-in MovieLens 100K and split the data based on ratio
+ml_100k = cornac.datasets.movielens.load_feedback()
+rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
 
-Split the data based on ratio:
+# initialized models, here we are comparing biased MF, PMF, and BPR
+models = [
+    MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123),
+    PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123),
+    BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
+]
 
-```python
-rs = cornac.eval_methods.RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
-```
+# define metrics used to evaluate the models
+metrics = [MAE(), RMSE(), Precision(k=10), Recall(k=10), NDCG(k=10), AUC(), MAP()]
 
-Here we are comparing `Biased MF`, `PMF`, and `BPR`:
-  
-```python
-mf = cornac.models.MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
-pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123)
-bpr = cornac.models.BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
-```
-
-Define metrics used to evaluate the models:
-  
-```python
-mae = cornac.metrics.MAE()
-rmse = cornac.metrics.RMSE()
-prec = cornac.metrics.Precision(k=10)
-recall = cornac.metrics.Recall(k=10)
-ndcg = cornac.metrics.NDCG(k=10)
-auc = cornac.metrics.AUC()
-mAP = cornac.metrics.MAP()
-```
-
-Put everything together into an experiment and run it:
-  
-```python
-cornac.Experiment(
-  eval_method=rs,
-  models=[mf, pmf, bpr],
-  metrics=[mae, rmse, recall, ndcg, auc, mAP],
-  user_based=True
-).run()
+# put it together in an experiment, voilà!
+cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
 ```
 
 **Output:**
