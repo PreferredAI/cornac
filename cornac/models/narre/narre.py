@@ -50,19 +50,21 @@ class TextProcessor(keras.Model):
         return text_h
 
 
-def get_data(batch_ids, train_set, max_text_length, by='user'):
+def get_data(batch_ids, train_set, max_text_length, by='user', max_num_review=None):
     from tensorflow.python.keras.preprocessing.sequence import pad_sequences
     batch_reviews, batch_id_reviews, batch_num_reviews = [], [], []
     review_group = train_set.review_text.user_review if by == 'user' else train_set.review_text.item_review
     for idx in batch_ids:
         ids, review_ids = [], []
-        for jdx, review_idx in review_group[idx].items():
+        for inc, (jdx, review_idx) in enumerate(review_group[idx].items()):
+            if max_num_review is not None and inc == max_num_review:
+                break
             ids.append(jdx)
             review_ids.append(review_idx)
         batch_id_reviews.append(ids)
         reviews = train_set.review_text.batch_seq(review_ids, max_length=max_text_length)
         batch_reviews.append(reviews)
-        batch_num_reviews.append(len(review_group[idx].items()))
+        batch_num_reviews.append(len(reviews))
     batch_reviews = pad_sequences(batch_reviews, padding="post")
     batch_id_reviews = pad_sequences(batch_id_reviews, padding="post")
     batch_num_reviews = np.array(batch_num_reviews)
@@ -168,17 +170,17 @@ class Model:
         if self.verbose:
             self.graph.summary()
 
-    def get_weights(self, train_set, batch_size=64):
+    def get_weights(self, train_set, batch_size=64, max_num_review=None):
         user_attention_review_pooling = keras.Model(inputs=[self.graph.get_layer('input_user_review').input, self.graph.get_layer('input_user_iid_review').input, self.graph.get_layer('input_user_number_of_review').input], outputs=self.graph.get_layer('Xu').output)
         item_attention_review_pooling = keras.Model(inputs=[self.graph.get_layer('input_item_review').input, self.graph.get_layer('input_item_uid_review').input, self.graph.get_layer('input_item_number_of_review').input], outputs=self.graph.get_layer('Yi').output)
         X = np.zeros((self.n_users, self.n_factors))
         Y = np.zeros((self.n_items, self.n_factors))
         for batch_users in train_set.user_iter(batch_size):
-            user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, train_set, self.max_text_length, by='user')
+            user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, train_set, self.max_text_length, by='user', max_num_review=max_num_review)
             Xu = user_attention_review_pooling([user_reviews, user_iid_reviews, user_num_reviews], training=False)
             X[batch_users] = Xu.numpy()
         for batch_items in train_set.item_iter(batch_size):
-            item_reviews, item_uid_reviews, item_num_reviews = get_data(batch_items, train_set, self.max_text_length, by='item')
+            item_reviews, item_uid_reviews, item_num_reviews = get_data(batch_items, train_set, self.max_text_length, by='item', max_num_review=max_num_review)
             Yi = item_attention_review_pooling([item_reviews, item_uid_reviews, item_num_reviews], training=False)
             Y[batch_items] = Yi.numpy()
         W1 = self.graph.get_layer('W1').get_weights()[0]
