@@ -32,17 +32,17 @@
 
 Currently, we are supporting Python 3. There are several ways to install Cornac:
 
-  - **From PyPI (you may need a C++ compiler):**
+- **From PyPI (you may need a C++ compiler):**
   ```bash
   pip3 install cornac
   ```
 
-  - **From Anaconda:**
+- **From Anaconda:**
   ```bash
   conda install cornac -c conda-forge
   ```
 
-  - **From the GitHub source (for latest updates):**
+- **From the GitHub source (for latest updates):**
   ```bash
   pip3 install Cython
   git clone https://github.com/PreferredAI/cornac.git
@@ -54,7 +54,7 @@ Currently, we are supporting Python 3. There are several ways to install Cornac:
 
 Additional dependencies required by models are listed [here](README.md#Models).
 
-Some algorithm implementations use `OpenMP` to support multi-threading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler:
+Some algorithm implementations use `OpenMP` to support multi-threading. For Mac OS users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler:
 ```bash
 brew install gcc | brew link gcc
 ```
