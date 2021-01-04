@@ -33,41 +33,31 @@
 Currently, we are supporting Python 3. There are several ways to install Cornac:
 
   - **From PyPI (you may need a C++ compiler):**
-
-```sh
-pip3 install cornac
-```
+  ```bash
+  pip3 install cornac
+  ```
 
   - **From Anaconda:**
-
-```sh
-conda install cornac -c conda-forge
-```
+  ```bash
+  conda install cornac -c conda-forge
+  ```
 
   - **From the GitHub source (for latest updates):**
-
-```sh
-pip3 install Cython
-git clone https://github.com/PreferredAI/cornac.git
-cd cornac
-python3 setup.py install
-```
+  ```bash
+  pip3 install Cython
+  git clone https://github.com/PreferredAI/cornac.git
+  cd cornac
+  python3 setup.py install
+  ```
 
 **Note:** 
 
 Additional dependencies required by models are listed [here](README.md#Models).
 
 Some algorithm implementations use `OpenMP` to support multi-threading. For OSX users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler:
-
-```sh
+```bash
 brew install gcc | brew link gcc
 ```
-
-If you want to utilize your GPUs, you might consider:
-
-  - [TensorFlow installation instructions](https://www.tensorflow.org/install/).
-  - [PyTorch installation instructions](https://pytorch.org/get-started/locally/).
-  - [cuDNN](https://docs.nvidia.com/deeplearning/sdk/cudnn-install/) (for Nvidia GPUs).
 
 ## Getting started: your first Cornac experiment
 
