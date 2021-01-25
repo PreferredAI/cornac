@@ -64,6 +64,12 @@ class NARRE(Recommender):
     max_iter: int, default: 10
         Max number of training epochs
 
+    optimizer: string, optional, default: 'adam'
+        Optimizer for training is either 'adam' or 'rmsprop'.
+
+    learning_rate: float, optional, default: 0.001
+        Initial value of learning rate for the optimizer.
+
     trainable: boolean, optional, default: True
         When False, the model will not be re-trained, and input of pre-trained parameters are required.
 
