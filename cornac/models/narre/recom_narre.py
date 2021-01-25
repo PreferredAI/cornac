@@ -96,6 +96,8 @@ class NARRE(Recommender):
         max_num_review=None,
         batch_size=64,
         max_iter=10,
+        optimizer='adam',
+        learning_rate=0.001,
         trainable=True,
         verbose=True,
         init_params=None,
@@ -114,6 +116,8 @@ class NARRE(Recommender):
         self.max_num_review = max_num_review
         self.batch_size = batch_size
         self.max_iter = max_iter
+        self.optimizer = optimizer
+        self.learning_rate = learning_rate
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
 
@@ -163,7 +167,10 @@ class NARRE(Recommender):
         from tensorflow import keras
         from .narre import get_data
         loss = keras.losses.MeanSquaredError()
-        optimizer = keras.optimizers.Adam()
+        if self.optimizer == 'rmsprop':
+            optimizer = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
+        else:
+            optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
         train_loss = keras.metrics.Mean(name="loss")
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:

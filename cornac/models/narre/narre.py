@@ -71,6 +71,20 @@ def get_data(batch_ids, train_set, max_text_length, by='user', max_num_review=No
     return batch_reviews, batch_id_reviews, batch_num_reviews
 
 
+class AddGlobalBias(keras.layers.Layer):
+
+    def __init__(self, init_value=0.0, name="global_bias"):
+        super(AddGlobalBias, self).__init__(name=name)
+        self.init_value = init_value
+      
+    def build(self, input_shape):
+        self.global_bias = self.add_weight(shape=1,
+                               initializer=tf.keras.initializers.Constant(self.init_value),
+                               trainable=True)
+
+    def call(self, inputs):
+        return inputs + self.global_bias
+
 class Model:
     def __init__(self, n_users, n_items, vocab, global_mean, n_factors=32, embedding_size=100, id_embedding_size=32, attention_size=16, kernel_sizes=[3], n_filters=64, dropout_rate=0.5, max_text_length=50, pretrained_word_embeddings=None, verbose=False, seed=None):
         self.n_users = n_users
@@ -160,12 +174,13 @@ class Model:
         ])
 
         W1 = layers.Dense(1, activation=None, use_bias=False, name="W1")
+        add_global_bias = AddGlobalBias(init_value=self.global_mean, name="global_bias")
         r = layers.Add(name="prediction")([
             W1(h0),
             user_bias(i_user_id),
-            item_bias(i_item_id),
-            keras.backend.constant(self.global_mean, shape=(1,), name="global_mean"),
+            item_bias(i_item_id)
         ])
+        r = add_global_bias(r)
         self.graph = keras.Model(inputs=[i_user_id, i_item_id, i_user_review, i_user_iid_review, i_user_num_reviews, i_item_review, i_item_uid_review, i_item_num_reviews], outputs=r)
         if self.verbose:
             self.graph.summary()
@@ -188,5 +203,7 @@ class Model:
         item_embedding = self.graph.get_layer('item_embedding').get_weights()[0]
         bu = self.graph.get_layer('user_bias').get_weights()[0]
         bi = self.graph.get_layer('item_bias').get_weights()[0]
-        mu = self.global_mean
+        mu = self.graph.get_layer('global_bias').get_weights()[0][0]
+        if self.verbose:
+            print('global bias =', mu)
         return X, Y, W1, user_embedding, item_embedding, bu, bi, mu
