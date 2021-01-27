@@ -50,24 +50,40 @@ class TextProcessor(keras.Model):
         return text_h
 
 
-def get_data(batch_ids, train_set, max_text_length, by='user'):
+def get_data(batch_ids, train_set, max_text_length, by='user', max_num_review=None):
     from tensorflow.python.keras.preprocessing.sequence import pad_sequences
     batch_reviews, batch_id_reviews, batch_num_reviews = [], [], []
     review_group = train_set.review_text.user_review if by == 'user' else train_set.review_text.item_review
     for idx in batch_ids:
         ids, review_ids = [], []
-        for jdx, review_idx in review_group[idx].items():
+        for inc, (jdx, review_idx) in enumerate(review_group[idx].items()):
+            if max_num_review is not None and inc == max_num_review:
+                break
             ids.append(jdx)
             review_ids.append(review_idx)
         batch_id_reviews.append(ids)
         reviews = train_set.review_text.batch_seq(review_ids, max_length=max_text_length)
         batch_reviews.append(reviews)
-        batch_num_reviews.append(len(review_group[idx].items()))
+        batch_num_reviews.append(len(reviews))
     batch_reviews = pad_sequences(batch_reviews, padding="post")
     batch_id_reviews = pad_sequences(batch_id_reviews, padding="post")
     batch_num_reviews = np.array(batch_num_reviews)
     return batch_reviews, batch_id_reviews, batch_num_reviews
 
+
+class AddGlobalBias(keras.layers.Layer):
+
+    def __init__(self, init_value=0.0, name="global_bias"):
+        super(AddGlobalBias, self).__init__(name=name)
+        self.init_value = init_value
+      
+    def build(self, input_shape):
+        self.global_bias = self.add_weight(shape=1,
+                               initializer=tf.keras.initializers.Constant(self.init_value),
+                               trainable=True)
+
+    def call(self, inputs):
+        return inputs + self.global_bias
 
 class Model:
     def __init__(self, n_users, n_items, vocab, global_mean, n_factors=32, embedding_size=100, id_embedding_size=32, attention_size=16, kernel_sizes=[3], n_filters=64, dropout_rate=0.5, max_text_length=50, pretrained_word_embeddings=None, verbose=False, seed=None):
@@ -158,27 +174,28 @@ class Model:
         ])
 
         W1 = layers.Dense(1, activation=None, use_bias=False, name="W1")
+        add_global_bias = AddGlobalBias(init_value=self.global_mean, name="global_bias")
         r = layers.Add(name="prediction")([
             W1(h0),
             user_bias(i_user_id),
-            item_bias(i_item_id),
-            keras.backend.constant(self.global_mean, shape=(1,), name="global_mean"),
+            item_bias(i_item_id)
         ])
+        r = add_global_bias(r)
         self.graph = keras.Model(inputs=[i_user_id, i_item_id, i_user_review, i_user_iid_review, i_user_num_reviews, i_item_review, i_item_uid_review, i_item_num_reviews], outputs=r)
         if self.verbose:
             self.graph.summary()
 
-    def get_weights(self, train_set, batch_size=64):
+    def get_weights(self, train_set, batch_size=64, max_num_review=None):
         user_attention_review_pooling = keras.Model(inputs=[self.graph.get_layer('input_user_review').input, self.graph.get_layer('input_user_iid_review').input, self.graph.get_layer('input_user_number_of_review').input], outputs=self.graph.get_layer('Xu').output)
         item_attention_review_pooling = keras.Model(inputs=[self.graph.get_layer('input_item_review').input, self.graph.get_layer('input_item_uid_review').input, self.graph.get_layer('input_item_number_of_review').input], outputs=self.graph.get_layer('Yi').output)
         X = np.zeros((self.n_users, self.n_factors))
         Y = np.zeros((self.n_items, self.n_factors))
         for batch_users in train_set.user_iter(batch_size):
-            user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, train_set, self.max_text_length, by='user')
+            user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, train_set, self.max_text_length, by='user', max_num_review=max_num_review)
             Xu = user_attention_review_pooling([user_reviews, user_iid_reviews, user_num_reviews], training=False)
             X[batch_users] = Xu.numpy()
         for batch_items in train_set.item_iter(batch_size):
-            item_reviews, item_uid_reviews, item_num_reviews = get_data(batch_items, train_set, self.max_text_length, by='item')
+            item_reviews, item_uid_reviews, item_num_reviews = get_data(batch_items, train_set, self.max_text_length, by='item', max_num_review=max_num_review)
             Yi = item_attention_review_pooling([item_reviews, item_uid_reviews, item_num_reviews], training=False)
             Y[batch_items] = Yi.numpy()
         W1 = self.graph.get_layer('W1').get_weights()[0]
@@ -186,5 +203,7 @@ class Model:
         item_embedding = self.graph.get_layer('item_embedding').get_weights()[0]
         bu = self.graph.get_layer('user_bias').get_weights()[0]
         bi = self.graph.get_layer('item_bias').get_weights()[0]
-        mu = self.global_mean
+        mu = self.graph.get_layer('global_bias').get_weights()[0][0]
+        if self.verbose:
+            print('global bias =', mu)
         return X, Y, W1, user_embedding, item_embedding, bu, bi, mu

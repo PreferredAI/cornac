@@ -55,11 +55,20 @@ class NARRE(Recommender):
     max_text_length: int, default: 50
         Maximum number of tokens in a review instance
 
+    max_num_review: int, default: None
+        Maximum number of reviews that you want to feed into training. By default, the model will be trained with all reviews.
+
     batch_size: int, default: 64
         Batch size
 
     max_iter: int, default: 10
         Max number of training epochs
+
+    optimizer: string, optional, default: 'adam'
+        Optimizer for training is either 'adam' or 'rmsprop'.
+
+    learning_rate: float, optional, default: 0.001
+        Initial value of learning rate for the optimizer.
 
     trainable: boolean, optional, default: True
         When False, the model will not be re-trained, and input of pre-trained parameters are required.
@@ -90,8 +99,11 @@ class NARRE(Recommender):
         n_filters=64,
         dropout_rate=0.5,
         max_text_length=50,
+        max_num_review=None,
         batch_size=64,
         max_iter=10,
+        optimizer='adam',
+        learning_rate=0.001,
         trainable=True,
         verbose=True,
         init_params=None,
@@ -107,8 +119,11 @@ class NARRE(Recommender):
         self.kernel_sizes = kernel_sizes
         self.dropout_rate = dropout_rate
         self.max_text_length = max_text_length
+        self.max_num_review = max_num_review
         self.batch_size = batch_size
         self.max_iter = max_iter
+        self.optimizer = optimizer
+        self.learning_rate = learning_rate
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
 
@@ -158,14 +173,17 @@ class NARRE(Recommender):
         from tensorflow import keras
         from .narre import get_data
         loss = keras.losses.MeanSquaredError()
-        optimizer = keras.optimizers.Adam()
+        if self.optimizer == 'rmsprop':
+            optimizer = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
+        else:
+            optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
         train_loss = keras.metrics.Mean(name="loss")
         loop = trange(self.max_iter, disable=not self.verbose)
         for _ in loop:
             train_loss.reset_states()
             for i, (batch_users, batch_items, batch_ratings) in enumerate(self.train_set.uir_iter(self.batch_size, shuffle=True)):
-                user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, self.train_set, self.max_text_length, by='user')
-                item_reviews, item_uid_reviews, item_num_reviews = get_data(batch_items, self.train_set, self.max_text_length, by='item')
+                user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, self.train_set, self.max_text_length, by='user', max_num_review=self.max_num_review)
+                item_reviews, item_uid_reviews, item_num_reviews = get_data(batch_items, self.train_set, self.max_text_length, by='item', max_num_review=self.max_num_review)
                 with tf.GradientTape() as tape:
                     predictions = self.model.graph(
                         [batch_users, batch_items, user_reviews, user_iid_reviews, user_num_reviews, item_reviews, item_uid_reviews, item_num_reviews],
@@ -180,7 +198,7 @@ class NARRE(Recommender):
         loop.close()
 
         # save weights for predictions
-        self.X, self.Y, self.W1, self.user_embedding, self.item_embedding, self.bu, self.bi, self.mu = self.model.get_weights(self.train_set, self.batch_size)
+        self.X, self.Y, self.W1, self.user_embedding, self.item_embedding, self.bu, self.bi, self.mu = self.model.get_weights(self.train_set, self.batch_size, max_num_review=self.max_num_review)
         if self.verbose:
             print("Learning completed!")
 
