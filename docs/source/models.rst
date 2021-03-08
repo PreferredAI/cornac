@@ -15,6 +15,16 @@ Bilateral VAE for Collaborative Filtering (BiVAECF)
 .. automodule:: cornac.models.bivaecf.recom_bivaecf
    :members:
 
+Explainable Recommendation with Comparative Constraints on Subjective Aspect-Level Quality (ComparERSub)
+----------------------------------------------------
+.. automodule:: cornac.models.comparer.recom_comparer_sub
+   :members:
+
+Explainable Recommendation with Comparative Constraints on Objective Aspect-Level Quality (ComparERObj)
+----------------------------------------------------
+.. automodule:: cornac.models.comparer.recom_comparer_obj
+   :members:
+
 Collaborative Context Poisson Factorization (C2PF)
 ----------------------------------------------------
 .. automodule:: cornac.models.c2pf.recom_c2pf
