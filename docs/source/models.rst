@@ -15,6 +15,14 @@ Bilateral VAE for Collaborative Filtering (BiVAECF)
 .. automodule:: cornac.models.bivaecf.recom_bivaecf
    :members:
 
+Explainable Recommendation with Comparative Constraints on Product Aspects (ComparER)
+-------------------------------------------------------------------------------------
+.. automodule:: cornac.models.comparer.recom_comparer_sub
+   :members:
+   
+.. automodule:: cornac.models.comparer.recom_comparer_obj
+   :members:
+
 Collaborative Context Poisson Factorization (C2PF)
 ----------------------------------------------------
 .. automodule:: cornac.models.c2pf.recom_c2pf
