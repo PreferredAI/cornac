@@ -15,13 +15,11 @@ Bilateral VAE for Collaborative Filtering (BiVAECF)
 .. automodule:: cornac.models.bivaecf.recom_bivaecf
    :members:
 
-Explainable Recommendation with Comparative Constraints on Subjective Aspect-Level Quality (ComparERSub)
-----------------------------------------------------
+Explainable Recommendation with Comparative Constraints on Product Aspects (ComparER)
+-------------------------------------------------------------------------------------
 .. automodule:: cornac.models.comparer.recom_comparer_sub
    :members:
-
-Explainable Recommendation with Comparative Constraints on Objective Aspect-Level Quality (ComparERObj)
-----------------------------------------------------
+   
 .. automodule:: cornac.models.comparer.recom_comparer_obj
    :members:
 
