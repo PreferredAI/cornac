@@ -22,7 +22,7 @@ from ..data import Reader
 from typing import List
 
 
-def load_feedback(reader: Reader = None) -> List:
+def load_feedback(fmt="UIR", reader: Reader = None) -> List:
     """Load the user-item ratings, scale: [1,5]
 
     Parameters
@@ -38,7 +38,7 @@ def load_feedback(reader: Reader = None) -> List:
     fpath = cache(url='https://static.preferred.ai/cornac/datasets/amazon_toy/rating.zip',
                   unzip=True, relative_path='amazon_toy/rating.txt')
     reader = Reader() if reader is None else reader
-    return reader.read(fpath, fmt='UIR', sep=',')
+    return reader.read(fpath, fmt=fmt, sep=',')
 
 def load_sentiment(reader: Reader = None) -> List:
     """Load the user-item-sentiments
