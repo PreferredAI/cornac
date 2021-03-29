@@ -96,7 +96,7 @@ cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=Tru
 | [PMF](cornac/models/pmf) | 0.7534 | 0.9138 | 0.7744 |  0.0491 |  0.0617 |       0.0533 |    0.0479 |       2.18 |     1.64 |
 | [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.0753 |  0.0975 |       0.0727 |    0.0891 |       3.74 |     1.49 |
 
-For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials).
+For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials). For learning purposes, this list of [tutorials on recommender systems](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems) will be more organized and comprehensive. 
 
 ## Models
 
