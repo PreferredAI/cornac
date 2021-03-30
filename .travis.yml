@@ -37,10 +37,9 @@ script: python -m pytest --cov=cornac
 
 deploy:
   provider: pypi
+  user: "__token__"
+  password: "pypi-AgEIcHlwaS5vcmcCJDA1NTBkYzljLTM5MjgtNGU3MC05YmE3LThjYzk5ZDE5Mjk1YgACN3sicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJjb3JuYWMiXX0sICJ2ZXJzaW9uIjogMX0AAAYgCXMRUx_ujB5Fm2qQKqEMQf-q-AQxU3Z_kHddt4nJU0w"
   distributions: "sdist bdist_wheel"
   skip_existing: true
   on:
     tags: true
-  user: qttruong
-  password:
-    secure: 2w2NsHDJGj/Dzl9JDkTS+GV5vGwp6Ys3rrTPWV/wmps2IcWvmh1k9rSVYXbpiaw1CDqOU9iMXpmwtuiuZkl1XvdlEARbOPz+gATHAhbvO+I55Ur3eOBmoUOeVfxevdY33BDlZ1Kd5GGq/bvPZheRrJZJJSeNw2rIxv6WlFgDJ0GaRGT0nFaKmEf54RVskckhURgrgLoE0spr1FDfezjFgFcApp/HBytB9uAIyl5dIP9TZBuESDSBk7qwPJzrYwd1Un9zwYDR7CbeWCHtU1I3ov1bn/f7CzUs55KVi8PFBiVc2ockW7cA8fQf3Odhg3YI2dmxuXF83uL4GWWK1W6365hyIlDz03j5DWzFp9QjqLRlvH6/rVobAbsmXGckHNv+m43hVTEN/85CDXOGxjrb4lIriheDdsTc7NT9Ovhz0JP1yX+rGETNdgHWWD88VKPUWVYDuGqs9lTTJ5r6hnma6WAXy2fbEUolAZABRHB3KWNGNRyOvIluijfc7i0Y1CHD4MYx8T29mJ5KH/bPkLc3o/TDLHaooGMp4scnyJ328O5Hd307t0BirgLA4HcKHwPV8/2nx39AN93nhywpoIoamgg9oHMLxtcgKdTqcwVHUUW1wq1FZQZkJ0hPB3Fbs7w/Y+MU0tYqrfTORmHEASgAk5/5l6YO61jSqNhXn7lgNmw=
