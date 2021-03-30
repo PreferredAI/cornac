@@ -1,45 +1,37 @@
 sudo: required
 language: python
-
 matrix:
   include:
-    - os: linux
-      env: DISTRIB="trusty" PYTHON_VERSION="3.6"
-    - os: linux
-      env: DISTRIB="trusty" PYTHON_VERSION="3.7"
-    - os: osx
-      language: generic
-      env: DISTRIB="conda" PYTHON_VERSION="3.6"
-    - os: osx
-      language: generic
-      env: DISTRIB="conda" PYTHON_VERSION="3.7"
-
-install:  
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh; 
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh; 
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  # Useful for debugging any issues with conda
-  - conda info -a
-  - travis_retry conda create -q -n test-environment python=$PYTHON_VERSION
-  - source activate test-environment
-  - travis_retry pip install --only-binary=numpy,scipy numpy scipy pytest --quiet
-  - pip install -e .[tests]
-
+  - os: linux
+    env: DISTRIB="trusty" PYTHON_VERSION="3.6"
+  - os: linux
+    env: DISTRIB="trusty" PYTHON_VERSION="3.7"
+  - os: osx
+    language: generic
+    env: DISTRIB="conda" PYTHON_VERSION="3.6"
+  - os: osx
+    language: generic
+    env: DISTRIB="conda" PYTHON_VERSION="3.7"
+install:
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  -O miniconda.sh; fi
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda info -a
+- travis_retry conda create -q -n test-environment python=$PYTHON_VERSION
+- source activate test-environment
+- travis_retry pip install --only-binary=numpy,scipy numpy scipy pytest --quiet
+- pip install -e .[tests]
 script: python -m pytest --cov=cornac
-
 deploy:
   provider: pypi
-  user: "__token__"
-  password: "pypi-AgEIcHlwaS5vcmcCJDA1NTBkYzljLTM5MjgtNGU3MC05YmE3LThjYzk5ZDE5Mjk1YgACN3sicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJjb3JuYWMiXX0sICJ2ZXJzaW9uIjogMX0AAAYgCXMRUx_ujB5Fm2qQKqEMQf-q-AQxU3Z_kHddt4nJU0w"
-  distributions: "sdist bdist_wheel"
+  user: __token__
+  password:
+    secure: CEy1La5E7RvlrKIq9vHb+aC+P5IAVyqQXfsLwgQcQTUuERlMDoTV6j461ynKCqvLak+lxM0hsAGZ5bGNdC+EEPN8kV1nY2/fhyMk0Fgz7WgyoNlBVr8B0YfCRRp5IRwTvlkcO1PijbvBxjEeSQx7+3o3mX9kgU6KVtyJA95zV4fzd/HgckBBfU31eo7HoNsG+N8CjEnJR+4ZaftMsnvKkb++QJWN80cQ9AM0nBShwyYhSpas8WZ/HFNcJxdoEZ9hkG2ZFars5lVYPzoIcQnii3Homh0TtOKCB4viG7WuuvUab9BrI79UdEV/VqJRYs5TVqCq5YE03rBKPRs4cN+OP2nQUiq9Yhzgo8XfuaEkwxK51/bvb5J5mGIDFrKs6r91j5xXf4qvipcAujwruVHlNmkmahTqtN7ln+eZElW+xI9W7aJPWXOqSMs7ApdSiWFkpTTMuVQLBAI5FbYfbJRfjVwaV+06aGHpRWhHV3zp7pMQZ8ffJ1c16mJETGAlGBFcLKoHx5Ox7prZAtoL2/jbsTCw8uwvm6Ov1qrsIZFHTPXD/yduIG7PA8R8EbMPUHXRrXEpsIs1VsXr2N2q242i3kLcVXiaflwPZDZx7CZx/kPUB59m7JNIhIIfhlmCUOIzrRqSQOtgTWJfbhap8nxt4tO3PrFonW7Hfn1I+bQwX7Y=
+  distributions: sdist bdist_wheel
   skip_existing: true
   on:
     tags: true
