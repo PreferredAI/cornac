@@ -45,7 +45,7 @@ class Experiment:
 
     show_validation: bool, optional, default: True 
         Whether to show the results on validation set (if exists).
-        
+
     save_dir: str, optional, default: None
         Path to a directory for storing trained models and logs. If None, 
         models will NOT be stored and logs will be saved in the current working directory.
@@ -55,7 +55,7 @@ class Experiment:
     result: array of :obj:`<cornac.experiment.result.Result>`, default: None
         This attribute contains the results per-model of your experiment 
         on the test set, initially it is set to None.
-    
+
     val_result: array of :obj:`<cornac.experiment.result.Result>`, default: None
         This attribute contains the results per-model of your experiment
         on the validation set (if exists), initially it is set to None.
@@ -99,7 +99,8 @@ class Experiment:
     def _validate_metrics(input_metrics):
         if not hasattr(input_metrics, "__len__"):
             raise ValueError(
-                "metrics have to be an array but {}".format(type(input_metrics))
+                "metrics have to be an array but {}".format(
+                    type(input_metrics))
             )
 
         valid_metrics = []
@@ -121,7 +122,7 @@ class Experiment:
     def run(self):
         """Run the Cornac experiment"""
         self._create_result()
-        
+
         for model in self.models:
             test_result, val_result = self.eval_method.evaluate(
                 model=model,
@@ -146,6 +147,22 @@ class Experiment:
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
         save_dir = "." if self.save_dir is None else self.save_dir
-        output_file = os.path.join(save_dir, "CornacExp-{}.log".format(timestamp))
+        output_file = os.path.join(
+            save_dir, "CornacExp-{}.log".format(timestamp))
         with open(output_file, "w") as f:
             f.write(output)
+
+
+class STExperiment(Experiment):
+    """Stratified evaluation experiment"""
+
+    def _create_result(self):
+        from ..eval_methods.cross_validation import CrossValidation
+        from ..eval_methods.stratified_evaluation import StratifiedEvaluation
+
+        if isinstance(self.eval_method, CrossValidation) or isinstance(self.eval_method, StratifiedEvaluation):
+            self.result = CVExperimentResult()
+        else:
+            self.result = ExperimentResult()
+            if self.show_validation and self.eval_method.val_set is not None:
+                self.val_result = ExperimentResult()
