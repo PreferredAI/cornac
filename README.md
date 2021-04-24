@@ -157,24 +157,33 @@ You can also post bug reports and feature requests in [GitHub issues](https://gi
 
 ## Citation
 
-If you use Cornac in a scientific publication, we would appreciate citations to the following paper:
+If you use Cornac in a scientific publication, we would appreciate citations to the following papers:
 
-[Cornac: A Comparative Framework for Multimodal Recommender Systems](http://jmlr.org/papers/v21/19-805.html), Salah *et al.*, JMLR 21, pp. 1-5, 2020.
+- [Cornac: A Comparative Framework for Multimodal Recommender Systems](http://jmlr.org/papers/v21/19-805.html), Salah *et al.*, JMLR 21, pp. 1-5, 2020.
 
-Bibtex entry:
+  ```
+  @article{salah2020cornac,
+    title={Cornac: A Comparative Framework for Multimodal Recommender Systems},
+    author={Salah, Aghiles and Truong, Quoc-Tuan and Lauw, Hady W},
+    journal={Journal of Machine Learning Research},
+    volume={21},
+    number={95},
+    pages={1--5},
+    year={2020}
+  }
+  ```
 
-```
-@article{cornac,
-  author  = {Aghiles Salah and Quoc-Tuan Truong and Hady W. Lauw},
-  title   = {Cornac: A Comparative Framework for Multimodal Recommender Systems},
-  journal = {Journal of Machine Learning Research},
-  year    = {2020},
-  volume  = {21},
-  number  = {95},
-  pages   = {1-5},
-  url     = {http://jmlr.org/papers/v21/19-805.html}
-}
-```
+- [Exploring Cross-Modality Utilization in Recommender Systems](https://ieeexplore.ieee.org/abstract/document/9354572), Truong *et al.*, IEEE Internet Computing, 2021.
+
+  ```
+  @article{truong2021exploring,
+    title={Exploring Cross-Modality Utilization in Recommender Systems},
+    author={Truong, Quoc-Tuan and Salah, Aghiles and Tran, Thanh-Binh and Guo, Jingyao and Lauw, Hady W},
+    journal={IEEE Internet Computing},
+    year={2021},
+    publisher={IEEE}
+  }
+  ```
 
 ## License
 
