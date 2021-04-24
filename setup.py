@@ -92,8 +92,10 @@ else:
                 "No GCC available. Install gcc from Homebrew " "using brew install gcc."
             )
             # required arguments for default gcc of OSX
-            compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-            link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
+            compile_args.extend(
+                ["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
+            link_args.extend(
+                ["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
 
     if USE_OPENMP:
         compile_args.append("-fopenmp")
@@ -296,8 +298,9 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm>=4.19"],
-    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
+    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw", "pandas"],
+    extras_require={
+        "tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
     classifiers=(
