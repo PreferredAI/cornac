@@ -111,8 +111,9 @@ class Experiment:
 
     def _create_result(self):
         from ..eval_methods.cross_validation import CrossValidation
+        from ..eval_methods.stratified_evaluation import StratifiedEvaluation
 
-        if isinstance(self.eval_method, CrossValidation):
+        if isinstance(self.eval_method, CrossValidation) or isinstance(self.eval_method, StratifiedEvaluation):
             self.result = CVExperimentResult()
         else:
             self.result = ExperimentResult()
@@ -151,18 +152,3 @@ class Experiment:
             save_dir, "CornacExp-{}.log".format(timestamp))
         with open(output_file, "w") as f:
             f.write(output)
-
-
-class STExperiment(Experiment):
-    """Stratified evaluation experiment"""
-
-    def _create_result(self):
-        from ..eval_methods.cross_validation import CrossValidation
-        from ..eval_methods.stratified_evaluation import StratifiedEvaluation
-
-        if isinstance(self.eval_method, CrossValidation) or isinstance(self.eval_method, StratifiedEvaluation):
-            self.result = CVExperimentResult()
-        else:
-            self.result = ExperimentResult()
-            if self.show_validation and self.eval_method.val_set is not None:
-                self.val_result = ExperimentResult()

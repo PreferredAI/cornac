@@ -14,7 +14,6 @@
 # ============================================================================
 
 from .experiment import Experiment
-from .experiment import STExperiment
 from .result import Result
 from .result import ExperimentResult
 from .result import CVResult
@@ -22,7 +21,6 @@ from .result import STResult
 from .result import CVExperimentResult
 
 __all__ = ['Experiment',
-           'STExperiment',
            'Result',
            'ExperimentResult',
            'CVResult',
