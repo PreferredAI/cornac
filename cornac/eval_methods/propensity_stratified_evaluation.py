@@ -3,7 +3,6 @@ import powerlaw
 import tqdm
 
 import numpy as np
-import pandas as pd
 
 from collections import defaultdict
 from collections import OrderedDict
@@ -336,11 +335,11 @@ class PropensityStratifiedEvaluation(BaseMethod):
                                for u, i, r in test_data], dtype=np.float64)
 
         # stratify
-        strata, bins = pd.cut(x=test_props,
-                              bins=self.n_strata,
-                              labels=['Q%d' %
-                                      i for i in range(1, self.n_strata+1)],
-                              retbins=True)
+        minp = min(test_props)
+        maxp = max(test_props)
+        slice = (maxp-minp)/self.n_strata
+        strata = [f'Q{idx}' for idx in np.digitize(
+            x=test_props, bins=np.arange(minp, maxp+slice, slice))]
 
         for stratum in sorted(np.unique(strata)):
 
