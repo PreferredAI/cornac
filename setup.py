@@ -298,7 +298,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw", "pandas"],
+    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw"],
     extras_require={
         "tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
