@@ -246,9 +246,13 @@ class PropensityStratifiedEvaluation(BaseMethod):
         val_data = safe_indexing(self._data, val_idx) if len(
             val_idx) > 0 else None
 
-        self._build_stratified_datasets(train_data=train_data,
-                                        test_data=test_data,
-                                        val_data=val_data)
+        # build train/test/valid datasets
+        self._build_datasets(train_data=train_data,
+                             test_data=test_data,
+                             val_data=val_data)
+
+        # build stratified dataset
+        self._build_stratified_dataset(test_data=test_data)
 
     def _estimate_propensities(self):
 
@@ -274,63 +278,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
         return item_freq  # user-independent propensity estimations
 
-    def _build_stratified_datasets(self, train_data, test_data, val_data):
-
-        if train_data is None or len(train_data) == 0:
-            raise ValueError("train_data is required but None or empty!")
-        if test_data is None or len(test_data) == 0:
-            raise ValueError("test_data is required but None or empty!")
-
-        self.global_uid_map.clear()
-        self.global_iid_map.clear()
-
-        # build training set
-        self.train_set = Dataset.build(
-            data=train_data,
-            fmt=self.fmt,
-            global_uid_map=self.global_uid_map,
-            global_iid_map=self.global_iid_map,
-            seed=self.seed,
-            exclude_unknowns=False,
-        )
-        if self.verbose:
-            print("---")
-            print("Training data:")
-            print("Number of users = {}".format(self.train_set.num_users))
-            print("Number of items = {}".format(self.train_set.num_items))
-            print("Number of ratings = {}".format(self.train_set.num_ratings))
-            print("Max rating = {:.1f}".format(self.train_set.max_rating))
-            print("Min rating = {:.1f}".format(self.train_set.min_rating))
-            print("Global mean = {:.1f}".format(self.train_set.global_mean))
-
-        # build test set
-        self.test_set = Dataset.build(
-            data=test_data,
-            fmt=self.fmt,
-            global_uid_map=self.global_uid_map,
-            global_iid_map=self.global_iid_map,
-            seed=self.seed,
-            exclude_unknowns=self.exclude_unknowns,
-        )
-        if self.verbose:
-            print("---")
-            print("Test data (Q0):")
-            print("Number of users = {}".format(len(self.test_set.uid_map)))
-            print("Number of items = {}".format(len(self.test_set.iid_map)))
-            print("Number of ratings = {}".format(self.test_set.num_ratings))
-            print("Max rating = {:.1f}".format(self.test_set.max_rating))
-            print("Min rating = {:.1f}".format(self.test_set.min_rating))
-            print("Global mean = {:.1f}".format(self.test_set.global_mean))
-            print(
-                "Number of unknown users = {}".format(
-                    self.test_set.num_users - self.train_set.num_users
-                )
-            )
-            print(
-                "Number of unknown items = {}".format(
-                    self.test_set.num_items - self.train_set.num_items
-                )
-            )
+    def _build_stratified_dataset(self, test_data):
 
         # build stratified datasets
         self.stratified_sets = {}
@@ -387,34 +335,6 @@ class PropensityStratifiedEvaluation(BaseMethod):
                 )
 
             self.stratified_sets[stratum] = qtest_set
-
-        if val_data is not None and len(val_data) > 0:
-            self.val_set = Dataset.build(
-                data=val_data,
-                fmt=self.fmt,
-                global_uid_map=self.global_uid_map,
-                global_iid_map=self.global_iid_map,
-                seed=self.seed,
-                exclude_unknowns=self.exclude_unknowns,
-            )
-            if self.verbose:
-                print("---")
-                print("Validation data:")
-                print("Number of users = {}".format(len(self.val_set.uid_map)))
-                print("Number of items = {}".format(len(self.val_set.iid_map)))
-                print("Number of ratings = {}".format(self.val_set.num_ratings))
-
-        if self.verbose:
-            print("---")
-            print("Total users = {}".format(self.total_users))
-            print("Total items = {}".format(self.total_items))
-
-        self.train_set.total_users = self.total_users
-        self.train_set.total_items = self.total_items
-
-        self._build_modalities()
-
-        return self
 
     def evaluate(self, model, metrics, user_based, show_validation):
 
