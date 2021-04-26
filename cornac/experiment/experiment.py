@@ -111,9 +111,9 @@ class Experiment:
 
     def _create_result(self):
         from ..eval_methods.cross_validation import CrossValidation
-        from ..eval_methods.stratified_evaluation import StratifiedEvaluation
+        from ..eval_methods.propensity_stratified_evaluation import PropensityStratifiedEvaluation
 
-        if isinstance(self.eval_method, CrossValidation) or isinstance(self.eval_method, StratifiedEvaluation):
+        if isinstance(self.eval_method, CrossValidation) or isinstance(self.eval_method, PropensityStratifiedEvaluation):
             self.result = CVExperimentResult()
         else:
             self.result = ExperimentResult()

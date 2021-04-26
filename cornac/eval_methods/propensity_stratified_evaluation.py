@@ -130,7 +130,7 @@ def ranking_eval(
     return avg_results, user_results
 
 
-class StratifiedEvaluation(BaseMethod):
+class PropensityStratifiedEvaluation(BaseMethod):
     """Propensity-based Stratified Evaluation Method proposed by Jadidinejad et al. (2021)
 
     References

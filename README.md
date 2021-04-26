@@ -66,7 +66,7 @@ brew install gcc | brew link gcc
 
 ```python
 import cornac
-from cornac.eval_methods import RatioSplit, StratifiedEvaluation
+from cornac.eval_methods import RatioSplit, PropensityStratifiedEvaluation
 from cornac.models import MF, PMF, BPR
 from cornac.metrics import MAE, RMSE, Precision, Recall, NDCG, AUC, MAP
 
@@ -77,11 +77,11 @@ ml_100k = cornac.datasets.movielens.load_feedback()
 # random train/test split evaluation
 rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
 # or stratified evaluation
-stra = StratifiedEvaluation(data=ml_100k,
-                            test_size=0.2,
-                            n_strata=2,
-                            rating_threshold=4.0,
-                            seed=123)
+stra = PropensityStratifiedEvaluation(data=ml_100k,
+                                      test_size=0.2,
+                                      n_strata=2,
+                                      rating_threshold=4.0,
+                                      seed=123)
 
 # initialize models, here we are comparing: Biased MF, PMF, and BPR
 models = [
