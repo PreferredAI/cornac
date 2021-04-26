@@ -132,13 +132,6 @@ def ranking_eval(
 class PropensityStratifiedEvaluation(BaseMethod):
     """Propensity-based Stratified Evaluation Method proposed by Jadidinejad et al. (2021)
 
-    References
-    ----------
-    Amir H. Jadidinejad, Craig Macdonald and Iadh Ounis, 
-    The Simpson's Paradox in the Offline Evaluation of Recommendation Systems, 
-    ACM Transactions on Information Systems (to appear)
-    https://arxiv.org/abs/2104.08912
-
     Parameters
     ----------
     data: array-like, required
@@ -163,6 +156,14 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
     verbose: bool, optional, default: False
         Output running log.
+
+    References
+    ----------
+    Amir H. Jadidinejad, Craig Macdonald and Iadh Ounis, 
+    The Simpson's Paradox in the Offline Evaluation of Recommendation Systems, 
+    ACM Transactions on Information Systems (to appear)
+    https://arxiv.org/abs/2104.08912
+
     """
 
     def __init__(
