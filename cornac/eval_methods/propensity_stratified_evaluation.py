@@ -141,6 +141,10 @@ class PropensityStratifiedEvaluation(BaseMethod):
         The proportion of the test set, 
         if > 1 then it is treated as the size of the test set.
 
+    val_size: float, optional, default: 0.0
+        The proportion of the validation set, \
+        if > 1 then it is treated as the size of the validation set.
+
     n_strata: int, optional, default: 2
         The number of strata for propensity-based stratification.
 
