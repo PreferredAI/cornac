@@ -22,8 +22,3 @@ An important focus of Cornac is making it convenient to work with auxiliary data
 - [Working with auxiliary data](./working_with_auxiliary_data.md)
 - [Text to Graph transformation](./text_to_graph.ipynb)
 - [Visual recommendation algorithm with text data](./vbpr_text.ipynb)
-
-## Stratified Evaluation
-Most datasets in the field of recommendation systems (MovieLens, Netflix,...) suffer from [closed loop feedback](https://dl.acm.org/doi/10.1145/3397271.3401230). In this situation, [Jadidinejad et al.](https://arxiv.org/abs/2104.08912) proposed a stratified evaluation method to better estimate the performance of different recommendation models.
-
-- [Stratified Evaluation](./stratified_evaluation.md)
