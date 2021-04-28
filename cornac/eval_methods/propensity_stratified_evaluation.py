@@ -288,11 +288,11 @@ class PropensityStratifiedEvaluation(BaseMethod):
                                for u, i, r in test_data], dtype=np.float64)
 
         # stratify
-        minp = min(test_props)
-        maxp = max(test_props)
+        minp = min(test_props) - 0.01 * min(test_props)
+        maxp = max(test_props) + 0.01 * max(test_props)
         slice = (maxp-minp)/self.n_strata
         strata = [f'Q{idx}' for idx in np.digitize(
-            x=test_props, bins=np.arange(minp, maxp+slice, slice))]
+            x=test_props, bins=np.arange(minp, maxp, slice))]
 
         for stratum in sorted(np.unique(strata)):
 
