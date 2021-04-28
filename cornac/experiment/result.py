@@ -135,10 +135,8 @@ class STResult(list):
                 index.append('Closed')
             elif f == 1:
                 index.append('IPS')
-            elif f == 2:
-                index.append('SNIPS')
             else:
-                index.append('Q%d' % (f - 2))
+                index.append('Q%d' % (f - 1))
             sizes.append(r.metric_avg_results['SIZE'])
 
         # add mean and std rows (total accumulative)
@@ -148,7 +146,7 @@ class STResult(list):
         # add unbiased stratified evaluation
         weights = np.asarray(sizes) / sizes[0]
         unbiased = np.average(
-            data[3:], axis=0, weights=weights[3:]) * sum(weights[3:])
+            data[2:], axis=0, weights=weights[2:]) * sum(weights[2:])
 
         # weighted average does not meaningful for size
         for idx, header in enumerate(headers):
@@ -167,7 +165,7 @@ class STResult(list):
                            metric_user_results=None))
 
         self.table = _table_format(
-            data, headers, index, h_bars=[1, 2, 4, len(data)])
+            data, headers, index, h_bars=[1, 2, 3, len(data)])
 
 
 class ExperimentResult(list):

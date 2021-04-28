@@ -24,8 +24,7 @@ def ranking_eval(
     rating_threshold=1.0,
     exclude_unknowns=True,
     verbose=False,
-    props=None,
-    self_normalized=True,
+    props=None
 ):
     """Evaluate model on provided ranking metrics.
     Parameters
@@ -50,8 +49,6 @@ def ranking_eval(
         Output evaluation progress.
     props: dictionary, optional, default: None
         items propensity scores
-    self_normalized: bool, optional, default: True
-        if True, self-normalize IPS scores (SNIPS)
     Returns
     -------
     res: (List, List)
@@ -114,10 +111,6 @@ def ranking_eval(
                 pd_rank=item_rank,
                 pd_scores=item_scores,
             )
-
-            if props is not None and self_normalized is True:
-                if total_pi > 0:
-                    mt_score /= total_pi
 
             user_results[i][user_idx] = mt_score
 
@@ -202,7 +195,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             val_size, test_size, len(self._data))
         self._split()
 
-    def _eval(self, model, test_set, val_set, user_based, props=None, self_normalized=True):
+    def _eval(self, model, test_set, val_set, user_based, props=None):
 
         metric_avg_results = OrderedDict()
         metric_user_results = OrderedDict()
@@ -226,8 +219,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             rating_threshold=self.rating_threshold,
             exclude_unknowns=self.exclude_unknowns,
             verbose=self.verbose,
-            props=props,
-            self_normalized=self_normalized
+            props=props
         )
         for i, mt in enumerate(self.ranking_metrics):
             metric_avg_results[mt.name] = avg_results[i]
@@ -384,26 +376,10 @@ class PropensityStratifiedEvaluation(BaseMethod):
             test_set=self.test_set,
             val_set=self.val_set,
             user_based=user_based,
-            props=self.props,
-            self_normalized=False
+            props=self.props
         )
         ips_result.metric_avg_results["SIZE"] = self.test_set.num_ratings
         result.append(ips_result)
-
-        if self.verbose:
-            print("\n[{}] SNIPS Evaluation started!".format(model.name))
-
-        # evaluate based on Self-Normalized Inverse Propensity Scoring
-        snips_result = self._eval(
-            model=model,
-            test_set=self.test_set,
-            val_set=self.val_set,
-            user_based=user_based,
-            props=self.props,
-            self_normalized=True
-        )
-        snips_result.metric_avg_results["SIZE"] = self.test_set.num_ratings
-        result.append(snips_result)
 
         if self.verbose:
             print("\n[{}] Stratified Evaluation started!".format(model.name))
