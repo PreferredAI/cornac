@@ -148,7 +148,7 @@ Weighted Bayesian Personalized Ranking (WBPR)
 .. autoclass:: cornac.models.bpr.recom_wbpr.WBPR
    :members:
 
-Collaborative Topic Modeling (CTR)
+Collaborative Topic Regression (CTR)
 -------------------------------------------
 .. automodule:: cornac.models.ctr.recom_ctr
    :members:
