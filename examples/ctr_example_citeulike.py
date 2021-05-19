@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for Collaborative Topic Modeling"""
+"""Example for Collaborative Topic Regression"""
 
 import cornac
 from cornac.data import Reader
