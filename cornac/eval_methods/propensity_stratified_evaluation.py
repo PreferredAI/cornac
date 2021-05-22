@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 import powerlaw
 import numpy as np
-from tqdm.auto import tqdm
+import tqdm.auto as tqdm
 
 from ..utils.common import safe_indexing
 from ..data import Dataset
@@ -327,7 +327,28 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
             self.stratified_sets[stratum] = qtest_set
 
-    def evaluate(self, model, metrics, user_based, show_validation):
+    def evaluate(self, model, metrics, user_based, show_validation=True):
+        """Evaluate given models according to given metrics
+
+        Parameters
+        ----------
+        model: :obj:`cornac.models.Recommender`
+            Recommender model to be evaluated.
+
+        metrics: :obj:`iterable`
+            List of metrics.
+
+        user_based: bool, required 
+            Evaluation strategy for the rating metrics. Whether results 
+            are averaging based on number of users or number of ratings.
+
+        show_validation: bool, optional, default: True 
+            Whether to show the results on validation set (if exists).
+
+        Returns
+        -------
+        res: :obj:`cornac.experiment.Result`
+        """
         result = PSTResult(model.name)
 
         if self.train_set is None:
