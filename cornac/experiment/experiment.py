@@ -55,7 +55,7 @@ class Experiment:
     result: array of :obj:`<cornac.experiment.result.Result>`, default: None
         This attribute contains the results per-model of your experiment 
         on the test set, initially it is set to None.
-
+    
     val_result: array of :obj:`<cornac.experiment.result.Result>`, default: None
         This attribute contains the results per-model of your experiment
         on the validation set (if exists), initially it is set to None.

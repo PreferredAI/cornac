@@ -42,7 +42,7 @@
 
 [conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF) with MovieLens dataset.
 
-[ctr_example_citeulike.py](ctr_example_citeulike.py) - Collaborative Topic Modelling (CTR) with CiteULike dataset.
+[ctr_example_citeulike.py](ctr_example_citeulike.py) - Collaborative Topic Regression (CTR) with CiteULike dataset.
 
 [cvae_example.py](cvae_example.py) - Collaborative Variational Autoencoder (CVAE) with CiteULike dataset.
 
