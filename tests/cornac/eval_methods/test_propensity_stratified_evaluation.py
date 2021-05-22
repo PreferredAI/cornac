@@ -20,15 +20,13 @@ from cornac.eval_methods import PropensityStratifiedEvaluation
 
 
 class TestPropensityStratifiedEvaluation(unittest.TestCase):
-
     def setUp(self):
         self.ml_100k = cornac.datasets.movielens.load_feedback()
 
     def test_stratified_split(self, n_strata=2):
-        stra_eval_method = PropensityStratifiedEvaluation(data=self.ml_100k,
-                                                          n_strata=n_strata,
-                                                          rating_threshold=4.0,
-                                                          verbose=False)
+        stra_eval_method = PropensityStratifiedEvaluation(
+            data=self.ml_100k, n_strata=n_strata, rating_threshold=4.0, verbose=False
+        )
         strata = [f"Q{idx+1}" for idx in range(n_strata)]
         # total number of ratings in the test set should be splited
         # within different strata
@@ -45,17 +43,18 @@ class TestPropensityStratifiedEvaluation(unittest.TestCase):
         for stratum in strata:
             if stratum in stra_eval_method.stratified_sets.keys():
                 strata_num_users = len(
-                    stra_eval_method.stratified_sets[stratum].uid_map)
+                    stra_eval_method.stratified_sets[stratum].uid_map
+                )
                 self.assertTrue(strata_num_users <= total_users)
                 strata_num_items = len(
-                    stra_eval_method.stratified_sets[stratum].iid_map)
+                    stra_eval_method.stratified_sets[stratum].iid_map
+                )
                 self.assertTrue(strata_num_items <= total_items)
 
     def test_propensity(self, n_strata=2):
-        stra_eval_method = PropensityStratifiedEvaluation(data=self.ml_100k,
-                                                          n_strata=n_strata,
-                                                          rating_threshold=4.0,
-                                                          verbose=False)
+        stra_eval_method = PropensityStratifiedEvaluation(
+            data=self.ml_100k, n_strata=n_strata, rating_threshold=4.0, verbose=False
+        )
         props = np.array(list(stra_eval_method.props.values()))
         self.assertTrue(np.all(props > 0))
 
@@ -65,5 +64,5 @@ class TestPropensityStratifiedEvaluation(unittest.TestCase):
             self.test_stratified_split(n_strata)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

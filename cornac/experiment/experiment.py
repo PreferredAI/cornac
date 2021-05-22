@@ -99,8 +99,7 @@ class Experiment:
     def _validate_metrics(input_metrics):
         if not hasattr(input_metrics, "__len__"):
             raise ValueError(
-                "metrics have to be an array but {}".format(
-                    type(input_metrics))
+                "metrics have to be an array but {}".format(type(input_metrics))
             )
 
         valid_metrics = []
@@ -111,9 +110,13 @@ class Experiment:
 
     def _create_result(self):
         from ..eval_methods.cross_validation import CrossValidation
-        from ..eval_methods.propensity_stratified_evaluation import PropensityStratifiedEvaluation
+        from ..eval_methods.propensity_stratified_evaluation import (
+            PropensityStratifiedEvaluation,
+        )
 
-        if isinstance(self.eval_method, CrossValidation) or isinstance(self.eval_method, PropensityStratifiedEvaluation):
+        if isinstance(self.eval_method, CrossValidation) or isinstance(
+            self.eval_method, PropensityStratifiedEvaluation
+        ):
             self.result = CVExperimentResult()
         else:
             self.result = ExperimentResult()
@@ -148,7 +151,6 @@ class Experiment:
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
         save_dir = "." if self.save_dir is None else self.save_dir
-        output_file = os.path.join(
-            save_dir, "CornacExp-{}.log".format(timestamp))
+        output_file = os.path.join(save_dir, "CornacExp-{}.log".format(timestamp))
         with open(output_file, "w") as f:
             f.write(output)

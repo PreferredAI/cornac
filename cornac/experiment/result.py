@@ -27,12 +27,10 @@ def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
         for idx, row in zip(index, data):
             row.insert(0, idx)
 
-    column_widths = np.asarray([[len(str(v)) for v in row]
-                                for row in data]).max(axis=0)
+    column_widths = np.asarray([[len(str(v)) for v in row] for row in data]).max(axis=0)
 
     row_fmt = (
-        " | ".join(["{:>%d}" % (w + extra_spaces)
-                    for w in column_widths][1:]) + "\n"
+        " | ".join(["{:>%d}" % (w + extra_spaces) for w in column_widths][1:]) + "\n"
     )
     if index is not None:
         row_fmt = "{:<%d} | " % (column_widths[0] + extra_spaces) + row_fmt
@@ -103,13 +101,12 @@ class CVResult(list):
         data = np.vstack([data, mean, std])
         data = [[NUM_FMT.format(v) for v in row] for row in data]
         index.extend(["Mean", "Std"])
-        self.table = _table_format(
-            data, headers, index, h_bars=[1, len(data) - 1])
+        self.table = _table_format(data, headers, index, h_bars=[1, len(data) - 1])
 
 
-class STResult(list):
+class PSTResult(list):
     """
-    Stratified Result Class for a single model
+    Propensity Stratified Result Class for a single model
 
     Parameters
     ----------
@@ -122,7 +119,7 @@ class STResult(list):
         self.model_name = model_name
 
     def __str__(self):
-        return '[{}]\n{}'.format(self.model_name, self.table)
+        return "[{}]\n{}".format(self.model_name, self.table)
 
     def organize(self):
 
@@ -132,12 +129,12 @@ class STResult(list):
         for f, r in enumerate(self):
             data.append([r.metric_avg_results[m] for m in headers])
             if f == 0:
-                index.append('Closed')
+                index.append("Closed")
             elif f == 1:
-                index.append('IPS')
+                index.append("IPS")
             else:
-                index.append('Q%d' % (f - 1))
-            sizes.append(r.metric_avg_results['SIZE'])
+                index.append("Q%d" % (f - 1))
+            sizes.append(r.metric_avg_results["SIZE"])
 
         # add mean and std rows (total accumulative)
         data = np.asarray(data)
@@ -145,27 +142,28 @@ class STResult(list):
 
         # add unbiased stratified evaluation
         weights = np.asarray(sizes) / sizes[0]
-        unbiased = np.average(
-            data[2:], axis=0, weights=weights[2:]) * sum(weights[2:])
+        unbiased = np.average(data[2:], axis=0, weights=weights[2:]) * sum(weights[2:])
 
         # weighted average does not meaningful for size
         for idx, header in enumerate(headers):
-            if header == 'SIZE':
+            if header == "SIZE":
                 unbiased[idx] = sizes[0]
 
         # update the table
         data = np.vstack([data, unbiased])
         data = [[NUM_FMT.format(v) for v in row] for row in data]
-        index.extend(['Unbiased'])
+        index.extend(["Unbiased"])
 
         # add unbiased to the list
-        self.append(Result(model_name=self[0].model_name,
-                           metric_avg_results=OrderedDict(
-                               zip(headers, unbiased)),
-                           metric_user_results=None))
+        self.append(
+            Result(
+                model_name=self[0].model_name,
+                metric_avg_results=OrderedDict(zip(headers, unbiased)),
+                metric_user_results=None,
+            )
+        )
 
-        self.table = _table_format(
-            data, headers, index, h_bars=[1, 2, 3, len(data)])
+        self.table = _table_format(data, headers, index, h_bars=[1, 2, 3, len(data)])
 
 
 class ExperimentResult(list):
@@ -177,8 +175,7 @@ class ExperimentResult(list):
         headers = list(self[0].metric_avg_results.keys())
         data, index = [], []
         for r in self:
-            data.append([NUM_FMT.format(r.metric_avg_results[m])
-                         for m in headers])
+            data.append([NUM_FMT.format(r.metric_avg_results[m]) for m in headers])
             index.append(r.model_name)
         return _table_format(data, headers, index, h_bars=[1])
 

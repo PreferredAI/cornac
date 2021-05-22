@@ -1,18 +1,16 @@
 import time
-import powerlaw
-import tqdm
-
-import numpy as np
-
 from collections import defaultdict
 from collections import OrderedDict
 
-from ..utils import get_rng
+import powerlaw
+import numpy as np
+from tqdm.auto import tqdm
+
 from ..utils.common import safe_indexing
 from ..data import Dataset
 from .base_method import BaseMethod, rating_eval
 from .ratio_split import RatioSplit
-from ..experiment.result import Result, STResult
+from ..experiment.result import Result, PSTResult
 
 
 def ranking_eval(
@@ -24,31 +22,41 @@ def ranking_eval(
     rating_threshold=1.0,
     exclude_unknowns=True,
     verbose=False,
-    props=None
+    props=None,
 ):
     """Evaluate model on provided ranking metrics.
+    
     Parameters
     ----------
     model: :obj:`cornac.models.Recommender`, required
         Recommender model to be evaluated.
+        
     metrics: :obj:`iterable`, required
         List of rating metrics :obj:`cornac.metrics.RankingMetric`.
+    
     train_set: :obj:`cornac.data.Dataset`, required
         Dataset to be used for model training. This will be used to exclude
         observations already appeared during training.
+    
     test_set: :obj:`cornac.data.Dataset`, required
         Dataset to be used for evaluation.
+    
     val_set: :obj:`cornac.data.Dataset`, optional, default: None
         Dataset to be used for model selection. This will be used to exclude
         observations already appeared during validation.
+        
     rating_threshold: float, optional, default: 1.0
         The threshold to convert ratings into positive or negative feedback.
+        
     exclude_unknowns: bool, optional, default: True
         Ignore unknown users and items during evaluation.
+        
     verbose: bool, optional, default: False
         Output evaluation progress.
+        
     props: dictionary, optional, default: None
         items propensity scores
+        
     Returns
     -------
     res: (List, List)
@@ -82,8 +90,7 @@ def ranking_eval(
         u_gt_pos = np.zeros(test_set.num_items, dtype=np.float)
         u_gt_pos[test_pos_items] = 1
 
-        val_pos_items = [] if val_mat is None else pos_items(
-            val_mat.getrow(user_idx))
+        val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
         train_pos_items = (
             []
             if train_set.is_unk_user(user_idx)
@@ -93,8 +100,7 @@ def ranking_eval(
         u_gt_neg = np.ones(test_set.num_items, dtype=np.int)
         u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
 
-        item_indices = None if exclude_unknowns else np.arange(
-            test_set.num_items)
+        item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
         item_rank, item_scores = model.rank(user_idx, item_indices)
 
         total_pi = 0.0
@@ -102,7 +108,7 @@ def ranking_eval(
             for idx, e in enumerate(u_gt_pos):
                 if e > 0 and props[str(idx)] > 0:
                     u_gt_pos[idx] /= props[str(idx)]
-                    total_pi += (1 / props[str(idx)])
+                    total_pi += 1 / props[str(idx)]
 
         for i, mt in enumerate(metrics):
             mt_score = mt.compute(
@@ -116,8 +122,7 @@ def ranking_eval(
 
     # avg results of ranking metrics
     for i, mt in enumerate(metrics):
-        avg_results.append(
-            sum(user_results[i].values()) / len(user_results[i]))
+        avg_results.append(sum(user_results[i].values()) / len(user_results[i]))
 
     return avg_results, user_results
 
@@ -160,7 +165,6 @@ class PropensityStratifiedEvaluation(BaseMethod):
     The Simpson's Paradox in the Offline Evaluation of Recommendation Systems, 
     ACM Transactions on Information Systems (to appear)
     https://arxiv.org/abs/2104.08912
-
     """
 
     def __init__(
@@ -173,7 +177,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
         seed=None,
         exclude_unknowns=True,
         verbose=False,
-        **kwargs
+        **kwargs,
     ):
         BaseMethod.__init__(
             self,
@@ -182,7 +186,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             seed=seed,
             exclude_unknowns=exclude_unknowns,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
 
         self.n_strata = n_strata
@@ -192,11 +196,11 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
         # split the data into train/valid/test sets
         self.train_size, self.val_size, self.test_size = RatioSplit.validate_size(
-            val_size, test_size, len(self._data))
+            val_size, test_size, len(self._data)
+        )
         self._split()
 
     def _eval(self, model, test_set, val_set, user_based, props=None):
-
         metric_avg_results = OrderedDict()
         metric_user_results = OrderedDict()
 
@@ -219,7 +223,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             rating_threshold=self.rating_threshold,
             exclude_unknowns=self.exclude_unknowns,
             verbose=self.verbose,
-            props=props
+            props=props,
         )
         for i, mt in enumerate(self.ranking_metrics):
             metric_avg_results[mt.name] = avg_results[i]
@@ -229,25 +233,23 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
     def _split(self):
         data_idx = self.rng.permutation(len(self._data))
-        train_idx = data_idx[:self.train_size]
-        test_idx = data_idx[-self.test_size:]
-        val_idx = data_idx[self.train_size:-self.test_size]
+        train_idx = data_idx[: self.train_size]
+        test_idx = data_idx[-self.test_size :]
+        val_idx = data_idx[self.train_size : -self.test_size]
 
         train_data = safe_indexing(self._data, train_idx)
         test_data = safe_indexing(self._data, test_idx)
-        val_data = safe_indexing(self._data, val_idx) if len(
-            val_idx) > 0 else None
+        val_data = safe_indexing(self._data, val_idx) if len(val_idx) > 0 else None
 
         # build train/test/valid datasets
-        self._build_datasets(train_data=train_data,
-                             test_data=test_data,
-                             val_data=val_data)
+        self._build_datasets(
+            train_data=train_data, test_data=test_data, val_data=val_data
+        )
 
         # build stratified dataset
         self._build_stratified_dataset(test_data=test_data)
 
     def _estimate_propensities(self):
-
         # find the item's frequencies
         item_freq = defaultdict(int)
         for u, i, r in self._data:
@@ -255,13 +257,12 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
         # fit the exponential param
         data = np.array([e for e in item_freq.values()], dtype=np.float)
-        results = powerlaw.Fit(data, discrete=True,
-                               fit_method='Likelihood')
+        results = powerlaw.Fit(data, discrete=True, fit_method="Likelihood")
         alpha = results.power_law.alpha
         fmin = results.power_law.xmin
 
         if self.verbose:
-            print('Powerlaw exponential estimates: %f, min=%d' % (alpha, fmin))
+            print("Powerlaw exponential estimates: %f, min=%d" % (alpha, fmin))
 
         # replace raw frequencies with the estimated propensities
         for k, v in item_freq.items():
@@ -271,23 +272,24 @@ class PropensityStratifiedEvaluation(BaseMethod):
         return item_freq  # user-independent propensity estimations
 
     def _build_stratified_dataset(self, test_data):
-
         # build stratified datasets
         self.stratified_sets = {}
 
         # match the corresponding propensity score for each feedback
-        test_props = np.array([self.props[i]
-                               for u, i, r in test_data], dtype=np.float64)
+        test_props = np.array(
+            [self.props[i] for u, i, r in test_data], dtype=np.float64
+        )
 
         # stratify
         minp = min(test_props) - 0.01 * min(test_props)
         maxp = max(test_props) + 0.01 * max(test_props)
-        slice = (maxp-minp)/self.n_strata
-        strata = [f'Q{idx}' for idx in np.digitize(
-            x=test_props, bins=np.arange(minp, maxp, slice))]
+        slice = (maxp - minp) / self.n_strata
+        strata = [
+            f"Q{idx}"
+            for idx in np.digitize(x=test_props, bins=np.arange(minp, maxp, slice))
+        ]
 
         for stratum in sorted(np.unique(strata)):
-
             # sample the corresponding sub-population
             qtest_data = []
             for (u, i, r), q in zip(test_data, strata):
@@ -306,12 +308,9 @@ class PropensityStratifiedEvaluation(BaseMethod):
             if self.verbose:
                 print("---")
                 print("Test data ({}):".format(stratum))
-                print("Number of users = {}".format(
-                    len(qtest_set.uid_map)))
-                print("Number of items = {}".format(
-                    len(qtest_set.iid_map)))
-                print("Number of ratings = {}".format(
-                    qtest_set.num_ratings))
+                print("Number of users = {}".format(len(qtest_set.uid_map)))
+                print("Number of items = {}".format(len(qtest_set.iid_map)))
+                print("Number of ratings = {}".format(qtest_set.num_ratings))
                 print("Max rating = {:.1f}".format(qtest_set.max_rating))
                 print("Min rating = {:.1f}".format(qtest_set.min_rating))
                 print("Global mean = {:.1f}".format(qtest_set.global_mean))
@@ -329,8 +328,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             self.stratified_sets[stratum] = qtest_set
 
     def evaluate(self, model, metrics, user_based, show_validation):
-
-        result = STResult(model.name)
+        result = PSTResult(model.name)
 
         if self.train_set is None:
             raise ValueError("train_set is required but None!")
@@ -353,7 +351,6 @@ class PropensityStratifiedEvaluation(BaseMethod):
         ##############
         # EVALUATION #
         ##############
-
         if self.verbose:
             print("\n[{}] Evaluation started!".format(model.name))
 
@@ -376,7 +373,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             test_set=self.test_set,
             val_set=self.val_set,
             user_based=user_based,
-            props=self.props
+            props=self.props,
         )
         ips_result.metric_avg_results["SIZE"] = self.test_set.num_ratings
         result.append(ips_result)
@@ -387,8 +384,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
         # evaluate on different strata
         start = time.time()
 
-        for stratum, qtest_set in self.stratified_sets.items():
-
+        for _, qtest_set in self.stratified_sets.items():
             qtest_result = self._eval(
                 model=model,
                 test_set=qtest_set,
