@@ -14,21 +14,28 @@
 # ============================================================================
 
 import unittest
-import cornac
+
 import numpy as np
+
+import cornac
+from cornac.data import Reader
 from cornac.eval_methods import PropensityStratifiedEvaluation
+from cornac.models import MF
+from cornac.metrics import MAE, AUC
 
 
 class TestPropensityStratifiedEvaluation(unittest.TestCase):
     def setUp(self):
         self.ml_100k = cornac.datasets.movielens.load_feedback()
+        cutoff = int(len(self.ml_100k) / 100)  # use 1% for faster testing
+        self.ml_100k = self.ml_100k[:cutoff]
 
     def test_stratified_split(self, n_strata=2):
         stra_eval_method = PropensityStratifiedEvaluation(
-            data=self.ml_100k, n_strata=n_strata, rating_threshold=4.0, verbose=False
+            data=self.ml_100k, n_strata=n_strata, rating_threshold=4.0, verbose=True
         )
         strata = [f"Q{idx+1}" for idx in range(n_strata)]
-        # total number of ratings in the test set should be splited
+        # total number of ratings in the test set should be split
         # within different strata
         num_ratings = 0
         for stratum in strata:
@@ -53,7 +60,7 @@ class TestPropensityStratifiedEvaluation(unittest.TestCase):
 
     def test_propensity(self, n_strata=2):
         stra_eval_method = PropensityStratifiedEvaluation(
-            data=self.ml_100k, n_strata=n_strata, rating_threshold=4.0, verbose=False
+            data=self.ml_100k, n_strata=n_strata, rating_threshold=4.0, verbose=True
         )
         props = np.array(list(stra_eval_method.props.values()))
         self.assertTrue(np.all(props > 0))
@@ -62,6 +69,16 @@ class TestPropensityStratifiedEvaluation(unittest.TestCase):
         for n_strata in range(2, 5):
             self.test_propensity(n_strata)
             self.test_stratified_split(n_strata)
+
+    def test_evaluate(self, n_strata=2):
+        stra_eval_method = PropensityStratifiedEvaluation(
+            data=self.ml_100k, val_size=0.1, n_strata=n_strata, rating_threshold=4.0, verbose=True
+        )
+        model = MF(k=1, max_iter=0)
+        result = stra_eval_method.evaluate(
+            model, metrics=[MAE(), AUC()], user_based=False
+        )
+        result.__str__()
 
 
 if __name__ == "__main__":
