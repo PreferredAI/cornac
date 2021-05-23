@@ -175,10 +175,10 @@ extensions = [
         language="c++",
     ),
     Extension(
-        name='cornac.models.comparer.recom_comparer_obj',
-        sources=['cornac/models/comparer/recom_comparer_obj' + ext],
+        name="cornac.models.comparer.recom_comparer_obj",
+        sources=["cornac/models/comparer/recom_comparer_obj" + ext],
         include_dirs=[np.get_include()],
-        language='c++'
+        language="c++",
     ),
     Extension(
         name="cornac.models.bpr.recom_bpr",
@@ -296,7 +296,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm>=4.19"],
+    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw"],
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
