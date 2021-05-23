@@ -147,16 +147,14 @@ class Model:
             )
         )
         a_user_masking = tf.expand_dims(tf.sequence_mask(tf.reshape(i_user_num_reviews, [-1]), maxlen=i_user_review.shape[1]), -1)
-        a_user = tf.where(a_user_masking, a_user, tf.constant(-1e15) * tf.ones_like(a_user))
-        user_attention = layers.Softmax(axis=1, name="user_attention")(a_user)
+        user_attention = layers.Softmax(axis=1, name="user_attention")(a_user, a_user_masking)
         a_item = layers.Dense(1, activation=None, use_bias=True)(
             layers.Dense(self.attention_size, activation="relu", use_bias=True)(
                 tf.concat([item_review_h, l_item_uid_embedding(i_item_uid_review)], axis=-1)
             )
         )
         a_item_masking = tf.expand_dims(tf.sequence_mask(tf.reshape(i_item_num_reviews, [-1]), maxlen=i_item_review.shape[1]), -1)
-        a_item = tf.where(a_item_masking, a_item, tf.constant(-1e15) * tf.ones_like(a_item))
-        item_attention = layers.Softmax(axis=1, name="item_attention")(a_item)
+        item_attention = layers.Softmax(axis=1, name="item_attention")(a_item, a_item_masking)
 
         Xu = layers.Dense(self.n_factors, use_bias=True, name="Xu")(
             layers.Dropout(rate=self.dropout_rate, name="user_Oi")(
