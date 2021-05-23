@@ -9,22 +9,24 @@ Using the proposed propensity-based stratified evaluation method is as simple as
 
 ```python
 import cornac
-from cornac.models import MF, PMF, BPR
+from cornac.models import WMF, BPR
 from cornac.metrics import MAE, RMSE, Precision, Recall, NDCG, AUC, MAP
 
 from cornac.eval_methods import PropensityStratifiedEvaluation
 from cornac.experiment import Experiment
 
 
-stra_eval_method = PropensityStratifiedEvaluation(data=ml_100k,
+ml_dataset = cornac.datasets.movielens.load_feedback(variant="1M")
+
+stra_eval_method = PropensityStratifiedEvaluation(data=ml_dataset,
                                                   n_strata=2,
                                                   rating_threshold=4.0,
                                                   verbose=True)
 
 
 models = [
-    MF(k=10),
-    BPR(k=10),
+    WMF(k=10, seed=123),
+    BPR(k=10, seed=123),
 ]
 
 metrics = [MAE(), RMSE(), Precision(k=10),
@@ -34,26 +36,37 @@ exp_stra = Experiment(eval_method=stra_eval_method,
                       models=models, metrics=metrics)
 
 exp_stra.run()
-
 ```
 
 Compared to [the classic evaluation](https://github.com/PreferredAI/cornac#getting-started-your-first-cornac-experiment), you can simply use `PropensityStratifiedEvaluation` instead of `RatioSplit`. The output is based on the defined strata (Q1, Q2,...) and the "Unbiased" row represents the performance prediction based on Stratified Evaluation method:
 
 ```
-[MF]
-         |    MAE |   RMSE |    AUC |    MAP | NDCG@-1 | Precision@10 | Recall@10 |       SIZE
--------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + ----------
-Closed   | 0.7450 | 0.8988 | 0.7422 | 0.0396 |  0.3038 |       0.0450 |    0.0346 | 19956.0000
--------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + ----------
-IPS      | 0.7450 | 0.8988 | 0.7422 | 0.0396 |  0.1907 |       0.0011 |    0.0286 | 19956.0000
--------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + ----------
-Q1       | 0.7464 | 0.9001 | 0.7395 | 0.0377 |  0.2992 |       0.0404 |    0.0299 | 19843.0000
-Q2       | 0.5403 | 0.5403 | 0.9915 | 0.1254 |  0.2971 |       0.0417 |    0.4175 |   113.0000
--------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + ----------
-Unbiased | 0.7453 | 0.8981 | 0.7409 | 0.0382 |  0.2991 |       0.0404 |    0.0321 | 19956.0000
+[WMF]
+         |    MAE |   RMSE |    AUC |    MAP | NDCG@-1 | Precision@10 | Recall@10 |        SIZE
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+Closed   | 1.0864 | 1.2743 | 0.9009 | 0.0658 |  0.3791 |       0.0799 |    0.0625 | 200008.0000
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+IPS      | 1.0864 | 1.2743 | 0.9009 | 0.0658 |  0.2003 |       0.0049 |    0.0459 | 200008.0000
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+Q1       | 1.0911 | 1.2785 | 0.8987 | 0.0572 |  0.3637 |       0.0612 |    0.0479 | 197556.0000
+Q2       | 0.7544 | 0.7658 | 0.9935 | 0.1985 |  0.3680 |       0.0653 |    0.5584 |   2452.0000
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+Unbiased | 1.0869 | 1.2722 | 0.8999 | 0.0589 |  0.3638 |       0.0612 |    0.0542 | 200008.0000
+
+[BPR]
+         |    MAE |   RMSE |    AUC |    MAP | NDCG@-1 | Precision@10 | Recall@10 |        SIZE
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+Closed   | 2.0692 | 2.2798 | 0.8758 | 0.0623 |  0.3720 |       0.0723 |    0.0547 | 200008.0000
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+IPS      | 2.0692 | 2.2798 | 0.8758 | 0.0623 |  0.2026 |       0.0077 |    0.0547 | 200008.0000
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+Q1       | 2.0840 | 2.2929 | 0.8730 | 0.0428 |  0.3390 |       0.0387 |    0.0292 | 197556.0000
+Q2       | 1.3782 | 1.3908 | 0.9998 | 0.5807 |  0.6892 |       0.1170 |    1.0000 |   2452.0000
+-------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + -----------
+Unbiased | 2.0754 | 2.2818 | 0.8746 | 0.0494 |  0.3432 |       0.0396 |    0.0411 | 200008.0000
 ```
 
-`SIZE` column represents the number of feedback in each stratum (`Q1` or `Q2`). `Unbiased` row represents the estimated propensity-based evaluation per each metric while `Closed` row represents the classical evaluation.
+`SIZE` column represents the number of feedback in each stratum (`Q1` or `Q2`). `Unbiased` row represents the estimated propensity-based evaluation per each metric while `Closed` row represents the classical evaluation. It reproduces Table 1-b (or Table 2) in [Jadidinejad et al.](https://arxiv.org/abs/2104.08912). Due to the random splitting, the above numbers are slightly different with the paper but the insight is the same!
 
 ## How to cite?
 Use the corresponding bibtex entry to cite the paper:
