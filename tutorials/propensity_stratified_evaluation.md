@@ -38,7 +38,7 @@ exp_stra = Experiment(eval_method=stra_eval_method,
 exp_stra.run()
 ```
 
-Compared to [the classic evaluation](https://github.com/PreferredAI/cornac#getting-started-your-first-cornac-experiment), you can simply use `PropensityStratifiedEvaluation` instead of `RatioSplit`. The output is based on the defined strata (Q1, Q2,...) and the "Unbiased" row represents the performance prediction based on Stratified Evaluation method:
+Compared to [the classic evaluation](https://github.com/PreferredAI/cornac#getting-started-your-first-cornac-experiment), you can simply use `PropensityStratifiedEvaluation` instead of `RatioSplit`. The output is based on the defined strata (Q1, Q2,...) and the "Unbiased" row represents the performance prediction based on Propensity Stratified Evaluation method:
 
 ```
 [WMF]
