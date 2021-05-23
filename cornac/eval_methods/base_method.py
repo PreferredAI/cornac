@@ -638,7 +638,6 @@ class BaseMethod:
         Returns
         -------
         res: :obj:`cornac.experiment.Result`
-
         """
         if self.train_set is None:
             raise ValueError("train_set is required but None!")

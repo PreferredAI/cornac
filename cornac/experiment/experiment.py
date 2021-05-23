@@ -45,7 +45,7 @@ class Experiment:
 
     show_validation: bool, optional, default: True 
         Whether to show the results on validation set (if exists).
-        
+
     save_dir: str, optional, default: None
         Path to a directory for storing trained models and logs. If None, 
         models will NOT be stored and logs will be saved in the current working directory.
@@ -110,8 +110,13 @@ class Experiment:
 
     def _create_result(self):
         from ..eval_methods.cross_validation import CrossValidation
+        from ..eval_methods.propensity_stratified_evaluation import (
+            PropensityStratifiedEvaluation,
+        )
 
-        if isinstance(self.eval_method, CrossValidation):
+        if isinstance(self.eval_method, CrossValidation) or isinstance(
+            self.eval_method, PropensityStratifiedEvaluation
+        ):
             self.result = CVExperimentResult()
         else:
             self.result = ExperimentResult()
@@ -121,7 +126,7 @@ class Experiment:
     def run(self):
         """Run the Cornac experiment"""
         self._create_result()
-        
+
         for model in self.models:
             test_result, val_result = self.eval_method.evaluate(
                 model=model,
