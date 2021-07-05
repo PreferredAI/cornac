@@ -19,6 +19,7 @@ from .baseline_only import BaselineOnly
 from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR
+from .causalrec import CausalRec
 from .c2pf import C2PF
 from .cdl import CDL
 from .cdr import CDR
