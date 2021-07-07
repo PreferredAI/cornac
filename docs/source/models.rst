@@ -118,6 +118,11 @@ Visual Bayesian Personalized Ranking (VBPR)
 .. automodule:: cornac.models.vbpr.recom_vbpr
    :members:
 
+CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)
+-----------------------------------------------
+.. automodule:: cornac.models.causalrec.recom_causalrec
+   :members:
+
 Collaborative Deep Learning (CDL)
 ---------------------------------------------
 .. automodule:: cornac.models.cdl.recom_cdl

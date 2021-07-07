@@ -60,6 +60,8 @@
 
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
 
+[causalrec_clothing.py](causalrec_clothing.py) - CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec) with Tradesy dataset.
+
 ## Unimodal Algorithms
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
