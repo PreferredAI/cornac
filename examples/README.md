@@ -56,11 +56,11 @@
 
 ### Image
 
+[causalrec_clothing.py](causalrec_clothing.py) - CausalRec with Clothing dataset.
+
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
-
-[causalrec_clothing.py](causalrec_clothing.py) - CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec) with Tradesy dataset.
 
 ## Unimodal Algorithms
 
