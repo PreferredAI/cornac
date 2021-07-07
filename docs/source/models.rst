@@ -15,6 +15,11 @@ Bilateral VAE for Collaborative Filtering (BiVAECF)
 .. automodule:: cornac.models.bivaecf.recom_bivaecf
    :members:
 
+CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)
+---------------------------------------------------------------------------------------------
+.. automodule:: cornac.models.causalrec.recom_causalrec
+   :members:
+
 Explainable Recommendation with Comparative Constraints on Product Aspects (ComparER)
 -------------------------------------------------------------------------------------
 .. automodule:: cornac.models.comparer.recom_comparer_sub
@@ -116,11 +121,6 @@ Spherical k-means (Skmeans)
 Visual Bayesian Personalized Ranking (VBPR)
 -----------------------------------------------
 .. automodule:: cornac.models.vbpr.recom_vbpr
-   :members:
-
-CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)
------------------------------------------------
-.. automodule:: cornac.models.causalrec.recom_causalrec
    :members:
 
 Collaborative Deep Learning (CDL)
