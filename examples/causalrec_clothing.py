@@ -14,6 +14,7 @@
 # ============================================================================
 """
 Example for CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation
+Link: https://arxiv.org/abs/2107.02390
 """
 
 import cornac
@@ -57,7 +58,6 @@ causalrec = cornac.models.CausalRec(
 )
 
 # Instantiate evaluation measures
-auc = cornac.metrics.AUC()
 rec_50 = cornac.metrics.Recall(k=50)
 
 # Put everything together into an experiment and run it
