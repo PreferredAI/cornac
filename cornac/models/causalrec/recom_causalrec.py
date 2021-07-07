@@ -14,7 +14,6 @@
 # ============================================================================
 
 import numpy as np
-import torch
 from tqdm.auto import tqdm
 from scipy.special import expit
 
