@@ -15,8 +15,8 @@ Bilateral VAE for Collaborative Filtering (BiVAECF)
 .. automodule:: cornac.models.bivaecf.recom_bivaecf
    :members:
 
-CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)
----------------------------------------------------------------------------------------------
+Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)
+----------------------------------------------------------------------------------
 .. automodule:: cornac.models.causalrec.recom_causalrec
    :members:
 
