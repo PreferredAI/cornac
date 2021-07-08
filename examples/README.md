@@ -56,6 +56,8 @@
 
 ### Image
 
+[causalrec_clothing.py](causalrec_clothing.py) - CausalRec with Clothing dataset.
+
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
