@@ -18,6 +18,7 @@ jobs:
             sudo pip install --upgrade pip
             sudo pip install --only-binary=numpy,scipy numpy scipy pytest pytest-cov codecov
             sudo pip install -e .[tests]
+          no_output_timeout: 30m
       - save_cache:
           key: deps9-{{ .Branch }}
           paths:
