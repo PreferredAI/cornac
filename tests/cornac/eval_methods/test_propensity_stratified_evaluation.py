@@ -27,7 +27,7 @@ from cornac.metrics import MAE, AUC
 class TestPropensityStratifiedEvaluation(unittest.TestCase):
     def setUp(self):
         self.ml_100k = cornac.datasets.movielens.load_feedback()
-        cutoff = int(len(self.ml_100k) / 100)  # use 1% for faster testing
+        cutoff = int(len(self.ml_100k) * 0.1)  # use 10% for faster testing
         self.ml_100k = self.ml_100k[:cutoff]
 
     def test_stratified_split(self, n_strata=2):
