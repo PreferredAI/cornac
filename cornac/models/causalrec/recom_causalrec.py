@@ -58,8 +58,11 @@ class CausalRec(Recommender):
     mean_feat: torch.tensor, required, default: None
         The mean feature of all item embeddings serving as the no-treatment during causal inference.
     
-    tanh: int, required, default: 0
+    tanh: int, optional, default: 0
         The number of tanh layers on the visual feature transformation.
+    
+    lambda_2: float, optional, default: 0.8
+        The coefficient controlling the elimination of the visual bias in Eq. (28).
 
     use_gpu: boolean, optional, default: True
         Whether or not to use GPU to speed up training.
@@ -96,6 +99,7 @@ class CausalRec(Recommender):
             lambda_e=0.0,
             mean_feat=None,
             tanh=0,
+            lambda_2=0.8,
             use_gpu=False,
             trainable=True,
             verbose=True,
@@ -111,10 +115,11 @@ class CausalRec(Recommender):
         self.lambda_w = lambda_w
         self.lambda_b = lambda_b
         self.lambda_e = lambda_e
-        self.use_gpu = use_gpu
-        self.seed = seed
         self.mean_feat = mean_feat
         self.tanh = tanh
+        self.lambda_2 = lambda_2
+        self.use_gpu = use_gpu
+        self.seed = seed
         
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
@@ -367,7 +372,7 @@ class CausalRec(Recommender):
         elif self.tanh == 2:
             self.mean_feat = torch.tanh(torch.tanh(self.mean_feat).mm(E_ind2)).data.cpu().numpy()
 
-    def score(self, user_idx, item_idx=None, vb=0.8):
+    def score(self, user_idx, item_idx=None):
         """Predict the debiased scores/ratings of a user for an item.
 
         Parameters
@@ -379,9 +384,6 @@ class CausalRec(Recommender):
             The index of the item for which to perform score prediction.
             If None, scores for all known items will be returned.
         
-        vb: float, required, default: 0.8
-            Coefficient for the scale of the visual bias
-
         Returns
         -------
         res : A scalar or a Numpy array
@@ -400,7 +402,7 @@ class CausalRec(Recommender):
             n_score = self.visual_bias
             fast_dot(self.theta_user[user_idx], self.theta_item, n_score)
 
-            return expit(m_score + n_score) * expit(m_score) * expit(n_score) - vb * expit(m_star + n_score) * expit(
-                m_star) * expit(n_score)
+            return expit(m_score + n_score) * expit(m_score) * expit(n_score)\
+                   - self.lambda_2 * expit(m_star + n_score) * expit(m_star) * expit(n_score)
         else:
             raise NotImplementedError("The sampled evaluation is not implemented!")
