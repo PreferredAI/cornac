@@ -54,6 +54,12 @@ class CausalRec(Recommender):
 
     lambda_e: float, optional, default: 0.0
         The regularization hyper-parameter for embedding matrix E and beta prime vector.
+    
+    mean_feat: torch.tensor, required, default: None
+        The mean feature of all item embeddings serving as the no-treatment during causal inference.
+    
+    tanh: int, required, default: 0
+        The number of tanh layers on the visual feature transformation.
 
     use_gpu: boolean, optional, default: True
         Whether or not to use GPU to speed up training.
@@ -88,13 +94,13 @@ class CausalRec(Recommender):
             lambda_w=0.01,
             lambda_b=0.01,
             lambda_e=0.0,
+            mean_feat=None,
+            tanh=0,
             use_gpu=False,
             trainable=True,
             verbose=True,
             init_params=None,
             seed=None,
-            mean_feat=None,
-            tanh=0
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
