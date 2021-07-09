@@ -83,11 +83,11 @@ else:
     ]
 
     if "darwin" in platform.platform().lower():
+        USE_OPENMP = False  # temporarily disable for GH actions 
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
-            USE_OPENMP = False
             print(
                 "No GCC available. Install gcc from Homebrew " "using brew install gcc."
             )
