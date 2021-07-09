@@ -14,6 +14,8 @@ jobs:
       - restore_cache:
           key: deps9-{{ .Branch }}
       - run:
+          name: Install dependencies
+          no_output_timeout: 30m
           command: |
             sudo pip install --upgrade pip
             sudo pip install --only-binary=numpy,scipy numpy scipy pytest pytest-cov codecov
@@ -25,6 +27,8 @@ jobs:
             - "/usr/local/bin"
             - "/usr/local/lib/python3.6/site-packages"
       - run:
+          name: Run tests
+          no_output_timeout: 30m
           command: |
             python -m pytest --cov=cornac
             codecov || echo "codecov failed"
