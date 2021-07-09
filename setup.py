@@ -85,21 +85,14 @@ else:
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
-            os.environ["CPPFLAGS"] = os.environ["CPPFLAGS"] + " -Xpreprocessor -fopenmp"
-            os.environ["CFLAGS"] = os.environ["CFLAGS"] + " -I/usr/local/opt/libomp/include"
-            os.environ["CXXFLAGS"] = (
-                os.environ["CXXFLAGS"] + " -I/usr/local/opt/libomp/include"
-            )
-            os.environ["LDFLAGS"] = (
-                os.environ["LDFLAGS"]
-                + " -Wl,-rpath,/usr/local/opt/libomp/lib -L/usr/local/opt/libomp/lib -lomp"
-            )
         else:
+            USE_OPENMP = False 
             print("No GCC available. Install gcc from Homebrew " "using brew install gcc.")
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-    elif USE_OPENMP:
+    
+    if USE_OPENMP:
         compile_args.append("-fopenmp")
         link_args.append("-fopenmp")
 
