@@ -15,6 +15,7 @@
 
 from .recommender import Recommender
 
+from .amr import AMR
 from .baseline_only import BaselineOnly
 from .bivaecf import BiVAECF
 from .bpr import BPR

@@ -10,6 +10,11 @@ Recommender (Generic Class)
 .. automodule:: cornac.models.recommender
    :members:
 
+Adversarial Training Towards Robust Multimedia Recommender System (AMR)
+----------------------------------------------------
+.. automodule:: cornac.models.amr.recom_amr
+   :members:
+
 Bilateral VAE for Collaborative Filtering (BiVAECF)
 ----------------------------------------------------
 .. automodule:: cornac.models.bivaecf.recom_bivaecf

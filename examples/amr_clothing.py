@@ -13,8 +13,7 @@
 # limitations under the License.
 # ============================================================================
 """
-Example for CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation
-Link: https://arxiv.org/abs/2107.02390
+Example for Adversarial Training Towards Robust Multimedia Recommender System
 """
 
 import cornac
@@ -42,8 +41,8 @@ ratio_split = RatioSplit(
     item_image=item_image_modality,
 )
 
-# Instantiate CausalRec
-causalrec = cornac.models.CausalRec(
+# Instantiate AMR
+amr = cornac.models.AMR(
     k=32,
     k2=32,
     n_epochs=1,
@@ -52,9 +51,7 @@ causalrec = cornac.models.CausalRec(
     lambda_w=1,
     lambda_b=0.01,
     lambda_e=0.0,
-    mean_feat=features.mean(axis=0),
-    tanh=1,
-    lambda_2=0.8,
+    lmd=1.0,
     use_gpu=True,
 )
 
@@ -62,4 +59,4 @@ causalrec = cornac.models.CausalRec(
 rec_50 = cornac.metrics.Recall(k=50)
 
 # Put everything together into an experiment and run it
-cornac.Experiment(eval_method=ratio_split, models=[causalrec], metrics=[rec_50]).run()
+cornac.Experiment(eval_method=ratio_split, models=[amr], metrics=[rec_50]).run()
