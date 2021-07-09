@@ -54,8 +54,8 @@ class AMR(Recommender):
     lambda_e: float, optional, default: 0.0
         The regularization hyper-parameter for embedding matrix E and beta prime vector.
 
-    lmd: float, optional, default: 1.0
-        The regularization hyper-parameter in Eq. (27) for the adversarial sample loss.
+    lambda_adv: float, optional, default: 1.0
+        The regularization hyper-parameter in Eq. (8) and (10) for the adversarial sample loss.
 
     use_gpu: boolean, optional, default: True
         Whether or not to use GPU to speed up training.
@@ -90,7 +90,7 @@ class AMR(Recommender):
             lambda_w=0.01,
             lambda_b=0.01,
             lambda_e=0.0,
-            lmd=1.0,
+            lambda_adv=1.0,
             use_gpu=False,
             trainable=True,
             verbose=True,
@@ -106,7 +106,7 @@ class AMR(Recommender):
         self.lambda_w = lambda_w
         self.lambda_b = lambda_b
         self.lambda_e = lambda_e
-        self.lmd = lmd
+        self.lambda_adv = lambda_adv
         self.use_gpu = use_gpu
         self.seed = seed
         
@@ -248,7 +248,7 @@ class AMR(Recommender):
                         + _l2_loss(E) * self.lambda_e
                 )
                 
-                loss = -log_likelihood - self.lmd * adv_log_likelihood + reg
+                loss = -log_likelihood - self.lambda_adv * adv_log_likelihood + reg
                 
                 optimizer.zero_grad()
                 loss.backward()
