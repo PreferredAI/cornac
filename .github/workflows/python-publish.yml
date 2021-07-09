@@ -37,7 +37,7 @@ jobs:
     - name: Install GCC for MacOS using Homebrew
       if: matrix.os == 'macos-latest'
       run: |
-        brew install gcc libomp llvm
+        brew install gcc libomp
         brew link gcc
     
     - name: Install dependencies
