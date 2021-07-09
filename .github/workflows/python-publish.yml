@@ -11,10 +11,12 @@ name: upload
 on:
   release:
     types: [published]
-
+  push:
+    branches: [ master ]
+    
 jobs:
-  deploy:
-  
+  build-wheels:
+    name: Building on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -23,27 +25,69 @@ jobs:
         
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
+    
     - name: Install GCC for MacOS using Homebrew
-      run: python -c "import os, platform; os.system('brew install gcc | brew link gcc') if 'darwin' in platform.platform().lower() else print(platform.platform())"
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install gcc
+        brew link gcc
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install --only-binary=numpy,scipy numpy scipy wheel
-    - name: Build package
+    
+    - name: Build wheels
+      run: python setup.py bdist_wheel
+    
+    - name: Publish wheels to GitHub artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: ./dist/*.whl
+
+
+  publish-pypi:
+    needs: [build-wheels]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - uses: actions/download-artifact@v2
+      with:
+        name: wheels
+        path: dist/
+      
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+
+    - name: Install dependencies
       run: |
-        python setup.py sdist bdist_wheel
-        rm dist/*.egg
-    - name: Publish package
+        python -m pip install --upgrade pip
+        python -m pip install --only-binary=numpy,scipy numpy scipy wheel
+
+    - name: Build source tar file
+      run: python setup.py sdist
+        
+    - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+        packages_dir: ./dist/
         verify_metadata: false
         skip_existing: true
         verbose: true
