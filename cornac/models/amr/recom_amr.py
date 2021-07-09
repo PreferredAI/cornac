@@ -76,7 +76,7 @@ class AMR(Recommender):
 
     References
     ----------
-    * He, R., & McAuley, J. (2016). VBPR: Visual Bayesian Personalized Ranking from Implicit Feedback.
+    * Tang, J., Du, X., He, X., Yuan, F., Tian, Q., and Chua, T. (2020). Adversarial Training Towards Robust Multimedia Recommender System.
     """
     
     def __init__(
