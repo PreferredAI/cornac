@@ -16,7 +16,6 @@
 import os
 import sys
 import glob
-import platform
 from setuptools import Extension, setup, find_packages
 
 try:
@@ -43,10 +42,12 @@ USE_OPENMP = True
 def extract_gcc_binaries():
     """Try to find GCC on OSX for OpenMP support."""
     patterns = [
+        "/opt/local/bin/g++-mp-[0-9].[0-9]",
+        "/opt/local/bin/g++-mp-[0-9]",
         "/usr/local/bin/g++-[0-9].[0-9]",
         "/usr/local/bin/g++-[0-9]",
     ]
-    if "darwin" in platform.platform().lower():
+    if sys.platform.startswith("darwin"):
         gcc_binaries = []
         for pattern in patterns:
             gcc_binaries += glob.glob(pattern)
@@ -80,20 +81,25 @@ else:
         "-ffast-math",
     ]
 
-    if "darwin" in platform.platform().lower():
+    if sys.platform.startswith("darwin"):
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
-        else:
-            USE_OPENMP = False
-            print(
-                "No GCC available. Install gcc from Homebrew " "using brew install gcc."
+            os.environ["CPPFLAGS"] = os.environ["CPPFLAGS"] + " -Xpreprocessor -fopenmp"
+            os.environ["CFLAGS"] = os.environ["CFLAGS"] + " -I/usr/local/opt/libomp/include"
+            os.environ["CXXFLAGS"] = (
+                os.environ["CXXFLAGS"] + " -I/usr/local/opt/libomp/include"
             )
+            os.environ["LDFLAGS"] = (
+                os.environ["LDFLAGS"]
+                + " -Wl,-rpath,/usr/local/opt/libomp/lib -L/usr/local/opt/libomp/lib -lomp"
+            )
+        else:
+            print("No GCC available. Install gcc from Homebrew " "using brew install gcc.")
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-
-    if USE_OPENMP:
+    elif USE_OPENMP:
         compile_args.append("-fopenmp")
         link_args.append("-fopenmp")
 
@@ -139,10 +145,7 @@ extensions = [
     ),
     Extension(
         "cornac.models.hpf.hpf",
-        sources=[
-            "cornac/models/hpf/cython/hpf" + ext,
-            "cornac/models/hpf/cpp/cpp_hpf.cpp",
-        ],
+        sources=["cornac/models/hpf/cython/hpf" + ext, "cornac/models/hpf/cpp/cpp_hpf.cpp",],
         include_dirs=[
             "cornac/models/hpf/cpp/",
             "cornac/utils/external/eigen/Eigen",
