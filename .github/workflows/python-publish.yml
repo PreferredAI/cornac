@@ -13,7 +13,7 @@ on:
     types: [published]
   push:
     branches: [ master ]
-    
+
 jobs:
   build-wheels:
     name: Building on ${{ matrix.os }}
@@ -39,6 +39,7 @@ jobs:
       run: |
         brew install gcc
         brew link gcc
+        brew install llvm
     
     - name: Install dependencies
       run: |
