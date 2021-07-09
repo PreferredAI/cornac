@@ -43,8 +43,6 @@ USE_OPENMP = True
 def extract_gcc_binaries():
     """Try to find GCC on OSX for OpenMP support."""
     patterns = [
-        "/opt/local/bin/g++-mp-[0-9].[0-9]",
-        "/opt/local/bin/g++-mp-[0-9]",
         "/usr/local/bin/g++-[0-9].[0-9]",
         "/usr/local/bin/g++-[0-9]",
     ]
@@ -83,11 +81,11 @@ else:
     ]
 
     if "darwin" in platform.platform().lower():
-        USE_OPENMP = False  # temporarily disable for GH actions 
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
+            USE_OPENMP = False
             print(
                 "No GCC available. Install gcc from Homebrew " "using brew install gcc."
             )
