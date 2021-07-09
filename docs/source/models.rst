@@ -27,6 +27,11 @@ Explainable Recommendation with Comparative Constraints on Product Aspects (Comp
    
 .. automodule:: cornac.models.comparer.recom_comparer_obj
    :members:
+   
+Adversarial Training Towards Robust Multimedia Recommender System (AMR)
+----------------------------------------------------
+.. automodule:: cornac.models.amr.recom_amr
+   :members:
 
 Collaborative Context Poisson Factorization (C2PF)
 ----------------------------------------------------
