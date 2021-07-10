@@ -34,7 +34,7 @@ jobs:
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
     
-    - name: Install GCC for MacOS using Homebrew
+    - name: Install GCC with OpenMP support for MacOS
       if: matrix.os == 'macos-latest'
       run: |
         brew reinstall gcc@9
@@ -61,12 +61,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    
+          
     - uses: actions/download-artifact@v2
       with:
         name: wheels
         path: dist/
-      
+    
+    - name: Rename Linux wheels to supported platform of PyPI
+      run: for f in dist/*.whl; do mv "$f" "$(echo "$f" | sed s/linux/manylinux1/)"; done
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
