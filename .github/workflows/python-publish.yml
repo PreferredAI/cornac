@@ -48,7 +48,11 @@ jobs:
     
     - name: Build wheels
       run: python setup.py bdist_wheel
-    
+        
+    - name: Rename Linux wheels to supported platform of PyPI
+      if: matrix.os == 'ubuntu-latest'
+      run: for f in dist/*.whl; do mv "$f" "$(echo "$f" | sed s/linux/manylinux1/)"; done
+
     - name: Publish wheels to GitHub artifacts
       uses: actions/upload-artifact@v2
       with:
@@ -66,9 +70,6 @@ jobs:
       with:
         name: wheels
         path: dist/
-    
-    - name: Rename Linux wheels to supported platform of PyPI
-      run: for f in dist/*.whl; do mv "$f" "$(echo "$f" | sed s/linux/manylinux1/)"; done
 
     - name: Set up Python
       uses: actions/setup-python@v2
