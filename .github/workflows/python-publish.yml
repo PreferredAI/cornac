@@ -11,8 +11,6 @@ name: upload
 on:
   release:
     types: [published]
-  push:
-    branches: [ master ]
 
 jobs:
   build-wheels:
