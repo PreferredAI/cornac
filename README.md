@@ -23,8 +23,10 @@
 [![PyPI](https://img.shields.io/pypi/v/cornac.svg)](https://pypi.org/project/cornac/)
 [![Conda](https://img.shields.io/conda/vn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
 [![Conda Recipe](https://img.shields.io/badge/recipe-cornac-green.svg)](https://github.com/conda-forge/cornac-feedstock)
+[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
 <br />
 [![Python](https://img.shields.io/pypi/pyversions/cornac.svg)](https://cornac.preferred.ai/)
+[![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
