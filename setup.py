@@ -18,6 +18,17 @@ import sys
 import glob
 from setuptools import Extension, setup, find_packages
 
+
+"""
+Release instruction:
+    - Check that tests run correctly with all CI tools.
+    - Change __version__ in setup.py, cornac/__init__.py, docs/source/conf.py.
+    - Commit and release a version on GitHub, Actions will be triggered to build and upload to PyPI.
+    - Update conda-forge feedstock with new version and SHA256 hash of the new .tar.gz archive on PyPI (optional), the conda-forge bot will detect a new version and create PR after a while.
+    - Check on https://anaconda.org/conda-forge/cornac that new version is available for all platforms.
+"""
+
+
 try:
     import numpy as np
 except ImportError:
@@ -277,7 +288,7 @@ if USE_CYTHON:
 
 setup(
     name="cornac",
-    version="1.13.1",
+    version="1.13.2",
     description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
