@@ -17,6 +17,7 @@ jobs:
     name: Building on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-18.04, macos-latest, windows-latest]
         python-version: [3.6, 3.7, 3.8, 3.9]
@@ -28,16 +29,13 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    
+
+    - name: Brew unlink gcc@9 to avoid build error with OpenMP on MacOS
+      if: matrix.os == 'macos-latest'
+      run: brew unlink gcc@9
+
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
-    
-    - name: Install GCC with OpenMP support for MacOS
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew reinstall gcc@9
-        brew unlink gcc
-        brew link gcc
     
     - name: Install dependencies
       run: |

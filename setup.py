@@ -97,8 +97,8 @@ else:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
-            USE_OPENMP = False 
-            print("No GCC available. Install gcc from Homebrew " "using brew install gcc.")
+            USE_OPENMP = False
+            print("No GCC available. Install gcc from Homebrew using brew install gcc.")
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
@@ -305,7 +305,7 @@ setup(
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
-    classifiers=(
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Education",
@@ -318,5 +318,5 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Software Development",
         "Topic :: Scientific/Engineering",
-    ),
+    ],
 )
