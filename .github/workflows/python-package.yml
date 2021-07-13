@@ -35,6 +35,7 @@ jobs:
         brew unlink gcc
         brew rm gfortran
         brew cleanup
+        brew install gcc@7
         brew link gcc
       #   brew reinstall gcc@9
       #   brew unlink gcc
