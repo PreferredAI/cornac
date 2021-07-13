@@ -31,13 +31,13 @@ jobs:
 
     - name: Install OpenMP support for MacOS
       if: matrix.os == 'macos-latest'
-      run: conda install -c conda-forge llvm-openmp
-      # run: |
+      run: |
+        brew install libomp
+        brew info gcc
       #   brew reinstall gcc@9
       #   brew unlink gcc
       #   brew link gcc
-      #   brew info gcc
-
+      
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
 
