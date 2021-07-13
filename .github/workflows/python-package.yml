@@ -32,9 +32,7 @@ jobs:
     - name: Set up OpenMP support for MacOS
       if: matrix.os == 'macos-latest'
       run: |
-        brew unlink gcc
-        brew rm gfortran
-        brew cleanup
+        brew uninstall gcc gfortran
         brew install gcc@7
         brew link gcc
       #   brew reinstall gcc@9
