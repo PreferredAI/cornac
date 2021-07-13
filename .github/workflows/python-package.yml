@@ -32,7 +32,8 @@ jobs:
     - name: Set up OpenMP support for MacOS
       if: matrix.os == 'macos-latest'
       run: |
-        brew uninstall gcc
+        brew uninstall gcc@9
+        brew unlink gcc
         brew install libomp
       
     - name: Display Python version
