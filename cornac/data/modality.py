@@ -48,6 +48,9 @@ class FeatureModality(Modality):
     ids: List, default = None
         List of user/item ids that the indices are aligned with `corpus`.
         If None, the indices of provided `features` will be used as `ids`.
+
+    normalized: bool, default = False
+        Whether the features will be normalized using min-max normalization.
     """
 
     def __init__(self, features=None, ids=None, normalized=False, **kwargs):
