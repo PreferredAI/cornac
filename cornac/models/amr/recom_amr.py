@@ -235,7 +235,7 @@ class AMR(Recommender):
                 feat_i_delta = feat_i.grad
                 feat_j_delta = feat_j.grad
                 
-                adv_feat_diff = feat_diff - (feat_i_delta - feat_j_delta)
+                adv_feat_diff = feat_diff + (feat_i_delta - feat_j_delta)
                 adv_Xuij = (
                         _inner(gamma_u, gamma_diff)
                         + _inner(gamma_u, adv_feat_diff.mm(E))
