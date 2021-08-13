@@ -16,8 +16,18 @@
 import os
 import sys
 import glob
-import platform
 from setuptools import Extension, setup, find_packages
+
+
+"""
+Release instruction:
+    - Check that tests run correctly with all CI tools.
+    - Change __version__ in setup.py, cornac/__init__.py, docs/source/conf.py.
+    - Commit and release a version on GitHub, Actions will be triggered to build and upload to PyPI.
+    - Update conda-forge feedstock with new version and SHA256 hash of the new .tar.gz archive on PyPI (optional), the conda-forge bot will detect a new version and create PR after a while.
+    - Check on https://anaconda.org/conda-forge/cornac that new version is available for all platforms.
+"""
+
 
 try:
     import numpy as np
@@ -48,7 +58,7 @@ def extract_gcc_binaries():
         "/usr/local/bin/g++-[0-9].[0-9]",
         "/usr/local/bin/g++-[0-9]",
     ]
-    if "darwin" in platform.platform().lower():
+    if sys.platform.startswith("darwin"):
         gcc_binaries = []
         for pattern in patterns:
             gcc_binaries += glob.glob(pattern)
@@ -82,19 +92,17 @@ else:
         "-ffast-math",
     ]
 
-    if "darwin" in platform.platform().lower():
+    if sys.platform.startswith("darwin"):
         if gcc is not None:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
             USE_OPENMP = False
-            print(
-                "No GCC available. Install gcc from Homebrew " "using brew install gcc."
-            )
+            print("No GCC available. Install gcc from Homebrew using brew install gcc.")
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-
+    
     if USE_OPENMP:
         compile_args.append("-fopenmp")
         link_args.append("-fopenmp")
@@ -141,10 +149,7 @@ extensions = [
     ),
     Extension(
         "cornac.models.hpf.hpf",
-        sources=[
-            "cornac/models/hpf/cython/hpf" + ext,
-            "cornac/models/hpf/cpp/cpp_hpf.cpp",
-        ],
+        sources=["cornac/models/hpf/cython/hpf" + ext, "cornac/models/hpf/cpp/cpp_hpf.cpp",],
         include_dirs=[
             "cornac/models/hpf/cpp/",
             "cornac/utils/external/eigen/Eigen",
@@ -283,7 +288,7 @@ if USE_CYTHON:
 
 setup(
     name="cornac",
-    version="1.12.0",
+    version="1.13.5",
     description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -300,7 +305,7 @@ setup(
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
-    classifiers=(
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Education",
@@ -309,8 +314,9 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Software Development",
         "Topic :: Scientific/Engineering",
-    ),
+    ],
 )

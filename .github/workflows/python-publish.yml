@@ -6,37 +6,89 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Upload Python Package
+name: upload
 
 on:
   release:
     types: [published]
 
 jobs:
-  deploy:
-  
+  build-wheels:
+    name: Building on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.6', '3.7', '3.8']
+        os: [ubuntu-18.04, macos-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-      - name: Build package
-        run: python -m build
-      - name: Publish package
-        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Brew unlink gcc@9 to avoid build error with OpenMP on MacOS
+      if: matrix.os == 'macos-latest'
+      run: brew unlink gcc@9
+
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --only-binary=numpy,scipy numpy~=1.19.0 scipy Cython wheel
+    
+    - name: Build wheels
+      run: python setup.py bdist_wheel
+        
+    - name: Rename Linux wheels to supported platform of PyPI
+      if: matrix.os == 'ubuntu-18.04'
+      run: for f in dist/*.whl; do mv "$f" "$(echo "$f" | sed s/linux/manylinux1/)"; done
+
+    - name: Publish wheels to GitHub artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: ./dist/*.whl
+
+
+  publish-pypi:
+    needs: [build-wheels]
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+          
+    - uses: actions/download-artifact@v2
+      with:
+        name: wheels
+        path: dist/
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --only-binary=numpy,scipy numpy~=1.19.0 scipy Cython wheel
+
+    - name: Build source tar file
+      run: python setup.py sdist
+        
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        packages_dir: ./dist/
+        verify_metadata: false
+        skip_existing: true
+        verbose: true
