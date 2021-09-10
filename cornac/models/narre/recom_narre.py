@@ -70,6 +70,12 @@ class NARRE(Recommender):
     learning_rate: float, optional, default: 0.001
         Initial value of learning rate for the optimizer.
 
+    model_selection: str, optional, default: 'last'
+        Model selection strategy is either 'best' or 'last'.
+
+    user_based: boolean, optional, default: True
+        Evaluation strategy for model selection, by default, it measures for every users and taking the average `user_based=True`. Set `user_based=False` if you want to measure per sample instead.
+
     trainable: boolean, optional, default: True
         When False, the model will not be re-trained, and input of pre-trained parameters are required.
 
@@ -104,6 +110,8 @@ class NARRE(Recommender):
         max_iter=10,
         optimizer='adam',
         learning_rate=0.001,
+        model_selection='last', # last or best
+        user_based=True,
         trainable=True,
         verbose=True,
         init_params=None,
@@ -124,8 +132,11 @@ class NARRE(Recommender):
         self.max_iter = max_iter
         self.optimizer = optimizer
         self.learning_rate = learning_rate
+        self.model_selection = model_selection
+        self.user_based = user_based
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
+        self.losses = {"train_losses": [], "val_losses": []}
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -172,14 +183,20 @@ class NARRE(Recommender):
         import tensorflow as tf
         from tensorflow import keras
         from .narre import get_data
+        from ...eval_methods.base_method import rating_eval
+        from ...metrics import MSE
         loss = keras.losses.MeanSquaredError()
-        if self.optimizer == 'rmsprop':
-            optimizer = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
-        else:
-            optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
+        if not hasattr(self, 'optimizer_'):
+            if self.optimizer == 'rmsprop':
+                self.optimizer_ = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
+            else:
+                self.optimizer_ = keras.optimizers.Adam(learning_rate=self.learning_rate)
         train_loss = keras.metrics.Mean(name="loss")
-        loop = trange(self.max_iter, disable=not self.verbose)
-        for _ in loop:
+        val_loss = 0.
+        best_val_loss = 1e9
+        self.best_epoch = None
+        loop = trange(self.max_iter, disable=not self.verbose, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+        for i_epoch, _ in enumerate(loop):
             train_loss.reset_states()
             for i, (batch_users, batch_items, batch_ratings) in enumerate(self.train_set.uir_iter(self.batch_size, shuffle=True)):
                 user_reviews, user_iid_reviews, user_num_reviews = get_data(batch_users, self.train_set, self.max_text_length, by='user', max_num_review=self.max_num_review)
@@ -191,14 +208,31 @@ class NARRE(Recommender):
                     )
                     _loss = loss(batch_ratings, predictions)
                 gradients = tape.gradient(_loss, self.model.graph.trainable_variables)
-                optimizer.apply_gradients(zip(gradients, self.model.graph.trainable_variables))
+                self.optimizer_.apply_gradients(zip(gradients, self.model.graph.trainable_variables))
                 train_loss(_loss)
                 if i % 10 == 0:
-                    loop.set_postfix(loss=train_loss.result().numpy())
+                    loop.set_postfix(loss=train_loss.result().numpy(), val_loss=val_loss, best_val_loss=best_val_loss, best_epoch=self.best_epoch)
+            current_weights = self.model.get_weights(self.train_set, self.batch_size, max_num_review=self.max_num_review)
+            if self.val_set is not None:
+                self.X, self.Y, self.W1, self.user_embedding, self.item_embedding, self.bu, self.bi, self.mu = current_weights
+                [current_val_mse], _ = rating_eval(
+                    model=self,
+                    metrics=[MSE()],
+                    test_set=self.val_set,
+                    user_based=self.user_based
+                )
+                val_loss = current_val_mse
+                if best_val_loss > val_loss:
+                    best_val_loss = val_loss
+                    self.best_epoch = i_epoch + 1
+                    best_weights = current_weights
+                loop.set_postfix(loss=train_loss.result().numpy(), val_loss=val_loss, best_val_loss=best_val_loss, best_epoch=self.best_epoch)
+            self.losses["train_losses"].append(train_loss.result().numpy())
+            self.losses["val_losses"].append(val_loss)
         loop.close()
 
         # save weights for predictions
-        self.X, self.Y, self.W1, self.user_embedding, self.item_embedding, self.bu, self.bi, self.mu = self.model.get_weights(self.train_set, self.batch_size, max_num_review=self.max_num_review)
+        self.X, self.Y, self.W1, self.user_embedding, self.item_embedding, self.bu, self.bi, self.mu = best_weights if self.val_set is not None and self.model_selection == 'best' else current_weights
         if self.verbose:
             print("Learning completed!")
 
