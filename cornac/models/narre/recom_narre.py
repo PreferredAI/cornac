@@ -74,7 +74,7 @@ class NARRE(Recommender):
         Model selection strategy is either 'best' or 'last'.
 
     user_based: boolean, optional, default: True
-        Evaluation strategy for model selection, by default, it measures for every users and taking the average `user_based=True`. Set `user_based=False` if you want to measure per sample instead.
+        Evaluation strategy for model selection, by default, it measures for every users and taking the average `user_based=True`. Set `user_based=False` if you want to measure per rating instead.
 
     trainable: boolean, optional, default: True
         When False, the model will not be re-trained, and input of pre-trained parameters are required.
@@ -132,6 +132,8 @@ class NARRE(Recommender):
         self.max_iter = max_iter
         self.optimizer = optimizer
         self.learning_rate = learning_rate
+        if model_selection not in ['best', 'last']:
+            raise ValueError("model_selection is either 'best' or 'last' but {}".format(model_selection))
         self.model_selection = model_selection
         self.user_based = user_based
         # Init params if provided
@@ -189,8 +191,11 @@ class NARRE(Recommender):
         if not hasattr(self, 'optimizer_'):
             if self.optimizer == 'rmsprop':
                 self.optimizer_ = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
-            else:
+            elif self.optimizer == 'adam':
                 self.optimizer_ = keras.optimizers.Adam(learning_rate=self.learning_rate)
+            else:
+                raise ValueError("optimizer is either 'rmsprop' or 'adam' but {}".format(self.optimizer))
+
         train_loss = keras.metrics.Mean(name="loss")
         val_loss = 0.
         best_val_loss = 1e9
