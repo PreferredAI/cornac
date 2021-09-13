@@ -202,6 +202,4 @@ class Model:
         bu = self.graph.get_layer('user_bias').get_weights()[0]
         bi = self.graph.get_layer('item_bias').get_weights()[0]
         mu = self.graph.get_layer('global_bias').get_weights()[0][0]
-        if self.verbose:
-            print('global bias =', mu)
         return X, Y, W1, user_embedding, item_embedding, bu, bi, mu
