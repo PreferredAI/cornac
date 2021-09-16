@@ -14,7 +14,6 @@
 # ============================================================================
 
 from collections import OrderedDict
-from cornac.data.modality import Modality
 import time
 
 import numpy as np
