@@ -15,21 +15,22 @@
 
 import unittest
 
+import numpy as np
+
 from cornac.data import GraphModality
 from cornac.data import Reader
 from collections import OrderedDict
 
 
 class TestGraphModality(unittest.TestCase):
-
     def test_init(self):
-        data = Reader().read('./tests/graph_data.txt', sep=' ')
+        data = Reader().read("./tests/graph_data.txt", sep=" ")
         gmd = GraphModality(data=data)
 
         self.assertEqual(len(gmd.raw_data), 7)
 
     def test_build(self):
-        data = Reader().read('./tests/graph_data.txt', sep=' ')
+        data = Reader().read("./tests/graph_data.txt", sep=" ")
         gmd = GraphModality(data=data)
 
         global_iid_map = OrderedDict()
@@ -49,7 +50,7 @@ class TestGraphModality(unittest.TestCase):
             assert True
 
     def test_get_train_triplet(self):
-        data = Reader().read('./tests/graph_data.txt', sep=' ')
+        data = Reader().read("./tests/graph_data.txt", sep=" ")
         gmd = GraphModality(data=data)
 
         global_iid_map = OrderedDict()
@@ -68,9 +69,7 @@ class TestGraphModality(unittest.TestCase):
         self.assertEqual(len(val), 1)
 
     def test_from_feature(self):
-
         # build a toy feature matrix
-        import numpy as np
         F = np.zeros((4, 3))
         F[0] = np.asarray([1, 0, 0])
         F[1] = np.asarray([1, 1, 0])
@@ -79,25 +78,29 @@ class TestGraphModality(unittest.TestCase):
 
         # the expected output graph
         s = set()
-        s.update([(0, 1, 1.0), \
-                  (0, 3, 1.0), \
-                  (1, 0, 1.0), \
-                  (1, 2, 1.0), \
-                  (1, 3, 1.0), \
-                  (2, 1, 1.0), \
-                  (2, 3, 1.0), \
-                  (3, 0, 1.0), \
-                  (3, 1, 1.0), \
-                  (3, 2, 1.0)])
+        s.update(
+            [
+                (0, 1, 1.0),
+                (0, 3, 1.0),
+                (1, 0, 1.0),
+                (1, 3, 1.0),
+                (2, 0, 1.0),
+                (2, 1, 1.0),
+                (2, 3, 1.0),
+                (3, 0, 1.0),
+                (3, 1, 1.0),
+                (3, 2, 1.0),
+            ]
+        )
 
         # build graph modality from features
-        gm = GraphModality.from_feature(features=F, k=2, verbose=False)
+        gm = GraphModality.from_feature(features=F, k=2, similarity="cosine", verbose=False)
 
         self.assertTrue(isinstance(gm, GraphModality))
         self.assertTrue(not bool(gm.raw_data.difference(s)))
 
     def test_get_node_degree(self):
-        data = Reader().read('./tests/graph_data.txt', sep=' ')
+        data = Reader().read("./tests/graph_data.txt", sep=" ")
         gmd = GraphModality(data=data)
 
         global_iid_map = OrderedDict()
@@ -115,7 +118,7 @@ class TestGraphModality(unittest.TestCase):
         self.assertEqual(degree.get(5)[0], 0)
         self.assertEqual(degree.get(5)[1], 1)
 
-        degree = gmd.get_node_degree([0,1],[0,1])
+        degree = gmd.get_node_degree([0, 1], [0, 1])
 
         self.assertEqual(degree.get(0)[0], 1)
         self.assertEqual(degree.get(0)[1], 0)
@@ -123,5 +126,5 @@ class TestGraphModality(unittest.TestCase):
         self.assertEqual(degree.get(1)[1], 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
