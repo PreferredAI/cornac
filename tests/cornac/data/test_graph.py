@@ -76,7 +76,7 @@ class TestGraphModality(unittest.TestCase):
         F[2] = np.asarray([0, 0, 1])
         F[3] = np.asarray([1, 1, 1])
 
-        # the expected output graph
+        # the expected output graph, if using cosine similarity
         s = set()
         s.update(
             [
@@ -84,12 +84,12 @@ class TestGraphModality(unittest.TestCase):
                 (0, 3, 1.0),
                 (1, 0, 1.0),
                 (1, 3, 1.0),
-                (2, 0, 1.0),
-                (2, 1, 1.0),
+                (2, 0, 1.0), # sim = 0
+                (2, 1, 1.0), # sim = 0
                 (2, 3, 1.0),
-                (3, 0, 1.0),
+                (3, 0, 1.0), # sim ~ 0.57
                 (3, 1, 1.0),
-                (3, 2, 1.0),
+                (3, 2, 1.0), # sim ~ 0.57
             ]
         )
 
