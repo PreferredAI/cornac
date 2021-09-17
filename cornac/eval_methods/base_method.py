@@ -288,7 +288,9 @@ class BaseMethod:
 
     @user_feature.setter
     def user_feature(self, input_modality):
-        if input_modality is not None and not isinstance(input_modality, FeatureModality):
+        if input_modality is not None and not isinstance(
+            input_modality, FeatureModality
+        ):
             raise ValueError(
                 "input_modality has to be instance of FeatureModality but {}".format(
                     type(input_modality)
@@ -344,7 +346,9 @@ class BaseMethod:
 
     @item_feature.setter
     def item_feature(self, input_modality):
-        if input_modality is not None and not isinstance(input_modality, FeatureModality):
+        if input_modality is not None and not isinstance(
+            input_modality, FeatureModality
+        ):
             raise ValueError(
                 "input_modality has to be instance of FeatureModality but {}".format(
                     type(input_modality)
@@ -527,7 +531,12 @@ class BaseMethod:
         self.train_set.total_items = self.total_items
 
     def _build_modalities(self):
-        for user_modality in [self.user_feature, self.user_text, self.user_image, self.user_graph]:
+        for user_modality in [
+            self.user_feature,
+            self.user_text,
+            self.user_image,
+            self.user_graph,
+        ]:
             if user_modality is None:
                 continue
             user_modality.build(
@@ -537,7 +546,12 @@ class BaseMethod:
                 dok_matrix=self.train_set.dok_matrix,
             )
 
-        for item_modality in [self.item_feature, self.item_text, self.item_image, self.item_graph]:
+        for item_modality in [
+            self.item_feature,
+            self.item_text,
+            self.item_image,
+            self.item_graph,
+        ]:
             if item_modality is None:
                 continue
             item_modality.build(
@@ -555,6 +569,35 @@ class BaseMethod:
                 iid_map=self.train_set.iid_map,
                 dok_matrix=self.train_set.dok_matrix,
             )
+
+        self.add_modalities(
+            user_feature=self.user_feature,
+            user_text=self.user_text,
+            user_image=self.user_image,
+            user_graph=self.user_graph,
+            item_feature=self.item_feature,
+            item_text=self.item_text,
+            item_image=self.item_image,
+            item_graph=self.item_graph,
+            sentiment=self.sentiment,
+            review_text=self.review_text,
+        )
+
+    def add_modalities(self, **kwargs):
+        """
+        Add successfully built modalities to all datasets. This is handy for 
+        seperately built modalities that are not invoked in the build method. 
+        """
+        self.user_feature = kwargs.get("user_feature", None)
+        self.user_text = kwargs.get("user_text", None)
+        self.user_image = kwargs.get("user_image", None)
+        self.user_graph = kwargs.get("user_graph", None)
+        self.item_feature = kwargs.get("item_feature", None)
+        self.item_text = kwargs.get("item_text", None)
+        self.item_image = kwargs.get("item_image", None)
+        self.item_graph = kwargs.get("item_graph", None)
+        self.sentiment = kwargs.get("sentiment", None)
+        self.review_text = kwargs.get("review_text", None)
 
         for data_set in [self.train_set, self.test_set, self.val_set]:
             if data_set is None:
@@ -747,3 +790,4 @@ class BaseMethod:
         return method.build(
             train_data=train_data, test_data=test_data, val_data=val_data
         )
+
