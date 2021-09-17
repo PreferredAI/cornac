@@ -32,7 +32,7 @@ class GraphModality(FeatureModality):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.raw_data = kwargs.get('data', None)
+        self.raw_data = kwargs.get("data", None)
         self.__matrix = None
         self.__matrix_size = None
 
@@ -42,8 +42,10 @@ class GraphModality(FeatureModality):
         """
         if self.__matrix is None:
             assert self.__matrix_size is not None
-            self.__matrix = sp.csr_matrix((self.val, (self.map_rid, self.map_cid)),
-                                          shape=(self.__matrix_size, self.__matrix_size))
+            self.__matrix = sp.csr_matrix(
+                (self.val, (self.map_rid, self.map_cid)),
+                shape=(self.__matrix_size, self.__matrix_size),
+            )
         return self.__matrix
 
     def _build_triplet(self, id_map):
@@ -90,17 +92,18 @@ class GraphModality(FeatureModality):
         set as specified by "train_row_ids" and "train_col_ids".
         """
         picked_idx = []
-        train_row_ids = set(train_row_ids) if not isinstance(train_row_ids, set) else train_row_ids
-        train_col_ids = set(train_col_ids) if not isinstance(train_col_ids, set) else train_col_ids
+        train_row_ids = (
+            set(train_row_ids) if not isinstance(train_row_ids, set) else train_row_ids
+        )
+        train_col_ids = (
+            set(train_col_ids) if not isinstance(train_col_ids, set) else train_col_ids
+        )
         for idx, (i, j) in enumerate(zip(self.map_rid, self.map_cid)):
             if (i not in train_row_ids) or (j not in train_col_ids):
                 continue
             picked_idx.append(idx)
 
-        return self.map_rid[picked_idx], \
-               self.map_cid[picked_idx], \
-               self.val[picked_idx]
-
+        return self.map_rid[picked_idx], self.map_cid[picked_idx], self.val[picked_idx]
 
     def get_node_degree(self, in_ids=None, out_ids=None):
         """Get the "in" and "out" degree for the desired set of nodes
@@ -130,11 +133,9 @@ class GraphModality(FeatureModality):
         for (i, j) in zip(self.map_rid, self.map_cid):
             if (i not in out_ids) or (j not in in_ids):
                 continue
-            degree[i] = degree.get(i,np.asarray([0,0])) + np.asarray([0,1])
-            degree[j] = degree.get(j, np.asarray([0, 0])) + np.asarray([1,0])
-        return  degree
-
-
+            degree[i] = degree.get(i, np.asarray([0, 0])) + np.asarray([0, 1])
+            degree[j] = degree.get(j, np.asarray([0, 0])) + np.asarray([1, 0])
+        return degree
 
     # TODO: add feature_fallback decorator and rename the API more meaningful
     def batch(self, batch_ids):
@@ -147,24 +148,6 @@ class GraphModality(FeatureModality):
         """
 
         return self.matrix[batch_ids]
-
-    @staticmethod
-    def _find_min(vect):
-        """ Return the lowest number and its position (index) in a given vector (array).
-
-        Parameters
-        ----------
-        vect: array, required
-            A Numpy 1d array of real values.
-        """
-
-        min_index = 0
-        min_ = np.inf
-        for i in range(len(vect)):
-            if vect[i] < min_:
-                min_index = i
-                min_ = vect[i]
-        return min_index, min_
 
     @staticmethod
     def _to_triplet(mat, ids=None):
@@ -190,7 +173,7 @@ class GraphModality(FeatureModality):
         for n_ in range(n):
             for k_ in range(k):
                 j = int(mat[n_, k_])
-                tuples.add((ids[n_], ids[j], 1.))
+                tuples.add((ids[n_], ids[j], 1.0))
 
         return tuples
 
@@ -232,32 +215,24 @@ class GraphModality(FeatureModality):
         # Some util variables
         n = len(features)
         N = np.zeros((n, k))
-        S = np.zeros((n, k))
 
         if similarity == "cosine":
             # Normalize features to lie on a unit hypersphere
-            l2_norm = np.sqrt((features * features).sum(1))
-            l2_norm = l2_norm.reshape(n, 1)
+            l2_norm = np.linalg.norm(features, 2, axis=1, keepdims=True)
             features = features / (l2_norm + 1e-20)
 
-        for i in trange(n, desc='Building KNN graph', disable=not verbose):
-            c_id = 0
-            for j in range(n):
-                if i != j:
-                    sim = np.dot(features[i], features[j])
-                    if c_id <= k - 1:
-                        N[i, c_id] = j
-                        S[i, c_id] = sim
-                        c_id += 1
-                    else:
-                        m_id, m = GraphModality._find_min(S[i])
-                        if sim > m:
-                            N[i, m_id] = j
-                            S[i, m_id] = sim
+        for i in trange(n, desc="Building KNN graph", disable=not verbose):
+            sim = features.dot(features[i])
+            sim[i] = -np.inf  # ingore current idx
+            k_largest_idx = np.argpartition(sim, -k)[-k:]
+            N[i] = k_largest_idx
+
         return N
 
     @classmethod
-    def from_feature(cls, features, k=5, ids=None, similarity="cosine", symmetric=False, verbose=True):
+    def from_feature(
+        cls, features, k=5, ids=None, similarity="cosine", symmetric=False, verbose=True
+    ):
         """Instantiate a GraphModality with a KNN graph build using input features.
 
         Parameters
