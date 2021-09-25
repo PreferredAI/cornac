@@ -39,16 +39,16 @@ class SoRec(Recommender):
     gamma: float, optional, default: 0.9
         The weight for previous/current gradient in RMSProp.
 
-    lambda_reg: float, optional, default: 0.001
-        The regularization parameter.
-
     lambda_c: float, optional, default: 10
         The parameter balancing the information from the user-item rating matrix and the user social network.
 
+    lambda_reg: float, optional, default: 0.001
+        The regularization parameter.
+        
     weight_link: boolean, optional, default: True
         When true the social network links are weighted according to eq. (4) in the original paper.
 
-    name: string, optional, default: 'SOREC'
+    name: string, optional, default: 'SoRec'
         The name of the recommender model.
 
     trainable: boolean, optional, default: True
