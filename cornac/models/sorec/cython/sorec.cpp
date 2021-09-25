@@ -1823,7 +1823,6 @@ static const char __pyx_k_epoch[] = "epoch";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
 static const char __pyx_k_gamma[] = "gamma";
-static const char __pyx_k_lamda[] = "lamda";
 static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_print[] = "print";
 static const char __pyx_k_range[] = "range";
@@ -1854,7 +1853,6 @@ static const char __pyx_k_cache_v[] = "cache_v";
 static const char __pyx_k_cache_z[] = "cache_z";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_get_rng[] = "get_rng";
-static const char __pyx_k_lamda_c[] = "lamda_c";
 static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_n_edges[] = "n_edges";
 static const char __pyx_k_n_items[] = "n_items";
@@ -1869,6 +1867,7 @@ static const char __pyx_k_verbose[] = "verbose";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_itemsize[] = "itemsize";
+static const char __pyx_k_lambda_c[] = "lambda_c";
 static const char __pyx_k_n_epochs[] = "n_epochs";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
@@ -1879,6 +1878,7 @@ static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
+static const char __pyx_k_lambda_reg[] = "lambda_reg";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_MemoryError[] = "MemoryError";
@@ -2003,8 +2003,8 @@ static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_j;
 static PyObject *__pyx_n_s_k;
 static PyObject *__pyx_n_s_k_2;
-static PyObject *__pyx_n_s_lamda;
-static PyObject *__pyx_n_s_lamda_c;
+static PyObject *__pyx_n_s_lambda_c;
+static PyObject *__pyx_n_s_lambda_reg;
 static PyObject *__pyx_n_s_learning_rate;
 static PyObject *__pyx_n_s_loss;
 static PyObject *__pyx_n_u_loss;
@@ -2084,7 +2084,7 @@ static PyObject *__pyx_n_s_val;
 static PyObject *__pyx_n_s_verbose;
 static PyObject *__pyx_n_s_werr;
 static PyObject *__pyx_n_s_zeros;
-static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rat_uid, __Pyx_memviewslice __pyx_v_rat_iid, __Pyx_memviewslice __pyx_v_rat_val, __Pyx_memviewslice __pyx_v_net_uid, __Pyx_memviewslice __pyx_v_net_jid, __Pyx_memviewslice __pyx_v_net_val, int __pyx_v_k, int __pyx_v_n_users, int __pyx_v_n_items, int __pyx_v_n_ratings, int __pyx_v_n_edges, int __pyx_v_n_epochs, float __pyx_v_lamda_c, float __pyx_v_lamda, float __pyx_v_learning_rate, float __pyx_v_gamma, PyObject *__pyx_v_init_params, PyObject *__pyx_v_verbose, PyObject *__pyx_v_seed); /* proto */
+static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rat_uid, __Pyx_memviewslice __pyx_v_rat_iid, __Pyx_memviewslice __pyx_v_rat_val, __Pyx_memviewslice __pyx_v_net_uid, __Pyx_memviewslice __pyx_v_net_jid, __Pyx_memviewslice __pyx_v_net_val, int __pyx_v_k, int __pyx_v_n_users, int __pyx_v_n_items, int __pyx_v_n_ratings, int __pyx_v_n_edges, int __pyx_v_n_epochs, float __pyx_v_lambda_c, float __pyx_v_lambda_reg, float __pyx_v_learning_rate, float __pyx_v_gamma, PyObject *__pyx_v_init_params, PyObject *__pyx_v_verbose, PyObject *__pyx_v_seed); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2302,7 +2302,7 @@ static float __pyx_f_6cornac_6models_5sorec_5sorec_sigmoid(float __pyx_v_z) {
  * 
  * 
  * def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,             # <<<<<<<<<<<<<<
- *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
+ *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lambda_c = 10, float lambda_reg = 0.001,
  *         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False, seed=None):
  */
 
@@ -2322,8 +2322,8 @@ static PyObject *__pyx_pw_6cornac_6models_5sorec_5sorec_1sorec(PyObject *__pyx_s
   int __pyx_v_n_ratings;
   int __pyx_v_n_edges;
   int __pyx_v_n_epochs;
-  float __pyx_v_lamda_c;
-  float __pyx_v_lamda;
+  float __pyx_v_lambda_c;
+  float __pyx_v_lambda_reg;
   float __pyx_v_learning_rate;
   float __pyx_v_gamma;
   PyObject *__pyx_v_init_params = 0;
@@ -2333,12 +2333,12 @@ static PyObject *__pyx_pw_6cornac_6models_5sorec_5sorec_1sorec(PyObject *__pyx_s
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("sorec (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rat_uid,&__pyx_n_s_rat_iid,&__pyx_n_s_rat_val,&__pyx_n_s_net_uid,&__pyx_n_s_net_jid,&__pyx_n_s_net_val,&__pyx_n_s_k,&__pyx_n_s_n_users,&__pyx_n_s_n_items,&__pyx_n_s_n_ratings,&__pyx_n_s_n_edges,&__pyx_n_s_n_epochs,&__pyx_n_s_lamda_c,&__pyx_n_s_lamda,&__pyx_n_s_learning_rate,&__pyx_n_s_gamma,&__pyx_n_s_init_params,&__pyx_n_s_verbose,&__pyx_n_s_seed,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rat_uid,&__pyx_n_s_rat_iid,&__pyx_n_s_rat_val,&__pyx_n_s_net_uid,&__pyx_n_s_net_jid,&__pyx_n_s_net_val,&__pyx_n_s_k,&__pyx_n_s_n_users,&__pyx_n_s_n_items,&__pyx_n_s_n_ratings,&__pyx_n_s_n_edges,&__pyx_n_s_n_epochs,&__pyx_n_s_lambda_c,&__pyx_n_s_lambda_reg,&__pyx_n_s_learning_rate,&__pyx_n_s_gamma,&__pyx_n_s_init_params,&__pyx_n_s_verbose,&__pyx_n_s_seed,0};
     PyObject* values[19] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
     /* "cornac/models/sorec/cython/sorec.pyx":42
  * def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,
- *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
+ *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lambda_c = 10, float lambda_reg = 0.001,
  *         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False, seed=None):             # <<<<<<<<<<<<<<
  * 
  *     cdef:
@@ -2465,13 +2465,13 @@ static PyObject *__pyx_pw_6cornac_6models_5sorec_5sorec_1sorec(PyObject *__pyx_s
         CYTHON_FALLTHROUGH;
         case 12:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_lamda_c);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_lambda_c);
           if (value) { values[12] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
         case 13:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_lamda);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_lambda_reg);
           if (value) { values[13] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
@@ -2558,14 +2558,14 @@ static PyObject *__pyx_pw_6cornac_6models_5sorec_5sorec_1sorec(PyObject *__pyx_s
       __pyx_v_n_epochs = ((int)0x64);
     }
     if (values[12]) {
-      __pyx_v_lamda_c = __pyx_PyFloat_AsFloat(values[12]); if (unlikely((__pyx_v_lamda_c == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 41, __pyx_L3_error)
+      __pyx_v_lambda_c = __pyx_PyFloat_AsFloat(values[12]); if (unlikely((__pyx_v_lambda_c == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 41, __pyx_L3_error)
     } else {
-      __pyx_v_lamda_c = ((float)10.0);
+      __pyx_v_lambda_c = ((float)10.0);
     }
     if (values[13]) {
-      __pyx_v_lamda = __pyx_PyFloat_AsFloat(values[13]); if (unlikely((__pyx_v_lamda == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 41, __pyx_L3_error)
+      __pyx_v_lambda_reg = __pyx_PyFloat_AsFloat(values[13]); if (unlikely((__pyx_v_lambda_reg == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 41, __pyx_L3_error)
     } else {
-      __pyx_v_lamda = ((float)0.001);
+      __pyx_v_lambda_reg = ((float)0.001);
     }
     if (values[14]) {
       __pyx_v_learning_rate = __pyx_PyFloat_AsFloat(values[14]); if (unlikely((__pyx_v_learning_rate == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 42, __pyx_L3_error)
@@ -2589,13 +2589,13 @@ static PyObject *__pyx_pw_6cornac_6models_5sorec_5sorec_1sorec(PyObject *__pyx_s
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cornac_6models_5sorec_5sorec_sorec(__pyx_self, __pyx_v_rat_uid, __pyx_v_rat_iid, __pyx_v_rat_val, __pyx_v_net_uid, __pyx_v_net_jid, __pyx_v_net_val, __pyx_v_k, __pyx_v_n_users, __pyx_v_n_items, __pyx_v_n_ratings, __pyx_v_n_edges, __pyx_v_n_epochs, __pyx_v_lamda_c, __pyx_v_lamda, __pyx_v_learning_rate, __pyx_v_gamma, __pyx_v_init_params, __pyx_v_verbose, __pyx_v_seed);
+  __pyx_r = __pyx_pf_6cornac_6models_5sorec_5sorec_sorec(__pyx_self, __pyx_v_rat_uid, __pyx_v_rat_iid, __pyx_v_rat_val, __pyx_v_net_uid, __pyx_v_net_jid, __pyx_v_net_val, __pyx_v_k, __pyx_v_n_users, __pyx_v_n_items, __pyx_v_n_ratings, __pyx_v_n_edges, __pyx_v_n_epochs, __pyx_v_lambda_c, __pyx_v_lambda_reg, __pyx_v_learning_rate, __pyx_v_gamma, __pyx_v_init_params, __pyx_v_verbose, __pyx_v_seed);
 
   /* "cornac/models/sorec/cython/sorec.pyx":40
  * 
  * 
  * def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,             # <<<<<<<<<<<<<<
- *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
+ *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lambda_c = 10, float lambda_reg = 0.001,
  *         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False, seed=None):
  */
 
@@ -2604,7 +2604,7 @@ static PyObject *__pyx_pw_6cornac_6models_5sorec_5sorec_1sorec(PyObject *__pyx_s
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rat_uid, __Pyx_memviewslice __pyx_v_rat_iid, __Pyx_memviewslice __pyx_v_rat_val, __Pyx_memviewslice __pyx_v_net_uid, __Pyx_memviewslice __pyx_v_net_jid, __Pyx_memviewslice __pyx_v_net_val, int __pyx_v_k, int __pyx_v_n_users, int __pyx_v_n_items, int __pyx_v_n_ratings, int __pyx_v_n_edges, int __pyx_v_n_epochs, float __pyx_v_lamda_c, float __pyx_v_lamda, float __pyx_v_learning_rate, float __pyx_v_gamma, PyObject *__pyx_v_init_params, PyObject *__pyx_v_verbose, PyObject *__pyx_v_seed) {
+static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rat_uid, __Pyx_memviewslice __pyx_v_rat_iid, __Pyx_memviewslice __pyx_v_rat_val, __Pyx_memviewslice __pyx_v_net_uid, __Pyx_memviewslice __pyx_v_net_jid, __Pyx_memviewslice __pyx_v_net_val, int __pyx_v_k, int __pyx_v_n_users, int __pyx_v_n_items, int __pyx_v_n_ratings, int __pyx_v_n_edges, int __pyx_v_n_epochs, float __pyx_v_lambda_c, float __pyx_v_lambda_reg, float __pyx_v_learning_rate, float __pyx_v_gamma, PyObject *__pyx_v_init_params, PyObject *__pyx_v_verbose, PyObject *__pyx_v_seed) {
   __Pyx_memviewslice __pyx_v_loss = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_n;
   int __pyx_v_d;
@@ -3591,7 +3591,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  * 
  *             # update user factors
  *             for k_ in range(k):             # <<<<<<<<<<<<<<
- *                 grad_u[i_, k_] = werr * Z[j_, k_] - lamda * U[i_, k_]
+ *                 grad_u[i_, k_] = werr * Z[j_, k_] - lambda_reg * U[i_, k_]
  *                 cache_u[i_, k_] = gamma * cache_u[i_, k_] + (1 - gamma) * (grad_u[i_, k_] * grad_u[i_, k_])
  */
       __pyx_t_18 = __pyx_v_k;
@@ -3602,9 +3602,9 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         /* "cornac/models/sorec/cython/sorec.pyx":93
  *             # update user factors
  *             for k_ in range(k):
- *                 grad_u[i_, k_] = werr * Z[j_, k_] - lamda * U[i_, k_]             # <<<<<<<<<<<<<<
+ *                 grad_u[i_, k_] = werr * Z[j_, k_] - lambda_reg * U[i_, k_]             # <<<<<<<<<<<<<<
  *                 cache_u[i_, k_] = gamma * cache_u[i_, k_] + (1 - gamma) * (grad_u[i_, k_] * grad_u[i_, k_])
- *                 U[i_, k_] += lamda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
+ *                 U[i_, k_] += lambda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
  */
         __pyx_t_27 = __pyx_v_j_;
         __pyx_t_28 = __pyx_v_k_;
@@ -3651,13 +3651,13 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
           __Pyx_RaiseBufferIndexError(__pyx_t_24);
           __PYX_ERR(0, 93, __pyx_L1_error)
         }
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_31 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_32 * __pyx_v_grad_u.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Z.data + __pyx_t_27 * __pyx_v_Z.strides[0]) ) + __pyx_t_28 * __pyx_v_Z.strides[1]) )))) - (__pyx_v_lamda * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_29 * __pyx_v_U.strides[0]) ) + __pyx_t_30 * __pyx_v_U.strides[1]) )))));
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_31 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_32 * __pyx_v_grad_u.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Z.data + __pyx_t_27 * __pyx_v_Z.strides[0]) ) + __pyx_t_28 * __pyx_v_Z.strides[1]) )))) - (__pyx_v_lambda_reg * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_29 * __pyx_v_U.strides[0]) ) + __pyx_t_30 * __pyx_v_U.strides[1]) )))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":94
  *             for k_ in range(k):
- *                 grad_u[i_, k_] = werr * Z[j_, k_] - lamda * U[i_, k_]
+ *                 grad_u[i_, k_] = werr * Z[j_, k_] - lambda_reg * U[i_, k_]
  *                 cache_u[i_, k_] = gamma * cache_u[i_, k_] + (1 - gamma) * (grad_u[i_, k_] * grad_u[i_, k_])             # <<<<<<<<<<<<<<
- *                 U[i_, k_] += lamda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
+ *                 U[i_, k_] += lambda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
  * 
  */
         __pyx_t_33 = __pyx_v_i_;
@@ -3723,9 +3723,9 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_u.data + __pyx_t_39 * __pyx_v_cache_u.strides[0]) ) + __pyx_t_40 * __pyx_v_cache_u.strides[1]) )) = ((__pyx_v_gamma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_u.data + __pyx_t_33 * __pyx_v_cache_u.strides[0]) ) + __pyx_t_34 * __pyx_v_cache_u.strides[1]) )))) + ((1.0 - __pyx_v_gamma) * ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_35 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_36 * __pyx_v_grad_u.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_37 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_38 * __pyx_v_grad_u.strides[1]) ))))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":95
- *                 grad_u[i_, k_] = werr * Z[j_, k_] - lamda * U[i_, k_]
+ *                 grad_u[i_, k_] = werr * Z[j_, k_] - lambda_reg * U[i_, k_]
  *                 cache_u[i_, k_] = gamma * cache_u[i_, k_] + (1 - gamma) * (grad_u[i_, k_] * grad_u[i_, k_])
- *                 U[i_, k_] += lamda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))             # <<<<<<<<<<<<<<
+ *                 U[i_, k_] += lambda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))             # <<<<<<<<<<<<<<
  * 
  *             # update social network factors
  */
@@ -3780,14 +3780,14 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
           __Pyx_RaiseBufferIndexError(__pyx_t_24);
           __PYX_ERR(0, 95, __pyx_L1_error)
         }
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_47 * __pyx_v_U.strides[0]) ) + __pyx_t_48 * __pyx_v_U.strides[1]) )) += ((__pyx_v_lamda_c * __pyx_v_learning_rate) * (__pyx_t_43 / __pyx_t_46));
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_47 * __pyx_v_U.strides[0]) ) + __pyx_t_48 * __pyx_v_U.strides[1]) )) += ((__pyx_v_lambda_c * __pyx_v_learning_rate) * (__pyx_t_43 / __pyx_t_46));
       }
 
       /* "cornac/models/sorec/cython/sorec.pyx":98
  * 
  *             # update social network factors
  *             for k_ in range(k):             # <<<<<<<<<<<<<<
- *                 grad_z[j_, k_] = werr * U[i_, k_] - lamda * Z[j_, k_]
+ *                 grad_z[j_, k_] = werr * U[i_, k_] - lambda_reg * Z[j_, k_]
  *                 cache_z[j_, k_] = gamma * cache_z[j_, k_] + (1 - gamma) * (grad_z[j_, k_] * grad_z[j_, k_])
  */
       __pyx_t_18 = __pyx_v_k;
@@ -3798,9 +3798,9 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         /* "cornac/models/sorec/cython/sorec.pyx":99
  *             # update social network factors
  *             for k_ in range(k):
- *                 grad_z[j_, k_] = werr * U[i_, k_] - lamda * Z[j_, k_]             # <<<<<<<<<<<<<<
+ *                 grad_z[j_, k_] = werr * U[i_, k_] - lambda_reg * Z[j_, k_]             # <<<<<<<<<<<<<<
  *                 cache_z[j_, k_] = gamma * cache_z[j_, k_] + (1 - gamma) * (grad_z[j_, k_] * grad_z[j_, k_])
- *                 Z[j_, k_] += lamda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
+ *                 Z[j_, k_] += lambda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
  */
         __pyx_t_49 = __pyx_v_i_;
         __pyx_t_50 = __pyx_v_k_;
@@ -3847,13 +3847,13 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
           __Pyx_RaiseBufferIndexError(__pyx_t_24);
           __PYX_ERR(0, 99, __pyx_L1_error)
         }
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_z.data + __pyx_t_53 * __pyx_v_grad_z.strides[0]) ) + __pyx_t_54 * __pyx_v_grad_z.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_49 * __pyx_v_U.strides[0]) ) + __pyx_t_50 * __pyx_v_U.strides[1]) )))) - (__pyx_v_lamda * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Z.data + __pyx_t_51 * __pyx_v_Z.strides[0]) ) + __pyx_t_52 * __pyx_v_Z.strides[1]) )))));
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_z.data + __pyx_t_53 * __pyx_v_grad_z.strides[0]) ) + __pyx_t_54 * __pyx_v_grad_z.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_49 * __pyx_v_U.strides[0]) ) + __pyx_t_50 * __pyx_v_U.strides[1]) )))) - (__pyx_v_lambda_reg * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Z.data + __pyx_t_51 * __pyx_v_Z.strides[0]) ) + __pyx_t_52 * __pyx_v_Z.strides[1]) )))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":100
  *             for k_ in range(k):
- *                 grad_z[j_, k_] = werr * U[i_, k_] - lamda * Z[j_, k_]
+ *                 grad_z[j_, k_] = werr * U[i_, k_] - lambda_reg * Z[j_, k_]
  *                 cache_z[j_, k_] = gamma * cache_z[j_, k_] + (1 - gamma) * (grad_z[j_, k_] * grad_z[j_, k_])             # <<<<<<<<<<<<<<
- *                 Z[j_, k_] += lamda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
+ *                 Z[j_, k_] += lambda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
  * 
  */
         __pyx_t_55 = __pyx_v_j_;
@@ -3919,9 +3919,9 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_z.data + __pyx_t_61 * __pyx_v_cache_z.strides[0]) ) + __pyx_t_62 * __pyx_v_cache_z.strides[1]) )) = ((__pyx_v_gamma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_z.data + __pyx_t_55 * __pyx_v_cache_z.strides[0]) ) + __pyx_t_56 * __pyx_v_cache_z.strides[1]) )))) + ((1.0 - __pyx_v_gamma) * ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_z.data + __pyx_t_57 * __pyx_v_grad_z.strides[0]) ) + __pyx_t_58 * __pyx_v_grad_z.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_z.data + __pyx_t_59 * __pyx_v_grad_z.strides[0]) ) + __pyx_t_60 * __pyx_v_grad_z.strides[1]) ))))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":101
- *                 grad_z[j_, k_] = werr * U[i_, k_] - lamda * Z[j_, k_]
+ *                 grad_z[j_, k_] = werr * U[i_, k_] - lambda_reg * Z[j_, k_]
  *                 cache_z[j_, k_] = gamma * cache_z[j_, k_] + (1 - gamma) * (grad_z[j_, k_] * grad_z[j_, k_])
- *                 Z[j_, k_] += lamda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))             # <<<<<<<<<<<<<<
+ *                 Z[j_, k_] += lambda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))             # <<<<<<<<<<<<<<
  * 
  *             norm_z = 0.0
  */
@@ -3976,11 +3976,11 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
           __Pyx_RaiseBufferIndexError(__pyx_t_24);
           __PYX_ERR(0, 101, __pyx_L1_error)
         }
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Z.data + __pyx_t_67 * __pyx_v_Z.strides[0]) ) + __pyx_t_68 * __pyx_v_Z.strides[1]) )) += ((__pyx_v_lamda_c * __pyx_v_learning_rate) * (__pyx_t_46 / __pyx_t_43));
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Z.data + __pyx_t_67 * __pyx_v_Z.strides[0]) ) + __pyx_t_68 * __pyx_v_Z.strides[1]) )) += ((__pyx_v_lambda_c * __pyx_v_learning_rate) * (__pyx_t_46 / __pyx_t_43));
       }
 
       /* "cornac/models/sorec/cython/sorec.pyx":103
- *                 Z[j_, k_] += lamda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
+ *                 Z[j_, k_] += lambda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
  * 
  *             norm_z = 0.0             # <<<<<<<<<<<<<<
  *             norm_u = 0.0
@@ -4060,7 +4060,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  *                 norm_z += Z[j_, k_] * Z[j_, k_]
  *                 norm_u += U[i_, k_] * U[i_, k_]             # <<<<<<<<<<<<<<
  * 
- *             loss[epoch] += err * err + lamda * (norm_z + norm_u)
+ *             loss[epoch] += err * err + lambda_reg * (norm_z + norm_u)
  */
         __pyx_t_73 = __pyx_v_i_;
         __pyx_t_74 = __pyx_v_k_;
@@ -4098,13 +4098,13 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
       /* "cornac/models/sorec/cython/sorec.pyx":109
  *                 norm_u += U[i_, k_] * U[i_, k_]
  * 
- *             loss[epoch] += err * err + lamda * (norm_z + norm_u)             # <<<<<<<<<<<<<<
+ *             loss[epoch] += err * err + lambda_reg * (norm_z + norm_u)             # <<<<<<<<<<<<<<
  * 
  *         for r in range(n_ratings):
  */
       __pyx_t_2 = PyFloat_FromDouble((__pyx_v_err * __pyx_v_err)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 109, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_4 = PyFloat_FromDouble(__pyx_v_lamda); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 109, __pyx_L1_error)
+      __pyx_t_4 = PyFloat_FromDouble(__pyx_v_lambda_reg); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 109, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_6 = PyFloat_FromDouble(__pyx_v_norm_u); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
@@ -4135,7 +4135,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
     }
 
     /* "cornac/models/sorec/cython/sorec.pyx":111
- *             loss[epoch] += err * err + lamda * (norm_z + norm_u)
+ *             loss[epoch] += err * err + lambda_reg * (norm_z + norm_u)
  * 
  *         for r in range(n_ratings):             # <<<<<<<<<<<<<<
  *             u_, i_, val = rat_uid[r], rat_iid[r], rat_val[r]
@@ -4282,7 +4282,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  * 
  *             # update user factors
  *             for k_ in range(k):             # <<<<<<<<<<<<<<
- *                 grad_u[u_, k_] = werr * V[i_, k_] - lamda * U[u_, k_]
+ *                 grad_u[u_, k_] = werr * V[i_, k_] - lambda_reg * U[u_, k_]
  *                 cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])
  */
       __pyx_t_16 = __pyx_v_k;
@@ -4293,7 +4293,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         /* "cornac/models/sorec/cython/sorec.pyx":123
  *             # update user factors
  *             for k_ in range(k):
- *                 grad_u[u_, k_] = werr * V[i_, k_] - lamda * U[u_, k_]             # <<<<<<<<<<<<<<
+ *                 grad_u[u_, k_] = werr * V[i_, k_] - lambda_reg * U[u_, k_]             # <<<<<<<<<<<<<<
  *                 cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])
  *                 U[u_, k_] += learning_rate * (grad_u[u_, k_] / (sqrt(cache_u[
  */
@@ -4342,11 +4342,11 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
           __Pyx_RaiseBufferIndexError(__pyx_t_24);
           __PYX_ERR(0, 123, __pyx_L1_error)
         }
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_89 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_90 * __pyx_v_grad_u.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_V.data + __pyx_t_85 * __pyx_v_V.strides[0]) ) + __pyx_t_86 * __pyx_v_V.strides[1]) )))) - (__pyx_v_lamda * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_87 * __pyx_v_U.strides[0]) ) + __pyx_t_88 * __pyx_v_U.strides[1]) )))));
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_89 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_90 * __pyx_v_grad_u.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_V.data + __pyx_t_85 * __pyx_v_V.strides[0]) ) + __pyx_t_86 * __pyx_v_V.strides[1]) )))) - (__pyx_v_lambda_reg * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_87 * __pyx_v_U.strides[0]) ) + __pyx_t_88 * __pyx_v_U.strides[1]) )))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":124
  *             for k_ in range(k):
- *                 grad_u[u_, k_] = werr * V[i_, k_] - lamda * U[u_, k_]
+ *                 grad_u[u_, k_] = werr * V[i_, k_] - lambda_reg * U[u_, k_]
  *                 cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])             # <<<<<<<<<<<<<<
  *                 U[u_, k_] += learning_rate * (grad_u[u_, k_] / (sqrt(cache_u[
  *                                                                      u_, k_]) + eps))  # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
@@ -4414,7 +4414,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_u.data + __pyx_t_97 * __pyx_v_cache_u.strides[0]) ) + __pyx_t_98 * __pyx_v_cache_u.strides[1]) )) = ((__pyx_v_gamma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_u.data + __pyx_t_91 * __pyx_v_cache_u.strides[0]) ) + __pyx_t_92 * __pyx_v_cache_u.strides[1]) )))) + ((1.0 - __pyx_v_gamma) * ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_93 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_94 * __pyx_v_grad_u.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_u.data + __pyx_t_95 * __pyx_v_grad_u.strides[0]) ) + __pyx_t_96 * __pyx_v_grad_u.strides[1]) ))))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":125
- *                 grad_u[u_, k_] = werr * V[i_, k_] - lamda * U[u_, k_]
+ *                 grad_u[u_, k_] = werr * V[i_, k_] - lambda_reg * U[u_, k_]
  *                 cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])
  *                 U[u_, k_] += learning_rate * (grad_u[u_, k_] / (sqrt(cache_u[             # <<<<<<<<<<<<<<
  *                                                                      u_, k_]) + eps))  # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
@@ -4461,7 +4461,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         }
 
         /* "cornac/models/sorec/cython/sorec.pyx":125
- *                 grad_u[u_, k_] = werr * V[i_, k_] - lamda * U[u_, k_]
+ *                 grad_u[u_, k_] = werr * V[i_, k_] - lambda_reg * U[u_, k_]
  *                 cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])
  *                 U[u_, k_] += learning_rate * (grad_u[u_, k_] / (sqrt(cache_u[             # <<<<<<<<<<<<<<
  *                                                                      u_, k_]) + eps))  # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
@@ -4494,7 +4494,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  * 
  *             # update item factors
  *             for k_ in range(k):             # <<<<<<<<<<<<<<
- *                 grad_v[i_, k_] = werr * U[u_, k_] - lamda * V[i_, k_]
+ *                 grad_v[i_, k_] = werr * U[u_, k_] - lambda_reg * V[i_, k_]
  *                 cache_v[i_, k_] = gamma * cache_v[i_, k_] + (1 - gamma) * (grad_v[i_, k_] * grad_v[i_, k_])
  */
       __pyx_t_16 = __pyx_v_k;
@@ -4505,7 +4505,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         /* "cornac/models/sorec/cython/sorec.pyx":130
  *             # update item factors
  *             for k_ in range(k):
- *                 grad_v[i_, k_] = werr * U[u_, k_] - lamda * V[i_, k_]             # <<<<<<<<<<<<<<
+ *                 grad_v[i_, k_] = werr * U[u_, k_] - lambda_reg * V[i_, k_]             # <<<<<<<<<<<<<<
  *                 cache_v[i_, k_] = gamma * cache_v[i_, k_] + (1 - gamma) * (grad_v[i_, k_] * grad_v[i_, k_])
  *                 V[i_, k_] += learning_rate * (grad_v[i_, k_] / (sqrt(cache_v[i_, k_]) + eps))
  */
@@ -4554,11 +4554,11 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
           __Pyx_RaiseBufferIndexError(__pyx_t_24);
           __PYX_ERR(0, 130, __pyx_L1_error)
         }
-        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_v.data + __pyx_t_109 * __pyx_v_grad_v.strides[0]) ) + __pyx_t_110 * __pyx_v_grad_v.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_105 * __pyx_v_U.strides[0]) ) + __pyx_t_106 * __pyx_v_U.strides[1]) )))) - (__pyx_v_lamda * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_V.data + __pyx_t_107 * __pyx_v_V.strides[0]) ) + __pyx_t_108 * __pyx_v_V.strides[1]) )))));
+        *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_v.data + __pyx_t_109 * __pyx_v_grad_v.strides[0]) ) + __pyx_t_110 * __pyx_v_grad_v.strides[1]) )) = ((__pyx_v_werr * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_U.data + __pyx_t_105 * __pyx_v_U.strides[0]) ) + __pyx_t_106 * __pyx_v_U.strides[1]) )))) - (__pyx_v_lambda_reg * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_V.data + __pyx_t_107 * __pyx_v_V.strides[0]) ) + __pyx_t_108 * __pyx_v_V.strides[1]) )))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":131
  *             for k_ in range(k):
- *                 grad_v[i_, k_] = werr * U[u_, k_] - lamda * V[i_, k_]
+ *                 grad_v[i_, k_] = werr * U[u_, k_] - lambda_reg * V[i_, k_]
  *                 cache_v[i_, k_] = gamma * cache_v[i_, k_] + (1 - gamma) * (grad_v[i_, k_] * grad_v[i_, k_])             # <<<<<<<<<<<<<<
  *                 V[i_, k_] += learning_rate * (grad_v[i_, k_] / (sqrt(cache_v[i_, k_]) + eps))
  * 
@@ -4626,7 +4626,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_v.data + __pyx_t_117 * __pyx_v_cache_v.strides[0]) ) + __pyx_t_118 * __pyx_v_cache_v.strides[1]) )) = ((__pyx_v_gamma * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_cache_v.data + __pyx_t_111 * __pyx_v_cache_v.strides[0]) ) + __pyx_t_112 * __pyx_v_cache_v.strides[1]) )))) + ((1.0 - __pyx_v_gamma) * ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_v.data + __pyx_t_113 * __pyx_v_grad_v.strides[0]) ) + __pyx_t_114 * __pyx_v_grad_v.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_grad_v.data + __pyx_t_115 * __pyx_v_grad_v.strides[0]) ) + __pyx_t_116 * __pyx_v_grad_v.strides[1]) ))))));
 
         /* "cornac/models/sorec/cython/sorec.pyx":132
- *                 grad_v[i_, k_] = werr * U[u_, k_] - lamda * V[i_, k_]
+ *                 grad_v[i_, k_] = werr * U[u_, k_] - lambda_reg * V[i_, k_]
  *                 cache_v[i_, k_] = gamma * cache_v[i_, k_] + (1 - gamma) * (grad_v[i_, k_] * grad_v[i_, k_])
  *                 V[i_, k_] += learning_rate * (grad_v[i_, k_] / (sqrt(cache_v[i_, k_]) + eps))             # <<<<<<<<<<<<<<
  * 
@@ -4760,7 +4760,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  *                 norm_u += U[u_, k_] * U[u_, k_]
  *                 norm_v += V[i_, k_] * V[i_, k_]             # <<<<<<<<<<<<<<
  * 
- *             loss[epoch] += err * err + lamda * (norm_u + norm_v)
+ *             loss[epoch] += err * err + lambda_reg * (norm_u + norm_v)
  */
         __pyx_t_129 = __pyx_v_i_;
         __pyx_t_130 = __pyx_v_k_;
@@ -4798,7 +4798,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
       /* "cornac/models/sorec/cython/sorec.pyx":140
  *                 norm_v += V[i_, k_] * V[i_, k_]
  * 
- *             loss[epoch] += err * err + lamda * (norm_u + norm_v)             # <<<<<<<<<<<<<<
+ *             loss[epoch] += err * err + lambda_reg * (norm_u + norm_v)             # <<<<<<<<<<<<<<
  * 
  *         if verbose:
  */
@@ -4812,11 +4812,11 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
         __Pyx_RaiseBufferIndexError(__pyx_t_16);
         __PYX_ERR(0, 140, __pyx_L1_error)
       }
-      *((double *) ( /* dim=0 */ (__pyx_v_loss.data + __pyx_t_133 * __pyx_v_loss.strides[0]) )) += ((__pyx_v_err * __pyx_v_err) + (__pyx_v_lamda * (__pyx_v_norm_u + __pyx_v_norm_v)));
+      *((double *) ( /* dim=0 */ (__pyx_v_loss.data + __pyx_t_133 * __pyx_v_loss.strides[0]) )) += ((__pyx_v_err * __pyx_v_err) + (__pyx_v_lambda_reg * (__pyx_v_norm_u + __pyx_v_norm_v)));
     }
 
     /* "cornac/models/sorec/cython/sorec.pyx":142
- *             loss[epoch] += err * err + lamda * (norm_u + norm_v)
+ *             loss[epoch] += err * err + lambda_reg * (norm_u + norm_v)
  * 
  *         if verbose:             # <<<<<<<<<<<<<<
  *             print('epoch %i, loss: %f' % (epoch, loss[epoch]))
@@ -4863,7 +4863,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
       /* "cornac/models/sorec/cython/sorec.pyx":142
- *             loss[epoch] += err * err + lamda * (norm_u + norm_v)
+ *             loss[epoch] += err * err + lambda_reg * (norm_u + norm_v)
  * 
  *         if verbose:             # <<<<<<<<<<<<<<
  *             print('epoch %i, loss: %f' % (epoch, loss[epoch]))
@@ -4914,7 +4914,7 @@ static PyObject *__pyx_pf_6cornac_6models_5sorec_5sorec_sorec(CYTHON_UNUSED PyOb
  * 
  * 
  * def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,             # <<<<<<<<<<<<<<
- *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
+ *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lambda_c = 10, float lambda_reg = 0.001,
  *         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False, seed=None):
  */
 
@@ -18523,8 +18523,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
   {&__pyx_n_s_k, __pyx_k_k, sizeof(__pyx_k_k), 0, 0, 1, 1},
   {&__pyx_n_s_k_2, __pyx_k_k_2, sizeof(__pyx_k_k_2), 0, 0, 1, 1},
-  {&__pyx_n_s_lamda, __pyx_k_lamda, sizeof(__pyx_k_lamda), 0, 0, 1, 1},
-  {&__pyx_n_s_lamda_c, __pyx_k_lamda_c, sizeof(__pyx_k_lamda_c), 0, 0, 1, 1},
+  {&__pyx_n_s_lambda_c, __pyx_k_lambda_c, sizeof(__pyx_k_lambda_c), 0, 0, 1, 1},
+  {&__pyx_n_s_lambda_reg, __pyx_k_lambda_reg, sizeof(__pyx_k_lambda_reg), 0, 0, 1, 1},
   {&__pyx_n_s_learning_rate, __pyx_k_learning_rate, sizeof(__pyx_k_learning_rate), 0, 0, 1, 1},
   {&__pyx_n_s_loss, __pyx_k_loss, sizeof(__pyx_k_loss), 0, 0, 1, 1},
   {&__pyx_n_u_loss, __pyx_k_loss, sizeof(__pyx_k_loss), 0, 1, 0, 1},
@@ -18854,10 +18854,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,             # <<<<<<<<<<<<<<
- *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
+ *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lambda_c = 10, float lambda_reg = 0.001,
  *         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False, seed=None):
  */
-  __pyx_tuple__22 = PyTuple_Pack(50, __pyx_n_s_rat_uid, __pyx_n_s_rat_iid, __pyx_n_s_rat_val, __pyx_n_s_net_uid, __pyx_n_s_net_jid, __pyx_n_s_net_val, __pyx_n_s_k, __pyx_n_s_n_users, __pyx_n_s_n_items, __pyx_n_s_n_ratings, __pyx_n_s_n_edges, __pyx_n_s_n_epochs, __pyx_n_s_lamda_c, __pyx_n_s_lamda, __pyx_n_s_learning_rate, __pyx_n_s_gamma, __pyx_n_s_init_params, __pyx_n_s_verbose, __pyx_n_s_seed, __pyx_n_s_loss, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_U, __pyx_n_s_V, __pyx_n_s_Z, __pyx_n_s_cache_u, __pyx_n_s_cache_v, __pyx_n_s_cache_z, __pyx_n_s_grad_u, __pyx_n_s_grad_v, __pyx_n_s_grad_z, __pyx_n_s_eps, __pyx_n_s_u, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k_2, __pyx_n_s_r, __pyx_n_s_ed, __pyx_n_s_epoch, __pyx_n_s_val, __pyx_n_s_s, __pyx_n_s_e, __pyx_n_s_norm_u, __pyx_n_s_norm_v, __pyx_n_s_rng, __pyx_n_s_sg, __pyx_n_s_err, __pyx_n_s_werr, __pyx_n_s_norm_z, __pyx_n_s_res); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(50, __pyx_n_s_rat_uid, __pyx_n_s_rat_iid, __pyx_n_s_rat_val, __pyx_n_s_net_uid, __pyx_n_s_net_jid, __pyx_n_s_net_val, __pyx_n_s_k, __pyx_n_s_n_users, __pyx_n_s_n_items, __pyx_n_s_n_ratings, __pyx_n_s_n_edges, __pyx_n_s_n_epochs, __pyx_n_s_lambda_c, __pyx_n_s_lambda_reg, __pyx_n_s_learning_rate, __pyx_n_s_gamma, __pyx_n_s_init_params, __pyx_n_s_verbose, __pyx_n_s_seed, __pyx_n_s_loss, __pyx_n_s_n, __pyx_n_s_d, __pyx_n_s_U, __pyx_n_s_V, __pyx_n_s_Z, __pyx_n_s_cache_u, __pyx_n_s_cache_v, __pyx_n_s_cache_z, __pyx_n_s_grad_u, __pyx_n_s_grad_v, __pyx_n_s_grad_z, __pyx_n_s_eps, __pyx_n_s_u, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k_2, __pyx_n_s_r, __pyx_n_s_ed, __pyx_n_s_epoch, __pyx_n_s_val, __pyx_n_s_s, __pyx_n_s_e, __pyx_n_s_norm_u, __pyx_n_s_norm_v, __pyx_n_s_rng, __pyx_n_s_sg, __pyx_n_s_err, __pyx_n_s_werr, __pyx_n_s_norm_z, __pyx_n_s_res); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
   __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(19, 0, 50, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cornac_models_sorec_cython_sorec, __pyx_n_s_sorec, 40, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 40, __pyx_L1_error)
@@ -19319,7 +19319,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  * def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,             # <<<<<<<<<<<<<<
- *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
+ *         int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lambda_c = 10, float lambda_reg = 0.001,
  *         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False, seed=None):
  */
   __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6cornac_6models_5sorec_5sorec_1sorec, NULL, __pyx_n_s_cornac_models_sorec_sorec); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
