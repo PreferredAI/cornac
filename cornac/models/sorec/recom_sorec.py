@@ -39,16 +39,16 @@ class SoRec(Recommender):
     gamma: float, optional, default: 0.9
         The weight for previous/current gradient in RMSProp.
 
-    lamda: float, optional, default: 0.001
-        The regularization parameter.
-
-    lamda_c: float, optional, default: 10
+    lambda_c: float, optional, default: 10
         The parameter balancing the information from the user-item rating matrix and the user social network.
 
+    lambda_reg: float, optional, default: 0.001
+        The regularization parameter.
+        
     weight_link: boolean, optional, default: True
         When true the social network links are weighted according to eq. (4) in the original paper.
 
-    name: string, optional, default: 'SOREC'
+    name: string, optional, default: 'SoRec'
         The name of the recommender model.
 
     trainable: boolean, optional, default: True
@@ -86,8 +86,8 @@ class SoRec(Recommender):
         k=5,
         max_iter=100,
         learning_rate=0.001,
-        lamda_c=10,
-        lamda=0.001,
+        lambda_c=10,
+        lambda_reg=0.001,
         gamma=0.9,
         weight_link=True,
         trainable=True,
@@ -99,8 +99,8 @@ class SoRec(Recommender):
         self.k = k
         self.max_iter = max_iter
         self.learning_rate = learning_rate
-        self.lamda_c = lamda_c
-        self.lamda = lamda
+        self.lambda_c = lambda_c
+        self.lambda_reg = lambda_reg
         self.gamma = gamma
         self.weight_link = weight_link
 
@@ -199,8 +199,8 @@ class SoRec(Recommender):
                 n_ratings=len(rat_val),
                 n_edges=len(net_val),
                 n_epochs=self.max_iter,
-                lamda_c=self.lamda_c,
-                lamda=self.lamda,
+                lambda_c=self.lambda_c,
+                lambda_reg=self.lambda_reg,
                 learning_rate=self.learning_rate,
                 gamma=self.gamma,
                 init_params={"U": self.U, "V": self.V, "Z": self.Z},

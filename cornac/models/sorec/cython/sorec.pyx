@@ -38,7 +38,7 @@ cdef float sigmoid(float z):
 
 
 def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[:] net_jid, float[:] net_val,int k,
-        int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lamda_c = 10, float lamda = 0.001,
+        int n_users, int n_items, int n_ratings, int n_edges, int n_epochs = 100, float lambda_c = 10, float lambda_reg = 0.001,
         float learning_rate = 0.001, float gamma = 0.9, init_params = None, verbose = False, seed=None):
 
     cdef:
@@ -90,15 +90,15 @@ def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[
 
             # update user factors
             for k_ in range(k):
-                grad_u[i_, k_] = werr * Z[j_, k_] - lamda * U[i_, k_]
+                grad_u[i_, k_] = werr * Z[j_, k_] - lambda_reg * U[i_, k_]
                 cache_u[i_, k_] = gamma * cache_u[i_, k_] + (1 - gamma) * (grad_u[i_, k_] * grad_u[i_, k_])
-                U[i_, k_] += lamda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
+                U[i_, k_] += lambda_c * learning_rate * (grad_u[i_, k_] / (sqrt(cache_u[i_, k_]) + eps))
 
             # update social network factors
             for k_ in range(k):
-                grad_z[j_, k_] = werr * U[i_, k_] - lamda * Z[j_, k_]
+                grad_z[j_, k_] = werr * U[i_, k_] - lambda_reg * Z[j_, k_]
                 cache_z[j_, k_] = gamma * cache_z[j_, k_] + (1 - gamma) * (grad_z[j_, k_] * grad_z[j_, k_])
-                Z[j_, k_] += lamda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
+                Z[j_, k_] += lambda_c * learning_rate * (grad_z[j_, k_] / (sqrt(cache_z[j_, k_]) + eps))
 
             norm_z = 0.0
             norm_u = 0.0
@@ -106,7 +106,7 @@ def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[
                 norm_z += Z[j_, k_] * Z[j_, k_]
                 norm_u += U[i_, k_] * U[i_, k_]
 
-            loss[epoch] += err * err + lamda * (norm_z + norm_u)
+            loss[epoch] += err * err + lambda_reg * (norm_z + norm_u)
 
         for r in range(n_ratings):
             u_, i_, val = rat_uid[r], rat_iid[r], rat_val[r]
@@ -120,14 +120,14 @@ def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[
 
             # update user factors
             for k_ in range(k):
-                grad_u[u_, k_] = werr * V[i_, k_] - lamda * U[u_, k_]
+                grad_u[u_, k_] = werr * V[i_, k_] - lambda_reg * U[u_, k_]
                 cache_u[u_, k_] = gamma * cache_u[u_, k_] + (1 - gamma) * (grad_u[u_, k_] * grad_u[u_, k_])
                 U[u_, k_] += learning_rate * (grad_u[u_, k_] / (sqrt(cache_u[
                                                                      u_, k_]) + eps))  # Update the user factor, better to reweight the L2 regularization terms acoording the number of ratings per-user
 
             # update item factors
             for k_ in range(k):
-                grad_v[i_, k_] = werr * U[u_, k_] - lamda * V[i_, k_]
+                grad_v[i_, k_] = werr * U[u_, k_] - lambda_reg * V[i_, k_]
                 cache_v[i_, k_] = gamma * cache_v[i_, k_] + (1 - gamma) * (grad_v[i_, k_] * grad_v[i_, k_])
                 V[i_, k_] += learning_rate * (grad_v[i_, k_] / (sqrt(cache_v[i_, k_]) + eps))
 
@@ -137,7 +137,7 @@ def sorec(int[:] rat_uid, int[:] rat_iid, float[:] rat_val, int[:] net_uid, int[
                 norm_u += U[u_, k_] * U[u_, k_]
                 norm_v += V[i_, k_] * V[i_, k_]
 
-            loss[epoch] += err * err + lamda * (norm_u + norm_v)
+            loss[epoch] += err * err + lambda_reg * (norm_u + norm_v)
 
         if verbose:
             print('epoch %i, loss: %f' % (epoch, loss[epoch]))
