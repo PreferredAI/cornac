@@ -22,3 +22,4 @@ An important focus of Cornac is making it convenient to work with auxiliary data
 - [Working with auxiliary data](./working_with_auxiliary_data.md)
 - [Text to Graph transformation](./text_to_graph.ipynb)
 - [Visual recommendation algorithm with text data](./vbpr_text.ipynb)
+- [Multimodality and Cross-Modal Utilization (Tutorial at RecSys 2021)](https://github.com/PreferredAI/tutorials/tree/master/multimodal-recsys)
