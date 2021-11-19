@@ -7,7 +7,7 @@ Base Method
 -----------------------------------------------
 .. automodule:: cornac.eval_methods.base_method
    :members:
-     
+
 Cross Validation
 ----------------------------------------------------
 .. automodule:: cornac.eval_methods.cross_validation
@@ -21,6 +21,11 @@ Propensity Stratified Evaluation
 Ratio Split
 -----------------------------------------------
 .. automodule:: cornac.eval_methods.ratio_split
+   :members:
+
+Predefined Split
+-----------------------------------------------
+.. automodule:: cornac.eval_methods.predef_split
    :members:
 
 Stratified Split
