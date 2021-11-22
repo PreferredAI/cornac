@@ -15,8 +15,8 @@
 
 import numpy as np
 from ..recommender import Recommender
-from ..utils.common import scale
-from ..exception import ScoreException
+from ...utils.common import scale
+from ...exception import ScoreException
 
 
 class PCRL(Recommender):
