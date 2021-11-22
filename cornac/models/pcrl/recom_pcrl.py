@@ -219,7 +219,8 @@ class PCRL(Recommender):
                     0.0,
                     1.0,
                 )
-            
+        
+        # transform user_pred to a flatten array    
         user_pred = np.array(user_pred, dtype="float64").flatten()
         
         return user_pred
