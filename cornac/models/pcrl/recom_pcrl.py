@@ -198,7 +198,7 @@ class PCRL(Recommender):
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
 
-            user_pred = self.Beta * self.Theta[user_idx, :].T
+            user_pred = self.Beta.dot(self.Theta[user_idx, :].T)
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
                 item_idx
