@@ -26,7 +26,7 @@ author = 'Preferred.AI'
 # The short X.Y version
 version = '1.14'
 # The full version, including alpha/beta/rc tags
-release = '1.14.1'
+release = '1.14.2'
 
 
 # -- General configuration ---------------------------------------------------
