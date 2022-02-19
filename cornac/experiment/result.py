@@ -81,11 +81,21 @@ class CVResult(list):
     ----------
     model_name: string, required
         The name of the recommender model.
+        
+    Attributes
+    ----------    
+    metric_mean: :obj:`OrderedDict`
+        A dictionary containing the mean of results across all folds per-metric.
+
+    metric_std: :obj:`OrderedDict`
+        A dictionary containing the standard deviation of results across all folds per-metric.
     """
 
     def __init__(self, model_name):
         super().__init__()
         self.model_name = model_name
+        self.metric_mean = OrderedDict()
+        self.metric_std = OrderedDict()
 
     def __str__(self):
         return "[{}]\n{}".format(self.model_name, self.table)
@@ -99,11 +109,15 @@ class CVResult(list):
 
         data = np.asarray(data)
         mean, std = data.mean(axis=0), data.std(axis=0)
+        
+        for m, mean_val, std_val in zip(headers, mean, std):
+            self.metric_mean[m] = mean_val
+            self.metric_std[m] = std_val
+        
         data = np.vstack([data, mean, std])
         data = [[NUM_FMT.format(v) for v in row] for row in data]
         index.extend(["Mean", "Std"])
         self.table = _table_format(data, headers, index, h_bars=[1, len(data) - 1])
-
 
 class PSTResult(list):
     """
