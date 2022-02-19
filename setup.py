@@ -102,7 +102,7 @@ else:
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-    
+
     if USE_OPENMP:
         compile_args.append("-fopenmp")
         link_args.append("-fopenmp")
@@ -288,7 +288,7 @@ if USE_CYTHON:
 
 setup(
     name="cornac",
-    version="1.14.1",
+    version="1.14.2",
     description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
