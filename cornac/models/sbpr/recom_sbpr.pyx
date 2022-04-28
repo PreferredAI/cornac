@@ -19,6 +19,7 @@ cimport cython
 from cython cimport floating, integral
 from cython.parallel import parallel, prange
 from libc.math cimport exp, floor
+from libcpp cimport bool
 
 import numpy as np
 cimport numpy as np
@@ -48,8 +49,17 @@ class SBPR(BPR):
     learning_rate: float, optional, default: 0.001
         The learning rate for SGD.
 
-    lambda_reg: float, optional, default: 0.001
-        The regularization hyper-parameter.
+    lambda_u: float, optional, default: 0.001
+        The regularization hyper-parameter of user factors.
+
+    lambda_v: float, optional, default: 0.001
+        The regularization hyper-parameter item factors.
+
+    lambda_b: float, optional, default: 0.001
+        The regularization hyper-parameter item biases.
+
+    use_bias: boolean, optional, default: True
+        When True, item bias is used.
 
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
@@ -83,6 +93,7 @@ class SBPR(BPR):
         lambda_u=0.01, 
         lambda_v=0.01, 
         lambda_b=0.01,
+        use_bias=True,
         num_threads=0, 
         trainable=True, 
         verbose=False, 
@@ -94,6 +105,7 @@ class SBPR(BPR):
             k=k, 
             max_iter=max_iter, 
             learning_rate=learning_rate, 
+            use_bias=use_bias, 
             num_threads=num_threads, 
             trainable=trainable, 
             verbose=verbose, 
@@ -191,6 +203,7 @@ class SBPR(BPR):
             floating u_temp, k_rand
             floating z, score # for BPR formula
             floating z_ik, z_kj, score_ik, score_kj, s_uk # for SBPR-2 formula
+            bool use_bias = self.use_bias
 
             floating lr = self.learning_rate
             floating lbd_u = self.lambda_u
@@ -252,8 +265,11 @@ class SBPR(BPR):
 
                 # found social feedback, update factors based on SBPR-2 formula
                 # compute the scores
-                score_ik = B[i_id] - B[k_id]
-                score_kj = B[k_id] - B[j_id]
+                score_ik = 0.
+                score_kj = 0.
+                if use_bias:
+                    score_ik += B[i_id] - B[k_id]
+                    score_kj += B[k_id] - B[j_id]
                 for f in range(factors):
                     score_ik = score_ik + user[f] * (item_i[f] - item_k[f])
                     score_kj = score_kj + user[f] * (item_k[f] - item_j[f])
@@ -272,8 +288,9 @@ class SBPR(BPR):
                     item_k[f] += lr * (z_kj * u_temp - z_ik * u_temp * s_uk - lbd_v * item_k[f])
 
                 # update item biases
-                B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
-                B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
-                B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
+                if use_bias:
+                    B[i_id] += lr * (z_ik * s_uk - lbd_b * B[i_id])
+                    B[j_id] += lr * (-z_kj - lbd_b * B[j_id])
+                    B[k_id] += lr * (z_kj - z_ik * s_uk - lbd_b * B[k_id])
 
         return skipped

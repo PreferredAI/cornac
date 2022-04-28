@@ -77,6 +77,9 @@ class BPR(Recommender):
     lambda_reg: float, optional, default: 0.001
         The regularization hyper-parameter.
 
+    use_bias: boolean, optional, default: True
+        When True, item bias is used.
+
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
         If seed is not None, num_threads=1 to remove randomness from parallelization.
@@ -107,6 +110,7 @@ class BPR(Recommender):
         max_iter=100, 
         learning_rate=0.001, 
         lambda_reg=0.01,
+        use_bias=True,
         num_threads=0, 
         trainable=True, 
         verbose=False, 
@@ -118,6 +122,7 @@ class BPR(Recommender):
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
+        self.use_bias = use_bias
         self.seed = seed
         self.rng = get_rng(seed)
 
@@ -211,6 +216,7 @@ class BPR(Recommender):
             long num_items = self.train_set.num_items
             integral f, i_id, j_id, thread_id
             floating z, score, temp
+            bool use_bias = self.use_bias
 
             floating lr = self.learning_rate
             floating reg = self.lambda_reg
@@ -238,7 +244,9 @@ class BPR(Recommender):
                 user, item_i, item_j = &U[user_ids[i_index], 0], &V[i_id, 0], &V[j_id, 0]
 
                 # compute the score
-                score = B[i_id] - B[j_id]
+                score = 0.
+                if use_bias:
+                    score += B[i_id] - B[j_id]
                 for f in range(factors):
                     score = score + user[f] * (item_i[f] - item_j[f])
                 z = 1.0 / (1.0 + exp(score))
@@ -254,8 +262,9 @@ class BPR(Recommender):
                     item_j[f] += lr * (-z * temp - reg * item_j[f])
 
                 # update item biases
-                B[i_id] += lr * (z - reg * B[i_id])
-                B[j_id] += lr * (-z - reg * B[j_id])
+                if use_bias:
+                    B[i_id] += lr * (z - reg * B[i_id])
+                    B[j_id] += lr * (-z - reg * B[j_id])
 
         return correct, skipped
 
@@ -279,10 +288,10 @@ class BPR(Recommender):
 
         """
         if item_idx is None:
-            known_item_scores = np.copy(self.i_biases)
+            known_item_scores = np.copy(self.i_biases) if self.use_bias else np.zeros_like(self.i_biases)
             fast_dot(self.u_factors[user_idx], self.i_factors, known_item_scores)
             return known_item_scores
         else:
-            item_score = self.i_biases[item_idx]
+            item_score = self.i_biases[item_idx] if self.use_bias else 0.
             item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score
