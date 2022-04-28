@@ -146,7 +146,7 @@ class BPR(Recommender):
             self.u_factors = (uniform((n_users, self.k), random_state=self.rng) - 0.5) / self.k
         if self.i_factors is None:
             self.i_factors = (uniform((n_items, self.k), random_state=self.rng) - 0.5) / self.k
-        self.i_biases = zeros(n_items) if self.i_biases is None else self.i_biases
+        self.i_biases = zeros(n_items) if self.i_biases is None or self.use_bias is False else self.i_biases
 
     def _prepare_data(self):
         X = self.train_set.matrix # csr_matrix
@@ -244,9 +244,7 @@ class BPR(Recommender):
                 user, item_i, item_j = &U[user_ids[i_index], 0], &V[i_id, 0], &V[j_id, 0]
 
                 # compute the score
-                score = 0.
-                if use_bias:
-                    score += B[i_id] - B[j_id]
+                score = B[i_id] - B[j_id]
                 for f in range(factors):
                     score = score + user[f] * (item_i[f] - item_j[f])
                 z = 1.0 / (1.0 + exp(score))
@@ -288,10 +286,10 @@ class BPR(Recommender):
 
         """
         if item_idx is None:
-            known_item_scores = np.copy(self.i_biases) if self.use_bias else np.zeros_like(self.i_biases)
+            known_item_scores = np.copy(self.i_biases)
             fast_dot(self.u_factors[user_idx], self.i_factors, known_item_scores)
             return known_item_scores
         else:
-            item_score = self.i_biases[item_idx] if self.use_bias else 0.
+            item_score = self.i_biases[item_idx]
             item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score

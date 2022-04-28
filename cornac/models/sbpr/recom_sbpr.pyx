@@ -265,11 +265,8 @@ class SBPR(BPR):
 
                 # found social feedback, update factors based on SBPR-2 formula
                 # compute the scores
-                score_ik = 0.
-                score_kj = 0.
-                if use_bias:
-                    score_ik += B[i_id] - B[k_id]
-                    score_kj += B[k_id] - B[j_id]
+                score_ik = B[i_id] - B[k_id]
+                score_kj = B[k_id] - B[j_id]
                 for f in range(factors):
                     score_ik = score_ik + user[f] * (item_i[f] - item_k[f])
                     score_kj = score_kj + user[f] * (item_k[f] - item_j[f])
