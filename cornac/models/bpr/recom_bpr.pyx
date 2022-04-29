@@ -77,6 +77,9 @@ class BPR(Recommender):
     lambda_reg: float, optional, default: 0.001
         The regularization hyper-parameter.
 
+    use_bias: boolean, optional, default: True
+        When True, item bias is used.
+
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
         If seed is not None, num_threads=1 to remove randomness from parallelization.
@@ -107,6 +110,7 @@ class BPR(Recommender):
         max_iter=100, 
         learning_rate=0.001, 
         lambda_reg=0.01,
+        use_bias=True,
         num_threads=0, 
         trainable=True, 
         verbose=False, 
@@ -118,6 +122,7 @@ class BPR(Recommender):
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
+        self.use_bias = use_bias
         self.seed = seed
         self.rng = get_rng(seed)
 
@@ -141,7 +146,7 @@ class BPR(Recommender):
             self.u_factors = (uniform((n_users, self.k), random_state=self.rng) - 0.5) / self.k
         if self.i_factors is None:
             self.i_factors = (uniform((n_items, self.k), random_state=self.rng) - 0.5) / self.k
-        self.i_biases = zeros(n_items) if self.i_biases is None else self.i_biases
+        self.i_biases = zeros(n_items) if self.i_biases is None or self.use_bias is False else self.i_biases
 
     def _prepare_data(self):
         X = self.train_set.matrix # csr_matrix
@@ -211,6 +216,7 @@ class BPR(Recommender):
             long num_items = self.train_set.num_items
             integral f, i_id, j_id, thread_id
             floating z, score, temp
+            bool use_bias = self.use_bias
 
             floating lr = self.learning_rate
             floating reg = self.lambda_reg
@@ -254,8 +260,9 @@ class BPR(Recommender):
                     item_j[f] += lr * (-z * temp - reg * item_j[f])
 
                 # update item biases
-                B[i_id] += lr * (z - reg * B[i_id])
-                B[j_id] += lr * (-z - reg * B[j_id])
+                if use_bias:
+                    B[i_id] += lr * (z - reg * B[i_id])
+                    B[j_id] += lr * (-z - reg * B[j_id])
 
         return correct, skipped
 
