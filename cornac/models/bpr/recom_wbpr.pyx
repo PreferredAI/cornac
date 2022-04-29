@@ -46,6 +46,9 @@ class WBPR(BPR):
     lambda_reg: float, optional, default: 0.001
         The regularization hyper-parameter.
 
+    use_bias: boolean, optional, default: True
+        When True, item bias is used.
+
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
         If seed is not None, num_threads=1 to remove randomness from parallelization.
@@ -76,6 +79,7 @@ class WBPR(BPR):
         max_iter=100, 
         learning_rate=0.001, 
         lambda_reg=0.01,
+        use_bias=True,
         num_threads=0, 
         trainable=True, 
         verbose=False, 
@@ -88,6 +92,7 @@ class WBPR(BPR):
             max_iter=max_iter, 
             learning_rate=learning_rate, 
             lambda_reg=lambda_reg, 
+            use_bias=use_bias, 
             num_threads=num_threads, 
             trainable=trainable, 
             verbose=verbose, 
