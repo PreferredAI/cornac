@@ -32,6 +32,7 @@ from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
 from .efm import EFM
+from .ease import EASE
 from .global_avg import GlobalAvg
 from .hft import HFT
 from .hpf import HPF

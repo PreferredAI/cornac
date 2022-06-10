@@ -232,3 +232,8 @@ Weighted Matrix Factorization (WMF)
 --------------------------------------------------
 .. automodule:: cornac.models.wmf.recom_wmf
    :members:
+
+Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)
+--------------------------------------------------
+.. automodule:: cornac.models.ease.recom_ease
+   :members:
