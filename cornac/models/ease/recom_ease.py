@@ -27,10 +27,6 @@ class EASE(Recommender):
     seed: int, optional, default: None
         Random seed for parameters initialization.
 
-    init_par: numpy 1d array, optional, default: None
-        The initial object parition, 1d array contaning the cluster label (int type starting from 0) \
-        of each object (user). If par = None, then skmeans is initialized randomly.
-
     References
     ----------
     * Steck, H. (2019, May). "Embarrassingly shallow autoencoders for sparse data." \
@@ -76,7 +72,7 @@ class EASE(Recommender):
         # A rating matrix
         self.U = self.train_set.matrix
 
-        # Grahm matrix is X^t X, compute dot product
+        # Gram matrix is X^t X, compute dot product
         G = self.U.T.dot(self.U).toarray()
 
         diag_indices = np.diag_indices(G.shape[0])
