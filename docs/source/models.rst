@@ -33,6 +33,11 @@ Adversarial Training Towards Robust Multimedia Recommender System (AMR)
 .. automodule:: cornac.models.amr.recom_amr
    :members:
 
+Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)
+--------------------------------------------------
+.. automodule:: cornac.models.ease.recom_ease
+   :members:
+
 Collaborative Context Poisson Factorization (C2PF)
 ----------------------------------------------------
 .. automodule:: cornac.models.c2pf.recom_c2pf
