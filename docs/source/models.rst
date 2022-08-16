@@ -10,6 +10,11 @@ Recommender (Generic Class)
 .. automodule:: cornac.models.recommender
    :members:
 
+ImposeSVD: Incrementing PureSVD For Top-N Recommendations for Cold-Start Problems and Sparse Datasets (z-scoREC)
+----------------------------------------------------
+.. automodule:: cornac.models.zscorec.recom_zscorec
+   :members:
+
 Bilateral VAE for Collaborative Filtering (BiVAECF)
 ----------------------------------------------------
 .. automodule:: cornac.models.bivaecf.recom_bivaecf

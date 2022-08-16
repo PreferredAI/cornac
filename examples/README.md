@@ -93,3 +93,5 @@
 [vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
 
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
+
+[zscorec_movielens.py](zscorec_movielens.py) - z-scoREC model with MovieLens 1M dataset.

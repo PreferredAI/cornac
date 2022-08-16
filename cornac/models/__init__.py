@@ -60,6 +60,7 @@ from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
 from .wmf import WMF
+from .zscorec import zscoREC
 
 try:
     from .fm import FM
