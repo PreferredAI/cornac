@@ -167,7 +167,7 @@ You can also post bug reports and feature requests in [GitHub issues](https://gi
 
 If you use Cornac in a scientific publication, we would appreciate citations to the following papers:
 
-- [Cornac: A Comparative Framework for Multimodal Recommender Systems](http://jmlr.org/papers/v21/19-805.html), Salah *et al.*, JMLR 21, pp. 1-5, 2020.
+- [Cornac: A Comparative Framework for Multimodal Recommender Systems](http://jmlr.org/papers/v21/19-805.html), Salah *et al.*, Journal of Machine Learning Research, 21(95):1–5, 2020.
 
   ```
   @article{salah2020cornac,
@@ -181,7 +181,7 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
   }
   ```
 
-- [Exploring Cross-Modality Utilization in Recommender Systems](https://ieeexplore.ieee.org/abstract/document/9354572), Truong *et al.*, IEEE Internet Computing, 2021.
+- [Exploring Cross-Modality Utilization in Recommender Systems](https://ieeexplore.ieee.org/abstract/document/9354572), Truong *et al.*, IEEE Internet Computing, 25(4):50–57, 2021.
 
   ```
   @article{truong2021exploring,
@@ -190,6 +190,18 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
     journal={IEEE Internet Computing},
     year={2021},
     publisher={IEEE}
+  }
+  ```
+
+- [Multi-Modal Recommender Systems: Hands-On Exploration](https://dl.acm.org/doi/10.1145/3460231.3473324), Truong *et al.*, ACM Conference on Recommender Systems, 2021.
+
+  ```
+  @inproceedings{truong2021multi,
+    title={Multi-modal recommender systems: Hands-on exploration},
+    author={Truong, Quoc-Tuan and Salah, Aghiles and Lauw, Hady},
+    booktitle={Fifteenth ACM Conference on Recommender Systems},
+    pages={834--837},
+    year={2021}
   }
   ```
 
