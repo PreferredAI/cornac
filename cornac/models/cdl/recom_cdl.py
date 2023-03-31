@@ -181,6 +181,8 @@ class CDL(Recommender):
     def _fit_cdl(self):
         import tensorflow.compat.v1 as tf
         from .cdl import Model
+        
+        tf.disable_eager_execution()
 
         R = self.train_set.csc_matrix  # csc for efficient slicing over items
         n_users, n_items = self.train_set.num_users, self.train_set.num_items
