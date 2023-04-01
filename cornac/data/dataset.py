@@ -272,7 +272,7 @@ class Dataset(object):
         """The user-item interaction matrix in DOK sparse format"""
         if self.__dok_matrix is None:
             self.__dok_matrix = dok_matrix(
-                (self.num_users, self.num_items), dtype=np.float32
+                (self.num_users, self.num_items), dtype='float'
             )
             for u, i, r in zip(*self.uir_tuple):
                 self.__dok_matrix[u, i] = r
@@ -364,13 +364,13 @@ class Dataset(object):
             raise ValueError("data is empty after being filtered!")
 
         uir_tuple = (
-            np.asarray(u_indices, dtype=np.int),
-            np.asarray(i_indices, dtype=np.int),
-            np.asarray(r_values, dtype=np.float),
+            np.asarray(u_indices, dtype='int'),
+            np.asarray(i_indices, dtype='int'),
+            np.asarray(r_values, dtype='float'),
         )
 
         timestamps = (
-            np.fromiter((int(data[i][3]) for i in valid_idx), dtype=np.int)
+            np.fromiter((int(data[i][3]) for i in valid_idx), dtype='int')
             if fmt == "UIRT"
             else None
         )
@@ -447,7 +447,7 @@ class Dataset(object):
 
         Returns
         -------
-        iterator : batch of indices (array of np.int)
+        iterator : batch of indices (array of 'int')
 
         """
         indices = np.arange(idx_range)
@@ -481,8 +481,8 @@ class Dataset(object):
 
         Returns
         -------
-        iterator : batch of users (array of np.int), batch of items (array of np.int),
-            batch of ratings (array of np.float)
+        iterator : batch of users (array of 'int'), batch of items (array of 'int'),
+            batch of ratings (array of 'float')
 
         """
         for batch_ids in self.idx_iter(len(self.uir_tuple[0]), batch_size, shuffle):
@@ -524,8 +524,8 @@ class Dataset(object):
 
         Returns
         -------
-        iterator : batch of users (array of np.int), batch of positive items (array of np.int),
-            batch of negative items (array of np.int)
+        iterator : batch of users (array of 'int'), batch of positive items (array of 'int'),
+            batch of negative items (array of 'int')
 
         """
 
@@ -562,9 +562,9 @@ class Dataset(object):
 
         Returns
         -------
-        iterator : batch of user indices (array of np.int)
+        iterator : batch of user indices (array of 'int')
         """
-        user_indices = np.fromiter(self.user_indices, dtype=np.int)
+        user_indices = np.fromiter(self.user_indices, dtype='int')
         for batch_ids in self.idx_iter(len(user_indices), batch_size, shuffle):
             yield user_indices[batch_ids]
 
@@ -580,9 +580,9 @@ class Dataset(object):
 
         Returns
         -------
-        iterator : batch of item indices (array of np.int)
+        iterator : batch of item indices (array of 'int')
         """
-        item_indices = np.fromiter(self.item_indices, np.int)
+        item_indices = np.fromiter(self.item_indices, 'int')
         for batch_ids in self.idx_iter(len(item_indices), batch_size, shuffle):
             yield item_indices[batch_ids]
 

@@ -151,7 +151,7 @@ class WMF(Recommender):
         return self
 
     def _fit_cf(self,):
-        import tensorflow as tf
+        import tensorflow.compat.v1 as tf
         from .wmf import Model
 
         np.random.seed(self.seed)

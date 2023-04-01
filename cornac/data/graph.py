@@ -61,9 +61,9 @@ class GraphModality(FeatureModality):
             self.map_cid.append(id_map[j])
             self.val.append(v)
 
-        self.map_rid = np.asarray(self.map_rid, dtype=np.int)
-        self.map_cid = np.asarray(self.map_cid, dtype=np.int)
-        self.val = np.asarray(self.val, dtype=np.float)
+        self.map_rid = np.asarray(self.map_rid, dtype='int')
+        self.map_cid = np.asarray(self.map_cid, dtype='int')
+        self.val = np.asarray(self.val, dtype='float')
 
     def build(self, id_map=None, **kwargs):
         super().build(id_map=id_map)

@@ -168,8 +168,10 @@ class CDR(Recommender):
         return self
 
     def _fit_cdr(self):
-        import tensorflow as tf
-        from .model import Model
+        import tensorflow.compat.v1 as tf
+        from .cdr import Model
+
+        tf.disable_eager_execution()
 
         n_users = self.train_set.num_users
         n_items = self.train_set.num_items

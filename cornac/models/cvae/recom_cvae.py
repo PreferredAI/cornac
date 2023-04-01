@@ -177,7 +177,9 @@ class CVAE(Recommender):
 
         # VAE initialization
         from .cvae import Model
-        import tensorflow as tf
+        import tensorflow.compat.v1 as tf
+        
+        tf.disable_eager_execution()
 
         tf.set_random_seed(self.seed)
         model = Model(

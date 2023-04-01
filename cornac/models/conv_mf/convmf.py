@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 
 def conv_layer(
@@ -116,7 +116,7 @@ class CNN_module:
         # Fully-connected layers
         self.model_output = fc_layer(
             input=self.model_output,
-            num_input=self.model_output.get_shape()[-1].value,
+            num_input=self.model_output.get_shape()[-1],
             num_output=self.vanila_dimension,
         )
         # Dropout layer
