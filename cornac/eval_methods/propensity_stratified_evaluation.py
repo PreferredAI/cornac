@@ -87,7 +87,7 @@ def ranking_eval(
         if len(test_pos_items) == 0:
             continue
 
-        u_gt_pos = np.zeros(test_set.num_items, dtype=np.float)
+        u_gt_pos = np.zeros(test_set.num_items, dtype='float')
         u_gt_pos[test_pos_items] = 1
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
@@ -97,7 +97,7 @@ def ranking_eval(
             else pos_items(train_mat.getrow(user_idx))
         )
 
-        u_gt_neg = np.ones(test_set.num_items, dtype=np.int)
+        u_gt_neg = np.ones(test_set.num_items, dtype='int')
         u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
 
         item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
@@ -256,7 +256,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             item_freq[i] += 1
 
         # fit the exponential param
-        data = np.array([e for e in item_freq.values()], dtype=np.float)
+        data = np.array([e for e in item_freq.values()], dtype='float')
         results = powerlaw.Fit(data, discrete=True, fit_method="Likelihood")
         alpha = results.power_law.alpha
         fmin = results.power_law.xmin
@@ -277,7 +277,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
         # match the corresponding propensity score for each feedback
         test_props = np.array(
-            [self.props[i] for u, i, r in test_data], dtype=np.float64
+            [self.props[i] for u, i, r in test_data], dtype='float'
         )
 
         # stratify

@@ -79,7 +79,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
             miniters=100,
             total=len(u_indices),
         ),
-        dtype=np.float,
+        dtype='float',
     )
 
     gt_mat = test_set.csr_matrix
@@ -177,7 +177,7 @@ def ranking_eval(
         if len(test_pos_items) == 0:
             continue
 
-        u_gt_pos = np.zeros(test_set.num_items, dtype=np.int)
+        u_gt_pos = np.zeros(test_set.num_items, dtype='int')
         u_gt_pos[test_pos_items] = 1
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
@@ -187,7 +187,7 @@ def ranking_eval(
             else pos_items(train_mat.getrow(user_idx))
         )
 
-        u_gt_neg = np.ones(test_set.num_items, dtype=np.int)
+        u_gt_neg = np.ones(test_set.num_items, dtype='int')
         u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
 
         item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
