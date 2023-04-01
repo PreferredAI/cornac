@@ -360,7 +360,7 @@ class TestReviewModality(unittest.TestCase):
             [4, 4, 0],
             [0, 4, 0],
             [0, 4, 0],
-        ], dtype=np.int)
+        ], dtype='int')
 
     def test_init(self):
         try:
