@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from ..cdl.cdl import act_functions
 
@@ -152,7 +152,7 @@ class Model:
                 "W1": tf.get_variable(
                     "W1",
                     [self.input_dim, self.layers[0]],
-                    initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                    initializer=tf.keras.initializers.glorot_uniform(seed=self.seed),
                     dtype=tf.float32,
                 ),
                 "b1": tf.get_variable(
@@ -164,7 +164,7 @@ class Model:
                 "W2": tf.get_variable(
                     "W2",
                     [self.layers[0], self.layers[1]],
-                    initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                    initializer=tf.keras.initializers.glorot_uniform(seed=self.seed),
                     dtype=tf.float32,
                 ),
                 "b2": tf.get_variable(
@@ -176,7 +176,7 @@ class Model:
                 "W_z_mean": tf.get_variable(
                     "W_z_mean",
                     [self.layers[1], self.n_z],
-                    initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                    initializer=tf.keras.initializers.glorot_uniform(seed=self.seed),
                     dtype=tf.float32,
                 ),
                 "b_z_mean": tf.get_variable(
@@ -188,7 +188,7 @@ class Model:
                 "W_z_log_sigma": tf.get_variable(
                     "W_z_log_sigma",
                     [self.layers[1], self.n_z],
-                    initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                    initializer=tf.keras.initializers.glorot_uniform(seed=self.seed),
                     dtype=tf.float32,
                 ),
                 "b_z_log_sigma": tf.get_variable(
@@ -222,7 +222,7 @@ class Model:
                 "W2": tf.get_variable(
                     "W2",
                     [self.n_z, self.layers[1]],
-                    initializer=tf.contrib.layers.xavier_initializer(seed=self.seed),
+                    initializer=tf.keras.initializers.glorot_uniform(seed=self.seed),
                     dtype=tf.float32,
                 ),
                 "b2": tf.get_variable(

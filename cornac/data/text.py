@@ -914,7 +914,7 @@ class TextModality(FeatureModality):
         if max_length is None:
             max_length = max(len(self.sequences[mapped_id]) for mapped_id in batch_ids)
 
-        seq_mat = np.zeros((len(batch_ids), max_length), dtype=np.int)
+        seq_mat = np.zeros((len(batch_ids), max_length), dtype='int')
         for i, mapped_id in enumerate(batch_ids):
             idx_seq = self.sequences[mapped_id][:max_length]
             for j, idx in enumerate(idx_seq):

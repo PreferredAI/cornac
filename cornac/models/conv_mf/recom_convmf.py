@@ -202,6 +202,8 @@ class ConvMF(Recommender):
         import tensorflow.compat.v1 as tf
         from .convmf import CNN_module
 
+        tf.disable_eager_execution()
+
         # less verbose TF
         os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
         tf.logging.set_verbosity(tf.logging.ERROR)
