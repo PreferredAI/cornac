@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        os: [ubuntu-18.04, macos-11, windows-latest]
         python-version: [3.6, 3.7, 3.8, 3.9]
         
     steps:
@@ -31,7 +31,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Brew unlink gcc@9 to avoid build error with OpenMP on MacOS
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-11'
       run: brew unlink gcc@9
 
     - name: Display Python version
