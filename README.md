@@ -23,7 +23,7 @@
 [![PyPI](https://img.shields.io/pypi/v/cornac.svg)](https://pypi.org/project/cornac/)
 [![Conda](https://img.shields.io/conda/vn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
 [![Conda Recipe](https://img.shields.io/badge/recipe-cornac-green.svg)](https://github.com/conda-forge/cornac-feedstock)
-[![Downloads](https://static.pepy.tech/personalized-badge/cornac?period=total&units=international_system&left_color=grey&right_color=orange&left_text=downloads)](https://pepy.tech/project/cornac)
+[![Downloads](https://static.pepy.tech/personalized-badge/cornac?period=month&units=international_system&left_color=grey&right_color=orange&left_text=downloads/month)](https://pepy.tech/project/cornac)
 <br />
 [![Python](https://img.shields.io/pypi/pyversions/cornac.svg)](https://cornac.preferred.ai/)
 [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
