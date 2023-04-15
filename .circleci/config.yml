@@ -18,7 +18,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             sudo pip install --upgrade pip
-            sudo pip install --only-binary=numpy,scipy numpy~=1.19.0 scipy Cython pytest pytest-cov codecov
+            sudo pip install --only-binary=numpy,scipy numpy~=1.19.0 scipy Cython pytest pytest-cov
             sudo pip install -e .[tests]
       - save_cache:
           key: deps9-{{ .Branch }}
@@ -31,4 +31,5 @@ jobs:
           no_output_timeout: 30m
           command: |
             python -m pytest --cov=cornac
-            codecov || echo "codecov failed"
+            # codecov is deprecated, need to migrate to new uploader https://docs.codecov.com/docs/codecov-uploader
+            # codecov || echo "codecov failed"
