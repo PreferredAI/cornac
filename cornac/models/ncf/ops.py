@@ -13,8 +13,15 @@
 # limitations under the License.
 # ============================================================================
 
+import warnings
 
-import tensorflow as tf
+# disable annoying tensorflow deprecated API warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
+import tensorflow.compat.v1 as tf
+
+tf.logging.set_verbosity(tf.logging.ERROR)
+tf.disable_v2_behavior()
 
 
 act_functions = {
@@ -60,14 +67,14 @@ def emb(
             shape=[num_users, emb_size],
             dtype=tf.float32,
             initializer=tf.random_normal_initializer(stddev=0.01, seed=seed),
-            regularizer=tf.contrib.layers.l2_regularizer(scale=reg_user),
+            regularizer=tf.keras.regularizers.L2(reg_user),
         )
         item_emb = tf.get_variable(
             "item_emb",
             shape=[num_items, emb_size],
             dtype=tf.float32,
             initializer=tf.random_normal_initializer(stddev=0.01, seed=seed),
-            regularizer=tf.contrib.layers.l2_regularizer(scale=reg_item),
+            regularizer=tf.keras.regularizers.L2(reg_item),
         )
 
     return tf.nn.embedding_lookup(user_emb, uid), tf.nn.embedding_lookup(item_emb, iid)
@@ -96,7 +103,7 @@ def mlp(uid, iid, num_users, num_items, layers, reg_layers, act_fn, seed=None):
             iid=iid,
             num_users=num_users,
             num_items=num_items,
-            emb_size=layers[0] / 2,
+            emb_size=int(layers[0] / 2),
             reg_user=reg_layers[0],
             reg_item=reg_layers[0],
             seed=seed,
@@ -110,7 +117,6 @@ def mlp(uid, iid, num_users, num_items, layers, reg_layers, act_fn, seed=None):
                 name="layer{}".format(i + 1),
                 activation=act_functions.get(act_fn, tf.nn.relu),
                 kernel_initializer=tf.initializers.lecun_uniform(seed),
-                kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_layers[i + 1]),
+                kernel_regularizer=tf.keras.regularizers.L2(reg_layers[i + 1]),
             )
         return interaction
-
