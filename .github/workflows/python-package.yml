@@ -37,7 +37,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install --only-binary=numpy,scipy numpy~=1.19.0 scipy Cython pytest pytest-cov flake8
+        python -m pip install --only-binary=numpy,scipy numpy scipy Cython pytest pytest-cov flake8
         python -m pip install -e .[tests]
 
     - name: Lint with flake8
