@@ -13,11 +13,6 @@
 # limitations under the License.
 # ============================================================================
 
-import os
-import sys
-import glob
-from setuptools import Extension, setup, find_packages
-
 
 """
 Release instruction:
@@ -29,10 +24,12 @@ Release instruction:
 """
 
 
-try:
-    import numpy as np
-except ImportError:
-    exit("Please install numpy>=1.14 first.")
+import os
+import sys
+import glob
+from setuptools import Extension, setup, find_packages
+
+import numpy as np
 
 try:
     from Cython.Build import cythonize
@@ -149,7 +146,10 @@ extensions = [
     ),
     Extension(
         "cornac.models.hpf.hpf",
-        sources=["cornac/models/hpf/cython/hpf" + ext, "cornac/models/hpf/cpp/cpp_hpf.cpp",],
+        sources=[
+            "cornac/models/hpf/cython/hpf" + ext,
+            "cornac/models/hpf/cpp/cpp_hpf.cpp",
+        ],
         include_dirs=[
             "cornac/models/hpf/cpp/",
             "cornac/utils/external/eigen/Eigen",
