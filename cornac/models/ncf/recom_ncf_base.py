@@ -13,12 +13,10 @@
 # limitations under the License.
 # ============================================================================
 
-import os
-import copy
+
 from tqdm.auto import trange
 
 from ..recommender import Recommender
-from ...exception import ScoreException
 from ...utils import get_rng
 
 
@@ -132,10 +130,6 @@ class NCFBase(Recommender):
     def _build_graph(self):
         import tensorflow.compat.v1 as tf
 
-        # less verbose TF
-        os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-        tf.logging.set_verbosity(tf.logging.ERROR)
-
         self.graph = tf.Graph()
 
     def _sess_init(self):
@@ -158,8 +152,6 @@ class NCFBase(Recommender):
         return _loss
 
     def _fit_tf(self):
-        import tensorflow.compat.v1 as tf
-
         loop = trange(self.num_epochs, disable=not self.verbose)
         for _ in loop:
             count = 0
@@ -210,9 +202,9 @@ class NCFBase(Recommender):
             provided, the latest model will be loaded.
 
         trainable: boolean, optional, default: False
-            Set it to True if you would like to finetune the model. By default, 
+            Set it to True if you would like to finetune the model. By default,
             the model parameters are assumed to be fixed after being loaded.
-        
+
         Returns
         -------
         self : object
