@@ -58,8 +58,8 @@ jobs:
 
     - name: Install other dependencies
       run: |
-        pip install scipy Cython pytest pytest-cov flake8
-        pip install -e .[tests]
+        python -m pip install scipy Cython pytest pytest-cov flake8
+        python -m pip install -e .[tests]
 
     - name: Lint with flake8
       run: |
