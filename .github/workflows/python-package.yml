@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-10.15, windows-latest]
-        python-version: [3.8, 3.9, 3.10, 3.11]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v2
@@ -37,7 +37,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install numpy scipy Cython pytest pytest-cov flake8
+        python -m pip install numpy==1.21.0 scipy Cython pytest pytest-cov flake8
         python -m pip install -e .[tests]
 
     - name: Lint with flake8
