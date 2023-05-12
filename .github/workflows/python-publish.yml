@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-10.15, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11"]
         
     steps:
@@ -30,16 +30,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Brew unlink gcc@9 to avoid build error with OpenMP on MacOS
-      if: matrix.os == 'macos-10.15'
-      run: brew unlink gcc@9
-
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
     
-    - name: Install dependencies
+    - name: Install numpy
       run: |
-        python -m pip install numpy==1.21.0 scipy Cython wheel
+        python -m pip install numpy==1.24.3
+        python -c "import numpy; print(numpy.__version__)"
+
+    - name: Install other dependencies
+      run: |
+        python -m pip install scipy Cython wheel
     
     - name: Build wheels
       run: python setup.py bdist_wheel
@@ -69,14 +70,19 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: "3.10"
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
 
-    - name: Install dependencies
+    - name: Install numpy
       run: |
-        python -m pip install numpy==1.21.0 scipy Cython wheel
+        python -m pip install numpy==1.24.3
+        python -c "import numpy; print(numpy.__version__)"
+
+    - name: Install other dependencies
+      run: |
+        python -m pip install scipy Cython wheel
 
     - name: Build source tar file
       run: python setup.py sdist
