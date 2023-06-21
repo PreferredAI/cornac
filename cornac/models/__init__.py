@@ -33,6 +33,7 @@ from .cvae import CVAE
 from .cvaecf import CVAECF
 from .ease import EASE
 from .efm import EFM
+from .gcmc import GCMC
 from .global_avg import GlobalAvg
 from .hft import HFT
 from .hpf import HPF
