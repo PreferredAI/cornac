@@ -622,7 +622,7 @@ class ComparERSub(MTER):
 
                 s = 1
                 # if the user has rated the item j, change sign if item j > item i
-                if has_non_zero(indptr, item_ids, user_ids[i_idx], j_idx):
+                if has_non_zero(indptr, item_ids, u_idx, j_idx):
                     i_score = rating_dict.my_map[get_key(u_idx, i_idx)]
                     j_score = rating_dict.my_map[get_key(u_idx, j_idx)]
                     if i_score == j_score:
