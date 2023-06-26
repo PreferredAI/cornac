@@ -34,7 +34,9 @@ bpr = cornac.models.BPR(
    lambda_reg=0.01,
    seed=123)
 
-gcmc = cornac.models.GCMC()
+gcmc = cornac.models.GCMC(
+    seed=123,
+)
 
 
 # Instantiate evaluation measures
@@ -47,7 +49,7 @@ auc = cornac.metrics.AUC()
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[pf, hpf, bpr],
+    models=[pf, gcmc],
     metrics=[rec_20, ndcg_20, auc],
     user_based=True,
 ).run()

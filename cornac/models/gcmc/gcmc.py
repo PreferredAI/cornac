@@ -5,9 +5,51 @@ import torch as th
 import torch.nn as nn
 from torch.nn import init
 
-from utils import get_activation, to_etype_name
+from utils import get_activation
 
+class NeuralNetwork(nn.Module):
+    """Base class for all neural network modules.
+    """
 
+    def __init__(self, args):
+        super(NeuralNetwork, self).__init__()
+        self._act = get_activation(self.activation_model)
+        self.encoder = GCMCLayer(
+            self.rating_values,
+            self.n_users,
+            self.n_items,
+            self.gcn_agg_units,
+            self.gcn_out_units,
+            self.gcn_dropout,
+            self.gcn_agg_accum,
+            agg_act=self._act,
+            share_user_item_param=self.share_param,
+            device=self.device,
+        )
+        self.decoder = BiDecoder(
+            in_units=self.gcn_out_units,
+            num_classes=len(self.rating_values),
+            num_basis=self.gen_r_num_basis_func,
+        )
+
+    def forward(self, enc_graph, dec_graph, ufeat, ifeat):
+        """Forward computation
+
+        Parameters
+        ----------
+        enc_graph : DGLGraph
+            The graph for encoding
+        dec_graph : DGLGraph
+            The graph for decoding
+        ufeat : torch.Tensor
+            The input user feature
+        ifeat : torch.Tensor
+            The input item feature
+        """
+        user_out, item_out = self.encoder(enc_graph, ufeat, ifeat)
+        pred_ratings = self.decoder(dec_graph, user_out, item_out)
+        return pred_ratings
+    
 class GCMCGraphConv(nn.Module):
     """Graph convolution module used in the GCMC model.
 
@@ -113,7 +155,7 @@ class GCMCLayer(nn.Module):
     .. math::
         h_j^{(l+1)} = \sigma_{out}W_oz_j^{(l+1)}
 
-    The equation is applied to both user nodes and movie nodes and the parameters
+    The equation is applied to both user nodes and item nodes and the parameters
     are not shared unless ``share_user_item_param`` is true.
 
     Parameters
@@ -122,12 +164,12 @@ class GCMCLayer(nn.Module):
         Possible rating values.
     user_in_units : int
         Size of user input feature
-    movie_in_units : int
-        Size of movie input feature
+    item_in_units : int
+        Size of item input feature
     msg_units : int
         Size of message :math:`W_rh_j`
     out_units : int
-        Size of of final output user and movie features
+        Size of of final output user and item features
     dropout_rate : float, optional
         Dropout rate (Default: 0.0)
     agg : str, optional
@@ -140,7 +182,7 @@ class GCMCLayer(nn.Module):
     out_act : callable, str, optional
         Activation function :math:`sigma_{agg}`. (Default: None)
     share_user_item_param : bool, optional
-        If true, user node and movie node share the same set of parameters.
+        If true, user node and item node share the same set of parameters.
         Require ``user_in_units`` and ``move_in_units`` to be the same.
         (Default: False)
     device: str, optional
@@ -152,7 +194,7 @@ class GCMCLayer(nn.Module):
         self,
         rating_vals,
         user_in_units,
-        movie_in_units,
+        item_in_units,
         msg_units,
         out_units,
         dropout_rate=0.0,
@@ -183,7 +225,7 @@ class GCMCLayer(nn.Module):
             # PyTorch parameter name can't contain "."
             rating = to_etype_name(rating)
             rev_rating = "rev-%s" % rating
-            if share_user_item_param and user_in_units == movie_in_units:
+            if share_user_item_param and user_in_units == item_in_units:
                 self.W_r[rating] = nn.Parameter(
                     th.randn(user_in_units, msg_units)
                 )
@@ -212,7 +254,7 @@ class GCMCLayer(nn.Module):
                     dropout_rate=dropout_rate,
                 )
                 subConv[rev_rating] = GCMCGraphConv(
-                    movie_in_units,
+                    item_in_units,
                     msg_units,
                     weight=True,
                     device=device,
@@ -250,21 +292,21 @@ class GCMCLayer(nn.Module):
         Parameters
         ----------
         graph : DGLGraph
-            User-movie rating graph. It should contain two node types: "user"
-            and "movie" and many edge types each for one rating value.
+            User-item rating graph. It should contain two node types: "user"
+            and "item" and many edge types each for one rating value.
         ufeat : torch.Tensor, optional
             User features. If None, using an identity matrix.
         ifeat : torch.Tensor, optional
-            Movie features. If None, using an identity matrix.
+            Item features. If None, using an identity matrix.
 
         Returns
         -------
         new_ufeat : torch.Tensor
             New user features
         new_ifeat : torch.Tensor
-            New movie features
+            New item features
         """
-        in_feats = {"user": ufeat, "movie": ifeat}
+        in_feats = {"user": ufeat, "item": ifeat}
         mod_args = {}
         for i, rating in enumerate(self.rating_vals):
             rating = to_etype_name(rating)
@@ -277,7 +319,7 @@ class GCMCLayer(nn.Module):
             )
         out_feats = self.conv(graph, in_feats, mod_args=mod_args)
         ufeat = out_feats["user"]
-        ifeat = out_feats["movie"]
+        ifeat = out_feats["item"]
         ufeat = ufeat.view(ufeat.shape[0], -1)
         ifeat = ifeat.view(ifeat.shape[0], -1)
 
@@ -309,7 +351,7 @@ class BiDecoder(nn.Module):
     Parameters
     ----------
     in_units : int
-        Size of input user and movie features
+        Size of input user and item features
     num_classes : int
         Number of classes.
     num_basis : int, optional
@@ -339,21 +381,21 @@ class BiDecoder(nn.Module):
         Parameters
         ----------
         graph : DGLGraph
-            "Flattened" user-movie graph with only one edge type.
+            "Flattened" user-item graph with only one edge type.
         ufeat : th.Tensor
             User embeddings. Shape: (|V_u|, D)
         ifeat : th.Tensor
-            Movie embeddings. Shape: (|V_m|, D)
+            Item embeddings. Shape: (|V_m|, D)
 
         Returns
         -------
         th.Tensor
-            Predicting scores for each user-movie edge.
+            Predicting scores for each user-item edge.
         """
         with graph.local_scope():
             ufeat = self.dropout(ufeat)
             ifeat = self.dropout(ifeat)
-            graph.nodes["movie"].data["h"] = ifeat
+            graph.nodes["item"].data["h"] = ifeat
             basis_out = []
             for i in range(self._num_basis):
                 graph.nodes["user"].data["h"] = ufeat @ self.Ps[i]
@@ -374,7 +416,7 @@ class DenseBiDecoder(nn.Module):
     Parameters
     ----------
     in_units : int
-        Size of input user and movie features
+        Size of input user and item features
     num_classes : int
         Number of classes.
     num_basis : int, optional
@@ -406,12 +448,12 @@ class DenseBiDecoder(nn.Module):
         ufeat : th.Tensor
             User embeddings. Shape: (B, D)
         ifeat : th.Tensor
-            Movie embeddings. Shape: (B, D)
+            Item embeddings. Shape: (B, D)
 
         Returns
         -------
         th.Tensor
-            Predicting scores for each user-movie edge. Shape: (B, num_classes)
+            Predicting scores for each user-item edge. Shape: (B, num_classes)
         """
         ufeat = self.dropout(ufeat)
         ifeat = self.dropout(ifeat)
