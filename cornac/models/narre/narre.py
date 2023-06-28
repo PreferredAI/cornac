@@ -80,7 +80,7 @@ class AddGlobalBias(keras.layers.Layer):
     def build(self, input_shape):
         self.global_bias = self.add_weight(shape=1,
                                initializer=tf.keras.initializers.Constant(self.init_value),
-                               trainable=True)
+                               trainable=True, name="add_weight")
 
     def call(self, inputs):
         return inputs + self.global_bias
