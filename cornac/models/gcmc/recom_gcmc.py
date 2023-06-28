@@ -379,31 +379,29 @@ class GCMC(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
 
-        (i, r) = self.train_set.user_data[1]
+        # (i, r) = self.train_set.user_data[1]
 
-        net = NeuralNetwork()
-        net.load_state_dict(self.best_model_state_dict).to(self.device)
-        net.eval()
+        # net = NeuralNetwork()
+        # net.load_state_dict(self.best_model_state_dict).to(self.device)
+        # net.eval()
 
-        score_dec_graph = self._generate_dec_graph(
-            user_idx, item_idx
-        )
-
-
-
-        nd_positive_rating_values = torch.FloatTensor(
-            self.rating_values
-        ).to(self.device)
-
-        with torch.no_grad():
-            pred_ratings = net(
-                self.train_enc_graph, score_dec_graph, None, None,
-            )
-        real_pred_ratings = (
-            torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
-        ).sum(dim=1)
+        # score_dec_graph = self._generate_dec_graph(
+        #     user_idx, item_idx
+        # )
 
 
+
+        # nd_positive_rating_values = torch.FloatTensor(
+        #     self.rating_values
+        # ).to(self.device)
+
+        # with torch.no_grad():
+        #     pred_ratings = net(
+        #         self.train_enc_graph, score_dec_graph, None, None,
+        #     )
+        # real_pred_ratings = (
+        #     torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
+        # ).sum(dim=1)
 
         return np.array([0.5])
         
