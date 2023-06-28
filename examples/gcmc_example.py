@@ -8,6 +8,7 @@ data = movielens.load_feedback(variant="100K")
 # Instantiate an evaluation method to split data into train and test sets.
 ratio_split = RatioSplit(
     data=data,
+    val_size=0.1,
     test_size=0.2,
     exclude_unknowns=True,
     verbose=True,

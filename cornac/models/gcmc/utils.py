@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch.optim as optim
+import numpy as np
 
 def get_activation(act):
     """Get the activation based on the act string
@@ -37,3 +38,19 @@ def get_optimizer(opt):
         return optim.Adam
     else:
         raise NotImplementedError
+    
+def torch_total_param_num(net):
+    return sum([np.prod(p.shape) for p in net.parameters()])
+    
+def torch_net_info(net, save_path=None):
+    info_str = (
+        "Total Param Number: {}\n".format(torch_total_param_num(net))
+        + "Params:\n"
+    )
+    for k, v in net.named_parameters():
+        info_str += "\t{}: {}, {}\n".format(k, v.shape, np.prod(v.shape))
+    info_str += str(net)
+    if save_path is not None:
+        with open(save_path, "w") as f:
+            f.write(info_str)
+    return info_str

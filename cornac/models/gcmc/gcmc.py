@@ -5,31 +5,44 @@ import torch as th
 import torch.nn as nn
 from torch.nn import init
 
-from utils import get_activation
+from .utils import get_activation
 
 class NeuralNetwork(nn.Module):
     """Base class for all neural network modules.
     """
 
-    def __init__(self, args):
+    def __init__(
+        self,
+        activation_model,
+        rating_values,
+        n_users,
+        n_items,
+        gcn_agg_units,
+        gcn_out_units,
+        gcn_dropout,
+        gcn_agg_accum,
+        gen_r_num_basis_func,
+        share_param,
+        device,
+    ):
         super(NeuralNetwork, self).__init__()
-        self._act = get_activation(self.activation_model)
+        self._act = get_activation(activation_model)
         self.encoder = GCMCLayer(
-            self.rating_values,
-            self.n_users,
-            self.n_items,
-            self.gcn_agg_units,
-            self.gcn_out_units,
-            self.gcn_dropout,
-            self.gcn_agg_accum,
+            rating_values,
+            n_users,
+            n_items,
+            gcn_agg_units,
+            gcn_out_units,
+            gcn_dropout,
+            gcn_agg_accum,
             agg_act=self._act,
-            share_user_item_param=self.share_param,
-            device=self.device,
+            share_user_item_param=share_param,
+            device=device,
         )
         self.decoder = BiDecoder(
-            in_units=self.gcn_out_units,
-            num_classes=len(self.rating_values),
-            num_basis=self.gen_r_num_basis_func,
+            in_units=gcn_out_units,
+            num_classes=len(rating_values),
+            num_basis=gen_r_num_basis_func,
         )
 
     def forward(self, enc_graph, dec_graph, ufeat, ifeat):
@@ -223,7 +236,7 @@ class GCMCLayer(nn.Module):
         subConv = {}
         for rating in rating_vals:
             # PyTorch parameter name can't contain "."
-            rating = to_etype_name(rating)
+            rating = str(rating).replace(".", "_")
             rev_rating = "rev-%s" % rating
             if share_user_item_param and user_in_units == item_in_units:
                 self.W_r[rating] = nn.Parameter(
@@ -309,7 +322,7 @@ class GCMCLayer(nn.Module):
         in_feats = {"user": ufeat, "item": ifeat}
         mod_args = {}
         for i, rating in enumerate(self.rating_vals):
-            rating = to_etype_name(rating)
+            rating = str(rating).replace(".", "_")
             rev_rating = "rev-%s" % rating
             mod_args[rating] = (
                 self.W_r[rating] if self.W_r is not None else None,
