@@ -2,14 +2,13 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, initializers, Input
+from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 
 from ...utils import get_rng
 from ...utils.init_utils import uniform
 from ..narre.narre import TextProcessor, AddGlobalBias
 
 def get_data(batch_ids, train_set, max_text_length, by="user", max_num_review=None):
-    from tensorflow.python.keras.preprocessing.sequence import pad_sequences
-
     batch_reviews, batch_num_reviews = [], []
     review_group = (
         train_set.review_text.user_review
@@ -101,8 +100,8 @@ class Model:
         user_text_processor = TextProcessor(self.max_text_length, filters=self.n_filters, kernel_sizes=self.kernel_sizes, dropout_rate=self.dropout_rate, name='user_text_processor')
         item_text_processor = TextProcessor(self.max_text_length, filters=self.n_filters, kernel_sizes=self.kernel_sizes, dropout_rate=self.dropout_rate, name='item_text_processor')
 
-        user_review_h = user_text_processor(l_user_review_embedding(i_user_review), training=True)
-        item_review_h = item_text_processor(l_item_review_embedding(i_item_review), training=True)
+        user_review_h = user_text_processor(l_user_review_embedding(i_user_review))
+        item_review_h = item_text_processor(l_item_review_embedding(i_item_review))
 
         l_user_mlp = keras.models.Sequential([
             layers.Dense(self.n_user_mlp_factors, input_dim=self.n_items, activation="relu"),

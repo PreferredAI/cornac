@@ -186,11 +186,11 @@ class HRDR(Recommender):
         from ...eval_methods.base_method import rating_eval
         from ...metrics import MSE
         loss = keras.losses.MeanSquaredError()
-        if not hasattr(self, 'optimizer_'):
+        if not hasattr(self, '_optimizer'):
             if self.optimizer == 'rmsprop':
-                self.optimizer_ = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
+                self._optimizer = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
             else:
-                self.optimizer_ = keras.optimizers.Adam(learning_rate=self.learning_rate)
+                self._optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
         train_loss = keras.metrics.Mean(name="loss")
         val_loss = float('inf')
         best_val_loss = float('inf')
@@ -208,7 +208,7 @@ class HRDR(Recommender):
                     )
                     _loss = loss(batch_ratings, predictions)
                 gradients = tape.gradient(_loss, self.model.graph.trainable_variables)
-                self.optimizer_.apply_gradients(zip(gradients, self.model.graph.trainable_variables))
+                self._optimizer.apply_gradients(zip(gradients, self.model.graph.trainable_variables))
                 train_loss(_loss)
                 if i % 10 == 0:
                     loop.set_postfix(loss=train_loss.result().numpy(), val_loss=val_loss, best_val_loss=best_val_loss, best_epoch=self.best_epoch)
@@ -249,11 +249,11 @@ class HRDR(Recommender):
             return
         model = self.model
         del self.model
-        optimizer_ = self.optimizer_
-        del self.optimizer_
+        _optimizer = self._optimizer
+        del self._optimizer
         model_file = Recommender.save(self, save_dir)
 
-        self.optimizer_ = optimizer_
+        self._optimizer = _optimizer
         self.model = model
         self.model.graph.save(model_file.replace(".pkl", ".cpt"))
 
