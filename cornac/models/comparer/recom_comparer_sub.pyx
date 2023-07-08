@@ -77,7 +77,7 @@ class ComparERSub(MTER):
         The number of top scored aspects for each (user, item) pair to construct ranking score.
 
     alpha: float, optional, default: 0.5
-        Trace off factor for constructing ranking score.
+        Trade-off factor for constructing ranking score.
 
     lambda_reg: float, optional, default: 0.1
         The regularization parameter.
