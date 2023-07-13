@@ -1,3 +1,4 @@
+from collections import defaultdict
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,6 +11,7 @@ from tqdm.auto import trange
 from ..recommender import Recommender
 from ...utils import get_rng
 from ...utils.init_utils import xavier_uniform
+from ...exception import ScoreException
 
 from .gcmc import NeuralNetwork
 from .utils import get_optimizer, torch_net_info, torch_total_param_num
@@ -75,6 +77,7 @@ class GCMC(Recommender):
 
         rating_values = self.train_set.uir_tuple[2] # rating array
         self.rating_values = np.unique(rating_values)
+        print("possible rating values: ", self.rating_values)
 
 
 
@@ -128,21 +131,38 @@ class GCMC(Recommender):
 
         return graph
     
+    def _uir_tuple_to_r_data_dict(self, uir_tuple):
+        '''
+        Convert uir tuple to a dictionary where keys are ratings,
+        values are tuples of two lists (users, items) for that rating.
+        '''
+        r_data = defaultdict()
+
+        for u, i, r in zip(*uir_tuple):
+            if r not in r_data:
+                r_data.setdefault(r, ([], []))
+            r_data[r][0].append(u)
+            r_data[r][1].append(i)
+        
+        return r_data
+
+
     def _generate_enc_graph(self, data_set, n_users, n_items, add_support=False):
         data_dict = dict()
         num_nodes_dict = {"user": n_users, "item": n_items}
-        
-        for batch_u, batch_i, batch_r in data_set.uir_iter(
-            shuffle=True,
-        ):
-            rating = str(batch_r[0].tolist()).replace(".", "_")
+
+        r_data = self._uir_tuple_to_r_data_dict(data_set.uir_tuple)
+
+        for r, (u_list, i_list) in r_data.items():
+            rating = str(r).replace(".", "_")
+            print(rating)
             data_dict.update(
                 {
-                    ("user", str(rating), "item"): (batch_u, batch_i),
-                    ("item", "rev-%s" % str(rating), "user"): (batch_i, batch_u),
+                    ("user", str(rating), "item"): (u_list, i_list),
+                    ("item", "rev-%s" % str(rating), "user"): (i_list, u_list),
                 }
             )
-        
+
         graph = dgl.heterograph(data_dict, num_nodes_dict)
 
         if add_support:
@@ -219,7 +239,7 @@ class GCMC(Recommender):
         ))
 
         # Build Net
-        net = NeuralNetwork(
+        self.net = NeuralNetwork(
             self.activation_model,
             self.rating_values,
             train_n_users,
@@ -232,14 +252,14 @@ class GCMC(Recommender):
             self.share_param,
             self.device,
         )
-        net = net.to(self.device)
+        self.net = self.net.to(self.device)
         nd_positive_rating_values = torch.FloatTensor(
             self.rating_values
         ).to(self.device)
         rating_loss_net = nn.CrossEntropyLoss()
         learning_rate = self.learning_rate
         optimizer = get_optimizer(self.optimizer)(
-            net.parameters(), lr=learning_rate
+            self.net.parameters(), lr=learning_rate
         )
         print("NN Loading Complete!")
 
@@ -255,7 +275,7 @@ class GCMC(Recommender):
 
         train_enc_graph = train_enc_graph.int().to(self.device)
         train_dec_graph = train_dec_graph.int().to(self.device)
-        valid_enc_graph = valid_enc_graph.int().to(self.device)
+        # valid_enc_graph = valid_enc_graph.int().to(self.device)
         valid_dec_graph = valid_dec_graph.int().to(self.device)
 
         self.train_enc_graph = train_enc_graph
@@ -265,8 +285,8 @@ class GCMC(Recommender):
         for iter_idx in range(1, self.max_iter):
             if iter_idx > 3:
                 t0 = time.time()
-            net.train()
-            pred_ratings = net(
+            self.net.train()
+            pred_ratings = self.net(
                 train_enc_graph,
                 train_dec_graph,
                 None,
@@ -276,7 +296,7 @@ class GCMC(Recommender):
             count_loss += loss.item()
             optimizer.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(net.parameters(), self.train_grad_clip)
+            nn.utils.clip_grad_norm_(self.net.parameters(), self.train_grad_clip)
             optimizer.step()
 
             if iter_idx > 3:
@@ -284,17 +304,13 @@ class GCMC(Recommender):
 
             if iter_idx == 1:
                 print("Total # params of net: {}".format(
-                    torch_total_param_num(net)
+                    torch_total_param_num(self.net)
                 ))
-                print(torch_net_info(net))
-
-            print(torch.softmax(pred_ratings, dim=1).size())
+                print(torch_net_info(self.net))
             
             real_pred_ratings = (
                 torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
             ).sum(dim=1)
-
-            print(real_pred_ratings.size())
 
             rmse = ((real_pred_ratings - train_truths) ** 2).sum()
             count_rmse += rmse.item()
@@ -315,9 +331,9 @@ class GCMC(Recommender):
             if iter_idx & self.train_valid_interval == 0:
                 nd_positive_rating_values = torch.FloatTensor(self.rating_values).to(self.device)
                 
-                net.eval()
+                self.net.eval()
                 with torch.no_grad():
-                    pred_ratings = net(
+                    pred_ratings = self.net(
                         valid_enc_graph, valid_dec_graph, None, None,
                     )
                 real_pred_ratings = (
@@ -331,7 +347,7 @@ class GCMC(Recommender):
                     best_valid_rmse = valid_rmse
                     no_better_valid = 0
                     best_iter = iter_idx
-                    self.best_model_state_dict = net.state_dict()
+                    self.best_model_state_dict = self.net.state_dict()
                 else:
                     no_better_valid += 1
                     if (no_better_valid > self.train_early_stopping_patience and learning_rate <= self.train_min_learning_rate):
@@ -381,29 +397,69 @@ class GCMC(Recommender):
 
         # (i, r) = self.train_set.user_data[1]
 
-        # net = NeuralNetwork()
-        # net.load_state_dict(self.best_model_state_dict).to(self.device)
-        # net.eval()
+        self.net.load_state_dict(self.best_model_state_dict)
+        self.net.eval()
+   
+        if self.train_set.is_unk_user(user_idx):
+            raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
 
-        # score_dec_graph = self._generate_dec_graph(
-        #     user_idx, item_idx
-        # )
+        if item_idx is not None:
+            if self.train_set.is_unk_item(item_idx):
+
+                raise ScoreException("Can't make score prediction for (item_id=%d)" % item_idx)
+            
+        user_id = (self.train_set.uir_tuple[0])[user_idx]
+
+        if item_idx is None:
+            if user_id not in self.train_set.user_data.keys():
+                print("userid not found!", user_id)
+                return np.array([0.5]) # to check!
+            
+            i_list, r_list = self.train_set.user_data.get(user_id)
+            rating_pairs = (
+                np.array(
+                    [user_id for _ in range(len(i_list))], dtype=np.int32
+                ),
+                np.array(i_list, dtype=np.int32),
+            )
+
+        else:
+            item_id = (list(self.train_set.item_ids))[item_idx]
+            rating_pairs = (
+                np.array([user_id]),
+                np.array(item_id),
+            )
+
+        ones = np.ones_like(rating_pairs[0])
+        user_item_ratings_coo = sp.coo_matrix(
+            (ones, rating_pairs),
+            shape=(self.train_set.num_users, self.train_set.num_items),
+            dtype=np.float32,
+        )
+
+        g = dgl.bipartite_from_scipy(
+            user_item_ratings_coo, utype="_U", etype="_E", vtype="_V"
+        )
+
+        score_dec_graph = dgl.heterograph(
+            {("user", "rate", "item"): g.edges()},
+            num_nodes_dict={"user": self.train_set.num_users, "item": self.train_set.num_items},
+        )
 
 
+        nd_positive_rating_values = torch.FloatTensor(
+            self.rating_values
+        ).to(self.device)
 
-        # nd_positive_rating_values = torch.FloatTensor(
-        #     self.rating_values
-        # ).to(self.device)
+        with torch.no_grad():
+            pred_ratings = self.net(
+                self.train_enc_graph, score_dec_graph, None, None,
+            )
+        real_pred_ratings = (
+            torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
+        ).sum(dim=1)
 
-        # with torch.no_grad():
-        #     pred_ratings = net(
-        #         self.train_enc_graph, score_dec_graph, None, None,
-        #     )
-        # real_pred_ratings = (
-        #     torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
-        # ).sum(dim=1)
-
-        return np.array([0.5])
+        return real_pred_ratings.numpy()
         
 
 
