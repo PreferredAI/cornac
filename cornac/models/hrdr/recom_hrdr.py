@@ -14,11 +14,14 @@
 # ============================================================================
 
 import os
-import numpy as np
+import pickle
 from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
+
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 class HRDR(Recommender):
     """
@@ -155,8 +158,8 @@ class HRDR(Recommender):
 
         if self.trainable:
             if not hasattr(self, "model"):
-                from .hrdr import Model
-                self.model = Model(
+                from .hrdr import HRDRModel
+                self.model = HRDRModel(
                     self.train_set.num_users,
                     self.train_set.num_items,
                     self.train_set.review_text.vocab,
@@ -171,6 +174,7 @@ class HRDR(Recommender):
                     n_item_mlp_factors=self.n_item_mlp_factors,
                     dropout_rate=self.dropout_rate,
                     max_text_length=self.max_text_length,
+                    max_num_review=self.max_num_review,
                     pretrained_word_embeddings=self.init_params.get('pretrained_word_embeddings'),
                     verbose=self.verbose,
                     seed=self.seed,
@@ -185,12 +189,13 @@ class HRDR(Recommender):
         from .hrdr import get_data
         from ...eval_methods.base_method import rating_eval
         from ...metrics import MSE
-        loss = keras.losses.MeanSquaredError()
         if not hasattr(self, '_optimizer'):
+            from tensorflow import keras
             if self.optimizer == 'rmsprop':
                 self._optimizer = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
             else:
                 self._optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
+        loss = keras.losses.MeanSquaredError()
         train_loss = keras.metrics.Mean(name="loss")
         val_loss = float('inf')
         best_val_loss = float('inf')
@@ -212,15 +217,16 @@ class HRDR(Recommender):
                 train_loss(_loss)
                 if i % 10 == 0:
                     loop.set_postfix(loss=train_loss.result().numpy(), val_loss=val_loss, best_val_loss=best_val_loss, best_epoch=self.best_epoch)
-            current_weights = self.model.get_weights(self.train_set, self.batch_size, max_num_review=self.max_num_review)
+            current_weights = self.model.get_weights(self.train_set, self.batch_size)
             if self.val_set is not None:
                 self.P, self.Q, self.W1, self.bu, self.bi, self.mu, self.A = current_weights
-                [val_loss], _ = rating_eval(
+                [current_val_mse], _ = rating_eval(
                     model=self,
                     metrics=[MSE()],
                     test_set=self.val_set,
                     user_based=self.user_based
                 )
+                val_loss = current_val_mse
                 if best_val_loss > val_loss:
                     best_val_loss = val_loss
                     self.best_epoch = i_epoch + 1
@@ -235,7 +241,6 @@ class HRDR(Recommender):
         if self.verbose:
             print("Learning completed!")
 
-
     def save(self, save_dir=None):
         """Save a recommender model to the filesystem.
 
@@ -247,16 +252,17 @@ class HRDR(Recommender):
         """
         if save_dir is None:
             return
-        model = self.model
-        del self.model
+        graph = self.model.graph
+        del self.model.graph
         _optimizer = self._optimizer
         del self._optimizer
         model_file = Recommender.save(self, save_dir)
 
         self._optimizer = _optimizer
-        self.model = model
+        self.model.graph = graph
         self.model.graph.save(model_file.replace(".pkl", ".cpt"))
-
+        with open(model_file.replace(".pkl", ".opt"), 'wb') as f:
+            pickle.dump(self._optimizer.get_weights(), f)
         return model_file
 
     @staticmethod
@@ -277,9 +283,22 @@ class HRDR(Recommender):
         -------
         self : object
         """
+        import tensorflow as tf
         from tensorflow import keras
+        import absl.logging
+        absl.logging.set_verbosity(absl.logging.ERROR)
+
         model = Recommender.load(model_path, trainable)
-        model.model = keras.models.load_model(model.load_from.replace(".pkl", ".cpt"))
+        model.model.graph = keras.models.load_model(model.load_from.replace(".pkl", ".cpt"), compile=False)
+        if model.optimizer == 'rmsprop':
+            model._optimizer = keras.optimizers.RMSprop(learning_rate=model.learning_rate)
+        else:
+            model._optimizer = keras.optimizers.Adam(learning_rate=model.learning_rate)
+        zero_grads = [tf.zeros_like(w) for w in model.model.graph.trainable_variables]
+        model._optimizer.apply_gradients(zip(zero_grads, model.model.graph.trainable_variables))
+        with open(model.load_from.replace(".pkl", ".opt"), 'rb') as f:
+            optimizer_weights = pickle.load(f)
+        model._optimizer.set_weights(optimizer_weights)
 
         return model
 
@@ -305,7 +324,8 @@ class HRDR(Recommender):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-            known_item_scores = (self.P[user_idx] * self.Q).dot(self.W1) + self.bu[user_idx] + self.bi + self.mu
+            h0 = self.P[user_idx] * self.Q
+            known_item_scores = h0.dot(self.W1) + self.bu[user_idx] + self.bi + self.mu
             return known_item_scores.ravel()
         else:
             if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
@@ -315,5 +335,6 @@ class HRDR(Recommender):
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-            known_item_score = (self.P[user_idx] * self.Q[item_idx]).dot(self.W1) + self.bu[user_idx] + self.bi[item_idx] + self.mu
+            h0 = self.P[user_idx] * self.Q[item_idx]
+            known_item_score = h0.dot(self.W1) + self.bu[user_idx] + self.bi[item_idx] + self.mu
             return known_item_score
