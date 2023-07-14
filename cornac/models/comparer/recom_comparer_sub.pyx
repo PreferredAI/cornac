@@ -778,4 +778,4 @@ class ComparERSub(MTER):
 
             item_rank = item_ids[item_scores.argsort()[::-1]]
             return item_rank, item_scores
-        return self.score(user_id, item_ids)
+        return super().rank(user_id, item_ids)
