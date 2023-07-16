@@ -275,7 +275,7 @@ class GCMC(Recommender):
 
         train_enc_graph = train_enc_graph.int().to(self.device)
         train_dec_graph = train_dec_graph.int().to(self.device)
-        # valid_enc_graph = valid_enc_graph.int().to(self.device)
+        valid_enc_graph = valid_enc_graph.int().to(self.device)
         valid_dec_graph = valid_dec_graph.int().to(self.device)
 
         self.train_enc_graph = train_enc_graph
@@ -415,13 +415,18 @@ class GCMC(Recommender):
                 print("userid not found!", user_id)
                 return np.array([0.5]) # to check!
             
-            i_list, r_list = self.train_set.user_data.get(user_id)
+            i_list = list(self.train_set.item_ids)
+
             rating_pairs = (
                 np.array(
                     [user_id for _ in range(len(i_list))], dtype=np.int32
                 ),
                 np.array(i_list, dtype=np.int32),
             )
+
+            print(len(rating_pairs[0]))
+            print(len(rating_pairs[1]))
+            print("===")
 
         else:
             item_id = (list(self.train_set.item_ids))[item_idx]
@@ -431,9 +436,13 @@ class GCMC(Recommender):
             )
 
         ones = np.ones_like(rating_pairs[0])
+        print(len(ones))
+        print(len(rating_pairs))
+        print(self.train_set.total_users)
+        print(self.train_set.total_items)
         user_item_ratings_coo = sp.coo_matrix(
             (ones, rating_pairs),
-            shape=(self.train_set.num_users, self.train_set.num_items),
+            shape=(self.train_set.total_users, self.train_set.total_items),
             dtype=np.float32,
         )
 
