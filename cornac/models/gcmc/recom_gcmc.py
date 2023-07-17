@@ -20,14 +20,14 @@ class GCMC(Recommender):
     def __init__(
         self,
         name="GCMC",
-        max_iter=50,
+        max_iter=2000,
         learning_rate=0.01,
         optimizer="adam",
         activation_model="leaky",
         gcn_agg_units=500,
         gcn_out_units=75,
         gcn_dropout=0.7,
-        gcn_agg_accum="sum",
+        gcn_agg_accum="stack",
         share_param=False,
         gen_r_num_basis_func=2,
         train_grad_clip=1.0,
@@ -77,8 +77,6 @@ class GCMC(Recommender):
 
         rating_values = self.train_set.uir_tuple[2] # rating array
         self.rating_values = np.unique(rating_values)
-        print("possible rating values: ", self.rating_values)
-
 
 
     def fit(self, train_set, val_set=None):
@@ -147,9 +145,9 @@ class GCMC(Recommender):
         return r_data
 
 
-    def _generate_enc_graph(self, data_set, n_users, n_items, add_support=False):
+    def _generate_enc_graph(self, data_set, add_support=False):
         data_dict = dict()
-        num_nodes_dict = {"user": n_users, "item": n_items}
+        num_nodes_dict = {"user": data_set.total_users, "item": data_set.total_items}
 
         r_data = self._uir_tuple_to_r_data_dict(data_set.uir_tuple)
 
@@ -166,11 +164,11 @@ class GCMC(Recommender):
         graph = dgl.heterograph(data_dict, num_nodes_dict)
 
         if add_support:
-            graph = self._apply_support(graph=graph, rating_values=self.rating_values, n_users=n_users, n_items=n_items)
+            graph = self._apply_support(graph=graph, rating_values=self.rating_values, n_users=data_set.total_users, n_items=data_set.total_items)
 
         return graph      
 
-    def _generate_dec_graph(self, data_set, n_users, n_items):
+    def _generate_dec_graph(self, data_set):
         csr_matrix = data_set.csr_matrix
         user_item_ratings_coo = csr_matrix.tocoo()
         
@@ -180,7 +178,7 @@ class GCMC(Recommender):
 
         return dgl.heterograph(
             {("user", "rate", "item"): g.edges()},
-            num_nodes_dict={"user": n_users, "item": n_items},
+            num_nodes_dict={"user": data_set.total_users, "item": data_set.total_items},
         )
 
     def _fit_torch(self):
@@ -190,20 +188,17 @@ class GCMC(Recommender):
                 np.searchsorted(self.rating_values, ratings)
             ).to(self.device)
             return labels
-        
-        train_n_users, train_n_items = self.train_set.num_users, self.train_set.num_items
 
-        train_enc_graph = self._generate_enc_graph(self.train_set, train_n_users, train_n_items, add_support=True)
-        train_dec_graph = self._generate_dec_graph(self.train_set, train_n_users, train_n_items)
+        train_enc_graph = self._generate_enc_graph(self.train_set, add_support=True)
+        train_dec_graph = self._generate_dec_graph(self.train_set)
 
         train_labels = _generate_labels(self.train_set.uir_tuple[2])
         train_truths = torch.FloatTensor(self.train_set.uir_tuple[2]).to(self.device)
 
         # TODO: possibility of validation_set to be None. Check if it works!
-        valid_n_users, valid_n_items = self.val_set.num_users, self.val_set.num_items
 
         valid_enc_graph = train_enc_graph
-        valid_dec_graph = self._generate_dec_graph(self.val_set, valid_n_users, valid_n_items)
+        valid_dec_graph = self._generate_dec_graph(self.val_set)
         # valid_labels = _generate_labels(self.val_set.uir_tuple[2])
         valid_truths = torch.FloatTensor(self.val_set.uir_tuple[2]).to(self.device)
 
@@ -212,6 +207,7 @@ class GCMC(Recommender):
             for r_val in self.rating_values:
                 r_val = str(r_val).replace(".", "_")
                 pair_count += graph.num_edges(str(r_val))
+            print("pair count:", pair_count)
             return pair_count
 
         print("Train enc graph: {} users, {} items, {} pairs".format(
@@ -242,8 +238,8 @@ class GCMC(Recommender):
         self.net = NeuralNetwork(
             self.activation_model,
             self.rating_values,
-            train_n_users,
-            train_n_items,
+            self.train_set.total_users,
+            self.train_set.total_items,
             self.gcn_agg_units,
             self.gcn_out_units,
             self.gcn_dropout,
@@ -287,7 +283,7 @@ class GCMC(Recommender):
                 t0 = time.time()
             self.net.train()
             pred_ratings = self.net(
-                train_enc_graph,
+                self.train_enc_graph,
                 train_dec_graph,
                 None,
                 None,
@@ -408,38 +404,32 @@ class GCMC(Recommender):
 
                 raise ScoreException("Can't make score prediction for (item_id=%d)" % item_idx)
             
-        user_id = (self.train_set.uir_tuple[0])[user_idx]
+        # user_id = (self.train_set.uir_tuple[0])[user_idx]
 
         if item_idx is None:
-            if user_id not in self.train_set.user_data.keys():
-                print("userid not found!", user_id)
-                return np.array([0.5]) # to check!
+            if user_idx not in self.train_set.user_data.keys():
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
             
-            i_list = list(self.train_set.item_ids)
+            # i_list = list(self.train_set.item_ids)
 
             rating_pairs = (
                 np.array(
-                    [user_id for _ in range(len(i_list))], dtype=np.int32
+                    [user_idx for _ in range(self.train_set.total_items)], dtype=np.int32
                 ),
-                np.array(i_list, dtype=np.int32),
+                np.array(range(self.train_set.total_items)),
             )
 
-            print(len(rating_pairs[0]))
-            print(len(rating_pairs[1]))
-            print("===")
-
         else:
-            item_id = (list(self.train_set.item_ids))[item_idx]
+            # item_id = (list(self.train_set.item_ids))[item_idx]
             rating_pairs = (
-                np.array([user_id]),
-                np.array(item_id),
+                np.array([user_idx]),
+                np.array([item_idx]),
             )
 
         ones = np.ones_like(rating_pairs[0])
-        print(len(ones))
-        print(len(rating_pairs))
-        print(self.train_set.total_users)
-        print(self.train_set.total_items)
         user_item_ratings_coo = sp.coo_matrix(
             (ones, rating_pairs),
             shape=(self.train_set.total_users, self.train_set.total_items),
@@ -452,7 +442,7 @@ class GCMC(Recommender):
 
         score_dec_graph = dgl.heterograph(
             {("user", "rate", "item"): g.edges()},
-            num_nodes_dict={"user": self.train_set.num_users, "item": self.train_set.num_items},
+            num_nodes_dict={"user": self.train_set.total_users, "item": self.train_set.total_items},
         )
 
 

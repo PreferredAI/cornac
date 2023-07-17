@@ -1,6 +1,7 @@
 import cornac
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
+from cornac.metrics import RMSE
 
 # Load user-item feedback
 data = movielens.load_feedback(variant="100K")
@@ -9,7 +10,7 @@ data = movielens.load_feedback(variant="100K")
 ratio_split = RatioSplit(
     data=data,
     val_size=0.1,
-    test_size=0.2,
+    test_size=0.1,
     exclude_unknowns=True,
     verbose=True,
     seed=123,
@@ -51,6 +52,6 @@ auc = cornac.metrics.AUC()
 cornac.Experiment(
     eval_method=ratio_split,
     models=[pf, gcmc],
-    metrics=[rec_20, ndcg_20, auc],
+    metrics=[RMSE(), rec_20, ndcg_20, auc],
     user_based=True,
 ).run()
