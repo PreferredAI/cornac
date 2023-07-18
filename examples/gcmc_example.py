@@ -35,6 +35,10 @@ bpr = cornac.models.BPR(
    lambda_reg=0.01,
    seed=123)
 
+pmf = cornac.models.PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001)
+
+biased_mf = cornac.models.MF(name="BiasMF", k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
+
 gcmc = cornac.models.GCMC(
     seed=123,
 )
@@ -50,7 +54,7 @@ auc = cornac.metrics.AUC()
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[pf, gcmc],
+    models=[pmf, biased_mf, gcmc],
     metrics=[cornac.metrics.RMSE()],
     user_based=False,
 ).run()
