@@ -1,20 +1,19 @@
 import cornac
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
-from cornac.metrics import RMSE
 
 # Load user-item feedback
-data = movielens.load_feedback(variant="100K")
+data_100k = movielens.load_feedback(variant="100K")
+data_1m = movielens.load_feedback(variant="1M")
 
 # Instantiate an evaluation method to split data into train and test sets.
 ratio_split = RatioSplit(
-    data=data,
-    val_size=0.1,
+    data=data_100k,
     test_size=0.1,
+    val_size=0.1,
     exclude_unknowns=True,
     verbose=True,
     seed=123,
-    rating_threshold=0.5,
 )
 
 hpf = cornac.models.HPF(
@@ -52,6 +51,6 @@ auc = cornac.metrics.AUC()
 cornac.Experiment(
     eval_method=ratio_split,
     models=[pf, gcmc],
-    metrics=[RMSE(), rec_20, ndcg_20, auc],
-    user_based=True,
+    metrics=[cornac.metrics.RMSE()],
+    user_based=False,
 ).run()

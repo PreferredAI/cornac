@@ -274,7 +274,11 @@ class GCMC(Recommender):
         valid_enc_graph = valid_enc_graph.int().to(self.device)
         valid_dec_graph = valid_dec_graph.int().to(self.device)
 
+        print(train_enc_graph.device)
+
         self.train_enc_graph = train_enc_graph
+
+        print(self.train_enc_graph.device)
 
         print("Training Started!")
         dur = []
@@ -445,6 +449,8 @@ class GCMC(Recommender):
             num_nodes_dict={"user": self.train_set.total_users, "item": self.train_set.total_items},
         )
 
+        score_dec_graph = score_dec_graph.to(self.device)
+
 
         nd_positive_rating_values = torch.FloatTensor(
             self.rating_values
@@ -458,7 +464,7 @@ class GCMC(Recommender):
             torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
         ).sum(dim=1)
 
-        return real_pred_ratings.numpy()
+        return real_pred_ratings.cpu().numpy()
         
 
 
