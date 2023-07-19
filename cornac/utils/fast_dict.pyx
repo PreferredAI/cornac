@@ -104,11 +104,3 @@ cdef class IntFloatDict:
         cdef IntFloatDict out_obj = IntFloatDict.__new__(IntFloatDict)
         out_obj.my_map = self.my_map
         return out_obj
-
-    def append(self, ITYPE_t key, DTYPE_t value):
-        cdef cpp_map[ITYPE_t, DTYPE_t].iterator end = self.my_map.end()
-        dec(end)
-        cdef pair[ITYPE_t, DTYPE_t] args
-        args.first = key
-        args.second = value
-        self.my_map.insert(end, args)
