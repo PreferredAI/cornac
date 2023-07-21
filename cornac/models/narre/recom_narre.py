@@ -14,7 +14,7 @@
 # ============================================================================
 
 import os
-import numpy as np
+import pickle
 from tqdm.auto import trange
 
 from ..recommender import Recommender
@@ -55,8 +55,8 @@ class NARRE(Recommender):
     max_text_length: int, default: 50
         Maximum number of tokens in a review instance
 
-    max_num_review: int, default: None
-        Maximum number of reviews that you want to feed into training. By default, the model will be trained with all reviews.
+    max_num_review: int, default: 32
+        Maximum number of reviews that you want to feed into training. By default, the model will be trained with 32 reviews.
 
     batch_size: int, default: 64
         Batch size
@@ -105,7 +105,7 @@ class NARRE(Recommender):
         n_filters=64,
         dropout_rate=0.5,
         max_text_length=50,
-        max_num_review=None,
+        max_num_review=32,
         batch_size=64,
         max_iter=10,
         optimizer='adam',
@@ -159,8 +159,8 @@ class NARRE(Recommender):
 
         if self.trainable:
             if not hasattr(self, "model"):
-                from .narre import Model
-                self.model = Model(
+                from .narre import NARREModel
+                self.model = NARREModel(
                     self.train_set.num_users,
                     self.train_set.num_items,
                     self.train_set.review_text.vocab,
@@ -173,32 +173,33 @@ class NARRE(Recommender):
                     n_filters=self.n_filters,
                     dropout_rate=self.dropout_rate,
                     max_text_length=self.max_text_length,
+                    max_num_review=self.max_num_review,
                     pretrained_word_embeddings=self.init_params.get('pretrained_word_embeddings'),
                     verbose=self.verbose,
                     seed=self.seed,
                 )
-            self._fit_narre()
+            self._fit()
 
         return self
 
-    def _fit_narre(self):
+    def _fit(self):
         import tensorflow as tf
         from tensorflow import keras
         from .narre import get_data
         from ...eval_methods.base_method import rating_eval
         from ...metrics import MSE
         loss = keras.losses.MeanSquaredError()
-        if not hasattr(self, 'optimizer_'):
+        if not hasattr(self, '_optimizer'):
             if self.optimizer == 'rmsprop':
-                self.optimizer_ = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
+                self._optimizer = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
             elif self.optimizer == 'adam':
-                self.optimizer_ = keras.optimizers.Adam(learning_rate=self.learning_rate)
+                self._optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
             else:
                 raise ValueError("optimizer is either 'rmsprop' or 'adam' but {}".format(self.optimizer))
 
         train_loss = keras.metrics.Mean(name="loss")
-        val_loss = 0.
-        best_val_loss = 1e9
+        val_loss = float('inf')
+        best_val_loss = float('inf')
         self.best_epoch = None
         loop = trange(self.max_iter, disable=not self.verbose, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
         for i_epoch, _ in enumerate(loop):
@@ -213,11 +214,11 @@ class NARRE(Recommender):
                     )
                     _loss = loss(batch_ratings, predictions)
                 gradients = tape.gradient(_loss, self.model.graph.trainable_variables)
-                self.optimizer_.apply_gradients(zip(gradients, self.model.graph.trainable_variables))
+                self._optimizer.apply_gradients(zip(gradients, self.model.graph.trainable_variables))
                 train_loss(_loss)
                 if i % 10 == 0:
                     loop.set_postfix(loss=train_loss.result().numpy(), val_loss=val_loss, best_val_loss=best_val_loss, best_epoch=self.best_epoch)
-            current_weights = self.model.get_weights(self.train_set, self.batch_size, max_num_review=self.max_num_review)
+            current_weights = self.model.get_weights(self.train_set, self.batch_size)
             if self.val_set is not None:
                 self.X, self.Y, self.W1, self.user_embedding, self.item_embedding, self.bu, self.bi, self.mu = current_weights
                 [current_val_mse], _ = rating_eval(
@@ -253,14 +254,17 @@ class NARRE(Recommender):
         """
         if save_dir is None:
             return
-        model = self.model
-        del self.model
-
+        graph = self.model.graph
+        del self.model.graph
+        _optimizer = self._optimizer
+        del self._optimizer
         model_file = Recommender.save(self, save_dir)
 
-        self.model = model
-        self.model.save(model_file.replace(".pkl", ".cpt"))
-
+        self._optimizer = _optimizer
+        self.model.graph = graph
+        self.model.graph.save(model_file.replace(".pkl", ".cpt"))
+        with open(model_file.replace(".pkl", ".opt"), 'wb') as f:
+            pickle.dump(self._optimizer.get_weights(), f)
         return model_file
 
     @staticmethod
@@ -281,9 +285,22 @@ class NARRE(Recommender):
         -------
         self : object
         """
+        import tensorflow as tf
         from tensorflow import keras
+        import absl.logging
+        absl.logging.set_verbosity(absl.logging.ERROR)
+
         model = Recommender.load(model_path, trainable)
-        model.model = keras.models.load_model(model.load_from.replace(".pkl", ".cpt"))
+        model.model.graph = keras.models.load_model(model.load_from.replace(".pkl", ".cpt"), compile=False)
+        if model.optimizer == 'rmsprop':
+            model._optimizer = keras.optimizers.RMSprop(learning_rate=model.learning_rate)
+        else:
+            model._optimizer = keras.optimizers.Adam(learning_rate=model.learning_rate)
+        zero_grads = [tf.zeros_like(w) for w in model.model.graph.trainable_variables]
+        model._optimizer.apply_gradients(zip(zero_grads, model.model.graph.trainable_variables))
+        with open(model.load_from.replace(".pkl", ".opt"), 'rb') as f:
+            optimizer_weights = pickle.load(f)
+        model._optimizer.set_weights(optimizer_weights)
 
         return model
 
