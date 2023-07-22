@@ -24,9 +24,9 @@ copyright = '2018, Cornac Authors'
 author = 'Preferred.AI'
 
 # The short X.Y version
-version = '1.15'
+version = '1.16'
 # The full version, including alpha/beta/rc tags
-release = '1.15.4'
+release = '1.16.0'
 
 
 # -- General configuration ---------------------------------------------------
