@@ -270,12 +270,9 @@ class MeasureAtK(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        pred = np.zeros_like(gt_pos)
-        pred[truncated_pd_rank] = 1
-
-        tp = np.sum(pred * gt_pos)
-        tp_fn = np.sum(gt_pos)
-        tp_fp = np.sum(pred)
+        tp = np.sum(np.in1d(truncated_pd_rank, gt_pos))
+        tp_fn = len(gt_pos)
+        tp_fp = self.k if self.k > 0 else len(truncated_pd_rank)
 
         return tp, tp_fn, tp_fp
 
