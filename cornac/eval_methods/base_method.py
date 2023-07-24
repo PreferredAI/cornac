@@ -51,7 +51,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
 
     verbose: bool, optional, default: False
         Output evaluation progress.
-        
+
     Returns
     -------
     res: (List, List)
@@ -79,7 +79,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
             miniters=100,
             total=len(u_indices),
         ),
-        dtype='float',
+        dtype="float",
     )
 
     gt_mat = test_set.csr_matrix
@@ -177,8 +177,9 @@ def ranking_eval(
         if len(test_pos_items) == 0:
             continue
 
-        u_gt_pos = np.zeros(test_set.num_items, dtype='int')
-        u_gt_pos[test_pos_items] = 1
+        # binary mask for ground-truth positive items
+        u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
+        u_gt_pos_mask[test_pos_items] = 1
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
         train_pos_items = (
@@ -187,18 +188,30 @@ def ranking_eval(
             else pos_items(train_mat.getrow(user_idx))
         )
 
-        u_gt_neg = np.ones(test_set.num_items, dtype='int')
-        u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
+        # binary mask for ground-truth negative items, removing all positive items
+        u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
+        u_gt_neg_mask[test_pos_items + val_pos_items + train_pos_items] = 0
 
-        item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
+        # filter items being considered for evaluation
+        if exclude_unknowns:
+            item_indices = np.arange(train_set.num_items)
+            u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
+            u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
+        else:
+            item_indices = np.arange(test_set.num_items)
+        item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
+        u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
+        u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
+
         item_rank, item_scores = model.rank(user_idx, item_indices)
 
         for i, mt in enumerate(metrics):
             mt_score = mt.compute(
-                gt_pos=u_gt_pos,
-                gt_neg=u_gt_neg,
+                gt_pos=u_gt_pos_items,
+                gt_neg=u_gt_neg_items,
                 pd_rank=item_rank,
                 pd_scores=item_scores,
+                item_indices=item_indices,
             )
             user_results[i][user_idx] = mt_score
 
@@ -585,8 +598,8 @@ class BaseMethod:
 
     def add_modalities(self, **kwargs):
         """
-        Add successfully built modalities to all datasets. This is handy for 
-        seperately built modalities that are not invoked in the build method. 
+        Add successfully built modalities to all datasets. This is handy for
+        seperately built modalities that are not invoked in the build method.
         """
         self.user_feature = kwargs.get("user_feature", None)
         self.user_text = kwargs.get("user_text", None)
@@ -671,11 +684,11 @@ class BaseMethod:
         metrics: :obj:`iterable`
             List of metrics.
 
-        user_based: bool, required 
-            Evaluation strategy for the rating metrics. Whether results 
+        user_based: bool, required
+            Evaluation strategy for the rating metrics. Whether results
             are averaging based on number of users or number of ratings.
 
-        show_validation: bool, optional, default: True 
+        show_validation: bool, optional, default: True
             Whether to show the results on validation set (if exists).
 
         Returns
@@ -790,4 +803,3 @@ class BaseMethod:
         return method.build(
             train_data=train_data, test_data=test_data, val_data=val_data
         )
-
