@@ -213,8 +213,7 @@ class MRR(RankingMetric):
             Mean Reciprocal Rank score.
 
         """
-        gt_pos_items = np.nonzero(gt_pos > 0)
-        matched_items = np.nonzero(np.in1d(pd_rank, gt_pos_items))[0]
+        matched_items = np.nonzero(np.in1d(pd_rank, gt_pos))[0]
 
         if len(matched_items) == 0:
             raise ValueError(
