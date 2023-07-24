@@ -71,7 +71,7 @@ class NDCG(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -92,7 +92,7 @@ class NDCG(RankingMetric):
             truncated_pd_rank = pd_rank
 
         ranked_scores = np.take(gt_pos, truncated_pd_rank)
-        gain = 2 ** ranked_scores - 1
+        gain = 2**ranked_scores - 1
         discounts = np.log2(np.arange(len(ranked_scores)) + 2)
 
         return np.sum(gain / discounts)
@@ -103,7 +103,7 @@ class NDCG(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -143,7 +143,7 @@ class NCRR(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -199,7 +199,7 @@ class MRR(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -246,7 +246,7 @@ class MeasureAtK(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -300,7 +300,7 @@ class Precision(MeasureAtK):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -337,7 +337,7 @@ class Recall(MeasureAtK):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -374,7 +374,7 @@ class FMeasure(MeasureAtK):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -411,19 +411,22 @@ class AUC(RankingMetric):
     def __init__(self):
         RankingMetric.__init__(self, name="AUC")
 
-    def compute(self, pd_scores, gt_pos, gt_neg=None, **kwargs):
+    def compute(self, item_indices, pd_scores, gt_pos, gt_neg=None, **kwargs):
         """Compute Area Under the ROC Curve (AUC).
 
         Parameters
         ----------
+        item_indices: Numpy array
+            Items being considered for evaluation.
+
         pd_scores: Numpy array
-            Prediction scores for items.
+            Prediction scores for items in item_indices.
 
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         gt_neg: Numpy array, optional
-            Binary vector of negative items.
+            Vector of negative items.
             If None, negation of gt_pos will be used.
 
         **kwargs: For compatibility
@@ -434,11 +437,16 @@ class AUC(RankingMetric):
             AUC score.
 
         """
-        if gt_neg is None:
-            gt_neg = np.logical_not(gt_pos)
 
-        pos_scores = pd_scores[gt_pos.astype('bool')]
-        neg_scores = pd_scores[gt_neg.astype('bool')]
+        gt_pos_mask = np.in1d(item_indices, gt_pos)
+        gt_neg_mask = (
+            np.logical_not(gt_pos_mask)
+            if gt_neg is None
+            else np.in1d(item_indices, gt_neg)
+        )
+
+        pos_scores = pd_scores[gt_pos_mask]
+        neg_scores = pd_scores[gt_neg_mask]
         ui_scores = np.repeat(pos_scores, len(neg_scores))
         uj_scores = np.tile(neg_scores, len(pos_scores))
 
@@ -466,7 +474,7 @@ class MAP(RankingMetric):
             Prediction scores for items.
 
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         **kwargs: For compatibility
 
@@ -476,7 +484,7 @@ class MAP(RankingMetric):
             AP score.
 
         """
-        relevant = gt_pos.astype('bool')
+        relevant = gt_pos.astype("bool")
         rank = rankdata(-pd_scores, "max")[relevant]
         L = rankdata(-pd_scores[relevant], "max")
         ans = (L / rank).mean()
