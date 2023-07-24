@@ -16,6 +16,7 @@ from ...exception import ScoreException
 from .gcmc import NeuralNetwork
 from .utils import get_optimizer, torch_net_info, torch_total_param_num
 
+
 class GCMC(Recommender):
     def __init__(
         self,
@@ -63,7 +64,6 @@ class GCMC(Recommender):
         self.train_decay_patience = train_decay_patience
         self.train_lr_decay_factor = train_lr_decay_factor
 
-        
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
 
@@ -75,9 +75,8 @@ class GCMC(Recommender):
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        rating_values = self.train_set.uir_tuple[2] # rating array
+        rating_values = self.train_set.uir_tuple[2]  # rating array
         self.rating_values = np.unique(rating_values)
-
 
     def fit(self, train_set, val_set=None):
         Recommender.fit(self, train_set, val_set)
@@ -88,7 +87,7 @@ class GCMC(Recommender):
             self._fit_torch()
 
         return self
-    
+
     def _apply_support(self, graph, rating_values, n_users, n_items, symm=True):
         def _calc_norm(x):
             x = x.numpy().astype("float32")
@@ -128,12 +127,12 @@ class GCMC(Recommender):
         graph.nodes["item"].data.update({"ci": item_ci, "cj": item_cj})
 
         return graph
-    
+
     def _uir_tuple_to_r_data_dict(self, uir_tuple):
-        '''
+        """
         Convert uir tuple to a dictionary where keys are ratings,
         values are tuples of two lists (users, items) for that rating.
-        '''
+        """
         r_data = defaultdict()
 
         for u, i, r in zip(*uir_tuple):
@@ -141,37 +140,52 @@ class GCMC(Recommender):
                 r_data.setdefault(r, ([], []))
             r_data[r][0].append(u)
             r_data[r][1].append(i)
-        
-        return r_data
 
+        return r_data
 
     def _generate_enc_graph(self, data_set, add_support=False):
         data_dict = dict()
         num_nodes_dict = {"user": data_set.total_users, "item": data_set.total_items}
-
-        r_data = self._uir_tuple_to_r_data_dict(data_set.uir_tuple)
-
-        for r, (u_list, i_list) in r_data.items():
-            rating = str(r).replace(".", "_")
-            print(rating)
+        rating_row, rating_col, rating_values = data_set.uir_tuple
+        for rating in set(rating_values):
+            ridx = np.where(rating_values == rating)
+            rrow = rating_row[ridx]
+            rcol = rating_col[ridx]
+            rating = str(rating).replace(".", "_")
             data_dict.update(
                 {
-                    ("user", str(rating), "item"): (u_list, i_list),
-                    ("item", "rev-%s" % str(rating), "user"): (i_list, u_list),
+                    ("user", str(rating), "item"): (rrow, rcol),
+                    ("item", "rev-%s" % str(rating), "user"): (rcol, rrow),
                 }
             )
+            
+        graph = dgl.heterograph(data_dict, num_nodes_dict=num_nodes_dict)
 
-        graph = dgl.heterograph(data_dict, num_nodes_dict)
+        # sanity check
+        assert (
+            len(data_set.uir_tuple[2])
+            == sum([graph.num_edges(et) for et in graph.etypes]) // 2
+        )
 
         if add_support:
-            graph = self._apply_support(graph=graph, rating_values=self.rating_values, n_users=data_set.total_users, n_items=data_set.total_items)
+            graph = self._apply_support(
+                graph=graph,
+                rating_values=self.rating_values,
+                n_users=data_set.total_users,
+                n_items=data_set.total_items,
+            )
 
-        return graph      
+        return graph
 
     def _generate_dec_graph(self, data_set):
-        csr_matrix = data_set.csr_matrix
-        user_item_ratings_coo = csr_matrix.tocoo()
-        
+        rating_pairs = data_set.uir_tuple[:2]
+        ones = np.ones_like(rating_pairs[0])
+        user_item_ratings_coo = sp.coo_matrix(
+            (ones, rating_pairs),
+            shape=(data_set.total_users, data_set.total_items),
+            dtype=np.float32,
+        )
+
         g = dgl.bipartite_from_scipy(
             user_item_ratings_coo, utype="_U", etype="_E", vtype="_V"
         )
@@ -184,21 +198,23 @@ class GCMC(Recommender):
     def _fit_torch(self):
         # Prepare Data
         def _generate_labels(ratings):
-            labels = torch.LongTensor(
-                np.searchsorted(self.rating_values, ratings)
-            ).to(self.device)
+            labels = torch.LongTensor(np.searchsorted(self.rating_values, ratings)).to(
+                self.device
+            )
             return labels
 
-        train_enc_graph = self._generate_enc_graph(self.train_set, add_support=True)
-        train_dec_graph = self._generate_dec_graph(self.train_set)
+        self.train_enc_graph = self._generate_enc_graph(
+            self.train_set, add_support=True
+        )
+        self.train_dec_graph = self._generate_dec_graph(self.train_set)
 
         train_labels = _generate_labels(self.train_set.uir_tuple[2])
         train_truths = torch.FloatTensor(self.train_set.uir_tuple[2]).to(self.device)
 
         # TODO: possibility of validation_set to be None. Check if it works!
 
-        valid_enc_graph = train_enc_graph
-        valid_dec_graph = self._generate_dec_graph(self.val_set)
+        self.valid_enc_graph = self.train_enc_graph
+        self.valid_dec_graph = self._generate_dec_graph(self.val_set)
         # valid_labels = _generate_labels(self.val_set.uir_tuple[2])
         valid_truths = torch.FloatTensor(self.val_set.uir_tuple[2]).to(self.device)
 
@@ -210,29 +226,37 @@ class GCMC(Recommender):
             print("pair count:", pair_count)
             return pair_count
 
-        print("Train enc graph: {} users, {} items, {} pairs".format(
-            train_enc_graph.num_nodes("user"),
-            train_enc_graph.num_nodes("item"),
-            _count_pairs(train_enc_graph),
-        )) 
+        print(
+            "Train enc graph: {} users, {} items, {} pairs".format(
+                self.train_enc_graph.num_nodes("user"),
+                self.train_enc_graph.num_nodes("item"),
+                _count_pairs(self.train_enc_graph),
+            )
+        )
 
-        print("Train dec graph: {} users, {} items, {} pairs".format(
-            train_dec_graph.num_nodes("user"),
-            train_dec_graph.num_nodes("item"),
-            train_dec_graph.num_edges(),
-        ))
+        print(
+            "Train dec graph: {} users, {} items, {} pairs".format(
+                self.train_dec_graph.num_nodes("user"),
+                self.train_dec_graph.num_nodes("item"),
+                self.train_dec_graph.num_edges(),
+            )
+        )
 
-        print("Valid enc graph: {} users, {} items, {} pairs".format(
-            valid_enc_graph.num_nodes("user"),
-            valid_enc_graph.num_nodes("item"),
-            _count_pairs(valid_enc_graph),
-        ))
+        print(
+            "Valid enc graph: {} users, {} items, {} pairs".format(
+                self.valid_enc_graph.num_nodes("user"),
+                self.valid_enc_graph.num_nodes("item"),
+                _count_pairs(self.valid_enc_graph),
+            )
+        )
 
-        print("Valid dec graph: {} users, {} items, {} pairs".format(
-            valid_dec_graph.num_nodes("user"),
-            valid_dec_graph.num_nodes("item"),
-            valid_dec_graph.num_edges(),
-        ))
+        print(
+            "Valid dec graph: {} users, {} items, {} pairs".format(
+                self.valid_dec_graph.num_nodes("user"),
+                self.valid_dec_graph.num_nodes("item"),
+                self.valid_dec_graph.num_edges(),
+            )
+        )
 
         # Build Net
         self.net = NeuralNetwork(
@@ -249,9 +273,9 @@ class GCMC(Recommender):
             self.device,
         )
         self.net = self.net.to(self.device)
-        nd_positive_rating_values = torch.FloatTensor(
-            self.rating_values
-        ).to(self.device)
+        nd_positive_rating_values = torch.FloatTensor(self.rating_values).to(
+            self.device
+        )
         rating_loss_net = nn.CrossEntropyLoss()
         learning_rate = self.learning_rate
         optimizer = get_optimizer(self.optimizer)(
@@ -269,14 +293,11 @@ class GCMC(Recommender):
         count_num = 0
         count_loss = 0
 
-        train_enc_graph = train_enc_graph.int().to(self.device)
-        train_dec_graph = train_dec_graph.int().to(self.device)
-        valid_enc_graph = valid_enc_graph.int().to(self.device)
-        valid_dec_graph = valid_dec_graph.int().to(self.device)
-
-        print(train_enc_graph.device)
-
-        self.train_enc_graph = train_enc_graph
+        self.train_enc_graph = self.train_enc_graph.int().to(self.device)
+        self.train_dec_graph = self.train_dec_graph.int().to(self.device)
+        # valid_enc_graph = valid_enc_graph.int().to(self.device)
+        self.valid_enc_graph = self.train_enc_graph
+        self.valid_dec_graph = self.valid_dec_graph.int().to(self.device)
 
         print(self.train_enc_graph.device)
 
@@ -288,7 +309,7 @@ class GCMC(Recommender):
             self.net.train()
             pred_ratings = self.net(
                 self.train_enc_graph,
-                train_dec_graph,
+                self.train_dec_graph,
                 None,
                 None,
             )
@@ -303,13 +324,14 @@ class GCMC(Recommender):
                 dur.append(time.time() - t0)
 
             if iter_idx == 1:
-                print("Total # params of net: {}".format(
-                    torch_total_param_num(self.net)
-                ))
+                print(
+                    "Total # params of net: {}".format(torch_total_param_num(self.net))
+                )
                 print(torch_net_info(self.net))
-            
+
             real_pred_ratings = (
-                torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
+                torch.softmax(pred_ratings, dim=1)
+                * nd_positive_rating_values.view(1, -1)
             ).sum(dim=1)
 
             rmse = ((real_pred_ratings - train_truths) ** 2).sum()
@@ -322,22 +344,29 @@ class GCMC(Recommender):
                         iter_idx,
                         count_loss / iter_idx,
                         count_rmse / count_num,
-                        np.average(dur)
+                        np.average(dur),
                     )
                 )
                 count_rmse = 0
                 count_num = 0
 
             if iter_idx & self.train_valid_interval == 0:
-                nd_positive_rating_values = torch.FloatTensor(self.rating_values).to(self.device)
-                
+            # if False:
+                nd_positive_rating_values = torch.FloatTensor(self.rating_values).to(
+                    self.device
+                )
+
                 self.net.eval()
                 with torch.no_grad():
                     pred_ratings = self.net(
-                        valid_enc_graph, valid_dec_graph, None, None,
+                        self.valid_enc_graph,
+                        self.valid_dec_graph,
+                        None,
+                        None,
                     )
                 real_pred_ratings = (
-                    torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
+                    torch.softmax(pred_ratings, dim=1)
+                    * nd_positive_rating_values.view(1, -1)
                 ).sum(dim=1)
                 valid_rmse = ((real_pred_ratings - valid_truths) ** 2.0).mean().item()
                 valid_rmse = np.sqrt(valid_rmse)
@@ -350,10 +379,15 @@ class GCMC(Recommender):
                     self.best_model_state_dict = self.net.state_dict()
                 else:
                     no_better_valid += 1
-                    if (no_better_valid > self.train_early_stopping_patience and learning_rate <= self.train_min_learning_rate):
-                        logging.info("Early stopping threshold reached. Training stopped.")
+                    if (
+                        no_better_valid > self.train_early_stopping_patience
+                        and learning_rate <= self.train_min_learning_rate
+                    ):
+                        logging.info(
+                            "Early stopping threshold reached. Training stopped."
+                        )
                         break
-                    
+
                     if no_better_valid > self.train_decay_patience:
                         new_learning_rate = max(
                             learning_rate * self.train_lr_decay_factor,
@@ -367,15 +401,15 @@ class GCMC(Recommender):
                             no_better_valid = 0
             if self.verbose == True:
                 print(logging_str)
-        
 
-        print("Best iter idx={}, Best valid rmse={:.4f}".format(
-            best_iter, best_valid_rmse
-        ))
+        print(
+            "Best iter idx={}, Best valid rmse={:.4f}".format(
+                best_iter, best_valid_rmse
+            )
+        )
 
         # train_enc_graph = train_enc_graph.to(self.device)
         # train_dec_graph = train_dec_graph")
-
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -399,15 +433,18 @@ class GCMC(Recommender):
 
         self.net.load_state_dict(self.best_model_state_dict)
         self.net.eval()
-   
+
         if self.train_set.is_unk_user(user_idx):
-            raise ScoreException("Can't make score prediction for (user_id=%d)" % user_idx)
+            raise ScoreException(
+                "Can't make score prediction for (user_id=%d)" % user_idx
+            )
 
         if item_idx is not None:
             if self.train_set.is_unk_item(item_idx):
+                raise ScoreException(
+                    "Can't make score prediction for (item_id=%d)" % item_idx
+                )
 
-                raise ScoreException("Can't make score prediction for (item_id=%d)" % item_idx)
-            
         # user_id = (self.train_set.uir_tuple[0])[user_idx]
 
         if item_idx is None:
@@ -416,12 +453,13 @@ class GCMC(Recommender):
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-            
+
             # i_list = list(self.train_set.item_ids)
 
             rating_pairs = (
                 np.array(
-                    [user_idx for _ in range(self.train_set.total_items)], dtype=np.int32
+                    [user_idx for _ in range(self.train_set.total_items)],
+                    dtype=np.int32,
                 ),
                 np.array(range(self.train_set.total_items)),
             )
@@ -446,30 +484,27 @@ class GCMC(Recommender):
 
         score_dec_graph = dgl.heterograph(
             {("user", "rate", "item"): g.edges()},
-            num_nodes_dict={"user": self.train_set.total_users, "item": self.train_set.total_items},
+            num_nodes_dict={
+                "user": self.train_set.total_users,
+                "item": self.train_set.total_items,
+            },
         )
 
         score_dec_graph = score_dec_graph.to(self.device)
 
-
-        nd_positive_rating_values = torch.FloatTensor(
-            self.rating_values
-        ).to(self.device)
+        nd_positive_rating_values = torch.FloatTensor(self.rating_values).to(
+            self.device
+        )
 
         with torch.no_grad():
             pred_ratings = self.net(
-                self.train_enc_graph, score_dec_graph, None, None,
+                self.train_enc_graph,
+                score_dec_graph,
+                None,
+                None,
             )
         real_pred_ratings = (
             torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
         ).sum(dim=1)
 
         return real_pred_ratings.cpu().numpy()
-        
-
-
-        
-
-
-
-              
