@@ -91,19 +91,22 @@ class NDCG(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        ranked_scores = np.take(gt_pos, truncated_pd_rank)
+        ranked_scores = np.in1d(truncated_pd_rank, gt_pos).astype(int)
         gain = 2**ranked_scores - 1
         discounts = np.log2(np.arange(len(ranked_scores)) + 2)
 
         return np.sum(gain / discounts)
 
-    def compute(self, gt_pos, pd_rank, **kwargs):
+    def compute(self, gt_pos, gt_neg, pd_rank, **kwargs):
         """Compute Normalized Discounted Cumulative Gain score.
 
         Parameters
         ----------
         gt_pos: Numpy array
             Vector of positive items.
+
+        gt_neg: Numpy array
+            Vector of negative items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -117,7 +120,7 @@ class NDCG(RankingMetric):
 
         """
         dcg = self.dcg_score(gt_pos, pd_rank, self.k)
-        idcg = self.dcg_score(gt_pos, np.argsort(gt_pos)[::-1], self.k)
+        idcg = self.dcg_score(gt_pos, np.concatenate([gt_pos, gt_neg]), self.k)
         ndcg = dcg / idcg
 
         return ndcg
