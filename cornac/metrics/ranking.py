@@ -164,17 +164,15 @@ class NCRR(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        gt_pos_items = np.nonzero(gt_pos > 0)
-
         # Compute CRR
-        rec_rank = np.where(np.in1d(truncated_pd_rank, gt_pos_items))[0]
+        rec_rank = np.where(np.in1d(truncated_pd_rank, gt_pos))[0]
         if len(rec_rank) == 0:
             return 0.0
         rec_rank = rec_rank + 1  # +1 because indices starts from 0 in python
         crr = np.sum(1.0 / rec_rank)
 
         # Compute Ideal CRR
-        max_nb_pos = min(len(gt_pos_items[0]), len(truncated_pd_rank))
+        max_nb_pos = min(len(gt_pos), len(truncated_pd_rank))
         ideal_rank = np.arange(max_nb_pos)
         ideal_rank = ideal_rank + 1  # +1 because indices starts from 0 in python
         icrr = np.sum(1.0 / ideal_rank)
