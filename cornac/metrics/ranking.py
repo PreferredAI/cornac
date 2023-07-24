@@ -462,11 +462,14 @@ class MAP(RankingMetric):
     def __init__(self):
         RankingMetric.__init__(self, name="MAP")
 
-    def compute(self, pd_scores, gt_pos, **kwargs):
+    def compute(self, item_indices, pd_scores, gt_pos, **kwargs):
         """Compute Average Precision.
 
         Parameters
         ----------
+        item_indices: Numpy array
+            Items being considered for evaluation.
+            
         pd_scores: Numpy array
             Prediction scores for items.
 
@@ -481,7 +484,7 @@ class MAP(RankingMetric):
             AP score.
 
         """
-        relevant = gt_pos.astype("bool")
+        relevant = np.in1d(item_indices, gt_pos)
         rank = rankdata(-pd_scores, "max")[relevant]
         L = rankdata(-pd_scores[relevant], "max")
         ans = (L / rank).mean()
