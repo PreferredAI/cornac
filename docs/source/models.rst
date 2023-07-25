@@ -48,6 +48,11 @@ Multi-Task Explainable Recommendation (MTER)
 .. automodule:: cornac.models.mter.recom_mter
    :members:
 
+Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)
+---------------------------------------------------------------------------
+.. automodule:: cornac.models.hrdr.recom_hrdr
+   :members:
+
 Neural Attention Rating Regression with Review-level Explanations (NARRE)
 ---------------------------------------------------------------------------
 .. automodule:: cornac.models.narre.recom_narre
