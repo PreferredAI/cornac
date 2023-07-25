@@ -27,8 +27,8 @@ from ..utils.common import intersects, clip
 
 
 class Recommender:
-    """Generic class for a recommender model. All recommendation models should inherit from this class 
-    
+    """Generic class for a recommender model. All recommendation models should inherit from this class
+
     Parameters
     ----------------
     name: str, required
@@ -138,9 +138,9 @@ class Recommender:
             provided, the latest model will be loaded.
 
         trainable: boolean, optional, default: False
-            Set it to True if you would like to finetune the model. By default, 
+            Set it to True if you would like to finetune the model. By default,
             the model parameters are assumed to be fixed after being loaded.
-        
+
         Returns
         -------
         self : object
@@ -176,6 +176,19 @@ class Recommender:
         self.val_set = None if val_set is None else val_set.reset()
         return self
 
+    def transform(self, test_set):
+        """Transform test set into cached results accelerating the score function.
+        This function is supposed to be called in the `cornac.eval_methods.BaseMethod`
+        before evaluation step. It is optional for this function to be implemented.
+
+        Parameters
+        ----------
+        test_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        """
+        pass
+
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
@@ -183,7 +196,7 @@ class Recommender:
         ----------
         user_idx: int, required
             The index of the user for whom to perform score prediction.
-            
+
         item_idx: int, optional, default: None
             The index of the item for which to perform score prediction.
             If None, scores for all known items will be returned.
@@ -197,9 +210,7 @@ class Recommender:
         raise NotImplementedError("The algorithm is not able to make score prediction!")
 
     def default_score(self):
-        """Overwrite this function if your algorithm has special treatment for cold-start problem
-
-        """
+        """Overwrite this function if your algorithm has special treatment for cold-start problem"""
         return self.train_set.global_mean
 
     def rate(self, user_idx, item_idx, clipping=True):
