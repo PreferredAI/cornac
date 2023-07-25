@@ -51,7 +51,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
 
     verbose: bool, optional, default: False
         Output evaluation progress.
-        
+
     Returns
     -------
     res: (List, List)
@@ -79,7 +79,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
             miniters=100,
             total=len(u_indices),
         ),
-        dtype='float',
+        dtype="float",
     )
 
     gt_mat = test_set.csr_matrix
@@ -177,7 +177,7 @@ def ranking_eval(
         if len(test_pos_items) == 0:
             continue
 
-        u_gt_pos = np.zeros(test_set.num_items, dtype='int')
+        u_gt_pos = np.zeros(test_set.num_items, dtype="int")
         u_gt_pos[test_pos_items] = 1
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
@@ -187,7 +187,7 @@ def ranking_eval(
             else pos_items(train_mat.getrow(user_idx))
         )
 
-        u_gt_neg = np.ones(test_set.num_items, dtype='int')
+        u_gt_neg = np.ones(test_set.num_items, dtype="int")
         u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
 
         item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
@@ -585,8 +585,8 @@ class BaseMethod:
 
     def add_modalities(self, **kwargs):
         """
-        Add successfully built modalities to all datasets. This is handy for 
-        seperately built modalities that are not invoked in the build method. 
+        Add successfully built modalities to all datasets. This is handy for
+        seperately built modalities that are not invoked in the build method.
         """
         self.user_feature = kwargs.get("user_feature", None)
         self.user_text = kwargs.get("user_text", None)
@@ -671,11 +671,11 @@ class BaseMethod:
         metrics: :obj:`iterable`
             List of metrics.
 
-        user_based: bool, required 
-            Evaluation strategy for the rating metrics. Whether results 
+        user_based: bool, required
+            Evaluation strategy for the rating metrics. Whether results
             are averaging based on number of users or number of ratings.
 
-        show_validation: bool, optional, default: True 
+        show_validation: bool, optional, default: True
             Whether to show the results on validation set (if exists).
 
         Returns
@@ -707,6 +707,7 @@ class BaseMethod:
             print("\n[{}] Evaluation started!".format(model.name))
 
         start = time.time()
+        model.transform(self.test_set)
         test_result = self._eval(
             model=model,
             test_set=self.test_set,
@@ -720,6 +721,7 @@ class BaseMethod:
         val_result = None
         if show_validation and self.val_set is not None:
             start = time.time()
+            model.transform(self.val_set)
             val_result = self._eval(
                 model=model, test_set=self.val_set, val_set=None, user_based=user_based
             )
@@ -790,4 +792,3 @@ class BaseMethod:
         return method.build(
             train_data=train_data, test_data=test_data, val_data=val_data
         )
-
