@@ -60,11 +60,15 @@ class GCMC(Recommender):
         self.train_min_learning_rate = train_min_learning_rate
         self.train_decay_patience = train_decay_patience
         self.train_lr_decay_factor = train_lr_decay_factor
+        self.u_i_rating_dict = None
+        self.train_enc_graph = None
+        self.net = None
 
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
-
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
 
         if self.seed is not None:
             torch.manual_seed(self.seed)
@@ -82,7 +86,7 @@ class GCMC(Recommender):
 
         return self
 
-    def transform(self, test_set):   
+    def transform(self, test_set):
         test_dec_graph = self._generate_dec_graph(test_set)
         test_dec_graph = test_dec_graph.int().to(self.device)
 
@@ -104,11 +108,12 @@ class GCMC(Recommender):
         )
 
         test_pred_ratings = (
-            torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
+            torch.softmax(pred_ratings, dim=1)
+            * nd_positive_rating_values.view(1, -1)
         ).sum(dim=1)
 
         test_pred_ratings = test_pred_ratings.cpu().numpy()
-        
+
         (u_list, i_list, _) = test_set.uir_tuple
 
         u_list = u_list.tolist()
@@ -117,28 +122,38 @@ class GCMC(Recommender):
         self.u_i_rating_dict = defaultdict(self.default_score)
 
         for idx, rating in enumerate(test_pred_ratings):
-            self.u_i_rating_dict[str(u_list[idx]) + "-" + str(i_list[idx])] = rating
+            self.u_i_rating_dict[
+                str(u_list[idx]) + "-" + str(i_list[idx])
+            ] = rating
 
-    def _apply_support(self, graph, rating_values, n_users, n_items, symm=True):
+    def _apply_support(
+        self,
+        graph,
+        rating_values,
+        data_set,
+        symm=True
+    ):
         def _calc_norm(x):
             x = x.numpy().astype("float32")
             x[x == 0.0] = np.inf
             x = torch.FloatTensor(1.0 / np.sqrt(x))
             return x.unsqueeze(1)
 
+        n_users, n_items = data_set.total_users, data_set.total_items
+
         user_ci = []
         user_cj = []
         item_ci = []
         item_cj = []
 
-        for r in rating_values:
-            r = str(r).replace(".", "_")
-            user_ci.append(graph["rev-%s" % r].in_degrees())
-            item_ci.append(graph[r].in_degrees())
+        for rating in rating_values:
+            rating = str(rating).replace(".", "_")
+            user_ci.append(graph[f"rev-{rating}"].in_degrees())
+            item_ci.append(graph[rating].in_degrees())
 
             if symm:
-                user_cj.append(graph[r].out_degrees())
-                item_cj.append(graph["rev-%s" % r].out_degrees())
+                user_cj.append(graph[rating].out_degrees())
+                item_cj.append(graph[f"rev-{rating}"].out_degrees())
             else:
                 user_cj.append(torch.zeros((n_users,)))
                 item_cj.append(torch.zeros((n_items,)))
@@ -176,7 +191,10 @@ class GCMC(Recommender):
 
     def _generate_enc_graph(self, data_set, add_support=False):
         data_dict = dict()
-        num_nodes_dict = {"user": data_set.total_users, "item": data_set.total_items}
+        num_nodes_dict = {
+            "user": data_set.total_users,
+            "item": data_set.total_items
+        }
         rating_row, rating_col, rating_values = data_set.uir_tuple
         for rating in set(rating_values):
             ridx = np.where(rating_values == rating)
@@ -186,10 +204,10 @@ class GCMC(Recommender):
             data_dict.update(
                 {
                     ("user", str(rating), "item"): (rrow, rcol),
-                    ("item", "rev-%s" % str(rating), "user"): (rcol, rrow),
+                    ("item", f"rev-{str(rating)}", "user"): (rcol, rrow),
                 }
             )
-            
+
         graph = dgl.heterograph(data_dict, num_nodes_dict=num_nodes_dict)
 
         # sanity check
@@ -202,8 +220,7 @@ class GCMC(Recommender):
             graph = self._apply_support(
                 graph=graph,
                 rating_values=np.unique(rating_values),
-                n_users=data_set.total_users,
-                n_items=data_set.total_items,
+                data_set=data_set,
             )
 
         return graph
@@ -223,7 +240,10 @@ class GCMC(Recommender):
 
         return dgl.heterograph(
             {("user", "rate", "item"): g.edges()},
-            num_nodes_dict={"user": data_set.total_users, "item": data_set.total_items},
+            num_nodes_dict={
+                "user": data_set.total_users,
+                "item": data_set.total_items
+            },
         )
 
     def _fit_torch(self, train_set, val_set):
@@ -232,18 +252,20 @@ class GCMC(Recommender):
 
         # Prepare Data
         def _generate_labels(ratings):
-            labels = torch.LongTensor(np.searchsorted(rating_values, ratings)).to(
-                self.device
-            )
+            labels = torch.LongTensor(
+                np.searchsorted(rating_values, ratings)
+            ).to(self.device)
             return labels
 
         self.train_enc_graph = self._generate_enc_graph(
             self.train_set, add_support=True
         )
-        self.train_dec_graph = self._generate_dec_graph(self.train_set)
+        train_dec_graph = self._generate_dec_graph(self.train_set)
 
         train_labels = _generate_labels(self.train_set.uir_tuple[2])
-        train_truths = torch.FloatTensor(self.train_set.uir_tuple[2]).to(self.device)
+        train_truths = torch.FloatTensor(
+            self.train_set.uir_tuple[2]
+        ).to(self.device)
 
         def _count_pairs(graph):
             pair_count = 0
@@ -253,41 +275,39 @@ class GCMC(Recommender):
             return pair_count
 
         logging.info(
-            "Train enc graph: {} users, {} items, {} pairs".format(
-                self.train_enc_graph.num_nodes("user"),
-                self.train_enc_graph.num_nodes("item"),
-                _count_pairs(self.train_enc_graph),
-            )
+            "Train enc graph: %s users, %s items, %s pairs",
+            self.train_enc_graph.num_nodes("user"),
+            self.train_enc_graph.num_nodes("item"),
+            _count_pairs(self.train_enc_graph),
         )
 
         logging.info(
-            "Train dec graph: {} users, {} items, {} pairs".format(
-                self.train_dec_graph.num_nodes("user"),
-                self.train_dec_graph.num_nodes("item"),
-                self.train_dec_graph.num_edges(),
-            )
+            "Train dec graph: %s users, %s items, %s pairs",
+            train_dec_graph.num_nodes("user"),
+            train_dec_graph.num_nodes("item"),
+            train_dec_graph.num_edges(),
         )
 
         if val_set is not None:
-            self.valid_enc_graph = self.train_enc_graph
-            self.valid_dec_graph = self._generate_dec_graph(val_set)
-            # valid_labels = _generate_labels(self.val_set.uir_tuple[2])
-            valid_truths = torch.FloatTensor(val_set.uir_tuple[2]).to(self.device)
+            valid_enc_graph = self.train_enc_graph
+            valid_dec_graph = self._generate_dec_graph(val_set)
+
+            valid_truths = torch.FloatTensor(
+                val_set.uir_tuple[2]
+            ).to(self.device)
 
             logging.info(
-                "Valid enc graph: {} users, {} items, {} pairs".format(
-                    self.valid_enc_graph.num_nodes("user"),
-                    self.valid_enc_graph.num_nodes("item"),
-                    _count_pairs(self.valid_enc_graph),
-                )
+                "Valid enc graph: %s users, %s items, %s pairs",
+                valid_enc_graph.num_nodes("user"),
+                valid_enc_graph.num_nodes("item"),
+                _count_pairs(valid_enc_graph),
             )
 
             logging.info(
-                "Valid dec graph: {} users, {} items, {} pairs".format(
-                    self.valid_dec_graph.num_nodes("user"),
-                    self.valid_dec_graph.num_nodes("item"),
-                    self.valid_dec_graph.num_edges(),
-                )
+                "Valid dec graph: %s users, %s items, %s pairs",
+                valid_dec_graph.num_nodes("user"),
+                valid_dec_graph.num_nodes("item"),
+                valid_dec_graph.num_edges(),
             )
 
         # Build Net
@@ -324,11 +344,10 @@ class GCMC(Recommender):
         count_loss = 0
 
         self.train_enc_graph = self.train_enc_graph.int().to(self.device)
-        self.train_dec_graph = self.train_dec_graph.int().to(self.device)
-        
+        train_dec_graph = train_dec_graph.int().to(self.device)
+
         if self.val_set is not None:
-            self.valid_enc_graph = self.train_enc_graph
-            self.valid_dec_graph = self.valid_dec_graph.int().to(self.device)
+            valid_dec_graph = valid_dec_graph.int().to(self.device)
 
         print("Training Started!")
         dur = []
@@ -343,7 +362,7 @@ class GCMC(Recommender):
             self.net.train()
             pred_ratings = self.net(
                 self.train_enc_graph,
-                self.train_dec_graph,
+                train_dec_graph,
                 None,
                 None,
             )
@@ -351,7 +370,10 @@ class GCMC(Recommender):
             count_loss += loss.item()
             optimizer.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(self.net.parameters(), self.train_grad_clip)
+            nn.utils.clip_grad_norm_(
+                self.net.parameters(),
+                self.train_grad_clip
+            )
             optimizer.step()
 
             if iter_idx > 3:
@@ -359,7 +381,8 @@ class GCMC(Recommender):
 
             if iter_idx == 1:
                 logging.info(
-                    "Total # params of net: {}".format(torch_total_param_num(self.net))
+                    "Total # params of net: %s",
+                    torch_total_param_num(self.net)
                 )
                 logging.info(torch_net_info(self.net))
 
@@ -373,26 +396,27 @@ class GCMC(Recommender):
             count_num += len(train_truths)
 
             logging_str = (
-                "Epoch: {}, loss: {:.4f}, rmse:{:.4f}, time:{:.4f}".format(
-                    iter_idx,
-                    count_loss / iter_idx,
-                    count_rmse / count_num,
-                    np.average(dur),
-                )
+                f"Epoch: {iter_idx}\t" +
+                f"loss: {count_loss / iter_idx:.4f}\t" +
+                f"rmse:{count_rmse / count_num:.4f}\t" +
+                f"time:{np.average(dur):.4f}\t"
             )
             count_rmse = 0
             count_num = 0
 
-            if self.val_set is not None and iter_idx & self.train_valid_interval == 0:
-                nd_positive_rating_values = torch.FloatTensor(rating_values).to(
-                    self.device
-                )
+            if (
+                self.val_set is not None and
+                iter_idx & self.train_valid_interval == 0
+            ):
+                nd_positive_rating_values = torch.FloatTensor(
+                    rating_values
+                ).to(self.device)
 
                 self.net.eval()
                 with torch.no_grad():
                     pred_ratings = self.net(
-                        self.valid_enc_graph,
-                        self.valid_dec_graph,
+                        valid_enc_graph,
+                        valid_dec_graph,
                         None,
                         None,
                     )
@@ -400,15 +424,17 @@ class GCMC(Recommender):
                     torch.softmax(pred_ratings, dim=1)
                     * nd_positive_rating_values.view(1, -1)
                 ).sum(dim=1)
-                valid_rmse = ((real_pred_ratings - valid_truths) ** 2.0).mean().item()
+                valid_rmse = (
+                    (real_pred_ratings - valid_truths) ** 2.0
+                ).mean().item()
                 valid_rmse = np.sqrt(valid_rmse)
-                logging_str += ",\t Val rmse={:.4f}".format(valid_rmse)
+                logging_str += f"Val rmse={valid_rmse:.4f}"
 
                 if valid_rmse < best_valid_rmse:
                     best_valid_rmse = valid_rmse
                     no_better_valid = 0
                     best_iter = iter_idx
-                    self.best_model_state_dict = self.net.state_dict()
+                    best_model_state_dict = self.net.state_dict()
                 else:
                     no_better_valid += 1
                     if (
@@ -416,7 +442,8 @@ class GCMC(Recommender):
                         and learning_rate <= self.train_min_learning_rate
                     ):
                         logging.info(
-                            "Early stopping threshold reached. Training stopped."
+                            "Early stopping threshold reached."
+                            + "\nTraining stopped."
                         )
                         break
 
@@ -427,7 +454,9 @@ class GCMC(Recommender):
                         )
                         if new_learning_rate < learning_rate:
                             learning_rate = new_learning_rate
-                            logging.info("Changing LR to %g" % new_learning_rate)
+                            logging.info(
+                                "Changing LR to %g", new_learning_rate
+                            )
                             for p in optimizer.param_groups:
                                 p["lr"] = learning_rate
                             no_better_valid = 0
@@ -440,7 +469,9 @@ class GCMC(Recommender):
                     best_iter, best_valid_rmse
                 )
             )
-            self.net.load_state_dict(self.best_model_state_dict)  # load best model
+
+            # load best model
+            self.net.load_state_dict(best_model_state_dict)
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -457,7 +488,8 @@ class GCMC(Recommender):
         Returns
         -------
         res : A scalar or a Numpy array
-            Relative scores that the user gives to the item or to all known items
+            Relative scores that the user gives to the item or
+            to all known items
         """
 
         # dec_graph and scores are generated as in transform function
@@ -465,8 +497,12 @@ class GCMC(Recommender):
         # - key: {user_idx}-{item_idx}, value: {score}
         if item_idx is None:
             # Return scores of all items for a given user
-            # - If item does not exist in test_set, we provide a default score (as set in default_dict initialisation)
-            return [self.u_i_rating_dict[str(user_idx) + "-" + str(idx)] for idx in range(self.train_set.total_items)]
-        else:
-            # Return score of known user/item
-            return [self.u_i_rating_dict[str(user_idx) + "-" + str(item_idx)]]
+            # - If item does not exist in test_set, we provide a default score
+            #   (as set in default_dict initialisation)
+            return [
+                self.u_i_rating_dict[
+                    str(user_idx) + "-" + str(idx)
+                ] for idx in range(self.train_set.total_items)
+            ]
+        # Return score of known user/item
+        return [self.u_i_rating_dict[str(user_idx) + "-" + str(item_idx)]]
