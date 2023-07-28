@@ -1,3 +1,20 @@
+"""Main class for GCMC recommender model"""
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+
+
 from collections import defaultdict
 import time
 import logging
@@ -15,6 +32,78 @@ from .utils import get_optimizer, torch_net_info, torch_total_param_num
 
 
 class GCMC(Recommender):
+    """
+    Graph Convolutional Matrix Completion (GCMC)
+
+    Parameters
+    ----------
+    name: string, default: 'GCMC'
+        The name of the recommender model.
+
+    max_iter: int, default: 2000
+        Maximum number of iterations or the number of epochs for SGD
+
+    learning_rate: float, default: 0.01
+        The learning rate for SGD
+
+    optimizer: string, default: 'adam'. Supported values: 'adam','sgd'.
+        The optimization method used for SGD
+
+    activation_model: string, default: 'leaky'
+        The activation function used in the GCMC model. Supported values:
+        ['leaky', 'linear','sigmoid','relu', 'tanh']
+
+    gcn_agg_units: int, default: 500
+        The number of units in the graph convolutional layers
+
+    gcn_out_units: int, default: 75
+        The number of units in the output layer
+
+    gcn_dropout: float, default: 0.7
+        The dropout rate for the graph convolutional layers
+
+    gcn_agg_accum: string, default:'stack'
+        The graph convolutional layer aggregation type. Supported values:
+        ['stack', 'sum']
+
+    share_param: bool, default: False
+        Whether to share the parameters in the graph convolutional layers
+
+    gen_r_num_basis_func: int, default: 2
+        The number of basis functions used in the generating rating function
+
+    train_grad_clip: float, default: 1.0
+        The gradient clipping value for training
+
+    train_valid_interval: int, default: 1
+        The validation interval for training
+
+    train_early_stopping_patience: int, default: 100
+        The patience for early stopping
+
+    train_min_learning_rate: float, default: 0.001
+        The minimum learning rate for SGD
+
+    train_decay_patience: int, default: 50
+        The patience for learning rate decay
+
+    train_lr_decay_factor: float, default: 0.5
+        The learning rate decay factor
+
+    trainable: boolean, default: True
+        When False, the model is not trained and Cornac
+
+    verbose: boolean, default: True
+        When True, some running logs are displayed
+
+    seed: int, default: None
+        Random seed for parameters initialization
+
+    References
+    ----------
+    * Rianne van den Berg, Thomas N. Kipf, Max Welling.
+    Graph Convolutional Matrix Completion.
+    """
     def __init__(
         self,
         name="GCMC",
@@ -34,7 +123,6 @@ class GCMC(Recommender):
         train_min_learning_rate=0.001,
         train_decay_patience=50,
         train_lr_decay_factor=0.5,
-        init_params=None,
         trainable=True,
         verbose=True,
         seed=None,
@@ -64,8 +152,6 @@ class GCMC(Recommender):
         self.train_enc_graph = None
         self.net = None
 
-        # Init params if provided
-        self.init_params = {} if init_params is None else init_params
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu"
         )
@@ -133,11 +219,11 @@ class GCMC(Recommender):
         data_set,
         symm=True
     ):
-        def _calc_norm(x):
-            x = x.numpy().astype("float32")
-            x[x == 0.0] = np.inf
-            x = torch.FloatTensor(1.0 / np.sqrt(x))
-            return x.unsqueeze(1)
+        def _calc_norm(val):
+            val = val.numpy().astype("float32")
+            val[val == 0.0] = np.inf
+            val = torch.FloatTensor(1.0 / np.sqrt(val))
+            return val.unsqueeze(1)
 
         n_users, n_items = data_set.total_users, data_set.total_items
 
@@ -181,11 +267,11 @@ class GCMC(Recommender):
         """
         r_data = defaultdict()
 
-        for u, i, r in zip(*uir_tuple):
-            if r not in r_data:
-                r_data.setdefault(r, ([], []))
-            r_data[r][0].append(u)
-            r_data[r][1].append(i)
+        for user, item, rating in zip(*uir_tuple):
+            if rating not in r_data:
+                r_data.setdefault(rating, ([], []))
+            r_data[rating][0].append(user)
+            r_data[rating][1].append(item)
 
         return r_data
 
@@ -234,12 +320,12 @@ class GCMC(Recommender):
             dtype=np.float32,
         )
 
-        g = dgl.bipartite_from_scipy(
+        graph = dgl.bipartite_from_scipy(
             user_item_ratings_coo, utype="_U", etype="_E", vtype="_V"
         )
 
         return dgl.heterograph(
-            {("user", "rate", "item"): g.edges()},
+            {("user", "rate", "item"): graph.edges()},
             num_nodes_dict={
                 "user": data_set.total_users,
                 "item": data_set.total_items
@@ -358,7 +444,7 @@ class GCMC(Recommender):
             disable=self.verbose,
         ):
             if iter_idx > 3:
-                t0 = time.time()
+                time_start = time.time()
             self.net.train()
             pred_ratings = self.net(
                 self.train_enc_graph,
@@ -377,7 +463,7 @@ class GCMC(Recommender):
             optimizer.step()
 
             if iter_idx > 3:
-                dur.append(time.time() - t0)
+                dur.append(time.time() - time_start)
 
             if iter_idx == 1:
                 logging.info(
@@ -455,19 +541,20 @@ class GCMC(Recommender):
                         if new_learning_rate < learning_rate:
                             learning_rate = new_learning_rate
                             logging.info(
-                                "Changing LR to %g", new_learning_rate
+                                "Changing LR to %s",
+                                new_learning_rate
                             )
-                            for p in optimizer.param_groups:
-                                p["lr"] = learning_rate
+                            for param in optimizer.param_groups:
+                                param["lr"] = learning_rate
                             no_better_valid = 0
 
             logging.info(logging_str)
 
         if self.val_set is not None:
             logging.info(
-                "Best iter idx={}, Best valid rmse={:.4f}".format(
-                    best_iter, best_valid_rmse
-                )
+                "Best iter idx=%s, Best valid rmse=%.4f",
+                best_iter,
+                best_valid_rmse
             )
 
             # load best model

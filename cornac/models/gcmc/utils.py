@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 
+
 def get_activation(act):
     """Get the activation based on the act string
 
@@ -30,7 +31,8 @@ def get_activation(act):
             raise NotImplementedError
     else:
         return act
-    
+
+
 def get_optimizer(opt):
     if opt == "sgd":
         return optim.SGD
@@ -38,10 +40,12 @@ def get_optimizer(opt):
         return optim.Adam
     else:
         raise NotImplementedError
-    
+
+
 def torch_total_param_num(net):
     return sum([np.prod(p.shape) for p in net.parameters()])
-    
+
+
 def torch_net_info(net, save_path=None):
     info_str = (
         "Total Param Number: {}\n".format(torch_total_param_num(net))

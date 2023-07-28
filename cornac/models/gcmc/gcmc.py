@@ -1,14 +1,17 @@
 """NN modules"""
 import dgl.function as fn
 import dgl.nn.pytorch as dglnn
-import torch as th
+from dgl import DGLError
+import torch
 import torch.nn as nn
 from torch.nn import init
 
 from .utils import get_activation
 
+
 class NeuralNetwork(nn.Module):
-    """Base class for all neural network modules.
+    """
+    Base class for all neural network modules.
     """
 
     def __init__(
@@ -62,7 +65,8 @@ class NeuralNetwork(nn.Module):
         user_out, item_out = self.encoder(enc_graph, ufeat, ifeat)
         pred_ratings = self.decoder(dec_graph, user_out, item_out)
         return pred_ratings
-    
+
+
 class GCMCGraphConv(nn.Module):
     """Graph convolution module used in the GCMC model.
 
@@ -90,7 +94,7 @@ class GCMCGraphConv(nn.Module):
         self.dropout = nn.Dropout(dropout_rate)
 
         if weight:
-            self.weight = nn.Parameter(th.Tensor(in_feats, out_feats))
+            self.weight = nn.Parameter(torch.Tensor(in_feats, out_feats))
         else:
             self.register_parameter("weight", None)
         self.reset_parameters()
@@ -125,17 +129,17 @@ class GCMCGraphConv(nn.Module):
         with graph.local_scope():
             if isinstance(feat, tuple):
                 feat, _ = feat  # dst feature not used
-            cj = graph.srcdata["cj"]
-            ci = graph.dstdata["ci"]
+            c_j = graph.srcdata["cj"]
+            c_i = graph.dstdata["ci"]
             if self.device is not None:
-                cj = cj.to(self.device)
-                ci = ci.to(self.device)
+                c_j = c_j.to(self.device)
+                c_i = c_i.to(self.device)
             if weight is not None:
                 if self.weight is not None:
                     raise DGLError(
-                        "External weight is provided while at the same time the"
-                        " module has defined its own weight parameter. Please"
-                        " create the module with flag weight=False."
+                        "External weight is provided while at the same time"
+                        "the module has defined its own weight parameter."
+                        "Please create the module with flag weight=False."
                     )
             else:
                 weight = self.weight
@@ -143,13 +147,13 @@ class GCMCGraphConv(nn.Module):
             if weight is not None:
                 feat = dot_or_identity(feat, weight, self.device)
 
-            feat = feat * self.dropout(cj)
+            feat = feat * self.dropout(c_j)
             graph.srcdata["h"] = feat
             graph.update_all(
                 fn.copy_u(u="h", out="m"), fn.sum(msg="m", out="h")
             )
             rst = graph.dstdata["h"]
-            rst = rst * ci
+            rst = rst * c_i
 
         return rst
 
@@ -168,8 +172,8 @@ class GCMCLayer(nn.Module):
     .. math::
         h_j^{(l+1)} = \sigma_{out}W_oz_j^{(l+1)}
 
-    The equation is applied to both user nodes and item nodes and the parameters
-    are not shared unless ``share_user_item_param`` is true.
+    The equation is applied to both user nodes and item nodes and the
+    parameters are not shared unless ``share_user_item_param`` is true.
 
     Parameters
     ----------
@@ -232,25 +236,25 @@ class GCMCLayer(nn.Module):
             assert msg_units % len(rating_vals) == 0
             msg_units = msg_units // len(rating_vals)
         self.dropout = nn.Dropout(dropout_rate)
-        self.W_r = nn.ParameterDict()
-        subConv = {}
+        self.w_r = nn.ParameterDict()
+        sub_conv = {}
         for rating in rating_vals:
             # PyTorch parameter name can't contain "."
             rating = str(rating).replace(".", "_")
-            rev_rating = "rev-%s" % rating
+            rev_rating = f"rev-%{rating}"
             if share_user_item_param and user_in_units == item_in_units:
-                self.W_r[rating] = nn.Parameter(
-                    th.randn(user_in_units, msg_units)
+                self.w_r[rating] = nn.Parameter(
+                    torch.randn(user_in_units, msg_units)
                 )
-                self.W_r["rev-%s" % rating] = self.W_r[rating]
-                subConv[rating] = GCMCGraphConv(
+                self.w_r[f"rev-%{rating}"] = self.w_r[rating]
+                sub_conv[rating] = GCMCGraphConv(
                     user_in_units,
                     msg_units,
                     weight=False,
                     device=device,
                     dropout_rate=dropout_rate,
                 )
-                subConv[rev_rating] = GCMCGraphConv(
+                sub_conv[rev_rating] = GCMCGraphConv(
                     user_in_units,
                     msg_units,
                     weight=False,
@@ -258,22 +262,22 @@ class GCMCLayer(nn.Module):
                     dropout_rate=dropout_rate,
                 )
             else:
-                self.W_r = None
-                subConv[rating] = GCMCGraphConv(
+                self.w_r = None
+                sub_conv[rating] = GCMCGraphConv(
                     user_in_units,
                     msg_units,
                     weight=True,
                     device=device,
                     dropout_rate=dropout_rate,
                 )
-                subConv[rev_rating] = GCMCGraphConv(
+                sub_conv[rev_rating] = GCMCGraphConv(
                     item_in_units,
                     msg_units,
                     weight=True,
                     device=device,
                     dropout_rate=dropout_rate,
                 )
-        self.conv = dglnn.HeteroGraphConv(subConv, aggregate=agg)
+        self.conv = dglnn.HeteroGraphConv(sub_conv, aggregate=agg)
         self.agg_act = get_activation(agg_act)
         self.out_act = get_activation(out_act)
         self.device = device
@@ -295,9 +299,9 @@ class GCMCLayer(nn.Module):
             self.dropout.cuda(device)
 
     def reset_parameters(self):
-        for p in self.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p)
+        for param in self.parameters():
+            if param.dim() > 1:
+                nn.init.xavier_uniform_(param)
 
     def forward(self, graph, ufeat=None, ifeat=None):
         """Forward function
@@ -321,14 +325,14 @@ class GCMCLayer(nn.Module):
         """
         in_feats = {"user": ufeat, "item": ifeat}
         mod_args = {}
-        for i, rating in enumerate(self.rating_vals):
+        for rating in self.rating_vals:
             rating = str(rating).replace(".", "_")
-            rev_rating = "rev-%s" % rating
+            rev_rating = f"rev-%{rating}"
             mod_args[rating] = (
-                self.W_r[rating] if self.W_r is not None else None,
+                self.w_r[rating] if self.w_r is not None else None,
             )
             mod_args[rev_rating] = (
-                self.W_r[rev_rating] if self.W_r is not None else None,
+                self.w_r[rev_rating] if self.w_r is not None else None,
             )
         out_feats = self.conv(graph, in_feats, mod_args=mod_args)
         ufeat = out_feats["user"]
@@ -377,16 +381,21 @@ class BiDecoder(nn.Module):
         super(BiDecoder, self).__init__()
         self._num_basis = num_basis
         self.dropout = nn.Dropout(dropout_rate)
-        self.Ps = nn.ParameterList(
-            nn.Parameter(th.randn(in_units, in_units)) for _ in range(num_basis)
+        self.params = nn.ParameterList(
+            nn.Parameter(torch.randn(in_units, in_units))
+            for _ in range(num_basis)
         )
-        self.combine_basis = nn.Linear(self._num_basis, num_classes, bias=False)
+        self.combine_basis = nn.Linear(
+            self._num_basis,
+            num_classes,
+            bias=False
+        )
         self.reset_parameters()
 
     def reset_parameters(self):
-        for p in self.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p)
+        for param in self.parameters():
+            if param.dim() > 1:
+                nn.init.xavier_uniform_(param)
 
     def forward(self, graph, ufeat, ifeat):
         """Forward function.
@@ -402,7 +411,7 @@ class BiDecoder(nn.Module):
 
         Returns
         -------
-        th.Tensor
+        torch.Tensor
             Predicting scores for each user-item edge.
         """
         with graph.local_scope():
@@ -411,10 +420,10 @@ class BiDecoder(nn.Module):
             graph.nodes["item"].data["h"] = ifeat
             basis_out = []
             for i in range(self._num_basis):
-                graph.nodes["user"].data["h"] = ufeat @ self.Ps[i]
+                graph.nodes["user"].data["h"] = ufeat @ self.params[i]
                 graph.apply_edges(fn.u_dot_v("h", "h", "sr"))
                 basis_out.append(graph.edata["sr"])
-            out = th.cat(basis_out, dim=1)
+            out = torch.cat(basis_out, dim=1)
             out = self.combine_basis(out)
         return out
 
@@ -423,8 +432,8 @@ class DenseBiDecoder(nn.Module):
     r"""Dense bi-linear decoder.
 
     Dense implementation of the bi-linear decoder used in GCMC. Suitable when
-    the graph can be efficiently represented by a pair of arrays (one for source
-    nodes; one for destination nodes).
+    the graph can be efficiently represented by a pair of arrays (one for
+    source nodes; one for destination nodes).
 
     Parameters
     ----------
@@ -442,14 +451,18 @@ class DenseBiDecoder(nn.Module):
         super().__init__()
         self._num_basis = num_basis
         self.dropout = nn.Dropout(dropout_rate)
-        self.P = nn.Parameter(th.randn(num_basis, in_units, in_units))
-        self.combine_basis = nn.Linear(self._num_basis, num_classes, bias=False)
+        self.P = nn.Parameter(torch.randn(num_basis, in_units, in_units))
+        self.combine_basis = nn.Linear(
+            self._num_basis,
+            num_classes,
+            bias=False
+        )
         self.reset_parameters()
 
     def reset_parameters(self):
-        for p in self.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p)
+        for param in self.parameters():
+            if param.dim() > 1:
+                nn.init.xavier_uniform_(param)
 
     def forward(self, ufeat, ifeat):
         """Forward function.
@@ -465,12 +478,12 @@ class DenseBiDecoder(nn.Module):
 
         Returns
         -------
-        th.Tensor
+        torch.Tensor
             Predicting scores for each user-item edge. Shape: (B, num_classes)
         """
         ufeat = self.dropout(ufeat)
         ifeat = self.dropout(ifeat)
-        out = th.einsum("ai,bij,aj->ab", ufeat, self.P, ifeat)
+        out = torch.einsum("ai,bij,aj->ab", ufeat, self.P, ifeat)
         out = self.combine_basis(out)
         return out
 
@@ -479,10 +492,8 @@ def dot_or_identity(A, B, device=None):
     # if A is None, treat as identity matrix
     if A is None:
         return B
-    elif len(A.shape) == 1:
+    if len(A.shape) == 1:
         if device is None:
             return B[A]
-        else:
-            return B[A].to(device)
-    else:
-        return A @ B
+        return B[A].to(device)
+    return A @ B
