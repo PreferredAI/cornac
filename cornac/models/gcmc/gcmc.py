@@ -143,6 +143,7 @@ def _init_and_prepare_data(self, train_set, val_set):
         valid_truths
     )
 
+
 def _build_net(self, rating_values, train_set):
     # Build Net
     self.net = NeuralNetwork(
