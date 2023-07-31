@@ -1,499 +1,436 @@
-"""NN modules"""
-import dgl.function as fn
-import dgl.nn.pytorch as dglnn
-from dgl import DGLError
+import logging
+import time
+from collections import defaultdict
 import torch
-import torch.nn as nn
-from torch.nn import init
+from torch import nn
+import dgl
+import numpy as np
+import scipy.sparse as sp
+from tqdm import tqdm
 
-from .utils import get_activation
+from .nn_modules import NeuralNetwork
+from .utils import get_optimizer, torch_net_info, torch_total_param_num
 
 
-class NeuralNetwork(nn.Module):
-    """
-    Base class for all neural network modules.
-    """
+def fit_torch(self, train_set, val_set):
+    self.device = torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
+    )
 
-    def __init__(
-        self,
-        activation_model,
+    if self.seed is not None:
+        torch.manual_seed(self.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(self.seed)
+
+    if self.verbose:
+        logging.basicConfig(level=logging.INFO)
+
+    rating_values = train_set.uir_tuple[2]  # rating list
+    rating_values = np.unique(rating_values)
+
+    # Prepare Data
+    def _generate_labels(ratings):
+        labels = torch.LongTensor(
+            np.searchsorted(rating_values, ratings)
+        ).to(self.device)
+        return labels
+
+    self.train_enc_graph = generate_enc_graph(
+        train_set, add_support=True
+    )
+    train_dec_graph = generate_dec_graph(train_set)
+
+    train_labels = _generate_labels(train_set.uir_tuple[2])
+    train_truths = torch.FloatTensor(
+        train_set.uir_tuple[2]
+    ).to(self.device)
+
+    def _count_pairs(graph):
+        pair_count = 0
+        for r_val in rating_values:
+            r_val = str(r_val).replace(".", "_")
+            pair_count += graph.num_edges(str(r_val))
+        return pair_count
+
+    logging.info(
+        "Train enc graph: %s users, %s items, %s pairs",
+        self.train_enc_graph.num_nodes("user"),
+        self.train_enc_graph.num_nodes("item"),
+        _count_pairs(self.train_enc_graph),
+    )
+
+    logging.info(
+        "Train dec graph: %s users, %s items, %s pairs",
+        train_dec_graph.num_nodes("user"),
+        train_dec_graph.num_nodes("item"),
+        train_dec_graph.num_edges(),
+    )
+
+    if val_set is not None:
+        valid_enc_graph = self.train_enc_graph
+        valid_dec_graph = generate_dec_graph(val_set)
+
+        valid_truths = torch.FloatTensor(
+            val_set.uir_tuple[2]
+        ).to(self.device)
+
+        logging.info(
+            "Valid enc graph: %s users, %s items, %s pairs",
+            valid_enc_graph.num_nodes("user"),
+            valid_enc_graph.num_nodes("item"),
+            _count_pairs(valid_enc_graph),
+        )
+
+        logging.info(
+            "Valid dec graph: %s users, %s items, %s pairs",
+            valid_dec_graph.num_nodes("user"),
+            valid_dec_graph.num_nodes("item"),
+            valid_dec_graph.num_edges(),
+        )
+
+    # Build Net
+    self.net = NeuralNetwork(
+        self.activation_model,
         rating_values,
-        n_users,
-        n_items,
-        gcn_agg_units,
-        gcn_out_units,
-        gcn_dropout,
-        gcn_agg_accum,
-        gen_r_num_basis_func,
-        share_param,
-        device,
+        train_set.total_users,
+        train_set.total_items,
+        self.gcn_agg_units,
+        self.gcn_out_units,
+        self.gcn_dropout,
+        self.gcn_agg_accum,
+        self.gen_r_num_basis_func,
+        self.share_param,
+        self.device,
+    )
+    self.net = self.net.to(self.device)
+    nd_positive_rating_values = torch.FloatTensor(rating_values).to(
+        self.device
+    )
+    rating_loss_net = nn.CrossEntropyLoss()
+    learning_rate = self.learning_rate
+    optimizer = get_optimizer(self.optimizer)(
+        self.net.parameters(), lr=learning_rate
+    )
+    print("NN Loading Complete!")
+
+    # declare the loss information
+    best_valid_rmse = np.inf
+    no_better_valid = 0
+    best_iter = -1
+    count_rmse = 0
+    count_num = 0
+    count_loss = 0
+
+    self.train_enc_graph = self.train_enc_graph.int().to(self.device)
+    train_dec_graph = train_dec_graph.int().to(self.device)
+
+    if self.val_set is not None:
+        valid_enc_graph = valid_enc_graph.int().to(self.device)
+        valid_dec_graph = valid_dec_graph.int().to(self.device)
+
+    print("Training Started!")
+    dur = []
+    for iter_idx in tqdm(
+        range(1, self.max_iter),
+        desc="Training",
+        unit="iter",
+        disable=self.verbose,
     ):
-        super(NeuralNetwork, self).__init__()
-        self._act = get_activation(activation_model)
-        self.encoder = GCMCLayer(
-            rating_values,
-            n_users,
-            n_items,
-            gcn_agg_units,
-            gcn_out_units,
-            gcn_dropout,
-            gcn_agg_accum,
-            agg_act=self._act,
-            share_user_item_param=share_param,
-            device=device,
+        if iter_idx > 3:
+            time_start = time.time()
+        self.net.train()
+        pred_ratings = self.net(
+            self.train_enc_graph,
+            train_dec_graph,
+            None,
+            None,
         )
-        self.decoder = BiDecoder(
-            in_units=gcn_out_units,
-            num_classes=len(rating_values),
-            num_basis=gen_r_num_basis_func,
+        loss = rating_loss_net(pred_ratings, train_labels).mean()
+        count_loss += loss.item()
+        optimizer.zero_grad()
+        loss.backward()
+        nn.utils.clip_grad_norm_(
+            self.net.parameters(),
+            self.train_grad_clip
         )
+        optimizer.step()
 
-    def forward(self, enc_graph, dec_graph, ufeat, ifeat):
-        """Forward computation
+        if iter_idx > 3:
+            dur.append(time.time() - time_start)
 
-        Parameters
-        ----------
-        enc_graph : DGLGraph
-            The graph for encoding
-        dec_graph : DGLGraph
-            The graph for decoding
-        ufeat : torch.Tensor
-            The input user feature
-        ifeat : torch.Tensor
-            The input item feature
-        """
-        user_out, item_out = self.encoder(enc_graph, ufeat, ifeat)
-        pred_ratings = self.decoder(dec_graph, user_out, item_out)
-        return pred_ratings
+        if iter_idx == 1:
+            logging.info(
+                "Total # params of net: %s",
+                torch_total_param_num(self.net)
+            )
+            logging.info(torch_net_info(self.net))
 
+        real_pred_ratings = (
+            torch.softmax(pred_ratings, dim=1)
+            * nd_positive_rating_values.view(1, -1)
+        ).sum(dim=1)
 
-class GCMCGraphConv(nn.Module):
-    """Graph convolution module used in the GCMC model.
+        rmse = ((real_pred_ratings - train_truths) ** 2).sum()
+        count_rmse += rmse.item()
+        count_num += len(train_truths)
 
-    Parameters
-    ----------
-    in_feats : int
-        Input feature size.
-    out_feats : int
-        Output feature size.
-    weight : bool, optional
-        If True, apply a linear layer. Otherwise, aggregating the messages
-        without a weight matrix or with an shared weight provided by caller.
-    device: str, optional
-        Which device to put data in. Useful in mix_cpu_gpu training and
-        multi-gpu training
-    """
+        logging_str = (
+            f"Epoch: {iter_idx}\t" +
+            f"loss: {count_loss / iter_idx:.4f}\t" +
+            f"rmse:{count_rmse / count_num:.4f}\t" +
+            f"time:{np.average(dur):.4f}\t"
+        )
+        count_rmse = 0
+        count_num = 0
 
-    def __init__(
-        self, in_feats, out_feats, weight=True, device=None, dropout_rate=0.0
-    ):
-        super(GCMCGraphConv, self).__init__()
-        self._in_feats = in_feats
-        self._out_feats = out_feats
-        self.device = device
-        self.dropout = nn.Dropout(dropout_rate)
+        if (
+            self.val_set is not None and
+            iter_idx & self.train_valid_interval == 0
+        ):
+            nd_positive_rating_values = torch.FloatTensor(
+                rating_values
+            ).to(self.device)
 
-        if weight:
-            self.weight = nn.Parameter(torch.Tensor(in_feats, out_feats))
-        else:
-            self.register_parameter("weight", None)
-        self.reset_parameters()
+            self.net.eval()
+            with torch.no_grad():
+                pred_ratings = self.net(
+                    valid_enc_graph,
+                    valid_dec_graph,
+                    None,
+                    None,
+                )
+            real_pred_ratings = (
+                torch.softmax(pred_ratings, dim=1)
+                * nd_positive_rating_values.view(1, -1)
+            ).sum(dim=1)
+            valid_rmse = (
+                (real_pred_ratings - valid_truths) ** 2.0
+            ).mean().item()
+            valid_rmse = np.sqrt(valid_rmse)
+            logging_str += f"Val rmse={valid_rmse:.4f}"
 
-    def reset_parameters(self):
-        """Reinitialize learnable parameters."""
-        if self.weight is not None:
-            init.xavier_uniform_(self.weight)
-
-    def forward(self, graph, feat, weight=None):
-        """Compute graph convolution.
-
-        Normalizer constant :math:`c_{ij}` is stored as two node data "ci"
-        and "cj".
-
-        Parameters
-        ----------
-        graph : DGLGraph
-            The graph.
-        feat : torch.Tensor
-            The input feature
-        weight : torch.Tensor, optional
-            Optional external weight tensor.
-        dropout : torch.nn.Dropout, optional
-            Optional external dropout layer.
-
-        Returns
-        -------
-        torch.Tensor
-            The output feature
-        """
-        with graph.local_scope():
-            if isinstance(feat, tuple):
-                feat, _ = feat  # dst feature not used
-            c_j = graph.srcdata["cj"]
-            c_i = graph.dstdata["ci"]
-            if self.device is not None:
-                c_j = c_j.to(self.device)
-                c_i = c_i.to(self.device)
-            if weight is not None:
-                if self.weight is not None:
-                    raise DGLError(
-                        "External weight is provided while at the same time"
-                        "the module has defined its own weight parameter."
-                        "Please create the module with flag weight=False."
+            if valid_rmse < best_valid_rmse:
+                best_valid_rmse = valid_rmse
+                no_better_valid = 0
+                best_iter = iter_idx
+                best_model_state_dict = self.net.state_dict()
+            else:
+                no_better_valid += 1
+                if (
+                    no_better_valid > self.train_early_stopping_patience
+                    and learning_rate <= self.train_min_learning_rate
+                ):
+                    logging.info(
+                        "Early stopping threshold reached."
+                        + "\nTraining stopped."
                     )
-            else:
-                weight = self.weight
+                    break
 
-            if weight is not None:
-                feat = dot_or_identity(feat, weight, self.device)
+                if no_better_valid > self.train_decay_patience:
+                    new_learning_rate = max(
+                        learning_rate * self.train_lr_decay_factor,
+                        self.train_min_learning_rate,
+                    )
+                    if new_learning_rate < learning_rate:
+                        learning_rate = new_learning_rate
+                        logging.info(
+                            "Changing LR to %s",
+                            new_learning_rate
+                        )
+                        for param in optimizer.param_groups:
+                            param["lr"] = learning_rate
+                        no_better_valid = 0
 
-            feat = feat * self.dropout(c_j)
-            graph.srcdata["h"] = feat
-            graph.update_all(
-                fn.copy_u(u="h", out="m"), fn.sum(msg="m", out="h")
-            )
-            rst = graph.dstdata["h"]
-            rst = rst * c_i
+        logging.info(logging_str)
 
-        return rst
+    if self.val_set is not None:
+        logging.info(
+            "Best iter idx=%s, Best valid rmse=%.4f",
+            best_iter,
+            best_valid_rmse
+        )
+
+        # load best model
+        self.net.load_state_dict(best_model_state_dict)
 
 
-class GCMCLayer(nn.Module):
-    r"""GCMC layer
+def generate_enc_graph(data_set, add_support=False):
+    data_dict = dict()
+    num_nodes_dict = {
+        "user": data_set.total_users,
+        "item": data_set.total_items
+    }
+    rating_row, rating_col, rating_values = data_set.uir_tuple
+    for rating in set(rating_values):
+        ridx = np.where(rating_values == rating)
+        rrow = rating_row[ridx]
+        rcol = rating_col[ridx]
+        rating = str(rating).replace(".", "_")
+        data_dict.update(
+            {
+                ("user", str(rating), "item"): (rrow, rcol),
+                ("item", f"rev-{str(rating)}", "user"): (rcol, rrow),
+            }
+        )
 
-    .. math::
-        z_j^{(l+1)} = \sigma_{agg}\left[\mathrm{agg}\left(
-        \sum_{j\in\mathcal{N}_1}\frac{1}{c_{ij}}W_1h_j, \ldots,
-        \sum_{j\in\mathcal{N}_R}\frac{1}{c_{ij}}W_Rh_j
-        \right)\right]
+    graph = dgl.heterograph(data_dict, num_nodes_dict=num_nodes_dict)
 
-    After that, apply an extra output projection:
+    # sanity check
+    assert (
+        len(data_set.uir_tuple[2])
+        == sum([graph.num_edges(et) for et in graph.etypes]) // 2
+    )
 
-    .. math::
-        h_j^{(l+1)} = \sigma_{out}W_oz_j^{(l+1)}
+    if add_support:
+        graph = apply_support(
+            graph=graph,
+            rating_values=np.unique(rating_values),
+            data_set=data_set,
+        )
 
-    The equation is applied to both user nodes and item nodes and the
-    parameters are not shared unless ``share_user_item_param`` is true.
+    return graph
 
-    Parameters
-    ----------
-    rating_vals : list of int or float
-        Possible rating values.
-    user_in_units : int
-        Size of user input feature
-    item_in_units : int
-        Size of item input feature
-    msg_units : int
-        Size of message :math:`W_rh_j`
-    out_units : int
-        Size of of final output user and item features
-    dropout_rate : float, optional
-        Dropout rate (Default: 0.0)
-    agg : str, optional
-        Function to aggregate messages of different ratings.
-        Could be any of the supported cross type reducers:
-        "sum", "max", "min", "mean", "stack".
-        (Default: "stack")
-    agg_act : callable, str, optional
-        Activation function :math:`sigma_{agg}`. (Default: None)
-    out_act : callable, str, optional
-        Activation function :math:`sigma_{agg}`. (Default: None)
-    share_user_item_param : bool, optional
-        If true, user node and item node share the same set of parameters.
-        Require ``user_in_units`` and ``move_in_units`` to be the same.
-        (Default: False)
-    device: str, optional
-        Which device to put data in. Useful in mix_cpu_gpu training and
-        multi-gpu training
-    """
 
-    def __init__(
-        self,
-        rating_vals,
-        user_in_units,
-        item_in_units,
-        msg_units,
-        out_units,
-        dropout_rate=0.0,
-        agg="stack",  # or 'sum'
-        agg_act=None,
-        out_act=None,
-        share_user_item_param=False,
-        device=None,
-    ):
-        super(GCMCLayer, self).__init__()
-        self.rating_vals = rating_vals
-        self.agg = agg
-        self.share_user_item_param = share_user_item_param
-        self.ufc = nn.Linear(msg_units, out_units)
-        if share_user_item_param:
-            self.ifc = self.ufc
+def generate_dec_graph(data_set):
+    rating_pairs = data_set.uir_tuple[:2]
+    ones = np.ones_like(rating_pairs[0])
+    user_item_ratings_coo = sp.coo_matrix(
+        (ones, rating_pairs),
+        shape=(data_set.total_users, data_set.total_items),
+        dtype=np.float32,
+    )
+
+    graph = dgl.bipartite_from_scipy(
+        user_item_ratings_coo, utype="_U", etype="_E", vtype="_V"
+    )
+
+    return dgl.heterograph(
+        {("user", "rate", "item"): graph.edges()},
+        num_nodes_dict={
+            "user": data_set.total_users,
+            "item": data_set.total_items
+        },
+    )
+
+
+def apply_support(
+        graph,
+        rating_values,
+        data_set,
+        symm=True
+):
+    def _calc_norm(val):
+        val = val.numpy().astype("float32")
+        val[val == 0.0] = np.inf
+        val = torch.FloatTensor(1.0 / np.sqrt(val))
+        return val.unsqueeze(1)
+
+    n_users, n_items = data_set.total_users, data_set.total_items
+
+    user_ci = []
+    user_cj = []
+    item_ci = []
+    item_cj = []
+
+    for rating in rating_values:
+        rating = str(rating).replace(".", "_")
+        user_ci.append(graph[f"rev-{rating}"].in_degrees())
+        item_ci.append(graph[rating].in_degrees())
+
+        if symm:
+            user_cj.append(graph[rating].out_degrees())
+            item_cj.append(graph[f"rev-{rating}"].out_degrees())
         else:
-            self.ifc = nn.Linear(msg_units, out_units)
-        if agg == "stack":
-            # divide the original msg unit size by number of ratings to keep
-            # the dimensionality
-            assert msg_units % len(rating_vals) == 0
-            msg_units = msg_units // len(rating_vals)
-        self.dropout = nn.Dropout(dropout_rate)
-        self.w_r = nn.ParameterDict()
-        sub_conv = {}
-        for rating in rating_vals:
-            # PyTorch parameter name can't contain "."
-            rating = str(rating).replace(".", "_")
-            rev_rating = f"rev-%{rating}"
-            if share_user_item_param and user_in_units == item_in_units:
-                self.w_r[rating] = nn.Parameter(
-                    torch.randn(user_in_units, msg_units)
-                )
-                self.w_r[f"rev-%{rating}"] = self.w_r[rating]
-                sub_conv[rating] = GCMCGraphConv(
-                    user_in_units,
-                    msg_units,
-                    weight=False,
-                    device=device,
-                    dropout_rate=dropout_rate,
-                )
-                sub_conv[rev_rating] = GCMCGraphConv(
-                    user_in_units,
-                    msg_units,
-                    weight=False,
-                    device=device,
-                    dropout_rate=dropout_rate,
-                )
-            else:
-                self.w_r = None
-                sub_conv[rating] = GCMCGraphConv(
-                    user_in_units,
-                    msg_units,
-                    weight=True,
-                    device=device,
-                    dropout_rate=dropout_rate,
-                )
-                sub_conv[rev_rating] = GCMCGraphConv(
-                    item_in_units,
-                    msg_units,
-                    weight=True,
-                    device=device,
-                    dropout_rate=dropout_rate,
-                )
-        self.conv = dglnn.HeteroGraphConv(sub_conv, aggregate=agg)
-        self.agg_act = get_activation(agg_act)
-        self.out_act = get_activation(out_act)
-        self.device = device
-        self.reset_parameters()
-
-    def partial_to(self, device):
-        """Put parameters into device except W_r
-
-        Parameters
-        ----------
-        device : torch device
-            Which device the parameters are put in.
-        """
-        assert device == self.device
-        if device is not None:
-            self.ufc.cuda(device)
-            if self.share_user_item_param is False:
-                self.ifc.cuda(device)
-            self.dropout.cuda(device)
-
-    def reset_parameters(self):
-        for param in self.parameters():
-            if param.dim() > 1:
-                nn.init.xavier_uniform_(param)
-
-    def forward(self, graph, ufeat=None, ifeat=None):
-        """Forward function
-
-        Parameters
-        ----------
-        graph : DGLGraph
-            User-item rating graph. It should contain two node types: "user"
-            and "item" and many edge types each for one rating value.
-        ufeat : torch.Tensor, optional
-            User features. If None, using an identity matrix.
-        ifeat : torch.Tensor, optional
-            Item features. If None, using an identity matrix.
-
-        Returns
-        -------
-        new_ufeat : torch.Tensor
-            New user features
-        new_ifeat : torch.Tensor
-            New item features
-        """
-        in_feats = {"user": ufeat, "item": ifeat}
-        mod_args = {}
-        for rating in self.rating_vals:
-            rating = str(rating).replace(".", "_")
-            rev_rating = f"rev-%{rating}"
-            mod_args[rating] = (
-                self.w_r[rating] if self.w_r is not None else None,
-            )
-            mod_args[rev_rating] = (
-                self.w_r[rev_rating] if self.w_r is not None else None,
-            )
-        out_feats = self.conv(graph, in_feats, mod_args=mod_args)
-        ufeat = out_feats["user"]
-        ifeat = out_feats["item"]
-        ufeat = ufeat.view(ufeat.shape[0], -1)
-        ifeat = ifeat.view(ifeat.shape[0], -1)
-
-        # fc and non-linear
-        ufeat = self.agg_act(ufeat)
-        ifeat = self.agg_act(ifeat)
-        ufeat = self.dropout(ufeat)
-        ifeat = self.dropout(ifeat)
-        ufeat = self.ufc(ufeat)
-        ifeat = self.ifc(ifeat)
-        return self.out_act(ufeat), self.out_act(ifeat)
-
-
-class BiDecoder(nn.Module):
-    r"""Bi-linear decoder.
-
-    Given a bipartite graph G, for each edge (i, j) ~ G, compute the likelihood
-    of it being class r by:
-
-    .. math::
-        p(M_{ij}=r) = \text{softmax}(u_i^TQ_rv_j)
-
-    The trainable parameter :math:`Q_r` is further decomposed to a linear
-    combination of basis weight matrices :math:`P_s`:
-
-    .. math::
-        Q_r = \sum_{s=1}^{b} a_{rs}P_s
-
-    Parameters
-    ----------
-    in_units : int
-        Size of input user and item features
-    num_classes : int
-        Number of classes.
-    num_basis : int, optional
-        Number of basis. (Default: 2)
-    dropout_rate : float, optional
-        Dropout raite (Default: 0.0)
-    """
-
-    def __init__(self, in_units, num_classes, num_basis=2, dropout_rate=0.0):
-        super(BiDecoder, self).__init__()
-        self._num_basis = num_basis
-        self.dropout = nn.Dropout(dropout_rate)
-        self.params = nn.ParameterList(
-            nn.Parameter(torch.randn(in_units, in_units))
-            for _ in range(num_basis)
+            user_cj.append(torch.zeros((n_users,)))
+            item_cj.append(torch.zeros((n_items,)))
+    user_ci = _calc_norm(sum(user_ci))
+    item_ci = _calc_norm(sum(item_ci))
+    if symm:
+        user_cj = _calc_norm(sum(user_cj))
+        item_cj = _calc_norm(sum(item_cj))
+    else:
+        user_cj = torch.ones(
+            n_users,
         )
-        self.combine_basis = nn.Linear(
-            self._num_basis,
-            num_classes,
-            bias=False
+        item_cj = torch.ones(
+            n_items,
         )
-        self.reset_parameters()
+    graph.nodes["user"].data.update({"ci": user_ci, "cj": user_cj})
+    graph.nodes["item"].data.update({"ci": item_ci, "cj": item_cj})
 
-    def reset_parameters(self):
-        for param in self.parameters():
-            if param.dim() > 1:
-                nn.init.xavier_uniform_(param)
-
-    def forward(self, graph, ufeat, ifeat):
-        """Forward function.
-
-        Parameters
-        ----------
-        graph : DGLGraph
-            "Flattened" user-item graph with only one edge type.
-        ufeat : th.Tensor
-            User embeddings. Shape: (|V_u|, D)
-        ifeat : th.Tensor
-            Item embeddings. Shape: (|V_m|, D)
-
-        Returns
-        -------
-        torch.Tensor
-            Predicting scores for each user-item edge.
-        """
-        with graph.local_scope():
-            ufeat = self.dropout(ufeat)
-            ifeat = self.dropout(ifeat)
-            graph.nodes["item"].data["h"] = ifeat
-            basis_out = []
-            for i in range(self._num_basis):
-                graph.nodes["user"].data["h"] = ufeat @ self.params[i]
-                graph.apply_edges(fn.u_dot_v("h", "h", "sr"))
-                basis_out.append(graph.edata["sr"])
-            out = torch.cat(basis_out, dim=1)
-            out = self.combine_basis(out)
-        return out
+    return graph
 
 
-class DenseBiDecoder(nn.Module):
-    r"""Dense bi-linear decoder.
+def process_test_set(self, test_set):
+    test_dec_graph = generate_dec_graph(test_set)
+    test_dec_graph = test_dec_graph.int().to(self.device)
 
-    Dense implementation of the bi-linear decoder used in GCMC. Suitable when
-    the graph can be efficiently represented by a pair of arrays (one for
-    source nodes; one for destination nodes).
+    self.net.eval()
 
-    Parameters
-    ----------
-    in_units : int
-        Size of input user and item features
-    num_classes : int
-        Number of classes.
-    num_basis : int, optional
-        Number of basis. (Default: 2)
-    dropout_rate : float, optional
-        Dropout raite (Default: 0.0)
-    """
-
-    def __init__(self, in_units, num_classes, num_basis=2, dropout_rate=0.0):
-        super().__init__()
-        self._num_basis = num_basis
-        self.dropout = nn.Dropout(dropout_rate)
-        self.P = nn.Parameter(torch.randn(num_basis, in_units, in_units))
-        self.combine_basis = nn.Linear(
-            self._num_basis,
-            num_classes,
-            bias=False
+    with torch.no_grad():
+        pred_ratings = self.net(
+            self.train_enc_graph,
+            test_dec_graph,
+            None,
+            None,
         )
-        self.reset_parameters()
 
-    def reset_parameters(self):
-        for param in self.parameters():
-            if param.dim() > 1:
-                nn.init.xavier_uniform_(param)
+    test_rating_values = test_set.uir_tuple[2]
+    test_rating_values = np.unique(test_rating_values)
 
-    def forward(self, ufeat, ifeat):
-        """Forward function.
+    nd_positive_rating_values = torch.FloatTensor(test_rating_values).to(
+        self.device
+    )
 
-        Compute logits for each pair ``(ufeat[i], ifeat[i])``.
+    test_pred_ratings = (
+        torch.softmax(pred_ratings, dim=1)
+        * nd_positive_rating_values.view(1, -1)
+    ).sum(dim=1)
 
-        Parameters
-        ----------
-        ufeat : th.Tensor
-            User embeddings. Shape: (B, D)
-        ifeat : th.Tensor
-            Item embeddings. Shape: (B, D)
+    test_pred_ratings = test_pred_ratings.cpu().numpy()
 
-        Returns
-        -------
-        torch.Tensor
-            Predicting scores for each user-item edge. Shape: (B, num_classes)
-        """
-        ufeat = self.dropout(ufeat)
-        ifeat = self.dropout(ifeat)
-        out = torch.einsum("ai,bij,aj->ab", ufeat, self.P, ifeat)
-        out = self.combine_basis(out)
-        return out
+    (u_list, i_list, _) = test_set.uir_tuple
+
+    u_list = u_list.tolist()
+    i_list = i_list.tolist()
+
+    u_i_rating_dict = defaultdict(self.default_score)
+
+    for idx, rating in enumerate(test_pred_ratings):
+        u_i_rating_dict[
+            str(u_list[idx]) + "-" + str(i_list[idx])
+        ] = rating
+    return u_i_rating_dict
 
 
-def dot_or_identity(A, B, device=None):
-    # if A is None, treat as identity matrix
-    if A is None:
-        return B
-    if len(A.shape) == 1:
-        if device is None:
-            return B[A]
-        return B[A].to(device)
-    return A @ B
+# def _uir_tuple_to_r_data_dict(uir_tuple):
+#     """
+#     Convert uir tuple to a dictionary where keys are ratings,
+#     values are tuples of two lists (users, items) for that rating.
+#     """
+#     r_data = defaultdict()
+
+#     for user, item, rating in zip(*uir_tuple):
+#         if rating not in r_data:
+#             r_data.setdefault(rating, ([], []))
+#         r_data[rating][0].append(user)
+#         r_data[rating][1].append(item)
+
+#     return r_data
+
+
+def get_score(self, user_idx, item_idx):
+    # dec_graph and scores are generated as in transform function
+    # - get score by accessing dictionary generated in transform function
+    # - key: {user_idx}-{item_idx}, value: {score}
+    if item_idx is None:
+        # Return scores of all items for a given user
+        # - If item does not exist in test_set, we provide a default score
+        #   (as set in default_dict initialisation)
+        return [
+            self.u_i_rating_dict[
+                str(user_idx) + "-" + str(idx)
+            ] for idx in range(self.train_set.total_items)
+        ]
+    # Return score of known user/item
+    return [self.u_i_rating_dict[str(user_idx) + "-" + str(item_idx)]]
