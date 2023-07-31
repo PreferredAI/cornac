@@ -24,6 +24,41 @@ def fit_torch(self, train_set, val_set):
     val_set : cornac.data.dataset.Dataset
         The validation set as provided by cornac. Could be None.
     """
+    (
+        rating_values,
+        train_dec_graph,
+        valid_enc_graph,
+        valid_dec_graph,
+        train_labels,
+        train_truths,
+        valid_truths
+    ) = _init_and_prepare_data(self, train_set, val_set)
+
+    (
+        nd_positive_rating_values,
+        rating_loss_net,
+        optimizer,
+        learning_rate,
+    ) = _build_net(self, rating_values, train_set)
+
+    _train_model(
+        self,
+        rating_values,
+        train_dec_graph,
+        valid_enc_graph,
+        valid_dec_graph,
+        train_labels,
+        train_truths,
+        valid_truths,
+        nd_positive_rating_values,
+        rating_loss_net,
+        optimizer,
+        learning_rate
+    )
+
+
+def _init_and_prepare_data(self, train_set, val_set):
+    # init torch device and logging
     self.device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )
@@ -46,10 +81,10 @@ def fit_torch(self, train_set, val_set):
         ).to(self.device)
         return labels
 
-    self.train_enc_graph = generate_enc_graph(
+    self.train_enc_graph = _generate_enc_graph(
         train_set, add_support=True
     )
-    train_dec_graph = generate_dec_graph(train_set)
+    train_dec_graph = _generate_dec_graph(train_set)
 
     train_labels = _generate_labels(train_set.uir_tuple[2])
     train_truths = torch.FloatTensor(
@@ -79,7 +114,7 @@ def fit_torch(self, train_set, val_set):
 
     if val_set is not None:
         valid_enc_graph = self.train_enc_graph
-        valid_dec_graph = generate_dec_graph(val_set)
+        valid_dec_graph = _generate_dec_graph(val_set)
 
         valid_truths = torch.FloatTensor(
             val_set.uir_tuple[2]
@@ -98,7 +133,17 @@ def fit_torch(self, train_set, val_set):
             valid_dec_graph.num_nodes("item"),
             valid_dec_graph.num_edges(),
         )
+    return (
+        rating_values,
+        train_dec_graph,
+        valid_enc_graph,
+        valid_dec_graph,
+        train_labels,
+        train_truths,
+        valid_truths
+    )
 
+def _build_net(self, rating_values, train_set):
     # Build Net
     self.net = NeuralNetwork(
         self.activation_model,
@@ -123,8 +168,29 @@ def fit_torch(self, train_set, val_set):
         self.net.parameters(), lr=learning_rate
     )
     print("NN Loading Complete!")
+    return (
+        nd_positive_rating_values,
+        rating_loss_net,
+        optimizer,
+        learning_rate
+    )
 
-    # declare the loss information
+
+def _train_model(
+    self,
+    rating_values,
+    train_dec_graph,
+    valid_enc_graph,
+    valid_dec_graph,
+    train_labels,
+    train_truths,
+    valid_truths,
+    nd_positive_rating_values,
+    rating_loss_net,
+    optimizer,
+    learning_rate
+):
+    # initialize loss variables
     best_valid_rmse = np.inf
     no_better_valid = 0
     best_iter = -1
@@ -265,7 +331,7 @@ def fit_torch(self, train_set, val_set):
         self.net.load_state_dict(best_model_state_dict)
 
 
-def generate_enc_graph(data_set, add_support=False):
+def _generate_enc_graph(data_set, add_support=False):
     """
     Generates encoding graph given a cornac data set
 
@@ -311,7 +377,7 @@ def generate_enc_graph(data_set, add_support=False):
     return graph
 
 
-def generate_dec_graph(data_set):
+def _generate_dec_graph(data_set):
     """
     Generates decoding graph given a cornac data set
 
@@ -412,7 +478,7 @@ def process_test_set(self, test_set):
         Dictionary containing '{user_idx}-{item_idx}' as key
         and {score} as value.
     """
-    test_dec_graph = generate_dec_graph(test_set)
+    test_dec_graph = _generate_dec_graph(test_set)
     test_dec_graph = test_dec_graph.int().to(self.device)
 
     self.net.eval()
