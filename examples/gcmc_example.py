@@ -32,25 +32,6 @@ ratio_split = RatioSplit(
     seed=123,
 )
 
-hpf = cornac.models.HPF(
-    k=5,
-    seed=123
-)
-
-pf = cornac.models.HPF(
-    k=5,
-    seed=123,
-    hierarchical=False,
-    name="PF"
-)
-
-bpr = cornac.models.BPR(
-   k=5,
-   max_iter=200,
-   learning_rate=0.001,
-   lambda_reg=0.01,
-   seed=123)
-
 pmf = cornac.models.PMF(
     k=10,
     max_iter=100,
