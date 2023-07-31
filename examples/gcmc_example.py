@@ -72,11 +72,6 @@ gcmc = cornac.models.GCMC(
     seed=123,
 )
 
-# Instantiate evaluation measures
-rec_20 = cornac.metrics.Recall(k=20)
-ndcg_20 = cornac.metrics.NDCG(k=20)
-auc = cornac.metrics.AUC()
-
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
