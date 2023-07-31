@@ -16,8 +16,6 @@
 
 from ..recommender import Recommender
 
-from .gcmc import process_test_set, fit_torch, get_score
-
 
 class GCMC(Recommender):
     """
@@ -143,14 +141,37 @@ class GCMC(Recommender):
         self.device = None
 
     def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
+        """
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
+            from .gcmc import fit_torch
             fit_torch(self, train_set, val_set)
 
         return self
 
     def transform(self, test_set):
+        """Transform the model to indexed dictionary for scoring purposes.
+
+        Parameters
+        ----------
+        test_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data.
+        """
+        from .gcmc import process_test_set
         self.u_i_rating_dict = process_test_set(self, test_set)
 
     def score(self, user_idx, item_idx=None):
@@ -171,5 +192,5 @@ class GCMC(Recommender):
             Relative scores that the user gives to the item or
             to all known items
         """
-
+        from .gcmc import get_score
         return get_score(self, user_idx, item_idx)
