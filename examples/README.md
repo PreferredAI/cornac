@@ -28,6 +28,8 @@
 
 [cvaecf_filmtrust.py](cvaecf_filmtrust.py) - Fit and evaluate Conditional VAE (CVAECF) on the FilmTrust dataset.
 
+[gcmc_example.py](gcmc_example.py) - Graph Convolutional Matrix Completion (GCMC) example with MovieLens 100K dataset.
+
 [mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
 
 [pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
