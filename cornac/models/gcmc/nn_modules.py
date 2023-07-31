@@ -1,4 +1,4 @@
-"""NN modules"""
+"""Neural Network modules"""
 import dgl.function as fn
 import dgl.nn.pytorch as dglnn
 from dgl import DGLError
@@ -284,7 +284,8 @@ class GCMCLayer(nn.Module):
         self.reset_parameters()
 
     def partial_to(self, device):
-        """Put parameters into device except W_r
+        """
+        Put parameters into device except W_r
 
         Parameters
         ----------
@@ -299,12 +300,14 @@ class GCMCLayer(nn.Module):
             self.dropout.cuda(device)
 
     def reset_parameters(self):
+        """Reset parameters to uniform distribution"""
         for param in self.parameters():
             if param.dim() > 1:
                 nn.init.xavier_uniform_(param)
 
     def forward(self, graph, ufeat=None, ifeat=None):
-        """Forward function
+        """
+        Forward function
 
         Parameters
         ----------
@@ -351,7 +354,8 @@ class GCMCLayer(nn.Module):
 
 
 class BiDecoder(nn.Module):
-    r"""Bi-linear decoder.
+    r"""
+    Bi-linear decoder.
 
     Given a bipartite graph G, for each edge (i, j) ~ G, compute the likelihood
     of it being class r by:
@@ -393,12 +397,14 @@ class BiDecoder(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """Reset parameters to uniform distribution"""
         for param in self.parameters():
             if param.dim() > 1:
                 nn.init.xavier_uniform_(param)
 
     def forward(self, graph, ufeat, ifeat):
-        """Forward function.
+        """
+        Forward function.
 
         Parameters
         ----------
@@ -429,7 +435,8 @@ class BiDecoder(nn.Module):
 
 
 class DenseBiDecoder(nn.Module):
-    r"""Dense bi-linear decoder.
+    r"""
+    Dense bi-linear decoder.
 
     Dense implementation of the bi-linear decoder used in GCMC. Suitable when
     the graph can be efficiently represented by a pair of arrays (one for
@@ -460,12 +467,14 @@ class DenseBiDecoder(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """Reset parameters to uniform distribution"""
         for param in self.parameters():
             if param.dim() > 1:
                 nn.init.xavier_uniform_(param)
 
     def forward(self, ufeat, ifeat):
-        """Forward function.
+        """
+        Forward function.
 
         Compute logits for each pair ``(ufeat[i], ifeat[i])``.
 
@@ -489,7 +498,10 @@ class DenseBiDecoder(nn.Module):
 
 
 def dot_or_identity(A, B, device=None):
-    # if A is None, treat as identity matrix
+    """
+    Return as identity matrix if A is none.
+    If A exists, return as dot product.
+    """
     if A is None:
         return B
     if len(A.shape) == 1:

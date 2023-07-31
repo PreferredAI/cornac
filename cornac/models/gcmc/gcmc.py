@@ -1,3 +1,4 @@
+""" Fitting and scoring modules for GCMC """
 import logging
 import time
 from collections import defaultdict
@@ -13,6 +14,16 @@ from .utils import get_optimizer, torch_net_info, torch_total_param_num
 
 
 def fit_torch(self, train_set, val_set):
+    """
+    Converts training + validation sets into graphs and fits into model
+
+    Parameters
+    ----------
+    train_set : cornac.data.dataset.Dataset
+        The training set as provided by cornac
+    val_set : cornac.data.dataset.Dataset
+        The validation set as provided by cornac. Could be None.
+    """
     self.device = torch.device(
         "cuda" if torch.cuda.is_available() else "cpu"
     )
@@ -255,7 +266,16 @@ def fit_torch(self, train_set, val_set):
 
 
 def generate_enc_graph(data_set, add_support=False):
-    data_dict = dict()
+    """
+    Generates encoding graph given a cornac data set
+
+    Parameters
+    ----------
+    data_set : cornac.data.dataset.Dataset
+        The data set as provided by cornac
+    add_support : bool, optional
+    """
+    data_dict = {}
     num_nodes_dict = {
         "user": data_set.total_users,
         "item": data_set.total_items
@@ -292,6 +312,19 @@ def generate_enc_graph(data_set, add_support=False):
 
 
 def generate_dec_graph(data_set):
+    """
+    Generates decoding graph given a cornac data set
+
+    Parameters
+    ----------
+    data_set : cornac.data.dataset.Dataset
+        The data set as provided by cornac
+
+    Returns
+    -------
+    graph : dgl.heterograph
+        Heterograph containing user-item edges and nodes
+    """
     rating_pairs = data_set.uir_tuple[:2]
     ones = np.ones_like(rating_pairs[0])
     user_item_ratings_coo = sp.coo_matrix(
@@ -319,6 +352,7 @@ def apply_support(
         data_set,
         symm=True
 ):
+    """ Adds graph support. Returns DGLGraph. """
     def _calc_norm(val):
         val = val.numpy().astype("float32")
         val[val == 0.0] = np.inf
@@ -362,6 +396,22 @@ def apply_support(
 
 
 def process_test_set(self, test_set):
+    """
+    Processes test set and returns dictionary containing
+    user-item idx as key and score as value.
+
+    Parameters
+    ----------
+    test_set : cornac.data.dataset.Dataset
+        The data set as provided by cornac
+        Returns
+
+    Returns
+    -------
+    u_i_rating_dict : dict
+        Dictionary containing '{user_idx}-{item_idx}' as key
+        and {score} as value.
+    """
     test_dec_graph = generate_dec_graph(test_set)
     test_dec_graph = test_dec_graph.int().to(self.device)
 
@@ -403,26 +453,31 @@ def process_test_set(self, test_set):
     return u_i_rating_dict
 
 
-# def _uir_tuple_to_r_data_dict(uir_tuple):
-#     """
-#     Convert uir tuple to a dictionary where keys are ratings,
-#     values are tuples of two lists (users, items) for that rating.
-#     """
-#     r_data = defaultdict()
-
-#     for user, item, rating in zip(*uir_tuple):
-#         if rating not in r_data:
-#             r_data.setdefault(rating, ([], []))
-#         r_data[rating][0].append(user)
-#         r_data[rating][1].append(item)
-
-#     return r_data
-
-
 def get_score(self, user_idx, item_idx):
-    # dec_graph and scores are generated as in transform function
-    # - get score by accessing dictionary generated in transform function
-    # - key: {user_idx}-{item_idx}, value: {score}
+    """
+    Obtains score given a user_idx and item_idx
+    (item_idx may be None for ranking evaluations)
+
+    Dictionary containing {user_idx}-{item_idx} keys
+    are generated as in process_test_set function
+
+    Access dictionary to obtain score for a given user_idx and item_idx.
+
+    Parameters
+    ----------
+    user_idx : int
+        Index of user to obtain score for
+    item_idx : int
+        Index of item to obtain score for
+
+    Returns
+    -------
+    score_list : list
+        List containing a single float value of score
+        if both user_idx and item_idx is provided.
+        List containing corresponding float values of
+        all item scores if only user_idx is provided.
+    """
     if item_idx is None:
         # Return scores of all items for a given user
         # - If item does not exist in test_set, we provide a default score
