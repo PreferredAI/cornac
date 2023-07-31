@@ -87,9 +87,9 @@ class GCMC(Recommender):
 
     References
     ----------
-    * Rianne van den Berg, Thomas N. Kipf, Max Welling.
-    Graph Convolutional Matrix Completion.
+    * van den Berg, R., Kipf, T. N., & Welling, M. (2018). Graph Convolutional Matrix Completion.
     """
+
     def __init__(
         self,
         name="GCMC",
@@ -115,10 +115,7 @@ class GCMC(Recommender):
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
-        self.name = name
-        self.max_iter = max_iter
-        self.verbose = verbose
-        self.seed = seed
+        # architecture params
         self.activation_model = activation_model
         self.gcn_agg_units = gcn_agg_units
         self.gcn_out_units = gcn_out_units
@@ -126,6 +123,9 @@ class GCMC(Recommender):
         self.gcn_agg_accum = gcn_agg_accum
         self.share_param = share_param
         self.gen_r_num_basis_func = gen_r_num_basis_func
+
+        # training params
+        self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.optimizer = optimizer
         self.train_grad_clip = train_grad_clip
@@ -134,11 +134,7 @@ class GCMC(Recommender):
         self.train_min_learning_rate = train_min_learning_rate
         self.train_decay_patience = train_decay_patience
         self.train_lr_decay_factor = train_lr_decay_factor
-        self.u_i_rating_dict = None
-        self.train_enc_graph = None
-        self.net = None
-        self.verbose = verbose
-        self.device = None
+        self.seed = seed
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -158,8 +154,32 @@ class GCMC(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
-            from .gcmc import fit_torch
-            fit_torch(self, train_set, val_set)
+            from .gcmc import Model
+
+            self.model = Model(
+                activation_model=self.activation_model,
+                gcn_agg_units=self.gcn_agg_units,
+                gcn_out_units=self.gcn_out_units,
+                gcn_dropout=self.gcn_dropout,
+                gcn_agg_accum=self.gcn_agg_accum,
+                share_param=self.share_param,
+                gen_r_num_basis_func=self.gen_r_num_basis_func,
+                verbose=self.verbose,
+                seed=self.seed,
+            )
+            self.model.train(
+                train_set,
+                val_set,
+                max_iter=self.max_iter,
+                learning_rate=self.learning_rate,
+                optimizer=self.optimizer,
+                train_grad_clip=self.train_grad_clip,
+                train_valid_interval=self.train_valid_interval,
+                train_early_stopping_patience=self.train_early_stopping_patience,
+                train_min_learning_rate=self.train_min_learning_rate,
+                train_decay_patience=self.train_decay_patience,
+                train_lr_decay_factor=self.train_lr_decay_factor,
+            )
 
         return self
 
@@ -171,8 +191,7 @@ class GCMC(Recommender):
         test_set: :obj:`cornac.data.Dataset`, required
             User-Item preference data.
         """
-        from .gcmc import process_test_set
-        self.u_i_rating_dict = process_test_set(self, test_set)
+        self.u_i_rating_dict = self.model.predict(test_set)
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -192,5 +211,13 @@ class GCMC(Recommender):
             Relative scores that the user gives to the item or
             to all known items
         """
-        from .gcmc import get_score
-        return get_score(self, user_idx, item_idx)
+        if item_idx is None:
+            # Return scores of all items for a given user
+            # - If item does not exist in test_set, we provide a default score
+            #   (as set in default_dict initialisation)
+            return [
+                self.u_i_rating_dict[f"{user_idx}-{idx}"]
+                for idx in range(self.train_set.total_items)
+            ]
+        # Return score of known user/item
+        return self.u_i_rating_dict.get(f"{user_idx}-{item_idx}", self.default_score())

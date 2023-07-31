@@ -48,7 +48,7 @@ class NeuralNetwork(nn.Module):
             num_basis=gen_r_num_basis_func,
         )
 
-    def forward(self, enc_graph, dec_graph, ufeat, ifeat):
+    def forward(self, enc_graph, dec_graph, ufeat=None, ifeat=None):
         """Forward computation
 
         Parameters
@@ -84,9 +84,7 @@ class GCMCGraphConv(nn.Module):
         multi-gpu training
     """
 
-    def __init__(
-        self, in_feats, out_feats, weight=True, device=None, dropout_rate=0.0
-    ):
+    def __init__(self, in_feats, out_feats, weight=True, device=None, dropout_rate=0.0):
         super(GCMCGraphConv, self).__init__()
         self._in_feats = in_feats
         self._out_feats = out_feats
@@ -149,9 +147,7 @@ class GCMCGraphConv(nn.Module):
 
             feat = feat * self.dropout(c_j)
             graph.srcdata["h"] = feat
-            graph.update_all(
-                fn.copy_u(u="h", out="m"), fn.sum(msg="m", out="h")
-            )
+            graph.update_all(fn.copy_u(u="h", out="m"), fn.sum(msg="m", out="h"))
             rst = graph.dstdata["h"]
             rst = rst * c_i
 
@@ -243,9 +239,7 @@ class GCMCLayer(nn.Module):
             rating = str(rating).replace(".", "_")
             rev_rating = f"rev-{rating}"
             if share_user_item_param and user_in_units == item_in_units:
-                self.w_r[rating] = nn.Parameter(
-                    torch.randn(user_in_units, msg_units)
-                )
+                self.w_r[rating] = nn.Parameter(torch.randn(user_in_units, msg_units))
                 self.w_r[f"rev-{rating}"] = self.w_r[rating]
                 sub_conv[rating] = GCMCGraphConv(
                     user_in_units,
@@ -331,9 +325,7 @@ class GCMCLayer(nn.Module):
         for rating in self.rating_vals:
             rating = str(rating).replace(".", "_")
             rev_rating = f"rev-{rating}"
-            mod_args[rating] = (
-                self.w_r[rating] if self.w_r is not None else None,
-            )
+            mod_args[rating] = (self.w_r[rating] if self.w_r is not None else None,)
             mod_args[rev_rating] = (
                 self.w_r[rev_rating] if self.w_r is not None else None,
             )
@@ -386,14 +378,9 @@ class BiDecoder(nn.Module):
         self._num_basis = num_basis
         self.dropout = nn.Dropout(dropout_rate)
         self.params = nn.ParameterList(
-            nn.Parameter(torch.randn(in_units, in_units))
-            for _ in range(num_basis)
+            nn.Parameter(torch.randn(in_units, in_units)) for _ in range(num_basis)
         )
-        self.combine_basis = nn.Linear(
-            self._num_basis,
-            num_classes,
-            bias=False
-        )
+        self.combine_basis = nn.Linear(self._num_basis, num_classes, bias=False)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -459,11 +446,7 @@ class DenseBiDecoder(nn.Module):
         self._num_basis = num_basis
         self.dropout = nn.Dropout(dropout_rate)
         self.P = nn.Parameter(torch.randn(num_basis, in_units, in_units))
-        self.combine_basis = nn.Linear(
-            self._num_basis,
-            num_classes,
-            bias=False
-        )
+        self.combine_basis = nn.Linear(self._num_basis, num_classes, bias=False)
         self.reset_parameters()
 
     def reset_parameters(self):
