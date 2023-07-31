@@ -112,7 +112,7 @@ class GCMC(Recommender):
         train_decay_patience=50,
         train_lr_decay_factor=0.5,
         trainable=True,
-        verbose=True,
+        verbose=False,
         seed=None,
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
