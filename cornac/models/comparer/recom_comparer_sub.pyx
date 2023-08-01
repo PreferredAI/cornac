@@ -73,6 +73,12 @@ class ComparERSub(MTER):
     n_element_samples: int, optional, default: 50
         The number of samples from all ratings in each iteration.
 
+    n_top_aspects: int, optional, default: 100
+        The number of top scored aspects for each (user, item) pair to construct ranking score.
+
+    alpha: float, optional, default: 0.5
+        Trade-off factor for constructing ranking score.
+
     lambda_reg: float, optional, default: 0.1
         The regularization parameter.
 
@@ -139,6 +145,8 @@ class ComparERSub(MTER):
         n_pair_samples=1000,
         n_bpr_samples=1000,
         n_element_samples=50,
+        n_top_aspects=100,
+        alpha=0.5,
         min_user_freq=2,
         min_pair_freq=1,
         min_common_freq=1,
@@ -158,6 +166,8 @@ class ComparERSub(MTER):
         super().__init__(name=name, rating_scale = rating_scale, n_user_factors = n_user_factors, n_item_factors = n_item_factors, n_aspect_factors = n_aspect_factors, n_opinion_factors = n_opinion_factors, n_bpr_samples = n_bpr_samples, n_element_samples = n_element_samples, lambda_reg = lambda_reg, lambda_bpr = lambda_bpr, max_iter = max_iter, lr = lr, n_threads=n_threads, seed = seed, trainable=trainable, init_params=init_params, verbose=verbose)
         self.lambda_d = lambda_d
         self.n_pair_samples = n_pair_samples
+        self.n_top_aspects = n_top_aspects
+        self.alpha = alpha
         self.min_user_freq = min_user_freq
         self.min_pair_freq = min_pair_freq
         self.min_common_freq = min_common_freq
@@ -622,7 +632,7 @@ class ComparERSub(MTER):
 
                 s = 1
                 # if the user has rated the item j, change sign if item j > item i
-                if has_non_zero(indptr, item_ids, user_ids[i_idx], j_idx):
+                if has_non_zero(indptr, item_ids, u_idx, j_idx):
                     i_score = rating_dict.my_map[get_key(u_idx, i_idx)]
                     j_score = rating_dict.my_map[get_key(u_idx, j_idx)]
                     if i_score == j_score:
@@ -746,3 +756,26 @@ class ComparERSub(MTER):
                         O[i, j] = 0
 
         return correct, skipped, loss, bpr_loss
+
+    def rank(self, user_id, item_ids=None):
+        if self.alpha > 0 and self.n_top_aspects > 0:
+            n_items = self.train_set.num_items
+            n_top_aspects = min(self.n_top_aspects, self.train_set.sentiment.num_aspects)
+            item_ids = item_ids if item_ids is not None else range(n_items)
+            item_ids = np.array(item_ids)
+            ts1 = np.einsum("abc,a->bc", self.G1, self.U[user_id])
+            ts2 = np.einsum("bc,Mb->Mc", ts1, self.I[item_ids])
+            ts3 = np.einsum("Mc,Nc->MN", ts2, self.A)
+            top_aspect_scores = ts3[
+                np.repeat(range(n_items), n_top_aspects).reshape(
+                    n_items, n_top_aspects
+                ),
+                ts3[:, :-1].argsort(axis=1)[::-1][:, :n_top_aspects],
+            ]
+            item_scores = (
+                self.alpha * top_aspect_scores.mean(axis=1) + (1 - self.alpha) * ts3[:, -1]
+            )
+
+            item_rank = item_ids[item_scores.argsort()[::-1]]
+            return item_rank, item_scores
+        return super().rank(user_id, item_ids)

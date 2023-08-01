@@ -33,9 +33,11 @@ from .cvae import CVAE
 from .cvaecf import CVAECF
 from .ease import EASE
 from .efm import EFM
+from .gcmc import GCMC
 from .global_avg import GlobalAvg
 from .hft import HFT
 from .hpf import HPF
+from .hrdr import HRDR
 from .ibpr import IBPR
 from .knn import ItemKNN
 from .knn import UserKNN

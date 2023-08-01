@@ -43,9 +43,19 @@ Collaborative Context Poisson Factorization (C2PF)
 .. automodule:: cornac.models.c2pf.recom_c2pf
    :members:
 
+Graph Convolutional Matrix Completion (GCMC)
+----------------------------------------------------
+.. automodule:: cornac.models.gcmc.recom_gcmc
+   :members:
+
 Multi-Task Explainable Recommendation (MTER)
 ----------------------------------------------------
 .. automodule:: cornac.models.mter.recom_mter
+   :members:
+
+Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)
+---------------------------------------------------------------------------
+.. automodule:: cornac.models.hrdr.recom_hrdr
    :members:
 
 Neural Attention Rating Regression with Review-level Explanations (NARRE)

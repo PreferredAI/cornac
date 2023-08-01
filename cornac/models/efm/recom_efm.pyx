@@ -61,7 +61,7 @@ class EFM(Recommender):
         The maximum rating score of the dataset.
 
     alpha: float, optional, default: 0.85
-        Trace off factor for constructing ranking score.
+        Trade-off factor for constructing ranking score.
 
     lambda_x: float, optional, default: 1
         The regularization parameter for user aspect attentions.
