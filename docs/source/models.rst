@@ -43,6 +43,11 @@ Collaborative Context Poisson Factorization (C2PF)
 .. automodule:: cornac.models.c2pf.recom_c2pf
    :members:
 
+Graph Convolutional Matrix Completion (GCMC)
+----------------------------------------------------
+.. automodule:: cornac.models.gcmc.recom_gcmc
+   :members:
+
 Multi-Task Explainable Recommendation (MTER)
 ----------------------------------------------------
 .. automodule:: cornac.models.mter.recom_mter

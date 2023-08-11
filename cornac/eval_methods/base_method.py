@@ -718,6 +718,7 @@ class BaseMethod:
             print("\n[{}] Evaluation started!".format(model.name))
 
         start = time.time()
+        model.transform(self.test_set)
         test_result = self._eval(
             model=model,
             test_set=self.test_set,
@@ -731,6 +732,7 @@ class BaseMethod:
         val_result = None
         if show_validation and self.val_set is not None:
             start = time.time()
+            model.transform(self.val_set)
             val_result = self._eval(
                 model=model, test_set=self.val_set, val_set=None, user_based=user_based
             )
