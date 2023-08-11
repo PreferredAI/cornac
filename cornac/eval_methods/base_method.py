@@ -194,11 +194,9 @@ def ranking_eval(
 
         # filter items being considered for evaluation
         if exclude_unknowns:
-            item_indices = np.arange(train_set.num_items)
             u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
             u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
-        else:
-            item_indices = np.arange(test_set.num_items)
+            
         item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
         u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
         u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
