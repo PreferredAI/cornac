@@ -177,8 +177,9 @@ def ranking_eval(
         if len(test_pos_items) == 0:
             continue
 
-        u_gt_pos = np.zeros(test_set.num_items, dtype="int")
-        u_gt_pos[test_pos_items] = 1
+        # binary mask for ground-truth positive items
+        u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
+        u_gt_pos_mask[test_pos_items] = 1
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
         train_pos_items = (
@@ -187,18 +188,28 @@ def ranking_eval(
             else pos_items(train_mat.getrow(user_idx))
         )
 
-        u_gt_neg = np.ones(test_set.num_items, dtype="int")
-        u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
+        # binary mask for ground-truth negative items, removing all positive items
+        u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
+        u_gt_neg_mask[test_pos_items + val_pos_items + train_pos_items] = 0
 
-        item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
+        # filter items being considered for evaluation
+        if exclude_unknowns:
+            u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
+            u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
+            
+        item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
+        u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
+        u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
+
         item_rank, item_scores = model.rank(user_idx, item_indices)
 
         for i, mt in enumerate(metrics):
             mt_score = mt.compute(
-                gt_pos=u_gt_pos,
-                gt_neg=u_gt_neg,
+                gt_pos=u_gt_pos_items,
+                gt_neg=u_gt_neg_items,
                 pd_rank=item_rank,
                 pd_scores=item_scores,
+                item_indices=item_indices,
             )
             user_results[i][user_idx] = mt_score
 
