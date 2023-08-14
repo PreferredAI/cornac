@@ -1,2 +1,2 @@
-torch
-dgl
+torch>=2.0.0
+dgl>=1.1.0
