@@ -71,7 +71,7 @@ class NDCG(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -91,8 +91,8 @@ class NDCG(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        ranked_scores = np.take(gt_pos, truncated_pd_rank)
-        gain = 2 ** ranked_scores - 1
+        ranked_scores = np.in1d(truncated_pd_rank, gt_pos).astype(int)
+        gain = 2**ranked_scores - 1
         discounts = np.log2(np.arange(len(ranked_scores)) + 2)
 
         return np.sum(gain / discounts)
@@ -103,7 +103,7 @@ class NDCG(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -117,7 +117,7 @@ class NDCG(RankingMetric):
 
         """
         dcg = self.dcg_score(gt_pos, pd_rank, self.k)
-        idcg = self.dcg_score(gt_pos, np.argsort(gt_pos)[::-1], self.k)
+        idcg = self.dcg_score(gt_pos, gt_pos, self.k)
         ndcg = dcg / idcg
 
         return ndcg
@@ -143,7 +143,7 @@ class NCRR(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -161,17 +161,15 @@ class NCRR(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        gt_pos_items = np.nonzero(gt_pos > 0)
-
         # Compute CRR
-        rec_rank = np.where(np.in1d(truncated_pd_rank, gt_pos_items))[0]
+        rec_rank = np.where(np.in1d(truncated_pd_rank, gt_pos))[0]
         if len(rec_rank) == 0:
             return 0.0
         rec_rank = rec_rank + 1  # +1 because indices starts from 0 in python
         crr = np.sum(1.0 / rec_rank)
 
         # Compute Ideal CRR
-        max_nb_pos = min(len(gt_pos_items[0]), len(truncated_pd_rank))
+        max_nb_pos = min(len(gt_pos), len(truncated_pd_rank))
         ideal_rank = np.arange(max_nb_pos)
         ideal_rank = ideal_rank + 1  # +1 because indices starts from 0 in python
         icrr = np.sum(1.0 / ideal_rank)
@@ -199,7 +197,7 @@ class MRR(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -212,8 +210,7 @@ class MRR(RankingMetric):
             Mean Reciprocal Rank score.
 
         """
-        gt_pos_items = np.nonzero(gt_pos > 0)
-        matched_items = np.nonzero(np.in1d(pd_rank, gt_pos_items))[0]
+        matched_items = np.nonzero(np.in1d(pd_rank, gt_pos))[0]
 
         if len(matched_items) == 0:
             raise ValueError(
@@ -246,7 +243,7 @@ class MeasureAtK(RankingMetric):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -270,12 +267,9 @@ class MeasureAtK(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        pred = np.zeros_like(gt_pos)
-        pred[truncated_pd_rank] = 1
-
-        tp = np.sum(pred * gt_pos)
-        tp_fn = np.sum(gt_pos)
-        tp_fp = np.sum(pred)
+        tp = np.sum(np.in1d(truncated_pd_rank, gt_pos))
+        tp_fn = len(gt_pos)
+        tp_fp = self.k if self.k > 0 else len(truncated_pd_rank)
 
         return tp, tp_fn, tp_fp
 
@@ -300,7 +294,7 @@ class Precision(MeasureAtK):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -337,7 +331,7 @@ class Recall(MeasureAtK):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -374,7 +368,7 @@ class FMeasure(MeasureAtK):
         Parameters
         ----------
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         pd_rank: Numpy array
             Item ranking prediction.
@@ -411,19 +405,22 @@ class AUC(RankingMetric):
     def __init__(self):
         RankingMetric.__init__(self, name="AUC")
 
-    def compute(self, pd_scores, gt_pos, gt_neg=None, **kwargs):
+    def compute(self, item_indices, pd_scores, gt_pos, gt_neg=None, **kwargs):
         """Compute Area Under the ROC Curve (AUC).
 
         Parameters
         ----------
+        item_indices: Numpy array
+            Items being considered for evaluation.
+
         pd_scores: Numpy array
-            Prediction scores for items.
+            Prediction scores for items in item_indices.
 
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         gt_neg: Numpy array, optional
-            Binary vector of negative items.
+            Vector of negative items.
             If None, negation of gt_pos will be used.
 
         **kwargs: For compatibility
@@ -434,11 +431,16 @@ class AUC(RankingMetric):
             AUC score.
 
         """
-        if gt_neg is None:
-            gt_neg = np.logical_not(gt_pos)
 
-        pos_scores = pd_scores[gt_pos.astype('bool')]
-        neg_scores = pd_scores[gt_neg.astype('bool')]
+        gt_pos_mask = np.in1d(item_indices, gt_pos)
+        gt_neg_mask = (
+            np.logical_not(gt_pos_mask)
+            if gt_neg is None
+            else np.in1d(item_indices, gt_neg)
+        )
+
+        pos_scores = pd_scores[gt_pos_mask]
+        neg_scores = pd_scores[gt_neg_mask]
         ui_scores = np.repeat(pos_scores, len(neg_scores))
         uj_scores = np.tile(neg_scores, len(pos_scores))
 
@@ -457,16 +459,19 @@ class MAP(RankingMetric):
     def __init__(self):
         RankingMetric.__init__(self, name="MAP")
 
-    def compute(self, pd_scores, gt_pos, **kwargs):
+    def compute(self, item_indices, pd_scores, gt_pos, **kwargs):
         """Compute Average Precision.
 
         Parameters
         ----------
+        item_indices: Numpy array
+            Items being considered for evaluation.
+            
         pd_scores: Numpy array
             Prediction scores for items.
 
         gt_pos: Numpy array
-            Binary vector of positive items.
+            Vector of positive items.
 
         **kwargs: For compatibility
 
@@ -476,7 +481,7 @@ class MAP(RankingMetric):
             AP score.
 
         """
-        relevant = gt_pos.astype('bool')
+        relevant = np.in1d(item_indices, gt_pos)
         rank = rankdata(-pd_scores, "max")[relevant]
         L = rankdata(-pd_scores[relevant], "max")
         ans = (L / rank).mean()
