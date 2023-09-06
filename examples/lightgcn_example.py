@@ -12,5 +12,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
+"""
+Example for LightGCN with MovieLens 100K dataset
+"""
+import cornac
+from cornac.datasets import movielens
+from cornac.eval_methods import RatioSplit
 
-pass
+# Load user-item feedback
+data_100k = movielens.load_feedback(variant="100K")
+
+# Instantiate an evaluation method to split data into train and test sets.
+ratio_split = RatioSplit(
+    data=data_100k,
+    test_size=0.1,
+    val_size=0.1,
+    exclude_unknowns=True,
+    verbose=True,
+    seed=123,
+)
+
+pmf = cornac.models.PMF(
+    k=10,
+    max_iter=100,
+    learning_rate=0.001,
+    lambda_reg=0.001
+)
+
+biased_mf = cornac.models.MF(
+    name="BiasMF",
+    k=10,
+    max_iter=25,
+    learning_rate=0.01,
+    lambda_reg=0.02,
+    use_bias=True,
+    seed=123
+)
+
+lightgcn = cornac.models.LightGCN(
+    seed=123,
+)
+
+# Put everything together into an experiment and run it
+cornac.Experiment(
+    eval_method=ratio_split,
+    models=[pmf, biased_mf, lightgcn],
+    metrics=[cornac.metrics.RMSE()],
+    user_based=False,
+).run()
