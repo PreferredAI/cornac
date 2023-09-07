@@ -121,6 +121,10 @@ class Model:
         item_idx
     ):
         if item_idx is None:
-            return torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings), dim=1)
+            # print('none')
+            # print(torch.multiply(user_embeddings[user_idx], item_embeddings))
+            return torch.multiply(user_embeddings[user_idx], item_embeddings).detach().numpy()
         else:
-            return torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings[item_idx]), dim=1)
+            # print('else')
+            # print(torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings[item_idx])).item())
+            return torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings[item_idx])).detach().numpy()

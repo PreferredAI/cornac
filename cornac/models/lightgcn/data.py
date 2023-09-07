@@ -13,7 +13,7 @@ def construct_graph(data_set):
     """
     rating_row, rating_col, rating_values = data_set.uir_tuple
 
-    rating_col = rating_col + data_set.num_users # increment item id by num users
+    rating_col = rating_col + data_set.total_users  # increment item id by num users
 
     rating_row, rating_col, rating_values = (
         torch.from_numpy(rating_row),
@@ -37,7 +37,10 @@ def construct_graph(data_set):
     #     num_nodes_dict={"user": data_set.num_users, "item": data_set.num_items}
     # )
 
-    g = dgl.graph((u, v))
+    g = dgl.graph(
+        (u, v),
+        num_nodes=(data_set.total_users + data_set.total_items)
+    )
 
     # g.edata["rates"] = {
     #     ("user", "user-item", "item"): rating_values,

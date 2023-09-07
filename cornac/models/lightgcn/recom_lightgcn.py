@@ -52,8 +52,8 @@ class LightGCN(Recommender):
             from .lightgcn import Model
 
             self.model = Model(
-                train_set.num_users,
-                train_set.num_items,
+                train_set.total_users,
+                train_set.total_items,
                 self.hidden_dim,
                 self.num_layers,
                 self.learning_rate,
@@ -77,7 +77,7 @@ class LightGCN(Recommender):
         #         raise ScoreException(
         #              "Can't make score prediction for (user_id=%d)" % user_idx
         #         )
-        self.model.score(
+        return self.model.score(
             self.user_embeddings,
             self.item_embeddings,
             user_idx,
