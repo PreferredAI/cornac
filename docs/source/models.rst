@@ -153,6 +153,11 @@ Hierarchical Poisson Factorization (HPF)
 .. automodule:: cornac.models.hpf.recom_hpf
    :members:
 
+TriRank: Review-aware Explainable Recommendation by Modeling Aspects (TriRank)
+--------------------------------------------
+.. automodule:: cornac.models.trirank.recom_trirank
+   :members:
+
 Explicit Factor Model (EFM)
 --------------------------------------------
 .. automodule:: cornac.models.efm.recom_efm
