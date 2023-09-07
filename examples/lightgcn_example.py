@@ -50,8 +50,7 @@ biased_mf = cornac.models.MF(
 )
 
 lightgcn = cornac.models.LightGCN(
-    seed=123,
-    max_iter=3
+    seed=123
 )
 
 # Put everything together into an experiment and run it

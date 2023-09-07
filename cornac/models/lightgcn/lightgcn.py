@@ -92,7 +92,7 @@ class Model:
         val_set,
         max_iter
     ):
-        graph = construct_graph(train_set)
+        graph = construct_graph(train_set, self.device)
         for iter in tqdm(
             range(1, max_iter),
             desc="Training",
@@ -109,7 +109,7 @@ class Model:
         self,
         test_set
     ):
-        graph = construct_graph(test_set)
+        graph = construct_graph(test_set, self.device)
         user_embeddings, item_embeddings = self.model(graph)
         return user_embeddings, item_embeddings
 
@@ -123,8 +123,8 @@ class Model:
         if item_idx is None:
             # print('none')
             # print(torch.multiply(user_embeddings[user_idx], item_embeddings))
-            return torch.multiply(user_embeddings[user_idx], item_embeddings).detach().numpy()
+            return torch.multiply(user_embeddings[user_idx], item_embeddings).cpu().detach().numpy()
         else:
             # print('else')
             # print(torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings[item_idx])).item())
-            return torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings[item_idx])).detach().numpy()
+            return torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings[item_idx])).cpu().detach().numpy()
