@@ -49,8 +49,7 @@ vaecf = cornac.models.VAECF(
 
 # Instantiate the LightGCN model
 lightgcn = cornac.models.LightGCN(
-    seed=123,
-    max_iter=3
+    seed=123
 )
 
 # Instantiate evaluation measures
