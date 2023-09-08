@@ -13,50 +13,55 @@
 # limitations under the License.
 # ============================================================================
 """
-Example for LightGCN with MovieLens 100K dataset
+Example for LightGCN
 """
 import cornac
-from cornac.datasets import movielens
+from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 
 # Load user-item feedback
-data_100k = movielens.load_feedback(variant="100K")
+data = citeulike.load_feedback()
 
 # Instantiate an evaluation method to split data into train and test sets.
 ratio_split = RatioSplit(
-    data=data_100k,
-    test_size=0.1,
-    val_size=0.1,
+    data=data,
+    test_size=0.2,
     exclude_unknowns=True,
     verbose=True,
     seed=123,
+    rating_threshold=0.5,
 )
 
-pmf = cornac.models.PMF(
+# Instantiate the VAECF model
+vaecf = cornac.models.VAECF(
     k=10,
-    max_iter=100,
+    autoencoder_structure=[20],
+    act_fn="tanh",
+    likelihood="mult",
+    n_epochs=100,
+    batch_size=100,
     learning_rate=0.001,
-    lambda_reg=0.001
+    beta=1.0,
+    seed=123,
+    use_gpu=True,
+    verbose=True,
 )
 
-biased_mf = cornac.models.MF(
-    name="BiasMF",
-    k=10,
-    max_iter=25,
-    learning_rate=0.01,
-    lambda_reg=0.02,
-    use_bias=True,
-    seed=123
-)
-
+# Instantiate the LightGCN model
 lightgcn = cornac.models.LightGCN(
-    seed=123
+    seed=123,
+    max_iter=3
 )
+
+# Instantiate evaluation measures
+rec_20 = cornac.metrics.Recall(k=20)
+ndcg_20 = cornac.metrics.NDCG(k=20)
+auc = cornac.metrics.AUC()
 
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[pmf, biased_mf, lightgcn],
-    metrics=[cornac.metrics.RMSE()],
-    user_based=False,
+    models=[vaecf, lightgcn],
+    metrics=[rec_20, ndcg_20, auc],
+    user_based=True,
 ).run()
