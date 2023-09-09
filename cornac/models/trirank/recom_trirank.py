@@ -52,6 +52,10 @@ class TriRank(Recommender):
     eta_A: float, optional, default: 1
         The weight of fitting constraint on aspects
 
+    max_iter: int, optional, default: 100
+        Maximum number of iterations to stop online training. If set to `max_iter=-1`, \
+        the online training will stop when model parameters are converged.
+
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model already \
         pre-trained (R, X, Y, p, a, u are not None).
@@ -100,6 +104,7 @@ class TriRank(Recommender):
         eta_U=1,
         eta_P=1,
         eta_A=1,
+        max_iter=100,
         verbose=True,
         init_params=None,
         seed=None,
@@ -111,6 +116,7 @@ class TriRank(Recommender):
         self.eta_U = eta_U
         self.eta_P = eta_P
         self.eta_A = eta_A
+        self.max_iter = max_iter
         self.verbose = verbose
         self.seed = seed
         self.rng = get_rng(seed)
@@ -227,9 +233,8 @@ class TriRank(Recommender):
 
     def _online_recommendation(self, user):
         # Algorithm 1: Online recommendation line 5
-        p_0 = self.train_set.csr_matrix[user]
-        indices = p_0.nonzero()
-        p_0[indices] = 1
+        p_0 = self.train_set.csr_matrix[[user]]
+        p_0.data.fill(1)
         p_0 = p_0.toarray().squeeze()
         a_0 = self.Y[user].toarray().squeeze()
         u_0 = np.zeros(self.train_set.csr_matrix.shape[0])
@@ -252,6 +257,7 @@ class TriRank(Recommender):
         prev_p = p
         prev_a = a
         prev_u = u
+        inc = 1
         while True:
             # eq. 4
             u_denominator = self.alpha + self.gamma + self.eta_U + EPS
@@ -273,14 +279,14 @@ class TriRank(Recommender):
                 + self.eta_P / a_denominator * a_0
             ).squeeze()
 
-            if (
+            if (self.max_iter > 0 and inc > self.max_iter) or (
                 np.all(np.isclose(u, prev_u))
                 and np.all(np.isclose(p, prev_p))
                 and np.all(np.isclose(a, prev_a))
             ):  # stop when converged
                 break
-            else:
-                prev_p, prev_a, prev_u = p, a, u
+            prev_p, prev_a, prev_u = p, a, u
+            inc += 1
 
         # Algorithm 1: Online recommendation line 9
         return p, a, u
