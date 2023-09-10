@@ -2,7 +2,7 @@ import dgl
 import torch
 
 
-def construct_graph(data_set):
+def construct_graph(data_set, device):
     """
     Generates graph given a cornac data set
 
@@ -40,13 +40,13 @@ def construct_graph(data_set):
     g = dgl.graph(
         (u, v),
         num_nodes=(data_set.total_users + data_set.total_items)
-    )
+    ).to(device)
 
     # g.edata["rates"] = {
     #     ("user", "user-item", "item"): rating_values,
     #     ("item", "item-user", "user"): rating_values,
     # }
-    g.edata["rates"] = torch.cat((rating_values, rating_values), dim=0)
+    g.edata["rates"] = torch.cat((rating_values, rating_values), dim=0).to(device)
 
     # return dgl.to_bidirected(g)
     # return dgl.add_reverse_edges(g)
