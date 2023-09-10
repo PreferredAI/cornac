@@ -25,7 +25,8 @@ data = citeulike.load_feedback()
 # Instantiate an evaluation method to split data into train and test sets.
 ratio_split = RatioSplit(
     data=data,
-    test_size=0.2,
+    val_size=0.1,
+    test_size=0.1,
     exclude_unknowns=True,
     verbose=True,
     seed=123,
@@ -49,7 +50,9 @@ vaecf = cornac.models.VAECF(
 
 # Instantiate the LightGCN model
 lightgcn = cornac.models.LightGCN(
-    seed=123
+    seed=123,
+    max_iter=200,
+    train_batch_size=256,
 )
 
 # Instantiate evaluation measures
