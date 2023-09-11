@@ -53,15 +53,15 @@ class Model:
         positive_item_embed = item_embeddings[batch_i]
         negative_item_embed = item_embeddings[batch_j]
 
-        pos_scores = torch.sum(
-            torch.multiply(user_embed, positive_item_embed), dim=1
+        pred_i = torch.sum(
+            torch.multiply(user_embed, positive_item_embed)
         )
-        neg_scores = torch.sum(
-            torch.multiply(user_embed, negative_item_embed), dim=1
+        pred_j = torch.sum(
+            torch.multiply(user_embed, negative_item_embed)
         )
 
-        # bpr_loss = - (pred_i.view(-1) - pred_j.view(-1)).sigmoid().log().sum()
-        bpr_loss = torch.mean(torch.nn.functional.softplus(neg_scores - pos_scores))
+        bpr_loss = - (pred_i.view(-1) - pred_j.view(-1)).sigmoid().log().sum()
+        # bpr_loss = torch.mean(torch.nn.functional.softplus(neg_scores - pos_scores))
 
         reg_loss = (
             torch.norm(user_embed) ** 2 +
@@ -110,32 +110,32 @@ class Model:
             #     loss.backward()
             #     self.optimizer.step()
         
-        # Val set
-        if val_set is not None:
-            epoch_loss_val = 0
+        # # Val set
+        # if val_set is not None:
+        #     epoch_loss_val = 0
 
-            for batch_u, batch_i, batch_j in tqdm(
-                val_set.uij_iter(
-                    batch_size=self.batch_size,
-                    shuffle=True,
-                ),
-                desc="Val Set",
-                total=val_set.num_batches(self.batch_size),
-                leave=False,
-                position=1
-            ):
-                batch_u = torch.from_numpy(batch_u).long().to(self.device)
-                batch_i = torch.from_numpy(batch_i).long().to(self.device)
-                batch_j = torch.from_numpy(batch_j).long().to(self.device)
+        #     for batch_u, batch_i, batch_j in tqdm(
+        #         val_set.uij_iter(
+        #             batch_size=self.batch_size,
+        #             shuffle=True,
+        #         ),
+        #         desc="Val Set",
+        #         total=val_set.num_batches(self.batch_size),
+        #         leave=False,
+        #         position=1
+        #     ):
+        #         batch_u = torch.from_numpy(batch_u).long().to(self.device)
+        #         batch_i = torch.from_numpy(batch_i).long().to(self.device)
+        #         batch_j = torch.from_numpy(batch_j).long().to(self.device)
 
-                user_embeddings, item_embeddings = model(graph)
-                bpr_loss, loss = self._calculate_loss(batch_u, batch_i, batch_j, user_embeddings, item_embeddings)
-                epoch_loss_val += bpr_loss.item()
+        #         user_embeddings, item_embeddings = model(graph)
+        #         bpr_loss, _ = self._calculate_loss(batch_u, batch_i, batch_j, user_embeddings, item_embeddings)
+        #         epoch_loss_val += bpr_loss.item()
 
-            if epoch_loss_val < self.best_valid_loss:
-                self.best_valid_loss = epoch_loss_val
-                self.no_better_valid_count = 0
-                self.best_model_state_dict = model.state_dict()
+        #     if epoch_loss_val < self.best_valid_loss:
+        #         self.best_valid_loss = epoch_loss_val
+        #         self.no_better_valid_count = 0
+        #         self.best_model_state_dict = model.state_dict()
 
         return epoch_loss_test, epoch_loss_val
 
@@ -145,7 +145,7 @@ class Model:
         val_set,
         max_iter
     ):
-        graph = construct_graph(train_set, self.device)
+        self.graph = construct_graph(train_set, self.device)
         for iter in tqdm(
             range(1, max_iter),
             desc="Training",
@@ -154,7 +154,7 @@ class Model:
             leave=False,
             # disable=self.verbose,
         ):
-            loss_test, loss_val = self._train_model(train_set, val_set, self.model, graph)
+            loss_test, loss_val = self._train_model(train_set, val_set, self.model, self.graph)
 
             log_str = f"Epoch: {iter}\t loss: {loss_test:.4f}"
             if loss_val is not None:
@@ -180,3 +180,42 @@ class Model:
             return torch.matmul(item_embeddings, torch.t(user_embeddings[user_idx])).cpu().detach().numpy()
         else:
             return torch.sum(torch.multiply(user_embeddings[user_idx], item_embeddings[item_idx])).cpu().detach().numpy()
+        
+    def monitor_value(self):
+        """Calculating monitored value used for early stopping on validation set (`val_set`).
+        This function will be called by `early_stop()` function.
+
+        Returns
+        -------
+        res : float
+            Monitored value on validation set.
+            Return `None` if `val_set` is `None`.
+        """
+        if self.val_set is None:
+            return None
+        
+        epoch_loss_val = 0
+        for batch_u, batch_i, batch_j in tqdm(
+            self.val_set.uij_iter(
+                batch_size=self.batch_size,
+                shuffle=True,
+            ),
+            desc="Val Set",
+            total=self.val_set.num_batches(self.batch_size),
+            leave=False,
+            position=1
+        ):
+            batch_u = torch.from_numpy(batch_u).long().to(self.device)
+            batch_i = torch.from_numpy(batch_i).long().to(self.device)
+            batch_j = torch.from_numpy(batch_j).long().to(self.device)
+
+            user_embeddings, item_embeddings = self.model(self.graph)
+            bpr_loss, _ = self._calculate_loss(batch_u, batch_i, batch_j, user_embeddings, item_embeddings)
+            epoch_loss_val += bpr_loss.item()
+
+        logging.info(f"loss_val: {epoch_loss_val}")
+
+        return epoch_loss_val
+
+        
+
