@@ -1,4 +1,5 @@
 import logging
+import time
 import torch
 import numpy as np
 from .data import construct_graph
@@ -45,47 +46,98 @@ class Model:
             if torch.cuda.is_available():
                 torch.cuda.manual_seed_all(seed)
 
-    def _train_model(self, train_set, model, graph):
-        epoch_loss = 0
-        for batch_u, batch_i, batch_j in train_set.uij_iter(
-            batch_size=self.batch_size,
-            shuffle=True,
+        self.best_valid_loss = np.inf
+
+    def _calculate_loss(self, batch_u, batch_i, batch_j, user_embeddings, item_embeddings):        
+        user_embed = user_embeddings[batch_u]
+        positive_item_embed = item_embeddings[batch_i]
+        negative_item_embed = item_embeddings[batch_j]
+
+        pos_scores = torch.sum(
+            torch.multiply(user_embed, positive_item_embed), dim=1
+        )
+        neg_scores = torch.sum(
+            torch.multiply(user_embed, negative_item_embed), dim=1
+        )
+
+        # bpr_loss = - (pred_i.view(-1) - pred_j.view(-1)).sigmoid().log().sum()
+        bpr_loss = torch.mean(torch.nn.functional.softplus(neg_scores - pos_scores))
+
+        reg_loss = (
+            torch.norm(user_embed) ** 2 +
+            torch.norm(positive_item_embed) ** 2 +
+            torch.norm(negative_item_embed) ** 2
+        )
+
+        loss = 0.5 * (bpr_loss + self.learning_rate * reg_loss) / self.batch_size
+
+        return bpr_loss, loss
+
+    def _train_model(self, train_set, val_set, model, graph):
+        epoch_loss_test = 0
+        epoch_loss_val = None
+
+        # Train set
+        for batch_u, batch_i, batch_j in tqdm(
+            train_set.uij_iter(
+                batch_size=self.batch_size,
+                shuffle=True,
+            ),
+            desc="Training set",
+            total=train_set.num_batches(self.batch_size),
+            leave=False,
+            position=1
         ):
-            for u, i, j in tqdm(zip(batch_u, batch_i, batch_j), desc="Batch Item", total=self.batch_size, leave=False, position=1):
-                u = torch.from_numpy(np.asarray(u)).long().to(self.device)
-                i = torch.from_numpy(np.asarray(i)).long().to(self.device)
-                j = torch.from_numpy(np.asarray(j)).long().to(self.device)
+            batch_u = torch.from_numpy(batch_u).long().to(self.device)
+            batch_i = torch.from_numpy(batch_i).long().to(self.device)
+            batch_j = torch.from_numpy(batch_j).long().to(self.device)
+
+            user_embeddings, item_embeddings = model(graph)
+            bpr_loss, loss = self._calculate_loss(batch_u, batch_i, batch_j, user_embeddings, item_embeddings)
+            epoch_loss_test += bpr_loss.item()
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+            # user_embed, pos_item_embed, neg_item_embed = _get_embedding(self, users, )
+
+            # for u, i, j in zip(batch_u, batch_i, batch_j):
+            #     user_embeddings, item_embeddings = model(graph)
+            #     bpr_loss, loss = self._calculate_loss(u, i, j, user_embeddings, item_embeddings)
+            #     epoch_loss_test += bpr_loss.item()
+                
+            #     self.optimizer.zero_grad()
+            #     loss.backward()
+            #     self.optimizer.step()
+        
+        # Val set
+        if val_set is not None:
+            epoch_loss_val = 0
+
+            for batch_u, batch_i, batch_j in tqdm(
+                val_set.uij_iter(
+                    batch_size=self.batch_size,
+                    shuffle=True,
+                ),
+                desc="Val Set",
+                total=val_set.num_batches(self.batch_size),
+                leave=False,
+                position=1
+            ):
+                batch_u = torch.from_numpy(batch_u).long().to(self.device)
+                batch_i = torch.from_numpy(batch_i).long().to(self.device)
+                batch_j = torch.from_numpy(batch_j).long().to(self.device)
 
                 user_embeddings, item_embeddings = model(graph)
+                bpr_loss, loss = self._calculate_loss(batch_u, batch_i, batch_j, user_embeddings, item_embeddings)
+                epoch_loss_val += bpr_loss.item()
 
-                user_embed = user_embeddings[u]
-                positive_item_embed = item_embeddings[i]
-                negative_item_embed = item_embeddings[j]
+            if epoch_loss_val < self.best_valid_loss:
+                self.best_valid_loss = epoch_loss_val
+                self.no_better_valid_count = 0
+                self.best_model_state_dict = model.state_dict()
 
-                pred_i = torch.sum(
-                    torch.multiply(user_embed, positive_item_embed)
-                )
-                pred_j = torch.sum(
-                    torch.multiply(user_embed, negative_item_embed)
-                )
-
-                bpr_loss = - (pred_i.view(-1) - pred_j.view(-1)).sigmoid().log().sum()
-                reg_loss = (
-                    torch.norm(user_embed) ** 2 +
-                    torch.norm(positive_item_embed) ** 2 +
-                    torch.norm(negative_item_embed) ** 2
-                )
-
-                loss = 0.5 * (bpr_loss + self.learning_rate * reg_loss) / self.batch_size
-
-                epoch_loss += bpr_loss.item()
-
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-            break  # mini batching, we only want the first batch
-
-        return epoch_loss
+        return epoch_loss_test, epoch_loss_val
 
     def train(
         self,
@@ -98,13 +150,16 @@ class Model:
             range(1, max_iter),
             desc="Training",
             unit="iter",
-            disable=self.verbose,
+            position=0,
+            leave=False,
+            # disable=self.verbose,
         ):
-            loss = self._train_model(train_set, self.model, graph)
-            logging.info(
-                f"Epoch: {iter}\t"
-                + f"loss: {loss:.4f}"
-            )
+            loss_test, loss_val = self._train_model(train_set, val_set, self.model, graph)
+
+            log_str = f"Epoch: {iter}\t loss: {loss_test:.4f}"
+            if loss_val is not None:
+                log_str += f"\t val_loss: {loss_val:.4f}"
+            logging.info(log_str)
 
     def predict(
         self,
