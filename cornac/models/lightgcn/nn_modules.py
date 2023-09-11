@@ -4,7 +4,7 @@ import dgl.function as fn
 
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, user_size, item_size, hidden_size, num_layers=1, device=None):
+    def __init__(self, user_size, item_size, hidden_size, num_layers=3, device=None):
         super(NeuralNetwork, self).__init__()
         self.user_size = user_size
         self.item_size = item_size
