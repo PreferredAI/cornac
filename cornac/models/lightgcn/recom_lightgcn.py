@@ -21,17 +21,18 @@ class LightGCN(Recommender):
     def __init__(
         self,
         name="LightGCN",
-        max_iter=2000,
+        max_iter=1000,
         learning_rate=0.001,
-        train_batch_size=4096,
+        train_batch_size=1024,
         test_batch_size=100,
         hidden_dim=16,
-        num_layers=1,
+        num_layers=3,
         early_stopping_patience=5,
+        weight_decay=1e-4,
         top_k=10,
         trainable=True,
         verbose=False,
-        seed=None,
+        seed=2020,
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
@@ -42,6 +43,7 @@ class LightGCN(Recommender):
         self.train_batch_size = train_batch_size
         self.test_batch_size = test_batch_size
         self.early_stopping_patience = early_stopping_patience
+        self.weight_decay = weight_decay
         self.top_k = top_k
         self.seed = seed
 
@@ -58,14 +60,15 @@ class LightGCN(Recommender):
                 self.num_layers,
                 self.learning_rate,
                 self.train_batch_size,
-                verbose=False,
+                verbose=True,
                 seed=None
             )
 
             self.model.train(
                 train_set,
                 val_set,
-                self.max_iter
+                self.max_iter,
+                self.weight_decay
             )
 
     def transform(self, test_set):

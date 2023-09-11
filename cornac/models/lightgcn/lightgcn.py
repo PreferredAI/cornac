@@ -5,6 +5,7 @@ import numpy as np
 from .data import construct_graph
 from .nn_modules import NeuralNetwork
 from tqdm import tqdm
+from torch.utils.tensorboard import SummaryWriter
 
 
 class Model:
@@ -47,6 +48,7 @@ class Model:
                 torch.cuda.manual_seed_all(seed)
 
         self.best_valid_loss = np.inf
+        self.writer = SummaryWriter()
 
     def _calculate_loss(self, batch_u, batch_i, batch_j, user_embeddings, item_embeddings):        
         user_embed = user_embeddings[batch_u]
@@ -54,26 +56,33 @@ class Model:
         negative_item_embed = item_embeddings[batch_j]
 
         pred_i = torch.sum(
-            torch.multiply(user_embed, positive_item_embed)
+            torch.multiply(user_embed, positive_item_embed), dim=1
         )
         pred_j = torch.sum(
-            torch.multiply(user_embed, negative_item_embed)
+            torch.multiply(user_embed, negative_item_embed), dim=1
         )
 
-        bpr_loss = - (pred_i.view(-1) - pred_j.view(-1)).sigmoid().log().sum()
-        # bpr_loss = torch.mean(torch.nn.functional.softplus(neg_scores - pos_scores))
+        # bpr_loss = - (pred_j.view(-1) - pred_i.view(-1)).sigmoid().log().sum()
+        # bpr_loss = torch.mean(torch.nn.functional.softplus(pred_j - pred_i))
 
-        reg_loss = (
-            torch.norm(user_embed) ** 2 +
-            torch.norm(positive_item_embed) ** 2 +
-            torch.norm(negative_item_embed) ** 2
-        )
+        # reg_loss = (
+        #     torch.norm(user_embed) ** 2 +
+        #     torch.norm(positive_item_embed) ** 2 +
+        #     torch.norm(negative_item_embed) ** 2
+        # )
 
-        loss = 0.5 * (bpr_loss + self.learning_rate * reg_loss) / self.batch_size
+        reg_loss = (1/2) * (
+            user_embed.norm(2).pow(2) +
+            positive_item_embed.norm(2).pow(2) +
+            negative_item_embed.norm(2).pow(2)
+        ) / float(len(batch_u))
 
-        return bpr_loss, loss
+        loss = torch.mean(torch.nn.functional.softplus(pred_j - pred_i))
+        # loss = 0.5 * (bpr_loss + self.learning_rate * reg_loss) / self.batch_size
 
-    def _train_model(self, train_set, val_set, model, graph):
+        return loss, reg_loss
+
+    def _train_model(self, train_set, val_set, model, graph, weight_decay):
         epoch_loss_test = 0
         epoch_loss_val = None
 
@@ -83,7 +92,7 @@ class Model:
                 batch_size=self.batch_size,
                 shuffle=True,
             ),
-            desc="Training set",
+            desc="Batch",
             total=train_set.num_batches(self.batch_size),
             leave=False,
             position=1
@@ -93,8 +102,10 @@ class Model:
             batch_j = torch.from_numpy(batch_j).long().to(self.device)
 
             user_embeddings, item_embeddings = model(graph)
-            bpr_loss, loss = self._calculate_loss(batch_u, batch_i, batch_j, user_embeddings, item_embeddings)
-            epoch_loss_test += bpr_loss.item()
+            loss, reg_loss = self._calculate_loss(batch_u, batch_i, batch_j, user_embeddings, item_embeddings)
+            reg_loss = reg_loss * weight_decay
+            loss = loss + reg_loss
+            epoch_loss_test += loss.cpu().item()
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -137,15 +148,19 @@ class Model:
         #         self.no_better_valid_count = 0
         #         self.best_model_state_dict = model.state_dict()
 
+        epoch_loss_test = epoch_loss_test/self.batch_size
+
         return epoch_loss_test, epoch_loss_val
 
     def train(
         self,
         train_set,
         val_set,
-        max_iter
+        max_iter,
+        weight_decay
     ):
         self.graph = construct_graph(train_set, self.device)
+        # progress_bar = trange(1, max_iter + 1, disable=self.verbose)
         for iter in tqdm(
             range(1, max_iter),
             desc="Training",
@@ -154,12 +169,14 @@ class Model:
             leave=False,
             # disable=self.verbose,
         ):
-            loss_test, loss_val = self._train_model(train_set, val_set, self.model, self.graph)
+            loss_test, loss_val = self._train_model(train_set, val_set, self.model, self.graph, weight_decay)
 
             log_str = f"Epoch: {iter}\t loss: {loss_test:.4f}"
             if loss_val is not None:
                 log_str += f"\t val_loss: {loss_val:.4f}"
             logging.info(log_str)
+
+            self.writer.add_scalar("Loss/train", loss_test, iter)
 
     def predict(
         self,
