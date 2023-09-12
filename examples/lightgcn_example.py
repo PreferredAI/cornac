@@ -33,37 +33,26 @@ ratio_split = RatioSplit(
     rating_threshold=0.5,
 )
 
-# Instantiate the VAECF model
-vaecf = cornac.models.VAECF(
-    k=10,
-    autoencoder_structure=[20],
-    act_fn="tanh",
-    likelihood="mult",
-    n_epochs=100,
-    batch_size=100,
-    learning_rate=0.001,
-    beta=1.0,
-    seed=123,
-    use_gpu=True,
-    verbose=True,
-)
-
 # Instantiate the LightGCN model
 lightgcn = cornac.models.LightGCN(
     seed=123,
-    max_iter=200,
+    num_epochs=2000,
+    num_layers=3,
+    early_stopping={"min_delta": 1e-4, "patience": 3},
     train_batch_size=256,
+    learning_rate=0.001,
+    lambda_reg=1e-4,
+    verbose=True
 )
 
 # Instantiate evaluation measures
 rec_20 = cornac.metrics.Recall(k=20)
 ndcg_20 = cornac.metrics.NDCG(k=20)
-auc = cornac.metrics.AUC()
 
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[vaecf, lightgcn],
-    metrics=[rec_20, ndcg_20, auc],
+    models=[lightgcn],
+    metrics=[rec_20, ndcg_20],
     user_based=True,
 ).run()
