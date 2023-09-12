@@ -31,7 +31,6 @@ class LightGCN(Recommender):
         num_layers=3,
         early_stopping=None,
         lambda_reg=1e-4,
-        top_k=10,
         trainable=True,
         verbose=False,
         seed=2020,
@@ -46,7 +45,6 @@ class LightGCN(Recommender):
         self.test_batch_size = test_batch_size
         self.early_stopping = early_stopping
         self.lambda_reg = lambda_reg
-        self.top_k = top_k
         self.seed = seed
 
     def fit(self, train_set, val_set=None):
@@ -73,7 +71,7 @@ class LightGCN(Recommender):
             self.num_layers,
         ).to(self.device)
 
-        graph = self.graph = construct_graph(train_set).to(self.device)
+        graph = construct_graph(train_set).to(self.device)
 
         optimizer = torch.optim.Adam(
             model.parameters(), lr=self.learning_rate, weight_decay=self.lambda_reg
