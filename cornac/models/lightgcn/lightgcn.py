@@ -22,9 +22,8 @@ def construct_graph(data_set):
         ),  # increment item node idx by num users
     )
 
-    u, v = torch.cat([user_nodes, item_nodes], dim=0), torch.cat(
-        [item_nodes, user_nodes], dim=0
-    )
+    u = torch.cat([user_nodes, item_nodes], dim=0)
+    v = torch.cat([item_nodes, user_nodes], dim=0)
 
     g = dgl.graph((u, v), num_nodes=(data_set.total_users + data_set.total_items))
     return g

@@ -16,7 +16,7 @@
 from ..recommender import Recommender
 from ...exception import ScoreException
 
-from tqdm.auto import tqdm
+from tqdm.auto import tqdm, trange
 
 
 class LightGCN(Recommender):
@@ -81,8 +81,8 @@ class LightGCN(Recommender):
         loss_fn = torch.nn.BCELoss(reduction="sum")
 
         # model training
-        pbar = tqdm(
-            range(1, self.num_epochs),
+        pbar = trange(
+            self.num_epochs,
             desc="Training",
             unit="iter",
             position=0,
@@ -97,7 +97,7 @@ class LightGCN(Recommender):
                     batch_size=self.train_batch_size,
                     shuffle=True,
                 ),
-                desc="Batch",
+                desc="Epoch",
                 total=train_set.num_batches(self.train_batch_size),
                 leave=False,
                 position=1,
@@ -113,12 +113,8 @@ class LightGCN(Recommender):
                 positive_item_embed = item_embeddings[batch_i]
                 negative_item_embed = item_embeddings[batch_j]
 
-                ui_scores = torch.sum(
-                    torch.multiply(user_embed, positive_item_embed), dim=1
-                )
-                uj_scores = torch.sum(
-                    torch.multiply(user_embed, negative_item_embed), dim=1
-                )
+                ui_scores = (user_embed * positive_item_embed).sum(dim=1)
+                uj_scores = (user_embed * negative_item_embed).sum(dim=1)
 
                 loss = loss_fn(
                     torch.sigmoid(ui_scores - uj_scores), torch.ones_like(ui_scores)
@@ -142,8 +138,8 @@ class LightGCN(Recommender):
                 break
 
         # we will use numpy for faster prediction in the score function, no need torch
-        self.U = user_embeddings.cpu().detach().numpy()
-        self.V = item_embeddings.cpu().detach().numpy()
+        self.U = self.U.cpu().detach().numpy()
+        self.V = self.V.cpu().detach().numpy()
 
     def monitor_value(self):
         """Calculating monitored value used for early stopping on validation set (`val_set`).
@@ -167,7 +163,7 @@ class LightGCN(Recommender):
             desc="Validation",
             total=self.val_set.num_batches(self.test_batch_size),
             leave=False,
-            position=2,
+            position=1,
             disable=not self.verbose,
         )
         for batch_u, batch_i, batch_j in pbar:
@@ -179,12 +175,8 @@ class LightGCN(Recommender):
             positive_item_embed = self.V[batch_i]
             negative_item_embed = self.V[batch_j]
 
-            ui_scores = torch.sum(
-                torch.multiply(user_embed, positive_item_embed), dim=1
-            )
-            uj_scores = torch.sum(
-                torch.multiply(user_embed, negative_item_embed), dim=1
-            )
+            ui_scores = (user_embed * positive_item_embed).sum(dim=1)
+            uj_scores = (user_embed * negative_item_embed).sum(dim=1)
 
             loss = loss_fn(
                 torch.sigmoid(ui_scores - uj_scores), torch.ones_like(ui_scores)
