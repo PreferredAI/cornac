@@ -20,6 +20,63 @@ from tqdm.auto import tqdm, trange
 
 
 class LightGCN(Recommender):
+    """
+    LightGCN
+
+    Parameters
+    ----------
+    name: string, default: 'LightGCN'
+        The name of the recommender model.
+
+    num_epochs: int, default: 1000
+        Maximum number of iterations or the number of epochs
+
+    learning_rate: float, default: 0.001
+        The learning rate that determines the step size at each iteration
+
+    train_batch_size: int, default: 1024
+        Mini-batch size used for train set
+
+    test_batch_size: int, default: 100
+        Mini-batch size used for test set
+
+    hidden_dim: int, default: 64
+        The embedding size of the model
+    
+    num_layers: int, default: 3
+        Number of LightGCN Layers
+
+    early_stopping: {min_delta: float, patience: int}, optional, default: None
+        If `None`, no early stopping. Meaning of the arguments:
+
+        - `min_delta`:  the minimum increase in monitored value on validation
+                        set to be considered as improvement,
+                        i.e. an increment of less than min_delta will count as
+                        no improvement.
+
+        - `patience`:   number of epochs with no improvement after which
+                        training should be stopped.
+
+    lambda_reg: float, default: 1e-4
+        Weight decay for the L2 normalization
+
+    trainable: boolean, optional, default: True
+        When False, the model is not trained and Cornac assumes that the model
+        is already pre-trained.
+
+    verbose: boolean, optional, default: False
+        When True, some running logs are displayed.
+
+    seed: int, optional, default: 2020
+        Random seed for parameters initialization.
+
+    References
+    ----------
+    *   He, X., Deng, K., Wang, X., Li, Y., Zhang, Y., & Wang, M. (2020).
+        LightGCN: Simplifying and Powering Graph Convolution Network for
+        Recommendation.
+    """
+
     def __init__(
         self,
         name="LightGCN",
@@ -87,7 +144,7 @@ class LightGCN(Recommender):
             leave=False,
             disable=not self.verbose,
         )
-        for epoch in pbar:
+        for _ in pbar:
             model.train()
             accum_loss = 0.0
             for batch_u, batch_i, batch_j in tqdm(
