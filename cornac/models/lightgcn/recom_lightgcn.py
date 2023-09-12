@@ -27,7 +27,7 @@ class LightGCN(Recommender):
         learning_rate=0.001,
         train_batch_size=1024,
         test_batch_size=100,
-        hidden_dim=16,
+        hidden_dim=64,
         num_layers=3,
         early_stopping=None,
         lambda_reg=1e-4,
