@@ -105,6 +105,20 @@ class LightGCN(Recommender):
         self.seed = seed
 
     def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
+        """
         Recommender.fit(self, train_set, val_set)
 
         if not self.trainable:
