@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 """
-Example for LightGCN
+Example for LightGCN, using the CiteULike dataset
 """
 import cornac
 from cornac.datasets import citeulike
