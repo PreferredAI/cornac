@@ -42,7 +42,7 @@ class LightGCN(Recommender):
 
     hidden_dim: int, default: 64
         The embedding size of the model
-    
+
     num_layers: int, default: 3
         Number of LightGCN Layers
 

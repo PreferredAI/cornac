@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch
 import dgl
 import dgl.function as fn
 
@@ -42,7 +41,6 @@ class GCNLayer(nn.Module):
 
             inner_product = inner_product * norm_out_degs
 
-            # graph.ndata["h"] = {"user": inner_product, "item": inner_product}
             graph.ndata["h"] = inner_product
             graph.update_all(
                 message_func=fn.copy_u("h", "m"), reduce_func=fn.sum("m", "h")
@@ -76,13 +74,13 @@ class Model(nn.Module):
                 embeddings = layer(graph, user_embedding, item_embedding)
             else:
                 embeddings = layer(
-                    graph, embeddings[: self.user_size], embeddings[self.user_size :]
+                    graph, embeddings[: self.user_size], embeddings[self.user_size:]
                 )
 
             user_embedding = user_embedding + embeddings[: self.user_size] * (
                 1 / (i + 1)
             )
-            item_embedding = item_embedding + embeddings[self.user_size :] * (
+            item_embedding = item_embedding + embeddings[self.user_size:] * (
                 1 / (i + 1)
             )
 
