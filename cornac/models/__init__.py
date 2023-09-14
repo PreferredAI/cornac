@@ -58,6 +58,7 @@ from .sbpr import SBPR
 from .skm import SKMeans
 from .sorec import SoRec
 from .svd import SVD
+from .trirank import TriRank
 from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
