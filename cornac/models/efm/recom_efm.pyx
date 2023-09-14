@@ -370,9 +370,9 @@ class EFM(Recommender):
             map_uid.append(uid)
             map_iid.append(iid)
 
-        ratings = np.asarray(ratings, dtype=np.float).flatten()
-        map_uid = np.asarray(map_uid, dtype=np.int).flatten()
-        map_iid = np.asarray(map_iid, dtype=np.int).flatten()
+        ratings = np.asarray(ratings, dtype=np.float32).flatten()
+        map_uid = np.asarray(map_uid, dtype=np.int32).flatten()
+        map_iid = np.asarray(map_iid, dtype=np.int32).flatten()
         A = sp.csr_matrix((ratings, (map_uid, map_iid)),
                           shape=(self.train_set.num_users, self.train_set.num_items))
 
@@ -390,9 +390,9 @@ class EFM(Recommender):
                 map_uid.append(uid)
                 map_aspect_id.append(aid)
 
-        attention_scores = np.asarray(attention_scores, dtype=np.float).flatten()
-        map_uid = np.asarray(map_uid, dtype=np.int).flatten()
-        map_aspect_id = np.asarray(map_aspect_id, dtype=np.int).flatten()
+        attention_scores = np.asarray(attention_scores, dtype=np.float32).flatten()
+        map_uid = np.asarray(map_uid, dtype=np.int32).flatten()
+        map_aspect_id = np.asarray(map_aspect_id, dtype=np.int32).flatten()
         X = sp.csr_matrix((attention_scores, (map_uid, map_aspect_id)),
                           shape=(self.train_set.num_users, sentiment.num_aspects))
 
@@ -419,9 +419,9 @@ class EFM(Recommender):
                     avg_sentiment = total_sentiment / item_aspect_count[aid]
                     quality_scores.append(self._compute_quality_score(avg_sentiment))
 
-        quality_scores = np.asarray(quality_scores, dtype=np.float).flatten()
-        map_iid = np.asarray(map_iid, dtype=np.int).flatten()
-        map_aspect_id = np.asarray(map_aspect_id, dtype=np.int).flatten()
+        quality_scores = np.asarray(quality_scores, dtype=np.float32).flatten()
+        map_iid = np.asarray(map_iid, dtype=np.int32).flatten()
+        map_aspect_id = np.asarray(map_aspect_id, dtype=np.int32).flatten()
         Y = sp.csr_matrix((quality_scores, (map_iid, map_aspect_id)),
                           shape=(self.train_set.num_items, sentiment.num_aspects))
 
@@ -488,16 +488,24 @@ class EFM(Recommender):
         most_cared_X_ = X_[most_cared_aspects_indices]
         most_cared_Y_ = self.U2.dot(self.V[most_cared_aspects_indices, :].T)
         explicit_scores = most_cared_X_.dot(most_cared_Y_.T) / (self.num_most_cared_aspects * self.rating_scale)
-        item_scores = self.alpha * explicit_scores + (1 - self.alpha) * self.score(user_idx)
+        known_item_scores = self.alpha * explicit_scores + (1 - self.alpha) * self.score(user_idx)
 
+        # check if the returned scores also cover unknown items
+        # if not, all unknown items will be given the MIN score
+        if len(known_item_scores) == self.train_set.total_items:
+            all_item_scores = known_item_scores
+        else:
+            all_item_scores = np.ones(self.train_set.total_items) * np.min(
+                known_item_scores
+            )
+            all_item_scores[: self.train_set.num_items] = known_item_scores
+
+        # rank items based on their scores
         if item_indices is None:
-            item_scores = item_scores
+            item_scores = all_item_scores[: self.train_set.num_items]
             item_rank = item_scores.argsort()[::-1]
         else:
-            num_items = max(self.train_set.num_items, max(item_indices) + 1)
-            item_scores = np.ones(num_items) * np.min(item_scores)
-            item_scores[:self.train_set.num_items] = item_scores
-            item_rank = item_scores.argsort()[::-1]
-            item_rank = intersects(item_rank, item_indices, assume_unique=True)
-            item_scores = item_scores[item_indices]
+            item_scores = all_item_scores[item_indices]
+            item_rank = np.array(item_indices)[item_scores.argsort()[::-1]]
+
         return item_rank, item_scores
