@@ -50,6 +50,8 @@
 
 [cvae_example.py](cvae_example.py) - Collaborative Variational Autoencoder (CVAE) with CiteULike dataset.
 
+[trirank_example.py](trirank_example.py) - TriRank with Amazon Toy and Games dataset.
+
 [efm_example.py](efm_example.py) - Explicit Factor Model (EFM) with Amazon Toy and Games dataset.
 
 [hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLen 1m dataset.
