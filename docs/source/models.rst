@@ -58,6 +58,11 @@ Hybrid neural recommendation with joint deep representation learning of ratings 
 .. automodule:: cornac.models.hrdr.recom_hrdr
    :members:
 
+Simplifying and Powering Graph Convolution Network for Recommendation (LightGCN)
+----------------------------------------------------
+.. automodule:: cornac.models.lightgcn.recom_lightgcn
+   :members:
+
 Neural Attention Rating Regression with Review-level Explanations (NARRE)
 ---------------------------------------------------------------------------
 .. automodule:: cornac.models.narre.recom_narre
