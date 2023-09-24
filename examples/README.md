@@ -30,6 +30,8 @@
 
 [gcmc_example.py](gcmc_example.py) - Graph Convolutional Matrix Completion (GCMC) example with MovieLens 100K dataset.
 
+[lightgcn_example.py](lightgcn_example.py) - LightGCN example with CiteULike dataset.
+
 [mcf_office.py](mcf_office.py) - Fit Matrix Co-Factorization (MCF) to the Amazon Office dataset.
 
 [pcrl_example.py](pcrl_example.py) - Probabilistic Collaborative Representation Learning (PCRL) Amazon Office dataset.
