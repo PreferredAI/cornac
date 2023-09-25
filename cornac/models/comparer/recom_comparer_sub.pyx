@@ -757,14 +757,12 @@ class ComparERSub(MTER):
 
         return correct, skipped, loss, bpr_loss
 
-    def rank(self, user_id, item_ids=None):
+    def rank(self, user_idx, item_indices=None):
         if self.alpha > 0 and self.n_top_aspects > 0:
             n_items = self.train_set.num_items
             n_top_aspects = min(self.n_top_aspects, self.train_set.sentiment.num_aspects)
-            item_ids = item_ids if item_ids is not None else range(n_items)
-            item_ids = np.array(item_ids)
-            ts1 = np.einsum("abc,a->bc", self.G1, self.U[user_id])
-            ts2 = np.einsum("bc,Mb->Mc", ts1, self.I[item_ids])
+            ts1 = np.einsum("abc,a->bc", self.G1, self.U[user_idx])
+            ts2 = np.einsum("bc,Mb->Mc", ts1, self.I)
             ts3 = np.einsum("Mc,Nc->MN", ts2, self.A)
             top_aspect_scores = ts3[
                 np.repeat(range(n_items), n_top_aspects).reshape(
@@ -772,10 +770,27 @@ class ComparERSub(MTER):
                 ),
                 ts3[:, :-1].argsort(axis=1)[::-1][:, :n_top_aspects],
             ]
-            item_scores = (
+            known_item_scores = (
                 self.alpha * top_aspect_scores.mean(axis=1) + (1 - self.alpha) * ts3[:, -1]
             )
 
-            item_rank = item_ids[item_scores.argsort()[::-1]]
+            # check if the returned scores also cover unknown items
+            # if not, all unknown items will be given the MIN score
+            if len(known_item_scores) == self.train_set.total_items:
+                all_item_scores = known_item_scores
+            else:
+                all_item_scores = np.ones(self.train_set.total_items) * np.min(
+                    known_item_scores
+                )
+                all_item_scores[: self.train_set.num_items] = known_item_scores
+
+            # rank items based on their scores
+            if item_indices is None:
+                item_scores = all_item_scores[: self.train_set.num_items]
+                item_rank = item_scores.argsort()[::-1]
+            else:
+                item_scores = all_item_scores[item_indices]
+                item_rank = np.array(item_indices)[item_scores.argsort()[::-1]]
+
             return item_rank, item_scores
-        return super().rank(user_id, item_ids)
+        return super().rank(user_idx, item_indices)
