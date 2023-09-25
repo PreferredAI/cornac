@@ -210,6 +210,14 @@ extensions = [
         extra_link_args=link_args,
     ),
     Extension(
+        name="cornac.models.lrppm.recom_lrppm",
+        sources=["cornac/models/lrppm/recom_lrppm" + ext],
+        include_dirs=[np.get_include(), "cornac/utils/external"],
+        language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    ),
+    Extension(
         name="cornac.models.mter.recom_mter",
         sources=["cornac/models/mter/recom_mter" + ext],
         include_dirs=[np.get_include(), "cornac/utils/external"],
