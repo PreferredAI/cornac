@@ -126,8 +126,8 @@ class NGCF(Recommender):
 
         # model setup
         import torch
-        from .lightgcn import Model
-        from .lightgcn import construct_graph
+        from .ngcf import Model
+        from .ngcf import construct_graph
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if self.seed is not None:
@@ -138,8 +138,8 @@ class NGCF(Recommender):
         model = Model(
             train_set.total_users,
             train_set.total_items,
-            self.hidden_dim,
-            self.num_layers,
+            # self.hidden_dim,
+            # self.num_layers,
         ).to(self.device)
 
         graph = construct_graph(train_set).to(self.device)
