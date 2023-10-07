@@ -51,10 +51,10 @@ class GCNLayer(nn.Module):
         with graph.local_scope():
             inner_product = torch.cat((src_embedding, dst_embedding), dim=0)
 
-            in_degs, out_degs = graph.edges()
+            srt, dst = graph.edges()
             # out_degs = graph.out_degrees().to(src_embedding.device).float().clamp(min=1)
 
-            msgs = self.w1(inner_product[in_degs]) + self.w2(inner_product[in_degs] * inner_product[out_degs])
+            msgs = self.w1(inner_product[srt]) + self.w2(inner_product[srt] * inner_product[dst])
             # norm_msgs = torch.pow(msgs, -0.5).view(-1, 1)  # D^-1/2
             msgs = norm * msgs
 
@@ -66,7 +66,7 @@ class GCNLayer(nn.Module):
                 message_func=fn.copy_e("h", "m"), reduce_func=fn.sum("m", "h")
             )
 
-            res = graph.ndata["h"]
+            res = self.w1(inner_product) + graph.ndata["h"]
             res = self.leaky_relu(res)
             res = self.dropout(res)
 
