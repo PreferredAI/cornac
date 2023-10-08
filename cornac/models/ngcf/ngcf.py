@@ -1,7 +1,14 @@
+# Reference: https://github.com/dmlc/dgl/blob/master/examples/pytorch/NGCF/NGCF/model.py
+
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import dgl
 import dgl.function as fn
+
+
+USER_KEY = "user"
+ITEM_KEY = "item"
 
 
 def construct_graph(data_set):
@@ -14,118 +21,160 @@ def construct_graph(data_set):
         The data set as provided by cornac
     """
     user_indices, item_indices, _ = data_set.uir_tuple
-    user_nodes, item_nodes = (
-        torch.from_numpy(user_indices),
-        torch.from_numpy(
-            item_indices + data_set.total_users
-        ),  # increment item node idx by num users
-    )
 
-    u = torch.cat([user_nodes, item_nodes], dim=0)
-    v = torch.cat([item_nodes, user_nodes], dim=0)
+    # construct graph from the train data and add self-loops
+    user_selfs = [i for i in range(data_set.total_users)]
+    item_selfs = [i for i in range(data_set.total_items)]
 
-    g = dgl.graph((u, v), num_nodes=(data_set.total_users + data_set.total_items))
-    return g
+    data_dict = {
+        (USER_KEY, "user_self", USER_KEY): (user_selfs, user_selfs),
+        (ITEM_KEY, "item_self", ITEM_KEY): (item_selfs, item_selfs),
+        (USER_KEY, "user_item", ITEM_KEY): (user_indices, item_indices),
+        (ITEM_KEY, "item_user", USER_KEY): (item_indices, user_indices),
+    }
+    num_dict = {USER_KEY: data_set.total_users, ITEM_KEY: data_set.total_items}
+
+    return dgl.heterograph(data_dict, num_nodes_dict=num_dict)
 
 
-class GCNLayer(nn.Module):
-    def __init__(self, in_size, out_size, dropout):
-        super(GCNLayer, self).__init__()
+class NGCFLayer(nn.Module):
+    def __init__(self, in_size, out_size, norm_dict, dropout):
+        super(NGCFLayer, self).__init__()
         self.in_size = in_size
         self.out_size = out_size
-        
-        self.w1 = nn.Linear(in_size, out_size, bias=True)
-        self.w2 = nn.Linear(in_size, out_size, bias=True)
 
+        # weights for different types of messages
+        self.W1 = nn.Linear(in_size, out_size, bias=True)
+        self.W2 = nn.Linear(in_size, out_size, bias=True)
+
+        # leaky relu
         self.leaky_relu = nn.LeakyReLU(0.2)
 
+        # dropout layer
         self.dropout = nn.Dropout(dropout)
 
-        torch.nn.init.xavier_uniform_(self.w1.weight)
-        torch.nn.init.constant_(self.w1.bias, 0)
+        # initialization
+        torch.nn.init.xavier_uniform_(self.W1.weight)
+        torch.nn.init.constant_(self.W1.bias, 0)
+        torch.nn.init.xavier_uniform_(self.W2.weight)
+        torch.nn.init.constant_(self.W2.bias, 0)
 
-        torch.nn.init.xavier_uniform_(self.w2.weight)
-        torch.nn.init.constant_(self.w2.bias, 0)
+        # norm
+        self.norm_dict = norm_dict
 
-    def forward(self, graph, norm, src_embedding, dst_embedding):
-        with graph.local_scope():
-            inner_product = torch.cat((src_embedding, dst_embedding), dim=0)
+    def forward(self, g, feat_dict):
+        funcs = {}  # message and reduce functions dict
+        # for each type of edges, compute messages and reduce them all
+        for srctype, etype, dsttype in g.canonical_etypes:
+            if srctype == dsttype:  # for self loops
+                messages = self.W1(feat_dict[srctype])
+                g.nodes[srctype].data[etype] = messages  # store in ndata
+                funcs[(srctype, etype, dsttype)] = (
+                    fn.copy_u(etype, "m"),
+                    fn.sum("m", "h"),
+                )  # define message and reduce functions
+            else:
+                src, dst = g.edges(etype=(srctype, etype, dsttype))
+                norm = self.norm_dict[(srctype, etype, dsttype)]
+                messages = norm * (
+                    self.W1(feat_dict[srctype][src])
+                    + self.W2(feat_dict[srctype][src] * feat_dict[dsttype][dst])
+                )  # compute messages
+                g.edges[(srctype, etype, dsttype)].data[
+                    etype
+                ] = messages  # store in edata
+                funcs[(srctype, etype, dsttype)] = (
+                    fn.copy_e(etype, "m"),
+                    fn.sum("m", "h"),
+                )  # define message and reduce functions
 
-            srt, dst = graph.edges()
-            # out_degs = graph.out_degrees().to(src_embedding.device).float().clamp(min=1)
-
-            msgs = self.w1(inner_product[srt]) + self.w2(inner_product[srt] * inner_product[dst])
-            # norm_msgs = torch.pow(msgs, -0.5).view(-1, 1)  # D^-1/2
-            msgs = norm * msgs
-
-            # inner_product = inner_product * norm_msgs
-
-            graph.edata["h"] = msgs
-            # graph.ndata["h"] = inner_product
-            graph.update_all(
-                message_func=fn.copy_e("h", "m"), reduce_func=fn.sum("m", "h")
-            )
-
-            res = self.w1(inner_product) + graph.ndata["h"]
-            res = self.leaky_relu(res)
-            res = self.dropout(res)
-
-            # in_degs = graph.in_degrees().to(src_embedding.device).float().clamp(min=1)
-            # norm_in_degs = torch.pow(in_degs, -0.5).view(-1, 1)  # D^-1/2
-
-            # res = res * norm_in_degs
-            return res
+        g.multi_update_all(
+            funcs, "sum"
+        )  # update all, reduce by first type-wisely then across different types
+        feature_dict = {}
+        for ntype in g.ntypes:
+            h = self.leaky_relu(g.nodes[ntype].data["h"])  # leaky relu
+            h = self.dropout(h)  # dropout
+            h = F.normalize(h, dim=1, p=2)  # l2 normalize
+            feature_dict[ntype] = h
+        return feature_dict
 
 
 class Model(nn.Module):
-    def __init__(self, user_size, item_size, embed_size=64, layer_size=[64, 64, 64], dropout=[0.1, 0.1, 0.1], device=None):
+    def __init__(self, g, in_size, layer_sizes, dropout_rates, lambda_reg, device=None):
         super(Model, self).__init__()
-        self.user_size = user_size
-        self.item_size = item_size
-        self.embedding_weights = self._init_weights(embed_size)
-        self.layers = nn.ModuleList([GCNLayer(embed_size, layer_size[0], dropout[0])])
-        self.layers.extend(
-            [
-                GCNLayer(
-                    layer_size[i], layer_size[i + 1], dropout=dropout[i + 1]
-                ) for i in range(len(layer_size) - 1)
-            ]
-        )
+        self.norm_dict = dict()
+        self.lambda_reg = lambda_reg
         self.device = device
 
-    def forward(self, graph):
-        user_embedding = self.embedding_weights["user_embedding"]
-        item_embedding = self.embedding_weights["item_embedding"]
+        for srctype, etype, dsttype in g.canonical_etypes:
+            src, dst = g.edges(etype=(srctype, etype, dsttype))
+            dst_degree = g.in_degrees(
+                dst, etype=(srctype, etype, dsttype)
+            ).float()  # obtain degrees
+            src_degree = g.out_degrees(src, etype=(srctype, etype, dsttype)).float()
+            norm = torch.pow(src_degree * dst_degree, -0.5).unsqueeze(1)  # compute norm
+            self.norm_dict[(srctype, etype, dsttype)] = norm
 
-        src, dst = graph.edges()
-        dst_degree = graph.in_degrees(dst).float()
-        src_degree = graph.out_degrees(src).float()
-        norm = torch.pow(src_degree * dst_degree, -0.5).view(-1, 1)  # D^-1/2
-
-        for i, layer in enumerate(self.layers, start=1):
-            if i == 1:
-                embeddings = layer(graph, norm, user_embedding, item_embedding)
-            else:
-                embeddings = layer(
-                    graph, norm, embeddings[: self.user_size], embeddings[self.user_size:]
+        self.layers = nn.ModuleList()
+        self.layers.append(
+            NGCFLayer(in_size, layer_sizes[0], self.norm_dict, dropout_rates[0])
+        )
+        self.num_layers = len(layer_sizes)
+        for i in range(self.num_layers - 1):
+            self.layers.append(
+                NGCFLayer(
+                    layer_sizes[i],
+                    layer_sizes[i + 1],
+                    self.norm_dict,
+                    dropout_rates[i + 1],
                 )
+            )
+        self.initializer = nn.init.xavier_uniform_
 
-            user_embedding = user_embedding + embeddings[: self.user_size]
-            item_embedding = item_embedding + embeddings[self.user_size:]
-
-        return user_embedding, item_embedding
-
-    def _init_weights(self, in_size):
-        initializer = nn.init.xavier_uniform_
-
-        weights_dict = nn.ParameterDict(
+        # embeddings for different types of nodes
+        self.feature_dict = nn.ParameterDict(
             {
-                "user_embedding": nn.Parameter(
-                    initializer(torch.empty(self.user_size, in_size))
-                ),
-                "item_embedding": nn.Parameter(
-                    initializer(torch.empty(self.item_size, in_size))
-                ),
+                ntype: nn.Parameter(
+                    self.initializer(torch.empty(g.num_nodes(ntype), in_size))
+                )
+                for ntype in g.ntypes
             }
         )
-        return weights_dict
+
+    def forward(self, g, users=None, pos_items=None, neg_items=None):
+        h_dict = {ntype: self.feature_dict[ntype] for ntype in g.ntypes}
+        # obtain features of each layer and concatenate them all
+        user_embeds = []
+        item_embeds = []
+        user_embeds.append(h_dict[USER_KEY])
+        item_embeds.append(h_dict[ITEM_KEY])
+        for layer in self.layers:
+            h_dict = layer(g, h_dict)
+            user_embeds.append(h_dict[USER_KEY])
+            item_embeds.append(h_dict[ITEM_KEY])
+        user_embd = torch.cat(user_embeds, 1)
+        item_embd = torch.cat(item_embeds, 1)
+
+        u_g_embeddings = user_embd if users is None else user_embd[users, :]
+        pos_i_g_embeddings = item_embd if pos_items is None else item_embd[pos_items, :]
+        neg_i_g_embeddings = item_embd if neg_items is None else item_embd[neg_items, :]
+
+        return u_g_embeddings, pos_i_g_embeddings, neg_i_g_embeddings
+
+    def loss_fn(self, users, pos_items, neg_items):
+        pos_scores = (users * pos_items).sum(1)
+        neg_scores = (users * neg_items).sum(1)
+
+        bpr_loss = F.softplus(neg_scores - pos_scores).mean()
+        reg_loss = (
+            (1 / 2)
+            * (
+                torch.norm(users) ** 2
+                + torch.norm(pos_items) ** 2
+                + torch.norm(neg_items) ** 2
+            )
+            / len(users)
+        )
+
+        return bpr_loss + self.lambda_reg * reg_loss, bpr_loss, reg_loss

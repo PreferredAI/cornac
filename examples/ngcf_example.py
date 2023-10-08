@@ -33,31 +33,18 @@ ratio_split = RatioSplit(
     rating_threshold=0.5,
 )
 
-lightgcn = cornac.models.LightGCN(
-    seed=123,
-    num_epochs=2000,
-    num_layers=3,
-    early_stopping={"min_delta": 1e-4, "patience": 3},
-    train_batch_size=256,
-    learning_rate=0.001,
-    lambda_reg=1e-4,
-    verbose=True
-)
-
 # Instantiate the NGCF model
 ngcf = cornac.models.NGCF(
     seed=123,
-    num_epochs=2000,
-    num_layers=3,
-    early_stopping={"min_delta": 1e-4, "patience": 3},
+    num_epochs=1000,
+    emb_size=64,
+    layer_sizes=[64, 64, 64],
+    dropout_rates=[0.1, 0.1, 0.1],
+    early_stopping={"min_delta": 1e-4, "patience": 50},
     train_batch_size=256,
     learning_rate=0.001,
-    lambda_reg=1e-4,
-    verbose=True
-)
-
-gcmc = cornac.models.GCMC(
-    seed=123,
+    lambda_reg=1e-5,
+    verbose=True,
 )
 
 # Instantiate evaluation measures
@@ -67,7 +54,7 @@ ndcg_20 = cornac.metrics.NDCG(k=20)
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[lightgcn, ngcf],
+    models=[ngcf],
     metrics=[rec_20, ndcg_20],
     user_based=True,
 ).run()
