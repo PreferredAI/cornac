@@ -117,6 +117,11 @@ class Model(nn.Module):
             self.norm_dict[(srctype, etype, dsttype)] = norm
 
         self.layers = nn.ModuleList()
+
+        # sanity check, just to ensure layer sizes and dropout_rates have the same size
+        assert len(layer_sizes) == len(dropout_rates), "'layer_sizes' and " \
+            "'dropout_rates' must be of the same size"
+
         self.layers.append(
             NGCFLayer(in_size, layer_sizes[0], self.norm_dict, dropout_rates[0])
         )
