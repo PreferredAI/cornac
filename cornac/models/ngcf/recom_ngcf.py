@@ -21,15 +21,12 @@ from tqdm.auto import tqdm, trange
 
 class NGCF(Recommender):
     """
-    NGCF
+    Neural Graph Collaborative Filtering
 
     Parameters
     ----------
     name: string, default: 'NGCF'
         The name of the recommender model.
-
-    num_epochs: int, default: 1000
-        Maximum number of iterations or the number of epochs.
 
     emb_size: int, default: 64
         Size of the node embeddings.
@@ -37,8 +34,12 @@ class NGCF(Recommender):
     layer_sizes: list, default: [64, 64, 64]
         Size of the output of convolution layers.
 
-    dropout_rates: list, defaukt: [0.1, 0.1, 0.1]
-        Dropout out rate for each of the convolution layers.
+    dropout_rates: list, default: [0.1, 0.1, 0.1]
+        Dropout rate for each of the convolution layers. 
+        - Number of values should be the same as 'layer_sizes'
+       
+    num_epochs: int, default: 1000
+        Maximum number of iterations or the number of epochs.
 
     learning_rate: float, default: 0.001
         The learning rate that determines the step size at each iteration
