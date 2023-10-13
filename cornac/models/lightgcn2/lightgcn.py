@@ -45,7 +45,7 @@ class GCNLayer(nn.Module):
             src, dst = g.edges(etype=(srctype, etype, dsttype))
             norm = self.norm_dict[(srctype, etype, dsttype)]
             # TODO: CHECK HERE
-            messages = norm * feat_dict[srctype][src] * feat_dict[dsttype][dst]  # compute messages
+            messages = norm * feat_dict[srctype][src]  # compute messages
             g.edges[(srctype, etype, dsttype)].data[
                 etype
             ] = messages  # store in edata
