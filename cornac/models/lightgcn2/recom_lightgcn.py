@@ -203,46 +203,18 @@ class LightGCN(Recommender):
         if self.val_set is None:
             return None
 
-        import torch
-        import torch.nn.functional as F
+        from ...metrics import Recall
+        from ...eval_methods import ranking_eval
 
-        accum_loss = 0.0
-        pbar = tqdm(
-            self.val_set.uij_iter(batch_size=self.test_batch_size),
-            desc="Validation",
-            total=self.val_set.num_batches(self.test_batch_size),
-            leave=False,
-            position=1,
-            disable=not self.verbose,
-        )
-        for batch_u, batch_i, batch_j in pbar:
-            batch_u = torch.from_numpy(batch_u).long()
-            batch_i = torch.from_numpy(batch_i).long()
-            batch_j = torch.from_numpy(batch_j).long()
+        recall_20 = ranking_eval(
+            model=self,
+            metrics=[Recall(k=20)],
+            train_set=self.train_set,
+            test_set=self.val_set,
+            verbose=True
+        )[0][0]
 
-            u_g_embeddings, pos_i_g_embeddings, neg_i_g_embeddings = self.U[batch_u], self.V[batch_i], self.V[batch_j]
-            u_g_embeddings, pos_i_g_embeddings, neg_i_g_embeddings = torch.from_numpy(u_g_embeddings), torch.from_numpy(pos_i_g_embeddings), torch.from_numpy(neg_i_g_embeddings)
-
-            pos_scores = (u_g_embeddings * pos_i_g_embeddings).sum(1)
-            neg_scores = (u_g_embeddings * neg_i_g_embeddings).sum(1)
-
-            bpr_loss = F.softplus(neg_scores - pos_scores).mean()
-            reg_loss = (
-                (1 / 2)
-                * (
-                    torch.norm(u_g_embeddings) ** 2
-                    + torch.norm(pos_i_g_embeddings) ** 2
-                    + torch.norm(neg_i_g_embeddings) ** 2
-                )
-                / len(u_g_embeddings)
-            )
-
-            batch_loss = bpr_loss + self.lambda_reg * reg_loss
-            accum_loss += batch_loss.cpu().item() * len(batch_u)
-            pbar.set_postfix(val_loss=accum_loss)
-
-        accum_loss /= len(self.val_set.uir_tuple[0])  # normalize over all observations
-        return -accum_loss  # higher is better -> smaller loss is better
+        return recall_20  # Section 4.1.2 in the paper, same strategy as NGCF.
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
