@@ -33,6 +33,18 @@ ratio_split = RatioSplit(
     rating_threshold=0.5,
 )
 
+lightgcn1 = cornac.models.LightGCN1(
+    name="LightGCN-old",
+    seed=123,
+    num_epochs=2000,
+    num_layers=3,
+    early_stopping={"min_delta": 1e-4, "patience": 3},
+    train_batch_size=256,
+    learning_rate=0.001,
+    lambda_reg=1e-4,
+    verbose=True
+)
+
 # Instantiate the LightGCN model
 lightgcn = cornac.models.LightGCN(
     seed=123,
@@ -52,7 +64,7 @@ ndcg_20 = cornac.metrics.NDCG(k=20)
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[lightgcn],
+    models=[lightgcn1, lightgcn],
     metrics=[rec_20, ndcg_20],
     user_based=True,
 ).run()

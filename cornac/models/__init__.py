@@ -41,7 +41,8 @@ from .hrdr import HRDR
 from .ibpr import IBPR
 from .knn import ItemKNN
 from .knn import UserKNN
-from .lightgcn import LightGCN
+from .lightgcn import LightGCN1
+from .lightgcn2 import LightGCN
 from .mcf import MCF
 from .mf import MF
 from .mmmf import MMMF

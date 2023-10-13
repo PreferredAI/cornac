@@ -13,4 +13,4 @@
 # limitations under the License.
 # ============================================================================
 
-from .recom_lightgcn import LightGCN
+from .recom_lightgcn import LightGCN1

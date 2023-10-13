@@ -19,7 +19,7 @@ from ...exception import ScoreException
 from tqdm.auto import tqdm, trange
 
 
-class LightGCN(Recommender):
+class LightGCN1(Recommender):
     """
     LightGCN
 
