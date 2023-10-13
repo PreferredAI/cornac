@@ -100,10 +100,10 @@ class Model(nn.Module):
         user_embeds = h_dict[USER_KEY]
         item_embeds = h_dict[ITEM_KEY]
 
-        for i, layer in enumerate(self.layers):
+        for k, layer in enumerate(self.layers):
             h_dict = layer(g, h_dict)
-            user_embeds = user_embeds + (h_dict[USER_KEY] * 1 / (i + 1))
-            item_embeds = item_embeds + (h_dict[ITEM_KEY] * 1 / (i + 1))
+            user_embeds = user_embeds + (h_dict[USER_KEY] * 1 / (k + 1))
+            item_embeds = item_embeds + (h_dict[ITEM_KEY] * 1 / (k + 1))
 
         u_g_embeddings = user_embeds if users is None else user_embeds[users, :]
         pos_i_g_embeddings = item_embeds if pos_items is None else item_embeds[pos_items, :]
