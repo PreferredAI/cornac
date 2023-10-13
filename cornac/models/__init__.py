@@ -51,6 +51,7 @@ from .narre import NARRE
 from .ncf import GMF
 from .ncf import MLP
 from .ncf import NeuMF
+from .ngcf import NGCF
 from .nmf import NMF
 from .online_ibpr import OnlineIBPR
 from .pcrl import PCRL
