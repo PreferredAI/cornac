@@ -40,9 +40,6 @@ class LightGCN(Recommender):
     train_batch_size: int, default: 1024
         Mini-batch size used for train set
 
-    test_batch_size: int, default: 100
-        Mini-batch size used for test set
-
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments:
 
@@ -79,7 +76,6 @@ class LightGCN(Recommender):
         num_epochs=1000,
         learning_rate=0.001,
         train_batch_size=1024,
-        test_batch_size=100,
         num_layers=3,
         early_stopping=None,
         lambda_reg=1e-4,
@@ -92,7 +88,6 @@ class LightGCN(Recommender):
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
         self.train_batch_size = train_batch_size
-        self.test_batch_size = test_batch_size
         self.num_layers = num_layers
         self.early_stopping = early_stopping
         self.lambda_reg = lambda_reg
@@ -210,8 +205,7 @@ class LightGCN(Recommender):
             model=self,
             metrics=[Recall(k=20)],
             train_set=self.train_set,
-            test_set=self.val_set,
-            verbose=True
+            test_set=self.val_set
         )[0][0]
 
         return recall_20  # Section 4.1.2 in the paper, same strategy as NGCF.
