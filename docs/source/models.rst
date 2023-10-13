@@ -68,6 +68,11 @@ Neural Attention Rating Regression with Review-level Explanations (NARRE)
 .. automodule:: cornac.models.narre.recom_narre
    :members:
 
+Neural Graph Collaborative Filtering (NGCF)
+----------------------------------------------------
+.. automodule:: cornac.models.ngcf.recom_ngcf
+   :members:
+
 Probabilistic Collaborative Representation Learning (PCRL)
 ------------------------------------------------------------
 .. automodule:: cornac.models.pcrl.recom_pcrl
