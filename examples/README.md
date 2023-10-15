@@ -60,6 +60,8 @@
 
 [hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLen 1m dataset.
 
+[lrppm_example.py](lrppm_example.py) - Learn to Rank user Preferences based on Phrase-level sentiment analysis across Multiple categories (LRPPM) with Amazon Toy and Games dataset.
+
 [mter_example.py](mter_example.py) - Multi-Task Explainable Recommendation (MTER) with Amazon Toy and Games dataset.
 
 ### Image

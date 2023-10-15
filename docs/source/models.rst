@@ -218,6 +218,11 @@ Item K-Nearest-Neighbors (ItemKNN)
 .. autoclass:: cornac.models.knn.recom_knn.ItemKNN
    :members:
 
+Learn to Rank user Preferences based on Phrase-level sentiment analysis across Multiple categories (LRPPM)
+--------------------------------------------------
+.. autoclass:: cornac.models.lrppm.recom_lrppm.LRPPM
+   :members:
+
 Matrix Factorization (MF)
 ------------------------------------------
 .. automodule:: cornac.models.mf.recom_mf
