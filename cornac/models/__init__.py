@@ -42,6 +42,7 @@ from .ibpr import IBPR
 from .knn import ItemKNN
 from .knn import UserKNN
 from .lightgcn import LightGCN
+from .lrppm import LRPPM
 from .mcf import MCF
 from .mf import MF
 from .mmmf import MMMF
