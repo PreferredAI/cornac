@@ -44,11 +44,8 @@ class NGCF(Recommender):
     learning_rate: float, default: 0.001
         The learning rate that determines the step size at each iteration
 
-    train_batch_size: int, default: 1024
+    batch_size: int, default: 1024
         Mini-batch size used for train set
-
-    test_batch_size: int, default: 100
-        Mini-batch size used for test set
 
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments:
@@ -87,8 +84,7 @@ class NGCF(Recommender):
         dropout_rates=[0.1, 0.1, 0.1],
         num_epochs=1000,
         learning_rate=0.001,
-        train_batch_size=1024,
-        test_batch_size=100,
+        batch_size=1024,
         early_stopping=None,
         lambda_reg=1e-4,
         trainable=True,
@@ -101,8 +97,7 @@ class NGCF(Recommender):
         self.dropout_rates = dropout_rates
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
-        self.train_batch_size = train_batch_size
-        self.test_batch_size = test_batch_size
+        self.batch_size = batch_size
         self.early_stopping = early_stopping
         self.lambda_reg = lambda_reg
         self.seed = seed
@@ -163,11 +158,11 @@ class NGCF(Recommender):
             accum_loss = 0.0
             for batch_u, batch_i, batch_j in tqdm(
                 train_set.uij_iter(
-                    batch_size=self.train_batch_size,
+                    batch_size=self.batch_size,
                     shuffle=True,
                 ),
                 desc="Epoch",
-                total=train_set.num_batches(self.train_batch_size),
+                total=train_set.num_batches(self.batch_size),
                 leave=False,
                 position=1,
                 disable=not self.verbose,
@@ -221,6 +216,7 @@ class NGCF(Recommender):
             metrics=[Recall(k=20)],
             train_set=self.train_set,
             test_set=self.val_set,
+            verbose=True
         )[0][0]
 
         return recall_20  # Section 4.2.3 in the paper
