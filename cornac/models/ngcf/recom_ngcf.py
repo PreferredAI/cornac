@@ -42,10 +42,10 @@ class NGCF(Recommender):
         Maximum number of iterations or the number of epochs.
 
     learning_rate: float, default: 0.001
-        The learning rate that determines the step size at each iteration
+        The learning rate that determines the step size at each iteration.
 
     batch_size: int, default: 1024
-        Mini-batch size used for train set
+        Mini-batch size used for training.
 
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments:
@@ -59,7 +59,7 @@ class NGCF(Recommender):
                         training should be stopped.
 
     lambda_reg: float, default: 1e-4
-        Weight decay for the L2 normalization
+        Weight decay for the L2 normalization.
 
     trainable: boolean, optional, default: True
         When False, the model is not trained and Cornac assumes that the model
