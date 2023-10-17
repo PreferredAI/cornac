@@ -37,7 +37,7 @@ class LightGCN(Recommender):
     learning_rate: float, default: 0.001
         The learning rate that determines the step size at each iteration
 
-    train_batch_size: int, default: 1024
+    batch_size: int, default: 1024
         Mini-batch size used for train set
 
     num_layers: int, default: 3
@@ -78,7 +78,7 @@ class LightGCN(Recommender):
         emb_size=64,
         num_epochs=1000,
         learning_rate=0.001,
-        train_batch_size=1024,
+        batch_size=1024,
         num_layers=3,
         early_stopping=None,
         lambda_reg=1e-4,
@@ -90,7 +90,7 @@ class LightGCN(Recommender):
         self.emb_size = emb_size
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
-        self.train_batch_size = train_batch_size
+        self.batch_size = batch_size
         self.num_layers = num_layers
         self.early_stopping = early_stopping
         self.lambda_reg = lambda_reg
@@ -151,11 +151,11 @@ class LightGCN(Recommender):
             accum_loss = 0.0
             for batch_u, batch_i, batch_j in tqdm(
                 train_set.uij_iter(
-                    batch_size=self.train_batch_size,
+                    batch_size=self.batch_size,
                     shuffle=True,
                 ),
                 desc="Epoch",
-                total=train_set.num_batches(self.train_batch_size),
+                total=train_set.num_batches(self.batch_size),
                 leave=False,
                 position=1,
                 disable=not self.verbose,
