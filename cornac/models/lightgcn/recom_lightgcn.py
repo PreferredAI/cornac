@@ -30,7 +30,7 @@ class LightGCN(Recommender):
 
     emb_size: int, default: 64
         Size of the node embeddings.
-       
+
     num_epochs: int, default: 1000
         Maximum number of iterations or the number of epochs.
 
@@ -39,6 +39,9 @@ class LightGCN(Recommender):
 
     train_batch_size: int, default: 1024
         Mini-batch size used for train set
+
+    num_layers: int, default: 3
+        Number of LightGCN Layers
 
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments:
