@@ -215,9 +215,11 @@ class GCMC(Recommender):
             # Return scores of all items for a given user
             # - If item does not exist in test_set, we provide a default score
             #   (as set in default_dict initialisation)
-            return [
-                self.u_i_rating_dict[f"{user_idx}-{idx}"]
+            import numpy as np
+
+            return np.array([
+                self.u_i_rating_dict.get(f"{user_idx}-{idx}", self.default_score())
                 for idx in range(self.train_set.total_items)
-            ]
+            ])
         # Return score of known user/item
         return self.u_i_rating_dict.get(f"{user_idx}-{item_idx}", self.default_score())
