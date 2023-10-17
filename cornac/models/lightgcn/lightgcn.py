@@ -1,7 +1,14 @@
+# Reference: https://github.com/dmlc/dgl/blob/master/examples/pytorch/NGCF/NGCF/model.py
+
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import dgl
 import dgl.function as fn
+
+
+USER_KEY = "user"
+ITEM_KEY = "item"
 
 
 def construct_graph(data_set):
@@ -14,89 +21,109 @@ def construct_graph(data_set):
         The data set as provided by cornac
     """
     user_indices, item_indices, _ = data_set.uir_tuple
-    user_nodes, item_nodes = (
-        torch.from_numpy(user_indices),
-        torch.from_numpy(
-            item_indices + data_set.total_users
-        ),  # increment item node idx by num users
-    )
 
-    u = torch.cat([user_nodes, item_nodes], dim=0)
-    v = torch.cat([item_nodes, user_nodes], dim=0)
+    data_dict = {
+        (USER_KEY, "user_item", ITEM_KEY): (user_indices, item_indices),
+        (ITEM_KEY, "item_user", USER_KEY): (item_indices, user_indices),
+    }
+    num_dict = {USER_KEY: data_set.total_users, ITEM_KEY: data_set.total_items}
 
-    g = dgl.graph((u, v), num_nodes=(data_set.total_users + data_set.total_items))
-    return g
+    return dgl.heterograph(data_dict, num_nodes_dict=num_dict)
 
 
 class GCNLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, norm_dict):
         super(GCNLayer, self).__init__()
 
-    def forward(self, graph, src_embedding, dst_embedding):
-        with graph.local_scope():
-            inner_product = torch.cat((src_embedding, dst_embedding), dim=0)
+        # norm
+        self.norm_dict = norm_dict
 
-            out_degs = graph.out_degrees().to(src_embedding.device).float().clamp(min=1)
-            norm_out_degs = torch.pow(out_degs, -0.5).view(-1, 1)  # D^-1/2
+    def forward(self, g, feat_dict):
+        funcs = {}  # message and reduce functions dict
+        # for each type of edges, compute messages and reduce them all
+        for srctype, etype, dsttype in g.canonical_etypes:
+            src, dst = g.edges(etype=(srctype, etype, dsttype))
+            norm = self.norm_dict[(srctype, etype, dsttype)]
+            # TODO: CHECK HERE
+            messages = norm * feat_dict[srctype][src]  # compute messages
+            g.edges[(srctype, etype, dsttype)].data[
+                etype
+            ] = messages  # store in edata
+            funcs[(srctype, etype, dsttype)] = (
+                fn.copy_e(etype, "m"),
+                fn.sum("m", "h"),
+            )  # define message and reduce functions
 
-            inner_product = inner_product * norm_out_degs
-
-            graph.ndata["h"] = inner_product
-            graph.update_all(
-                message_func=fn.copy_u("h", "m"), reduce_func=fn.sum("m", "h")
-            )
-
-            res = graph.ndata["h"]
-
-            in_degs = graph.in_degrees().to(src_embedding.device).float().clamp(min=1)
-            norm_in_degs = torch.pow(in_degs, -0.5).view(-1, 1)  # D^-1/2
-
-            res = res * norm_in_degs
-            return res
+        g.multi_update_all(
+            funcs, "sum"
+        )  # update all, reduce by first type-wisely then across different types
+        feature_dict = {}
+        for ntype in g.ntypes:
+            h = F.normalize(g.nodes[ntype].data["h"], dim=1, p=2)  # l2 normalize
+            feature_dict[ntype] = h
+        return feature_dict
 
 
 class Model(nn.Module):
-    def __init__(self, user_size, item_size, hidden_size, num_layers=3, device=None):
+    def __init__(self, g, in_size, num_layers, lambda_reg, device=None):
         super(Model, self).__init__()
-        self.user_size = user_size
-        self.item_size = item_size
-        self.hidden_size = hidden_size
-        self.embedding_weights = self._init_weights()
-        self.layers = nn.ModuleList([GCNLayer() for _ in range(num_layers)])
+        self.norm_dict = dict()
+        self.lambda_reg = lambda_reg
         self.device = device
 
-    def forward(self, graph):
-        user_embedding = self.embedding_weights["user_embedding"]
-        item_embedding = self.embedding_weights["item_embedding"]
+        for srctype, etype, dsttype in g.canonical_etypes:
+            src, dst = g.edges(etype=(srctype, etype, dsttype))
+            dst_degree = g.in_degrees(
+                dst, etype=(srctype, etype, dsttype)
+            ).float()  # obtain degrees
+            src_degree = g.out_degrees(src, etype=(srctype, etype, dsttype)).float()
+            norm = torch.pow(src_degree * dst_degree, -0.5).unsqueeze(1)  # compute norm
+            self.norm_dict[(srctype, etype, dsttype)] = norm
 
-        for i, layer in enumerate(self.layers, start=1):
-            if i == 1:
-                embeddings = layer(graph, user_embedding, item_embedding)
-            else:
-                embeddings = layer(
-                    graph, embeddings[: self.user_size], embeddings[self.user_size:]
-                )
+        self.layers = nn.ModuleList([GCNLayer(self.norm_dict) for _ in range(num_layers)])
 
-            user_embedding = user_embedding + embeddings[: self.user_size] * (
-                1 / (i + 1)
-            )
-            item_embedding = item_embedding + embeddings[self.user_size:] * (
-                1 / (i + 1)
-            )
+        self.initializer = nn.init.xavier_uniform_
 
-        return user_embedding, item_embedding
-
-    def _init_weights(self):
-        initializer = nn.init.xavier_uniform_
-
-        weights_dict = nn.ParameterDict(
+        # embeddings for different types of nodes
+        self.feature_dict = nn.ParameterDict(
             {
-                "user_embedding": nn.Parameter(
-                    initializer(torch.empty(self.user_size, self.hidden_size))
-                ),
-                "item_embedding": nn.Parameter(
-                    initializer(torch.empty(self.item_size, self.hidden_size))
-                ),
+                ntype: nn.Parameter(
+                    self.initializer(torch.empty(g.num_nodes(ntype), in_size))
+                )
+                for ntype in g.ntypes
             }
         )
-        return weights_dict
+
+    def forward(self, g, users=None, pos_items=None, neg_items=None):
+        h_dict = {ntype: self.feature_dict[ntype] for ntype in g.ntypes}
+        # obtain features of each layer and concatenate them all
+        user_embeds = h_dict[USER_KEY]
+        item_embeds = h_dict[ITEM_KEY]
+
+        for k, layer in enumerate(self.layers):
+            h_dict = layer(g, h_dict)
+            user_embeds = user_embeds + (h_dict[USER_KEY] * 1 / (k + 1))
+            item_embeds = item_embeds + (h_dict[ITEM_KEY] * 1 / (k + 1))
+
+        u_g_embeddings = user_embeds if users is None else user_embeds[users, :]
+        pos_i_g_embeddings = item_embeds if pos_items is None else item_embeds[pos_items, :]
+        neg_i_g_embeddings = item_embeds if neg_items is None else item_embeds[neg_items, :]
+
+        return u_g_embeddings, pos_i_g_embeddings, neg_i_g_embeddings
+
+    def loss_fn(self, users, pos_items, neg_items):
+        pos_scores = (users * pos_items).sum(1)
+        neg_scores = (users * neg_items).sum(1)
+
+        bpr_loss = F.softplus(neg_scores - pos_scores).mean()
+        reg_loss = (
+            (1 / 2)
+            * (
+                torch.norm(users) ** 2
+                + torch.norm(pos_items) ** 2
+                + torch.norm(neg_items) ** 2
+            )
+            / len(users)
+        )
+
+        return bpr_loss + self.lambda_reg * reg_loss, bpr_loss, reg_loss
