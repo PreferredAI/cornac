@@ -36,10 +36,10 @@ ratio_split = RatioSplit(
 # Instantiate the LightGCN model
 lightgcn = cornac.models.LightGCN(
     seed=123,
-    num_epochs=2000,
+    num_epochs=1000,
     num_layers=3,
-    early_stopping={"min_delta": 1e-4, "patience": 3},
-    train_batch_size=256,
+    early_stopping={"min_delta": 1e-4, "patience": 50},
+    batch_size=1024,
     learning_rate=0.001,
     lambda_reg=1e-4,
     verbose=True

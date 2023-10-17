@@ -28,20 +28,17 @@ class LightGCN(Recommender):
     name: string, default: 'LightGCN'
         The name of the recommender model.
 
+    emb_size: int, default: 64
+        Size of the node embeddings.
+
     num_epochs: int, default: 1000
-        Maximum number of iterations or the number of epochs
+        Maximum number of iterations or the number of epochs.
 
     learning_rate: float, default: 0.001
         The learning rate that determines the step size at each iteration
 
-    train_batch_size: int, default: 1024
+    batch_size: int, default: 1024
         Mini-batch size used for train set
-
-    test_batch_size: int, default: 100
-        Mini-batch size used for test set
-
-    hidden_dim: int, default: 64
-        The embedding size of the model
 
     num_layers: int, default: 3
         Number of LightGCN Layers
@@ -80,11 +77,10 @@ class LightGCN(Recommender):
     def __init__(
         self,
         name="LightGCN",
+        emb_size=64,
         num_epochs=1000,
         learning_rate=0.001,
-        train_batch_size=1024,
-        test_batch_size=100,
-        hidden_dim=64,
+        batch_size=1024,
         num_layers=3,
         early_stopping=None,
         lambda_reg=1e-4,
@@ -93,13 +89,11 @@ class LightGCN(Recommender):
         seed=2020,
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
-
+        self.emb_size = emb_size
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
-        self.hidden_dim = hidden_dim
+        self.batch_size = batch_size
         self.num_layers = num_layers
-        self.train_batch_size = train_batch_size
-        self.test_batch_size = test_batch_size
         self.early_stopping = early_stopping
         self.lambda_reg = lambda_reg
         self.seed = seed
@@ -135,19 +129,15 @@ class LightGCN(Recommender):
             if torch.cuda.is_available():
                 torch.cuda.manual_seed_all(self.seed)
 
+        graph = construct_graph(train_set).to(self.device)
         model = Model(
-            train_set.total_users,
-            train_set.total_items,
-            self.hidden_dim,
+            graph,
+            self.emb_size,
             self.num_layers,
+            self.lambda_reg,
         ).to(self.device)
 
-        graph = construct_graph(train_set).to(self.device)
-
-        optimizer = torch.optim.Adam(
-            model.parameters(), lr=self.learning_rate, weight_decay=self.lambda_reg
-        )
-        loss_fn = torch.nn.BCELoss(reduction="sum")
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
 
         # model training
         pbar = trange(
@@ -163,35 +153,26 @@ class LightGCN(Recommender):
             accum_loss = 0.0
             for batch_u, batch_i, batch_j in tqdm(
                 train_set.uij_iter(
-                    batch_size=self.train_batch_size,
+                    batch_size=self.batch_size,
                     shuffle=True,
                 ),
                 desc="Epoch",
-                total=train_set.num_batches(self.train_batch_size),
+                total=train_set.num_batches(self.batch_size),
                 leave=False,
                 position=1,
                 disable=not self.verbose,
             ):
-                user_embeddings, item_embeddings = model(graph)
-
-                batch_u = torch.from_numpy(batch_u).long().to(self.device)
-                batch_i = torch.from_numpy(batch_i).long().to(self.device)
-                batch_j = torch.from_numpy(batch_j).long().to(self.device)
-
-                user_embed = user_embeddings[batch_u]
-                positive_item_embed = item_embeddings[batch_i]
-                negative_item_embed = item_embeddings[batch_j]
-
-                ui_scores = (user_embed * positive_item_embed).sum(dim=1)
-                uj_scores = (user_embed * negative_item_embed).sum(dim=1)
-
-                loss = loss_fn(
-                    torch.sigmoid(ui_scores - uj_scores), torch.ones_like(ui_scores)
+                u_g_embeddings, pos_i_g_embeddings, neg_i_g_embeddings = model(
+                    graph, batch_u, batch_i, batch_j
                 )
-                accum_loss += loss.cpu().item()
+
+                batch_loss, batch_bpr_loss, batch_reg_loss = model.loss_fn(
+                    u_g_embeddings, pos_i_g_embeddings, neg_i_g_embeddings
+                )
+                accum_loss += batch_loss.cpu().item() * len(batch_u)
 
                 optimizer.zero_grad()
-                loss.backward()
+                batch_loss.backward()
                 optimizer.step()
 
             accum_loss /= len(train_set.uir_tuple[0])  # normalize over all observations
@@ -199,16 +180,15 @@ class LightGCN(Recommender):
 
             # store user and item embedding matrices for prediction
             model.eval()
-            self.U, self.V = model(graph)
+            u_embs, i_embs, _ = model(graph)
+            # we will use numpy for faster prediction in the score function, no need torch
+            self.U = u_embs.cpu().detach().numpy()
+            self.V = i_embs.cpu().detach().numpy()
 
             if self.early_stopping is not None and self.early_stop(
                 **self.early_stopping
             ):
                 break
-
-        # we will use numpy for faster prediction in the score function, no need torch
-        self.U = self.U.cpu().detach().numpy()
-        self.V = self.V.cpu().detach().numpy()
 
     def monitor_value(self):
         """Calculating monitored value used for early stopping on validation set (`val_set`).
@@ -223,38 +203,17 @@ class LightGCN(Recommender):
         if self.val_set is None:
             return None
 
-        import torch
+        from ...metrics import Recall
+        from ...eval_methods import ranking_eval
 
-        loss_fn = torch.nn.BCELoss(reduction="sum")
-        accum_loss = 0.0
-        pbar = tqdm(
-            self.val_set.uij_iter(batch_size=self.test_batch_size),
-            desc="Validation",
-            total=self.val_set.num_batches(self.test_batch_size),
-            leave=False,
-            position=1,
-            disable=not self.verbose,
-        )
-        for batch_u, batch_i, batch_j in pbar:
-            batch_u = torch.from_numpy(batch_u).long().to(self.device)
-            batch_i = torch.from_numpy(batch_i).long().to(self.device)
-            batch_j = torch.from_numpy(batch_j).long().to(self.device)
+        recall_20 = ranking_eval(
+            model=self,
+            metrics=[Recall(k=20)],
+            train_set=self.train_set,
+            test_set=self.val_set
+        )[0][0]
 
-            user_embed = self.U[batch_u]
-            positive_item_embed = self.V[batch_i]
-            negative_item_embed = self.V[batch_j]
-
-            ui_scores = (user_embed * positive_item_embed).sum(dim=1)
-            uj_scores = (user_embed * negative_item_embed).sum(dim=1)
-
-            loss = loss_fn(
-                torch.sigmoid(ui_scores - uj_scores), torch.ones_like(ui_scores)
-            )
-            accum_loss += loss.cpu().item()
-            pbar.set_postfix(val_loss=accum_loss)
-
-        accum_loss /= len(self.val_set.uir_tuple[0])
-        return -accum_loss  # higher is better -> smaller loss is better
+        return recall_20  # Section 4.1.2 in the paper, same strategy as NGCF.
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
