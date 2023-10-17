@@ -69,7 +69,9 @@ class LightGCN(Recommender):
 
     References
     ----------
-    *   Wang, Xiang, et al. "Neural graph collaborative filtering." Proceedings of the 42nd international ACM SIGIR conference on Research and development in Information Retrieval. 2019.
+    *   He, X., Deng, K., Wang, X., Li, Y., Zhang, Y., & Wang, M. (2020).
+        LightGCN: Simplifying and Powering Graph Convolution Network for
+        Recommendation.
     """
 
     def __init__(

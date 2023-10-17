@@ -1,5 +1,3 @@
-# Reference: https://github.com/dmlc/dgl/blob/master/examples/pytorch/NGCF/NGCF/model.py
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
