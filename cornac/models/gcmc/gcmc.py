@@ -133,6 +133,41 @@ def _generate_dec_graph(data_set):
     )
 
 
+def _generate_test_user_graph(user_idx, total_users, total_items):
+    """
+    Generates decoding graph given a cornac data set
+
+    Parameters
+    ----------
+    data_set : cornac.data.dataset.Dataset
+        The data set as provided by cornac
+
+    Returns
+    -------
+    graph : dgl.heterograph
+        Heterograph containing user-item edges and nodes
+    """
+    u_list = np.array([user_idx for _ in range(total_items)])
+    i_list = np.array([item_idx for item_idx in range(total_items)])
+
+    rating_pairs = (u_list, i_list)
+    ones = np.ones_like(rating_pairs[0])
+    user_item_ratings_coo = sp.coo_matrix(
+        (ones, rating_pairs),
+        shape=(total_users, total_items),
+        dtype=np.float32,
+    )
+
+    graph = dgl.bipartite_from_scipy(
+        user_item_ratings_coo, utype="_U", etype="_E", vtype="_V"
+    )
+
+    return dgl.heterograph(
+        {("user", "rate", "item"): graph.edges()},
+        num_nodes_dict={"user": total_users, "item": total_items},
+    )
+
+
 class Model:
     def __init__(
         self,
@@ -479,7 +514,11 @@ class Model:
 
         test_pred_ratings = test_pred_ratings.cpu().numpy()
 
-        (u_list, i_list, _) = test_set.uir_tuple
+        uid_list = test_set.uir_tuple[0]
+        uid_list = np.unique(uid_list)
+
+        u_list = np.array([user_idx for _ in range(test_set.total_items) for user_idx in uid_list])
+        i_list = np.array([item_idx for item_idx in range(test_set.total_items) for _ in uid_list])
 
         u_list = u_list.tolist()
         i_list = i_list.tolist()
@@ -489,3 +528,39 @@ class Model:
             for idx, rating in enumerate(test_pred_ratings)
         }
         return u_i_rating_dict
+
+    def predict_one(self, train_set, user_idx):
+        """
+        Processes single user_idx from test set and returns numpy list of scores
+        for all items.
+
+        Parameters
+        ----------
+        train_set : cornac.data.dataset.Dataset
+            The train set as provided by cornac
+
+        Returns
+        -------
+        test_pred_ratings : numpy.array
+            Numpy array containing all ratings for the given user_idx.
+        """
+        test_dec_graph = _generate_test_user_graph(user_idx, train_set.total_users, train_set.total_items)
+        test_dec_graph = test_dec_graph.int().to(self.device)
+
+        self.net.eval()
+
+        with torch.no_grad():
+            pred_ratings = self.net(self.train_enc_graph, test_dec_graph)
+
+        test_rating_values = train_set.uir_tuple[2]
+        test_rating_values = np.unique(test_rating_values)
+
+        nd_positive_rating_values = torch.FloatTensor(test_rating_values).to(
+            self.device
+        )
+
+        test_pred_ratings = (
+            torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)
+        ).sum(dim=1)
+
+        return test_pred_ratings.cpu().numpy()
