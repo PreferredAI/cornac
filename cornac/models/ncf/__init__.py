@@ -16,3 +16,6 @@
 from .recom_gmf import GMF
 from .recom_mlp import MLP
 from .recom_neumf import NeuMF
+from .pytorch_gmf import GMF_PyTorch
+from .pytorch_mlp import MLP_PyTorch
+from .pytorch_neumf import NeuMF_PyTorch
