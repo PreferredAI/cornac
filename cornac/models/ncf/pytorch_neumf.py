@@ -14,8 +14,6 @@
 # ============================================================================
 
 import numpy as np
-import torch
-import torch.nn as nn
 from tqdm.auto import trange
 
 from .pytorch_ncf_base import NCFBase_PyTorch
@@ -133,6 +131,9 @@ class NeuMF_PyTorch(NCFBase_PyTorch):
         if self.trainable is False:
             return self
 
+        import torch
+        import torch.nn as nn
+
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.device = device
         if self.seed is not None:
@@ -141,7 +142,7 @@ class NeuMF_PyTorch(NCFBase_PyTorch):
             if torch.cuda.is_available():
                 torch.cuda.manual_seed(self.seed)
 
-        from .pytorch_ncf_base import NeuMF_torch as NeuMF
+        from .pytorch_models import NeuMF_torch as NeuMF
 
         self.model = NeuMF(
             num_users=self.num_users,
@@ -153,12 +154,14 @@ class NeuMF_PyTorch(NCFBase_PyTorch):
             pretrained_MLP=self.pretrained_MLP,
         ).to(self.device)
 
-        criteria = nn.BCELoss()
-        optimizer = torch.optim.Adam(
+        from .pytorch_models import optimizer_dict
+
+        optimizer = optimizer_dict[self.learner](
             self.model.parameters(),
             lr=self.lr,
             weight_decay=self.reg,
         )
+        criteria = nn.BCELoss()
 
         loop = trange(self.num_epochs, disable=not self.verbose)
         for _ in loop:
@@ -209,6 +212,8 @@ class NeuMF_PyTorch(NCFBase_PyTorch):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
+
+            import torch
 
             item_ids = torch.from_numpy(np.arange(self.train_set.num_items)).to(
                 self.device
