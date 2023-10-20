@@ -52,6 +52,7 @@ from .narre import NARRE
 from .ncf import GMF
 from .ncf import MLP
 from .ncf import NeuMF
+from .ncf import GMF_PyTorch, MLP_PyTorch, NeuMF_PyTorch
 from .ngcf import NGCF
 from .nmf import NMF
 from .online_ibpr import OnlineIBPR
@@ -74,4 +75,3 @@ except ModuleNotFoundError:
         "FM model is only supported on Linux.\n"
         + "Windows executable can be found at http://www.libfm.org."
     )
-
