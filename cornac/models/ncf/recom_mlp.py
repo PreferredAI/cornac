@@ -16,7 +16,6 @@
 import numpy as np
 
 from .recom_ncf_base import NCFBase
-from ...exception import ScoreException
 
 
 class MLP(NCFBase):
@@ -32,9 +31,8 @@ class MLP(NCFBase):
         Name of the activation function used for the MLP layers.
         Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'selu, 'relu6', 'leaky_relu']
 
-    reg_layers: list, optional, default: [0., 0., 0., 0.]
-        Regularization for each MLP layer,
-        reg_layers[0] is the regularization for embeddings.
+    reg: float, optional, default: 0.
+        Regularization (weight_decay).
 
     num_epochs: int, optional, default: 20
         Number of epochs.
@@ -50,7 +48,10 @@ class MLP(NCFBase):
 
     learner: str, optional, default: 'adam'
         Specify an optimizer: adagrad, adam, rmsprop, sgd
-
+    
+    backend: str, optional, default: 'tensorflow'
+        Backend used for model training: tensorflow, pytorch
+        
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments:
         
@@ -83,12 +84,13 @@ class MLP(NCFBase):
         name="MLP",
         layers=(64, 32, 16, 8),
         act_fn="relu",
-        reg_layers=(0.0, 0.0, 0.0, 0.0),
+        reg=0.0,
         num_epochs=20,
         batch_size=256,
         num_neg=4,
         lr=0.001,
         learner="adam",
+        backend="tensorflow",
         early_stopping=None,
         trainable=True,
         verbose=True,
@@ -103,18 +105,22 @@ class MLP(NCFBase):
             num_neg=num_neg,
             lr=lr,
             learner=learner,
+            backend=backend,
             early_stopping=early_stopping,
             seed=seed,
         )
         self.layers = layers
         self.act_fn = act_fn
-        self.reg_layers = reg_layers
+        self.reg = reg
 
-    def _build_graph(self):
+    ########################
+    ## TensorFlow backend ##
+    ########################
+    def _build_graph_tf(self):
         import tensorflow.compat.v1 as tf
-        from .ops import mlp, loss_fn, train_fn
+        from .backend_tf import mlp, loss_fn, train_fn
 
-        super()._build_graph()
+        self.graph = tf.Graph()
         with self.graph.as_default():
             tf.set_random_seed(self.seed)
 
@@ -130,7 +136,7 @@ class MLP(NCFBase):
                 num_users=self.num_users,
                 num_items=self.num_items,
                 layers=self.layers,
-                reg_layers=self.reg_layers,
+                reg_layers=[self.reg] * len(self.layers),
                 act_fn=self.act_fn,
                 seed=self.seed,
             )
@@ -150,50 +156,43 @@ class MLP(NCFBase):
             self.initializer = tf.global_variables_initializer()
             self.saver = tf.train.Saver()
 
-        self._sess_init()
+        self._sess_init_tf()
 
-    def score(self, user_idx, item_idx=None):
-        """Predict the scores/ratings of a user for an item.
-
-        Parameters
-        ----------
-        user_idx: int, required
-            The index of the user for whom to perform score prediction.
-
-        item_idx: int, optional, default: None
-            The index of the item for which to perform score prediction.
-            If None, scores for all known items will be returned.
-
-        Returns
-        -------
-        res : A scalar or a Numpy array
-            Relative scores that the user gives to the item or to all known items
-        """
+    def _score_tf(self, user_idx, item_idx):
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-
-            known_item_scores = self.sess.run(
-                self.prediction,
-                feed_dict={
-                    self.user_id: np.ones(self.train_set.num_items) * user_idx,
-                    self.item_id: np.arange(self.train_set.num_items),
-                },
-            )
-            return known_item_scores.ravel()
+            feed_dict = {
+                self.user_id: np.ones(self.num_items) * user_idx,
+                self.item_id: np.arange(self.num_items),
+            }
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
+            feed_dict = {
+                self.user_id: [user_idx],
+                self.item_id: [item_idx],
+            }
+        return self.sess.run(self.prediction, feed_dict=feed_dict)
 
-            user_pred = self.sess.run(
-                self.prediction,
-                feed_dict={self.user_id: [user_idx], self.item_id: [item_idx]},
-            )
-            return user_pred.ravel()
+    #####################
+    ## PyTorch backend ##
+    #####################
+    def _build_model_pt(self):
+        from .backend_pt import MLP
+
+        return MLP(
+            num_users=self.num_users,
+            num_items=self.num_items,
+            layers=self.layers,
+            act_fn=self.act_fn,
+        )
+
+    def _score_pt(self, user_idx, item_idx):
+        import torch
+
+        with torch.no_grad():
+            if item_idx is None:
+                users = torch.from_numpy(np.ones(self.num_items, dtype=int) * user_idx)
+                items = (torch.from_numpy(np.arange(self.num_items))).to(self.device)
+            else:
+                users = torch.tensor(user_idx).unsqueeze(0)
+                items = torch.tensor(item_idx).unsqueeze(0)
+            output = self.model(users.to(self.device), items.to(self.device))
+        return output.squeeze().cpu().numpy()

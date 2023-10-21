@@ -33,11 +33,14 @@ ratio_split = RatioSplit(
     verbose=True,
 )
 
+backend = "tensorflow"  # or 'pytorch'
+
 # Instantiate the recommender models to be compared
 gmf = cornac.models.GMF(
     num_factors=8,
     num_epochs=10,
     learner="adam",
+    backend=backend,
     batch_size=256,
     lr=0.001,
     num_neg=50,
@@ -47,6 +50,7 @@ mlp = cornac.models.MLP(
     layers=[64, 32, 16, 8],
     act_fn="tanh",
     learner="adam",
+    backend=backend,
     num_epochs=10,
     batch_size=256,
     lr=0.001,
@@ -58,6 +62,7 @@ neumf1 = cornac.models.NeuMF(
     layers=[64, 32, 16, 8],
     act_fn="tanh",
     learner="adam",
+    backend=backend,
     num_epochs=10,
     batch_size=256,
     lr=0.001,
@@ -66,7 +71,8 @@ neumf1 = cornac.models.NeuMF(
 )
 neumf2 = cornac.models.NeuMF(
     name="NeuMF_pretrained",
-    learner="adam",
+    learner="sgd",
+    backend=backend,
     num_epochs=10,
     batch_size=256,
     lr=0.001,
@@ -75,7 +81,7 @@ neumf2 = cornac.models.NeuMF(
     num_factors=gmf.num_factors,
     layers=mlp.layers,
     act_fn=mlp.act_fn,
-).pretrain(gmf, mlp)
+).from_pretrained(gmf, mlp, alpha=0.5)
 
 # Instantiate evaluation metrics
 ndcg_50 = cornac.metrics.NDCG(k=50)
@@ -84,6 +90,11 @@ rec_50 = cornac.metrics.Recall(k=50)
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[gmf, mlp, neumf1, neumf2],
+    models=[
+        gmf,
+        mlp,
+        neumf1,
+        neumf2,
+    ],
     metrics=[ndcg_50, rec_50],
 ).run()

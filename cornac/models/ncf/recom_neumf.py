@@ -35,8 +35,8 @@ class NeuMF(NCFBase):
         Name of the activation function used for the MLP layers.
         Supported functions: ['sigmoid', 'tanh', 'elu', 'relu', 'selu, 'relu6', 'leaky_relu']
 
-    reg_mf: float, optional, default: 0.
-        Regularization for MF embeddings.
+    reg: float, optional, default: 0.
+        Regularization (weight_decay).
 
     reg_layers: list, optional, default: [0., 0., 0., 0.]
         Regularization for each MLP layer,
@@ -57,6 +57,9 @@ class NeuMF(NCFBase):
     learner: str, optional, default: 'adam'
         Specify an optimizer: adagrad, adam, rmsprop, sgd
 
+    backend: str, optional, default: 'tensorflow'
+        Backend used for model training: tensorflow, pytorch
+        
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments: 
         
@@ -90,13 +93,13 @@ class NeuMF(NCFBase):
         num_factors=8,
         layers=(64, 32, 16, 8),
         act_fn="relu",
-        reg_mf=0.0,
-        reg_layers=(0.0, 0.0, 0.0, 0.0),
+        reg=0.0,
         num_epochs=20,
         batch_size=256,
         num_neg=4,
         lr=0.001,
         learner="adam",
+        backend="tensorflow",
         early_stopping=None,
         trainable=True,
         verbose=True,
@@ -111,51 +114,54 @@ class NeuMF(NCFBase):
             num_neg=num_neg,
             lr=lr,
             learner=learner,
+            backend=backend,
             early_stopping=early_stopping,
             seed=seed,
         )
         self.num_factors = num_factors
         self.layers = layers
         self.act_fn = act_fn
-        self.reg_mf = reg_mf
-        self.reg_layers = reg_layers
+        self.reg = reg
         self.pretrained = False
         self.ignored_attrs.extend(
             [
                 "gmf_user_id",
                 "mlp_user_id",
-                "gmf_model",
-                "mlp_model",
+                "pretrained_gmf",
+                "pretrained_mlp",
                 "alpha",
             ]
         )
 
-    def pretrain(self, gmf_model, mlp_model, alpha=0.5):
+    def from_pretrained(self, pretrained_gmf, pretrained_mlp, alpha=0.5):
         """Provide pre-trained GMF and MLP models. Section 3.4.1 of the paper.
 
         Parameters
         ----------
-        gmf_model: object of type GMF, required
+        pretrained_gmf: object of type GMF, required
             Reference to trained/fitted GMF model.
 
-        gmf_model: object of type GMF, required
-            Reference to trained/fitted GMF model.
+        pretrained_mlp: object of type MLP, required
+            Reference to trained/fitted MLP model.
 
         alpha: float, optional, default: 0.5
             Hyper-parameter determining the trade-off between the two pre-trained models.
             Details are described in the section 3.4.1 of the paper.
         """
         self.pretrained = True
-        self.gmf_model = gmf_model
-        self.mlp_model = mlp_model
+        self.pretrained_gmf = pretrained_gmf
+        self.pretrained_mlp = pretrained_mlp
         self.alpha = alpha
         return self
 
-    def _build_graph(self):
+    ########################
+    ## TensorFlow backend ##
+    ########################
+    def _build_graph_tf(self):
         import tensorflow.compat.v1 as tf
-        from .ops import gmf, mlp, loss_fn, train_fn
+        from .backend_tf import gmf, mlp, loss_fn, train_fn
 
-        super()._build_graph()
+        self.graph = tf.Graph()
         with self.graph.as_default():
             tf.set_random_seed(self.seed)
 
@@ -176,8 +182,8 @@ class NeuMF(NCFBase):
                 num_users=self.num_users,
                 num_items=self.num_items,
                 emb_size=self.num_factors,
-                reg_user=self.reg_mf,
-                reg_item=self.reg_mf,
+                reg_user=self.reg,
+                reg_item=self.reg,
                 seed=self.seed,
             )
             mlp_feat = mlp(
@@ -186,7 +192,7 @@ class NeuMF(NCFBase):
                 num_users=self.num_users,
                 num_items=self.num_items,
                 layers=self.layers,
-                reg_layers=self.reg_layers,
+                reg_layers=[self.reg] * len(self.layers),
                 act_fn=self.act_fn,
                 seed=self.seed,
             )
@@ -208,20 +214,20 @@ class NeuMF(NCFBase):
             self.initializer = tf.global_variables_initializer()
             self.saver = tf.train.Saver()
 
-        self._sess_init()
+        self._sess_init_tf()
 
         if self.pretrained:
-            gmf_kernel = self.gmf_model.sess.run(
-                self.gmf_model.sess.graph.get_tensor_by_name("logits/kernel:0")
+            gmf_kernel = self.pretrained_gmf.sess.run(
+                self.pretrained_gmf.sess.graph.get_tensor_by_name("logits/kernel:0")
             )
-            gmf_bias = self.gmf_model.sess.run(
-                self.gmf_model.sess.graph.get_tensor_by_name("logits/bias:0")
+            gmf_bias = self.pretrained_gmf.sess.run(
+                self.pretrained_gmf.sess.graph.get_tensor_by_name("logits/bias:0")
             )
-            mlp_kernel = self.mlp_model.sess.run(
-                self.mlp_model.sess.graph.get_tensor_by_name("logits/kernel:0")
+            mlp_kernel = self.pretrained_mlp.sess.run(
+                self.pretrained_mlp.sess.graph.get_tensor_by_name("logits/kernel:0")
             )
-            mlp_bias = self.mlp_model.sess.run(
-                self.mlp_model.sess.graph.get_tensor_by_name("logits/bias:0")
+            mlp_bias = self.pretrained_mlp.sess.run(
+                self.pretrained_mlp.sess.graph.get_tensor_by_name("logits/bias:0")
             )
             logits_kernel = np.concatenate(
                 [self.alpha * gmf_kernel, (1 - self.alpha) * mlp_kernel]
@@ -230,12 +236,12 @@ class NeuMF(NCFBase):
 
             for v in self.graph.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
                 if v.name.startswith("GMF"):
-                    sess = self.gmf_model.sess
+                    sess = self.pretrained_gmf.sess
                     self.sess.run(
                         tf.assign(v, sess.run(sess.graph.get_tensor_by_name(v.name)))
                     )
                 elif v.name.startswith("MLP"):
-                    sess = self.mlp_model.sess
+                    sess = self.pretrained_mlp.sess
                     self.sess.run(
                         tf.assign(v, sess.run(sess.graph.get_tensor_by_name(v.name)))
                     )
@@ -244,65 +250,59 @@ class NeuMF(NCFBase):
                 elif v.name.startswith("logits/bias"):
                     self.sess.run(tf.assign(v, logits_bias))
 
-    def _step_update(self, batch_users, batch_items, batch_ratings):
-        _, _loss = self.sess.run(
-            [self.train_op, self.loss],
-            feed_dict={
-                self.gmf_user_id: batch_users,
-                self.mlp_user_id: batch_users,
-                self.item_id: batch_items,
-                self.labels: batch_ratings.reshape(-1, 1),
-            },
-        )
-        return _loss
+    def _get_feed_dict(self, batch_users, batch_items, batch_ratings):
+        return {
+            self.gmf_user_id: batch_users,
+            self.mlp_user_id: batch_users,
+            self.item_id: batch_items,
+            self.labels: batch_ratings.reshape(-1, 1),
+        }
 
-    def score(self, user_idx, item_idx=None):
-        """Predict the scores/ratings of a user for an item.
-
-        Parameters
-        ----------
-        user_idx: int, required
-            The index of the user for whom to perform score prediction.
-
-        item_idx: int, optional, default: None
-            The index of the item for which to perform score prediction.
-            If None, scores for all known items will be returned.
-
-        Returns
-        -------
-        res : A scalar or a Numpy array
-            Relative scores that the user gives to the item or to all known items
-        """
+    def _score_tf(self, user_idx, item_idx):
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-
-            known_item_scores = self.sess.run(
-                self.prediction,
-                feed_dict={
-                    self.gmf_user_id: [user_idx],
-                    self.mlp_user_id: np.ones(self.train_set.num_items) * user_idx,
-                    self.item_id: np.arange(self.train_set.num_items),
-                },
-            )
-            return known_item_scores.ravel()
+            feed_dict = {
+                self.gmf_user_id: [user_idx],
+                self.mlp_user_id: np.ones(self.num_items) * user_idx,
+                self.item_id: np.arange(self.num_items),
+            }
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
+            feed_dict = {
+                self.gmf_user_id: [user_idx],
+                self.mlp_user_id: [user_idx],
+                self.item_id: [item_idx],
+            }
+        return self.sess.run(self.prediction, feed_dict=feed_dict)
 
-            user_pred = self.sess.run(
-                self.prediction,
-                feed_dict={
-                    self.gmf_user_id: [user_idx],
-                    self.mlp_user_id: [user_idx],
-                    self.item_id: [item_idx],
-                },
+    #####################
+    ## PyTorch backend ##
+    #####################
+    def _build_model_pt(self):
+        from .backend_pt import NeuMF
+
+        model = NeuMF(
+            num_users=self.num_users,
+            num_items=self.num_items,
+            layers=self.layers,
+            act_fn=self.act_fn,
+        )
+        if self.pretrained:
+            model.from_pretrained(
+                self.pretrained_gmf.model, self.pretrained_mlp.model, self.alpha
             )
-            return user_pred.ravel()
+        return model
+
+    def _score_pt(self, user_idx, item_idx):
+        import torch
+
+        with torch.no_grad():
+            if item_idx is None:
+                users = torch.from_numpy(np.ones(self.num_items, dtype=int) * user_idx)
+                items = (torch.from_numpy(np.arange(self.num_items))).to(self.device)
+            else:
+                users = torch.tensor(user_idx).unsqueeze(0)
+                items = torch.tensor(item_idx).unsqueeze(0)
+            gmf_users = torch.tensor(user_idx).unsqueeze(0).to(self.device)
+            output = self.model(
+                users.to(self.device), items.to(self.device), gmf_users.to(self.device)
+            )
+        return output.squeeze().cpu().numpy()
