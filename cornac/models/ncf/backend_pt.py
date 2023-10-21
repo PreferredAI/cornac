@@ -44,6 +44,12 @@ class GMF(nn.Module):
         nn.init.normal_(self.item_embedding.weight, std=1e-2)
         nn.init.normal_(self.logit.weight, std=1e-2)
 
+    def from_pretrained(self, pretrained_gmf):
+        self.user_embedding.weight.data.copy_(pretrained_gmf.user_embedding.weight)
+        self.item_embedding.weight.data.copy_(pretrained_gmf.item_embedding.weight)
+        self.logit.weight.data.copy_(pretrained_gmf.logit.weight)
+        self.logit.bias.data.copy_(pretrained_gmf.logit.bias)
+
     def h(self, users, items):
         return self.user_embedding(users) * self.item_embedding(items)
 
@@ -74,7 +80,7 @@ class MLP(nn.Module):
             mlp_layers.append(activation_functions[act_fn.lower()])
 
         # unpacking layers in to torch.nn.Sequential
-        self.MLP_model = nn.Sequential(*mlp_layers)
+        self.mlp_model = nn.Sequential(*mlp_layers)
 
         self.logit = nn.Linear(layers[-1], 1)
         self.Sigmoid = nn.Sigmoid()
@@ -84,16 +90,26 @@ class MLP(nn.Module):
     def _init_weight(self):
         nn.init.normal_(self.user_embedding.weight, std=1e-2)
         nn.init.normal_(self.item_embedding.weight, std=1e-2)
-        for layer in self.MLP_model:
+        for layer in self.mlp_model:
             if isinstance(layer, nn.Linear):
                 nn.init.xavier_uniform_(layer.weight)
         nn.init.normal_(self.logit.weight, std=1e-2)
+
+    def from_pretrained(self, pretrained_mlp):
+        self.user_embedding.weight.data.copy_(pretrained_mlp.user_embedding.weight)
+        self.item_embedding.weight.data.copy_(pretrained_mlp.item_embedding.weight)
+        for layer, pretrained_layer in zip(self.mlp_model, pretrained_mlp.mlp_model):
+            if isinstance(layer, nn.Linear) and isinstance(pretrained_layer, nn.Linear):
+                layer.weight.data.copy_(pretrained_layer.weight)
+                layer.bias.data.copy_(pretrained_layer.bias)
+        self.logit.weight.data.copy_(pretrained_mlp.logit.weight)
+        self.logit.bias.data.copy_(pretrained_mlp.logit.bias)
 
     def h(self, users, items):
         embed_user = self.user_embedding(users)
         embed_item = self.item_embedding(items)
         embed_input = torch.cat((embed_user, embed_item), dim=-1)
-        return self.MLP_model(embed_input)
+        return self.mlp_model(embed_input)
 
     def forward(self, users, items):
         h = self.h(users, items)
@@ -126,16 +142,16 @@ class NeuMF(nn.Module):
         self.logit = nn.Linear(num_factors + layers[-1], 1)
         self.Sigmoid = nn.Sigmoid()
 
-        self.GMF = GMF(num_users, num_items, num_factors)
-        self.MLP = MLP(
+        self.gmf = GMF(num_users, num_items, num_factors)
+        self.mlp = MLP(
             num_users=num_users, num_items=num_items, layers=layers, act_fn=act_fn
         )
 
         nn.init.normal_(self.logit.weight, std=1e-2)
 
     def from_pretrained(self, pretrained_gmf, pretrained_mlp, alpha):
-        self.gmf = pretrained_gmf
-        self.mlp = pretrained_mlp
+        self.gmf.from_pretrained(pretrained_gmf)
+        self.mlp.from_pretrained(pretrained_mlp)
         logit_weight = torch.cat(
             [
                 alpha * self.gmf.logit.weight,
@@ -150,11 +166,11 @@ class NeuMF(nn.Module):
     def forward(self, users, items, gmf_users=None):
         # gmf_users is there to take advantage of broadcasting
         h_gmf = (
-            self.GMF.h(users, items)
+            self.gmf.h(users, items)
             if gmf_users is None
-            else self.GMF.h(gmf_users, items)
+            else self.gmf.h(gmf_users, items)
         )
-        h_mlp = self.MLP.h(users, items)
+        h_mlp = self.mlp.h(users, items)
         h = torch.cat([h_gmf, h_mlp], dim=-1)
         output = self.Sigmoid(self.logit(h)).view(-1)
         return output
