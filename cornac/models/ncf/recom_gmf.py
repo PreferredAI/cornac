@@ -27,9 +27,9 @@ class GMF(NCFBase):
     ----------
     num_factors: int, optional, default: 8
         Embedding size of MF model.
-
-    regs: float, optional, default: 0.
-        Regularization for user and item embeddings.
+        
+    reg: float, optional, default: 0.
+        Regularization (weight_decay).
 
     num_epochs: int, optional, default: 20
         Number of epochs.
@@ -45,7 +45,10 @@ class GMF(NCFBase):
 
     learner: str, optional, default: 'adam'
         Specify an optimizer: adagrad, adam, rmsprop, sgd
-
+    
+    backend: str, optional, default: 'tensorflow'
+        Backend used for model training: tensorflow, pytorch
+        
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments: 
         
@@ -77,12 +80,13 @@ class GMF(NCFBase):
         self,
         name="GMF",
         num_factors=8,
-        regs=(0.0, 0.0),
+        reg=0.0,
         num_epochs=20,
         batch_size=256,
         num_neg=4,
         lr=0.001,
         learner="adam",
+        backend="tensorflow",
         early_stopping=None,
         trainable=True,
         verbose=True,
@@ -97,17 +101,21 @@ class GMF(NCFBase):
             num_neg=num_neg,
             lr=lr,
             learner=learner,
+            backend=backend,
             early_stopping=early_stopping,
             seed=seed,
         )
         self.num_factors = num_factors
-        self.regs = regs
+        self.reg = reg
 
-    def _build_graph(self):
+    ########################
+    ## TensorFlow backend ##
+    ########################
+    def _build_graph_tf(self):
         import tensorflow.compat.v1 as tf
-        from .ops import gmf, loss_fn, train_fn
+        from .backend_tf import gmf, loss_fn, train_fn
 
-        super()._build_graph()
+        self.graph = tf.Graph()
         with self.graph.as_default():
             tf.set_random_seed(self.seed)
 
@@ -123,8 +131,8 @@ class GMF(NCFBase):
                 num_users=self.num_users,
                 num_items=self.num_items,
                 emb_size=self.num_factors,
-                reg_user=self.regs[0],
-                reg_item=self.regs[1],
+                reg_user=self.reg,
+                reg_item=self.reg,
                 seed=self.seed,
             )
 
@@ -144,50 +152,32 @@ class GMF(NCFBase):
             self.initializer = tf.global_variables_initializer()
             self.saver = tf.train.Saver()
 
-        self._sess_init()
+        self._sess_init_tf()
 
-    def score(self, user_idx, item_idx=None):
-        """Predict the scores/ratings of a user for an item.
+    def _score_tf(self, user_idx, item_idx):
+        feed_dict = {
+            self.user_id: [user_idx],
+            self.item_id: np.arange(self.num_items) if item_idx is None else [item_idx],
+        }
+        return self.sess.run(self.prediction, feed_dict=feed_dict)
 
-        Parameters
-        ----------
-        user_idx: int, required
-            The index of the user for whom to perform score prediction.
+    #####################
+    ## PyTorch backend ##
+    #####################
+    def _build_model_pt(self):
+        from .backend_pt import GMF
 
-        item_idx: int, optional, default: None
-            The index of the item for which to perform score prediction.
-            If None, scores for all known items will be returned.
+        return GMF(self.num_users, self.num_items, self.num_factors)
 
-        Returns
-        -------
-        res : A scalar or a Numpy array
-            Relative scores that the user gives to the item or to all known items
-        """
-        if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
+    def _score_pt(self, user_idx, item_idx):
+        import torch
 
-            known_item_scores = self.sess.run(
-                self.prediction,
-                feed_dict={
-                    self.user_id: [user_idx],
-                    self.item_id: np.arange(self.train_set.num_items),
-                },
-            )
-            return known_item_scores.ravel()
-        else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-
-            user_pred = self.sess.run(
-                self.prediction,
-                feed_dict={self.user_id: [user_idx], self.item_id: [item_idx]},
-            )
-            return user_pred.ravel()
+        with torch.no_grad():
+            users = torch.tensor(user_idx).unsqueeze(0).to(self.device)
+            items = (
+                torch.from_numpy(np.arange(self.num_items))
+                if item_idx is None
+                else torch.tensor(item_idx).unsqueeze(0)
+            ).to(self.device)
+            output = self.model(users, items)
+        return output.squeeze().cpu().numpy()
