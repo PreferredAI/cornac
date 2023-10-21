@@ -2,10 +2,8 @@ name: Release Drafter
 
 on:
   push:
-    branches:
-      - master
-    paths-ignore:
-      - ".github/**"
+    tags:        
+      - '*'
 
 jobs:
   update_release_draft:
@@ -15,6 +13,7 @@ jobs:
         uses: release-drafter/release-drafter@v5.25.0
         id: release_drafter
         with:
+          config-name: workflows/release-drafter.yml
           disable-autolabeler: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
