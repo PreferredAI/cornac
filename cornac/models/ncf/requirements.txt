@@ -1,1 +1,2 @@
 tensorflow==2.12.0
+torch>=0.4.1

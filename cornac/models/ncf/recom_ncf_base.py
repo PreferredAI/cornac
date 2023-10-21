@@ -14,10 +14,12 @@
 # ============================================================================
 
 
+import numpy as np
 from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...utils import get_rng
+from ...exception import ScoreException
 
 
 class NCFBase(Recommender):
@@ -39,6 +41,9 @@ class NCFBase(Recommender):
 
     learner: str, optional, default: 'adam'
         Specify an optimizer: adagrad, adam, rmsprop, sgd
+    
+    backend: str, optional, default: 'tensorflow'
+        Backend used for model training: tensorflow, pytorch
 
     early_stopping: {min_delta: float, patience: int}, optional, default: None
         If `None`, no early stopping. Meaning of the arguments: 
@@ -71,6 +76,7 @@ class NCFBase(Recommender):
         num_neg=4,
         lr=0.001,
         learner="adam",
+        backend="tensorflow",
         early_stopping=None,
         trainable=True,
         verbose=True,
@@ -82,6 +88,7 @@ class NCFBase(Recommender):
         self.num_neg = num_neg
         self.lr = lr
         self.learner = learner
+        self.backend = backend
         self.early_stopping = early_stopping
         self.seed = seed
         self.rng = get_rng(seed)
@@ -119,20 +126,25 @@ class NCFBase(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
-            if not hasattr(self, "graph"):
-                self.num_users = self.train_set.num_users
-                self.num_items = self.train_set.num_items
-                self._build_graph()
-            self._fit_tf()
+            self.num_users = self.train_set.num_users
+            self.num_items = self.train_set.num_items
+
+            if self.backend == "tensorflow":
+                self._fit_tf()
+            elif self.backend == "pytorch":
+                self._fit_pt()
+            else:
+                raise ValueError(f"{self.backend} is not supported")
 
         return self
 
-    def _build_graph(self):
-        import tensorflow.compat.v1 as tf
+    ########################
+    ## TensorFlow backend ##
+    ########################
+    def _build_graph_tf(self):
+        raise NotImplementedError()
 
-        self.graph = tf.Graph()
-
-    def _sess_init(self):
+    def _sess_init_tf(self):
         import tensorflow.compat.v1 as tf
 
         config = tf.ConfigProto()
@@ -140,18 +152,17 @@ class NCFBase(Recommender):
         self.sess = tf.Session(graph=self.graph, config=config)
         self.sess.run(self.initializer)
 
-    def _step_update(self, batch_users, batch_items, batch_ratings):
-        _, _loss = self.sess.run(
-            [self.train_op, self.loss],
-            feed_dict={
-                self.user_id: batch_users,
-                self.item_id: batch_items,
-                self.labels: batch_ratings.reshape(-1, 1),
-            },
-        )
-        return _loss
+    def _get_feed_dict(self, batch_users, batch_items, batch_ratings):
+        return {
+            self.user_id: batch_users,
+            self.item_id: batch_items,
+            self.labels: batch_ratings.reshape(-1, 1),
+        }
 
     def _fit_tf(self):
+        if not hasattr(self, "graph"):
+            self._build_graph_tf()
+
         loop = trange(self.num_epochs, disable=not self.verbose)
         for _ in loop:
             count = 0
@@ -161,7 +172,12 @@ class NCFBase(Recommender):
                     self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg
                 )
             ):
-                _loss = self._step_update(batch_users, batch_items, batch_ratings)
+                _, _loss = self.sess.run(
+                    [self.train_op, self.loss],
+                    feed_dict=self._get_feed_dict(
+                        batch_users, batch_items, batch_ratings
+                    ),
+                )
                 count += len(batch_ratings)
                 sum_loss += _loss * len(batch_ratings)
                 if i % 10 == 0:
@@ -172,6 +188,67 @@ class NCFBase(Recommender):
             ):
                 break
         loop.close()
+
+    def _score_tf(self, user_idx, item_idx):
+        raise NotImplementedError()
+
+    #####################
+    ## PyTorch backend ##
+    #####################
+    def _build_model_pt(self):
+        raise NotImplementedError()
+
+    def _fit_pt(self):
+        import torch
+        import torch.nn as nn
+        from .backend_pt import optimizer_dict
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
+        if self.seed is not None:
+            torch.manual_seed(self.seed)
+            np.random.seed(self.seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed(self.seed)
+
+        self.model = self._build_model_pt().to(self.device)
+
+        optimizer = optimizer_dict[self.learner](
+            self.model.parameters(),
+            lr=self.lr,
+            weight_decay=self.reg,
+        )
+        criteria = nn.BCELoss()
+
+        loop = trange(self.num_epochs, disable=not self.verbose)
+        for _ in loop:
+            count = 0
+            sum_loss = 0
+            for batch_id, (batch_users, batch_items, batch_ratings) in enumerate(
+                self.train_set.uir_iter(
+                    self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg
+                )
+            ):
+                batch_users = torch.from_numpy(batch_users).to(self.device)
+                batch_items = torch.from_numpy(batch_items).to(self.device)
+                batch_ratings = torch.tensor(batch_ratings, dtype=torch.float).to(
+                    self.device
+                )
+
+                optimizer.zero_grad()
+                outputs = self.model(batch_users, batch_items)
+                loss = criteria(outputs, batch_ratings)
+                loss.backward()
+                optimizer.step()
+
+                count += len(batch_users)
+                sum_loss += loss.data.item()
+
+                if batch_id % 10 == 0:
+                    loop.set_postfix(loss=(sum_loss / count))
+
+    def _score_pt(self, user_idx, item_idx):
+        raise NotImplementedError()
 
     def save(self, save_dir=None):
         """Save a recommender model to the filesystem.
@@ -186,8 +263,12 @@ class NCFBase(Recommender):
             return
 
         model_file = Recommender.save(self, save_dir)
-        # save TF weights
-        self.saver.save(self.sess, model_file.replace(".pkl", ".cpt"))
+
+        if self.backend == "tensorflow":
+            self.saver.save(self.sess, model_file.replace(".pkl", ".cpt"))
+        elif self.backend == "pytorch":
+            # TODO: implement model saving for PyTorch
+            raise NotImplementedError()
 
         return model_file
 
@@ -213,8 +294,12 @@ class NCFBase(Recommender):
         if hasattr(model, "pretrained"):  # NeuMF
             model.pretrained = False
 
-        model._build_graph()
-        model.saver.restore(model.sess, model.load_from.replace(".pkl", ".cpt"))
+        if model.backend == "tensorflow":
+            model._build_graph()
+            model.saver.restore(model.sess, model.load_from.replace(".pkl", ".cpt"))
+        elif model.backend == "pytorch":
+            # TODO: implement model loading for PyTorch
+            raise NotImplementedError()
 
         return model
 
@@ -242,3 +327,38 @@ class NCFBase(Recommender):
         )[0][0]
 
         return ndcg_100
+
+    def score(self, user_idx, item_idx=None):
+        """Predict the scores/ratings of a user for an item.
+
+        Parameters
+        ----------
+        user_idx: int, required
+            The index of the user for whom to perform score prediction.
+
+        item_idx: int, optional, default: None
+            The index of the item for which to perform score prediction.
+            If None, scores for all known items will be returned.
+
+        Returns
+        -------
+        res : A scalar or a Numpy array
+            Relative scores that the user gives to the item or to all known items
+        """
+        if self.train_set.is_unk_user(user_idx):
+            raise ScoreException(
+                "Can't make score prediction for (user_id=%d)" % user_idx
+            )
+
+        if item_idx is not None and self.train_set.is_unk_item(item_idx):
+            raise ScoreException(
+                "Can't make score prediction for (user_id=%d, item_id=%d)"
+                % (user_idx, item_idx)
+            )
+
+        if self.backend == "tensorflow":
+            pred_scores = self._score_tf(user_idx, item_idx)
+        elif self.backend == "pytorch":
+            pred_scores = self._score_pt(user_idx, item_idx)
+
+        return pred_scores.ravel()

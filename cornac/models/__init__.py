@@ -74,4 +74,3 @@ except ModuleNotFoundError:
         "FM model is only supported on Linux.\n"
         + "Windows executable can be found at http://www.libfm.org."
     )
-
