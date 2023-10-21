@@ -294,10 +294,10 @@ class NCFBase(Recommender):
         if hasattr(model, "pretrained"):  # NeuMF
             model.pretrained = False
 
-        if model.backend is "tensorflow":
+        if model.backend == "tensorflow":
             model._build_graph()
             model.saver.restore(model.sess, model.load_from.replace(".pkl", ".cpt"))
-        elif model.backend is "pytorch":
+        elif model.backend == "pytorch":
             # TODO: implement model loading for PyTorch
             raise NotImplementedError()
 
