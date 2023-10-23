@@ -21,6 +21,8 @@ project = 'Cornac'
 copyright = '2023, Preferred.AI'
 author = 'Preferred.AI'
 
+# The short X.Y version
+version = '1.17'
 # The full version, including alpha/beta/rc tags
 release = '1.17.0'
 
@@ -42,7 +44,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     'sphinx_design',
-    'myst_parser'
+    'myst_parser',
+    'sphinx_copybutton'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

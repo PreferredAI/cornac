@@ -37,18 +37,18 @@ Quick Links
 
       :material-round:`fast_forward;5em;sd-text-primary`
 
-      **Getting Started**
+      **Installation**
       
       Start here to get Cornac up and running fast through a step by step guide with helpful explanation.
       
       +++
 
-      .. button-ref:: user/index
+      .. button-ref:: user/install
          :color: primary
          :expand:
          :click-parent:
 
-         Get Started!
+         Install Guide
 
    .. grid-item-card::
       :columns: 12 6 6 6
@@ -57,18 +57,18 @@ Quick Links
 
       :material-round:`pan_tool_alt;5em;sd-text-primary`
       
-      **Using Cornac for Model Selection**
+      **Quickstart**
       
       Already got Cornac up and running and want to explore further? This section further explains the Cornac experiment concept, and explains how you can further tune your models to achieve better results.
 
       +++
 
-      .. button-ref:: user/index
+      .. button-ref:: user/quickstart
          :color: primary
          :expand:
          :click-parent:
 
-         Model Selection Guide
+         Running Your First Experiment
 
    .. grid-item-card::
       :columns: 12 6 6 6
