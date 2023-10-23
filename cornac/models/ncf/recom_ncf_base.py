@@ -178,8 +178,8 @@ class NCFBase(Recommender):
                         batch_users, batch_items, batch_ratings
                     ),
                 )
-                count += len(batch_ratings)
-                sum_loss += _loss * len(batch_ratings)
+                count += 1
+                sum_loss += _loss
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
 
