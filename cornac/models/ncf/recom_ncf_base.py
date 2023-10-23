@@ -218,7 +218,7 @@ class NCFBase(Recommender):
             lr=self.lr,
             weight_decay=self.reg,
         )
-        criteria = nn.BCELoss(reduction="sum")
+        criteria = nn.BCELoss()
 
         loop = trange(self.num_epochs, disable=not self.verbose)
         for _ in loop:
@@ -241,7 +241,7 @@ class NCFBase(Recommender):
                 loss.backward()
                 optimizer.step()
 
-                count += len(batch_users)
+                count += 1
                 sum_loss += loss.data.item()
 
                 if batch_id % 10 == 0:
