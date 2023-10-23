@@ -2,14 +2,17 @@
 Contributor's Guide
 ===================
 
-Welcome to the contributor's guide.
+Welcome to the Cornac project! We appreciate your interest
+in contributing to our open-source recommender system package.
+
+This document serves as a guide to help you get started with contributing to Cornac.
+We value and welcome contributions from developers of all experience levels.
+Whether you are new to open source or an experienced contributor, you can help us improve Cornac.
 
 .. toctree::
    :glob:
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contributing
 
-   Installation <https://github.com/PreferredAI/cornac/blob/master/README.md#installation>
-   First experiment <https://github.com/PreferredAI/cornac/blob/master/README.md#getting-started-your-first-cornac-experiment>
-   Examples <https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory>
-   Tutorials <https://github.com/PreferredAI/cornac/tree/master/tutorials#tutorials>
+   gettingstarted
+   contributing
