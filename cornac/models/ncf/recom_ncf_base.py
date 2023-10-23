@@ -218,7 +218,7 @@ class NCFBase(Recommender):
             lr=self.lr,
             weight_decay=self.reg,
         )
-        criteria = nn.BCELoss()
+        criteria = nn.BCELoss(reduction="sum")
 
         loop = trange(self.num_epochs, disable=not self.verbose)
         for _ in loop:
