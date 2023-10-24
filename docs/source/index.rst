@@ -26,7 +26,8 @@ Quick Links
 
 .. topic:: Cornac is suitable for all skill levels.
 
-   From learners to researchers, Cornac allows you to implement Recommender System to meet your experimental and production needs.
+   From learners to researchers, Cornac allows you to implement Recommender System
+   to meet your experimental and production needs.
 
 .. grid:: 2
 
@@ -35,12 +36,13 @@ Quick Links
       :padding: 2
       :text-align: center
 
-      :material-round:`fast_forward;5em;sd-text-primary`
+      :material-round:`download;5em;sd-text-primary`
 
       **Installation**
-      
-      Start here to get Cornac up and running fast through a step by step guide with helpful explanation.
-      
+
+      Start here to get Cornac up and running fast through a step by step guide
+      with helpful explanation.
+
       +++
 
       .. button-ref:: user/install
@@ -55,11 +57,13 @@ Quick Links
       :padding: 2
       :text-align: center
 
-      :material-round:`pan_tool_alt;5em;sd-text-primary`
-      
-      **Quickstart**
-      
-      Already got Cornac up and running and want to explore further? This section further explains the Cornac experiment concept, and explains how you can further tune your models to achieve better results.
+      :material-round:`fast_forward;5em;sd-text-primary`
+
+      **Quickstart Guide**
+
+      Already got Cornac up and running? Start your first experiment by going
+      through this step-by-step guide. This step explains the Cornac experiment concept
+      with codes.
 
       +++
 
@@ -68,19 +72,19 @@ Quick Links
          :expand:
          :click-parent:
 
-         Running Your First Experiment
+         Run Your First Experiment
 
    .. grid-item-card::
       :columns: 12 6 6 6
       :padding: 2
       :text-align: center
 
-      :material-round:`upload;5em;sd-text-primary`
+      :material-round:`create_new_folder;5em;sd-text-primary`
       
-      **Incorporating your Own Algorithm**
+      **Incorporate your Own Algorithm**
 
-      Using our built in models, datasets and metrics, you could benchmark your models against them easily.
-      
+      Add your own models, datasets and metrics alongside Cornac's offerings to meet your needs.
+
       This section explains how you can add your own dataset/model/metric so that you can easily run experiments.
 
       +++
@@ -90,7 +94,7 @@ Quick Links
          :expand:
          :click-parent:
 
-         Adding Your Implementation Guide
+         Add Your Own Implementation
 
    .. grid-item-card::
       :columns: 12 6 6 6
@@ -101,8 +105,9 @@ Quick Links
       
       **Contributing into Cornac**
 
-      We welcome contributions. 
-      Learn how you can contribute to the broader community using Cornac for real-world applications and research.
+      We welcome contributions.
+      Learn how you can contribute to the broader community, including data scientists
+      and engineers using Cornac for research and real-world applications.
 
       +++
 
