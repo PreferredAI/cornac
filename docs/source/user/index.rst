@@ -1,19 +1,12 @@
 User Guide
 ==========
 
-Welcome to the Cornac User Guide, your gateway to the world of recommendation systems.
-Cornac is a robust Python library tailored to normal users, and even data scientists and researchers,
-equipping you with the tools to build, evaluate, and fine-tune recommendation systems.
+Welcome to the Cornac User Guide. This guide aims to get you started in
+recommender systems using Cornac, a Python library friendly to most users.
 
-In an age saturated with digital content, recommendations shape user experiences across various domains.
-With Cornac's comprehensive suite of models and evaluation methods, you can craft and optimize recommendation algorithms,
-ensuring your system not only meets but surpasses user expectations.
-
-This guide covers data loading, model training, evaluation metrics, and result analysis.
-Whether you're an experienced data scientist or a newcomer, Cornac simplifies recommendation system development,
-empowering you to deliver personalized, engaging recommendations that captivate your audience.
-
-Explore the documentation, experiment with diverse models, and unlock the future of personalized content recommendations with Cornac.
+Cornac is a robust Python library tailored to normal users, alongside
+data scientists and engineers. Cornac aims to equip you with the tools to
+build, evaluate, and fine-tune recommender systems to meet your needs.
 
 .. toctree::
    :glob:
@@ -31,6 +24,3 @@ Explore the documentation, experiment with diverse models, and unlock the future
    :caption: Additional Resources
 
    recommender_concepts
-   
-   Examples <https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory>
-   Tutorials <https://github.com/PreferredAI/cornac/tree/master/tutorials#tutorials>

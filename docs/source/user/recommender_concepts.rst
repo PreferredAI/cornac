@@ -2,14 +2,20 @@
 Recommender Systems Concepts
 ============================
 
-New to recommender systems?
-Here you can get up to speed with the concepts to recommender systems.
+If you're new to recommender systems, this link provides a beginner-friendly
+introduction to help you understand the fundamentals and get started.
 
-```{include} intro.md
-```
+https://github.com/PreferredAI/tutorials/tree/master/recommender-systems
 
-```{directivename} <directive arguments>
-:optionname: <valuename>
+This folder contains multiple tutorials, explaining on how you can use Cornac
+to create recommendation systems.
 
-<directive content>
-```
+
+Viewing notebooks
+^^^^^^^^^^^^^^^^^
+
+Select the run in Google Colab option. The notebook opens as seen in the
+screenshot below:
+
+
+Follow the tutorial, to run a command, ...
