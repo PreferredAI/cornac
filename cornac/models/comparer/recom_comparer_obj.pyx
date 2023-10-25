@@ -460,7 +460,7 @@ class ComparERObj(Recommender):
 
         if data_set is not None:
             for uid, iid, rating in data_set.uir_iter():
-                if not self.knows_user(uid) or not self.knows_item(iid):
+                if not (self.knows_user(uid) and self.knows_item(iid)):
                     continue
                 ratings.append(rating)
                 map_uid.append(uid)
@@ -485,7 +485,7 @@ class ComparERObj(Recommender):
                 window = len(item_ids) if self.enum_window is None else min(self.enum_window, len(item_ids))
                 for sub_item_ids in [item_ids[i:i+window] for i in range(len(item_ids) - window + 1)]:
                     for earlier_item_idx, later_item_idx in combinations(sub_item_ids, 2):
-                        if not (self.knows_item(earlier_item_idx) or self.knows_item(later_item_idx)):
+                        if not (self.knows_item(earlier_item_idx) and self.knows_item(later_item_idx)):
                             continue
                         chrono_purchased_pairs[(earlier_item_idx, later_item_idx)] += 1
 
@@ -656,7 +656,7 @@ class ComparERObj(Recommender):
             item_scores = self.U2.dot(self.U1[user_id, :]) + self.H2.dot(self.H1[user_id, :])
             return item_scores
         else:
-            if not (self.knows_user(user_id) or self.knows_item(item_id)):
+            if not (self.knows_user(user_id) and self.knows_item(item_id)):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
             item_score = self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
             return item_score

@@ -299,7 +299,7 @@ class ComparERSub(MTER):
                 window = len(item_ids) if self.enum_window is None else min(self.enum_window, len(item_ids))
                 for sub_item_ids in [item_ids[i:i+window] for i in range(len(item_ids) - window + 1)]:
                     for earlier_item_idx, later_item_idx in combinations(sub_item_ids, 2):
-                        if not (self.knows_item(earlier_item_idx) or self.knows_item(later_item_idx)):
+                        if not (self.knows_item(earlier_item_idx) and self.knows_item(later_item_idx)):
                             continue
                         chrono_purchased_pairs[(user_idx, earlier_item_idx, later_item_idx)] += 1
 
