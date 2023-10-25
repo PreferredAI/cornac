@@ -3,6 +3,7 @@ import numpy as np
 from cornac.models.recommender import Recommender
 from cornac.exception import ScoreException
 
+
 class EASE(Recommender):
     """Embarrassingly Shallow Autoencoders for Sparse Data.
 
@@ -34,15 +35,15 @@ class EASE(Recommender):
     """
 
     def __init__(
-            self,
-            name="EASEᴿ",
-            lamb=500,
-            posB=True,
-            trainable=True,
-            verbose=True,
-            seed=None,
-            B=None,
-            U=None,
+        self,
+        name="EASEᴿ",
+        lamb=500,
+        posB=True,
+        trainable=True,
+        verbose=True,
+        seed=None,
+        B=None,
+        U=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.lamb = lamb
@@ -70,7 +71,7 @@ class EASE(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         # A rating matrix
-        self.U = self.train_set.matrix
+        self.U = train_set.matrix
 
         # Gram matrix is X^t X, compute dot product
         G = self.U.T.dot(self.U).toarray()
@@ -82,18 +83,17 @@ class EASE(Recommender):
         P = np.linalg.inv(G)
 
         B = P / (-np.diag(P))
-        
+
         B[diag_indices] = 0.0
 
         # if self.posB remove -ve values
         if self.posB:
-            B[B<0]=0            
+            B[B < 0] = 0
 
         # save B for predictions
-        self.B=B
-      
-        return self
+        self.B = B
 
+        return self
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -114,22 +114,17 @@ class EASE(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.U[user_idx, :].dot(self.B)
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-
             user_pred = self.B[item_idx, :].dot(self.U[user_idx, :])
-
             return user_pred
