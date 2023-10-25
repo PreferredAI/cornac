@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+# cython: language_level=3
+
 from libc.math cimport exp
 from libc.math cimport sqrt
 
