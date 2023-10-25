@@ -522,7 +522,6 @@ class Dataset(object):
             batch of negative items (array of 'int')
 
         """
-
         if neg_sampling.lower() == "uniform":
             neg_population = np.arange(self.num_items)
         elif neg_sampling.lower() == "popularity":
@@ -558,7 +557,7 @@ class Dataset(object):
         -------
         iterator : batch of user indices (array of 'int')
         """
-        user_indices = np.fromiter(self.user_indices, dtype="int")
+        user_indices = np.fromiter(set(self.uir_tuple[0]), dtype="int")
         for batch_ids in self.idx_iter(len(user_indices), batch_size, shuffle):
             yield user_indices[batch_ids]
 
@@ -576,7 +575,7 @@ class Dataset(object):
         -------
         iterator : batch of item indices (array of 'int')
         """
-        item_indices = np.fromiter(self.item_indices, "int")
+        item_indices = np.fromiter(set(self.uir_tuple[1]), "int")
         for batch_ids in self.idx_iter(len(item_indices), batch_size, shuffle):
             yield item_indices[batch_ids]
 
