@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+# cython: language_level=3
+
 from libcpp.vector cimport vector
 
 import numpy as np
