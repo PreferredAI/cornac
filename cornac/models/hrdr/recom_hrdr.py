@@ -21,7 +21,8 @@ from ..recommender import Recommender
 from ...exception import ScoreException
 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 
 class HRDR(Recommender):
     """
@@ -107,9 +108,9 @@ class HRDR(Recommender):
         max_num_review=32,
         batch_size=64,
         max_iter=20,
-        optimizer='adam',
+        optimizer="adam",
         learning_rate=0.001,
-        model_selection='last', # last or best
+        model_selection="last",  # last or best
         user_based=True,
         trainable=True,
         verbose=True,
@@ -159,11 +160,12 @@ class HRDR(Recommender):
         if self.trainable:
             if not hasattr(self, "model"):
                 from .hrdr import HRDRModel
+
                 self.model = HRDRModel(
-                    self.train_set.num_users,
-                    self.train_set.num_items,
-                    self.train_set.review_text.vocab,
-                    self.train_set.global_mean,
+                    self.num_users,
+                    self.num_items,
+                    train_set.review_text.vocab,
+                    self.global_mean,
                     n_factors=self.n_factors,
                     embedding_size=self.embedding_size,
                     id_embedding_size=self.id_embedding_size,
@@ -175,69 +177,128 @@ class HRDR(Recommender):
                     dropout_rate=self.dropout_rate,
                     max_text_length=self.max_text_length,
                     max_num_review=self.max_num_review,
-                    pretrained_word_embeddings=self.init_params.get('pretrained_word_embeddings'),
+                    pretrained_word_embeddings=self.init_params.get(
+                        "pretrained_word_embeddings"
+                    ),
                     verbose=self.verbose,
                     seed=self.seed,
                 )
-            self._fit()
+            self._fit_tf(train_set)
 
         return self
 
-    def _fit(self):
+    def _fit_tf(self, train_set):
         import tensorflow as tf
         from tensorflow import keras
         from .hrdr import get_data
         from ...eval_methods.base_method import rating_eval
         from ...metrics import MSE
-        if not hasattr(self, '_optimizer'):
+
+        if not hasattr(self, "_optimizer"):
             from tensorflow import keras
-            if self.optimizer == 'rmsprop':
-                self._optimizer = keras.optimizers.RMSprop(learning_rate=self.learning_rate)
+
+            if self.optimizer == "rmsprop":
+                self._optimizer = keras.optimizers.RMSprop(
+                    learning_rate=self.learning_rate
+                )
             else:
-                self._optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
+                self._optimizer = keras.optimizers.Adam(
+                    learning_rate=self.learning_rate
+                )
         loss = keras.losses.MeanSquaredError()
         train_loss = keras.metrics.Mean(name="loss")
-        val_loss = float('inf')
-        best_val_loss = float('inf')
+        val_loss = float("inf")
+        best_val_loss = float("inf")
         self.best_epoch = None
-        loop = trange(self.max_iter, disable=not self.verbose, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+        loop = trange(
+            self.max_iter,
+            disable=not self.verbose,
+            bar_format="{l_bar}{bar:10}{r_bar}{bar:-10b}",
+        )
         for i_epoch, _ in enumerate(loop):
             train_loss.reset_states()
-            for i, (batch_users, batch_items, batch_ratings) in enumerate(self.train_set.uir_iter(self.batch_size, shuffle=True)):
-                user_reviews, user_num_reviews, user_ratings = get_data(batch_users, self.train_set, self.max_text_length, by='user', max_num_review=self.max_num_review)
-                item_reviews, item_num_reviews, item_ratings = get_data(batch_items, self.train_set, self.max_text_length, by='item', max_num_review=self.max_num_review)
+            for i, (batch_users, batch_items, batch_ratings) in enumerate(
+                train_set.uir_iter(self.batch_size, shuffle=True)
+            ):
+                user_reviews, user_num_reviews, user_ratings = get_data(
+                    batch_users,
+                    train_set,
+                    self.max_text_length,
+                    by="user",
+                    max_num_review=self.max_num_review,
+                )
+                item_reviews, item_num_reviews, item_ratings = get_data(
+                    batch_items,
+                    train_set,
+                    self.max_text_length,
+                    by="item",
+                    max_num_review=self.max_num_review,
+                )
                 with tf.GradientTape() as tape:
                     predictions = self.model.graph(
-                        [batch_users, batch_items, user_ratings, user_reviews, user_num_reviews, item_ratings, item_reviews, item_num_reviews],
+                        [
+                            batch_users,
+                            batch_items,
+                            user_ratings,
+                            user_reviews,
+                            user_num_reviews,
+                            item_ratings,
+                            item_reviews,
+                            item_num_reviews,
+                        ],
                         training=True,
                     )
                     _loss = loss(batch_ratings, predictions)
                 gradients = tape.gradient(_loss, self.model.graph.trainable_variables)
-                self._optimizer.apply_gradients(zip(gradients, self.model.graph.trainable_variables))
+                self._optimizer.apply_gradients(
+                    zip(gradients, self.model.graph.trainable_variables)
+                )
                 train_loss(_loss)
                 if i % 10 == 0:
-                    loop.set_postfix(loss=train_loss.result().numpy(), val_loss=val_loss, best_val_loss=best_val_loss, best_epoch=self.best_epoch)
-            current_weights = self.model.get_weights(self.train_set, self.batch_size)
+                    loop.set_postfix(
+                        loss=train_loss.result().numpy(),
+                        val_loss=val_loss,
+                        best_val_loss=best_val_loss,
+                        best_epoch=self.best_epoch,
+                    )
+            current_weights = self.model.get_weights(train_set, self.batch_size)
             if self.val_set is not None:
-                self.P, self.Q, self.W1, self.bu, self.bi, self.mu, self.A = current_weights
+                (
+                    self.P,
+                    self.Q,
+                    self.W1,
+                    self.bu,
+                    self.bi,
+                    self.mu,
+                    self.A,
+                ) = current_weights
                 [current_val_mse], _ = rating_eval(
                     model=self,
                     metrics=[MSE()],
                     test_set=self.val_set,
-                    user_based=self.user_based
+                    user_based=self.user_based,
                 )
                 val_loss = current_val_mse
                 if best_val_loss > val_loss:
                     best_val_loss = val_loss
                     self.best_epoch = i_epoch + 1
                     best_weights = current_weights
-                loop.set_postfix(loss=train_loss.result().numpy(), val_loss=val_loss, best_val_loss=best_val_loss, best_epoch=self.best_epoch)
+                loop.set_postfix(
+                    loss=train_loss.result().numpy(),
+                    val_loss=val_loss,
+                    best_val_loss=best_val_loss,
+                    best_epoch=self.best_epoch,
+                )
             self.losses["train_losses"].append(train_loss.result().numpy())
             self.losses["val_losses"].append(val_loss)
         loop.close()
 
         # save weights for predictions
-        self.P, self.Q, self.W1, self.bu, self.bi, self.mu, self.A = best_weights if self.val_set is not None and self.model_selection == 'best' else current_weights
+        self.P, self.Q, self.W1, self.bu, self.bi, self.mu, self.A = (
+            best_weights
+            if self.val_set is not None and self.model_selection == "best"
+            else current_weights
+        )
         if self.verbose:
             print("Learning completed!")
 
@@ -261,7 +322,7 @@ class HRDR(Recommender):
         self._optimizer = _optimizer
         self.model.graph = graph
         self.model.graph.save(model_file.replace(".pkl", ".cpt"))
-        with open(model_file.replace(".pkl", ".opt"), 'wb') as f:
+        with open(model_file.replace(".pkl", ".opt"), "wb") as f:
             pickle.dump(self._optimizer.get_weights(), f)
         return model_file
 
@@ -276,9 +337,9 @@ class HRDR(Recommender):
             provided, the latest model will be loaded.
 
         trainable: boolean, optional, default: False
-            Set it to True if you would like to finetune the model. By default, 
+            Set it to True if you would like to finetune the model. By default,
             the model parameters are assumed to be fixed after being loaded.
-        
+
         Returns
         -------
         self : object
@@ -286,17 +347,24 @@ class HRDR(Recommender):
         import tensorflow as tf
         from tensorflow import keras
         import absl.logging
+
         absl.logging.set_verbosity(absl.logging.ERROR)
 
         model = Recommender.load(model_path, trainable)
-        model.model.graph = keras.models.load_model(model.load_from.replace(".pkl", ".cpt"), compile=False)
-        if model.optimizer == 'rmsprop':
-            model._optimizer = keras.optimizers.RMSprop(learning_rate=model.learning_rate)
+        model.model.graph = keras.models.load_model(
+            model.load_from.replace(".pkl", ".cpt"), compile=False
+        )
+        if model.optimizer == "rmsprop":
+            model._optimizer = keras.optimizers.RMSprop(
+                learning_rate=model.learning_rate
+            )
         else:
             model._optimizer = keras.optimizers.Adam(learning_rate=model.learning_rate)
         zero_grads = [tf.zeros_like(w) for w in model.model.graph.trainable_variables]
-        model._optimizer.apply_gradients(zip(zero_grads, model.model.graph.trainable_variables))
-        with open(model.load_from.replace(".pkl", ".opt"), 'rb') as f:
+        model._optimizer.apply_gradients(
+            zip(zero_grads, model.model.graph.trainable_variables)
+        )
+        with open(model.load_from.replace(".pkl", ".opt"), "rb") as f:
             optimizer_weights = pickle.load(f)
         model._optimizer.set_weights(optimizer_weights)
 
@@ -320,7 +388,7 @@ class HRDR(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
@@ -328,13 +396,13 @@ class HRDR(Recommender):
             known_item_scores = h0.dot(self.W1) + self.bu[user_idx] + self.bi + self.mu
             return known_item_scores.ravel()
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) or self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
             h0 = self.P[user_idx] * self.Q[item_idx]
-            known_item_score = h0.dot(self.W1) + self.bu[user_idx] + self.bi[item_idx] + self.mu
+            known_item_score = (
+                h0.dot(self.W1) + self.bu[user_idx] + self.bi[item_idx] + self.mu
+            )
             return known_item_score
