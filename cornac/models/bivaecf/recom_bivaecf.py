@@ -220,7 +220,7 @@ class BiVAECF(Recommender):
             )
             return known_item_scores
         else:
-            if not self.knows_user(user_idx) or not self.knows_item(item_idx):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
