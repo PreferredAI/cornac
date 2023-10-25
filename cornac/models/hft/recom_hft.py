@@ -72,7 +72,7 @@ class HFT(Recommender):
 
     verbose: boolean, optional, default: True
         When True, some running logs are displayed.
-        
+
     seed: int, optional, default: None
         Random seed for weight initialization.
 
@@ -118,19 +118,16 @@ class HFT(Recommender):
 
     def _init(self):
         rng = get_rng(self.seed)
-        self.n_item = self.train_set.num_items
-        self.n_user = self.train_set.num_users
-
         if self.alpha is None:
-            self.alpha = self.train_set.global_mean
+            self.alpha = self.global_mean
         if self.beta_u is None:
-            self.beta_u = normal(self.n_user, std=0.01, random_state=rng)
+            self.beta_u = normal(self.num_users, std=0.01, random_state=rng)
         if self.beta_i is None:
-            self.beta_i = normal(self.n_item, std=0.01, random_state=rng)
+            self.beta_i = normal(self.num_items, std=0.01, random_state=rng)
         if self.gamma_u is None:
-            self.gamma_u = normal((self.n_user, self.k), std=0.01, random_state=rng)
+            self.gamma_u = normal((self.num_users, self.k), std=0.01, random_state=rng)
         if self.gamma_i is None:
-            self.gamma_i = normal((self.n_item, self.k), std=0.01, random_state=rng)
+            self.gamma_i = normal((self.num_items, self.k), std=0.01, random_state=rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -152,7 +149,7 @@ class HFT(Recommender):
         self._init()
 
         if self.trainable:
-            self._fit_hft()
+            self._fit_hft(train_set)
 
         return self
 
@@ -166,21 +163,21 @@ class HFT(Recommender):
             rating_list.append(csr_mat.data[j:k])
         return index_list, rating_list
 
-    def _fit_hft(self):
+    def _fit_hft(self, train_set):
         from .hft import Model
 
         # document data
-        bow_mat = self.train_set.item_text.batch_bow(
-            np.arange(self.n_item), keep_sparse=True
+        bow_mat = train_set.item_text.batch_bow(
+            np.arange(self.num_items), keep_sparse=True
         )
         documents, _ = self._build_data(bow_mat)  # bag of word feature
         # Rating data
-        user_data = self._build_data(self.train_set.matrix)
-        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+        user_data = self._build_data(train_set.matrix)
+        item_data = self._build_data(train_set.matrix.T.tocsr())
 
         model = Model(
-            n_user=self.n_user,
-            n_item=self.n_item,
+            n_user=self.num_users,
+            n_item=self.num_items,
             alpha=self.alpha,
             beta_u=self.beta_u,
             beta_i=self.beta_i,
@@ -202,9 +199,13 @@ class HFT(Recommender):
             loss = model.update_params(rating_data=(user_data, item_data))
             loop.set_postfix(loss=loss)
 
-        self.alpha, self.beta_u, self.beta_i, self.gamma_u, self.gamma_i = (
-            model.get_parameter()
-        )
+        (
+            self.alpha,
+            self.beta_u,
+            self.beta_i,
+            self.gamma_u,
+            self.gamma_i,
+        ) = model.get_parameter()
 
         if self.verbose:
             print("Learning completed!")
@@ -227,7 +228,7 @@ class HFT(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
@@ -240,9 +241,7 @@ class HFT(Recommender):
             )
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
@@ -254,5 +253,4 @@ class HFT(Recommender):
                 + self.beta_i[item_idx]
                 + self.gamma_i[item_idx, :].dot(self.gamma_u[user_idx, :])
             )
-
             return user_pred
