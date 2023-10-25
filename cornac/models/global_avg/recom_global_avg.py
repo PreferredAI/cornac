@@ -51,6 +51,6 @@ class GlobalAvg(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
         if item_idx is None:
-            return np.full(self.train_set.num_items, self.train_set.global_mean)
+            return np.full(self.num_items, self.global_mean)
         else:
-            return self.train_set.global_mean
+            return self.global_mean
