@@ -181,7 +181,7 @@ class ComparERSub(MTER):
         map_iid = []
         map_aspect_id = []
         for iid, sentiment_tup_ids_by_user in sentiment.item_sentiment.items():
-            if self.train_set.is_unk_item(iid):
+            if not self.knows_item(iid):
                 continue
             item_aspects = [tup[0]
                             for tup_id in sentiment_tup_ids_by_user.values()
@@ -203,7 +203,7 @@ class ComparERSub(MTER):
         map_iid = np.asarray(map_iid, dtype=np.int32).flatten()
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int32).flatten()
         Y = sp.csr_matrix((quality_scores, (map_iid, map_aspect_id)),
-                          shape=(self.train_set.num_items, sentiment.num_aspects))
+                          shape=(self.num_items, sentiment.num_aspects))
 
         if self.verbose:
             print('Building item aspect quality matrix completed in %d s' % (time() - start_time))
@@ -218,19 +218,22 @@ class ComparERSub(MTER):
         if self.verbose:
             print("Building data started!")
 
-        sentiment = self.train_set.sentiment
+
+        sentiment = data_set.sentiment
+        self.num_aspects = sentiment.num_aspects
+        self.num_opinions = sentiment.num_opinions
         (u_indices, i_indices, r_values) = data_set.uir_tuple
         keys = np.array([get_key(u, i) for u, i in zip(u_indices, i_indices)], dtype=np.intp)
         cdef IntFloatDict rating_dict = IntFloatDict(keys, np.array(r_values, dtype=np.float64))
         rating_matrix = sp.csr_matrix(
             (r_values, (u_indices, i_indices)),
-            shape=(self.train_set.num_users, self.train_set.num_items),
+            shape=(self.num_users, self.num_items),
         )
         user_item_aspect = {}
         user_aspect_opinion = {}
         item_aspect_opinion = {}
         for u_idx, sentiment_tup_ids_by_item in tqdm(sentiment.user_sentiment.items(), disable=not self.verbose, desc='Count aspects'):
-            if self.train_set.is_unk_user(u_idx):
+            if not self.knows_user(u_idx):
                 continue
             for i_idx, tup_idx in sentiment_tup_ids_by_item.items():
                 user_item_aspect[
@@ -296,7 +299,7 @@ class ComparERSub(MTER):
                 window = len(item_ids) if self.enum_window is None else min(self.enum_window, len(item_ids))
                 for sub_item_ids in [item_ids[i:i+window] for i in range(len(item_ids) - window + 1)]:
                     for earlier_item_idx, later_item_idx in combinations(sub_item_ids, 2):
-                        if self.train_set.is_unk_item(earlier_item_idx) or self.train_set.is_unk_item(later_item_idx):
+                        if not (self.knows_item(earlier_item_idx) or self.knows_item(later_item_idx)):
                             continue
                         chrono_purchased_pairs[(user_idx, earlier_item_idx, later_item_idx)] += 1
 
@@ -305,7 +308,7 @@ class ComparERSub(MTER):
         counted_pairs = set()
         not_dominated_pairs = set()
         for (user_idx, earlier_item_idx, later_item_idx), count in tqdm(chrono_purchased_pairs.most_common(), disable=not self.verbose, desc='Get skyline aspects'):
-            for k in range(self.train_set.sentiment.num_aspects - 1): # ignore rating at the last index
+            for k in range(self.num_aspects - 1): # ignore rating at the last index
                 if user_item_aspect.get((user_idx, later_item_idx, k), 0) > user_item_aspect.get((user_idx, earlier_item_idx, k), 0):
                     pair_counts[(user_idx, earlier_item_idx, later_item_idx, k)] += count
                     not_dominated_pairs.add((user_idx, earlier_item_idx, later_item_idx))
@@ -346,7 +349,6 @@ class ComparERSub(MTER):
             ))
 
         return user_indices, earlier_indices, later_indices, aspect_indices, pair_freq
-
 
 
     def fit(self, train_set, val_set=None):
@@ -416,8 +418,8 @@ class ComparERSub(MTER):
         YI_oids = np.array(YI_oids, dtype=np.int32)
 
         user_counts = np.ediff1d(rating_matrix.indptr).astype(np.int32)
-        user_ids = np.repeat(np.arange(self.train_set.num_users), user_counts).astype(np.int32)
-        neg_item_ids = np.arange(train_set.num_items, dtype=np.int32)
+        user_ids = np.repeat(np.arange(self.num_users), user_counts).astype(np.int32)
+        neg_item_ids = np.arange(self.num_items, dtype=np.int32)
 
         cdef:
             int n_threads = self.n_threads
@@ -529,10 +531,10 @@ class ComparERSub(MTER):
         """
         cdef:
             long s, i_index, j_index, correct = 0, skipped = 0, aspect_correct = 0
-            long n_users = self.train_set.num_users
-            long n_items = self.train_set.num_items
-            long n_aspects = self.train_set.sentiment.num_aspects
-            long n_opinions = self.train_set.sentiment.num_opinions
+            long n_users = self.num_users
+            long n_items = self.num_items
+            long n_aspects = self.num_aspects
+            long n_opinions = self.num_opinions
             long n_user_factors = self.n_user_factors
             long n_item_factors = self.n_item_factors
             long n_aspect_factors = self.n_aspect_factors
@@ -759,14 +761,13 @@ class ComparERSub(MTER):
 
     def rank(self, user_idx, item_indices=None):
         if self.alpha > 0 and self.n_top_aspects > 0:
-            n_items = self.train_set.num_items
-            n_top_aspects = min(self.n_top_aspects, self.train_set.sentiment.num_aspects)
+            n_top_aspects = min(self.n_top_aspects, self.num_aspects)
             ts1 = np.einsum("abc,a->bc", self.G1, self.U[user_idx])
             ts2 = np.einsum("bc,Mb->Mc", ts1, self.I)
             ts3 = np.einsum("Mc,Nc->MN", ts2, self.A)
             top_aspect_scores = ts3[
-                np.repeat(range(n_items), n_top_aspects).reshape(
-                    n_items, n_top_aspects
+                np.repeat(range(self.num_items), n_top_aspects).reshape(
+                    self.num_items, n_top_aspects
                 ),
                 ts3[:, :-1].argsort(axis=1)[::-1][:, :n_top_aspects],
             ]
@@ -776,17 +777,17 @@ class ComparERSub(MTER):
 
             # check if the returned scores also cover unknown items
             # if not, all unknown items will be given the MIN score
-            if len(known_item_scores) == self.train_set.total_items:
+            if len(known_item_scores) == self.total_items:
                 all_item_scores = known_item_scores
             else:
-                all_item_scores = np.ones(self.train_set.total_items) * np.min(
+                all_item_scores = np.ones(self.total_items) * np.min(
                     known_item_scores
                 )
-                all_item_scores[: self.train_set.num_items] = known_item_scores
+                all_item_scores[: self.num_items] = known_item_scores
 
             # rank items based on their scores
             if item_indices is None:
-                item_scores = all_item_scores[: self.train_set.num_items]
+                item_scores = all_item_scores[: self.num_items]
                 item_rank = item_scores.argsort()[::-1]
             else:
                 item_scores = all_item_scores[item_indices]
