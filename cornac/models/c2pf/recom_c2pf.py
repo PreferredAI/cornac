@@ -145,7 +145,7 @@ class C2PF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        X = sp.csc_matrix(self.train_set.matrix)
+        X = train_set.csr_matrix
 
         # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
         (rid, cid, val) = sp.find(X)
@@ -294,5 +294,4 @@ class C2PF(Recommender):
                 )
         # transform user_pred to a flatten array,
         user_pred = np.array(user_pred, dtype="float64").flatten()
-
         return user_pred
