@@ -85,26 +85,26 @@ class CausalRec(Recommender):
     ----------
     * Qiu R., Wang S., Chen Z., Yin H., Huang Z. (2021). CausalRec: Causal Inference for Visual Debiasing in Visually-Aware Recommendation.
     """
-    
+
     def __init__(
-            self,
-            name="CausalRec",
-            k=10,
-            k2=10,
-            n_epochs=50,
-            batch_size=100,
-            learning_rate=0.005,
-            lambda_w=0.01,
-            lambda_b=0.01,
-            lambda_e=0.0,
-            mean_feat=None,
-            tanh=0,
-            lambda_2=0.8,
-            use_gpu=False,
-            trainable=True,
-            verbose=True,
-            init_params=None,
-            seed=None,
+        self,
+        name="CausalRec",
+        k=10,
+        k2=10,
+        n_epochs=50,
+        batch_size=100,
+        learning_rate=0.005,
+        lambda_w=0.01,
+        lambda_b=0.01,
+        lambda_e=0.0,
+        mean_feat=None,
+        tanh=0,
+        lambda_2=0.8,
+        use_gpu=False,
+        trainable=True,
+        verbose=True,
+        init_params=None,
+        seed=None,
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -120,7 +120,7 @@ class CausalRec(Recommender):
         self.lambda_2 = lambda_2
         self.use_gpu = use_gpu
         self.seed = seed
-        
+
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
         self.beta_item = self.init_params.get("Bi", None)
@@ -133,10 +133,10 @@ class CausalRec(Recommender):
             self.emb_matrix2 = self.init_params.get("E2", None)
             self.emb_ind_matrix2 = self.init_params.get("E_ind2", None)
         self.beta_prime = self.init_params.get("Bp", None)
-    
+
     def _init(self, n_users, n_items, features):
         rng = get_rng(self.seed)
-        
+
         self.beta_item = zeros(n_items) if self.beta_item is None else self.beta_item
         if self.gamma_user is None:
             self.gamma_user = xavier_uniform((n_users, self.k), rng)
@@ -155,12 +155,12 @@ class CausalRec(Recommender):
                 self.emb_ind_matrix2 = xavier_uniform((self.k, self.k), rng)
         if self.beta_prime is None:
             self.beta_prime = xavier_uniform((features.shape[1], 1), rng)
-        
+
         # pre-computed for faster evaluation
         self.theta_item = np.matmul(features, self.emb_matrix)
         self.visual_bias = np.matmul(features, self.beta_prime).ravel()
         self.direct_theta_item = np.matmul(features, self.emb_ind_matrix)
-    
+
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
@@ -177,43 +177,43 @@ class CausalRec(Recommender):
         self : object
         """
         Recommender.fit(self, train_set, val_set)
-        
+
         if train_set.item_image is None:
             raise CornacException("item_image modality is required but None.")
-        
+
         # Item visual feature from CNN
-        train_features = train_set.item_image.features[: self.train_set.total_items]
+        train_features = train_set.item_image.features[: self.total_items]
         train_features = train_features.astype(np.float32)
         self._init(
             n_users=train_set.total_users,
             n_items=train_set.total_items,
             features=train_features,
         )
-        
+
         if self.trainable:
-            self._fit_torch(train_features)
-        
+            self._fit_torch(train_set, train_features)
+
         return self
-    
-    def _fit_torch(self, train_features):
+
+    def _fit_torch(self, train_set, train_features):
         import torch
-        
+
         def _l2_loss(*tensors):
             l2_loss = 0
             for tensor in tensors:
                 l2_loss += tensor.pow(2).sum()
             return l2_loss / 2
-        
+
         def _inner(a, b):
             return (a * b).sum(dim=1)
-        
+
         dtype = torch.float
         device = (
             torch.device("cuda:0")
             if (self.use_gpu and torch.cuda.is_available())
             else torch.device("cpu")
         )
-        
+
         F = torch.tensor(train_features, device=device, dtype=dtype)
         # Learned parameters
         Bi = torch.tensor(
@@ -241,7 +241,7 @@ class CausalRec(Recommender):
             [self.mean_feat], device=device, dtype=dtype, requires_grad=False
         )
         param = [Bi, Gu, Gi, Tu, E, Bp, E_ind]
-        
+
         if self.tanh == 2:
             E2 = torch.tensor(
                 self.emb_matrix2, device=device, dtype=dtype, requires_grad=True
@@ -251,30 +251,30 @@ class CausalRec(Recommender):
             )
             param.append(E2)
             param.append(E_ind2)
-        
+
         optimizer = torch.optim.Adam(param, lr=self.learning_rate)
-        
+
         for epoch in range(1, self.n_epochs + 1):
             sum_loss = 0.0
             count = 0
             progress_bar = tqdm(
-                total=self.train_set.num_batches(self.batch_size),
+                total=train_set.num_batches(self.batch_size),
                 desc="Epoch {}/{}".format(epoch, self.n_epochs),
                 disable=not self.verbose,
             )
-            for batch_u, batch_i, batch_j in self.train_set.uij_iter(
-                    self.batch_size, shuffle=True
+            for batch_u, batch_i, batch_j in train_set.uij_iter(
+                self.batch_size, shuffle=True
             ):
                 gamma_u = Gu[batch_u]
                 theta_u = Tu[batch_u]
-                
+
                 beta_i = Bi[batch_i]
                 beta_j = Bi[batch_j]
                 gamma_i = Gi[batch_i]
                 gamma_j = Gi[batch_j]
                 feat_i = F[batch_i]
                 feat_j = F[batch_j]
-                
+
                 if self.tanh == 0:
                     direct_feat_i = feat_i.mm(E)
                     ind_feat_i = feat_i.mm(E_ind)
@@ -284,10 +284,14 @@ class CausalRec(Recommender):
                 elif self.tanh == 2:
                     direct_feat_i = torch.tanh(torch.tanh(feat_i.mm(E)).mm(E2))
                     ind_feat_i = torch.tanh(torch.tanh(feat_i.mm(E_ind)).mm(E_ind2))
-                
-                i_m = beta_i + _inner(gamma_u, gamma_i) + _inner(gamma_u, gamma_i * ind_feat_i)
+
+                i_m = (
+                    beta_i
+                    + _inner(gamma_u, gamma_i)
+                    + _inner(gamma_u, gamma_i * ind_feat_i)
+                )
                 i_n = _inner(theta_u, direct_feat_i) + feat_i.mm(Bp)
-                
+
                 if self.tanh == 0:
                     direct_feat_j = feat_j.mm(E)
                     ind_feat_j = feat_j.mm(E_ind)
@@ -297,44 +301,52 @@ class CausalRec(Recommender):
                 elif self.tanh == 2:
                     direct_feat_j = torch.tanh(torch.tanh(feat_j.mm(E)).mm(E2))
                     ind_feat_j = torch.tanh(torch.tanh(feat_j.mm(E_ind)).mm(E_ind2))
-                
-                j_m = beta_j + _inner(gamma_u, gamma_j) + _inner(gamma_u, gamma_j * ind_feat_j)
+
+                j_m = (
+                    beta_j
+                    + _inner(gamma_u, gamma_j)
+                    + _inner(gamma_u, gamma_j * ind_feat_j)
+                )
                 j_n = _inner(theta_u, direct_feat_j) + feat_j.mm(Bp)
-                
-                i_score = torch.sigmoid(i_m + i_n) * torch.sigmoid(i_m) * torch.sigmoid(i_n)
-                j_score = torch.sigmoid(j_m + j_n) * torch.sigmoid(j_m) * torch.sigmoid(j_n)
-                
+
+                i_score = (
+                    torch.sigmoid(i_m + i_n) * torch.sigmoid(i_m) * torch.sigmoid(i_n)
+                )
+                j_score = (
+                    torch.sigmoid(j_m + j_n) * torch.sigmoid(j_m) * torch.sigmoid(j_n)
+                )
+
                 log_likelihood = torch.nn.functional.logsigmoid(i_score - j_score).sum()
                 log_likelihood_m = torch.nn.functional.logsigmoid(i_m - j_m).sum()
                 log_likelihood_n = torch.nn.functional.logsigmoid(i_n - j_n).sum()
-                
+
                 if self.tanh < 2:
                     l2_e = _l2_loss(E, Bp, E_ind)
                 else:
                     l2_e = _l2_loss(E, Bp, E_ind, E2, E_ind2)
-                
+
                 reg = (
-                        _l2_loss(gamma_u, gamma_i, gamma_j, theta_u) * self.lambda_w
-                        + _l2_loss(beta_i) * self.lambda_b
-                        + _l2_loss(beta_j) * self.lambda_b / 10
-                        + l2_e * self.lambda_e
+                    _l2_loss(gamma_u, gamma_i, gamma_j, theta_u) * self.lambda_w
+                    + _l2_loss(beta_i) * self.lambda_b
+                    + _l2_loss(beta_j) * self.lambda_b / 10
+                    + l2_e * self.lambda_e
                 )
-                
+
                 loss = -log_likelihood + reg - log_likelihood_m - log_likelihood_n
-                
+
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                
+
                 sum_loss += loss.data.item()
                 count += len(batch_u)
                 if count % (self.batch_size * 10) == 0:
                     progress_bar.set_postfix(loss=(sum_loss / count))
                 progress_bar.update(1)
             progress_bar.close()
-        
+
         print("Optimization finished!")
-        
+
         self.beta_item = Bi.data.cpu().numpy()
         self.gamma_user = Gu.data.cpu().numpy()
         self.gamma_item = Gi.data.cpu().numpy()
@@ -349,7 +361,9 @@ class CausalRec(Recommender):
         elif self.tanh == 1:
             self.theta_item = torch.tanh(self.theta_item).data.cpu().numpy()
         elif self.tanh == 2:
-            self.theta_item = torch.tanh(torch.tanh(self.theta_item).mm(E2)).data.cpu().numpy()
+            self.theta_item = (
+                torch.tanh(torch.tanh(self.theta_item).mm(E2)).data.cpu().numpy()
+            )
 
         self.visual_bias = F.mm(Bp).squeeze().data.cpu().numpy()
 
@@ -359,7 +373,11 @@ class CausalRec(Recommender):
         elif self.tanh == 1:
             self.ind_theta_item = torch.tanh(self.ind_theta_item).data.cpu().numpy()
         elif self.tanh == 2:
-            self.ind_theta_item = torch.tanh(torch.tanh(self.ind_theta_item).mm(E_ind2)).data.cpu().numpy()
+            self.ind_theta_item = (
+                torch.tanh(torch.tanh(self.ind_theta_item).mm(E_ind2))
+                .data.cpu()
+                .numpy()
+            )
 
         self.beta_item_mean = Bi.mean().unsqueeze(dim=0).data.cpu().numpy()
         self.gamma_item_mean = Gi.mean(dim=0).unsqueeze(dim=0).data.cpu().numpy()
@@ -370,7 +388,9 @@ class CausalRec(Recommender):
         elif self.tanh == 1:
             self.mean_feat = torch.tanh(self.mean_feat).data.cpu().numpy()
         elif self.tanh == 2:
-            self.mean_feat = torch.tanh(torch.tanh(self.mean_feat).mm(E_ind2)).data.cpu().numpy()
+            self.mean_feat = (
+                torch.tanh(torch.tanh(self.mean_feat).mm(E_ind2)).data.cpu().numpy()
+            )
 
     def score(self, user_idx, item_idx=None):
         """Predict the debiased scores/ratings of a user for an item.
@@ -383,7 +403,7 @@ class CausalRec(Recommender):
         item_idx: int, optional, default: None
             The index of the item for which to perform score prediction.
             If None, scores for all known items will be returned.
-        
+
         Returns
         -------
         res : A scalar or a Numpy array
@@ -393,16 +413,23 @@ class CausalRec(Recommender):
         if item_idx is None:
             m_score = self.beta_item
             fast_dot(self.gamma_user[user_idx], self.gamma_item, m_score)
-            fast_dot(self.gamma_user[user_idx], self.gamma_item * self.ind_theta_item, m_score)
+            fast_dot(
+                self.gamma_user[user_idx],
+                self.gamma_item * self.ind_theta_item,
+                m_score,
+            )
 
             m_star = self.beta_item_mean
             fast_dot(self.gamma_user[user_idx], self.gamma_item_mean, m_star)
-            fast_dot(self.gamma_user[user_idx], self.gamma_item_mean * self.mean_feat, m_star)
-            
+            fast_dot(
+                self.gamma_user[user_idx], self.gamma_item_mean * self.mean_feat, m_star
+            )
+
             n_score = self.visual_bias
             fast_dot(self.theta_user[user_idx], self.theta_item, n_score)
 
-            return expit(m_score + n_score) * expit(m_score) * expit(n_score)\
-                   - self.lambda_2 * expit(m_star + n_score) * expit(m_star) * expit(n_score)
+            return expit(m_score + n_score) * expit(m_score) * expit(
+                n_score
+            ) - self.lambda_2 * expit(m_star + n_score) * expit(m_star) * expit(n_score)
         else:
             raise NotImplementedError("The sampled evaluation is not implemented!")
