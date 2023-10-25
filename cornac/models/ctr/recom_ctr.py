@@ -52,7 +52,7 @@ class CTR(Recommender):
         Added value for smoothing phi.
 
     trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already 
+        When False, the model is not trained and Cornac assumes that the model already
         pre-trained (U and V are not None).
 
     init_params: dictionary, optional, default: None
@@ -107,13 +107,10 @@ class CTR(Recommender):
 
     def _init(self):
         rng = get_rng(self.seed)
-        self.n_item = self.train_set.num_items
-        self.n_user = self.train_set.num_users
-
         if self.U is None:
-            self.U = xavier_uniform((self.n_user, self.k), rng)
+            self.U = xavier_uniform((self.num_users, self.k), rng)
         if self.V is None:
-            self.V = xavier_uniform((self.n_item, self.k), rng)
+            self.V = xavier_uniform((self.num_items, self.k), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -135,7 +132,7 @@ class CTR(Recommender):
         self._init()
 
         if self.trainable:
-            self._fit_ctr()
+            self._fit_ctr(train_set)
 
         return self
 
@@ -149,24 +146,24 @@ class CTR(Recommender):
             rating_list.append(csr_mat.data[j:k])
         return index_list, rating_list
 
-    def _fit_ctr(self,):
+    def _fit_ctr(self, train_set):
         from .ctr import Model
 
-        user_data = self._build_data(self.train_set.matrix)
-        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+        user_data = self._build_data(train_set.matrix)
+        item_data = self._build_data(train_set.matrix.T.tocsr())
 
-        bow_mat = self.train_set.item_text.batch_bow(
-            np.arange(self.n_item), keep_sparse=True
+        bow_mat = train_set.item_text.batch_bow(
+            np.arange(self.num_items), keep_sparse=True
         )
         doc_ids, doc_cnt = self._build_data(bow_mat)  # bag of word feature
 
         self.model = Model(
-            n_user=self.n_user,
-            n_item=self.n_item,
+            n_user=self.num_users,
+            n_item=self.num_items,
             U=self.U,
             V=self.V,
             k=self.k,
-            n_vocab=self.train_set.item_text.vocab.size,
+            n_vocab=train_set.item_text.vocab.size,
             lambda_u=self.lambda_u,
             lambda_v=self.lambda_v,
             a=self.a,
@@ -205,17 +202,14 @@ class CTR(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) or self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
