@@ -113,7 +113,7 @@ class COE(Recommender):
                 print("Learning...")
 
             res = coe(
-                self.train_set.matrix,
+                train_set.matrix,
                 k=self.k,
                 n_epochs=self.max_iter,
                 lamda=self.lamda,
@@ -151,24 +151,20 @@ class COE(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = np.sum(
                 np.abs(self.V - self.U[user_idx, :]) ** 2, axis=-1
             ) ** (1.0 / 2)
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not self.knows_user(user_idx) or not self.knows_item(item_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-
             user_pred = np.sum(
                 np.abs(self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1
             ) ** (1.0 / 2)
