@@ -1,78 +1,86 @@
 Quickstart
-=================
+==========
 
 Cornac is a Python library for building and training recommendation models.
-It focuses on making it convenient to work with models leveraging auxiliary data 
-(e.g., item descriptive text and image, social network, etc). 
+It focuses on making it convenient to work with models leveraging auxiliary
+data (e.g., item descriptive text and image, social network, etc).
 
-Cornac enables fast experiments and straightforward implementations of new models. 
-It is highly compatible with existing machine learning libraries (e.g., TensorFlow, PyTorch).
+Cornac enables fast experiments and straightforward implementations of new
+models. It is highly compatible with existing machine learning libraries
+(e.g., TensorFlow, PyTorch).
 
-
-Cornac Experiment Concept
--------------------------
-The main idea behind Cornac is to provide a simple and flexible way to experiment with different algorithms, hyperparameters, and datasets without having to manually implement and run all the code yourself.
-Here are some key concepts related to Cornac:
-
-1. Experiments
-^^^^^^^^^^^^^^
-In Cornac, an "experiment" refers to a specific combination of algorithm, hyperparameters, dataset, and evaluation metric that is being tested or evaluated.
-Each experiment corresponds to a single row in the database, which contains information about the experiment such as its ID, name, description, and date created/updated.
-
-2. Datasets
-^^^^^^^^^^^
-In Cornac, a "dataset" refers to a specific collection of input data that is used to train or test an algorithm.
-Each dataset corresponds to a single row in the database, which contains information about the dataset such as its ID, name, description, and date created/updated.
-
-3. Algorithms
-^^^^^^^^^^^^^
-In Cornac, an "algorithm" refers to a specific computational model or technique that is being used to perform some task or function.
-Each algorithm corresponds to a single row in the database, which contains information about the algorithm such as its ID, name, description, and date created/updated.
-
-4. Hyperparameters
-^^^^^^^^^^^^^^^^^^
-In Cornac, a "hyperparameter" refers to a specific parameter or setting that is being adjusted or fine-tuned during the experimentation process.
-Each hyperparameter corresponds to a single row in the database, which contains information about the hyperparameter such as its ID, name, description, and date created/updated.
-
-5. Evaluation metrics
-^^^^^^^^^^^^^^^^^^^^^
-In Cornac, an "evaluation metric" refers to a specific performance measure or score that is being used to evaluate or compare different algorithms or models during the experimentation process.
-Each evaluation metric corresponds to a single row in the database, which contains information about the evaluation metric such as its ID, name, description, and date created/updated.
-
-
-New to recommender systems?
----------------------------
-
-.. topic:: Recommender Systems
+.. topic:: New to Recommender Systems?
 
    If you're new to recommender systems, this link provides a beginner-friendly
    introduction to help you understand the fundamentals and get started:
    https://github.com/PreferredAI/tutorials/tree/master/recommender-systems
 
+The Cornac Experiment Concept
+-----------------------------
+The main idea behind Cornac is to provide a simple and flexible way to
+experiment with different algorithms, hyperparameters, and datasets without
+having to manually implement and run all the code yourself.
+
+Here are some key concepts related to Cornac:
+
+1. Experiments
+~~~~~~~~~~~~~~
+An **experiment** refers to a specific combination of algorithm,
+hyperparameters, dataset, and evaluation metric that is being tested or
+evaluated.
+
+2. Datasets
+~~~~~~~~~~~
+A **dataset** refers to a specific collection of input data that is
+used to train or test an algorithm.
+
+3. Algorithms
+~~~~~~~~~~~~~
+An **algorithm** refers to a specific computational model or
+technique that is being used to perform some task or function.
+
+4. Hyperparameters
+~~~~~~~~~~~~~~~~~~
+A **hyperparameter** refers to a specific parameter or setting that is being
+adjusted or fine-tuned during the experimentation process.
+
+5. Evaluation metrics
+~~~~~~~~~~~~~~~~~~~~~
+An **evaluation metric** refers to a specific performance measure or score
+that is being used to evaluate or compare different algorithms or models during the experimentation process.
+
 
 The First Experiment
 --------------------
-
 In today's world of countless movies and TV shows at our fingertips,
 finding what we truly enjoy can be a challenge.
-This experiment focuses on recommendation systems, using the MovieLens dataset,
-to help us discover movies and shows we love.
+
+This experiment focuses on how we could utilize a recommender system to provide
+us with personalized recommendations based on our preferences.
 
 About the MovieLens dataset
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The MovieLens dataset, a repository of movie ratings and user preferences,
 remains highly relevant today as it powers the personalized recommendation
 algorithms crucial for modern streaming services.
 
-It continues to drive innovation in data science and plays a pivotal role in
-improving the user experience and content curation in an era of vast digital
-media options.
 
-.. image:: /flow.jpg
-   :width: 600
+About the Experiment
+~~~~~~~~~~~~~~~~~~~~
+
+In this experiment, we will be using the MovieLens 100K dataset to train and
+evaluate a recommender system that can predict how a user would rate a movie
+based on their preferences and past ratings.
+
+.. image:: images/flow.jpg
+   :width: 800
 
 1. Data Loading
 ^^^^^^^^^^^^^^^
+
+Create a python file called ``first_experiment.py`` and add the following code
+into it:
+
 .. code-block:: python
 
     import cornac
@@ -80,15 +88,50 @@ media options.
     # Load a sample dataset (e.g., MovieLens)
     ml_100k = cornac.datasets.movielens.load_feedback()
 
+In the above code, we define a variable ``ml_100k`` that loads the
+**MovieLens 100K dataset**.
+
+MovieLens is one of the many datasets available on Cornac for use.
+View the other datasets available  in :doc:`/api_ref/datasets`.
+
+
 2. Data Splitting
 ^^^^^^^^^^^^^^^^^
+
+We need to split the data into training and testing sets. A common way to do
+this is to do it based on a specified ratio (e.g., 80% training, 20% testing).
+
+A training set is used to train the model, while a testing set is used to
+evaluate the model's performance.
+
 .. code-block:: python
+
+    from cornac.eval_methods import RatioSplit
 
     # Split the data into training and testing sets
     rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
 
+In this example, we set various parameters for the ``RatioSplit`` object:
+
+- ``test_size=0.2`` to split the data into **80% training** and
+  **20% testing**.
+
+- ``data=ml_100k`` to use the **MovieLens 100K dataset**.
+
+- ``rating_threshold=4.0`` to only consider ratings that are
+  greater than or equal to 4.0 to be **positive ratings**. Everything else will
+  be considered as something that the user dislikes.
+
+- ``seed=123`` to ensure that the results are **reproducible**. Setting a seed
+  to a specific value will always produce the same results.
+
+
 3. Define Model
 ^^^^^^^^^^^^^^^
+
+We need to define a model to train and evaluate. In this example, we will be
+using the **Bayesian Personalized Ranking (BPR)** model.
+
 .. code-block:: python
 
     from cornac.models import BPR
@@ -98,8 +141,26 @@ media options.
         BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
     ]
 
+We set various parameters for the ``BPR`` object:
+
+- ``k=10`` to set the number of latent factors to **10**. This means that each
+  user and item will be represented by a vector of 10 numbers.
+- ``max_iter=200`` to set the maximum number of iterations to **200**. This
+  means that the model will be trained for a maximum of 200 iterations.
+- ``learning_rate=0.001`` to set the learning rate to **0.001**. This
+  controls how much the model will learn from each iteration.
+- ``lambda_reg=0.01`` to set the regularization parameter to **0.01**. This
+  controls how much the model will penalize large values in the user and item
+  vectors.
+- ``seed=123`` to ensure that the results are **reproducible**. Setting a seed
+  to a specific value will always produce the same results. This is the same
+  seed that we used for the ``RatioSplit`` object.
+
 4. Define Metrics
 ^^^^^^^^^^^^^^^^^
+We need to define metrics to evaluate the model. In this example, we will be
+using the **Root Mean Squared Error (RMSE)**, **Precision**, **Recall** metrics.
+
 .. code-block:: python
 
     from cornac.metrics import RMSE, Precision, Recall
@@ -107,65 +168,195 @@ media options.
     # Define metrics to evaluate the models
     metrics = [RMSE(), Precision(k=10), Recall(k=10)]
 
+We set various metrics for the ``RMSE`` object:
+
+- The **RMSE** metric measures the average magnitude of the error between
+  the predicted and actual values. The lower the RMSE, the better the model.
+
+- The **Precision** metric measures the proportion of recommended items that
+  are relevant to the user. The higher the Precision, the better the model.
+
+- The **Recall** metric measures the proportion of relevant items that are
+  recommended to the user. The higher the Recall, the better the model.
+
+.. note::
+
+    Certain metrics like **Precision** and **Recall** are ranking based.
+    This requires a specific number of recommendations to be made in order to
+    calculate the metric.
+
+    In this example, these calculations will be done based on
+    **10 recommendations** for each user. (``k=10``)
+
+
 5. Run Experiment
 ^^^^^^^^^^^^^^^^^
+
+We can now run the experiment by putting everything together. This will train
+the model and evaluate its performance based on the metrics that we defined.
+
 .. code-block:: python
 
-    # put it together in an experiment, voilà!
+    # Put it together in an experiment, voilà!
     cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
 
+We set various parameters for the ``Experiment`` object:
 
-What do this results mean?
+- ``eval_method=rs`` to use the ``RatioSplit`` object that we defined earlier.
+
+- ``models=models`` to use the ``BPR`` model that we defined earlier.
+
+- ``metrics=metrics`` to use the ``RMSE``, ``Precision``, and ``Recall``
+  metrics that we defined earlier.
+
+- ``user_based=True`` to evaluate the model on an individual user basis.
+  This means that the average performance of each user will be calculated
+  and averaged across users to get the final result.
+
+  This is opposed to evaluating based on all users by setting
+  ``user_based=false``.
+
+
+.. dropdown:: View codes at this point
+
+    .. code-block:: python
+        :caption: first_experiment.py
+        :linenos:
+
+        import cornac
+        from cornac.eval_methods import RatioSplit
+        from cornac.models import BPR
+        from cornac.metrics import RMSE, Precision, Recall
+
+        # Load a sample dataset (e.g., MovieLens)
+        ml_100k = cornac.datasets.movielens.load_feedback()
+
+        # Split the data into training and testing sets
+        rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
+
+        # Instantiate a matrix factorization model (e.g., BPR)
+        models = [
+            BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
+        ]
+
+        # Define metrics to evaluate the models
+        metrics = [RMSE(), Precision(k=10), Recall(k=10)]
+
+        # Put it together in an experiment, voilà!
+        cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
+
+Run the python codes
+^^^^^^^^^^^^^^^^^^^^
+
+Finally, run the python codes you have just written by entering this into your
+favourite command prompt.
+
+.. code-block:: bash
+
+    python first_experiment.py
+
+
+What does the output mean?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-<picture of result>
-description
 
-Getting Predictions
-^^^^^^^^^^^^^^^^^^^
+.. image:: images/first_experiment_result.png
+   :width: 450
+
+After the training process, Cornac tests the trained model by using the test data
+(as split by the ``RatioSplit`` function) to calculate the metrics defined.
+
+Over in the screenshot below, we see the results for the
+``RMSE``, ``Precision@10`` (k=10) and ``Recall@10`` (k=10) respectively.
+
+Also, we see the time taken for Cornac to train, and time taken evaluate the test
+data.
 
 
+Adding More Models
+^^^^^^^^^^^^^^^^^^
 
-Putting it all together
------------------------
+In many of the times, we may want to consider adding more models so that we can
+compare results accordingly.
+
+Let's add a second model called the Probabilistic Matrix Factorization (PMF) model.
+We add the following codes to our models variable:
+
 .. code-block:: python
-    :caption: python.py
 
-    import cornac
-    from cornac.eval_methods import RatioSplit
-    from cornac.models import MF, PMF, BPR
-    from cornac.metrics import MAE, RMSE, Precision, Recall, NDCG, AUC, MAP
+    from cornac.models import BPR, PMF
 
-    # load the built-in MovieLens 100K and split the data based on ratio
-    ml_100k = cornac.datasets.movielens.load_feedback()
-    rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
-
-    # initialize models, here we are comparing: Biased MF, PMF, and BPR
+    # Instantiate a matrix factorization model (e.g., BPR, PMF)
     models = [
         BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
+        PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123),
     ]
 
-    # define metrics to evaluate the models
-    metrics = [MAE(), RMSE(), Precision(k=10), Recall(k=10), NDCG(k=10), AUC(), MAP()]
+.. dropdown:: View codes at this point
 
-    # put it together in an experiment, voilà!
-    cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
+    .. code-block:: python
+        :caption: first_experiment.py
+        :linenos:
+
+        import cornac
+        from cornac.eval_methods import RatioSplit
+        from cornac.models import BPR, PMF
+        from cornac.metrics import RMSE, Precision, Recall
+
+        # Load a sample dataset (e.g., MovieLens)
+        ml_100k = cornac.datasets.movielens.load_feedback()
+
+        # Split the data into training and testing sets
+        rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
+
+        # Instantiate a matrix factorization model (e.g., BPR, PMF)
+        models = [
+            BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
+            PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123),
+        ]
+
+        # Define metrics to evaluate the models
+        metrics = [RMSE(), Precision(k=10), Recall(k=10)]
+
+        # Put it together in an experiment, voilà!
+        cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
+
+Now run it again!
+
+.. code-block:: bash
+
+    python first_experiment.py
+
+.. image:: images/first_experiment_result_2.png
+   :width: 450
+
+We are now presented with results from our different models.
+Tweak this code to your needs and experiment as many models as you wish.
 
 
 What's Next?
 ------------
 
-**Are you a developer?**
+.. topic:: Predict user preferences
 
-Find out how you can use Cornac as a recommender system to many diferrent applications. 
-View :doc:`applications`.
+  Explore how you can predict based on users, to give them related
+  recommendations.
+  View :doc:`predict`.
 
-**Are you a data scientist?**
+.. topic:: Are you a developer?
 
-Find out how you can use Cornac to run experiments and tweak parameters easily to compare against baselines already on Cornac.
-View :doc:`experiments`.
+  Find out how you can use Cornac as a recommender system to many diferrent
+  applications.
+  View :doc:`applications`.
 
-**For all the awesome people out there**
+.. topic:: Are you a data scientist?
 
-No matter who you are, you could also consider contributing to Cornac, with our contributors guide.
-View :doc:`/developer/index`.
+  Find out how you can use Cornac to run experiments and tweak parameters
+  easily to compare against baselines already on Cornac.
+  View :doc:`experiments`.
+
+.. topic:: For all the awesome people out there
+
+  No matter who you are, you could also consider contributing to Cornac,
+  with our contributors guide.
+  View :doc:`/developer/index`.
 
