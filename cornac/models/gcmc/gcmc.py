@@ -358,6 +358,7 @@ class Model:
     ):
         # initialize loss variables
         best_valid_rmse = np.inf
+        best_model_state_dict = None
         no_better_valid = 0
         best_iter = -1
         count_rmse = 0
@@ -468,7 +469,7 @@ class Model:
 
             logging.info(logging_str)
 
-        if valid_dec_graph:
+        if not (valid_dec_graph is None or best_model_state_dict is None):
             logging.info(
                 "Best iter idx=%s, Best valid rmse=%.4f", best_iter, best_valid_rmse
             )
@@ -517,8 +518,12 @@ class Model:
         uid_list = test_set.uir_tuple[0]
         uid_list = np.unique(uid_list)
 
-        u_list = np.array([user_idx for _ in range(test_set.total_items) for user_idx in uid_list])
-        i_list = np.array([item_idx for item_idx in range(test_set.total_items) for _ in uid_list])
+        u_list = np.array(
+            [user_idx for _ in range(test_set.total_items) for user_idx in uid_list]
+        )
+        i_list = np.array(
+            [item_idx for item_idx in range(test_set.total_items) for _ in uid_list]
+        )
 
         u_list = u_list.tolist()
         i_list = i_list.tolist()
@@ -529,7 +534,7 @@ class Model:
         }
         return u_i_rating_dict
 
-    def predict_one(self, train_set, user_idx):
+    def predict_one(self, user_idx, total_users, total_items, rating_values):
         """
         Processes single user_idx from test set and returns numpy list of scores
         for all items.
@@ -544,7 +549,7 @@ class Model:
         test_pred_ratings : numpy.array
             Numpy array containing all ratings for the given user_idx.
         """
-        test_dec_graph = _generate_test_user_graph(user_idx, train_set.total_users, train_set.total_items)
+        test_dec_graph = _generate_test_user_graph(user_idx, total_users, total_items)
         test_dec_graph = test_dec_graph.int().to(self.device)
 
         self.net.eval()
@@ -552,12 +557,7 @@ class Model:
         with torch.no_grad():
             pred_ratings = self.net(self.train_enc_graph, test_dec_graph)
 
-        test_rating_values = train_set.uir_tuple[2]
-        test_rating_values = np.unique(test_rating_values)
-
-        nd_positive_rating_values = torch.FloatTensor(test_rating_values).to(
-            self.device
-        )
+        nd_positive_rating_values = torch.FloatTensor(rating_values).to(self.device)
 
         test_pred_ratings = (
             torch.softmax(pred_ratings, dim=1) * nd_positive_rating_values.view(1, -1)

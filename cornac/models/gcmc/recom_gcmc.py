@@ -14,6 +14,8 @@
 # limitations under the License.
 # ============================================================================
 
+import numpy as np
+
 from ..recommender import Recommender
 
 
@@ -156,6 +158,8 @@ class GCMC(Recommender):
         if self.trainable:
             from .gcmc import Model
 
+            self.rating_values = np.unique(train_set.uir_tuple[2])
+
             self.model = Model(
                 activation_model=self.activation_model,
                 gcn_agg_units=self.gcn_agg_units,
@@ -167,6 +171,7 @@ class GCMC(Recommender):
                 verbose=self.verbose,
                 seed=self.seed,
             )
+
             self.model.train(
                 train_set,
                 val_set,
@@ -213,6 +218,8 @@ class GCMC(Recommender):
         """
         if item_idx is None:
             # Return scores of all items for a given user
-            return self.model.predict_one(self.train_set, user_idx)
+            return self.model.predict_one(
+                user_idx, self.total_users, self.total_items, self.rating_values
+            )
         # Return score of known user/item
         return self.u_i_rating_dict.get(f"{user_idx}-{item_idx}", self.default_score())
