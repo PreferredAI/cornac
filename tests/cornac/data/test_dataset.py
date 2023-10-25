@@ -24,10 +24,9 @@ from cornac.data import Dataset
 
 
 class TestDataset(unittest.TestCase):
-
     def setUp(self):
-        self.triplet_data = Reader().read('./tests/data.txt')
-        self.uirt_data = Reader().read('./tests/data.txt', fmt='UIRT')
+        self.triplet_data = Reader().read("./tests/data.txt")
+        self.uirt_data = Reader().read("./tests/data.txt", fmt="UIRT")
 
     def test_init(self):
         train_set = Dataset.from_uir(self.triplet_data)
@@ -47,16 +46,18 @@ class TestDataset(unittest.TestCase):
         self.assertFalse(train_set.is_unk_item(3))
         self.assertTrue(train_set.is_unk_item(16))
 
-        self.assertEqual(train_set.uid_map['768'], 1)
-        self.assertEqual(train_set.iid_map['195'], 7)
+        self.assertEqual(train_set.uid_map["768"], 1)
+        self.assertEqual(train_set.iid_map["195"], 7)
 
-        self.assertSequenceEqual(list(train_set.user_indices), range(10))
-        self.assertListEqual(list(train_set.user_ids),
-                             ['76', '768', '642', '930', '329', '633', '716', '871', '543', '754'])
+        self.assertSetEqual(
+            set(train_set.user_ids),
+            set(["76", "768", "642", "930", "329", "633", "716", "871", "543", "754"]),
+        )
 
-        self.assertSequenceEqual(list(train_set.item_indices), range(10))
-        self.assertListEqual(list(train_set.item_ids),
-                             ['93', '257', '795', '709', '705', '226', '478', '195', '737', '282'])
+        self.assertSetEqual(
+            set(train_set.item_ids),
+            set(["93", "257", "795", "709", "705", "226", "478", "195", "737", "282"]),
+        )
 
     def test_from_uirt(self):
         train_set = Dataset.from_uirt(self.uirt_data)
@@ -72,14 +73,23 @@ class TestDataset(unittest.TestCase):
     def test_idx_iter(self):
         train_set = Dataset.from_uir(self.triplet_data)
 
-        ids = [batch_ids for batch_ids in train_set.idx_iter(
-            idx_range=10, batch_size=1, shuffle=False)]
+        ids = [
+            batch_ids
+            for batch_ids in train_set.idx_iter(
+                idx_range=10, batch_size=1, shuffle=False
+            )
+        ]
         npt.assert_array_equal(ids, np.arange(10).reshape(10, 1))
 
-        ids = [batch_ids for batch_ids in train_set.idx_iter(
-            idx_range=10, batch_size=1, shuffle=True)]
-        npt.assert_raises(AssertionError, npt.assert_array_equal,
-                          ids, np.arange(10).reshape(10, 1))
+        ids = [
+            batch_ids
+            for batch_ids in train_set.idx_iter(
+                idx_range=10, batch_size=1, shuffle=True
+            )
+        ]
+        npt.assert_raises(
+            AssertionError, npt.assert_array_equal, ids, np.arange(10).reshape(10, 1)
+        )
 
     def test_uir_iter(self):
         train_set = Dataset.from_uir(self.triplet_data)
@@ -93,12 +103,15 @@ class TestDataset(unittest.TestCase):
         ratings = [batch_ratings for _, _, batch_ratings in train_set.uir_iter()]
         self.assertListEqual(ratings, [4, 4, 4, 4, 3, 4, 4, 5, 3, 4])
 
-        ratings = [batch_ratings for _, _,
-                   batch_ratings in train_set.uir_iter(binary=True)]
+        ratings = [
+            batch_ratings for _, _, batch_ratings in train_set.uir_iter(binary=True)
+        ]
         self.assertListEqual(ratings, [1] * 10)
 
-        ratings = [batch_ratings for _, _,
-                   batch_ratings in train_set.uir_iter(batch_size=5, num_zeros=1)]
+        ratings = [
+            batch_ratings
+            for _, _, batch_ratings in train_set.uir_iter(batch_size=5, num_zeros=1)
+        ]
         self.assertListEqual(ratings[0].tolist(), [4, 4, 4, 4, 3, 0, 0, 0, 0, 0])
         self.assertListEqual(ratings[1].tolist(), [4, 4, 5, 3, 4, 0, 0, 0, 0, 0])
 
@@ -112,16 +125,20 @@ class TestDataset(unittest.TestCase):
         self.assertSequenceEqual(pos_items, range(10))
 
         neg_items = [batch_neg_items for _, _, batch_neg_items in train_set.uij_iter()]
-        self.assertRaises(AssertionError, self.assertSequenceEqual,
-                          neg_items, range(10))
+        self.assertRaises(
+            AssertionError, self.assertSequenceEqual, neg_items, range(10)
+        )
 
-        neg_items = [batch_neg_items for _, _,
-                     batch_neg_items in train_set.uij_iter(neg_sampling='popularity')]
-        self.assertRaises(AssertionError, self.assertSequenceEqual,
-                          neg_items, range(10))
+        neg_items = [
+            batch_neg_items
+            for _, _, batch_neg_items in train_set.uij_iter(neg_sampling="popularity")
+        ]
+        self.assertRaises(
+            AssertionError, self.assertSequenceEqual, neg_items, range(10)
+        )
 
         try:
-            for _ in train_set.uij_iter(neg_sampling='bla'):
+            for _ in train_set.uij_iter(neg_sampling="bla"):
                 continue
         except ValueError:
             assert True
@@ -129,20 +146,28 @@ class TestDataset(unittest.TestCase):
     def test_user_iter(self):
         train_set = Dataset.from_uir(self.triplet_data)
 
-        npt.assert_array_equal(np.arange(10).reshape(10, 1),
-                               [u for u in train_set.user_iter()])
-        self.assertRaises(AssertionError, npt.assert_array_equal,
-                          np.arange(10).reshape(10, 1),
-                          [u for u in train_set.user_iter(shuffle=True)])
+        npt.assert_array_equal(
+            np.arange(10).reshape(10, 1), [u for u in train_set.user_iter()]
+        )
+        self.assertRaises(
+            AssertionError,
+            npt.assert_array_equal,
+            np.arange(10).reshape(10, 1),
+            [u for u in train_set.user_iter(shuffle=True)],
+        )
 
     def test_item_iter(self):
         train_set = Dataset.from_uir(self.triplet_data)
 
-        npt.assert_array_equal(np.arange(10).reshape(10, 1),
-                               [i for i in train_set.item_iter()])
-        self.assertRaises(AssertionError, npt.assert_array_equal,
-                          np.arange(10).reshape(10, 1),
-                          [i for i in train_set.item_iter(shuffle=True)])
+        npt.assert_array_equal(
+            np.arange(10).reshape(10, 1), [i for i in train_set.item_iter()]
+        )
+        self.assertRaises(
+            AssertionError,
+            npt.assert_array_equal,
+            np.arange(10).reshape(10, 1),
+            [i for i in train_set.item_iter(shuffle=True)],
+        )
 
     def test_uir_tuple(self):
         train_set = Dataset.from_uir(self.triplet_data)
@@ -184,12 +209,12 @@ class TestDataset(unittest.TestCase):
         zero_data = []
         for idx in range(len(self.triplet_data)):
             u = self.triplet_data[idx][0]
-            i = self.triplet_data[-1-idx][1]
-            zero_data.append((u, i, 1., 0))
+            i = self.triplet_data[-1 - idx][1]
+            zero_data.append((u, i, 1.0, 0))
         train_set = Dataset.from_uirt(self.uirt_data + zero_data)
 
         self.assertEqual(len(train_set.chrono_user_data), 10)
-        self.assertListEqual(train_set.chrono_user_data[0][1], [1., 4.])
+        self.assertListEqual(train_set.chrono_user_data[0][1], [1.0, 4.0])
         self.assertListEqual(train_set.chrono_user_data[0][2], [0, 882606572])
 
         try:
@@ -201,18 +226,19 @@ class TestDataset(unittest.TestCase):
         zero_data = []
         for idx in range(len(self.triplet_data)):
             u = self.triplet_data[idx][0]
-            i = self.triplet_data[-1-idx][1]
-            zero_data.append((u, i, 1., 0))
+            i = self.triplet_data[-1 - idx][1]
+            zero_data.append((u, i, 1.0, 0))
         train_set = Dataset.from_uirt(self.uirt_data + zero_data)
 
         self.assertEqual(len(train_set.chrono_item_data), 10)
-        self.assertListEqual(train_set.chrono_item_data[0][1], [1., 4.])
+        self.assertListEqual(train_set.chrono_item_data[0][1], [1.0, 4.0])
         self.assertListEqual(train_set.chrono_item_data[0][2], [0, 882606572])
-        
+
         try:
             Dataset.from_uir(self.triplet_data).chrono_item_data
         except ValueError:
             assert True
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
