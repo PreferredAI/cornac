@@ -69,7 +69,7 @@ class CDR(Recommender):
         The name of the recommender model.
 
     trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already 
+        When False, the model is not trained and Cornac assumes that the model already
         pre-trained (U and V are not None).
 
     init_params: dictionary, optional, default: None
@@ -136,12 +136,10 @@ class CDR(Recommender):
         self.V = self.init_params.get("V", None)
 
     def _init(self):
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
-
         if self.U is None:
-            self.U = xavier_uniform((n_users, self.k), self.rng)
+            self.U = xavier_uniform((self.num_users, self.k), self.rng)
         if self.V is None:
-            self.V = xavier_uniform((n_items, self.k), self.rng)
+            self.V = xavier_uniform((self.num_items, self.k), self.rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -161,23 +159,20 @@ class CDR(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         self._init()
-        
+
         if self.trainable:
-            self._fit_cdr()
+            self._fit_cdr(train_set)
 
         return self
 
-    def _fit_cdr(self):
+    def _fit_cdr(self, train_set):
         import tensorflow.compat.v1 as tf
         from .cdr import Model
 
         tf.disable_eager_execution()
 
-        n_users = self.train_set.num_users
-        n_items = self.train_set.num_items
-
-        text_feature = self.train_set.item_text.batch_bow(
-            np.arange(n_items)
+        text_feature = train_set.item_text.batch_bow(
+            np.arange(self.num_items)
         )  # bag of word feature
         text_feature = (text_feature - text_feature.min()) / (
             text_feature.max() - text_feature.min()
@@ -193,8 +188,8 @@ class CDR(Recommender):
         )
         tf.set_random_seed(self.seed)
         model = Model(
-            n_users=n_users,
-            n_items=n_items,
+            n_users=self.num_users,
+            n_items=self.num_items,
             n_vocab=self.vocab_size,
             k=self.k,
             layers=layer_sizes,
@@ -219,12 +214,12 @@ class CDR(Recommender):
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
                 corruption_mask = self.rng.binomial(
-                    1, 1 - self.corruption_rate, (n_items, self.vocab_size)
+                    1, 1 - self.corruption_rate, (self.num_items, self.vocab_size)
                 )
                 sum_loss = 0
                 count = 0
                 batch_count = 0
-                for batch_u, batch_i, batch_j in self.train_set.uij_iter(
+                for batch_u, batch_i, batch_j in train_set.uij_iter(
                     batch_size=self.batch_size, shuffle=True
                 ):
                     feed_dict = {
@@ -273,21 +268,17 @@ class CDR(Recommender):
         """
 
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not self.knows_user(user_idx) or not self.knows_item(item_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
-
             return user_pred
