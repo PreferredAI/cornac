@@ -128,9 +128,9 @@ class MCF(Recommender):
             (rat_uid, rat_iid, rat_val) = train_set.uir_tuple
 
             # item-item affinity network
-            map_iid = train_set.item_indices
+            train_item_indices = set(train_set.uir_tuple[1])
             (net_iid, net_jid, net_val) = train_set.item_graph.get_train_triplet(
-                map_iid, map_iid
+                train_item_indices, train_item_indices
             )
             if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
                 if self.train_set.min_rating == self.train_set.max_rating:

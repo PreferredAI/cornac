@@ -148,13 +148,15 @@ class SoRec(Recommender):
             (rat_uid, rat_iid, rat_val) = train_set.uir_tuple
 
             # user social network
-            map_uid = train_set.user_indices
+            train_user_indices = set(train_set.uir_tuple[0])
             (net_uid, net_jid, net_val) = train_set.user_graph.get_train_triplet(
-                map_uid, map_uid
+                train_user_indices, train_user_indices
             )
 
             if self.weight_link:
-                degree = train_set.user_graph.get_node_degree(map_uid, map_uid)
+                degree = train_set.user_graph.get_node_degree(
+                    train_user_indices, train_user_indices
+                )
                 weighted_net_val = []
                 for u, j, val in zip(net_uid, net_jid, net_val):
                     u_out = degree[int(u)][1]
@@ -214,7 +216,7 @@ class SoRec(Recommender):
 
             if self.verbose:
                 print("Learning completed")
-                
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % self.name)
 

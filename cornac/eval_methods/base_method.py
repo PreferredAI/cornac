@@ -85,6 +85,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
     gt_mat = test_set.csr_matrix
     pd_mat = csr_matrix((r_preds, (u_indices, i_indices)), shape=gt_mat.shape)
 
+    test_user_indices = set(u_indices)
     for mt in metrics:
         if user_based:  # averaging over users
             user_results.append(
@@ -93,7 +94,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
                         gt_ratings=gt_mat.getrow(user_idx).data,
                         pd_ratings=pd_mat.getrow(user_idx).data,
                     ).item()
-                    for user_idx in test_set.user_indices
+                    for user_idx in test_user_indices
                 }
             )
             avg_results.append(sum(user_results[-1].values()) / len(user_results[-1]))
@@ -170,8 +171,9 @@ def ranking_eval(
             if rating >= rating_threshold
         ]
 
+    test_user_indices = set(test_set.uir_tuple[0])
     for user_idx in tqdm(
-        test_set.user_indices, desc="Ranking", disable=not verbose, miniters=100
+        test_user_indices, desc="Ranking", disable=not verbose, miniters=100
     ):
         test_pos_items = pos_items(gt_mat.getrow(user_idx))
         if len(test_pos_items) == 0:
@@ -196,7 +198,7 @@ def ranking_eval(
         if exclude_unknowns:
             u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
             u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
-            
+
         item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
         u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
         u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]

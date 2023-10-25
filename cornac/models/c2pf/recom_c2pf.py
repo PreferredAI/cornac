@@ -171,8 +171,10 @@ class C2PF(Recommender):
                 "L3_r": self.L3r,
             }
 
-            map_iid = train_set.item_indices
-            (rid, cid, val) = train_set.item_graph.get_train_triplet(map_iid, map_iid)
+            train_item_indices = set(train_set.uir_tuple[1])
+            (rid, cid, val) = train_set.item_graph.get_train_triplet(
+                train_item_indices, train_item_indices
+            )
             context_info = np.hstack(
                 (rid.reshape(-1, 1), cid.reshape(-1, 1), val.reshape(-1, 1))
             )

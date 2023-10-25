@@ -121,8 +121,9 @@ class SBPR(BPR):
         n_users, n_items = self.train_set.num_users, self.train_set.num_items
 
         # construct social feedback in the sparse format
+        train_user_indices = set(self.train_set.uir_tuple[0])
         (rid, cid, val) = self.train_set.user_graph.get_train_triplet(
-            self.train_set.user_indices, self.train_set.user_indices
+            train_user_indices, train_user_indices
         )
         Y = csr_matrix((val, (rid, cid)), shape=(n_users, n_users))
         social_item_ids = []
