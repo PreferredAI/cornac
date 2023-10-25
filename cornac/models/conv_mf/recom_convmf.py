@@ -132,10 +132,10 @@ class ConvMF(Recommender):
         self.V = self.init_params.get("V", None)
         self.W = self.init_params.get("W", None)
 
-    def _init(self):
+    def _init(self, train_set):
         rng = get_rng(self.seed)
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
-        vocab_size = self.train_set.item_text.vocab.size
+        n_users, n_items = train_set.num_users, train_set.num_items
+        vocab_size = train_set.item_text.vocab.size
 
         if self.U is None:
             self.U = xavier_uniform((n_users, self.k), rng)
@@ -161,10 +161,10 @@ class ConvMF(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init()
+        self._init(train_set)
 
         if self.trainable:
-            self._fit_convmf()
+            self._fit_convmf(train_set)
 
         return self
 
@@ -181,9 +181,9 @@ class ConvMF(Recommender):
         data.append(rating_list)
         return data
 
-    def _fit_convmf(self):
-        user_data = self._build_data(self.train_set.matrix)
-        item_data = self._build_data(self.train_set.matrix.T.tocsr())
+    def _fit_convmf(self, train_set):
+        user_data = self._build_data(train_set.matrix)
+        item_data = self._build_data(train_set.matrix.T.tocsr())
 
         n_user = len(user_data[0])
         n_item = len(item_data[0])
@@ -228,7 +228,7 @@ class ConvMF(Recommender):
 
         sess.run(tf.global_variables_initializer())  # init variable
 
-        document = self.train_set.item_text.batch_seq(
+        document = train_set.item_text.batch_seq(
             np.arange(n_item), max_length=self.max_len
         )
 
@@ -276,10 +276,10 @@ class ConvMF(Recommender):
                 self.cnn_epochs, desc="Optimizing CNN", disable=not self.verbose
             )
             for _ in loop:
-                for batch_ids in self.train_set.item_iter(
+                for batch_ids in train_set.item_iter(
                     batch_size=self.cnn_bs, shuffle=True
                 ):
-                    batch_seq = self.train_set.item_text.batch_seq(
+                    batch_seq = train_set.item_text.batch_seq(
                         batch_ids, max_length=self.max_len
                     )
                     feed_dict = {
@@ -338,22 +338,17 @@ class ConvMF(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) or self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
-
             return user_pred
