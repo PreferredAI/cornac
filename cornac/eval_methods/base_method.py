@@ -185,9 +185,9 @@ def ranking_eval(
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
         train_pos_items = (
-            []
-            if train_set.is_unk_user(user_idx)
-            else pos_items(train_mat.getrow(user_idx))
+            pos_items(train_mat.getrow(user_idx))
+            if train_set.contains_user(user_idx)
+            else []
         )
 
         # binary mask for ground-truth negative items, removing all positive items

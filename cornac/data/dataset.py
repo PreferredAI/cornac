@@ -71,7 +71,6 @@ class Dataset(object):
     timestamps: numpy.array
         Numpy array of timestamps corresponding to feedback in `uir_tuple`.
         This is only available when input data is in `UIRT` format.
-
     """
 
     def __init__(
@@ -579,13 +578,13 @@ class Dataset(object):
         for batch_ids in self.idx_iter(len(item_indices), batch_size, shuffle):
             yield item_indices[batch_ids]
 
-    def is_unk_user(self, user_idx):
-        """Return whether or not a user is unknown given the user index"""
-        return user_idx >= self.num_users or user_idx < 0
+    def contains_user(self, user_idx):
+        """Return whether given user index is in the dataset"""
+        return user_idx >= 0 and user_idx < self.num_users
 
-    def is_unk_item(self, item_idx):
-        """Return whether or not an item is unknown given the item index"""
-        return item_idx >= self.num_items or item_idx < 0
+    def contains_item(self, item_idx):
+        """Return whether given item index is in the dataset"""
+        return item_idx >= 0 and item_idx < self.num_items
 
     def add_modalities(self, **kwargs):
         self.user_feature = kwargs.get("user_feature", None)
