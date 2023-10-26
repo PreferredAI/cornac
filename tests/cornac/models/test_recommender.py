@@ -36,7 +36,7 @@ class TestRecommender(unittest.TestCase):
                     a == b
                     for a, b in zip(
                         mf.recommend("76", k=3, remove_seen=False),
-                        mf.recommend("76", k=3, remove_seen=True),
+                        mf.recommend("76", k=3, remove_seen=True, train_set=dataset),
                     )
                 ]
             )
