@@ -92,13 +92,10 @@ class PCRL(Recommender):
         w_determinist=True,
         init_params=None,
     ):
-
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
 
         self.k = k
-        self.z_dims = (
-            z_dims
-        )  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
+        self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -155,7 +152,7 @@ class PCRL(Recommender):
                 B=1,
                 w_determinist=self.w_determinist,
                 init_params=init_params,
-            ).learn()
+            ).learn(train_set)
 
             self.Theta = np.array(pcrl_.Gs) / np.array(pcrl_.Gr)
             self.Beta = np.array(pcrl_.Ls) / np.array(pcrl_.Lr)

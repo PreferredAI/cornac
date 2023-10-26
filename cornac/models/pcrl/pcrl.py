@@ -32,18 +32,12 @@ class PCRL_:
         w_determinist=True,
         init_params=None,
     ):
-
-        self.train_set = train_set
-        self.cf_data = sp.csc_matrix(
-            self.train_set.matrix
-        )  # user-item interaction (CF data)
-        self.aux_data = self.train_set.item_graph.matrix[
-            : self.train_set.num_items, : self.train_set.num_items
+        self.cf_data = train_set.csc_matrix  # user-item interaction (CF data)
+        self.aux_data = train_set.item_graph.matrix[
+            : train_set.num_items, : train_set.num_items
         ]  # item auxiliary information (items'context in the original paper)
         self.k = k  # the number of user and item latent factors
-        self.z_dims = (
-            z_dims
-        )  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
+        self.z_dims = z_dims  # the dimension of the second hidden layer (we consider a 2-layers PCRL)
         self.c_dim = self.aux_data.shape[
             1
         ]  # the dimension of the auxiliary information matrix
@@ -61,16 +55,12 @@ class PCRL_:
         self.Lr = sp.csc_matrix(
             (self.aux_data.shape[0], self.k)
         )  # Variational Rate parameters  of the item factors (Beta in the paper)
-        self.Gs = (
-            None
-        )  # Variational Shapre parameters of the user factors (Theta in the paper)
+        self.Gs = None  # Variational Shapre parameters of the user factors (Theta in the paper)
         self.Gr = (
-            None
-        )  # Variational Rate parameters of the user factors (Theta in the paper)
+            None  # Variational Rate parameters of the user factors (Theta in the paper)
+        )
         self.L = len(z_dims)  # The number of deterministic hidden layers "z"
-        self.w_determinist = (
-            w_determinist
-        )  # If true then deterministic wheights are used for the generator network
+        self.w_determinist = w_determinist  # If true then deterministic wheights are used for the generator network
         self.sess = tf.Session()  # Tensorflow session
         # Inference netwok parameters
         self.inference_params = []
@@ -113,7 +103,7 @@ class PCRL_:
         # Log density of the standard normal N(0, 1)
 
     def log_t(self, epsilon):
-        return -0.5 * tf.log(2 * np.pi) - 0.5 * epsilon ** 2
+        return -0.5 * tf.log(2 * np.pi) - 0.5 * epsilon**2
 
     # Marsaglia and Tsang transformation
     def G(self, epsilon, alpha, beta):
@@ -155,7 +145,6 @@ class PCRL_:
 
     # Collaborative filtering part of pcrl (Poisson Factorization)
     def pf_(self, X, k, max_iter=1, init_params=None):
-
         # data preparation
         X = sp.csc_matrix(X, dtype=np.float64)
         M = X.copy()
@@ -273,7 +262,6 @@ class PCRL_:
 
     # The generative network (or decoder)
     def generative_net(self, Z, reuse=None):
-
         # with tf.variable_scope("generative",reuse=reuse):
         if self.w_determinist:
             h2 = tf.nn.relu(tf.matmul(Z, self.generator_params[0]))
@@ -315,7 +303,6 @@ class PCRL_:
         # The loss function
 
     def loss(self, C, X_g, X_, alpha, beta, z, E, Zik, Tk):
-
         const_term = C * tf.log(1e-10 + X_) - X_
         const_term = tf.reduce_sum(const_term, 1)
 
@@ -351,7 +338,7 @@ class PCRL_:
         )
 
     # fitting PCRL to observed data
-    def learn(self):
+    def learn(self, train_set):
         # placeholders
         C = tf.placeholder(tf.float32, shape=[None, self.c_dim], name="C")
         X_ = tf.placeholder(tf.float32, shape=[None, self.c_dim], name="X_")
@@ -391,7 +378,7 @@ class PCRL_:
         )
 
         for epoch in range(self.n_epoch):
-            for idx in self.train_set.item_iter(self.batch_size, shuffle=False):
+            for idx in train_set.item_iter(self.batch_size, shuffle=False):
                 batch_C = self.aux_data[idx].A
                 EE = self.sess.run(E_, feed_dict={C: batch_C})
                 z_c = self.sess.run(X_g, feed_dict={C: batch_C, E: EE})
@@ -404,7 +391,7 @@ class PCRL_:
                 }
                 _, l = self.sess.run([train, loss], feed_dict=feed_dict)
                 del (EE, z_c)
-            for idx in self.train_set.item_iter(2 * self.batch_size, shuffle=False):
+            for idx in train_set.item_iter(2 * self.batch_size, shuffle=False):
                 batch_C = self.aux_data[idx].A
                 self.Ls[idx], self.Lr[idx] = self.sess.run(
                     [alpha, beta], feed_dict={C: batch_C}
