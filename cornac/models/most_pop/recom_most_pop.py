@@ -72,7 +72,7 @@ class MostPop(Recommender):
         if item_idx is None:
             return self.item_pop
         else:
-            if self.train_set.is_unk_item(item_idx):
+            if not self.knows_item(item_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
