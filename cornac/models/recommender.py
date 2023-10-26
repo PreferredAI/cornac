@@ -69,6 +69,8 @@ class Recommender:
         self.trainable = trainable
         self.verbose = verbose
 
+        self.ignored_attrs = []  # attributes to be ignored when saving model
+
         # useful information getting from train_set for prediction
         self.num_users = None
         self.num_items = None
@@ -430,10 +432,18 @@ class Recommender:
         recommendations = [self.item_ids[i] for i in item_rank]
         return recommendations
 
-    def monitor_value(self):
+    def monitor_value(self, train_set, val_set):
         """Calculating monitored value used for early stopping on validation set (`val_set`).
         This function will be called by `early_stop()` function.
         Note: `val_set` could be `None` thus it needs to be checked before usage.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
         -------
@@ -441,11 +451,17 @@ class Recommender:
         """
         raise NotImplementedError()
 
-    def early_stop(self, min_delta=0.0, patience=0):
+    def early_stop(self, train_set, val_set, min_delta=0.0, patience=0):
         """Check if training should be stopped when validation loss has stopped improving.
 
         Parameters
         ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
         min_delta: float, optional, default: 0.
             The minimum increase in monitored value on validation set to be considered as improvement,
             i.e. an increment of less than `min_delta` will count as no improvement.
@@ -460,7 +476,7 @@ class Recommender:
             otherwise return `False`.
         """
         self.current_epoch += 1
-        current_value = self.monitor_value()
+        current_value = self.monitor_value(train_set, val_set)
         if current_value is None:
             return False
 
