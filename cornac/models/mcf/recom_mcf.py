@@ -132,17 +132,11 @@ class MCF(Recommender):
             (net_iid, net_jid, net_val) = train_set.item_graph.get_train_triplet(
                 train_item_indices, train_item_indices
             )
-            if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                if self.train_set.min_rating == self.train_set.max_rating:
-                    rat_val = scale(rat_val, 0.0, 1.0, 0.0, self.train_set.max_rating)
+            if [self.min_rating, self.max_rating] != [0, 1]:
+                if self.min_rating == self.max_rating:
+                    rat_val = scale(rat_val, 0.0, 1.0, 0.0, self.max_rating)
                 else:
-                    rat_val = scale(
-                        rat_val,
-                        0.0,
-                        1.0,
-                        self.train_set.min_rating,
-                        self.train_set.max_rating,
-                    )
+                    rat_val = scale(rat_val, 0.0, 1.0, self.min_rating, self.max_rating)
 
             if [min(net_val), max(net_val)] != [0, 1]:
                 if min(net_val) == max(net_val):
@@ -211,37 +205,24 @@ class MCF(Recommender):
         -------
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
-
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
-
             user_pred = sigmoid(user_pred)
-            if self.train_set.min_rating == self.train_set.max_rating:
-                user_pred = scale(user_pred, 0.0, self.train_set.max_rating, 0.0, 1.0)
+            if self.min_rating == self.max_rating:
+                user_pred = scale(user_pred, 0.0, self.max_rating, 0.0, 1.0)
             else:
-                user_pred = scale(
-                    user_pred,
-                    self.train_set.min_rating,
-                    self.train_set.max_rating,
-                    0.0,
-                    1.0,
-                )
-
+                user_pred = scale(user_pred, self.min_rating, self.max_rating, 0.0, 1.0)
             return user_pred
