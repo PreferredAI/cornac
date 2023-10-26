@@ -149,7 +149,7 @@ class VMF(Recommender):
 
         if self.trainable:
             # Item visual cnn-features
-            item_features = train_set.item_image.features[: self.train_set.num_items]
+            item_features = train_set.item_image.features[: train_set.num_items]
 
             if self.verbose:
                 print("Learning...")
@@ -157,7 +157,7 @@ class VMF(Recommender):
             from .vmf import vmf
 
             res = vmf(
-                self.train_set,
+                train_set,
                 item_features,
                 k=self.k,
                 d=self.d,
@@ -208,7 +208,7 @@ class VMF(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
@@ -221,9 +221,7 @@ class VMF(Recommender):
             # fast_dot(self.P[user_id], self.Q, known_item_scores)
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
@@ -233,12 +231,6 @@ class VMF(Recommender):
             ].dot(self.P[user_idx, :])
             user_pred = sigmoid(user_pred)
 
-            user_pred = scale(
-                user_pred,
-                self.train_set.min_rating,
-                self.train_set.max_rating,
-                0.0,
-                1.0,
-            )
+            user_pred = scale(user_pred, self.min_rating, self.max_rating, 0.0, 1.0)
 
             return user_pred
