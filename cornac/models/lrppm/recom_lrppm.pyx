@@ -183,9 +183,10 @@ class LRPPM(Recommender):
         self.UA = self.init_params.get("UA", None)
         self.IA = self.init_params.get("IA", None)
 
-    def _init(self):
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
-        n_aspects, n_opinions = self.train_set.sentiment.num_aspects, self.train_set.sentiment.num_opinions
+    def _init(self, train_set):
+        n_users, n_items = train_set.num_users, train_set.num_items
+        n_aspects, n_opinions = train_set.sentiment.num_aspects, train_set.sentiment.num_opinions
+        self.num_aspects = n_aspects
 
         if self.U is None:
             U_shape = (n_users, self.n_factors)
@@ -210,7 +211,7 @@ class LRPPM(Recommender):
         if self.verbose:
             print("Building data started!")
 
-        sentiment = self.train_set.sentiment
+        sentiment = data_set.sentiment
         (u_indices, i_indices, r_values) = data_set.uir_tuple
         keys = np.array([get_key(u, i) for u, i in zip(u_indices, i_indices)], dtype=np.intp)
         cdef IntFloatDict rating_dict = IntFloatDict(keys, np.array(r_values, dtype=np.float64))
@@ -218,7 +219,7 @@ class LRPPM(Recommender):
         item_aspect_quality = {}
         user_item_aspect = {}
         for uid, sentiment_tup_ids_by_item in sentiment.user_sentiment.items():
-            if self.train_set.is_unk_user(uid):
+            if not self.knows_user(uid):
                 continue
             for iid, tup_idx in sentiment_tup_ids_by_item.items():
                 for aid, oid, polarity in sentiment.sentiment[tup_idx]:
@@ -272,7 +273,8 @@ class LRPPM(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init()
+        self._init(train_set)
+
         (
             rating_dict,
             user_item_aspect,
@@ -291,14 +293,14 @@ class LRPPM(Recommender):
             X_iids.append(iid)
             X_aids.append(aid)
             ui_aspect_cnt = user_item_num_aspects[(uid, iid)]
-            ui_neg_aspect_cnt = self.train_set.sentiment.num_aspects - ui_aspect_cnt
+            ui_neg_aspect_cnt = train_set.sentiment.num_aspects - ui_aspect_cnt
             X_l_ui.append(1.0 / (ui_aspect_cnt * ui_neg_aspect_cnt))
 
         X_uids = np.array(X_uids, dtype=np.int32)
         X_iids = np.array(X_iids, dtype=np.int32)
         X_aids = np.array(X_aids, dtype=np.int32)
         X_l_ui = np.array(X_l_ui, dtype=np.float32)
-        (u_indices, i_indices, r_values) = self.train_set.uir_tuple
+        (u_indices, i_indices, r_values) = train_set.uir_tuple
 
         cdef:
             int n_threads = self.n_threads
@@ -376,9 +378,9 @@ class LRPPM(Recommender):
         """
         cdef:
             long s, i_index, j_index, correct = 0, skipped = 0
-            long n_users = self.train_set.num_users
-            long n_items = self.train_set.num_items
-            long n_aspects = self.train_set.sentiment.num_aspects
+            long n_users = self.num_users
+            long n_items = self.num_items
+            long n_aspects = self.num_aspects
             long n_factors = self.n_factors
             int num_samples = self.n_samples
             int num_ranking_samples = self.n_ranking_samples
@@ -498,7 +500,7 @@ class LRPPM(Recommender):
 
         """
         if i_idx is None:
-            if self.train_set.is_unk_user(u_idx):
+            if not self.knows_user(u_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d" & u_idx
                 )
@@ -506,8 +508,7 @@ class LRPPM(Recommender):
             item_scores = self.I.dot(self.U[u_idx])
             return item_scores
         else:
-            if (self.train_set.is_unk_user(u_idx)
-                or self.train_set.is_unk_item(i_idx)):
+            if not (self.knows_user(u_idx) or self.knows_item(i_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (u_idx, i_idx)
@@ -517,8 +518,8 @@ class LRPPM(Recommender):
 
     def rank(self, user_idx, item_indices=None):
         if self.alpha > 0 and self.num_top_aspects > 0:
-            n_items = self.train_set.num_items
-            num_top_aspects = min(self.num_top_aspects, self.train_set.sentiment.num_aspects)
+            n_items = self.num_items
+            num_top_aspects = min(self.num_top_aspects, self.num_aspects)
             item_aspect_scores = self.UA.dot(self.U[user_idx]) + self.I.dot(self.IA.T) + np.expand_dims(self.I.dot(self.U[user_idx]), axis=1)
             top_aspect_ids = (-item_aspect_scores).argsort(axis=1)[:, :num_top_aspects]
             iids = np.repeat(range(n_items), num_top_aspects).reshape(n_items, num_top_aspects)
@@ -530,17 +531,17 @@ class LRPPM(Recommender):
 
             # check if the returned scores also cover unknown items
             # if not, all unknown items will be given the MIN score
-            if len(known_item_scores) == self.train_set.total_items:
+            if len(known_item_scores) == self.total_items:
                 all_item_scores = known_item_scores
             else:
-                all_item_scores = np.ones(self.train_set.total_items) * np.min(
+                all_item_scores = np.ones(self.total_items) * np.min(
                     known_item_scores
                 )
-                all_item_scores[: self.train_set.num_items] = known_item_scores
+                all_item_scores[: self.num_items] = known_item_scores
 
             # rank items based on their scores
             if item_indices is None:
-                item_scores = all_item_scores[: self.train_set.num_items]
+                item_scores = all_item_scores[: self.num_items]
                 item_rank = item_scores.argsort()[::-1]
             else:
                 item_scores = all_item_scores[item_indices]
