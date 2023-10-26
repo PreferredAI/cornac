@@ -178,8 +178,8 @@ class NCFBase(Recommender):
                         batch_users, batch_items, batch_ratings
                     ),
                 )
-                count += len(batch_ratings)
-                sum_loss += _loss * len(batch_ratings)
+                count += len(batch_users)
+                sum_loss += len(batch_users) * _loss
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
 
@@ -242,7 +242,7 @@ class NCFBase(Recommender):
                 optimizer.step()
 
                 count += len(batch_users)
-                sum_loss += loss.data.item()
+                sum_loss += len(batch_users) * loss.data.item()
 
                 if batch_id % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
