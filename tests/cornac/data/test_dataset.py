@@ -40,12 +40,6 @@ class TestDataset(unittest.TestCase):
         self.assertEqual(train_set.num_users, 10)
         self.assertEqual(train_set.num_items, 10)
 
-        self.assertTrue(train_set.contains_user(7))
-        self.assertFalse(train_set.contains_item(13))
-
-        self.assertTrue(train_set.contains_item(3))
-        self.assertFalse(train_set.contains_item(16))
-
         self.assertEqual(train_set.uid_map["768"], 1)
         self.assertEqual(train_set.iid_map["195"], 7)
 

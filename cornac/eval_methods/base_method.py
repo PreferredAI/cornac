@@ -160,7 +160,7 @@ def ranking_eval(
     avg_results = []
     user_results = [{} for _ in enumerate(metrics)]
 
-    gt_mat = test_set.csr_matrix
+    test_mat = test_set.csr_matrix
     train_mat = train_set.csr_matrix
     val_mat = None if val_set is None else val_set.csr_matrix
 
@@ -175,7 +175,7 @@ def ranking_eval(
     for user_idx in tqdm(
         test_user_indices, desc="Ranking", disable=not verbose, miniters=100
     ):
-        test_pos_items = pos_items(gt_mat.getrow(user_idx))
+        test_pos_items = pos_items(test_mat.getrow(user_idx))
         if len(test_pos_items) == 0:
             continue
 
@@ -186,7 +186,7 @@ def ranking_eval(
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
         train_pos_items = (
             pos_items(train_mat.getrow(user_idx))
-            if train_set.contains_user(user_idx)
+            if user_idx < train_mat.shape[0]
             else []
         )
 

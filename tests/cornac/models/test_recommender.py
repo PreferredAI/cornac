@@ -16,15 +16,23 @@
 import unittest
 
 from cornac.data import Reader, Dataset
-from cornac.eval_methods import RatioSplit
 from cornac.models import MF
-from cornac.metrics import MAE, RMSE
-from cornac.experiment.experiment import Experiment
 
 
 class TestRecommender(unittest.TestCase):
     def setUp(self):
         self.data = Reader().read("./tests/data.txt")
+
+    def test_knows_x(self):
+        mf = MF(1, 1, seed=123)
+        dataset = Dataset.from_uir(self.data)
+        mf.fit(dataset)
+
+        self.assertTrue(mf.knows_user(7))
+        self.assertFalse(mf.knows_item(13))
+
+        self.assertTrue(mf.knows_item(3))
+        self.assertFalse(mf.knows_item(16))
 
     def test_recommend(self):
         mf = MF(1, 1, seed=123)

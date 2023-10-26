@@ -578,14 +578,6 @@ class Dataset(object):
         for batch_ids in self.idx_iter(len(item_indices), batch_size, shuffle):
             yield item_indices[batch_ids]
 
-    def contains_user(self, user_idx):
-        """Return whether given user index is in the dataset"""
-        return user_idx >= 0 and user_idx < self.num_users
-
-    def contains_item(self, item_idx):
-        """Return whether given item index is in the dataset"""
-        return item_idx >= 0 and item_idx < self.num_items
-
     def add_modalities(self, **kwargs):
         self.user_feature = kwargs.get("user_feature", None)
         self.item_feature = kwargs.get("item_feature", None)

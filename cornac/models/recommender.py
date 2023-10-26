@@ -421,7 +421,7 @@ class Recommender:
             seen_mask = np.zeros(len(item_indices), dtype="bool")
             if train_set is None:
                 raise ValueError("train_set must be provided to remove seen items.")
-            if train_set.contains_user(user_idx):
+            if user_idx < train_set.csr_matrix.shape[0]:
                 seen_mask[train_set.csr_matrix.getrow(user_idx).indices] = True
                 item_indices = item_indices[~seen_mask]
 
