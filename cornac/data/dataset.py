@@ -98,8 +98,6 @@ class Dataset(object):
         self.min_rating = np.min(r_values)
         self.global_mean = np.mean(r_values)
 
-        self.__total_users = None
-        self.__total_items = None
         self.__user_ids = None
         self.__item_ids = None
 
@@ -110,28 +108,6 @@ class Dataset(object):
         self.__csr_matrix = None
         self.__csc_matrix = None
         self.__dok_matrix = None
-
-    @property
-    def total_users(self):
-        """Total number of users including test and validation users if exists"""
-        return self.__total_users if self.__total_users is not None else self.num_users
-
-    @total_users.setter
-    def total_users(self, input_value):
-        """Set total number of users for the dataset"""
-        assert input_value >= self.num_users
-        self.__total_users = input_value
-
-    @property
-    def total_items(self):
-        """Total number of items including test and validation items if exists"""
-        return self.__total_items if self.__total_items is not None else self.num_items
-
-    @total_items.setter
-    def total_items(self, input_value):
-        """Set total number of items for the dataset"""
-        assert input_value >= self.num_items
-        self.__total_items = input_value
 
     @property
     def user_ids(self):

@@ -27,7 +27,7 @@ from ..utils.common import intersects, clip
 
 
 class Recommender:
-    """Generic class for a recommender model. All recommendation models should inherit from this class
+    """Generic class for a recommender model. All recommendation models should inherit from this class.
 
     Parameters
     ----------------
@@ -42,12 +42,20 @@ class Recommender:
 
     Attributes
     ----------
-    num_users: int
-        Number of known users in training data.
+    train_users: int
+        Number of users in training data.
 
-    num_items: int
-        Number of known items in training data.
+    train_items: int
+        Number of items in training data.
+        
+    total_users: int
+        Number of users in training, validation, and test data. 
+        In other words, this includes unknown/unseen users.
 
+    total_items: int
+        Number of items in training, validation, and test data. 
+        In other words, this includes unknown/unseen items.
+        
     uid_map: int
         Global mapping of user ID-index.
 
@@ -72,8 +80,8 @@ class Recommender:
         self.ignored_attrs = []  # attributes to be ignored when saving model
 
         # useful information getting from train_set for prediction
-        self.num_users = None
-        self.num_items = None
+        self.train_users = None
+        self.train_items = None
         self.uid_map = None
         self.iid_map = None
         self.max_rating = None

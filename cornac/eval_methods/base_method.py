@@ -540,9 +540,6 @@ class BaseMethod:
             print("Total users = {}".format(self.total_users))
             print("Total items = {}".format(self.total_items))
 
-        self.train_set.total_users = self.total_users
-        self.train_set.total_items = self.total_items
-
     def _build_modalities(self):
         for user_modality in [
             self.user_feature,

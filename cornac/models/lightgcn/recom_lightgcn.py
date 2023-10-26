@@ -129,7 +129,7 @@ class LightGCN(Recommender):
             if torch.cuda.is_available():
                 torch.cuda.manual_seed_all(self.seed)
 
-        graph = construct_graph(train_set).to(self.device)
+        graph = construct_graph(train_set, self.total_users, self.total_items).to(self.device)
         model = Model(
             graph,
             self.emb_size,

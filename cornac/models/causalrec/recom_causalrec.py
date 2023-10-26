@@ -185,8 +185,8 @@ class CausalRec(Recommender):
         train_features = train_set.item_image.features[: self.total_items]
         train_features = train_features.astype(np.float32)
         self._init(
-            n_users=train_set.total_users,
-            n_items=train_set.total_items,
+            n_users=self.total_users,
+            n_items=self.total_items,
             features=train_features,
         )
 

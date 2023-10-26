@@ -265,7 +265,7 @@ class FM(Recommender):
         (uid, iid, val) = train_set.uir_tuple
         cdef Data *train = _prepare_data(
             uid, 
-            iid + train_set.total_users, 
+            iid + self.total_users, 
             val.astype(np.float32), 
             num_feature, 
             self.method in ["als", "mcmc"],
