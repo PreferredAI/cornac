@@ -508,7 +508,7 @@ class LRPPM(Recommender):
             item_scores = self.I.dot(self.U[u_idx])
             return item_scores
         else:
-            if not (self.knows_user(u_idx) or self.knows_item(i_idx)):
+            if not (self.knows_user(u_idx) and self.knows_item(i_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (u_idx, i_idx)
