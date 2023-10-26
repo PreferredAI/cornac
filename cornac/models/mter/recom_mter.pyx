@@ -195,9 +195,10 @@ class MTER(Recommender):
         self.A = self.init_params.get("A", None)
         self.O = self.init_params.get("O", None)
 
-    def _init(self):
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
-        n_aspects, n_opinions = self.train_set.sentiment.num_aspects, self.train_set.sentiment.num_opinions
+    def _init(self, train_set):
+        n_users, n_items = train_set.num_users, train_set.num_items
+        n_aspects, n_opinions = train_set.sentiment.num_aspects, train_set.sentiment.num_opinions
+        self.num_aspects, self.num_opinions = n_aspects, n_opinions
 
         if self.G1 is None:
             G1_shape = (self.n_user_factors, self.n_item_factors, self.n_aspect_factors)
@@ -228,19 +229,19 @@ class MTER(Recommender):
         if self.verbose:
             print("Building data started!")
 
-        sentiment = self.train_set.sentiment
+        sentiment = data_set.sentiment
         (u_indices, i_indices, r_values) = data_set.uir_tuple
         keys = np.array([get_key(u, i) for u, i in zip(u_indices, i_indices)], dtype=np.intp)
         cdef IntFloatDict rating_dict = IntFloatDict(keys, np.array(r_values, dtype=np.float64))
         rating_matrix = sp.csr_matrix(
             (r_values, (u_indices, i_indices)),
-            shape=(self.train_set.num_users, self.train_set.num_items),
+            shape=(self.num_users, self.num_items),
         )
         user_item_aspect = {}
         user_aspect_opinion = {}
         item_aspect_opinion = {}
         for u_idx, sentiment_tup_ids_by_item in sentiment.user_sentiment.items():
-            if self.train_set.is_unk_user(u_idx):
+            if not self.knows_user(u_idx):
                 continue
             for i_idx, tup_idx in sentiment_tup_ids_by_item.items():
                 user_item_aspect[
@@ -317,7 +318,7 @@ class MTER(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init()
+        self._init(train_set)
  
         if not self.trainable:
             return self
@@ -366,7 +367,7 @@ class MTER(Recommender):
         YI_oids = np.array(YI_oids, dtype=np.int32)
 
         user_counts = np.ediff1d(rating_matrix.indptr).astype(np.int32)
-        user_ids = np.repeat(np.arange(self.train_set.num_users), user_counts).astype(np.int32)
+        user_ids = np.repeat(np.arange(self.num_users), user_counts).astype(np.int32)
         neg_item_ids = np.arange(train_set.num_items, dtype=np.int32)
 
         cdef:
@@ -475,10 +476,10 @@ class MTER(Recommender):
         """
         cdef:
             long s, i_index, j_index, correct = 0, skipped = 0
-            long n_users = self.train_set.num_users
-            long n_items = self.train_set.num_items
-            long n_aspects = self.train_set.sentiment.num_aspects
-            long n_opinions = self.train_set.sentiment.num_opinions
+            long n_users = self.num_users
+            long n_items = self.num_items
+            long n_aspects = self.num_aspects
+            long n_opinions = self.num_opinions
             long n_user_factors = self.n_user_factors
             long n_item_factors = self.n_item_factors
             long n_aspect_factors = self.n_aspect_factors
@@ -692,7 +693,7 @@ class MTER(Recommender):
 
         """
         if i_idx is None:
-            if self.train_set.is_unk_user(u_idx):
+            if not self.knows_user(u_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d" & u_idx
                 )
@@ -705,8 +706,7 @@ class MTER(Recommender):
             item_scores = np.einsum("MNc,c->MN", tensor_value2, self.A[-1]).flatten()
             return item_scores
         else:
-            if (self.train_set.is_unk_user(u_idx)
-                or self.train_set.is_unk_item(i_idx)):
+            if not (self.knows_user(u_idx) and self.knows_item(i_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (u_idx, i_idx)
