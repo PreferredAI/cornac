@@ -42,10 +42,10 @@ class Recommender:
 
     Attributes
     ----------
-    train_users: int
+    num_users: int
         Number of users in training data.
 
-    train_items: int
+    num_items: int
         Number of items in training data.
         
     total_users: int
@@ -80,8 +80,8 @@ class Recommender:
         self.ignored_attrs = []  # attributes to be ignored when saving model
 
         # useful information getting from train_set for prediction
-        self.train_users = None
-        self.train_items = None
+        self.num_users = None
+        self.num_items = None
         self.uid_map = None
         self.iid_map = None
         self.max_rating = None
