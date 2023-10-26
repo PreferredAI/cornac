@@ -21,34 +21,46 @@ The main idea behind Cornac is to provide a simple and flexible way to
 experiment with different algorithms, hyperparameters, and datasets without
 having to manually implement and run all the code yourself.
 
-Here are some key concepts related to Cornac:
+**Here are some key concepts related to Cornac:**
 
-1. Experiments
-~~~~~~~~~~~~~~
-An **experiment** refers to a specific combination of algorithm,
-hyperparameters, dataset, and evaluation metric that is being tested or
-evaluated.
+.. grid:: 1 2 2 2
+    :gutter: 4
 
-2. Datasets
-~~~~~~~~~~~
-A **dataset** refers to a specific collection of input data that is
-used to train or test an algorithm.
+    .. grid-item-card:: 1. Experiments
+        :columns: 12 12 6 6
+        :padding: 3
 
-3. Algorithms
-~~~~~~~~~~~~~
-An **algorithm** refers to a specific computational model or
-technique that is being used to perform some task or function.
+        An **experiment** refers to a specific combination of algorithm,
+        hyperparameters, dataset, and evaluation metric that is being tested or
+        evaluated.
 
-4. Hyperparameters
-~~~~~~~~~~~~~~~~~~
-A **hyperparameter** refers to a specific parameter or setting that is being
-adjusted or fine-tuned during the experimentation process.
+    .. grid-item-card:: 2. Datasets
+        :columns: 12 12 6 6
+        :padding: 3
 
-5. Evaluation metrics
-~~~~~~~~~~~~~~~~~~~~~
-An **evaluation metric** refers to a specific performance measure or score
-that is being used to evaluate or compare different algorithms or models during the experimentation process.
+        A **dataset** refers to a specific collection of input data that is
+        used to train or test an algorithm.
 
+    .. grid-item-card:: 3. Algorithms
+        :columns: 12 12 6 6
+        :padding: 3
+
+        An **algorithm** refers to a specific computational model or
+        technique that is being used to perform some task or function.
+
+    .. grid-item-card:: 4. Hyperparameters
+        :columns: 12 12 6 6
+        :padding: 3
+
+        A **hyperparameter** refers to a specific parameter or setting that is being
+        adjusted or fine-tuned during the experimentation process.
+
+    .. grid-item-card:: 5. Evaluation metrics
+        :columns: 12 12 6 6
+        :padding: 3
+
+        An **evaluation metric** refers to a specific performance measure or score
+        that is being used to evaluate or compare different algorithms or models during the experimentation process.
 
 The First Experiment
 --------------------
@@ -58,15 +70,36 @@ finding what we truly enjoy can be a challenge.
 This experiment focuses on how we could utilize a recommender system to provide
 us with personalized recommendations based on our preferences.
 
+.. _movielens-label:
+
 About the MovieLens dataset
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The MovieLens dataset, a repository of movie ratings and user preferences,
 remains highly relevant today as it powers the personalized recommendation
 algorithms crucial for modern streaming services.
 
+Sample data from MovieLens 100K dataset
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The MovieLens 100K dataset contains 100,000 ratings from 943 users on 1,682
+movies. Each user has rated at least 20 movies on a scale of 1 to 5.
 
-About the Experiment
-~~~~~~~~~~~~~~~~~~~~
+The dataset also contains additional information about the movies, such as
+genre and year of release.
+
+.. image:: images/movielens_sample.png
+   :width: 230
+
+A sample of 5 records from the MovieLens 100K dataset is shown above.
+
+The Experiment
+~~~~~~~~~~~~~~
+
+.. note::
+
+    This tutorial assumes that you have already installed Cornac. If you have
+    not done so, please refer to the installation guide in the documentation.
+
+    See :doc:`install`.
 
 In this experiment, we will be using the MovieLens 100K dataset to train and
 evaluate a recommender system that can predict how a user would rate a movie
@@ -341,6 +374,8 @@ What's Next?
   Explore how you can predict based on users, to give them related
   recommendations.
   View :doc:`predict`.
+
+---------------------------------------------------------------------------
 
 .. topic:: Are you a developer?
 
