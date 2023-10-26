@@ -186,13 +186,21 @@ class LightGCN(Recommender):
             self.V = i_embs.cpu().detach().numpy()
 
             if self.early_stopping is not None and self.early_stop(
-                **self.early_stopping
+                train_set, val_set, **self.early_stopping
             ):
                 break
 
-    def monitor_value(self):
+    def monitor_value(self, train_set, val_set):
         """Calculating monitored value used for early stopping on validation set (`val_set`).
         This function will be called by `early_stop()` function.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
         -------
@@ -200,7 +208,7 @@ class LightGCN(Recommender):
             Monitored value on validation set.
             Return `None` if `val_set` is `None`.
         """
-        if self.val_set is None:
+        if val_set is None:
             return None
 
         from ...metrics import Recall
@@ -209,8 +217,8 @@ class LightGCN(Recommender):
         recall_20 = ranking_eval(
             model=self,
             metrics=[Recall(k=20)],
-            train_set=self.train_set,
-            test_set=self.val_set
+            train_set=train_set,
+            test_set=val_set,
         )[0][0]
 
         return recall_20  # Section 4.1.2 in the paper, same strategy as NGCF.
@@ -234,16 +242,14 @@ class LightGCN(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
