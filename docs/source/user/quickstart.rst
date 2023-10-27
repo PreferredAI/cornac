@@ -362,8 +362,12 @@ Now run it again!
 .. image:: images/first_experiment_result_2.png
    :width: 450
 
-We are now presented with results from our different models.
-Tweak this code to your needs and experiment as many models as you wish.
+We are now presented with results from our different models. In this easy example,
+we can see how we can easily compare the results from different models.
+
+Depending on the results of the metrics, time taken for training and evaluation,
+we can then further tweak the parameters, and also decide which model to use for
+our application.
 
 
 What's Next?
@@ -374,6 +378,12 @@ What's Next?
   Explore how you can predict based on users, to give them related
   recommendations.
   View :doc:`predict`.
+
+.. topic:: Tweaking parameters
+
+  Explore how you can experiment with different parameters to get the best
+  results.
+  View :doc:`tweakparams`.
 
 ---------------------------------------------------------------------------
 
