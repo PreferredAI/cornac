@@ -16,6 +16,7 @@ build, evaluate, and fine-tune recommender systems to meet your needs.
    install
    quickstart
    iamadeveloper
+   example-foodrecce
    iamaresearcher
 
 .. toctree::
