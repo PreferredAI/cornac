@@ -17,7 +17,7 @@ def get_activation(act):
     if act is None:
         return lambda x: x
     if isinstance(act, str):
-        if act == "leaky":
+        if act == "leaky_relu":
             return nn.LeakyReLU(0.1)
         elif act == "relu":
             return nn.ReLU()

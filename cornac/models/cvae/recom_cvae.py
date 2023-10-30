@@ -135,12 +135,10 @@ class CVAE(Recommender):
 
     def _init(self):
         rng = get_rng(self.seed)
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
-
         if self.U is None:
-            self.U = xavier_uniform((n_users, self.z_dim), rng)
+            self.U = xavier_uniform((self.num_users, self.z_dim), rng)
         if self.V is None:
-            self.V = xavier_uniform((n_items, self.z_dim), rng)
+            self.V = xavier_uniform((self.num_items, self.z_dim), rng)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -160,17 +158,17 @@ class CVAE(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         self._init()
-        
+
         if self.trainable:
-            self._fit_cvae()
+            self._fit_cvae(train_set)
 
         return self
 
-    def _fit_cvae(self):
-        R = self.train_set.csc_matrix  # csc for efficient slicing over items
-        document = self.train_set.item_text.batch_bow(
-            np.arange(self.train_set.num_items)
-        )  # bag of word feature
+    def _fit_cvae(self, train_set):
+        R = train_set.csc_matrix  # csc for efficient slicing over items
+        document = train_set.item_text.batch_bow(
+            np.arange(train_set.num_items)
+        )  # bag-of-words features
         document = (document - document.min()) / (
             document.max() - document.min()
         )  # normalization
@@ -178,13 +176,13 @@ class CVAE(Recommender):
         # VAE initialization
         from .cvae import Model
         import tensorflow.compat.v1 as tf
-        
+
         tf.disable_eager_execution()
 
         tf.set_random_seed(self.seed)
         model = Model(
-            n_users=self.train_set.num_users,
-            n_items=self.train_set.num_items,
+            n_users=train_set.num_users,
+            n_items=train_set.num_items,
             input_dim=self.input_dim,
             U=self.U,
             V=self.V,
@@ -209,7 +207,7 @@ class CVAE(Recommender):
         for _ in loop:
             cf_loss, vae_loss, count = 0, 0, 0
             for i, batch_ids in enumerate(
-                self.train_set.item_iter(self.batch_size, shuffle=True)
+                train_set.item_iter(self.batch_size, shuffle=True)
             ):
                 batch_R = R[:, batch_ids]
                 batch_C = np.ones(batch_R.shape) * self.b
@@ -255,22 +253,17 @@ class CVAE(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
-
             return user_pred

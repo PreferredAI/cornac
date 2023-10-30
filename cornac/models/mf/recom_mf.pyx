@@ -119,20 +119,18 @@ class MF(Recommender):
         self.i_factors = self.init_params.get('V', None)
         self.u_biases = self.init_params.get('Bu', None)
         self.i_biases = self.init_params.get('Bi', None)
-        self.global_mean = 0.0
 
     def _init(self):
         rng = get_rng(self.seed)
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
 
         if self.u_factors is None:
-            self.u_factors = normal([n_users, self.k], std=0.01, random_state=rng) 
+            self.u_factors = normal([self.num_users, self.k], std=0.01, random_state=rng) 
         if self.i_factors is None:
-            self.i_factors = normal([n_items, self.k], std=0.01, random_state=rng)
+            self.i_factors = normal([self.num_items, self.k], std=0.01, random_state=rng)
 
-        self.u_biases = zeros(n_users) if self.u_biases is None else self.u_biases
-        self.i_biases = zeros(n_items) if self.i_biases is None else self.i_biases
-        self.global_mean = self.train_set.global_mean if self.use_bias else 0.0
+        self.u_biases = zeros(self.num_users) if self.u_biases is None else self.u_biases
+        self.i_biases = zeros(self.num_items) if self.i_biases is None else self.i_biases
+        self.global_mean = self.global_mean if self.use_bias else 0.0
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -165,11 +163,10 @@ class MF(Recommender):
     @cython.wraparound(False)
     def _fit_sgd(self, integral[:] rid, integral[:] cid, floating[:] val,
                  floating[:, :] U, floating[:, :] V, floating[:] Bu, floating[:] Bi):
-        """Fit the model parameters (U, V, Bu, Bi) with SGD
-        """
+        """Fit the model parameters (U, V, Bu, Bi) with SGD"""
         cdef:
-            long num_users = self.train_set.num_users
-            long num_items = self.train_set.num_items
+            long num_users = self.num_users
+            long num_items = self.num_items
             long num_ratings = val.shape[0]
             int num_factors = self.k
             int max_iter = self.max_iter
@@ -252,26 +249,23 @@ class MF(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        unk_user = self.train_set.is_unk_user(user_idx)
-
         if item_idx is None:
             known_item_scores = np.add(self.i_biases, self.global_mean)
-            if not unk_user:
+            if self.knows_user(user_idx):
                 known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])
                 fast_dot(self.u_factors[user_idx], self.i_factors, known_item_scores)
             return known_item_scores
         else:
-            unk_item = self.train_set.is_unk_item(item_idx)
             if self.use_bias:
                 item_score = self.global_mean
-                if not unk_user:
+                if self.knows_user(user_idx):
                     item_score += self.u_biases[user_idx]
-                if not unk_item:
+                if self.knows_item(item_idx):
                     item_score += self.i_biases[item_idx]
-                if not unk_user and not unk_item:
+                if self.knows_user(user_idx) and self.knows_item(item_idx):
                     item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             else:
-                if unk_user or unk_item:
+                if not self.knows_user(user_idx) or self.knows_item(item_idx):
                     raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
                 item_score = np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score

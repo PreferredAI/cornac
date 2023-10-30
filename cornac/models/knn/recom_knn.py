@@ -51,7 +51,7 @@ def _amplify(ui_mat, alpha=1.0):
         return ui_mat
 
     for i, w in enumerate(ui_mat.data):
-        ui_mat.data[i] = w ** alpha if w > 0 else -(-w) ** alpha
+        ui_mat.data[i] = w**alpha if w > 0 else -((-w) ** alpha)
     return ui_mat
 
 
@@ -98,21 +98,21 @@ class UserKNN(Recommender):
 
     k: int, optional, default: 20
         The number of nearest neighbors.
-       
+
     similarity: str, optional, default: 'cosine'
         The similarity measurement. Supported types: ['cosine', 'pearson']
-    
+
     mean_centered: bool, optional, default: False
         Whether values of the user-item rating matrix will be centered by the mean
-        of their corresponding rows (mean rating of each user).  
-    
+        of their corresponding rows (mean rating of each user).
+
     weighting: str, optional, default: None
         The option for re-weighting the rating matrix. Supported types: ['idf', 'bm25'].
         If None, no weighting is applied.
-          
+
     amplify: float, optional, default: 1.0
         Amplifying the influence on similarity weights.
-        
+
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
         If seed is not None, num_threads=1 to remove randomness from parallelization.
@@ -182,21 +182,21 @@ class UserKNN(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self.ui_mat = self.train_set.matrix.copy()
+        self.ui_mat = train_set.matrix.copy()
         self.mean_arr = np.zeros(self.ui_mat.shape[0])
-        if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
+        if self.min_rating != self.max_rating:  # explicit feedback
             self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
 
         if self.mean_centered or self.similarity == "pearson":
             weight_mat = self.ui_mat.copy()
         else:
-            weight_mat = self.train_set.matrix.copy()
+            weight_mat = train_set.matrix.copy()
 
         # re-weighting
         if self.weighting == "idf":
-            weight_mat.data *= np.sqrt(_idf_weight(self.train_set.matrix))
+            weight_mat.data *= np.sqrt(_idf_weight(train_set.matrix))
         elif self.weighting == "bm25":
-            weight_mat.data *= np.sqrt(_bm25_weight(self.train_set.matrix))
+            weight_mat.data *= np.sqrt(_bm25_weight(train_set.matrix))
 
         # only need item-user matrix for prediction
         self.iu_mat = self.ui_mat.T.tocsr()
@@ -226,12 +226,12 @@ class UserKNN(Recommender):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
-        if self.train_set.is_unk_user(user_idx):
+        if not self.knows_user(user_idx):
             raise ScoreException(
                 "Can't make score prediction for (user_id=%d)" % user_idx
             )
 
-        if item_idx is not None and self.train_set.is_unk_item(item_idx):
+        if item_idx is not None and not self.knows_item(item_idx):
             raise ScoreException(
                 "Can't make score prediction for (item_id=%d)" % item_idx
             )
@@ -248,7 +248,7 @@ class UserKNN(Recommender):
             )
             return self.mean_arr[user_idx] + weighted_avg
 
-        weighted_avg = np.zeros(self.train_set.num_items)
+        weighted_avg = np.zeros(self.num_items)
         compute_score(
             True,
             self.sim_mat[user_idx].A.ravel(),
@@ -277,18 +277,18 @@ class ItemKNN(Recommender):
 
     similarity: str, optional, default: 'cosine'
         The similarity measurement. Supported types: ['cosine', 'pearson']
-      
+
     mean_centered: bool, optional, default: False
         Whether values of the user-item rating matrix will be centered by the mean
-        of their corresponding rows (mean rating of each user).  
-         
+        of their corresponding rows (mean rating of each user).
+
     weighting: str, optional, default: None
         The option for re-weighting the rating matrix. Supported types: ['idf', 'bm25'].
         If None, no weighting is applied.
-               
+
     amplify: float, optional, default: 1.0
         Amplifying the influence on similarity weights.
-         
+
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
         If seed is not None, num_threads=1 to remove randomness from parallelization.
@@ -358,15 +358,15 @@ class ItemKNN(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self.ui_mat = self.train_set.matrix.copy()
+        self.ui_mat = train_set.matrix.copy()
         self.mean_arr = np.zeros(self.ui_mat.shape[0])
-        if self.train_set.min_rating != self.train_set.max_rating:  # explicit feedback
+        if self.min_rating != self.max_rating:  # explicit feedback
             self.ui_mat, self.mean_arr = _mean_centered(self.ui_mat)
 
         if self.mean_centered:
             weight_mat = self.ui_mat.copy()
         else:
-            weight_mat = self.train_set.matrix.copy()
+            weight_mat = train_set.matrix.copy()
 
         if self.similarity == "pearson":  # centered by columns
             weight_mat, _ = _mean_centered(weight_mat.T.tocsr())
@@ -374,9 +374,9 @@ class ItemKNN(Recommender):
 
         # re-weighting
         if self.weighting == "idf":
-            weight_mat.data *= np.sqrt(_idf_weight(self.train_set.matrix))
+            weight_mat.data *= np.sqrt(_idf_weight(train_set.matrix))
         elif self.weighting == "bm25":
-            weight_mat.data *= np.sqrt(_bm25_weight(self.train_set.matrix))
+            weight_mat.data *= np.sqrt(_bm25_weight(train_set.matrix))
 
         weight_mat = weight_mat.T.tocsr()
         self.sim_mat = compute_similarity(
@@ -403,12 +403,12 @@ class ItemKNN(Recommender):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
-        if self.train_set.is_unk_user(user_idx):
+        if not self.knows_user(user_idx):
             raise ScoreException(
                 "Can't make score prediction for (user_id=%d)" % user_idx
             )
 
-        if item_idx is not None and self.train_set.is_unk_item(item_idx):
+        if item_idx is not None and not self.knows_item(item_idx):
             raise ScoreException(
                 "Can't make score prediction for (item_id=%d)" % item_idx
             )
@@ -425,7 +425,7 @@ class ItemKNN(Recommender):
             )
             return self.mean_arr[user_idx] + weighted_avg
 
-        weighted_avg = np.zeros(self.train_set.num_items)
+        weighted_avg = np.zeros(self.num_items)
         compute_score(
             False,
             self.ui_mat[user_idx].A.ravel(),

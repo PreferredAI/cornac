@@ -9,7 +9,7 @@ USER_KEY = "user"
 ITEM_KEY = "item"
 
 
-def construct_graph(data_set):
+def construct_graph(data_set, total_users, total_items):
     """
     Generates graph given a cornac data set
 
@@ -24,7 +24,7 @@ def construct_graph(data_set):
         (USER_KEY, "user_item", ITEM_KEY): (user_indices, item_indices),
         (ITEM_KEY, "item_user", USER_KEY): (item_indices, user_indices),
     }
-    num_dict = {USER_KEY: data_set.total_users, ITEM_KEY: data_set.total_items}
+    num_dict = {USER_KEY: total_users, ITEM_KEY: total_items}
 
     return dgl.heterograph(data_dict, num_nodes_dict=num_dict)
 

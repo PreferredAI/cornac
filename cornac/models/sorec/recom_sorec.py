@@ -148,13 +148,15 @@ class SoRec(Recommender):
             (rat_uid, rat_iid, rat_val) = train_set.uir_tuple
 
             # user social network
-            map_uid = train_set.user_indices
+            train_user_indices = set(train_set.uir_tuple[0])
             (net_uid, net_jid, net_val) = train_set.user_graph.get_train_triplet(
-                map_uid, map_uid
+                train_user_indices, train_user_indices
             )
 
             if self.weight_link:
-                degree = train_set.user_graph.get_node_degree(map_uid, map_uid)
+                degree = train_set.user_graph.get_node_degree(
+                    train_user_indices, train_user_indices
+                )
                 weighted_net_val = []
                 for u, j, val in zip(net_uid, net_jid, net_val):
                     u_out = degree[int(u)][1]
@@ -163,17 +165,11 @@ class SoRec(Recommender):
                     weighted_net_val.append(val_weighted)
                 net_val = weighted_net_val
 
-            if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                if self.train_set.min_rating == self.train_set.max_rating:
-                    rat_val = scale(rat_val, 0.0, 1.0, 0.0, self.train_set.max_rating)
+            if [self.min_rating, self.max_rating] != [0, 1]:
+                if self.min_rating == self.max_rating:
+                    rat_val = scale(rat_val, 0.0, 1.0, 0.0, self.max_rating)
                 else:
-                    rat_val = scale(
-                        rat_val,
-                        0.0,
-                        1.0,
-                        self.train_set.min_rating,
-                        self.train_set.max_rating,
-                    )
+                    rat_val = scale(rat_val, 0.0, 1.0, self.min_rating, self.max_rating)
 
             rat_val = np.array(rat_val, dtype="float32")
             rat_uid = np.array(rat_uid, dtype="int32")
@@ -214,7 +210,7 @@ class SoRec(Recommender):
 
             if self.verbose:
                 print("Learning completed")
-                
+
         elif self.verbose:
             print("%s is trained already (trainable = False)" % self.name)
 
@@ -235,33 +231,22 @@ class SoRec(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :])
             user_pred = sigmoid(user_pred)
-            if self.train_set.min_rating == self.train_set.max_rating:
-                user_pred = scale(user_pred, 0.0, self.train_set.max_rating, 0.0, 1.0)
+            if self.min_rating == self.max_rating:
+                user_pred = scale(user_pred, 0.0, self.max_rating, 0.0, 1.0)
             else:
-                user_pred = scale(
-                    user_pred,
-                    self.train_set.min_rating,
-                    self.train_set.max_rating,
-                    0.0,
-                    1.0,
-                )
-
+                user_pred = scale(user_pred, self.min_rating, self.max_rating, 0.0, 1.0)
             return user_pred
