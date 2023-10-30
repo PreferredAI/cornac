@@ -140,7 +140,7 @@ class BPR(Recommender):
         self.i_biases = self.init_params.get('Bi', None)
     
     def _init(self):
-        n_users, n_items = self.train_set.total_users, self.train_set.total_items
+        n_users, n_items = self.total_users, self.total_items
 
         if self.u_factors is None:
             self.u_factors = (uniform((n_users, self.k), random_state=self.rng) - 0.5) / self.k
@@ -148,12 +148,12 @@ class BPR(Recommender):
             self.i_factors = (uniform((n_items, self.k), random_state=self.rng) - 0.5) / self.k
         self.i_biases = zeros(n_items) if self.i_biases is None or self.use_bias is False else self.i_biases
 
-    def _prepare_data(self):
-        X = self.train_set.matrix # csr_matrix
+    def _prepare_data(self, train_set):
+        X = train_set.matrix # csr_matrix
         # this basically calculates the 'row' attribute of a COO matrix
         # without requiring us to get the whole COO matrix
         user_counts = np.ediff1d(X.indptr)
-        user_ids = np.repeat(np.arange(self.train_set.num_users), user_counts).astype(X.indices.dtype)
+        user_ids = np.repeat(np.arange(train_set.num_users), user_counts).astype(X.indices.dtype)
 
         return X, user_counts, user_ids
 
@@ -179,7 +179,7 @@ class BPR(Recommender):
         if not self.trainable:
             return self
 
-        X, user_counts, user_ids = self._prepare_data()
+        X, user_counts, user_ids = self._prepare_data(train_set)
         neg_item_ids = np.arange(train_set.num_items, dtype=np.int32)
 
         cdef:
@@ -213,7 +213,7 @@ class BPR(Recommender):
         """
         cdef:
             long num_samples = len(user_ids), s, i_index, j_index, correct = 0, skipped = 0
-            long num_items = self.train_set.num_items
+            long num_items = self.num_items
             integral f, i_id, j_id, thread_id
             floating z, score, temp
             bool use_bias = self.use_bias

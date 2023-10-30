@@ -16,7 +16,7 @@ class NeuralNetwork(nn.Module):
 
     def __init__(
         self,
-        activation_model,
+        activation_func,
         rating_values,
         n_users,
         n_items,
@@ -29,7 +29,7 @@ class NeuralNetwork(nn.Module):
         device,
     ):
         super(NeuralNetwork, self).__init__()
-        self._act = get_activation(activation_model)
+        self._act = get_activation(activation_func)
         self.encoder = GCMCLayer(
             rating_values,
             n_users,

@@ -95,9 +95,9 @@ cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=Tru
 
 |                          |    MAE |   RMSE |    AUC |     MAP | NDCG@10 | Precision@10 | Recall@10 |  Train (s) | Test (s) |
 | ------------------------ | -----: | -----: | -----: | ------: | ------: | -----------: | --------: | ---------: | -------: |
-| [MF](cornac/models/mf)   | 0.7430 | 0.8998 | 0.7445 |  0.0407 |  0.0479 |       0.0437 |    0.0352 |       0.13 |     1.57 |
-| [PMF](cornac/models/pmf) | 0.7534 | 0.9138 | 0.7744 |  0.0491 |  0.0617 |       0.0533 |    0.0479 |       2.18 |     1.64 |
-| [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.0753 |  0.0975 |       0.0727 |    0.0891 |       3.74 |     1.49 |
+| [MF](cornac/models/mf)   | 0.7430 | 0.8998 | 0.7445 |  0.0548 |  0.0761 |       0.0675 |    0.0463 |       0.13 |     1.57 |
+| [PMF](cornac/models/pmf) | 0.7534 | 0.9138 | 0.7744 |  0.0671 |  0.0969 |       0.0813 |    0.0639 |       2.18 |     1.64 |
+| [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.1042 |  0.1500 |       0.1110 |    0.1195 |       3.74 |     1.49 |
 
 
 For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials). For learning purposes, this list of [tutorials on recommender systems](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems) will be more organized and comprehensive. 

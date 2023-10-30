@@ -130,16 +130,14 @@ class TriRank(Recommender):
         self.a = self.init_params.get("a", None)
         self.u = self.init_params.get("u", None)
 
-    def _init(self):
+    def _init(self, train_set):
         # Initialize user, item and aspect rank.
         if self.p is None:
-            self.p = uniform(self.train_set.num_items, random_state=self.rng)
+            self.p = uniform(train_set.num_items, random_state=self.rng)
         if self.a is None:
-            self.a = uniform(
-                self.train_set.sentiment.num_aspects, random_state=self.rng
-            )
+            self.a = uniform(train_set.sentiment.num_aspects, random_state=self.rng)
         if self.u is None:
-            self.u = uniform(self.train_set.num_users, random_state=self.rng)
+            self.u = uniform(train_set.num_users, random_state=self.rng)
 
     def _symmetrical_normalization(self, matrix: csr_matrix):
         row = []
@@ -156,6 +154,8 @@ class TriRank(Recommender):
 
     def _create_matrices(self, train_set):
         from time import time
+
+        self.r_mat = train_set.csr_matrix
 
         start_time = time()
         if self.verbose:
@@ -222,7 +222,7 @@ class TriRank(Recommender):
         self : object
         """
         Recommender.fit(self, train_set, val_set)
-        self._init()
+        self._init(train_set)
 
         if not self.trainable:
             return self
@@ -233,11 +233,11 @@ class TriRank(Recommender):
 
     def _online_recommendation(self, user):
         # Algorithm 1: Online recommendation line 5
-        p_0 = self.train_set.csr_matrix[[user]]
+        p_0 = self.r_mat[[user]]
         p_0.data.fill(1)
         p_0 = p_0.toarray().squeeze()
         a_0 = self.Y[user].toarray().squeeze()
-        u_0 = np.zeros(self.train_set.csr_matrix.shape[0])
+        u_0 = np.zeros(self.r_mat.shape[0])
         u_0[user] = 1
 
         # Algorithm 1: Online training line 6
@@ -309,21 +309,19 @@ class TriRank(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if self.train_set.is_unk_user(u_idx):
+        if not self.knows_user(u_idx):
             raise ScoreException("Can't make score prediction for (user_id=%d" & u_idx)
-        if i_idx is not None and self.train_set.is_unk_item(i_idx):
+        if i_idx is not None and not self.knows_item(i_idx):
             raise ScoreException("Can't make score prediction for (item_id=%d" & i_idx)
 
         item_scores, *_ = self._online_recommendation(u_idx)
         # Set already rated items to zero.
-        item_scores[self.train_set.csr_matrix[u_idx].indices] = 0
+        item_scores[self.r_mat[u_idx].indices] = 0
 
         # Scale to match rating scale.
         item_scores = (
-            item_scores
-            * (self.train_set.max_rating - self.train_set.min_rating)
-            / max(item_scores)
-            + self.train_set.min_rating
+            item_scores * (self.max_rating - self.min_rating) / max(item_scores)
+            + self.min_rating
         )
 
         if i_idx is None:

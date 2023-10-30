@@ -61,15 +61,15 @@ class SKMeans(Recommender):
     """
 
     def __init__(
-            self,
-            k=5,
-            max_iter=100,
-            name="Skmeans",
-            trainable=True,
-            tol=1e-6,
-            verbose=True,
-            seed=None,
-            init_par=None,
+        self,
+        k=5,
+        max_iter=100,
+        name="Skmeans",
+        trainable=True,
+        tol=1e-6,
+        verbose=True,
+        seed=None,
+        init_par=None,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -97,8 +97,7 @@ class SKMeans(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        X = self.train_set.matrix
-        X = sp.csr_matrix(X)
+        X = train_set.matrix  # CSR matrix
 
         # Skmeans requires rows of X to have a unit L2 norm. We therefore need to make a copy of X as we should not modify the latter.
         X1 = X.copy()
@@ -124,7 +123,7 @@ class SKMeans(Recommender):
             print("%s is trained already (trainable = False)" % (self.name))
 
         self.user_center_sim = (
-                X1 * self.centroids.T
+            X1 * self.centroids.T
         )  # user-centroid cosine similarity matrix
         del X1
 
@@ -149,7 +148,7 @@ class SKMeans(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
@@ -158,13 +157,11 @@ class SKMeans(Recommender):
                 self.user_center_sim[user_idx, :].T
             )
             known_item_scores = known_item_scores.sum(0).A1 / (
-                    self.user_center_sim[user_idx, :].sum() + 1e-20
+                self.user_center_sim[user_idx, :].sum() + 1e-20
             )  # weighted average of cluster centroids
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                    item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
@@ -175,7 +172,7 @@ class SKMeans(Recommender):
             )
             # transform user_pred to a flatten array
             user_pred = user_pred.sum(0).A1 / (
-                    self.user_center_sim[user_idx, :].sum() + 1e-20
+                self.user_center_sim[user_idx, :].sum() + 1e-20
             )  # weighted average of cluster centroids
 
             return user_pred
