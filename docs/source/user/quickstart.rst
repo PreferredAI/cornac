@@ -373,31 +373,32 @@ our application.
 What's Next?
 ------------
 
-.. topic:: Predict user preferences
+.. .. topic:: Predict user preferences
 
-  Explore how you can predict based on users, to give them related
-  recommendations.
-  View :doc:`predict`.
+..   Explore how you can predict based on users, to give them related
+..   recommendations.
+..   View :doc:`predict`.
 
-.. topic:: Tweaking parameters
+.. .. topic:: Tweaking parameters
 
-  Explore how you can experiment with different parameters to get the best
-  results.
-  View :doc:`tweakparams`.
+..   Explore how you can experiment with different parameters to get the best
+..   results.
+..   View :doc:`tweakparams`.
 
----------------------------------------------------------------------------
+.. ---------------------------------------------------------------------------
 
 .. topic:: Are you a developer?
 
-  Find out how you can use Cornac as a recommender system to many diferrent
-  applications.
-  View :doc:`applications`.
+  View a quickstart guide on how you can code and implement Cornac onto your
+  application to provide recommendations for your users.
+
+  View :doc:`/user/iamadeveloper`.
 
 .. topic:: Are you a data scientist?
 
-  Find out how you can use Cornac to run experiments and tweak parameters
-  easily to compare against baselines already on Cornac.
-  View :doc:`experiments`.
+  Find out how you can have Cornac as part of your workflow to run your
+  experiments, and use Cornac's many models with just a few lines of code.
+  View :doc:`/user/iamaresearcher`.
 
 .. topic:: For all the awesome people out there
 
