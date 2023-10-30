@@ -4,7 +4,7 @@ API Reference
 Welcome to the API Reference.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: API Reference
 
    data

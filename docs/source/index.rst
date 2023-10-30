@@ -89,7 +89,7 @@ Quick Links
 
       +++
 
-      .. button-ref:: user/index
+      .. button-ref:: user/iamaresearcher
          :color: primary
          :expand:
          :click-parent:
@@ -111,7 +111,7 @@ Quick Links
 
       +++
 
-      .. button-ref:: user/index
+      .. button-ref:: developer/index
          :color: primary
          :expand:
          :click-parent:

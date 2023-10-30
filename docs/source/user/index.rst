@@ -15,10 +15,8 @@ build, evaluate, and fine-tune recommender systems to meet your needs.
 
    install
    quickstart
-   predict
-   owndata
-   applications
-   experiments
+   iamadeveloper
+   iamaresearcher
 
 .. toctree::
    :glob:
