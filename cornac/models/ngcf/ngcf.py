@@ -11,7 +11,7 @@ USER_KEY = "user"
 ITEM_KEY = "item"
 
 
-def construct_graph(data_set):
+def construct_graph(data_set, total_users, total_items):
     """
     Generates graph given a cornac data set
 
@@ -23,8 +23,8 @@ def construct_graph(data_set):
     user_indices, item_indices, _ = data_set.uir_tuple
 
     # construct graph from the train data and add self-loops
-    user_selfs = [i for i in range(data_set.total_users)]
-    item_selfs = [i for i in range(data_set.total_items)]
+    user_selfs = [i for i in range(total_users)]
+    item_selfs = [i for i in range(total_items)]
 
     data_dict = {
         (USER_KEY, "user_self", USER_KEY): (user_selfs, user_selfs),
@@ -32,7 +32,7 @@ def construct_graph(data_set):
         (USER_KEY, "user_item", ITEM_KEY): (user_indices, item_indices),
         (ITEM_KEY, "item_user", USER_KEY): (item_indices, user_indices),
     }
-    num_dict = {USER_KEY: data_set.total_users, ITEM_KEY: data_set.total_items}
+    num_dict = {USER_KEY: total_users, ITEM_KEY: total_items}
 
     return dgl.heterograph(data_dict, num_nodes_dict=num_dict)
 

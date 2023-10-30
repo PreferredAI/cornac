@@ -18,11 +18,9 @@ from tqdm.auto import tqdm
 
 from ..recommender import Recommender
 from ...exception import CornacException
-from ...exception import ScoreException
 from ...utils import fast_dot
-from ...utils.common import intersects
 from ...utils import get_rng
-from ...utils.init_utils import zeros, xavier_uniform
+from ...utils.init_utils import xavier_uniform
 
 
 class AMR(Recommender):
@@ -78,24 +76,24 @@ class AMR(Recommender):
     ----------
     * Tang, J., Du, X., He, X., Yuan, F., Tian, Q., and Chua, T. (2020). Adversarial Training Towards Robust Multimedia Recommender System.
     """
-    
+
     def __init__(
-            self,
-            name="AMR",
-            k=10,
-            k2=10,
-            n_epochs=50,
-            batch_size=100,
-            learning_rate=0.005,
-            lambda_w=0.01,
-            lambda_b=0.01,
-            lambda_e=0.0,
-            lambda_adv=1.0,
-            use_gpu=False,
-            trainable=True,
-            verbose=True,
-            init_params=None,
-            seed=None,
+        self,
+        name="AMR",
+        k=10,
+        k2=10,
+        n_epochs=50,
+        batch_size=100,
+        learning_rate=0.005,
+        lambda_w=0.01,
+        lambda_b=0.01,
+        lambda_e=0.0,
+        lambda_adv=1.0,
+        use_gpu=False,
+        trainable=True,
+        verbose=True,
+        init_params=None,
+        seed=None,
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = k
@@ -109,26 +107,26 @@ class AMR(Recommender):
         self.lambda_adv = lambda_adv
         self.use_gpu = use_gpu
         self.seed = seed
-        
+
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
         self.gamma_user = self.init_params.get("Gu", None)
         self.gamma_item = self.init_params.get("Gi", None)
         self.emb_matrix = self.init_params.get("E", None)
-    
+
     def _init(self, n_users, n_items, features):
         rng = get_rng(self.seed)
-        
+
         if self.gamma_user is None:
             self.gamma_user = xavier_uniform((n_users, self.k), rng)
         if self.gamma_item is None:
             self.gamma_item = xavier_uniform((n_items, self.k), rng)
         if self.emb_matrix is None:
             self.emb_matrix = xavier_uniform((features.shape[1], self.k), rng)
-        
+
         # pre-computed for faster evaluation
         self.theta_item = np.matmul(features, self.emb_matrix)
-    
+
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
 
@@ -145,49 +143,45 @@ class AMR(Recommender):
         self : object
         """
         Recommender.fit(self, train_set, val_set)
-        
+
         if train_set.item_image is None:
             raise CornacException("item_image modality is required but None.")
-        
+
         # Item visual feature from CNN
-        train_features = train_set.item_image.features[: self.train_set.total_items]
+        train_features = train_set.item_image.features[: self.total_items]
         train_features = train_features.astype(np.float32)
         self._init(
-            n_users=train_set.total_users,
-            n_items=train_set.total_items,
-            features=train_features,
+            n_users=self.total_users, n_items=self.total_items, features=train_features
         )
-        
+
         if self.trainable:
-            self._fit_torch(train_features)
-        
+            self._fit_torch(train_set, train_features)
+
         return self
-    
-    def _fit_torch(self, train_features):
+
+    def _fit_torch(self, train_set, train_features):
         import torch
-        
+
         def _l2_loss(*tensors):
             l2_loss = 0
             for tensor in tensors:
                 l2_loss += tensor.pow(2).sum()
             return l2_loss / 2
-        
+
         def _inner(a, b):
             return (a * b).sum(dim=1)
-        
+
         dtype = torch.float
         device = (
             torch.device("cuda:0")
             if (self.use_gpu and torch.cuda.is_available())
             else torch.device("cpu")
         )
-        
+
         # set requireds_grad=True to get the adversarial gradient
         # if F is not put into the optimization list of parameters
         # it won't be updated
-        F = torch.tensor(
-            train_features, device=device, dtype=dtype, requires_grad=True
-        )
+        F = torch.tensor(train_features, device=device, dtype=dtype, requires_grad=True)
         # Learned parameters
         Gu = torch.tensor(
             self.gamma_user, device=device, dtype=dtype, requires_grad=True
@@ -198,77 +192,73 @@ class AMR(Recommender):
         E = torch.tensor(
             self.emb_matrix, device=device, dtype=dtype, requires_grad=True
         )
-        
+
         optimizer = torch.optim.Adam([Gu, Gi, E], lr=self.learning_rate)
-        
+
         for epoch in range(1, self.n_epochs + 1):
             sum_loss = 0.0
             count = 0
             progress_bar = tqdm(
-                total=self.train_set.num_batches(self.batch_size),
+                total=train_set.num_batches(self.batch_size),
                 desc="Epoch {}/{}".format(epoch, self.n_epochs),
                 disable=not self.verbose,
             )
-            for batch_u, batch_i, batch_j in self.train_set.uij_iter(
-                    self.batch_size, shuffle=True
+            for batch_u, batch_i, batch_j in train_set.uij_iter(
+                self.batch_size, shuffle=True
             ):
                 gamma_u = Gu[batch_u]
                 gamma_i = Gi[batch_i]
                 gamma_j = Gi[batch_j]
                 feat_i = F[batch_i]
                 feat_j = F[batch_j]
-                
+
                 gamma_diff = gamma_i - gamma_j
                 feat_diff = feat_i - feat_j
-                
-                Xuij = (
-                        _inner(gamma_u, gamma_diff)
-                        + _inner(gamma_u, feat_diff.mm(E))
-                )
-                
+
+                Xuij = _inner(gamma_u, gamma_diff) + _inner(gamma_u, feat_diff.mm(E))
+
                 log_likelihood = torch.nn.functional.logsigmoid(Xuij).sum()
-                
+
                 # adversarial part
                 feat_i.retain_grad()
                 feat_j.retain_grad()
                 log_likelihood.backward(retain_graph=True)
                 feat_i_delta = feat_i.grad
                 feat_j_delta = feat_j.grad
-                
+
                 adv_feat_diff = feat_diff + (feat_i_delta - feat_j_delta)
-                adv_Xuij = (
-                        _inner(gamma_u, gamma_diff)
-                        + _inner(gamma_u, adv_feat_diff.mm(E))
+                adv_Xuij = _inner(gamma_u, gamma_diff) + _inner(
+                    gamma_u, adv_feat_diff.mm(E)
                 )
-                
+
                 adv_log_likelihood = torch.nn.functional.logsigmoid(adv_Xuij).sum()
-                
+
                 reg = (
-                        _l2_loss(gamma_u, gamma_i, gamma_j) * self.lambda_w
-                        + _l2_loss(E) * self.lambda_e
+                    _l2_loss(gamma_u, gamma_i, gamma_j) * self.lambda_w
+                    + _l2_loss(E) * self.lambda_e
                 )
-                
+
                 loss = -log_likelihood - self.lambda_adv * adv_log_likelihood + reg
-                
+
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                
+
                 sum_loss += loss.data.item()
                 count += len(batch_u)
                 if count % (self.batch_size * 10) == 0:
                     progress_bar.set_postfix(loss=(sum_loss / count))
                 progress_bar.update(1)
             progress_bar.close()
-        
+
         print("Optimization finished!")
-        
+
         self.gamma_user = Gu.data.cpu().numpy()
         self.gamma_item = Gi.data.cpu().numpy()
         self.emb_matrix = E.data.cpu().numpy()
         # pre-computed for faster evaluation
         self.theta_item = F.mm(E).data.cpu().numpy()
-    
+
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 

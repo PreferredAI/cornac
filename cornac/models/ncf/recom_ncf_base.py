@@ -126,13 +126,13 @@ class NCFBase(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if self.trainable:
-            self.num_users = self.train_set.num_users
-            self.num_items = self.train_set.num_items
+            self.num_users = self.num_users
+            self.num_items = self.num_items
 
             if self.backend == "tensorflow":
-                self._fit_tf()
+                self._fit_tf(train_set, val_set)
             elif self.backend == "pytorch":
-                self._fit_pt()
+                self._fit_pt(train_set, val_set)
             else:
                 raise ValueError(f"{self.backend} is not supported")
 
@@ -159,7 +159,7 @@ class NCFBase(Recommender):
             self.labels: batch_ratings.reshape(-1, 1),
         }
 
-    def _fit_tf(self):
+    def _fit_tf(self, train_set, val_set):
         if not hasattr(self, "graph"):
             self._build_graph_tf()
 
@@ -168,7 +168,7 @@ class NCFBase(Recommender):
             count = 0
             sum_loss = 0
             for i, (batch_users, batch_items, batch_ratings) in enumerate(
-                self.train_set.uir_iter(
+                train_set.uir_iter(
                     self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg
                 )
             ):
@@ -184,7 +184,7 @@ class NCFBase(Recommender):
                     loop.set_postfix(loss=(sum_loss / count))
 
             if self.early_stopping is not None and self.early_stop(
-                **self.early_stopping
+                train_set, val_set, **self.early_stopping
             ):
                 break
         loop.close()
@@ -198,7 +198,7 @@ class NCFBase(Recommender):
     def _build_model_pt(self):
         raise NotImplementedError()
 
-    def _fit_pt(self):
+    def _fit_pt(self, train_set, val_set):
         import torch
         import torch.nn as nn
         from .backend_pt import optimizer_dict
@@ -225,7 +225,7 @@ class NCFBase(Recommender):
             count = 0
             sum_loss = 0
             for batch_id, (batch_users, batch_items, batch_ratings) in enumerate(
-                self.train_set.uir_iter(
+                train_set.uir_iter(
                     self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg
                 )
             ):
@@ -246,6 +246,12 @@ class NCFBase(Recommender):
 
                 if batch_id % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
+
+            if self.early_stopping is not None and self.early_stop(
+                train_set, val_set, **self.early_stopping
+            ):
+                break
+        loop.close()
 
     def _score_pt(self, user_idx, item_idx):
         raise NotImplementedError()
@@ -303,9 +309,17 @@ class NCFBase(Recommender):
 
         return model
 
-    def monitor_value(self):
+    def monitor_value(self, train_set, val_set):
         """Calculating monitored value used for early stopping on validation set (`val_set`).
         This function will be called by `early_stop()` function.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
         -------
@@ -313,7 +327,7 @@ class NCFBase(Recommender):
             Monitored value on validation set.
             Return `None` if `val_set` is `None`.
         """
-        if self.val_set is None:
+        if val_set is None:
             return None
 
         from ...metrics import NDCG
@@ -322,8 +336,8 @@ class NCFBase(Recommender):
         ndcg_100 = ranking_eval(
             model=self,
             metrics=[NDCG(k=100)],
-            train_set=self.train_set,
-            test_set=self.val_set,
+            train_set=train_set,
+            test_set=val_set,
         )[0][0]
 
         return ndcg_100
@@ -345,12 +359,12 @@ class NCFBase(Recommender):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
-        if self.train_set.is_unk_user(user_idx):
+        if not self.knows_user(user_idx):
             raise ScoreException(
                 "Can't make score prediction for (user_id=%d)" % user_idx
             )
 
-        if item_idx is not None and self.train_set.is_unk_item(item_idx):
+        if item_idx is not None and not self.knows_item(item_idx):
             raise ScoreException(
                 "Can't make score prediction for (user_id=%d, item_id=%d)"
                 % (user_idx, item_idx)

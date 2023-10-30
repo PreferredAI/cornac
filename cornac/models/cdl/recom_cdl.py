@@ -78,7 +78,7 @@ class CDL(Recommender):
         The batch size for SGD.
 
     trainable: boolean, optional, default: True
-        When False, the model is not trained and Cornac assumes that the model already 
+        When False, the model is not trained and Cornac assumes that the model already
         pre-trained (U and V are not None).
 
     init_params: dictionary, optional, default: None
@@ -147,8 +147,7 @@ class CDL(Recommender):
         self.V = self.init_params.get("V", None)
 
     def _init(self):
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
-
+        n_users, n_items = self.num_users, self.num_items
         if self.U is None:
             self.U = xavier_uniform((n_users, self.k), self.rng)
         if self.V is None:
@@ -174,22 +173,21 @@ class CDL(Recommender):
         self._init()
 
         if self.trainable:
-            self._fit_cdl()
+            self._fit_cdl(train_set)
 
         return self
 
-    def _fit_cdl(self):
+    def _fit_cdl(self, train_set):
         import tensorflow.compat.v1 as tf
         from .cdl import Model
-        
+
         tf.disable_eager_execution()
 
-        R = self.train_set.csc_matrix  # csc for efficient slicing over items
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+        R = train_set.csc_matrix  # csc for efficient slicing over items
 
-        text_feature = self.train_set.item_text.batch_bow(
-            np.arange(n_items)
-        )  # bag of word feature
+        text_feature = train_set.item_text.batch_bow(
+            np.arange(self.num_items)
+        )  # bag-of-words features
         text_feature = (text_feature - text_feature.min()) / (
             text_feature.max() - text_feature.min()
         )  # normalization
@@ -204,8 +202,8 @@ class CDL(Recommender):
         )
         tf.set_random_seed(self.seed)
         model = Model(
-            n_users=n_users,
-            n_items=n_items,
+            n_users=self.num_users,
+            n_items=self.num_items,
             n_vocab=self.vocab_size,
             k=self.k,
             layers=layer_sizes,
@@ -230,12 +228,12 @@ class CDL(Recommender):
             loop = trange(self.max_iter, disable=not self.verbose)
             for _ in loop:
                 corruption_mask = self.rng.binomial(
-                    1, 1 - self.corruption_rate, size=(n_items, self.vocab_size)
+                    1, 1 - self.corruption_rate, size=(self.num_items, self.vocab_size)
                 )
                 sum_loss = 0
                 count = 0
                 for i, batch_ids in enumerate(
-                    self.train_set.item_iter(self.batch_size, shuffle=True)
+                    train_set.item_iter(self.batch_size, shuffle=True)
                 ):
                     batch_R = R[:, batch_ids]
                     batch_C = np.ones(batch_R.shape) * self.b
@@ -283,17 +281,14 @@ class CDL(Recommender):
             Relative scores that the user gives to the item or to all known items
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and not self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)

@@ -116,13 +116,14 @@ class SBPR(BPR):
         self.lambda_v = lambda_v
         self.lambda_b = lambda_b
 
-    def _prepare_social_data(self):
-        X = self.train_set.matrix # csr_matrix
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
+    def _prepare_social_data(self, train_set):
+        X = train_set.matrix # csr_matrix
+        n_users, n_items = train_set.num_users, train_set.num_items
 
         # construct social feedback in the sparse format
-        (rid, cid, val) = self.train_set.user_graph.get_train_triplet(
-            self.train_set.user_indices, self.train_set.user_indices
+        train_user_indices = set(train_set.uir_tuple[0])
+        (rid, cid, val) = train_set.user_graph.get_train_triplet(
+            train_user_indices, train_user_indices
         )
         Y = csr_matrix((val, (rid, cid)), shape=(n_users, n_users))
         social_item_ids = []
@@ -197,7 +198,7 @@ class SBPR(BPR):
         """
         cdef:
             long num_samples = len(user_ids)
-            long num_items = self.train_set.num_items
+            long num_items = self.num_items
             long s, i_index, k_index, skipped = 0
             int f, u_id, i_id, j_id, k_id, n_social_items, thread_id
             floating u_temp, k_rand

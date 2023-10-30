@@ -132,7 +132,7 @@ class HPF(Recommender):
                 "L_r": self.Lr,
             }
 
-            X = sp.csc_matrix(self.train_set.matrix)
+            X = train_set.csc_matrix
             # recover the striplet sparse format from csc sparse matrix X (needed to feed c++)
             (rid, cid, val) = sp.find(X)
             val = np.array(val, dtype="float32")
@@ -146,11 +146,23 @@ class HPF(Recommender):
 
             if self.hierarchical:
                 res = hpf.hpf(
-                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.seed, init_params
+                    tX,
+                    X.shape[0],
+                    X.shape[1],
+                    self.k,
+                    self.max_iter,
+                    self.seed,
+                    init_params,
                 )
             else:
                 res = hpf.pf(
-                    tX, X.shape[0], X.shape[1], self.k, self.max_iter, self.seed, init_params
+                    tX,
+                    X.shape[0],
+                    X.shape[1],
+                    self.k,
+                    self.max_iter,
+                    self.seed,
+                    init_params,
                 )
             self.Theta = np.asarray(res["Z"])
             self.Beta = np.asarray(res["W"])
@@ -185,7 +197,7 @@ class HPF(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 u_representation = np.ones(self.k)
             else:
                 u_representation = self.Theta[user_idx, :]
@@ -194,9 +206,7 @@ class HPF(Recommender):
             known_item_scores = np.array(known_item_scores, dtype="float64").flatten()
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
@@ -204,5 +214,4 @@ class HPF(Recommender):
 
             user_pred = self.Beta[item_idx, :].dot(self.Theta[user_idx, :])
             user_pred = np.array(user_pred, dtype="float64").flatten()[0]
-
             return user_pred

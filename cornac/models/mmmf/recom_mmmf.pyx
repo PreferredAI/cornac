@@ -108,7 +108,7 @@ class MMMF(BPR):
         """
         cdef:
             long num_samples = len(user_ids), s, i_index, j_index, correct = 0, skipped = 0
-            long num_items = self.train_set.num_items
+            long num_items = self.num_items
             integral f, i_id, j_id, thread_id
             floating z, score, temp
 

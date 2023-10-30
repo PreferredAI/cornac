@@ -93,23 +93,23 @@ class CVAECF(Recommender):
     """
 
     def __init__(
-            self,
-            name="CVAECF",
-            z_dim=20,
-            h_dim=20,
-            autoencoder_structure=[20],
-            act_fn="tanh",
-            likelihood="mult",
-            n_epochs=100,
-            batch_size=128,
-            learning_rate=0.001,
-            beta=1.0,
-            alpha_1=1.0,
-            alpha_2=1.0,
-            trainable=True,
-            verbose=False,
-            seed=None,
-            use_gpu=False,
+        self,
+        name="CVAECF",
+        z_dim=20,
+        h_dim=20,
+        autoencoder_structure=[20],
+        act_fn="tanh",
+        likelihood="mult",
+        n_epochs=100,
+        batch_size=128,
+        learning_rate=0.001,
+        beta=1.0,
+        alpha_1=1.0,
+        alpha_2=1.0,
+        trainable=True,
+        verbose=False,
+        seed=None,
+        use_gpu=False,
     ):
         Recommender.__init__(self, name=name, trainable=trainable, verbose=verbose)
         self.z_dim = z_dim
@@ -152,14 +152,17 @@ class CVAECF(Recommender):
             else torch.device("cpu")
         )
 
+        self.r_mat = train_set.matrix
+        self.u_adj_mat = train_set.user_graph.matrix
+
         if self.trainable:
             if self.seed is not None:
                 torch.manual_seed(self.seed)
                 torch.cuda.manual_seed(self.seed)
 
             if not hasattr(self, "cvae"):
-                n_items = train_set.matrix.shape[1]
-                n_users = train_set.matrix.shape[0]
+                n_items = self.r_mat.shape[1]
+                n_users = self.r_mat.shape[0]
                 self.cvae = CVAE(
                     self.z_dim,
                     self.h_dim,
@@ -171,7 +174,7 @@ class CVAECF(Recommender):
 
             learn(
                 self.cvae,
-                self.train_set,
+                train_set,
                 n_epochs=self.n_epochs,
                 batch_size=self.batch_size,
                 learn_rate=self.learning_rate,
@@ -208,17 +211,17 @@ class CVAECF(Recommender):
         import torch
 
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
 
-            y_u = self.train_set.matrix[user_idx].copy()
+            y_u = self.r_mat[user_idx].copy()
             y_u.data = np.ones(len(y_u.data))
             y_u = torch.tensor(y_u.A, dtype=torch.float32, device=self.device)
             z_u, _ = self.cvae.encode_qz(y_u)
 
-            x_u = self.train_set.user_graph.matrix[user_idx].copy()
+            x_u = self.u_adj_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
             x_u = torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
             h_u, _ = self.cvae.encode_qhx(x_u)
@@ -227,24 +230,24 @@ class CVAECF(Recommender):
 
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                    item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
 
-            y_u = self.train_set.matrix[user_idx].copy()
+            y_u = self.r_mat[user_idx].copy()
             y_u.data = np.ones(len(y_u.data))
             y_u = torch.tensor(y_u.A, dtype=torch.float32, device=self.device)
             z_u, _ = self.cvae.encode_qz(y_u)
 
-            x_u = self.train_set.user_graph.matrix[user_idx].copy()
+            x_u = self.u_adj_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
             x_u = torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
             h_u, _ = self.cvae.encode_qhx(x_u)
 
-            user_pred = self.cvae.decode(z_u, h_u).data.cpu().numpy().flatten()[item_idx]
+            user_pred = (
+                self.cvae.decode(z_u, h_u).data.cpu().numpy().flatten()[item_idx]
+            )
 
             return user_pred

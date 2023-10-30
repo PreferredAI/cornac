@@ -122,7 +122,7 @@ class WBPR(BPR):
         if not self.trainable:
             return self
         
-        X, user_counts, user_ids = self._prepare_data()
+        X, user_counts, user_ids = self._prepare_data(train_set)
 
         cdef:
             int num_threads = self.num_threads

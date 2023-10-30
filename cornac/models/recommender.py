@@ -27,26 +27,93 @@ from ..utils.common import intersects, clip
 
 
 class Recommender:
-    """Generic class for a recommender model. All recommendation models should inherit from this class
+    """Generic class for a recommender model. All recommendation models should inherit from this class.
 
     Parameters
     ----------------
     name: str, required
-        The name of the recommender model
+        Name of the recommender model.
 
     trainable: boolean, optional, default: True
-        When False, the model is not trainable
+        When False, the model is not trainable.
 
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+
+    Attributes
+    ----------
+    num_users: int
+        Number of users in training data.
+
+    num_items: int
+        Number of items in training data.
+        
+    total_users: int
+        Number of users in training, validation, and test data. 
+        In other words, this includes unknown/unseen users.
+
+    total_items: int
+        Number of items in training, validation, and test data. 
+        In other words, this includes unknown/unseen items.
+        
+    uid_map: int
+        Global mapping of user ID-index.
+
+    iid_map: int
+        Global mapping of item ID-index.
+
+    max_rating: float
+        Maximum value among the rating observations.
+
+    min_rating: float
+        Minimum value among the rating observations.
+
+    global_mean: float
+        Average value over the rating observations.
     """
 
     def __init__(self, name, trainable=True, verbose=False):
         self.name = name
         self.trainable = trainable
         self.verbose = verbose
-        self.train_set = None
-        self.val_set = None
-        # attributes to be ignored when being saved
-        self.ignored_attrs = ["train_set", "val_set"]
+
+        self.ignored_attrs = []  # attributes to be ignored when saving model
+
+        # useful information getting from train_set for prediction
+        self.num_users = None
+        self.num_items = None
+        self.uid_map = None
+        self.iid_map = None
+        self.max_rating = None
+        self.min_rating = None
+        self.global_mean = None
+
+        self.__user_ids = None
+        self.__item_ids = None
+
+    @property
+    def total_users(self):
+        """Total number of users including users in test and validation if exists"""
+        return len(self.uid_map) if self.uid_map is not None else self.num_users
+
+    @property
+    def total_items(self):
+        """Total number of items including users in test and validation if exists"""
+        return len(self.iid_map) if self.iid_map is not None else self.num_items
+
+    @property
+    def user_ids(self):
+        """Return the list of raw user IDs"""
+        if self.__user_ids is None:
+            self.__user_ids = list(self.uid_map.keys())
+        return self.__user_ids
+
+    @property
+    def item_ids(self):
+        """Return the list of raw item IDs"""
+        if self.__item_ids is None:
+            self.__item_ids = list(self.iid_map.keys())
+        return self.__item_ids
 
     def reset_info(self):
         self.best_value = -np.Inf
@@ -117,11 +184,9 @@ class Recommender:
         model_file = os.path.join(model_dir, "{}.pkl".format(timestamp))
 
         saved_model = copy.deepcopy(self)
-
         pickle.dump(
             saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
         )
-
         if self.verbose:
             print("{} model is saved to {}".format(self.name, model_file))
 
@@ -153,7 +218,6 @@ class Recommender:
         model = pickle.load(open(model_file, "rb"))
         model.trainable = trainable
         model.load_from = model_file  # for further loading
-
         return model
 
     def fit(self, train_set, val_set=None):
@@ -172,9 +236,50 @@ class Recommender:
         self : object
         """
         self.reset_info()
-        self.train_set = train_set.reset()
-        self.val_set = None if val_set is None else val_set.reset()
+        train_set.reset()
+        if val_set is not None:
+            val_set.reset()
+
+        # get some useful information for prediction
+        self.num_users = train_set.num_users
+        self.num_items = train_set.num_items
+        self.uid_map = train_set.uid_map
+        self.iid_map = train_set.iid_map
+        self.min_rating = train_set.min_rating
+        self.max_rating = train_set.max_rating
+        self.global_mean = train_set.global_mean
+
         return self
+
+    def knows_user(self, user_idx):
+        """Return whether the model knows user by its index
+
+        Parameters
+        ----------
+        user_idx: int, required
+            The index of the user (not the original user ID).
+
+        Returns
+        -------
+        res : bool
+            True if model knows the user from traning data, False otherwise.
+        """
+        return user_idx >= 0 and user_idx < self.num_users
+
+    def knows_item(self, item_idx):
+        """Return whether the model knows item by its index
+
+        Parameters
+        ----------
+        item_idx: int, required
+            The index of the item (not the original item ID).
+
+        Returns
+        -------
+        res : bool
+            True if model knows the item from traning data, False otherwise.
+        """
+        return item_idx >= 0 and item_idx < self.num_items
 
     def transform(self, test_set):
         """Transform test set into cached results accelerating the score function.
@@ -211,7 +316,7 @@ class Recommender:
 
     def default_score(self):
         """Overwrite this function if your algorithm has special treatment for cold-start problem"""
-        return self.train_set.global_mean
+        return self.global_mean
 
     def rate(self, user_idx, item_idx, clipping=True):
         """Give a rating score between pair of user and item
@@ -238,11 +343,7 @@ class Recommender:
             rating_pred = self.default_score()
 
         if clipping:
-            rating_pred = clip(
-                values=rating_pred,
-                lower_bound=self.train_set.min_rating,
-                upper_bound=self.train_set.max_rating,
-            )
+            rating_pred = clip(rating_pred, self.min_rating, self.max_rating)
 
         return rating_pred
 
@@ -260,42 +361,97 @@ class Recommender:
 
         Returns
         -------
-        (item_rank, item_scores): tuple
-            `item_rank` contains item indices being ranked by their scores.
-            `item_scores` contains scores of items corresponding to their indices in the `item_indices` input.
+        (ranked_items, item_scores): tuple
+            `ranked_items` contains item indices being ranked by their scores.
+            `item_scores` contains scores of items corresponding to index in `item_indices` input.
+
         """
         # obtain item scores from the model
         try:
             known_item_scores = self.score(user_idx)
         except ScoreException:
-            known_item_scores = (
-                np.ones(self.train_set.total_items) * self.default_score()
-            )
+            known_item_scores = np.ones(self.total_items) * self.default_score()
 
         # check if the returned scores also cover unknown items
         # if not, all unknown items will be given the MIN score
-        if len(known_item_scores) == self.train_set.total_items:
+        if len(known_item_scores) == self.total_items:
             all_item_scores = known_item_scores
         else:
-            all_item_scores = np.ones(self.train_set.total_items) * np.min(
-                known_item_scores
-            )
-            all_item_scores[: self.train_set.num_items] = known_item_scores
+            all_item_scores = np.ones(self.total_items) * np.min(known_item_scores)
+            all_item_scores[: self.num_items] = known_item_scores
 
         # rank items based on their scores
         if item_indices is None:
-            item_scores = all_item_scores[: self.train_set.num_items]
-            item_rank = item_scores.argsort()[::-1]
+            item_scores = all_item_scores[: self.num_items]
+            ranked_items = item_scores.argsort()[::-1]
         else:
             item_scores = all_item_scores[item_indices]
-            item_rank = np.array(item_indices)[item_scores.argsort()[::-1]]
+            ranked_items = np.array(item_indices)[item_scores.argsort()[::-1]]
 
-        return item_rank, item_scores
+        return ranked_items, item_scores
 
-    def monitor_value(self):
+    def recommend(self, user_id, k=-1, remove_seen=False, train_set=None):
+        """Generate top-K item recommendations for a given user. Key difference between
+        this function and rank() function is that rank() function works with mapped
+        user/item index while this function works with original user/item ID. This helps
+        hide the abstraction of ID-index mapping, and make model usage and deployment cleaner.
+
+        Parameters
+        ----------
+        user_id: str, required
+            The original ID of the user.
+
+        k: int, optional, default=-1
+            Cut-off length for recommendations, k=-1 will return ranked list of all items.
+
+        remove_seen: bool, optional, default: False
+            Remove seen/known items during training and validation from output recommendations.
+
+        train_set: :obj:`cornac.data.Dataset`, optional, default: None
+            Training dataset needs to be provided in order to remove seen items.
+
+        Returns
+        -------
+        recommendations: list
+            Recommended items in the form of their original IDs.
+        """
+        user_idx = self.uid_map.get(user_id, -1)
+        if user_idx == -1:
+            raise ValueError(f"{user_id} is unknown to the model.")
+
+        if k < -1 or k > self.total_items:
+            raise ValueError(
+                f"k={k} is invalid, there are {self.total_users} users in total."
+            )
+
+        item_indices = np.arange(self.total_items)
+        if remove_seen:
+            seen_mask = np.zeros(len(item_indices), dtype="bool")
+            if train_set is None:
+                raise ValueError("train_set must be provided to remove seen items.")
+            if user_idx < train_set.csr_matrix.shape[0]:
+                seen_mask[train_set.csr_matrix.getrow(user_idx).indices] = True
+                item_indices = item_indices[~seen_mask]
+
+        item_rank, _ = self.rank(user_idx, item_indices)
+        if k != -1:
+            item_rank = item_rank[:k]
+
+        recommendations = [self.item_ids[i] for i in item_rank]
+        return recommendations
+
+    def monitor_value(self, train_set, val_set):
         """Calculating monitored value used for early stopping on validation set (`val_set`).
         This function will be called by `early_stop()` function.
         Note: `val_set` could be `None` thus it needs to be checked before usage.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
 
         Returns
         -------
@@ -303,11 +459,17 @@ class Recommender:
         """
         raise NotImplementedError()
 
-    def early_stop(self, min_delta=0.0, patience=0):
+    def early_stop(self, train_set, val_set, min_delta=0.0, patience=0):
         """Check if training should be stopped when validation loss has stopped improving.
 
         Parameters
         ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
         min_delta: float, optional, default: 0.
             The minimum increase in monitored value on validation set to be considered as improvement,
             i.e. an increment of less than `min_delta` will count as no improvement.
@@ -322,7 +484,7 @@ class Recommender:
             otherwise return `False`.
         """
         self.current_epoch += 1
-        current_value = self.monitor_value()
+        current_value = self.monitor_value(train_set, val_set)
         if current_value is None:
             return False
 

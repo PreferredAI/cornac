@@ -204,21 +204,21 @@ class ComparERObj(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init_params()
+        self._init_params(train_set)
 
         if not self.trainable:
             return
 
-        (A, X, Y, earlier_indices, later_indices, aspect_indices, pair_counts) = self._build_matrices(self.train_set)
+        (A, X, Y, earlier_indices, later_indices, aspect_indices, pair_counts) = self._build_matrices(train_set)
         A_user_counts = np.ediff1d(A.indptr)
         A_item_counts = np.ediff1d(A.tocsc().indptr)
-        A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(np.int32)
+        A_uids = np.repeat(np.arange(train_set.num_users), A_user_counts).astype(np.int32)
         X_user_counts = np.ediff1d(X.indptr)
         X_aspect_counts = np.ediff1d(X.tocsc().indptr)
-        X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(np.int32)
+        X_uids = np.repeat(np.arange(train_set.num_users), X_user_counts).astype(np.int32)
         Y_item_counts = np.ediff1d(Y.indptr)
         Y_aspect_counts = np.ediff1d(Y.tocsc().indptr)
-        Y_iids = np.repeat(np.arange(self.train_set.num_items), Y_item_counts).astype(np.int32)
+        Y_iids = np.repeat(np.arange(train_set.num_items), Y_item_counts).astype(np.int32)
 
         self._fit_efm(self.num_threads,
                       A.data, A_uids, A.indices, A_user_counts, A_item_counts,
@@ -227,22 +227,23 @@ class ComparERObj(Recommender):
                       earlier_indices, later_indices, aspect_indices, pair_counts,
                       self.U1, self.U2, self.V, self.H1, self.H2)
 
-    def _init_params(self):
+    def _init_params(self, train_set):
         from ...utils import get_rng
         from ...utils.init_utils import uniform
 
         rng = get_rng(self.seed)
         num_factors = self.num_explicit_factors + self.num_latent_factors
         high = np.sqrt(self.rating_scale / num_factors)
-        self.U1 = self.init_params.get('U1', uniform((self.train_set.num_users, self.num_explicit_factors),
+        self.num_aspects = train_set.sentiment.num_aspects
+        self.U1 = self.init_params.get('U1', uniform((self.num_users, self.num_explicit_factors),
                                                      high=high, random_state=rng))
-        self.U2 = self.init_params.get('U2', uniform((self.train_set.num_items, self.num_explicit_factors),
+        self.U2 = self.init_params.get('U2', uniform((self.num_items, self.num_explicit_factors),
                                                      high=high, random_state=rng))
-        self.V = self.init_params.get('V', uniform((self.train_set.sentiment.num_aspects, self.num_explicit_factors),
+        self.V = self.init_params.get('V', uniform((self.num_aspects, self.num_explicit_factors),
                                                    high=high, random_state=rng))
-        self.H1 = self.init_params.get('H1', uniform((self.train_set.num_users, self.num_latent_factors),
+        self.H1 = self.init_params.get('H1', uniform((self.num_users, self.num_latent_factors),
                                                      high=high, random_state=rng))
-        self.H2 = self.init_params.get('H2', uniform((self.train_set.num_items, self.num_latent_factors),
+        self.H2 = self.init_params.get('H2', uniform((self.num_items, self.num_latent_factors),
                                                      high=high, random_state=rng))
 
     def get_params(self):
@@ -272,9 +273,9 @@ class ComparERObj(Recommender):
             int DOM_MODEL = MODEL_TYPES["Dominant"]
             int AROUND_MODEL = MODEL_TYPES["Around"]
 
-            int num_users = self.train_set.num_users
-            int num_items = self.train_set.num_items
-            int num_aspects = self.train_set.sentiment.num_aspects
+            int num_users = self.num_users
+            int num_items = self.num_items
+            int num_aspects = self.num_aspects
             int num_explicit_factors = self.num_explicit_factors
             int num_latent_factors = self.num_latent_factors
             int min_pair_freq = self.min_pair_freq
@@ -304,7 +305,6 @@ class ComparERObj(Recommender):
             np.ndarray[np.float32_t, ndim=2] H2_denominator = np.empty((num_items, num_latent_factors), dtype=np.float32)
 
         for t in range(1, self.max_iter + 1):
-
             loss = 0.
             aspect_bpr_loss = 0.
             correct = 0
@@ -460,7 +460,7 @@ class ComparERObj(Recommender):
 
         if data_set is not None:
             for uid, iid, rating in data_set.uir_iter():
-                if self.train_set.is_unk_user(uid) or self.train_set.is_unk_item(iid):
+                if not (self.knows_user(uid) and self.knows_item(iid)):
                     continue
                 ratings.append(rating)
                 map_uid.append(uid)
@@ -469,7 +469,7 @@ class ComparERObj(Recommender):
         map_uid = np.asarray(map_uid, dtype=np.int32).flatten()
         map_iid = np.asarray(map_iid, dtype=np.int32).flatten()
         rating_matrix = sp.csr_matrix((ratings, (map_uid, map_iid)),
-                                      shape=(self.train_set.num_users, self.train_set.num_items))
+                                      shape=(self.num_users, self.num_items))
 
         if self.verbose:
             print('Building rating matrix completed in %d s' % (time() - start_time))
@@ -485,7 +485,7 @@ class ComparERObj(Recommender):
                 window = len(item_ids) if self.enum_window is None else min(self.enum_window, len(item_ids))
                 for sub_item_ids in [item_ids[i:i+window] for i in range(len(item_ids) - window + 1)]:
                     for earlier_item_idx, later_item_idx in combinations(sub_item_ids, 2):
-                        if self.train_set.is_unk_item(earlier_item_idx) or self.train_set.is_unk_item(later_item_idx):
+                        if not (self.knows_item(earlier_item_idx) and self.knows_item(later_item_idx)):
                             continue
                         chrono_purchased_pairs[(earlier_item_idx, later_item_idx)] += 1
 
@@ -537,7 +537,7 @@ class ComparERObj(Recommender):
         map_uid = []
         map_aspect_id = []
         for uid, sentiment_tup_ids_by_item in sentiment.user_sentiment.items():
-            if self.train_set.is_unk_user(uid):
+            if not self.knows_user(uid):
                 continue
             user_aspects = [tup[0]
                             for tup_id in sentiment_tup_ids_by_item.values()
@@ -551,7 +551,7 @@ class ComparERObj(Recommender):
         map_uid = np.asarray(map_uid, dtype=np.int32).flatten()
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int32).flatten()
         X = sp.csr_matrix((attention_scores, (map_uid, map_aspect_id)),
-                          shape=(self.train_set.num_users, sentiment.num_aspects))
+                          shape=(self.num_users, self.num_aspects))
 
         if self.verbose:
             print('Building user aspect attention matrix completed in %d s' % (time() - start_time))
@@ -564,7 +564,7 @@ class ComparERObj(Recommender):
         map_iid = []
         map_aspect_id = []
         for iid, sentiment_tup_ids_by_user in sentiment.item_sentiment.items():
-            if self.train_set.is_unk_item(iid):
+            if not self.knows_item(iid):
                 continue
             item_aspects = [tup[0]
                             for tup_id in sentiment_tup_ids_by_user.values()
@@ -586,7 +586,7 @@ class ComparERObj(Recommender):
         map_iid = np.asarray(map_iid, dtype=np.int32).flatten()
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int32).flatten()
         Y = sp.csr_matrix((quality_scores, (map_iid, map_aspect_id)),
-                          shape=(self.train_set.num_items, sentiment.num_aspects))
+                          shape=(self.num_items, self.num_aspects))
 
         if self.verbose:
             print('Building item aspect quality matrix completed in %d s' % (time() - start_time))
@@ -594,7 +594,7 @@ class ComparERObj(Recommender):
         return Y
 
     def _build_matrices(self, data_set):
-        sentiment = self.train_set.sentiment
+        sentiment = data_set.sentiment
         A = self._build_rating_matrix(data_set)
         X = self._build_user_attention_matrix(data_set, sentiment)
         Y = self._build_item_quality_matrix(data_set, sentiment)
@@ -626,7 +626,7 @@ class ComparERObj(Recommender):
         
         A = self._build_rating_matrix(self.val_set)
         A_user_counts = np.ediff1d(A.indptr)
-        A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
+        A_uids = np.repeat(np.arange(self.num_users), A_user_counts).astype(A.indices.dtype)
 
         return -self._get_loss(self.num_threads,
                       A.data.astype(np.float32), A_uids, A.indices,
@@ -651,12 +651,12 @@ class ComparERObj(Recommender):
 
         """
         if item_id is None:
-            if self.train_set.is_unk_user(user_id):
+            if not self.knows_user(user_id):
                 raise ScoreException("Can't make score prediction for (user_id=%d" & user_id)
             item_scores = self.U2.dot(self.U1[user_id, :]) + self.H2.dot(self.H1[user_id, :])
             return item_scores
         else:
-            if self.train_set.is_unk_user(user_id) or self.train_set.is_unk_item(item_id):
+            if not (self.knows_user(user_id) and self.knows_item(item_id)):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
             item_score = self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
             return item_score
@@ -690,9 +690,9 @@ class ComparERObj(Recommender):
             item_scores = item_scores
             item_rank = item_scores.argsort()[::-1]
         else:
-            num_items = max(self.train_set.num_items, max(item_ids) + 1)
+            num_items = max(self.num_items, max(item_ids) + 1)
             item_scores = np.ones(num_items) * np.min(item_scores)
-            item_scores[:self.train_set.num_items] = item_scores
+            item_scores[:self.num_items] = item_scores
             item_rank = item_scores.argsort()[::-1]
             item_rank = intersects(item_rank, item_ids, assume_unique=True)
             item_scores = item_scores[item_ids]

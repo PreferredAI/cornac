@@ -215,7 +215,7 @@ class FM(Recommender):
         self.v = self.init_params.get('v', None)
     
     def _init(self):
-        num_features = self.train_set.total_users + self.train_set.total_items
+        num_features = self.total_users + self.total_items
 
         if self.w0 is None:
             self.w0 = 0.0
@@ -260,12 +260,12 @@ class FM(Recommender):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def _fit_libfm(self, train_set, val_set, double[:] w, double[:, :] v):
-        cdef unsigned int num_feature = self.train_set.total_users + self.train_set.total_items
+        cdef unsigned int num_feature = self.total_users + self.total_items
 
-        (uid, iid, val) = self.train_set.uir_tuple
+        (uid, iid, val) = train_set.uir_tuple
         cdef Data *train = _prepare_data(
             uid, 
-            iid + self.train_set.total_users, 
+            iid + self.total_users, 
             val.astype(np.float32), 
             num_feature, 
             self.method in ["als", "mcmc"],
@@ -280,7 +280,7 @@ class FM(Recommender):
             (uid, iid, val) = val_set.uir_tuple
             validation = _prepare_data(
                 uid, 
-                iid + self.train_set.total_users,
+                iid + self.total_users,
                 val.astype(np.float32), 
                 num_feature, 
                 self.method in ["als", "mcmc"],
@@ -345,8 +345,8 @@ class FM(Recommender):
                 (<fm_learn_mcmc*>fml).num_eval_cases = validation.num_cases
         
         fml.fm = &fm
-        fml.max_target = self.train_set.max_rating
-        fml.min_target = self.train_set.min_rating
+        fml.max_target = self.max_rating
+        fml.min_target = self.min_rating
         fml.meta = meta
         fml.task = 0  # regression
 
@@ -385,7 +385,7 @@ class FM(Recommender):
 
     def _fm_predict(self, user_idx, item_idx):
         uid = user_idx
-        iid = item_idx + self.train_set.total_users
+        iid = item_idx + self.total_users
         score = 0.0
         if self.k0:
             score += self.w0
@@ -418,9 +418,9 @@ class FM(Recommender):
         """
         if item_idx is None:
             known_item_scores = np.fromiter(
-                (self._fm_predict(user_idx, i) for i in range(self.train_set.total_items)), 
+                (self._fm_predict(user_idx, i) for i in range(self.total_items)), 
                 dtype=np.double, 
-                count=self.train_set.total_items
+                count=self.total_items
             )
             return known_item_scores
         else:

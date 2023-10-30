@@ -25,38 +25,38 @@ def ranking_eval(
     props=None,
 ):
     """Evaluate model on provided ranking metrics.
-    
+
     Parameters
     ----------
     model: :obj:`cornac.models.Recommender`, required
         Recommender model to be evaluated.
-        
+
     metrics: :obj:`iterable`, required
         List of rating metrics :obj:`cornac.metrics.RankingMetric`.
-    
+
     train_set: :obj:`cornac.data.Dataset`, required
         Dataset to be used for model training. This will be used to exclude
         observations already appeared during training.
-    
+
     test_set: :obj:`cornac.data.Dataset`, required
         Dataset to be used for evaluation.
-    
+
     val_set: :obj:`cornac.data.Dataset`, optional, default: None
         Dataset to be used for model selection. This will be used to exclude
         observations already appeared during validation.
-        
+
     rating_threshold: float, optional, default: 1.0
         The threshold to convert ratings into positive or negative feedback.
-        
+
     exclude_unknowns: bool, optional, default: True
         Ignore unknown users and items during evaluation.
-        
+
     verbose: bool, optional, default: False
         Output evaluation progress.
-        
+
     props: dictionary, optional, default: None
         items propensity scores
-        
+
     Returns
     -------
     res: (List, List)
@@ -82,12 +82,13 @@ def ranking_eval(
             if rating >= rating_threshold
         ]
 
-    for user_idx in tqdm.tqdm(test_set.user_indices, disable=not verbose, miniters=100):
+    test_user_indices = set(test_set.uir_tuple[0])
+    for user_idx in tqdm.tqdm(test_user_indices, disable=not verbose, miniters=100):
         test_pos_items = pos_items(gt_mat.getrow(user_idx))
         if len(test_pos_items) == 0:
             continue
 
-        u_gt_pos = np.zeros(test_set.num_items, dtype='float')
+        u_gt_pos = np.zeros(test_set.num_items, dtype="float")
         u_gt_pos[test_pos_items] = 1
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
@@ -97,7 +98,7 @@ def ranking_eval(
             else pos_items(train_mat.getrow(user_idx))
         )
 
-        u_gt_neg = np.ones(test_set.num_items, dtype='int')
+        u_gt_neg = np.ones(test_set.num_items, dtype="int")
         u_gt_neg[test_pos_items + val_pos_items + train_pos_items] = 0
 
         item_indices = None if exclude_unknowns else np.arange(test_set.num_items)
@@ -256,7 +257,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
             item_freq[i] += 1
 
         # fit the exponential param
-        data = np.array([e for e in item_freq.values()], dtype='float')
+        data = np.array([e for e in item_freq.values()], dtype="float")
         results = powerlaw.Fit(data, discrete=True, fit_method="Likelihood")
         alpha = results.power_law.alpha
         fmin = results.power_law.xmin
@@ -276,9 +277,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
         self.stratified_sets = {}
 
         # match the corresponding propensity score for each feedback
-        test_props = np.array(
-            [self.props[i] for u, i, r in test_data], dtype='float'
-        )
+        test_props = np.array([self.props[i] for u, i, r in test_data], dtype="float")
 
         # stratify
         minp = min(test_props) - 0.01 * min(test_props)
@@ -338,11 +337,11 @@ class PropensityStratifiedEvaluation(BaseMethod):
         metrics: :obj:`iterable`
             List of metrics.
 
-        user_based: bool, required 
-            Evaluation strategy for the rating metrics. Whether results 
+        user_based: bool, required
+            Evaluation strategy for the rating metrics. Whether results
             are averaging based on number of users or number of ratings.
 
-        show_validation: bool, optional, default: True 
+        show_validation: bool, optional, default: True
             Whether to show the results on validation set (if exists).
 
         Returns
