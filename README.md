@@ -105,17 +105,17 @@ For more details, please take a look at our [examples](examples) as well as [tut
 
 ## Simple model serving
 
-Here we provide a simple way to serve Cornac model with a standalone service. This is by no means an optimized way for model deployment in production, though it is very handy to test your model or create a demo application. Supposed that we use the trained BPR model from previous example, we first need to save the model:
+Here, we provide a simple way to serve a Cornac model by launching a standalone web service. While this will not be an optimized service for model deployment in production, it is quite handy for testing or creating a demo application. Supposed that we use the trained BPR from previous example, we first need to save the model:
 ```python
 bpr.save("save_dir")
 ```
-The model can be served easily by triggering Cornac serving module:
+The model can be deployed easily by triggering Cornac serving module:
 ```bash
 $ python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.BPR
 
 # Serving BPR at port 8080
 ```
-Here you go, your model is now served. Let's get `top-5` item recommendations for the user `"63"`:
+Here you go, your model service is now ready. Let's get `top-5` item recommendations for the user `"63"`:
 ```bash
 $ curl http://127.0.0.1:8080/recommend \
     --request POST \
