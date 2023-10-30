@@ -204,7 +204,7 @@ class ComparERObj(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init_params()
+        self._init_params(train_set)
 
         if not self.trainable:
             return
