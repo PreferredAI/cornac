@@ -368,7 +368,7 @@ class ComparERSub(MTER):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init()
+        self._init(train_set)
  
         if not self.trainable:
             return self
