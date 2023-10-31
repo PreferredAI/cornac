@@ -64,14 +64,13 @@ class Dataset(object):
 
     global_mean: float
         Average value over the rating observations.
-        
+
     uir_tuple: tuple
         Tuple three numpy arrays (user_indices, item_indices, rating_values).
 
     timestamps: numpy.array
         Numpy array of timestamps corresponding to feedback in `uir_tuple`.
         This is only available when input data is in `UIRT` format.
-
     """
 
     def __init__(
@@ -99,12 +98,8 @@ class Dataset(object):
         self.min_rating = np.min(r_values)
         self.global_mean = np.mean(r_values)
 
-        self.__total_users = None
-        self.__total_items = None
         self.__user_ids = None
         self.__item_ids = None
-        self.__user_indices = None
-        self.__item_indices = None
 
         self.__user_data = None
         self.__item_data = None
@@ -115,46 +110,18 @@ class Dataset(object):
         self.__dok_matrix = None
 
     @property
-    def total_users(self):
-        """Total number of users including test and validation users if exists"""
-        return self.__total_users if self.__total_users is not None else self.num_users
-
-    @total_users.setter
-    def total_users(self, input_value):
-        """Set total number of users for the dataset"""
-        assert input_value >= self.num_users
-        self.__total_users = input_value
-
-    @property
-    def total_items(self):
-        """Total number of items including test and validation items if exists"""
-        return self.__total_items if self.__total_items is not None else self.num_items
-
-    @total_items.setter
-    def total_items(self, input_value):
-        """Set total number of items for the dataset"""
-        assert input_value >= self.num_items
-        self.__total_items = input_value
-
-    @property
     def user_ids(self):
-        """An iterator over the raw user ids"""
-        return self.uid_map.keys()
+        """Return the list of raw user ids"""
+        if self.__user_ids is None:
+            self.__user_ids = list(self.uid_map.keys())
+        return self.__user_ids
 
     @property
     def item_ids(self):
-        """An iterator over the raw item ids"""
-        return self.iid_map.keys()
-
-    @property
-    def user_indices(self):
-        """An iterator over the user indices"""
-        return self.uid_map.values()
-
-    @property
-    def item_indices(self):
-        """An iterator over the item indices"""
-        return self.iid_map.values()
+        """Return the list of raw item ids"""
+        if self.__item_ids is None:
+            self.__item_ids = list(self.iid_map.keys())
+        return self.__item_ids
 
     @property
     def user_data(self):
@@ -185,7 +152,7 @@ class Dataset(object):
     @property
     def chrono_user_data(self):
         """Data organized by user sorted chronologically (timestamps required).
-        A dictionary where keys are users, values are tuples of three chronologically 
+        A dictionary where keys are users, values are tuples of three chronologically
         sorted lists (items, ratings, timestamps) interacted by the corresponding users.
         """
         if self.timestamps is None:
@@ -214,7 +181,7 @@ class Dataset(object):
     @property
     def chrono_item_data(self):
         """Data organized by item sorted chronologically (timestamps required).
-        A dictionary where keys are items, values are tuples of three chronologically 
+        A dictionary where keys are items, values are tuples of three chronologically
         sorted lists (users, ratings, timestamps) interacted with the corresponding items.
         """
         if self.timestamps is None:
@@ -272,7 +239,7 @@ class Dataset(object):
         """The user-item interaction matrix in DOK sparse format"""
         if self.__dok_matrix is None:
             self.__dok_matrix = dok_matrix(
-                (self.num_users, self.num_items), dtype='float'
+                (self.num_users, self.num_items), dtype="float"
             )
             for u, i, r in zip(*self.uir_tuple):
                 self.__dok_matrix[u, i] = r
@@ -364,26 +331,28 @@ class Dataset(object):
             raise ValueError("data is empty after being filtered!")
 
         uir_tuple = (
-            np.asarray(u_indices, dtype='int'),
-            np.asarray(i_indices, dtype='int'),
-            np.asarray(r_values, dtype='float'),
+            np.asarray(u_indices, dtype="int"),
+            np.asarray(i_indices, dtype="int"),
+            np.asarray(r_values, dtype="float"),
         )
 
         timestamps = (
-            np.fromiter((int(data[i][3]) for i in valid_idx), dtype='int')
+            np.fromiter((int(data[i][3]) for i in valid_idx), dtype="int")
             if fmt == "UIRT"
             else None
         )
 
-        return cls(
+        dataset = cls(
             num_users=len(global_uid_map),
             num_items=len(global_iid_map),
-            uid_map=uid_map,
-            iid_map=iid_map,
+            uid_map=global_uid_map,
+            iid_map=global_iid_map,
             uir_tuple=uir_tuple,
             timestamps=timestamps,
             seed=seed,
         )
+
+        return dataset
 
     @classmethod
     def from_uir(cls, data, seed=None):
@@ -407,7 +376,7 @@ class Dataset(object):
 
     @classmethod
     def from_uirt(cls, data, seed=None):
-        """Constructing Dataset from UIRT (User, Item, Rating, Timestamp) 
+        """Constructing Dataset from UIRT (User, Item, Rating, Timestamp)
         quadruplet data.
 
         Parameters
@@ -528,7 +497,6 @@ class Dataset(object):
             batch of negative items (array of 'int')
 
         """
-
         if neg_sampling.lower() == "uniform":
             neg_population = np.arange(self.num_items)
         elif neg_sampling.lower() == "popularity":
@@ -564,7 +532,7 @@ class Dataset(object):
         -------
         iterator : batch of user indices (array of 'int')
         """
-        user_indices = np.fromiter(self.user_indices, dtype='int')
+        user_indices = np.fromiter(set(self.uir_tuple[0]), dtype="int")
         for batch_ids in self.idx_iter(len(user_indices), batch_size, shuffle):
             yield user_indices[batch_ids]
 
@@ -582,17 +550,9 @@ class Dataset(object):
         -------
         iterator : batch of item indices (array of 'int')
         """
-        item_indices = np.fromiter(self.item_indices, 'int')
+        item_indices = np.fromiter(set(self.uir_tuple[1]), "int")
         for batch_ids in self.idx_iter(len(item_indices), batch_size, shuffle):
             yield item_indices[batch_ids]
-
-    def is_unk_user(self, user_idx):
-        """Return whether or not a user is unknown given the user index"""
-        return user_idx >= self.num_users
-
-    def is_unk_item(self, item_idx):
-        """Return whether or not an item is unknown given the item index"""
-        return item_idx >= self.num_items
 
     def add_modalities(self, **kwargs):
         self.user_feature = kwargs.get("user_feature", None)
@@ -605,4 +565,3 @@ class Dataset(object):
         self.item_graph = kwargs.get("item_graph", None)
         self.sentiment = kwargs.get("sentiment", None)
         self.review_text = kwargs.get("review_text", None)
-

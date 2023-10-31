@@ -14,6 +14,8 @@
 # limitations under the License.
 # ============================================================================
 
+import numpy as np
+
 from ..recommender import Recommender
 
 
@@ -35,7 +37,7 @@ class GCMC(Recommender):
     optimizer: string, default: 'adam'. Supported values: 'adam','sgd'.
         The optimization method used for SGD
 
-    activation_model: string, default: 'leaky'
+    activation_func: string, default: 'leaky'
         The activation function used in the GCMC model. Supported values:
         ['leaky', 'linear','sigmoid','relu', 'tanh']
 
@@ -96,7 +98,7 @@ class GCMC(Recommender):
         max_iter=2000,
         learning_rate=0.01,
         optimizer="adam",
-        activation_model="leaky",
+        activation_func="leaky_relu",
         gcn_agg_units=500,
         gcn_out_units=75,
         gcn_dropout=0.7,
@@ -116,7 +118,7 @@ class GCMC(Recommender):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
 
         # architecture params
-        self.activation_model = activation_model
+        self.activation_func = activation_func
         self.gcn_agg_units = gcn_agg_units
         self.gcn_out_units = gcn_out_units
         self.gcn_dropout = gcn_dropout
@@ -156,8 +158,13 @@ class GCMC(Recommender):
         if self.trainable:
             from .gcmc import Model
 
-            self.model = Model(
-                activation_model=self.activation_model,
+            self.rating_values = np.unique(train_set.uir_tuple[2])
+
+            self.model = Model(        
+                rating_values=self.rating_values,
+                total_users=self.total_users,
+                total_items=self.total_items,
+                activation_func=self.activation_func,
                 gcn_agg_units=self.gcn_agg_units,
                 gcn_out_units=self.gcn_out_units,
                 gcn_dropout=self.gcn_dropout,
@@ -167,6 +174,7 @@ class GCMC(Recommender):
                 verbose=self.verbose,
                 seed=self.seed,
             )
+
             self.model.train(
                 train_set,
                 val_set,
@@ -213,6 +221,6 @@ class GCMC(Recommender):
         """
         if item_idx is None:
             # Return scores of all items for a given user
-            return self.model.predict_one(self.train_set, user_idx)
+            return self.model.predict_one(user_idx)
         # Return score of known user/item
         return self.u_i_rating_dict.get(f"{user_idx}-{item_idx}", self.default_score())

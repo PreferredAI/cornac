@@ -163,10 +163,11 @@ class EFM(Recommender):
         self.H1 = self.init_params.get('H1', None)
         self.H2 = self.init_params.get('H2', None)
 
-    def _init(self):
+    def _init(self, train_set):
         rng = get_rng(self.seed)
-        n_users, n_items = self.train_set.num_users, self.train_set.num_items
-        n_aspects = self.train_set.sentiment.num_aspects
+        self.num_aspects = train_set.sentiment.num_aspects
+        n_aspects = self.num_aspects
+        n_users, n_items = self.num_users, self.num_items
         n_efactors = self.num_explicit_factors
         n_lfactors = self.num_latent_factors
         n_factors = n_efactors + n_lfactors
@@ -200,19 +201,19 @@ class EFM(Recommender):
         """
         Recommender.fit(self, train_set, val_set)
 
-        self._init()
+        self._init(train_set)
 
         if self.trainable:
-            A, X, Y = self._build_matrices(self.train_set)
+            A, X, Y = self._build_matrices(train_set)
             A_user_counts = np.ediff1d(A.indptr)
             A_item_counts = np.ediff1d(A.tocsc().indptr)
-            A_uids = np.repeat(np.arange(self.train_set.num_users), A_user_counts).astype(A.indices.dtype)
+            A_uids = np.repeat(np.arange(train_set.num_users), A_user_counts).astype(A.indices.dtype)
             X_user_counts = np.ediff1d(X.indptr)
             X_aspect_counts = np.ediff1d(X.tocsc().indptr)
-            X_uids = np.repeat(np.arange(self.train_set.num_users), X_user_counts).astype(X.indices.dtype)
+            X_uids = np.repeat(np.arange(train_set.num_users), X_user_counts).astype(X.indices.dtype)
             Y_item_counts = np.ediff1d(Y.indptr)
             Y_aspect_counts = np.ediff1d(Y.tocsc().indptr)
-            Y_iids = np.repeat(np.arange(self.train_set.num_items), Y_item_counts).astype(Y.indices.dtype)
+            Y_iids = np.repeat(np.arange(train_set.num_items), Y_item_counts).astype(Y.indices.dtype)
             
             self._fit_efm(
                 self.num_threads,
@@ -235,9 +236,9 @@ class EFM(Recommender):
         """Fit the model parameters (U1, U2, V, H1, H2)
         """
         cdef:
-            long num_users = self.train_set.num_users
-            long num_items = self.train_set.num_items
-            long num_aspects = self.train_set.sentiment.num_aspects
+            long num_users = self.num_users
+            long num_items = self.num_items
+            long num_aspects = self.num_aspects
             int num_explicit_factors = self.num_explicit_factors
             int num_latent_factors = self.num_latent_factors
 
@@ -358,13 +359,13 @@ class EFM(Recommender):
             print('Optimization finished!')
 
     def _build_matrices(self, data_set):
-        sentiment = self.train_set.sentiment
+        sentiment = data_set.sentiment
         ratings = []
         map_uid = []
         map_iid = []
 
         for uid, iid, rating in data_set.uir_iter():
-            if self.train_set.is_unk_user(uid) or self.train_set.is_unk_item(iid):
+            if not (self.knows_user(uid) and self.knows_item(iid)):
                 continue
             ratings.append(rating)
             map_uid.append(uid)
@@ -374,13 +375,13 @@ class EFM(Recommender):
         map_uid = np.asarray(map_uid, dtype=np.int32).flatten()
         map_iid = np.asarray(map_iid, dtype=np.int32).flatten()
         A = sp.csr_matrix((ratings, (map_uid, map_iid)),
-                          shape=(self.train_set.num_users, self.train_set.num_items))
+                          shape=(self.num_users, self.num_items))
 
         attention_scores = []
         map_uid = []
         map_aspect_id = []
         for uid, sentiment_tup_ids_by_item in sentiment.user_sentiment.items():
-            if self.train_set.is_unk_user(uid):
+            if not self.knows_user(uid):
                 continue
             user_aspects = [tup[0] for tup_id in sentiment_tup_ids_by_item.values()
                                    for tup in sentiment.sentiment[tup_id]]
@@ -394,14 +395,14 @@ class EFM(Recommender):
         map_uid = np.asarray(map_uid, dtype=np.int32).flatten()
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int32).flatten()
         X = sp.csr_matrix((attention_scores, (map_uid, map_aspect_id)),
-                          shape=(self.train_set.num_users, sentiment.num_aspects))
+                          shape=(self.num_users, self.num_aspects))
 
         quality_scores = []
         map_iid = []
         map_aspect_id = []
 
         for iid, sentiment_tup_ids_by_user in sentiment.item_sentiment.items():
-            if self.train_set.is_unk_item(iid):
+            if not self.knows_item(iid):
                 continue
             item_aspects = [tup[0] for tup_id in sentiment_tup_ids_by_user.values()
                                    for tup in sentiment.sentiment[tup_id]]
@@ -423,7 +424,7 @@ class EFM(Recommender):
         map_iid = np.asarray(map_iid, dtype=np.int32).flatten()
         map_aspect_id = np.asarray(map_aspect_id, dtype=np.int32).flatten()
         Y = sp.csr_matrix((quality_scores, (map_iid, map_aspect_id)),
-                          shape=(self.train_set.num_items, sentiment.num_aspects))
+                          shape=(self.num_items, self.num_aspects))
 
         if self.verbose:
             print('Building matrices completed!')
@@ -455,12 +456,12 @@ class EFM(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException("Can't make score prediction for (user_id=%d" & user_idx)
             item_scores = self.U2.dot(self.U1[user_idx, :]) + self.H2.dot(self.H1[user_idx, :])
             return item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(item_idx):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
             item_score = self.U2[item_idx, :].dot(self.U1[user_idx, :]) + self.H2[item_idx, :].dot(self.H1[user_idx, :])
             return item_score
@@ -492,17 +493,17 @@ class EFM(Recommender):
 
         # check if the returned scores also cover unknown items
         # if not, all unknown items will be given the MIN score
-        if len(known_item_scores) == self.train_set.total_items:
+        if len(known_item_scores) == self.total_items:
             all_item_scores = known_item_scores
         else:
-            all_item_scores = np.ones(self.train_set.total_items) * np.min(
+            all_item_scores = np.ones(self.total_items) * np.min(
                 known_item_scores
             )
-            all_item_scores[: self.train_set.num_items] = known_item_scores
+            all_item_scores[: self.num_items] = known_item_scores
 
         # rank items based on their scores
         if item_indices is None:
-            item_scores = all_item_scores[: self.train_set.num_items]
+            item_scores = all_item_scores[: self.num_items]
             item_rank = item_scores.argsort()[::-1]
         else:
             item_scores = all_item_scores[item_indices]

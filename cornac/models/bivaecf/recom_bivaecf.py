@@ -176,7 +176,7 @@ class BiVAECF(Recommender):
 
             learn(
                 self.bivae,
-                self.train_set,
+                train_set,
                 n_epochs=self.n_epochs,
                 batch_size=self.batch_size,
                 learn_rate=self.learning_rate,
@@ -184,7 +184,6 @@ class BiVAECF(Recommender):
                 verbose=self.verbose,
                 device=self.device,
             )
-
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
 
@@ -210,33 +209,24 @@ class BiVAECF(Recommender):
         """
 
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
-
             theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
             beta = self.bivae.mu_beta
             known_item_scores = (
                 self.bivae.decode_user(theta_u, beta).cpu().numpy().ravel()
             )
-
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
                 )
-
             theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
             beta_i = self.bivae.mu_beta[item_idx].view(1, -1)
             pred = self.bivae.decode_user(theta_u, beta_i).cpu().numpy().ravel()
-
-            pred = scale(
-                pred, self.train_set.min_rating, self.train_set.max_rating, 0.0, 1.0
-            )
-
+            pred = scale(pred, self.min_rating, self.max_rating, 0.0, 1.0)
             return pred

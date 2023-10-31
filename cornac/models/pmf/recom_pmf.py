@@ -98,7 +98,7 @@ class PMF(Recommender):
 
         self.ll = np.full(max_iter, 0)
         self.eps = 0.000000001
-        
+
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
         self.U = self.init_params.get("U", None)  # matrix of user factors
@@ -128,20 +128,14 @@ class PMF(Recommender):
             (uid, iid, rat) = train_set.uir_tuple
             rat = np.array(rat, dtype="float32")
             if self.variant == "non_linear":  # need to map the ratings to [0,1]
-                if [self.train_set.min_rating, self.train_set.max_rating] != [0, 1]:
-                    rat = scale(
-                        rat,
-                        0.0,
-                        1.0,
-                        self.train_set.min_rating,
-                        self.train_set.max_rating,
-                    )
+                if [self.min_rating, self.max_rating] != [0, 1]:
+                    rat = scale(rat, 0.0, 1.0, self.min_rating, self.max_rating)
             uid = np.array(uid, dtype="int32")
             iid = np.array(iid, dtype="int32")
 
             if self.verbose:
                 print("Learning...")
-                
+
             # use pre-trained params if exists, otherwise from constructor
             init_params = {"U": self.U, "V": self.V}
 
@@ -151,8 +145,8 @@ class PMF(Recommender):
                     iid,
                     rat,
                     k=self.k,
-                    n_users=train_set.num_users,
-                    n_items=train_set.num_items,
+                    n_users=self.num_users,
+                    n_items=self.num_items,
                     n_ratings=len(rat),
                     n_epochs=self.max_iter,
                     lambda_reg=self.lambda_reg,
@@ -168,8 +162,8 @@ class PMF(Recommender):
                     iid,
                     rat,
                     k=self.k,
-                    n_users=train_set.num_users,
-                    n_items=train_set.num_items,
+                    n_users=self.num_users,
+                    n_items=self.num_items,
                     n_ratings=len(rat),
                     n_epochs=self.max_iter,
                     lambda_reg=self.lambda_reg,
@@ -212,7 +206,7 @@ class PMF(Recommender):
 
         """
         if item_idx is None:
-            if self.train_set.is_unk_user(user_idx):
+            if not self.knows_user(user_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d)" % user_idx
                 )
@@ -220,9 +214,7 @@ class PMF(Recommender):
             known_item_scores = self.V.dot(self.U[user_idx, :])
             return known_item_scores
         else:
-            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
-                item_idx
-            ):
+            if not self.knows_user(user_idx) or not self.knows_item(item_idx):
                 raise ScoreException(
                     "Can't make score prediction for (user_id=%d, item_id=%d)"
                     % (user_idx, item_idx)
@@ -232,12 +224,6 @@ class PMF(Recommender):
 
             if self.variant == "non_linear":
                 user_pred = sigmoid(user_pred)
-                user_pred = scale(
-                    user_pred,
-                    self.train_set.min_rating,
-                    self.train_set.max_rating,
-                    0.0,
-                    1.0,
-                )
+                user_pred = scale(user_pred, self.min_rating, self.max_rating, 0.0, 1.0)
 
             return user_pred

@@ -85,6 +85,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
     gt_mat = test_set.csr_matrix
     pd_mat = csr_matrix((r_preds, (u_indices, i_indices)), shape=gt_mat.shape)
 
+    test_user_indices = set(u_indices)
     for mt in metrics:
         if user_based:  # averaging over users
             user_results.append(
@@ -93,7 +94,7 @@ def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
                         gt_ratings=gt_mat.getrow(user_idx).data,
                         pd_ratings=pd_mat.getrow(user_idx).data,
                     ).item()
-                    for user_idx in test_set.user_indices
+                    for user_idx in test_user_indices
                 }
             )
             avg_results.append(sum(user_results[-1].values()) / len(user_results[-1]))
@@ -159,7 +160,7 @@ def ranking_eval(
     avg_results = []
     user_results = [{} for _ in enumerate(metrics)]
 
-    gt_mat = test_set.csr_matrix
+    test_mat = test_set.csr_matrix
     train_mat = train_set.csr_matrix
     val_mat = None if val_set is None else val_set.csr_matrix
 
@@ -170,10 +171,11 @@ def ranking_eval(
             if rating >= rating_threshold
         ]
 
+    test_user_indices = set(test_set.uir_tuple[0])
     for user_idx in tqdm(
-        test_set.user_indices, desc="Ranking", disable=not verbose, miniters=100
+        test_user_indices, desc="Ranking", disable=not verbose, miniters=100
     ):
-        test_pos_items = pos_items(gt_mat.getrow(user_idx))
+        test_pos_items = pos_items(test_mat.getrow(user_idx))
         if len(test_pos_items) == 0:
             continue
 
@@ -183,9 +185,9 @@ def ranking_eval(
 
         val_pos_items = [] if val_mat is None else pos_items(val_mat.getrow(user_idx))
         train_pos_items = (
-            []
-            if train_set.is_unk_user(user_idx)
-            else pos_items(train_mat.getrow(user_idx))
+            pos_items(train_mat.getrow(user_idx))
+            if user_idx < train_mat.shape[0]
+            else []
         )
 
         # binary mask for ground-truth negative items, removing all positive items
@@ -196,7 +198,7 @@ def ranking_eval(
         if exclude_unknowns:
             u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
             u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
-            
+
         item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
         u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
         u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
@@ -537,9 +539,6 @@ class BaseMethod:
             print("---")
             print("Total users = {}".format(self.total_users))
             print("Total items = {}".format(self.total_items))
-
-        self.train_set.total_users = self.total_users
-        self.train_set.total_items = self.total_items
 
     def _build_modalities(self):
         for user_modality in [
