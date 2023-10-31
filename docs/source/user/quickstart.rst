@@ -192,19 +192,16 @@ We set various parameters for the ``BPR`` object:
 4. Define Metrics
 ^^^^^^^^^^^^^^^^^
 We need to define metrics to evaluate the model. In this example, we will be
-using the **Root Mean Squared Error (RMSE)**, **Precision**, **Recall** metrics.
+using the **Precision**, **Recall** metrics.
 
 .. code-block:: python
 
-    from cornac.metrics import RMSE, Precision, Recall
+    from cornac.metrics import Precision, Recall
 
     # Define metrics to evaluate the models
-    metrics = [RMSE(), Precision(k=10), Recall(k=10)]
+    metrics = [Precision(k=10), Recall(k=10)]
 
-We set various metrics for the ``RMSE`` object:
-
-- The **RMSE** metric measures the average magnitude of the error between
-  the predicted and actual values. The lower the RMSE, the better the model.
+We set various metrics for the ``metrics`` object:
 
 - The **Precision** metric measures the proportion of recommended items that
   are relevant to the user. The higher the Precision, the better the model.
@@ -222,7 +219,7 @@ We set various metrics for the ``RMSE`` object:
     **10 recommendations** for each user. (``k=10``)
 
 
-5. Run Experiment
+1. Run Experiment
 ^^^^^^^^^^^^^^^^^
 
 We can now run the experiment by putting everything together. This will train
@@ -239,7 +236,7 @@ We set various parameters for the ``Experiment`` object:
 
 - ``models=models`` to use the ``BPR`` model that we defined earlier.
 
-- ``metrics=metrics`` to use the ``RMSE``, ``Precision``, and ``Recall``
+- ``metrics=metrics`` to use the ``Precision``, and ``Recall``
   metrics that we defined earlier.
 
 - ``user_based=True`` to evaluate the model on an individual user basis.
@@ -259,7 +256,7 @@ We set various parameters for the ``Experiment`` object:
         import cornac
         from cornac.eval_methods import RatioSplit
         from cornac.models import BPR
-        from cornac.metrics import RMSE, Precision, Recall
+        from cornac.metrics import Precision, Recall
 
         # Load a sample dataset (e.g., MovieLens)
         ml_100k = cornac.datasets.movielens.load_feedback()
@@ -273,7 +270,7 @@ We set various parameters for the ``Experiment`` object:
         ]
 
         # Define metrics to evaluate the models
-        metrics = [RMSE(), Precision(k=10), Recall(k=10)]
+        metrics = [Precision(k=10), Recall(k=10)]
 
         # Put it together in an experiment, voilà!
         cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
@@ -299,7 +296,7 @@ After the training process, Cornac tests the trained model by using the test dat
 (as split by the ``RatioSplit`` function) to calculate the metrics defined.
 
 Over in the screenshot below, we see the results for the
-``RMSE``, ``Precision@10`` (k=10) and ``Recall@10`` (k=10) respectively.
+``Precision@10`` (k=10) and ``Recall@10`` (k=10) respectively.
 
 Also, we see the time taken for Cornac to train, and time taken evaluate the test
 data.
@@ -333,7 +330,7 @@ We add the following codes to our models variable:
         import cornac
         from cornac.eval_methods import RatioSplit
         from cornac.models import BPR, PMF
-        from cornac.metrics import RMSE, Precision, Recall
+        from cornac.metrics import Precision, Recall
 
         # Load a sample dataset (e.g., MovieLens)
         ml_100k = cornac.datasets.movielens.load_feedback()
@@ -348,7 +345,7 @@ We add the following codes to our models variable:
         ]
 
         # Define metrics to evaluate the models
-        metrics = [RMSE(), Precision(k=10), Recall(k=10)]
+        metrics = [Precision(k=10), Recall(k=10)]
 
         # Put it together in an experiment, voilà!
         cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()

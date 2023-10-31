@@ -1,5 +1,5 @@
-Introduction to Cornac for Developers
-=====================================
+Cornac for Developers
+=====================
 
 Introduction
 ------------
@@ -41,26 +41,24 @@ of different models at once and compare them with the set of metrics you have
 set. Also, you may also want to test different hyperparameters for each model
 to find the best combination of hyperparameters for each model.
 
-Hyperparameter Tuning Example
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Hyperparameter Tuning
+---------------------
 
 In this example, we will use the `BPR` model and tune the `k` and
 `learning_rate` hyperparameters. We will follow the :doc:`/user/quickstart`
-guide and add additional variants of parameter combinations as follows:
+guide and search for the optimal combination of hyperparameters.
 
-=====  ==============
-K       Learning Rate
-=====  ==============
-5       0.001
-10      0.001
-50      0.001
-5       0.01
-10      0.01
-50      0.01 
-=====  ==============
+In order to do this, we perform hyperparameter searches on Cornac.
 
-Sample codes
-^^^^^^^^^^^^
+Tuning the quickstart example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Given the below block fo code from the :doc:`/user/quickstart` guide,
+with some slight changes:
+
+- We have added the validation set in the `RatioSplit` method
+- We instantiate the `Recall@100` metric
+- For this example, we only tune the BPR model
 
 .. code-block:: python
 
@@ -72,29 +70,153 @@ Sample codes
     # Load a sample dataset (e.g., MovieLens)
     ml_100k = cornac.datasets.movielens.load_feedback()
 
-    # Split the data into training and testing sets
-    rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
+    # Split the data into training, validation and testing sets
+    rs = RatioSplit(data=ml_100k, test_size=0.1, val_size=0.1, rating_threshold=4.0, seed=123)
+
+    # Instantiate Recall@100 for evaluation
+    rec100 = cornac.metrics.Recall(100)
 
     # Instantiate a matrix factorization model (e.g., BPR)
-    models = [
-        BPR(name="BPR-K5-LR0.001", k=5, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
-        BPR(name="BPR-K10-LR0.001", k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
-        BPR(name="BPR-K50-LR0.001", k=50, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
-        BPR(name="BPR-K5-LR0.01", k=5, max_iter=200, learning_rate=0.01, lambda_reg=0.01, seed=123),
-        BPR(name="BPR-K10-LR0.01", k=10, max_iter=200, learning_rate=0.01, lambda_reg=0.01, seed=123),
-        BPR(name="BPR-K50-LR0.01", k=50, max_iter=200, learning_rate=0.01, lambda_reg=0.01, seed=123),
-    ]
+    bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 
-    # Define metrics to evaluate the models
-    metrics = [Precision(k=10), Recall(k=10)]
 
-    # put it together in an experiment, voilà!
-    cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
+We would like to optimize the `k` and `learning_rate` hyperparameters. To do
+this, we can use the `cornac.hyperopt` module to perform hyperparameter
+searches.
 
-In this example, we have defined 6 variants of the BPR model with different
-hyperparameters. We then evaluate the performance of each model using the
-`Precision@10` and `Recall@10` metrics. The results of the experiment will be
-displayed in the console as follows:
+.. code-block:: python
+
+    from cornac.hyperopt import Discrete, Continuous
+    from cornac.hyperopt import GridSearch, RandomSearch
+
+    # Grid Search
+    gs_bpr = GridSearch(
+        model=bpr,
+        space=[
+            Discrete(name="k", values=[5, 10, 50]),
+            Discrete(name="learning_rate", values=[0.001, 0.05, 0.01, 0.1])
+        ],
+        metric=rec100,
+        eval_method=rs,
+    )
+
+    # Random Search
+    rs_bpr = RandomSearch(
+        model=bpr,
+        space=[
+            Discrete(name="k", values=[5, 10, 50]),
+            Continuous(name="learning_rate", low=0.001, high=0.01)
+        ],
+        metric=rec100,
+        eval_method=rs,
+        n_trails=20,
+    )
+
+As shown in the above code, we have defined two hyperparameter search methods,
+`GridSearch` and `RandomSearch`.
+
++------------------------------------------+---------------------------------------------+
+| Grid Search                              | Random Search                               |
++==========================================+=============================================+
+| Searches for all possible combintations  | Randomly searches for the hyperparameters   |
+| of the hyperparameters                   |                                             |
++------------------------------------------+---------------------------------------------+
+| Only accepts discrete values             | Accepts both discrete and continuous values |
++------------------------------------------+---------------------------------------------+
+
+For the `space` parameter, we have defined the hyperparameters we want to
+search for. In this example, we have defined the `k` hyperparameter to be
+a set of discrete values (5, 10, or 50). This will mean that the application
+would only attempt those set values.
+
+The `learning_rate` hyperparameter is set as continuous values between
+0.001 and 0.01. this would mean that the application would attempt values
+between 0.001 and 0.01.
+
+We have also set the `n_trails` parameter for the `RandomSearch` method to
+1.  This would mean that the application would attempt 20 random combinations.
+
+
+Running the Experiment
+^^^^^^^^^^^^^^^^^^^^^^
+
+After defining the hyperparameter search methods, we can then run the
+experiments using the `cornac.Experiment` class.
+
+.. code-block:: python
+
+    # Define the experiment
+    cornac.Experiment(
+        eval_method=rs,
+        models=[gs_bpr, rs_bpr],
+        metrics=[rec100],
+        user_based=False,
+    ).run()
+
+    # Obtain the best params
+    print(gs_bpr.best_params)
+    print(rs_bpr.best_params)
+
+.. dropdown:: View codes for this example
+
+    .. code-block:: python
+
+        import cornac
+        from cornac.eval_methods import RatioSplit
+        from cornac.models import BPR
+        from cornac.metrics import Precision, Recall
+        from cornac.hyperopt import Discrete, Continuous
+        from cornac.hyperopt import GridSearch, RandomSearch
+
+        # Load a sample dataset (e.g., MovieLens)
+        ml_100k = cornac.datasets.movielens.load_feedback()
+
+        # Split the data into training and testing sets
+        rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
+
+        # Instantiate Recall@100 for evaluation
+        rec100 = cornac.metrics.Recall(100)
+
+        # Instantiate a matrix factorization model (e.g., BPR)
+        bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
+
+        # Grid Search
+        gs_bpr = GridSearch(
+            model=bpr,
+            space=[
+                Discrete(name="k", values=[5, 10, 50]),
+                Discrete(name="learning_rate", values=[0.001, 0.05, 0.01, 0.1])
+            ],
+            metric=rec100,
+            eval_method=rs,
+        )
+
+        # Random Search
+        rs_bpr = RandomSearch(
+            model=bpr,
+            space=[
+                Discrete(name="k", values=[5, 10, 50]),
+                Continuous(name="learning_rate", low=0.001, high=0.01)
+            ],
+            metric=rec100,
+            eval_method=rs,
+            n_trails=20,
+        )
+
+        # Define the experiment
+        cornac.Experiment(
+            eval_method=rs,
+            models=[gs_bpr, rs_bpr],
+            metrics=[rec100],
+            user_based=False,
+        ).run()
+
+        # Obtain the best params
+        print(gs_bpr.best_params)
+        print(rs_bpr.best_params)
+
+
+The output of the above code could be as follows:
 
 .. code-block:: bash
     :caption: Output
@@ -242,7 +364,7 @@ we can do the following:
     cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True, save_dir="saved_models").run()
 
 This will save the trained models in the ``saved_models`` folder of where you
-execeuted the python code.
+executed the python code.
 
 .. code-block:: bash
     :caption: Folder directory

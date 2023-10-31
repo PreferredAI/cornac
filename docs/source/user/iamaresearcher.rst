@@ -1,5 +1,5 @@
-Introduction to Cornac for Researchers
-======================================
+Cornac for Researchers
+======================
 
 Introduction
 ------------
