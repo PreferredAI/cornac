@@ -43,7 +43,6 @@ to find the best combination of hyperparameters for each model.
 
 Hyperparameter Tuning
 ---------------------
-
 In this example, we will use the `BPR` model and tune the `k` and
 `learning_rate` hyperparameters. We will follow the :doc:`/user/quickstart`
 guide and search for the optimal combination of hyperparameters.
@@ -113,7 +112,7 @@ searches.
     )
 
 As shown in the above code, we have defined two hyperparameter search methods,
-`GridSearch` and `RandomSearch`.
+``GridSearch`` and ``RandomSearch``.
 
 +------------------------------------------+---------------------------------------------+
 | Grid Search                              | Random Search                               |
@@ -124,24 +123,27 @@ As shown in the above code, we have defined two hyperparameter search methods,
 | Only accepts discrete values             | Accepts both discrete and continuous values |
 +------------------------------------------+---------------------------------------------+
 
-For the `space` parameter, we have defined the hyperparameters we want to
-search for. In this example, we have defined the `k` hyperparameter to be
-a set of discrete values (5, 10, or 50). This will mean that the application
-would only attempt those set values.
+For the ``space`` parameter, we have defined the hyperparameters we want to
+tune:
 
-The `learning_rate` hyperparameter is set as continuous values between
-0.001 and 0.01. this would mean that the application would attempt values
-between 0.001 and 0.01.
+- We have defined the ``k`` hyperparameter to be a set of discrete values
+  (5, 10, or 50). This will mean that the application would only attempt
+  to tune with those set values.
 
-We have also set the `n_trails` parameter for the `RandomSearch` method to
-1.  This would mean that the application would attempt 20 random combinations.
+- The ``learning_rate`` hyperparameter is set as continuous values between
+  0.001 and 0.01. this would mean that the application would attempt any
+  values in between 0.001 and 0.01.
+
+For the ``RandomSearch`` method, we have also set the ``n_trails`` parameter to
+``20``. This would mean that the application would attempt 20 random
+combinations.
 
 
 Running the Experiment
 ^^^^^^^^^^^^^^^^^^^^^^
 
 After defining the hyperparameter search methods, we can then run the
-experiments using the `cornac.Experiment` class.
+experiments using the ``cornac.Experiment`` class.
 
 .. code-block:: python
 
@@ -221,21 +223,28 @@ The output of the above code could be as follows:
 .. code-block:: bash
     :caption: Output
 
-                    | Precision@10 | Recall@10 | Train (s) | Test (s)
-    --------------- + ------------ + --------- + --------- + --------
-    BPR-K5-LR0.001  |       0.1118 |    0.1209 |    5.4062 |   0.6711
-    BPR-K10-LR0.001 |       0.1110 |    0.1195 |    4.9041 |   0.7394
-    BPR-K50-LR0.001 |       0.1117 |    0.1197 |    7.1869 |   0.8457
-    BPR-K5-LR0.01   |       0.1710 |    0.1815 |    4.6738 |   0.8544
-    BPR-K10-LR0.01  |       0.1718 |    0.1931 |    6.0954 |   0.7300
-    BPR-K50-LR0.01  |       0.1630 |    0.1867 |    7.8685 |   0.9358
- 
-As shown in this example, the best combination of hyperparameters for the BPR
-model could be ``k=10`` and ``learning_rate=0.01``, as the results are 
-``Precision@10=0.1718`` and ``Recall@10=0.1931``.
+    TEST:
+    ...
+                    | Recall@100 | Train (s) | Test (s)
+    ---------------- + ---------- + --------- + --------
+    GridSearch_BPR   |     0.6953 |   77.9370 |   0.9526
+    RandomSearch_BPR |     0.6988 |  147.0348 |   0.7502
 
-However, this may vary from dataset to dataset and you may want to try
-different combinations of hyperparameters to find the best combination for your
+    {'k': 50, 'learning_rate': 0.01}
+    {'k': 50, 'learning_rate': 0.007993039950008024}
+
+As shown in the output, the ``RandomSearch`` method has found the best
+combination of hyperparameters to be ``k=50`` and ``learning_rate=0.0079``
+with a Recall@100 score of 0.6988.
+
+However, as it utilizes contains a continouous hyperparameter, the
+``RandomSearch`` method may not always find the best combination of
+hyperparameters. This is also the reason why we have set the ``n_trails``
+parameter to 20 to increase the chances of finding the best combination of
+hyperparameters.
+
+Results may vary from dataset to dataset. Try tuning your hyperparameters
+using different configurations to find the best hyperparameters for your
 dataset.
 
 
