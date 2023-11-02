@@ -279,6 +279,10 @@ Then, you could create the ``dataset`` object as follows:
     # Load the data into a dataset object
     dataset = cornac.data.Dataset.from_uir(data)
 
+.. note::
+
+    Cornac also supports the UIRT format (user, item, rating, timestamp).
+    However, the this format is only for models that support timestamps.
 
 Training Models
 ---------------
@@ -363,31 +367,91 @@ could be as follows:
 Saving a Trained Model
 ----------------------
 
-To save a trained model, you can use the ``save_dir`` parameter in the experiment.
-For example, to save models from the experiment in the previous section,
-we can do the following:
+There are 2 ways to saved a trained model. You can either save the model
+in an experiment, or manually save the model by code.
 
-.. code-block:: python
+.. dropdown:: Option 1: Saving all models in an Experiment
 
-    # Save the trained model
-    cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True, save_dir="saved_models").run()
+    To save the model in an experiment, add the ``save_dir`` parameter.
+    For example, to save models from the experiment in the previous section,
+    we can do the following:
 
-This will save the trained models in the ``saved_models`` folder of where you
-executed the python code.
+    .. code-block:: python
 
-.. code-block:: bash
-    :caption: Folder directory
+        # Save all models in the experiment by adding
+        # the 'save_dir' parameter in the experiment
+        cornac.Experiment(
+            eval_method=rs,
+            models=models,
+            metrics=metrics,
+            user_based=True,
+            save_dir="saved_models"
+        ).run()
+
+    This will save all trained models in the ``saved_models`` folder of where you
+    executed the python code.
+
+    .. code-block:: bash
+        :caption: Folder directory
+
+        - example.py
+        - saved_models
+            |- BPR
+            |   |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
+            |- PMF
+                |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
+
+.. dropdown:: Option 2: Saving the model individually
+
+    To save the model individually, you can use the ``save()`` method.
+
+    .. code-block:: python
+
+        # Instantiate the BPR model
+        model = BPR(k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01, seed=123)
+
+        # Use the fit() function to train the model
+        model.fit(dataset)
+
+        # Save the trained model
+        model.save(save_dir="saved_models")
     
-    - example.py
-    - saved_models
-        |- BPR
-            |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
+    This will save the trained model in the ``saved_models`` folder of where you
+    executed the python code.
+
+    .. code-block:: bash
+        :caption: Folder directory
+
+        - example.py
+        - saved_models
+            |- BPR
+                |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
 
 
 Loading a Trained Model
 -----------------------
 
-To load a trained model, you can use the ``load()`` function.
+To load a trained model, you can use the ``load()`` function. You could either
+load a folder containing .pkl files, or load a specific .pkl file.
+
+.. code-block:: bash
+    :caption: Folder directory
+
+    - example.py
+    - saved_models
+        |- BPR
+            |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
+
+Option 1: By loading a folder containing multiple .pkl files, Cornac would pick
+the latest .pkl file in the folder.
+
+.. code-block:: python
+
+    # Load the trained model
+    model = BPR.load("saved_models/BPR/")
+
+Option 2: By loading a specific .pkl file, Cornac would load the specific
+model indicated.
 
 .. code-block:: python
 
@@ -425,6 +489,35 @@ obtain recommendations for users.
         # Obtain item recommendations for user U1
         recs = model.recommend(user_id="U1")
         print(recs)
+
+Running an API Service
+----------------------
+
+Cornac also provides an API service that you can use to run your own
+recommendation service. This is useful if you want to build a recommendation
+system for your own application.
+
+.. code-block:: bash
+    
+    python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.BPR
+
+This will serve an API for the model saved in the directory ``save_dir/BPR``.
+
+To obtain a recommendation, do a call to the API endpoint ``/recommend`` with
+the following parameters:
+
+- ``uid``: The user ID to obtain recommendations for
+- ``k``: The number of recommendations to obtain
+
+.. code-block:: bash
+    
+    curl http://127.0.0.1:8080/recommend \
+    --request POST \
+    --header "Content-Type: application/json" \
+    --data '{"uid":"63", "k": 5}'
+
+    # Response: {"recommendations": ["50", "181", "100", "258", "286"], "data_received": {"uid": "63", "k": 5}}
+
 
 What's Next?
 ------------
