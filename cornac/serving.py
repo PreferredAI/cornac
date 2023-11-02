@@ -78,25 +78,25 @@ def parse_args():
         "--model_dir",
         type=str,
         required=True,
-        help="Path to directory where the model was saved",
+        help="path to directory where the model was saved",
     )
     parser.add_argument(
         "--model_class",
         type=str,
         default="cornac.models.Recommender",
-        help="Cornac class of the model which is being deployed",
+        help="class of the model being deployed",
     )
     parser.add_argument(
         "--train_set",
         type=str,
         default=None,
-        help="Path to pickled file of the train_set (used to remove seen items)",
+        help="path to pickled file of the train_set (to remove seen items)",
     )
     parser.add_argument(
         "--port",
         type=int,
         default=8080,
-        help="Service port",
+        help="service port",
     )
 
     return parser.parse_args(sys.argv[1:])

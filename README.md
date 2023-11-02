@@ -115,13 +115,13 @@ $ python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.
 
 # Serving BPR at port 8080
 ```
-Here you go, your model service is now ready. Let's get `top-5` item recommendations for the user `"63"`:
+Here we go, our model service is now ready. Let's get `top-5` item recommendations for the user `"63"`:
 ```bash
 $ curl -X GET "http://127.0.0.1:8080/recommend?uid=63&k=5&remove_seen=false"
 
 # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 ```
-If you would like to remove seen items during training, you need to provide `train_set` when starting the serving service.
+If we want to remove seen items during training, we need to provide `train_set` when starting the serving service.
 ```bash
 $ python -m cornac.serving --help
 
