@@ -285,7 +285,244 @@ dataset.
 Adding your Own Model
 ---------------------
 
-In order to add your own model, you need to create a class that inherits from
+In order to add your own model, these are the files in which you have to create:
+
+These are the files to be added:
+
+.. code-block:: bash
+    
+    cornac
+    |-- cornac
+    |   |-- models
+    |       |-- mymodel
+    |           |-- __init__.py
+    |           |-- recom_mymodel.py
+    |-- examples
+        |-- mymodel_example.py
+
+.. dropdown:: View models/mymodel/__init__.py
+
+    .. code-block:: python
+        :caption: cornac/cornac/models/mymodel/__init__.py
+
+        from .recom_mymodel import MyModel
+
+.. dropdown:: View models/mymodel/recom_mymodel.py
+
+    .. code-block:: python
+        :caption: cornac/cornac/models/mymodel/recom_mymodel.py
+
+        from ..recommender import Recommender
+
+        # Your model must extend the Recommender class
+        class MyModel(Recommender):
+            """Documentation for My New Model.
+
+            Parameters
+            ----------
+            name: string, optional, default: 'MyModel'
+                Name of the recommender model.
+
+            num_epochs: int, optional, default: 20
+                Number of epochs.
+
+            batch_size: int, optional, default: 256
+                Batch size.
+
+            early_stopping: {min_delta: float, patience: int}, optional, default: None
+                If `None`, no early stopping. Meaning of the arguments: 
+                
+                - `min_delta`: the minimum increase in monitored value on validation set to be considered as improvement, \
+                i.e. an increment of less than min_delta will count as no improvement.
+                - `patience`: number of epochs with no improvement after which training should be stopped.
+
+            trainable: boolean, optional, default: True
+                When False, the model is not trained and Cornac assumes that the model is already \
+                pre-trained.
+
+            verbose: boolean, optional, default: False
+                When True, some running logs are displayed.
+
+            References
+            ----------
+            * Add your references here.
+            """
+
+            def __init__(
+                self,
+                name="MyModel",
+                num_epochs=20,
+                batch_size=256,
+                early_stopping=None,
+                trainable=True,
+                verbose=True,
+                seed=None,
+            ):
+                super().__init__(name=name, trainable=trainable, verbose=verbose)
+                self.num_epochs = num_epochs
+                self.batch_size = batch_size
+                self.early_stopping = early_stopping
+                self.seed = seed
+
+            def fit(self, train_set, val_set=None):
+                """Fit the model to observations.
+
+                Parameters
+                ----------
+                train_set: :obj:`cornac.data.Dataset`, required
+                    User-Item preference data as well as additional modalities.
+
+                val_set: :obj:`cornac.data.Dataset`, optional, default: None
+                    User-Item preference data for model selection purposes (e.g., early stopping).
+
+                Returns
+                -------
+                self : object
+                """
+                Recommender.fit(self, train_set, val_set)
+
+                if self.trainable:
+                    # do model training here
+                    pass
+
+                return self
+
+            # this function is used for early stopping
+            def monitor_value(self, train_set, val_set):
+                """Calculating monitored value used for early stopping on validation set (`val_set`).
+                This function will be called by `early_stop()` function.
+
+                Parameters
+                ----------
+                train_set: :obj:`cornac.data.Dataset`, required
+                    User-Item preference data as well as additional modalities.
+
+                val_set: :obj:`cornac.data.Dataset`, optional, default: None
+                    User-Item preference data for model selection purposes (e.g., early stopping).
+
+                Returns
+                -------
+                res : float
+                    Monitored value on validation set.
+                    Return `None` if `val_set` is `None`.
+                """
+                if val_set is None:
+                    return None
+
+                from ...metrics import NDCG
+                from ...eval_methods import ranking_eval
+
+                # add the metrics to use for early stopping comparison.
+                # values are tracked and compared every epoch
+                
+                # in this example we use ndcg as the early stopping
+                # function.
+
+                ndcg_100 = ranking_eval(
+                    model=self,
+                    metrics=[NDCG(k=100)],
+                    train_set=train_set,
+                    test_set=val_set,
+                )[0][0]
+
+                return ndcg_100
+
+            # this function is used for score prediction
+            def score(self, user_idx, item_idx=None):
+                """Predict the scores/ratings of a user for an item.
+
+                Parameters
+                ----------
+                user_idx: int, required
+                    The index of the user for whom to perform score prediction.
+
+                item_idx: int, optional, default: None
+                    The index of the item for which to perform score prediction.
+                    If None, scores for all known items will be returned.
+
+                Returns
+                -------
+                res : A scalar or a Numpy array
+                    Relative scores that the user gives to the item or to all known items
+                """
+
+                # return the score from your model, given the user_idx and/or item_idx
+                if item_idx is None:
+                    # return all scores
+                    return [0.0]
+                
+                return 0.0
+
+.. dropdown:: View examples/mymodel_example.py
+
+    .. code-block:: python
+        :caption: cornac/examples/mymodel_example.py
+    
+        import cornac
+        from cornac.eval_methods import RatioSplit
+        from cornac.datasets import movielens
+        from cornac.models.mymodel import MyModel
+
+
+        # Load the dataset
+        feedback = movielens.load_feedback(variant="100K")
+
+        # Define an evaluation method to split feedback into train and test sets
+        ratio_split = RatioSplit(
+            data=feedback,
+            test_size=0.2,
+            rating_threshold=1.0,
+            seed=123,
+            exclude_unknowns=True,
+            verbose=True,
+        )
+
+        # Instantiate the recommender models to be compared
+        mymodel = MyModel(
+            name="MyModel",
+            num_epochs=20,
+            batch_size=256,
+            early_stopping=None,
+            trainable=True,
+            verbose=True,
+        )
+
+        # Instantiate evaluation metrics
+        ndcg_50 = cornac.metrics.NDCG(k=50)
+        rec_50 = cornac.metrics.Recall(k=50)
+
+        # Put everything together into an experiment and run it
+        cornac.Experiment(
+            eval_method=ratio_split,
+            models=[mymodel],
+            metrics=[ndcg_50, rec_50],
+        ).run()
+
+
+These are the files to be edited:
+
+.. code-block:: bash
+    
+    cornac
+    |-- cornac
+    |   |-- models
+    |       |-- __init__.py
+
+.. dropdown:: View models/__init__.py
+    
+    .. code-block:: python
+
+        from .vbpr import VBPR
+        ... # other models removed for brevity
+        from .vmf import VMF
+        from .wmf import WMF
+        from .mymodel import MyModel # Add this line
+
+The bulk of the omdel goes into the ``recom_mymodel.py`` file.
+While it is possible to leave all your logic and training/testing
+into the same file, it is generally recommended that you 
+
+you need to create a class that inherits from
 the :class:`~cornac.models.Recommender` class. The class must implement the
 following methods:
 
