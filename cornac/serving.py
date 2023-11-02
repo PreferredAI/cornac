@@ -23,6 +23,8 @@ import pickle
 import http.server
 import socketserver
 
+from urllib.parse import urlparse, parse_qs
+
 
 class ModelRequestHandler(http.server.BaseHTTPRequestHandler):
     def _set_response(self, status_code=200, content_type="application/json"):
@@ -35,22 +37,16 @@ class ModelRequestHandler(http.server.BaseHTTPRequestHandler):
             self._set_response()
             response_data = {"message": "Cornac model serving."}
             self.wfile.write(json.dumps(response_data).encode())
-        else:
-            self.send_error(404, "Endpoint not found")
-
-    def do_POST(self):
-        if self.path == "/recommend":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length).decode("utf-8")
-            post_data = json.loads(post_data)
+        elif self.path.startswith("/recommend"):
+            parsed_query = parse_qs(urlparse(self.path).query)
 
             # TODO: input validation
-            user_id = str(post_data["uid"])
-            k = -1 if "k" not in post_data else int(post_data["k"])
+            user_id = str(parsed_query["uid"][0])
+            k = -1 if "k" not in parsed_query else int(parsed_query["k"][0])
             remove_seen = (
                 False
-                if "remove_seen" not in post_data
-                else bool(post_data["remove_seen"])
+                if "remove_seen" not in parsed_query
+                else parsed_query["remove_seen"][0].lower() == "true"
             )
 
             response_data = {
@@ -60,7 +56,7 @@ class ModelRequestHandler(http.server.BaseHTTPRequestHandler):
                     remove_seen=remove_seen,
                     train_set=self.server.train_set,
                 ),
-                "data_received": post_data,
+                "query": {"uid": user_id, "k": k, "remove_seen": remove_seen},
             }
 
             self._set_response()

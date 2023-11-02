@@ -117,12 +117,24 @@ $ python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.
 ```
 Here you go, your model service is now ready. Let's get `top-5` item recommendations for the user `"63"`:
 ```bash
-$ curl http://127.0.0.1:8080/recommend \
-    --request POST \
-    --header "Content-Type: application/json" \
-    --data '{"uid":"63", "k": 5}'
+$ curl -X GET "http://127.0.0.1:8080/recommend?uid=63&k=5&remove_seen=false"
 
-# Response: {"recommendations": ["50", "181", "100", "258", "286"], "data_received": {"uid": "63", "k": 5}}
+# Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
+```
+If you would like to remove seen items during training, you need to provide `train_set` when starting the serving service.
+```bash
+$ python -m cornac.serving --help
+
+usage: serving.py [-h] --model_dir MODEL_DIR [--model_class MODEL_CLASS] [--train_set TRAIN_SET] [--port PORT]
+
+Cornac model serving
+
+options:
+  -h, --help                    show this help message and exit
+  --model_dir MODEL_DIR         path to directory where the model was saved
+  --model_class MODEL_CLASS     class of the model being deployed
+  --train_set TRAIN_SET         path to pickled file of the train_set (to remove seen items)
+  --port PORT                   service port
 ```
 
 ## Models
