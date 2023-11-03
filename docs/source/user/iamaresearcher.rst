@@ -15,7 +15,7 @@ In this guide, we will cover the following topics:
 - Adding your own metric
 - Adding your own dataset
 - Development Workflow
-- Analyze results
+- Using additional packages
 
 What can you do with Cornac?
 -----------------------------
@@ -288,6 +288,9 @@ Adding your Own Model
 Adding your own model on Cornac is easy. Cornac is designed to be flexible and
 extensible, allowing researchers to easily add their own models into the
 framework.
+
+Files to add
+^^^^^^^^^^^^
 
 Below is an example of the ``PMF`` model which was already added into Cornac.
 We will use this as a reference to add our own model.
@@ -769,6 +772,9 @@ We will use this as a reference to add our own model.
             user_based=True,
         ).run()
 
+Files to edit
+^^^^^^^^^^^^^
+
 To add your model to the overall Cornac package, you need to edit the following
 file:
 
@@ -800,36 +806,49 @@ Development Workflow
 Before we move on to the section of building a new model, let's take a look at
 the development workflow of Cornac.
 
-The main workflow of developing a new model will be to:
+First time setup
+^^^^^^^^^^^^^^^^
 
-``Create an example, Create model files --> Build --> Run Example``
-
-Whenever a new change is done to your model files, you are required to rebuild
-Cornac using the ``setup.py`` script. This will ensure that the changes you have
-made to your model files are reflected in the Cornac package.
-
-
-Rebuilding Cornac
-^^^^^^^^^^^^^^^^^
-
-1. To build Cornac on your environment:
+As Cornac contains models which uses Cython, compilation is required before
+testing could be done. In order to do so, you need to run the following command:
 
 .. code-block:: bash
 
-    python3 setup.py install
+    python setup.py build_ext —inplace
+
+This will compile the Cython files and place the compiled files in the
+``cornac/models`` folder.
 
 
-.. note::
+The main workflow of developing a new model will be to:
 
-    The following packages are required for building Cornac on your environment: ``Cython``, ``numpy``, ``scipy``.
+1. Code model files
+2. Code example
+3. Run Example
+
+Folder structure for testing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
     
-    If you do not have them, install by using the following commands:
+    cornac
+    |-- cornac
+    |   |-- models
+    |       |-- mymodel
+    |       |   |-- __init__.py
+    |       |   |-- recom_mymodel.py
+    |       |-- requirements.txt
+    |-- mymodel_example.py <-- not in the examples folder
 
-    .. code-block:: bash
+To run the example, ensure that your current working directory is in the top
+``cornac`` folder. Then, run the following command:
 
-        pip3 install Cython numpy scipy
+.. code-block:: bash
 
-2. Run an example utilising your new model.
+    python mymodel_example.py
+
+Whenever a new change is done to your model files, just run the example for
+testing and debugging.
 
 Analyze Results
 ---------------
