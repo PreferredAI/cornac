@@ -1,8 +1,6 @@
 Cornac for Researchers
 ======================
 
-Introduction
-------------
 This document is intended to provide a quick introduction on how researchers
 like you could use Cornac to conduct recommender systems research.
 
@@ -969,8 +967,8 @@ you would like to add your own metric, you can do so by extending the
 View the add metric tutorial at
 https://github.com/PreferredAI/cornac/blob/master/tutorials/add_metric.md.
 
-Conclusion
-----------
+Let us know!
+------------
 We hope you find Cornac useful for your research. Please share with us on how
 you find Cornac useful, and feel free to reach out to us if you have any
 questions or suggestions.

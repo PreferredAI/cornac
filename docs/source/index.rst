@@ -80,7 +80,7 @@ Quick Links
       :text-align: center
 
       :material-round:`create_new_folder;5em;sd-text-primary`
-      
+
       **Incorporate your Own Algorithm**
 
       Add your own models, datasets and metrics alongside Cornac's offerings to meet your needs.
@@ -100,9 +100,9 @@ Quick Links
       :columns: 12 6 6 6
       :padding: 2
       :text-align: center
-      
+
       :material-round:`article;5em;sd-text-primary`
-      
+
       **Contributing into Cornac**
 
       We welcome contributions.

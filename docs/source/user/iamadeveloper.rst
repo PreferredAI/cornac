@@ -1,8 +1,6 @@
 Cornac for Developers
 =====================
 
-Introduction
-------------
 This document is intended for developers who want to use Cornac in their own
 projects and applications.
 
@@ -536,7 +534,6 @@ Cornac.
     You can also view the :doc:`/api_ref/models` documentation for more
     information about the models and its specific parameters.
 
-Others
 ------
 
 .. topic:: Are you a data scientist?

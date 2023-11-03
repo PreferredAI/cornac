@@ -10,18 +10,17 @@ build, evaluate, and fine-tune recommender systems to meet your needs.
 
 .. toctree::
    :glob:
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Getting Started
 
    install
    quickstart
    iamadeveloper
-   example-foodrecce
    iamaresearcher
 
 .. toctree::
    :glob:
-   :maxdepth: 1
-   :caption: Additional Resources
+   :maxdepth: 2
+   :caption: Additional Examples
 
-   recommender_concepts
+   example-foodrecce
