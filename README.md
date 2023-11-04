@@ -79,11 +79,10 @@ ml_100k = cornac.datasets.movielens.load_feedback()
 rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
 
 # initialize models, here we are comparing: Biased MF, PMF, and BPR
-models = [
-    MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123),
-    PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123),
-    BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
-]
+mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
+pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123)
+bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
+models = [mf, pmf, bpr]
 
 # define metrics to evaluate the models
 metrics = [MAE(), RMSE(), Precision(k=10), Recall(k=10), NDCG(k=10), AUC(), MAP()]
@@ -104,6 +103,40 @@ cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=Tru
 For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials). For learning purposes, this list of [tutorials on recommender systems](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems) will be more organized and comprehensive. 
 
 
+## Simple model serving
+
+Here, we provide a simple way to serve a Cornac model by launching a standalone web service. While this will not be an optimized service for model deployment in production, it is quite handy for testing or creating a demo application. Supposed that we use the trained BPR from previous example, we first need to save the model:
+```python
+bpr.save("save_dir")
+```
+The model can be deployed easily by triggering Cornac serving module:
+```bash
+$ python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.BPR
+
+# Serving BPR at port 8080
+```
+Here we go, our model service is now ready. Let's get `top-5` item recommendations for the user `"63"`:
+```bash
+$ curl -X GET "http://127.0.0.1:8080/recommend?uid=63&k=5&remove_seen=false"
+
+# Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
+```
+If we want to remove seen items during training, we need to provide `train_set` when starting the serving service.
+```bash
+$ python -m cornac.serving --help
+
+usage: serving.py [-h] --model_dir MODEL_DIR [--model_class MODEL_CLASS] [--train_set TRAIN_SET] [--port PORT]
+
+Cornac model serving
+
+options:
+  -h, --help                    show this help message and exit
+  --model_dir MODEL_DIR         path to directory where the model was saved
+  --model_class MODEL_CLASS     class of the model being deployed
+  --train_set TRAIN_SET         path to pickled file of the train_set (to remove seen items)
+  --port PORT                   service port
+```
+
 ## Models
 
 The recommender models supported by Cornac are listed below. Why don't you join us to lengthen the list?
@@ -117,7 +150,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 |      | [Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)](cornac/models/hrdr), [paper](https://www.sciencedirect.com/science/article/abs/pii/S0925231219313207) | [requirements.txt](cornac/models/hrdr/requirements.txt) | [hrdr_example.py](examples/hrdr_example.py)
 |      | [LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation](cornac/models/lightgcn), [paper](https://arxiv.org/pdf/2002.02126.pdf) | [requirements.txt](cornac/models/lightgcn/requirements.txt) | [lightgcn_example.py](examples/lightgcn_example.py)
 | 2019 | [Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)](cornac/models/ease), [paper](https://arxiv.org/pdf/1905.03375.pdf) | N/A | [ease_movielens.py](examples/ease_movielens.py)
-|      | [Neural Graph Collaborative Filtering](cornac/models/ngcf), [paper](https://arxiv.org/pdf/1905.08108.pdf) | [requirements.txt](cornac/models/ngcf/requirements.txt) | [ngcf_example.py](examples/ngcf_example.py)
+|      | [Neural Graph Collaborative Filtering (NGCF)](cornac/models/ngcf), [paper](https://arxiv.org/pdf/1905.08108.pdf) | [requirements.txt](cornac/models/ngcf/requirements.txt) | [ngcf_example.py](examples/ngcf_example.py)
 | 2018 | [Collaborative Context Poisson Factorization (C2PF)](cornac/models/c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | N/A | [c2pf_exp.py](examples/c2pf_example.py)
 |      | [Graph Convolutional Matrix Completion (GCMC)](cornac/models/gcmc), [paper](https://www.kdd.org/kdd2018/files/deep-learning-day/DLDay18_paper_32.pdf) | [requirements.txt](cornac/models/gcmc/requirements.txt) | [gcmc_example.py](examples/gcmc_example.py)
 |      | [Multi-Task Explainable Recommendation (MTER)](cornac/models/mter), [paper](https://arxiv.org/pdf/1806.03568.pdf) | N/A | [mter_exp.py](examples/mter_example.py)
