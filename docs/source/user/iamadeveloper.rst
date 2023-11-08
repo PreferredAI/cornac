@@ -235,11 +235,10 @@ As shown in the output, the ``RandomSearch`` method has found the best
 combination of hyperparameters to be ``k=50`` and ``learning_rate=0.0079``
 with a Recall@100 score of 0.6988.
 
-However, as it utilizes contains a continouous hyperparameter, the
-``RandomSearch`` method may not always find the best combination of
-hyperparameters. This is also the reason why we have set the ``n_trails``
-parameter to 20 to increase the chances of finding the best combination of
-hyperparameters.
+However, as it contains a continuous hyperparameter, the
+``RandomSearch`` method may technically run forever. That is why we 
+have set the ``n_trails`` parameter to 20 to stop at some point. The more we try, 
+the higher chances we have of finding the best combination of hyperparameters.
 
 Results may vary from dataset to dataset. Try tuning your hyperparameters
 using different configurations to find the best hyperparameters for your
@@ -280,7 +279,7 @@ Then, you could create the ``dataset`` object as follows:
 .. note::
 
     Cornac also supports the UIRT format (user, item, rating, timestamp).
-    However, the this format is only for models that support timestamps.
+    This format is to support sequential recommender models.
 
 Training Models
 ---------------
@@ -506,15 +505,16 @@ the following parameters:
 
 - ``uid``: The user ID to obtain recommendations for
 - ``k``: The number of recommendations to obtain
+- ``remove_seen``: Whether to remove seen items during training
 
 .. code-block:: bash
     
-    curl http://127.0.0.1:8080/recommend \
-    --request POST \
-    --header "Content-Type: application/json" \
-    --data '{"uid":"63", "k": 5}'
+    curl -X GET "http://127.0.0.1:8080/recommend?uid=63&k=5&remove_seen=false"
 
-    # Response: {"recommendations": ["50", "181", "100", "258", "286"], "data_received": {"uid": "63", "k": 5}}
+    # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
+
+
+
 
 
 What's Next?
