@@ -18,7 +18,7 @@ models. It is highly compatible with existing machine learning libraries
 The Cornac Experiment Concept
 -----------------------------
 The main idea behind Cornac is to provide a simple and flexible way to
-experiment with different algorithms, hyperparameters, and datasets without
+experiment with different algorithms, hyper-parameters, and datasets without
 having to manually implement and run all the code yourself.
 
 **Here are some key concepts related to Cornac:**
@@ -26,41 +26,41 @@ having to manually implement and run all the code yourself.
 .. grid:: 1 2 2 2
     :gutter: 4
 
-    .. grid-item-card:: 1. Experiments
-        :columns: 12 12 6 6
-        :padding: 3
-
-        An **experiment** refers to a specific combination of algorithm,
-        hyperparameters, dataset, and evaluation metric that is being tested or
-        evaluated.
-
-    .. grid-item-card:: 2. Datasets
+    .. grid-item-card:: 1. Datasets
         :columns: 12 12 6 6
         :padding: 3
 
         A **dataset** refers to a specific collection of input data that is
         used to train or test an algorithm.
 
-    .. grid-item-card:: 3. Algorithms
+    .. grid-item-card:: 2. Algorithms
         :columns: 12 12 6 6
         :padding: 3
 
         An **algorithm** refers to a specific computational model or
-        technique that is being used to perform some task or function.
+        technique that is being used to do recommendation.
 
-    .. grid-item-card:: 4. Hyperparameters
+    .. grid-item-card:: 3. Hyper-parameters
         :columns: 12 12 6 6
         :padding: 3
 
-        A **hyperparameter** refers to a specific parameter or setting that is being
+        A **hype-rparameter** refers to a specific parameter or setting that is being
         adjusted or fine-tuned during the experimentation process.
 
-    .. grid-item-card:: 5. Evaluation metrics
+    .. grid-item-card:: 4. Evaluation metrics
         :columns: 12 12 6 6
         :padding: 3
 
         An **evaluation metric** refers to a specific performance measure or score
         that is being used to evaluate or compare different algorithms or models during the experimentation process.
+
+    .. grid-item-card:: 5. Experiments
+        :columns: 12 12 6 6
+        :padding: 3
+
+        An **experiment** is one-stop-shop where you manage to compare a set of algorithms,
+        how a dataset should be split, and different metrics used to evaluate model performance.
+
 
 The First Experiment
 --------------------
@@ -75,8 +75,8 @@ us with personalized recommendations based on our preferences.
 About the MovieLens dataset
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The MovieLens dataset, a repository of movie ratings and user preferences,
-remains highly relevant today as it powers the personalized recommendation
-algorithms crucial for modern streaming services.
+remains highly relevant today. Oftentimes, it is used as a benchmark to compare 
+different recommendation algorithms.
 
 Sample data from MovieLens 100K dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -103,7 +103,7 @@ The Experiment
 
 In this experiment, we will be using the MovieLens 100K dataset to train and
 evaluate a recommender system that can predict how a user would rate a movie
-based on their preferences and past ratings.
+based on their preferences learned from past ratings.
 
 .. image:: images/flow.jpg
    :width: 800
