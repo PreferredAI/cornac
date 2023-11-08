@@ -77,7 +77,8 @@ class Recommender:
         self.trainable = trainable
         self.verbose = verbose
 
-        self.ignored_attrs = []  # attributes to be ignored when saving model
+        # attributes to be ignored when saving model
+        self.ignored_attrs = ["train_set", "val_set", "test_set"]
 
         # useful information getting from train_set for prediction
         self.num_users = None
@@ -248,6 +249,10 @@ class Recommender:
         self.min_rating = train_set.min_rating
         self.max_rating = train_set.max_rating
         self.global_mean = train_set.global_mean
+
+        # just for future wrapper to call fit(), not supposed to be used during prediction
+        self.train_set = train_set
+        self.val_set = val_set
 
         return self
 
@@ -534,13 +539,8 @@ class ANNMixin:
         """
         raise NotImplementedError()
 
-    def get_user_vectors(self, user_idx):
+    def get_user_vectors(self):
         """Getting a matrix of user vectors served as query for ANN search.
-
-        Parameters
-        ----------
-        user_idx: list, required
-            List of user indices needed to obtain the vectors.
 
         Returns
         -------

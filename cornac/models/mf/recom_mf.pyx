@@ -279,25 +279,20 @@ class MF(Recommender, ANNMixin):
         """
         return "ip"
 
-    def get_user_query(self, user_idx):
+    def get_user_vectors(self):
         """Getting a matrix of user vectors served as query for ANN search.
-
-        Parameters
-        ----------
-        user_idx: list, required
-            List of user indices needed to obtain the vectors.
 
         Returns
         -------
         out: numpy.array
-            Matrix of user query vectors according to user_idx. 
+            Matrix of user vectors for all users available in the model. 
         """
-        user_vectors = self.u_factors[user_idx]
+        user_vectors = self.u_factors
         if self.use_bias:
             user_vectors = np.concatenate(
                 (
                     user_vectors,
-                    self.u_biases[user_idx].reshape((-1, 1)),
+                    self.u_biases.reshape((-1, 1)),
                     np.ones([user_vectors.shape[0], 1]), # augmented for item bias
                 ), 
                 axis=1

@@ -14,6 +14,7 @@
 # ============================================================================
 
 
+import os
 import multiprocessing
 import numpy as np
 
@@ -68,22 +69,26 @@ class HNSWLibANN(BaseANN):
         self.num_threads = (
             num_threads if num_threads != -1 else multiprocessing.cpu_count()
         )
+
         self.index = None
+        self.ignored_attrs.extend(
+            [
+                "index",  # will be saved separately
+                "item_vectors",  # redundant after index is built
+            ]
+        )
 
     def build_index(self):
         """Building index from the base recommender model."""
         import hnswlib
 
-        item_vectors = self.recom.get_item_vectors()
-        measure = self.recom.get_vector_measure()
-
-        self.index = hnswlib.Index(space=measure, dim=item_vectors.shape[1])
+        self.index = hnswlib.Index(space=self.measure, dim=self.item_vectors.shape[1])
         self.index.init_index(
-            max_elements=item_vectors.shape[0],
+            max_elements=self.item_vectors.shape[0],
             ef_construction=self.ef_construction,
             M=self.M,
         )
-        self.index.add_items(item_vectors, np.arange(item_vectors.shape[0]))
+        self.index.add_items(self.item_vectors, np.arange(self.item_vectors.shape[0]))
 
         self.index.set_ef(self.ef)
         self.index.set_num_threads(self.num_threads)
@@ -93,8 +98,28 @@ class HNSWLibANN(BaseANN):
 
         Returns
         -------
-        neighbors: numpy.array
-            Array of k-nearest neighbors for the given query.
+        neighbors, distances: numpy.array and numpy.array
+            Array of k-nearest neighbors and corresponding distances for the given query.
         """
         neighbors, distances = self.index.knn_query(query, k=k)
-        return neighbors
+        return neighbors, distances
+
+    def save(self, save_dir=None):
+        model_file = super().save(save_dir)
+        self.index.save_index(os.path.join(os.path.dirname(model_file), "index.bin"))
+        return model_file
+
+    @staticmethod
+    def load(model_path, trainable=False):
+        import hnswlib
+
+        model = BaseANN.load(model_path, trainable)
+        model.index = hnswlib.Index(
+            space=model.measure, dim=model.user_vectors.shape[1]
+        )
+        if os.path.isdir(model_path):
+            index_path = os.path.join(model_path, "index.bin")
+        else:
+            index_path = os.path.join(os.path.dirname(model_path), "index.bin")
+        model.index.load_index(index_path)
+        return model

@@ -38,7 +38,14 @@ class BaseANN(Recommender):
 
         if not is_ann_supported(recom):
             raise ValueError(f"{recom.name} doesn't support ANN search")
-        self.recom = recom
+
+        # ANN required attributes
+        self.measure = recom.get_vector_measure()
+        self.user_vectors = recom.get_user_vectors()
+        self.item_vectors = recom.get_item_vectors()
+
+        # get basic attributes to be a proper recommender
+        super().fit(train_set=recom.train_set, val_set=recom.val_set)
 
     def build_index(self):
         """Building index from the base recommender model.
@@ -80,33 +87,24 @@ class BaseANN(Recommender):
             Recommended items in the form of their original IDs.
         """
         if isinstance(user_id, str):
-            user_idx = [self.recom.uid_map.get(user_id, -1)]
-        elif isinstance(user_id, list):
-            user_idx = [self.recom.uid_map.get(uid, -1) for uid in user_id]
+            user_idx = [self.uid_map.get(user_id, -1)]
+        else:
+            user_idx = [self.uid_map.get(uid, -1) for uid in user_id]
 
         if any(i == -1 for i in user_idx):
             raise ValueError(f"{user_id} is unknown to the model.")
 
-        if k < -1 or k > self.recom.total_items:
+        if k < -1 or k > self.total_items:
             raise ValueError(
-                f"k={k} is invalid, there are {self.recom.total_users} users in total."
+                f"k={k} is invalid, there are {self.total_users} users in total."
             )
 
-        query = self.recom.get_user_query(user_idx)
-        knn_items = self.knn_query(query, k=k)
+        query = self.user_vectors[user_idx]
+        knn_items, distances = self.knn_query(query, k=k)
 
         # TODO: remove seen items
 
         recommendations = [
-            [self.recom.item_ids[i] for i in knn_items[u]] for u in range(len(user_idx))
+            [self.item_ids[i] for i in knn_items[u]] for u in range(len(user_idx))
         ]
         return recommendations
-
-    def save(self, save_dir=None):
-        # TODO: implement save recom and index
-        raise NotImplementedError()
-
-    @staticmethod
-    def load(model_path, trainable=False):
-        # TODO: implement load recom and index
-        raise NotImplementedError()
