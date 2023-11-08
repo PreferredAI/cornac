@@ -26,7 +26,7 @@ Quick Links
 
 .. topic:: Cornac is suitable for all skill levels.
 
-   From learners to researchers, Cornac allows you to implement Recommender System
+   From beginners, developers to researchers, Cornac allows you to implement Recommender System
    to meet your experimental and production needs.
 
 .. grid:: 2
@@ -40,7 +40,7 @@ Quick Links
 
       **Installation**
 
-      Start here to get Cornac up and running fast through a step by step guide
+      Start here to get Cornac up and running fast through a step-by-step guide
       with helpful explanation.
 
       +++
@@ -85,7 +85,7 @@ Quick Links
 
       Add your own models, datasets and metrics alongside Cornac's offerings to meet your needs.
 
-      This section explains how you can add your own dataset/model/metric so that you can easily run experiments.
+      This section explains how you can add a new dataset/model/metric so that you can easily run experiments.
 
       +++
 
