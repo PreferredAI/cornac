@@ -269,16 +269,6 @@ As shown in the output, the ``RandomSearch`` method has found the best
 combination of hyperparameters to be ``k=50`` and ``learning_rate=0.0079``
 with a Recall@100 score of 0.6988.
 
-However, as it utilizes contains a continouous hyperparameter, the
-``RandomSearch`` method may not always find the best combination of
-hyperparameters. This is also the reason why we have set the ``n_trails``
-parameter to 20 to increase the chances of finding the best combination of
-hyperparameters.
-
-Results may vary from dataset to dataset. Try tuning your hyperparameters
-using different configurations to find the best hyperparameters for your
-dataset.
-
 
 Adding your Own Model
 ---------------------
@@ -808,21 +798,20 @@ First time setup
 ^^^^^^^^^^^^^^^^
 
 As Cornac contains models which uses Cython, compilation is required before
-testing could be done. In order to do so, you need to run the following command:
+testing could be done. In order to do so, you first need to install Cython and 
+run the following command:
 
 .. code-block:: bash
 
     python setup.py build_ext —inplace
 
-This will compile the Cython files and place the compiled files in the
-``cornac/models`` folder.
-
+This will generate C++ files from Cython files, compile the C++ files, and place the compiled binary files in the necessary folders.
 
 The main workflow of developing a new model will be to:
 
-1. Code model files
-2. Code example
-3. Run Example
+1. Implement model files
+2. Create an example
+3. Run the example
 
 Folder structure for testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -884,9 +873,9 @@ If you are using additional packages in your model, you can add them into the
     |-- cornac
     |   |-- models
     |       |-- ngcf
-    |       |   |-- __init__.py
-    |       |   |-- recom_ngcf.py
-    |       |-- requirements.txt <-- Add this file
+    |           |-- __init__.py
+    |           |-- recom_ngcf.py
+    |           |-- requirements.txt <-- Add this file
     |-- examples
         |-- ngcf_example.py
 
