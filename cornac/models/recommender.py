@@ -47,15 +47,15 @@ class Recommender:
 
     num_items: int
         Number of items in training data.
-        
+
     total_users: int
-        Number of users in training, validation, and test data. 
+        Number of users in training, validation, and test data.
         In other words, this includes unknown/unseen users.
 
     total_items: int
-        Number of items in training, validation, and test data. 
+        Number of items in training, validation, and test data.
         In other words, this includes unknown/unseen items.
-        
+
     uid_map: int
         Global mapping of user ID-index.
 
@@ -511,3 +511,64 @@ class Recommender:
             )
             return True
         return False
+
+
+class ANNMixin:
+    """Mixin class for Approximate Nearest Neighbor Search."""
+
+    _ann_supported = True
+    _measures = set(
+        [
+            "l2",  # aka Euclidean
+            "ip",  # inner product, aka dot product
+            "cosine",  # aka cosine similarity
+        ]
+    )
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_user_vectors(self, user_idx):
+        """Getting a matrix of user vectors served as query for ANN search.
+
+        Parameters
+        ----------
+        user_idx: list, required
+            List of user indices needed to obtain the vectors.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building index for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+
+def is_ann_supported(recom):
+    """Return True if the given recommender model support ANN search.
+
+    Parameters
+    ----------
+    recom : recommender model
+        Recommender object to test.
+
+    Returns
+    -------
+    out : bool
+        True if recom supports ANN search and False otherwise.
+    """
+    return getattr(recom, "_ann_supported", False)

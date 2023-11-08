@@ -27,7 +27,7 @@ import numpy as np
 cimport numpy as np
 from tqdm.auto import trange
 
-from ..recommender import Recommender
+from ..recommender import Recommender, ANNMixin
 from ...exception import ScoreException
 from ...utils import fast_dot
 from ...utils import get_rng
@@ -35,7 +35,7 @@ from ...utils.init_utils import normal, zeros
 
 
 
-class MF(Recommender):
+class MF(Recommender, ANNMixin):
     """Matrix Factorization.
 
     Parameters
@@ -269,3 +269,57 @@ class MF(Recommender):
                     raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
                 item_score = np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        "ip" = "inner product" aka "dot product"
+        """
+        return "ip"
+
+    def get_user_query(self, user_idx):
+        """Getting a matrix of user vectors served as query for ANN search.
+
+        Parameters
+        ----------
+        user_idx: list, required
+            List of user indices needed to obtain the vectors.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user query vectors according to user_idx. 
+        """
+        user_vectors = self.u_factors[user_idx]
+        if self.use_bias:
+            user_vectors = np.concatenate(
+                (
+                    user_vectors,
+                    self.u_biases[user_idx].reshape((-1, 1)),
+                    np.ones([user_vectors.shape[0], 1]), # augmented for item bias
+                ), 
+                axis=1
+            )
+        return user_vectors
+    
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model. 
+        """
+        item_vectors = self.i_factors
+        if self.use_bias:
+            item_vectors = np.concatenate(
+                (
+                    item_vectors,
+                    np.ones([item_vectors.shape[0], 1]), # augmented for user bias
+                    self.i_biases.reshape((-1, 1)),
+                ), 
+                axis=1
+            )
+        return item_vectors
