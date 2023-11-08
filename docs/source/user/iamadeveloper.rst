@@ -513,7 +513,23 @@ the following parameters:
 
     # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 
+If we want to remove seen items during training, we need to provide `train_set` when starting the serving service.
 
+
+.. code-block:: bash
+
+    $ python -m cornac.serving --help
+
+    usage: serving.py [-h] --model_dir MODEL_DIR [--model_class MODEL_CLASS] [--train_set TRAIN_SET] [--port PORT]
+
+    Cornac model serving
+
+    options:
+    -h, --help                    show this help message and exit
+    --model_dir MODEL_DIR         path to directory where the model was saved
+    --model_class MODEL_CLASS     class of the model being deployed
+    --train_set TRAIN_SET         path to pickled file of the train_set (to remove seen items)
+    --port PORT                   service port
 
 
 
