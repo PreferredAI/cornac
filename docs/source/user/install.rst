@@ -3,8 +3,7 @@ Installation
 
 Install Python
 --------------
-Cornac supports most versions of Python 3. This includes Python versions 3.8 to 3.11.
-If you have not done so, go to the official `Python download page <https://www.python.org/downloads/>`_.
+Cornac supports most versions of Python 3. If you have not done so, go to the official `Python download page <https://www.python.org/downloads/>`_.
 
 Install Cornac
 --------------
