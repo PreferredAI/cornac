@@ -1,4 +1,4 @@
-# Copyright 2018 The Cornac Authors. All Rights Reserved.
+# Copyright 2023 The Cornac Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,22 +13,4 @@
 # limitations under the License.
 # ============================================================================
 
-from .modality import Modality
-from .modality import FeatureModality
-from .text import TextModality, ReviewModality
-from .image import ImageModality
-from .graph import GraphModality
-from .sentiment import SentimentModality
-from .reader import Reader
-from .dataset import Dataset
-from .dataset import BasketDataset
-
-__all__ = ['FeatureModality',
-           'TextModality',
-           'ReviewModality',
-           'ImageModality',
-           'GraphModality',
-           'SentimentModality',
-           'BasketDataset',
-           'Dataset',
-           'Reader']
+from .recom_gp_top import GPTop

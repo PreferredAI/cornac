@@ -570,3 +570,103 @@ def is_ann_supported(recom):
         True if recom supports ANN search and False otherwise.
     """
     return getattr(recom, "_ann_supported", False)
+
+
+class NextBasketRecommender(Recommender):
+    """Generic class for a next basket recommender model. All next basket recommendation models should inherit from this class.
+
+    Parameters
+    ----------------
+    name: str, required
+        Name of the recommender model.
+
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable.
+
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+
+    Attributes
+    ----------
+    num_users: int
+        Number of users in training data.
+
+    num_items: int
+        Number of items in training data.
+
+    total_users: int
+        Number of users in training, validation, and test data.
+        In other words, this includes unknown/unseen users.
+
+    total_items: int
+        Number of items in training, validation, and test data.
+        In other words, this includes unknown/unseen items.
+
+    uid_map: int
+        Global mapping of user ID-index.
+
+    iid_map: int
+        Global mapping of item ID-index.
+    """
+
+    def __init__(self, name, trainable=True, verbose=False):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+
+    def score(self, user_idx, history_baskets, **kwargs):
+        """Predict the scores for all items based on input history baskets
+
+        Parameters
+        ----------
+        history_baskets: list of lists
+            The list of history baskets in sequential manner for next-basket prediction.
+
+        Returns
+        -------
+        res : a Numpy array
+            Relative scores of all known items
+
+        """
+        raise NotImplementedError("The algorithm is not able to make score prediction!")
+
+    def rank(self, user_idx, history_baskets, item_indices=None, **kwargs):
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_idx: int, required
+            The index of the user for whom to perform item raking.
+
+        item_indices: 1d array, optional, default: None
+            A list of candidate item indices to be ranked by the user.
+            If `None`, list of ranked known item indices and their scores will be returned.
+
+        Returns
+        -------
+        (ranked_items, item_scores): tuple
+            `ranked_items` contains item indices being ranked by their scores.
+            `item_scores` contains scores of items corresponding to index in `item_indices` input.
+
+        """
+        # obtain item scores from the model
+        try:
+            known_item_scores = self.score(user_idx, history_baskets)
+        except ScoreException:
+            known_item_scores = np.ones(self.total_items)
+
+        # check if the returned scores also cover unknown items
+        # if not, all unknown items will be given the MIN score
+        if len(known_item_scores) == self.total_items:
+            all_item_scores = known_item_scores
+        else:
+            all_item_scores = np.ones(self.total_items) * np.min(known_item_scores)
+            all_item_scores[: self.num_items] = known_item_scores
+
+        # rank items based on their scores
+        if item_indices is None:
+            item_scores = all_item_scores[: self.num_items]
+            ranked_items = item_scores.argsort()[::-1]
+        else:
+            item_scores = all_item_scores[item_indices]
+            ranked_items = np.array(item_indices)[item_scores.argsort()[::-1]]
+
+        return ranked_items, item_scores

@@ -13,6 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
+import ast
 import itertools
 from collections import Counter
 
@@ -37,6 +38,7 @@ def uirt_parser(tokens, **kwargs):
 
 
 def tup_parser(tokens, **kwargs):
+    tup_at = kwargs.get("tup_at", 2)
     return [
         (
             tokens[0],
@@ -46,7 +48,30 @@ def tup_parser(tokens, **kwargs):
     ]
 
 
-PARSERS = {"UI": ui_parser, "UIR": uir_parser, "UIRT": uirt_parser, "UITup": tup_parser, "UIReview": review_parser}
+def ubi_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2])]
+
+
+def ubit_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2], int(tokens[3]))]
+
+
+def ubitjson_parsor(tokens, **kwargs):
+    return [
+        (tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))
+    ]
+
+
+PARSERS = {
+    "UI": ui_parser,
+    "UIR": uir_parser,
+    "UIRT": uirt_parser,
+    "UITup": tup_parser,
+    "UIReview": review_parser,
+    "UBI": ubi_parser,
+    "UBIT": ubit_parser,
+    "UBITJson": ubitjson_parsor,
+}
 
 
 class Reader:
@@ -90,6 +115,8 @@ class Reader:
         item_set=None,
         min_user_freq=1,
         min_item_freq=1,
+        min_basket_size=None,
+        max_basket_size=None,
         bin_threshold=None,
         encoding="utf-8",
         errors=None,
@@ -106,6 +133,8 @@ class Reader:
         )
         self.min_uf = min_user_freq
         self.min_if = min_item_freq
+        self.min_basket_size = min_basket_size
+        self.max_basket_size = max_basket_size
         self.bin_threshold = bin_threshold
         self.encoding = encoding
         self.errors = errors
@@ -154,7 +183,7 @@ class Reader:
             Path to the data file.
 
         fmt: str, default: 'UIR'
-            Line format to be parsed ('UIR' or 'UIRT').
+            Line format to be parsed ('UI', 'UIR', 'UIRT', 'UITup', 'UIReview', 'UBI', 'UBIT', or 'UBITJson')
 
         sep: str, default: '\t'
             The delimiter string.
@@ -218,7 +247,7 @@ def read_text(fpath, sep=None, encoding="utf-8", errors=None):
         Optional string that specifies how encoding errors are to be handled.
         Pass 'strict' to raise a ValueError exception if there is an encoding error
         (None has the same effect), or pass 'ignore' to ignore errors.
-    
+
     Returns
     -------
     texts, ids (optional): list, list
