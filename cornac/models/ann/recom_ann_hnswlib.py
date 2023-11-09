@@ -14,7 +14,6 @@
 # ============================================================================
 
 
-import os
 import multiprocessing
 import numpy as np
 
@@ -59,6 +58,7 @@ class HNSWLibANN(BaseANN):
         ef_construction=100,
         ef=50,
         num_threads=-1,
+        seed=None,
         name="HNSWLibANN",
         verbose=False,
     ):
@@ -69,6 +69,7 @@ class HNSWLibANN(BaseANN):
         self.num_threads = (
             num_threads if num_threads != -1 else multiprocessing.cpu_count()
         )
+        self.seed = seed
 
         self.index = None
         self.ignored_attrs.extend(
@@ -83,10 +84,12 @@ class HNSWLibANN(BaseANN):
         import hnswlib
 
         self.index = hnswlib.Index(space=self.measure, dim=self.item_vectors.shape[1])
+        random_seed = self.seed if self.seed else np.random.randint(np.iinfo(int).max)
         self.index.init_index(
             max_elements=self.item_vectors.shape[0],
             ef_construction=self.ef_construction,
             M=self.M,
+            random_seed=random_seed,
         )
         self.index.add_items(self.item_vectors, np.arange(self.item_vectors.shape[0]))
 
