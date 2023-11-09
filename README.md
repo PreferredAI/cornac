@@ -137,6 +137,15 @@ options:
   --port PORT                   service port
 ```
 
+## Efficient retrieval with ANN search
+
+One important aspect of deploying recommender model is efficient retrieval via Approximate Nearest Neighor (ANN) search in vector space. Although, this is not the main focus of Cornac, we try our best to integrate several open-source frameworks out-of-the-box. [This example](tutorials/ann_hnswlib.ipynb) demonstrates how ANN search will work seamlessly as other recommender models. 
+
+| Supported framework | Cornac wrapper | Examples |
+| :---: | :---: | :---: |
+| [nmslib/hnswlib](https://github.com/nmslib/hnswlib) | [HNSWLibANN](cornac/models/ann/recom_ann_hnswlib.py) | [ann_hnswlib.ipynb](tutorials/ann_hnswlib.ipynb)
+
+
 ## Models
 
 The recommender models supported by Cornac are listed below. Why don't you join us to lengthen the list?
