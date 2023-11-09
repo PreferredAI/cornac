@@ -106,7 +106,7 @@ class HNSWLibANN(BaseANN):
 
     def save(self, save_dir=None):
         model_file = super().save(save_dir)
-        self.index.save_index(os.path.join(os.path.dirname(model_file), "index.bin"))
+        self.index.save_index(model_file + ".idx")
         return model_file
 
     @staticmethod
@@ -117,9 +117,5 @@ class HNSWLibANN(BaseANN):
         model.index = hnswlib.Index(
             space=model.measure, dim=model.user_vectors.shape[1]
         )
-        if os.path.isdir(model_path):
-            index_path = os.path.join(model_path, "index.bin")
-        else:
-            index_path = os.path.join(os.path.dirname(model_path), "index.bin")
-        model.index.load_index(index_path)
+        model.index.load_index(model.load_from + ".idx")
         return model
