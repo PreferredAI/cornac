@@ -519,7 +519,7 @@ class Recommender:
 
 
 MEASURE_L2 = "l2 distance aka. Euclidean distance"
-MEASURE_IP = "inner product aka. dot product"
+MEASURE_DOT = "dot product aka. inner product"
 MEASURE_COSINE = "cosine similarity"
 
 

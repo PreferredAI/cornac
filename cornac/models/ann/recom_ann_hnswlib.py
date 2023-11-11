@@ -17,13 +17,13 @@
 import multiprocessing
 import numpy as np
 
-from ..recommender import MEASURE_L2, MEASURE_IP, MEASURE_COSINE
+from ..recommender import MEASURE_L2, MEASURE_DOT, MEASURE_COSINE
 from .recom_ann_base import BaseANN
 
 
 SUPPORTED_MEASURES = {
     MEASURE_L2: "l2",
-    MEASURE_IP: "ip",
+    MEASURE_DOT: "ip",
     MEASURE_COSINE: "cosine",
 }
 
