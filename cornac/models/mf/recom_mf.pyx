@@ -27,7 +27,8 @@ import numpy as np
 cimport numpy as np
 from tqdm.auto import trange
 
-from ..recommender import Recommender, ANNMixin
+from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_IP
 from ...exception import ScoreException
 from ...utils import fast_dot
 from ...utils import get_rng
@@ -277,7 +278,7 @@ class MF(Recommender, ANNMixin):
         -------
         "ip" = "inner product" aka "dot product"
         """
-        return "ip"
+        return MEASURE_IP
 
     def get_user_vectors(self):
         """Getting a matrix of user vectors served as query for ANN search.

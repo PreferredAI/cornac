@@ -518,17 +518,15 @@ class Recommender:
         return False
 
 
+MEASURE_L2 = "l2 distance aka. Euclidean distance"
+MEASURE_IP = "inner product aka. dot product"
+MEASURE_COSINE = "cosine similarity"
+
+
 class ANNMixin:
     """Mixin class for Approximate Nearest Neighbor Search."""
 
     _ann_supported = True
-    _measures = set(
-        [
-            "l2",  # aka Euclidean
-            "ip",  # inner product, aka dot product
-            "cosine",  # aka cosine similarity
-        ]
-    )
 
     def get_vector_measure(self):
         """Getting a valid choice of vector measurement in ANNMixin._measures.

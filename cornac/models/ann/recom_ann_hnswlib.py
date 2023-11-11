@@ -17,7 +17,15 @@
 import multiprocessing
 import numpy as np
 
+from ..recommender import MEASURE_L2, MEASURE_IP, MEASURE_COSINE
 from .recom_ann_base import BaseANN
+
+
+SUPPORTED_MEASURES = {
+    MEASURE_L2: "l2",
+    MEASURE_IP: "ip",
+    MEASURE_COSINE: "cosine",
+}
 
 
 class HNSWLibANN(BaseANN):
@@ -83,7 +91,12 @@ class HNSWLibANN(BaseANN):
         """Building index from the base recommender model."""
         import hnswlib
 
-        self.index = hnswlib.Index(space=self.measure, dim=self.item_vectors.shape[1])
+        assert self.measure in SUPPORTED_MEASURES
+
+        self.index = hnswlib.Index(
+            space=SUPPORTED_MEASURES[self.measure], dim=self.item_vectors.shape[1]
+        )
+
         random_seed = self.seed if self.seed else np.random.randint(np.iinfo(int).max)
         self.index.init_index(
             max_elements=self.item_vectors.shape[0],
@@ -118,7 +131,7 @@ class HNSWLibANN(BaseANN):
 
         model = BaseANN.load(model_path, trainable)
         model.index = hnswlib.Index(
-            space=model.measure, dim=model.user_vectors.shape[1]
+            space=SUPPORTED_MEASURES[model.measure], dim=model.user_vectors.shape[1]
         )
         model.index.load_index(model.load_from + ".idx")
         return model
