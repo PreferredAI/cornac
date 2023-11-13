@@ -14,6 +14,7 @@
 # ============================================================================
 
 
+import sys
 import multiprocessing
 import numpy as np
 
@@ -96,8 +97,9 @@ class HNSWLibANN(BaseANN):
         self.index = hnswlib.Index(
             space=SUPPORTED_MEASURES[self.measure], dim=self.item_vectors.shape[1]
         )
-
-        random_seed = self.seed if self.seed else np.random.randint(np.iinfo(int).max)
+        random_seed = (
+            self.seed if self.seed is not None else np.random.randint(sys.maxsize)
+        )
         self.index.init_index(
             max_elements=self.item_vectors.shape[0],
             ef_construction=self.ef_construction,

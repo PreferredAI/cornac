@@ -14,6 +14,8 @@
 # ============================================================================
 
 
+import numpy as np
+
 from ..recommender import Recommender
 from ..recommender import is_ann_supported
 
@@ -131,7 +133,18 @@ class BaseANN(Recommender):
         query = self.user_vectors[user_idx]
         knn_items, distances = self.knn_query(query, k=k)
 
-        # TODO: remove seen items
+        if remove_seen:
+            if train_set is None:
+                raise ValueError("train_set must be provided to remove seen items.")
+            filtered_knn_items = []
+            for u, i in zip(user_idx, knn_items):
+                if u >= train_set.csr_matrix.shape[0]:
+                    continue
+                seen_mask = np.in1d(
+                    np.arange(i.size), train_set.csr_matrix.getrow(u).indices
+                )
+                filtered_knn_items.append(i[~seen_mask])
+            knn_items = filtered_knn_items
 
         recommendations = [
             [self.item_ids[i] for i in knn_items[u]] for u in range(len(user_idx))
