@@ -35,7 +35,7 @@ class HNSWLibANN(BaseANN):
 
     Parameters
     ----------------
-    recom: object: :obj:`cornac.models.Recommender`, required
+    model: object: :obj:`cornac.models.Recommender`, required
         Trained recommender model which to get user/item vectors from.
 
     M: int, optional, default: 16
@@ -68,7 +68,7 @@ class HNSWLibANN(BaseANN):
 
     def __init__(
         self,
-        recom,
+        model,
         M=16,
         ef_construction=100,
         ef=50,
@@ -77,7 +77,7 @@ class HNSWLibANN(BaseANN):
         name="HNSWLibANN",
         verbose=False,
     ):
-        super().__init__(recom=recom, name=name, verbose=verbose)
+        super().__init__(model=model, name=name, verbose=verbose)
         self.M = M
         self.ef_construction = ef_construction
         self.ef = ef
@@ -87,9 +87,9 @@ class HNSWLibANN(BaseANN):
         self.seed = seed
 
         # ANN required attributes
-        self.measure = recom.get_vector_measure()
-        self.user_vectors = recom.get_user_vectors()
-        self.item_vectors = recom.get_item_vectors()
+        self.measure = model.get_vector_measure()
+        self.user_vectors = model.get_user_vectors()
+        self.item_vectors = model.get_item_vectors()
 
         self.index = None
         self.ignored_attrs.extend(

@@ -25,7 +25,7 @@ class BaseANN(Recommender):
 
     Parameters
     ----------------
-    recom: object: :obj:`cornac.models.Recommender`, required
+    model: object: :obj:`cornac.models.Recommender`, required
         Trained recommender model which to get user/item vectors from.
 
     name: str, required
@@ -35,14 +35,14 @@ class BaseANN(Recommender):
         When True, running logs are displayed.
     """
 
-    def __init__(self, recom, name="BaseANN", verbose=False):
+    def __init__(self, model, name="BaseANN", verbose=False):
         super().__init__(name=name, verbose=verbose, trainable=False)
 
-        if not is_ann_supported(recom):
-            raise ValueError(f"{recom.name} doesn't support ANN search")
+        if not is_ann_supported(model):
+            raise ValueError(f"{model.name} doesn't support ANN search")
 
         # get basic attributes to be a proper recommender
-        super().fit(train_set=recom.train_set, val_set=recom.val_set)
+        super().fit(train_set=model.train_set, val_set=model.val_set)
 
     def build_index(self):
         """Building index from the base recommender model.
