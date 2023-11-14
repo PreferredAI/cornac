@@ -71,11 +71,12 @@ html_static_path = ['_static']
 
 html_title = "Cornac"
 
-# html_theme_options = {
-#     "switcher": {
-#         "json_url": "https://cornac.readthedocs.io/latest/_static/switcher.json",
-#     }
-# }
+html_theme_options = {
+    # "switcher": {
+    #     "json_url": "https://cornac.readthedocs.io/latest/_static/switcher.json",
+    # }
+    "announcement": "Welcome to our new documentation site! Please report any issues <a href='https://github.com/PreferredAI/cornac/issues/new?assignees=&labels=&projects=&title=%5BDOCS%5D'>here</a>.",
+}
 
 # -- Options for intersphinx extension ---------------------------------------
 
