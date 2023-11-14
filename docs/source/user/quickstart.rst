@@ -219,7 +219,7 @@ We set various metrics for the ``metrics`` object:
     **10 recommendations** for each user. (``k=10``)
 
 
-1. Run Experiment
+5. Run Experiment
 ^^^^^^^^^^^^^^^^^
 
 We can now run the experiment by putting everything together. This will train
