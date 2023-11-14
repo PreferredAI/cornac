@@ -282,7 +282,7 @@ class MF(Recommender, ANNMixin):
         return MEASURE_DOT
 
     def get_user_vectors(self):
-        """Getting a matrix of user vectors served as query for ANN search.
+        """Getting a matrix of user vectors serving as query for ANN search.
 
         Returns
         -------
@@ -302,7 +302,7 @@ class MF(Recommender, ANNMixin):
         return user_vectors
     
     def get_item_vectors(self):
-        """Getting a matrix of item vectors used for building index for ANN search.
+        """Getting a matrix of item vectors used for building the index for ANN search.
 
         Returns
         -------

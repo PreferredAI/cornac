@@ -41,11 +41,6 @@ class BaseANN(Recommender):
         if not is_ann_supported(recom):
             raise ValueError(f"{recom.name} doesn't support ANN search")
 
-        # ANN required attributes
-        self.measure = recom.get_vector_measure()
-        self.user_vectors = recom.get_user_vectors()
-        self.item_vectors = recom.get_item_vectors()
-
         # get basic attributes to be a proper recommender
         super().fit(train_set=recom.train_set, val_set=recom.val_set)
 

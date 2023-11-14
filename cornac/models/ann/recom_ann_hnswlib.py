@@ -15,6 +15,7 @@
 
 
 import sys
+import random
 import multiprocessing
 import numpy as np
 
@@ -45,7 +46,9 @@ class HNSWLibANN(BaseANN):
         Parameter that controls speed/accuracy trade-off during the index construction.
 
     ef: int, optional, default: 50
-        Parameter controlling query time/accuracy trade-off.
+        Parameter controlling query time/accuracy trade-off. Higher `ef` leads to more accurate but
+        slower search. `ef` cannot be set lower than the number of queried nearest neighbors k. The
+        value of `ef` can be anything between `k` and the total number of items.
 
     num_threads: int, optional, default: -1
         Default number of threads to use when querying. If num_threads = -1, all cores will be used.
@@ -80,6 +83,11 @@ class HNSWLibANN(BaseANN):
         )
         self.seed = seed
 
+        # ANN required attributes
+        self.measure = recom.get_vector_measure()
+        self.user_vectors = recom.get_user_vectors()
+        self.item_vectors = recom.get_item_vectors()
+
         self.index = None
         self.ignored_attrs.extend(
             [
@@ -97,17 +105,20 @@ class HNSWLibANN(BaseANN):
         self.index = hnswlib.Index(
             space=SUPPORTED_MEASURES[self.measure], dim=self.item_vectors.shape[1]
         )
-        random_seed = (
-            self.seed if self.seed is not None else np.random.randint(sys.maxsize)
-        )
+
         self.index.init_index(
             max_elements=self.item_vectors.shape[0],
             ef_construction=self.ef_construction,
             M=self.M,
-            random_seed=random_seed,
+            random_seed=(
+                np.random.randint(sys.maxsize) if self.seed is None else self.seed
+            ),
         )
-        self.index.add_items(self.item_vectors, np.arange(self.item_vectors.shape[0]))
-
+        self.index.add_items(
+            data=self.item_vectors,
+            ids=np.arange(self.item_vectors.shape[0]),
+            num_threads=(-1 if self.seed is None else 1),
+        )
         self.index.set_ef(self.ef)
         self.index.set_num_threads(self.num_threads)
 
@@ -123,17 +134,19 @@ class HNSWLibANN(BaseANN):
         return neighbors, distances
 
     def save(self, save_dir=None):
-        model_file = super().save(save_dir)
-        self.index.save_index(model_file + ".idx")
-        return model_file
+        saved_path = super().save(save_dir)
+        self.index.save_index(saved_path + ".idx")
+        return saved_path
 
     @staticmethod
     def load(model_path, trainable=False):
         import hnswlib
 
-        model = BaseANN.load(model_path, trainable)
-        model.index = hnswlib.Index(
-            space=SUPPORTED_MEASURES[model.measure], dim=model.user_vectors.shape[1]
+        ann = BaseANN.load(model_path, trainable)
+        ann.index = hnswlib.Index(
+            space=SUPPORTED_MEASURES[ann.measure], dim=ann.user_vectors.shape[1]
         )
-        model.index.load_index(model.load_from + ".idx")
-        return model
+        ann.index.load_index(ann.load_from + ".idx")
+        ann.index.set_ef(ann.ef)
+        ann.index.set_num_threads(ann.num_threads)
+        return ann

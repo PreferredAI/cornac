@@ -538,7 +538,7 @@ class ANNMixin:
         raise NotImplementedError()
 
     def get_user_vectors(self):
-        """Getting a matrix of user vectors served as query for ANN search.
+        """Getting a matrix of user vectors serving as query for ANN search.
 
         Returns
         -------
@@ -547,7 +547,7 @@ class ANNMixin:
         raise NotImplementedError()
 
     def get_item_vectors(self):
-        """Getting a matrix of item vectors used for building index for ANN search.
+        """Getting a matrix of item vectors used for building the index for ANN search.
 
         Returns
         -------
