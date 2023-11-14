@@ -40,10 +40,13 @@ class HNSWLibANN(BaseANN):
 
     M: int, optional, default: 16
         Parameter that defines the maximum number of outgoing connections in the HNSW graph.
-        Higher M leads to higher accuracy/run_time at fixed ef/efConstruction
+        Higher M leads to higher accuracy/run_time at fixed ef/ef_construction. Reasonable range
+        for M is 2-100. Higher M work better on model with high dimensional factors, while low M
+        work better for low dimensional factors. More details: https://github.com/nmslib/hnswlib/blob/master/ALGO_PARAMS.md.
 
     ef_construction: int, optional, default: 100
-        Parameter that controls speed/accuracy trade-off during the index construction.
+        Parameter that controls speed/accuracy trade-off during the index construction. Bigger ef_construction leads to longer construction, but better index quality. At some point,
+        increasing ef_construction does not improve the quality of the index.
 
     ef: int, optional, default: 50
         Parameter controlling query time/accuracy trade-off. Higher `ef` leads to more accurate but
