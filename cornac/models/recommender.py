@@ -47,15 +47,15 @@ class Recommender:
 
     num_items: int
         Number of items in training data.
-        
+
     total_users: int
-        Number of users in training, validation, and test data. 
+        Number of users in training, validation, and test data.
         In other words, this includes unknown/unseen users.
 
     total_items: int
-        Number of items in training, validation, and test data. 
+        Number of items in training, validation, and test data.
         In other words, this includes unknown/unseen items.
-        
+
     uid_map: int
         Global mapping of user ID-index.
 
@@ -77,7 +77,8 @@ class Recommender:
         self.trainable = trainable
         self.verbose = verbose
 
-        self.ignored_attrs = []  # attributes to be ignored when saving model
+        # attributes to be ignored when saving model
+        self.ignored_attrs = ["train_set", "val_set", "test_set"]
 
         # useful information getting from train_set for prediction
         self.num_users = None
@@ -248,6 +249,10 @@ class Recommender:
         self.min_rating = train_set.min_rating
         self.max_rating = train_set.max_rating
         self.global_mean = train_set.global_mean
+
+        # just for future wrapper to call fit(), not supposed to be used during prediction
+        self.train_set = train_set
+        self.val_set = val_set
 
         return self
 
@@ -511,3 +516,57 @@ class Recommender:
             )
             return True
         return False
+
+
+MEASURE_L2 = "l2 distance aka. Euclidean distance"
+MEASURE_DOT = "dot product aka. inner product"
+MEASURE_COSINE = "cosine similarity"
+
+
+class ANNMixin:
+    """Mixin class for Approximate Nearest Neighbor Search."""
+
+    _ann_supported = True
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+
+def is_ann_supported(recom):
+    """Return True if the given recommender model support ANN search.
+
+    Parameters
+    ----------
+    recom : recommender model
+        Recommender object to test.
+
+    Returns
+    -------
+    out : bool
+        True if recom supports ANN search and False otherwise.
+    """
+    return getattr(recom, "_ann_supported", False)
