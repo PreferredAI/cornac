@@ -8,9 +8,10 @@ Cornac supports most versions of Python 3. If you have not done so, go to the of
 Install Cornac
 --------------
 There are 3 different ways in which you could install cornac.
-Depending on your environment and requirements, choose and run the corresponding codes to install Cornac:
+Depending on your environment and requirements, choose and run the
+corresponding codes to install Cornac:
 
-1. Using ``pip`` (recommended)
+1. Using ``pip`` (Recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pip is a package manager for Python. It allows users to easily install,
@@ -32,8 +33,8 @@ environments on Windows, macOS, Linux, and other operating systems.
 
     conda install cornac -c conda-forge
 
-3. From Github Source - View <advanced section>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3. From Github Source - For advanced users
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Should you require the latest updates of Cornac from Github,
 you could manually build and install using the following codes:
