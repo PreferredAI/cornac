@@ -1,4 +1,4 @@
-Cornac for Researchers
+For Researchers
 ======================
 
 This document is intended to provide a quick introduction on how researchers

@@ -86,8 +86,20 @@ movies. Each user has rated at least 20 movies on a scale of 1 to 5.
 The dataset also contains additional information about the movies, such as
 genre and year of release.
 
-.. image:: images/movielens_sample.png
-   :width: 230
++-------+-------+-------+-------+
+|       |user_id|item_id| rating|
++=======+=======+=======+=======+
+|   0   |   196 |   242 |  3.0  |
++-------+-------+-------+-------+
+|   1   |   186 |   302 |  3.0  |
++-------+-------+-------+-------+
+|   2   |    22 |   377 |  1.0  |
++-------+-------+-------+-------+
+|   3   |   244 |    51 |  2.0  |
++-------+-------+-------+-------+
+|   4   |   166 |   346 |  1.0  |
++-------+-------+-------+-------+
+
 
 A sample of 5 records from the MovieLens 100K dataset is shown above.
 
@@ -289,8 +301,15 @@ favourite command prompt.
 What does the output mean?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: images/first_experiment_result.png
-   :width: 450
+.. code-block:: bash
+  :caption: output
+
+  TEST:
+  ...
+      | Precision@10 | Recall@10 | Train (s) | Test (s)
+  --- + ------------ + --------- + --------- + --------
+  BPR |       0.1110 |    0.1195 |    4.7624 |   0.7182
+
 
 After the training process, Cornac tests the trained model by using the test data
 (as split by the ``RatioSplit`` function) to calculate the metrics defined.
@@ -356,8 +375,15 @@ Now run it again!
 
     python first_experiment.py
 
-.. image:: images/first_experiment_result_2.png
-   :width: 450
+.. code-block:: bash
+  :caption: output
+
+  TEST:
+  ...
+      | Precision@10 | Recall@10 | Train (s) | Test (s)
+  --- + ------------ + --------- + --------- + --------
+  BPR |       0.1110 |    0.1195 |    4.7624 |   0.7182
+  PMF |       0.0813 |    0.0639 |    2.5635 |   0.4254
 
 We are now presented with results from our different models. In this easy example,
 we can see how we can easily compare the results from different models.
