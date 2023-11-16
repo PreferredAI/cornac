@@ -1,35 +1,40 @@
 FoodRecce Example
 =================
 
-Introduction
-------------
+.. image:: images/foodrecce1.png
+   :width: 200
 
-``FoodRecce`` (shortform for Food Reconnaissance) is an application that allows
+.. image:: images/foodrecce2.png
+   :width: 200
+
+**FoodRecce** (in short for Food Reconnaissance) is an application that allows
 users to search for food places around their current location.
 
-FoodRecce is a mobile app that allows users to provide feedback (like/dislike)
-the restaurants they love,
-
-The infrastructure of the application is as follows:
-
-``Mobile App - Backend Server/Cornac - Database``
+FoodRecce is a mobile app that allows users to provide feedback (**like/dislike**)
+the restaurants they love or dislike. The feedback is then used to recommend
+other restaurants that the user may like.
 
 
-Scope of this example
----------------------
 
-This example will show you how to use Cornac to build a recommendation
-system for FoodRecce. The development of mobile app and database storage is 
-out of scope for this example.
+**FoodRecce Architecture**
 
+.. image:: images/foodrecce-archit.png
+   :width: 500
 
-Loading data
-------------
+The above diagram shows the architecture of FoodRecce. The mobile app is
+connected to a backend server, which is connected to a database. The database
+stores the information of the restaurants, as well as the feedback provided
+by the users.
+
+Training Data
+-------------
+
+Implicit data was collected by the users of FoodRecce. The data is in the form
+of user feedback on the restaurants. The feedback is in the form of
+**like/dislike** or in binary form, 1 or 0.
+
 The data is being loaded from the database. A simple SQL statement
 ``SELECT * FROM feedbacks`` could be used to obtain the feedback data on Python.
-
-For brevity, a converted version of this data into Cornac's format will look
-like the following:
 
 .. code-block:: python
 
@@ -50,15 +55,15 @@ We then convert the data to the dataset format:
     dataset = Dataset.from_uir(data, seed=123)
 
 
-Building the recommender
-------------------------
+How the recommender was built
+-----------------------------
 
 We use the BPR recommender to build the recommendation system for FoodRecce.
 Based on historical data, we are able to rank other unseen restaurants based
 on the user's past preferences.
 
 Assuming that we have already experimented different parameters and values for
-the BPR model, we can then train the recommender as follows:
+the BPR model, we can then train the recommender system.
 
 .. code-block:: python
 
@@ -71,15 +76,9 @@ the BPR model, we can then train the recommender as follows:
     # Save the model
     bpr.save(save_dir="saved_models")
 
-Upon running this code, the model will be saved in the ``saved_models`` directory.
-
-.. code-block:: bash
-    :caption: Folder directory
-    
-    - example.py
-    - saved_models
-        |- BPR
-            |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
+This in turn saves the model which we could reuse for future predictions.
+For the FoodRecce use case, we often retrain the model with new data as new
+restaurants are often added to the database, along with the increase of new users.
 
 .. note::
     
@@ -87,11 +86,34 @@ Upon running this code, the model will be saved in the ``saved_models`` director
     so. This is because we can then load the model directly from the saved
     directory without having to retrain the model again.
 
-Making recommendations
+Providing Feedback
+------------------
+
+FoodRecce gives recommendations based on the trained model. We give users a
+mix of restaurants that they might not have seen before, as well as
+restaurants that they could have previously liked.
+
+.. image:: images/foodrecce1.png
+   :width: 200
+
+This swiping interface gives users the opportunity to further provide the
+system more ideas on what they may like or dislike. Depending on our scenario,
+this could be just random sampling of restaurants, or specifically ranked
+restaurants based on an algorithm on Cornac.
+
+Giving Recommendations
 ----------------------
 
+We periodically train the model to provide users with recommendations with
+fresher set of data, by retraining the model with new data.
+
+.. image:: images/foodrecce2.png
+   :width: 200
+
 After training the model, we can then use the model to make recommendations
-for users. We can do this by loading the model and calling the ``recommend``
+for users. We utilize a ranking strategy to provide recommendations.
+
+You can easily do this by loading the model and calling the ``recommend``
 method.
 
 We first load our saved model. For subsequent runs, we can load the model
@@ -101,13 +123,10 @@ directly from the saved directory.
 
     from cornac.models import BPR
 
-    bpr = BPR.load("saved_models/BPR/yyyy-MM-dd HH:mm:ss.SSSSSS.pkl")
+    bpr = BPR.load("saved_models/BPR")
 
 Now, given that our backend receives a load request from a user with id
 ``uid_001``, we can then make recommendations for this user.
-
-We then make recommendations for a user with id ``uid_001``. We can do this
-by calling the ``recommend`` method.
 
 .. code-block:: python
 
@@ -121,7 +140,7 @@ by calling the ``recommend`` method.
         return top_k_recs
 
 
-The values returned for this will be as follows;
+For example, the values returned will be as follows;
 
 .. code-block:: bash
 
@@ -138,23 +157,32 @@ The values returned for this will be as follows;
         'restaurant_007'
     ]
 
-The above list of restaurants are the top 10 recommendations for the user
-with id ``uid_001``. The list is ranked in descending order, with the first
-item being the most recommended item.
+Your backend server will then return the list of recommendations to the
+mobile app. Depending on how the interface is, the mobile app will then
+display the recommendations to the user.
 
-.. note::
-
-    The list of recommendations are in the form of item ids. The item ids
-    are the same as the item ids in the database. The mobile app will then
-    use the item ids to query the database for the restaurant information.
+In FoodRecce's scenario, we display the recommendations in a format in
+which users could navigate and find out more about the restaurants.
+This is done with the integration of FoodRecce's database of restaurants.
 
 
-Updating the model
-------------------
+Model Update Strategy
+---------------------
 
-As more users provide feedback on the restaurants, we can then update the
-model with the new feedback data. We can do this by calling the ``fit``
-method again as in the `Building the Recommender`` section.
+Over the months, many new restaurants and food establishments would have
+been introduced to the public. To keep the app relevant, we would need to
+update the model with the new data. With an data source, new restaurants
+are consistently added into the database, in which we would retrain the
+model to increase coverage of restaurants.
+
+You may also adopt the strategy of indexing scores of every restaurant for
+every user (in the form of #restaurants X #users matrix in a database) for
+easy retrieval of scores.
+
+But do keep in mind that you would need to consistently reindex
+the scores for each user as new feedbacks are provided and new restaurants
+are added to the database. Also, this approach may continue to be expensive
+as the number of users and restaurants increase.
 
 
 Conclusion
@@ -162,6 +190,9 @@ Conclusion
 
 We have just briefly shown you how to build a recommendation system for a 
 food recommendation app. There are many uses for recommender systems.
+
+There are various strategies in which you could use Cornac for, and we hope
+that you have learned how to use Cornac for your own projects and applications.
 
 Feel free to try to building your own recommendation system for your own
 application, and share them with us!
