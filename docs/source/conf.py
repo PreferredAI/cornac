@@ -77,12 +77,34 @@ html_theme_options = {
     # "switcher": {
     #     "json_url": "https://cornac.readthedocs.io/latest/_static/switcher.json",
     # }
-    "announcement": "Welcome to our new documentation site! Please report any issues <a href='https://github.com/PreferredAI/cornac/issues/new?assignees=&labels=&projects=&title=%5BDOCS%5D'>here</a>.",
+    "external_links": [
+        {
+            "url": "https://cornac.preferred.ai",
+            "name": "Official Cornac Website",
+        },
+        {
+            "url": "https://preferred.ai",
+            "name": "Preferred.AI",
+        },
+    ],
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/preferredAI/cornac",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/cornac",
+            "icon": "fa-custom fa-pypi",
+        },
+    ],
+    "announcement": "https://raw.githubusercontent.com/PreferredAI/cornac/master/docs/announcement.html",
     "logo": {
         "text": "Cornac",
     },
     "pygment_light_style": "default",
-    "pygment_dark_style": "github-dark"
+    "pygment_dark_style": "github-dark",
 }
 
 # -- Options for intersphinx extension ---------------------------------------

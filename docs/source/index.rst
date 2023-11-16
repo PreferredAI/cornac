@@ -15,7 +15,6 @@ Cornac: A Comparative Framework for Multimodal Recommender Systems
 
 
 Quick Links
-===========
    `Website <https://cornac.preferred.ai/>`_ |
    `Tutorials <https://github.com/PreferredAI/cornac/tree/master/tutorials#tutorials>`_ |
    `Examples <https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory>`_ |
