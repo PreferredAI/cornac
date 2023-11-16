@@ -1,7 +1,8 @@
 API Reference
 =============
 
-Welcome to the API Reference.
+Welcome to the API Reference. This section contains the documentation of the
+functions and classes of the ``cornac`` package.
 
 .. toctree::
    :maxdepth: 2
