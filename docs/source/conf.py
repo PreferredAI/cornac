@@ -93,11 +93,6 @@ html_theme_options = {
             "url": "https://github.com/preferredAI/cornac",
             "icon": "fa-brands fa-github",
         },
-        {
-            "name": "PyPI",
-            "url": "https://pypi.org/project/cornac",
-            "icon": "fa-custom fa-pypi",
-        },
     ],
     "announcement": "https://raw.githubusercontent.com/PreferredAI/cornac/master/docs/announcement.html",
     "logo": {
