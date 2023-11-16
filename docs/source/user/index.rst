@@ -21,6 +21,7 @@ build, evaluate, and fine-tune recommender systems to meet your needs.
 .. toctree::
    :glob:
    :maxdepth: 2
-   :caption: Additional Examples
+   :caption: Additional Guides
 
+   owndata
    example-foodrecce

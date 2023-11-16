@@ -1,5 +1,5 @@
-Adding your Own Data
-=====================
+Using your Own Data
+===================
 
 In this example, we will use our own data to train a model. We will also
 demonstrate on how we could get the predictions given your own data.
