@@ -37,22 +37,21 @@ having to manually implement and run all the code yourself.
         :columns: 12 12 6 6
         :padding: 3
 
-        A **model** refers to a specific algorithm that is used to train on a
-        dataset to learn patterns and make predictions.
+        A **model** refers to a specific (machine learning) algorithm that is used to train on a
+        dataset to learn user preferences and make recommendations.
 
     .. grid-item-card:: 3. Evaluation metrics
         :columns: 12 12 6 6
         :padding: 3
 
         An **evaluation metric** refers to a specific performance measure or score
-        that is being used to evaluate or compare different algorithms or models during the experimentation process.
+        that is being used to evaluate or compare different models during the experimentation process.
 
     .. grid-item-card:: 4. Experiments
         :columns: 12 12 6 6
         :padding: 3
 
-        An **experiment** is one-stop-shop where you manage to compare a set of algorithms,
-        how a dataset should be split, and different metrics used to evaluate model performance.
+        An **experiment** is one-stop-shop where you manage how your dataset should be prepared/split, different evaluation metrics, and multiple models to be compared with.
 
 
 The First Experiment
@@ -67,9 +66,11 @@ us with personalized recommendations based on our preferences.
 
 About the MovieLens dataset
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The MovieLens dataset, a repository of movie ratings and user preferences,
+The MovieLens_ dataset, a repository of movie ratings and user preferences,
 remains highly relevant today. Oftentimes, it is used as a benchmark to compare 
 different recommendation algorithms.
+
+.. _MovieLens: https://grouplens.org/datasets/movielens/
 
 Sample data from MovieLens 100K dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -174,7 +175,7 @@ using the **Bayesian Personalized Ranking (BPR)** model.
 
     from cornac.models import BPR
 
-    # Instantiate a matrix factorization model (e.g., BPR)
+    # Instantiate a recommender model (e.g., BPR)
     models = [
         BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
     ]
@@ -246,10 +247,8 @@ We set various parameters for the ``Experiment`` object:
 
 - ``user_based=True`` to evaluate the model on an individual user basis.
   This means that the average performance of each user will be calculated
-  and averaged across users to get the final result.
-
-  This is opposed to evaluating based on all users by setting
-  ``user_based=false``.
+  and averaged across users to get the final result (users are weighted equally). 
+  This is opposed to evaluating based on all ratings by setting ``user_based=false``.
 
 
 .. dropdown:: View codes at this point
