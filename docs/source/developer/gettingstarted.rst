@@ -28,7 +28,7 @@ Setting Up Your Development Environment
 Now you are ready to contribute to Cornac!
 
 Contributing
-============
+^^^^^^^^^^^^
 
 Cornac is an open-source project and we welcome contributions of all kinds.
 We welcome pull requests for new features such as models, datasets, metrics
