@@ -40,13 +40,8 @@ Should you require the latest updates of Cornac from Github,
 you could manually build and install using the following codes:
 
 .. code-block:: bash
-    :linenos:
 
-    pip3 install Cython numpy scipy
-    git clone https://github.com/PreferredAI/cornac.git
-    cd cornac
-    python3 setup.py install
-
+    pip3 install git+https://github.com/PreferredAI/cornac.git
 
 Model dependencies
 ------------------
@@ -75,7 +70,7 @@ To install all dependencies in a provided requirements.txt file, follow these st
 
 .. code-block:: bash
 
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
 
 
 .. admonition:: Note for MacOS users
@@ -94,7 +89,7 @@ by running the following command on your favourite terminal/command prompt:
 
 .. code-block:: bash
 
-    python -c "import cornac; print(cornac.__version__)"
+    python3 -c "import cornac; print(cornac.__version__)"
 
 You should see the following output:
 
