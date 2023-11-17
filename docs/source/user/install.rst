@@ -11,7 +11,7 @@ There are 3 different ways in which you could install cornac.
 Depending on your environment and requirements, choose and run the
 corresponding codes to install Cornac:
 
-1. Using ``pip`` (Recommended)
+1. Using ``pip`` (recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pip is a package manager for Python. It allows users to easily install,
@@ -33,8 +33,8 @@ environments on Windows, macOS, Linux, and other operating systems.
 
     conda install cornac -c conda-forge
 
-3. From Github Source - For advanced users
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3. From Github Source - For the latest updates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Should you require the latest updates of Cornac from Github,
 you could manually build and install using the following codes:
