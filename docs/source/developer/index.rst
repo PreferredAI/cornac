@@ -1,5 +1,5 @@
 ===================
-Contributor's Guide
+Contributors Guide
 ===================
 
 Welcome to the Cornac project! We appreciate your interest

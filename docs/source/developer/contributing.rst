@@ -98,45 +98,32 @@ Please be patient during the review process, and be prepared to address any feed
 
 
 Development Guidelines
-----------------------
-
-Code Style
-^^^^^^^^^^
-
-Cornac follows the PEP 8 style guide for Python code. Make sure your code adheres to this style guide.
+======================
 
 Documentation
 ^^^^^^^^^^^^^
 
-Contributions should include relevant and concise documentation. This includes docstrings, comments, and updates to the official documentation when needed.
-
-Testing
-^^^^^^^
-All contributions must include unit tests. Use the built-in testing framework or other testing tools like pytest to ensure that your code is working as expected.
+Contributions should include relevant and concise documentation.
+This includes docstrings, comments, and updates to the official documentation when needed.
 
 
 Communication
--------------
-
-Community
-^^^^^^^^^
-
-Join the Cornac community by participating in discussions on the Cornac GitHub Discussions page.
+=============
 
 Issues
 ^^^^^^
 
-If you encounter bugs or have ideas for improvements, create an issue on the GitHub issue tracker.
-
-Mailing List
-^^^^^^^^^^^^
-
-Subscribe to the Cornac mailing list to receive updates and important announcements.
+If you encounter bugs or have ideas for improvements, create an issue on
+the GitHub issue tracker at https://github.com/PreferredAI/cornac/issues.
 
 Review Process
 ^^^^^^^^^^^^^^
+
 Your pull request will be reviewed by Cornac maintainers.
-They will provide feedback and request changes if necessary. Be responsive to comments and be prepared to make further updates to your code.
+They will provide feedback and request changes if necessary.
+
+As this is an open source project, the repository is maintained on a voluntary
+basis. We thank you for your patience during the review process.
 
 License
 ^^^^^^^
@@ -144,6 +131,7 @@ License
 By contributing to Cornac, you agree that your code will be released under the Apache 2.0 License.
 Make sure to include the appropriate license headers in your files.
 
-**Thank you for considering contributing to Cornac!
-Your contributions are greatly appreciated and help improve the project for users worldwide.**
+**Thank you for contributing to Cornac!
+Your contributions are greatly appreciated and help make Cornac a
+better tool for everyone.**
 
