@@ -1,5 +1,5 @@
 For Developers
-=====================
+==============
 
 This document is intended for developers who want to use Cornac in their own
 projects and applications.

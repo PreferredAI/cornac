@@ -1,5 +1,5 @@
 For Researchers
-======================
+===============
 
 This document is intended to provide a quick introduction on how researchers
 like you could use Cornac to conduct recommender systems research.

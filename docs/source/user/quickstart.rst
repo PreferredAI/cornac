@@ -18,7 +18,7 @@ models. It is highly compatible with existing machine learning libraries
 The Cornac Experiment Concept
 -----------------------------
 The main idea behind Cornac is to provide a simple and flexible way to
-experiment with different algorithms, hyper-parameters, and datasets without
+experiment with different models, datasets and metrics without
 having to manually implement and run all the code yourself.
 
 **Here are some key concepts related to Cornac:**
@@ -33,28 +33,21 @@ having to manually implement and run all the code yourself.
         A **dataset** refers to a specific collection of input data that is
         used to train or test an algorithm.
 
-    .. grid-item-card:: 2. Algorithms
+    .. grid-item-card:: 2. Models
         :columns: 12 12 6 6
         :padding: 3
 
-        An **algorithm** refers to a specific computational model or
-        technique that is being used to do recommendation.
+        A **model** refers to a specific algorithm that is used to train on a
+        dataset to learn patterns and make predictions.
 
-    .. grid-item-card:: 3. Hyper-parameters
-        :columns: 12 12 6 6
-        :padding: 3
-
-        A **hype-rparameter** refers to a specific parameter or setting that is being
-        adjusted or fine-tuned during the experimentation process.
-
-    .. grid-item-card:: 4. Evaluation metrics
+    .. grid-item-card:: 3. Evaluation metrics
         :columns: 12 12 6 6
         :padding: 3
 
         An **evaluation metric** refers to a specific performance measure or score
         that is being used to evaluate or compare different algorithms or models during the experimentation process.
 
-    .. grid-item-card:: 5. Experiments
+    .. grid-item-card:: 4. Experiments
         :columns: 12 12 6 6
         :padding: 3
 

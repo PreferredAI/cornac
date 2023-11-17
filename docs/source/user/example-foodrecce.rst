@@ -81,7 +81,7 @@ For the FoodRecce use case, we often retrain the model with new data as new
 restaurants are often added to the database, along with the increase of new users.
 
 .. note::
-    
+
     While it may not be essential to save the model, it is good practice to do
     so. This is because we can then load the model directly from the saved
     directory without having to retrain the model again.
@@ -166,23 +166,14 @@ which users could navigate and find out more about the restaurants.
 This is done with the integration of FoodRecce's database of restaurants.
 
 
-Model Update Strategy
----------------------
+Updating the Model
+------------------
 
 Over the months, many new restaurants and food establishments would have
 been introduced to the public. To keep the app relevant, we would need to
 update the model with the new data. With an data source, new restaurants
 are consistently added into the database, in which we would retrain the
 model to increase coverage of restaurants.
-
-You may also adopt the strategy of indexing scores of every restaurant for
-every user (in the form of #restaurants X #users matrix in a database) for
-easy retrieval of scores.
-
-But do keep in mind that you would need to consistently reindex
-the scores for each user as new feedbacks are provided and new restaurants
-are added to the database. Also, this approach may continue to be expensive
-as the number of users and restaurants increase.
 
 
 Conclusion
