@@ -244,6 +244,11 @@ Results may vary from dataset to dataset. Try tuning your hyperparameters
 using different configurations to find the best hyperparameters for your
 dataset.
 
+.. topic:: View related tutorial on Github
+
+  View the Hyperparameter Search guide on Github:
+  https://github.com/PreferredAI/cornac/blob/master/tutorials/param_search_vaecf.ipynb
+
 
 Data Loading
 ------------

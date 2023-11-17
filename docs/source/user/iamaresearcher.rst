@@ -269,6 +269,11 @@ As shown in the output, the ``RandomSearch`` method has found the best
 combination of hyperparameters to be ``k=50`` and ``learning_rate=0.0079``
 with a Recall@100 score of 0.6988.
 
+.. topic:: View related tutorial on Github
+
+  View the Hyperparameter Search guide on Github:
+  https://github.com/PreferredAI/cornac/blob/master/tutorials/param_search_vaecf.ipynb
+
 
 Adding your Own Model
 ---------------------
@@ -788,6 +793,11 @@ Now you have implemented your model, it is time to test it.
 In order to do so, you have to rebuild Cornac. We will discuss on how to do
 this in the next section.
 
+.. topic:: View related tutorial on Github
+
+  View the add model guide on Github:
+  https://github.com/PreferredAI/cornac/blob/master/tutorials/add_model.md
+
 Development Workflow
 --------------------
 
@@ -953,8 +963,10 @@ Cornac provides a wide range of evaluation metrics for you to use. However, if
 you would like to add your own metric, you can do so by extending the
 :class:`~cornac.metrics.Metric` class.
 
-View the add metric tutorial at
-https://github.com/PreferredAI/cornac/blob/master/tutorials/add_metric.md.
+.. topic:: View related tutorial on Github
+
+  View the add metric guide on Github:
+  https://github.com/PreferredAI/cornac/blob/master/tutorials/add_metric.md
 
 Let us know!
 ------------

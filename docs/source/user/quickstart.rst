@@ -385,23 +385,14 @@ Depending on the results of the metrics, time taken for training and evaluation,
 we can then further tweak the parameters, and also decide which model to use for
 our application.
 
+.. topic:: View example on Github
+
+  View a related example on Github:
+  https://github.com/PreferredAI/cornac/blob/master/examples/first_example.py
+
 
 What's Next?
 ------------
-
-.. .. topic:: Predict user preferences
-
-..   Explore how you can predict based on users, to give them related
-..   recommendations.
-..   View :doc:`predict`.
-
-.. .. topic:: Tweaking parameters
-
-..   Explore how you can experiment with different parameters to get the best
-..   results.
-..   View :doc:`tweakparams`.
-
-.. ---------------------------------------------------------------------------
 
 .. topic:: Are you a developer?
 
