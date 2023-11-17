@@ -7,6 +7,7 @@ If you are new to Cornac, the [Getting Started](#getting-started) tutorials are 
 - [Installation](../README.md#installation)
 - [Your first Cornac experiment](../README.md#getting-started-your-first-cornac-experiment) 
 - [Hyperparameter search for VAECF](./param_search_vaecf.ipynb)
+- [Approximate nearest neighbor (ANN) search](./ann_hnswlib.ipynb)
 - [Introduction to BPR, using Cornac with Microsoft Recommenders](https://github.com/microsoft/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bpr_deep_dive.ipynb)
 - [Tutorials on recommender systems by Preferred.AI](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems)
 - [BiVAE model with Microsoft Recommenders](https://github.com/microsoft/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bivae_deep_dive.ipynb)
