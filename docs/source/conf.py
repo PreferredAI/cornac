@@ -80,7 +80,7 @@ html_theme_options = {
     "external_links": [
         {
             "url": "https://cornac.preferred.ai",
-            "name": "Official Cornac Website",
+            "name": "Official Site",
         },
         {
             "url": "https://preferred.ai",
