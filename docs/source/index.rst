@@ -7,8 +7,8 @@ Cornac: A Comparative Framework for Multimodal Recommender Systems
    :hidden:
 
    User Guide <user/index>
+   Contributors Guide <developer/index>
    API Reference <api_ref/index>
-   Contributor's Guide <developer/index>
 
 
 **Cornac** is a comparative framework for multimodal recommender systems. It focuses on making it **convenient** to work with models leveraging **auxiliary data** (e.g., item descriptive text and image, social network, etc). **Cornac** enables **fast** experiments and **straightforward** implementations of new models. It is **highly compatible** with existing machine learning libraries (e.g., TensorFlow, PyTorch).
