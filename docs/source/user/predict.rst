@@ -152,13 +152,13 @@ What's Next?
 
   Find out how you can use Cornac as a recommender system to many diferrent
   applications.
-  View :doc:`applications`.
+  View :doc:`/user/iamadeveloper`.
 
 .. topic:: Are you a data scientist?
 
   Find out how you can use Cornac to run experiments and tweak parameters
   easily to compare against baselines already on Cornac.
-  View :doc:`experiments`.
+  View :doc:`/user/iamaresearcher`.
 
 .. topic:: For all the awesome people out there
 

@@ -16,7 +16,7 @@ In this guide, we will cover the following topics:
 - Using additional packages
 
 What can you do with Cornac?
------------------------------
+----------------------------
 
 Cornac is a recommender systems framework that provides a wide range of
 recommender models, evaluation metrics, and experimental tools.
@@ -35,7 +35,7 @@ View the models, datasets, metrics that are currently built into Cornac:
 - :doc:`/api_ref/metrics`
 
 Perform experiments
-------------------
+-------------------
 
 Cornac provides a set of tools to help you create experiments. The main tool is
 the :class:`~cornac.experiment.Experiment` class. It is a wrapper around the
