@@ -7,7 +7,7 @@ html[data-theme="light"] {
 }
 
 html[data-theme="dark"] {
-    --pst-color-primary: #BE181E;
+    --pst-color-primary: #c15f63;
     --pst-color-secondary: #18BEB8;
     --pst-color-primary-bg: #95736d;
     --pst-color-secondary-bg: #0082ba;
