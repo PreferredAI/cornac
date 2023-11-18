@@ -6,14 +6,14 @@ projects and applications.
 
 In this guide, we will cover the following topics:
 
-- Experimenting with Models
-- Hyper-parameters Tuning
-- Loading Data
-- Training Model
-- Obtaining Recommendations
-- Model Persistence
+- Experimenting with models
+- Hyper-parameters tuning
+- Loading data
+- Training model
+- Obtaining recommendations
+- Model persistence
 
-Experimenting with Models
+Experimenting with models
 -------------------------
 
 Cornac provides a rich collection of models that can be used to build your
@@ -40,10 +40,10 @@ datasets. Therefore, you may want to try different combinations of hyper-paramet
 to find the best combination on your data. Cornac support hyper-parameter tuning 
 to achieve that purpose.
 
-Hyper-parameter Tuning
+Hyper-parameter tuning
 ---------------------
-In this example, we will use the `BPR` model and tune the number of factors `k` and the
-`learning_rate`. We will follow the :doc:`/user/quickstart`
+In this example, we will tune the number of factors `k` and the `learning_rate`
+of the `BPR` model. We will follow the :doc:`/user/quickstart`
 guide and search for the optimal combination of hyper-parameters.
 
 In order to do this, we perform hyper-parameter searches on Cornac.
@@ -55,8 +55,7 @@ Given the below block fo code from the :doc:`/user/quickstart` guide,
 with some slight changes:
 
 - We have added the validation set in the `RatioSplit` method
-- We instantiate the `Recall@100` metric
-- For this example, we only tune the BPR model
+- We instantiate the `Recall@100` metric used to track performance
 
 .. code-block:: python
 
@@ -133,7 +132,7 @@ we want to tune:
   the application will attempt 20 random combinations of ``learning_rate`` and ``k``.
 
 
-Running the Experiment
+Running the experiment
 ^^^^^^^^^^^^^^^^^^^^^^
 
 After defining the hyperparameter search methods, we can then run the
@@ -228,16 +227,16 @@ The output of the above code could be as follows:
     {'k': 50, 'learning_rate': 0.007993039950008024}
 
 As shown in the output, the ``RandomSearch`` method has found the best
-combination of hyperparameters to be ``k=50`` and ``learning_rate=0.0079``
+combination of hyper-parameters to be ``k=50`` and ``learning_rate=0.0079``
 with a Recall@100 score of 0.6988.
 
 However, as it contains a continuous hyperparameter, the
 ``RandomSearch`` method may technically run forever. That is why we 
 have set the ``n_trails`` parameter to 20 to stop at some point. The more we try, 
-the higher chances we have of finding the best combination of hyperparameters.
+the higher chances we have of finding the best combination of hyper-parameters.
 
-Results may vary from dataset to dataset. Try tuning your hyperparameters
-using different configurations to find the best hyperparameters for your
+Results may vary from dataset to dataset. Try tuning your hyper-parameters
+using different configurations to find the best hyper-parameters for your
 dataset.
 
 .. topic:: View related tutorial on Github
@@ -246,7 +245,7 @@ dataset.
   https://github.com/PreferredAI/cornac/blob/master/tutorials/param_search_vaecf.ipynb
 
 
-Data Loading
+Data loading
 ------------
 
 While the earlier examples shows how you can use Cornac's fixed datasets to
@@ -282,12 +281,12 @@ Then, you could create the ``dataset`` object as follows:
     Cornac also supports the UIRT format (user, item, rating, timestamp).
     This format is to support sequential recommender models.
 
-Training Models
+Training model
 ---------------
 
-After loading the data, you can train the models using the ``fit()`` method.
+After loading the data, you can train a model using ``fit()`` method.
 For this example, we will follow the parameters we have determined in the
-earlier example. To train the BPR model, we can do the following:
+earlier example. To train a BPR model, we can do the following:
 
 .. code-block:: python
 
@@ -300,11 +299,11 @@ earlier example. To train the BPR model, we can do the following:
     model.fit(dataset)
 
 
-Obtaining Recommendations
+Obtaining recommendations
 -------------------------
 
 Now that we have trained our model, we can obtain recommendations for users
-using the ``recommend()`` method. For example, to obtain item recommendations
+using ``recommend()`` method. For example, to obtain item recommendations
 for user ``U1``, we can do the following:
 
 .. code-block:: python
@@ -313,7 +312,7 @@ for user ``U1``, we can do the following:
     recs = model.recommend(user_id="U1", k=5)
     print(r)
 
-The output of the ``recommend()`` method is a list of item IDs containing the
+The output of ``recommend()`` method is a list of item IDs containing the
 recommended items for the user. For example, the output of the above code
 could be as follows:
 
@@ -355,11 +354,10 @@ could be as follows:
         print(recs)
 
 
-Model Persistence
+Model persistence
 ----------------------
 
-
-Saving a Trained Model
+Saving a trained model
 ^^^^^^^^^^^^^^^^^^^^^^
 
 There are 2 ways to saved a trained model. You can either save the model
@@ -423,7 +421,7 @@ in an experiment, or manually save the model by code.
                 |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
 
 
-Loading from a Saved Model
+Loading from a saved model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 To load a model, you can use the ``load()`` function. You could either load a folder 
 containing ``.pkl`` files, or load a specific ``.pkl`` file.
@@ -484,7 +482,7 @@ obtain recommendations for users.
         recs = model.recommend(user_id="U1", k=5)
         print(recs)
 
-Running an API Service
+Running an API service
 ----------------------
 
 Cornac also provides an API service that you can use to run your own
