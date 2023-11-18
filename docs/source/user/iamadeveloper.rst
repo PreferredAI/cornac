@@ -7,25 +7,24 @@ projects and applications.
 In this guide, we will cover the following topics:
 
 - Experimenting with Models
-- Hyperparameters Tuning
-- Data Loading
-- Training models
+- Hyper-parameters Tuning
+- Loading Data
+- Training Model
 - Obtaining Recommendations
-- Saving a trained model
-- Loading a trained model
+- Model Persistence
 
 Experimenting with Models
 -------------------------
 
-Cornac provides a set of predefined models that can be used to build
+Cornac provides a rich collection of models that can be used to build your
 recommendation systems. These models are located in the :doc:`/api_ref/models`
 module.
 
-Each model has a set of hyperparameters that can be tuned to improve the
-performance of the model. View the :doc:`/api_ref/models` documentations for
+Each model has a set of hyper-parameters that can be tuned to improve its
+performance. View the :doc:`/api_ref/models` documentations for
 the parameters available for tuning. 
 
-For example, some hyperparameters of the `BPR` model are as follows:
+For example, some hyper-parameters of the `BPR` model are as follows:
 
 - ``k`` (int, optional, default: 10)
   - `The dimension of the latent factors.`
@@ -36,16 +35,18 @@ For example, some hyperparameters of the `BPR` model are as follows:
 
 As shown in our :doc:`/user/quickstart` guide, you are able to run experiments
 of different models at once and compare them with the set of metrics you have
-set. Also, you may also want to test different hyperparameters for each model
-to find the best combination of hyperparameters for each model.
+set. Also, your model could have different optimal hyper-parameters for different 
+datasets. Therefore, you may want to try different combinations of hyper-parameters 
+to find the best combination on your data. Cornac support hyper-parameter tuning 
+to achieve that purpose.
 
-Hyperparameter Tuning
+Hyper-parameter Tuning
 ---------------------
-In this example, we will use the `BPR` model and tune the `k` and
-`learning_rate` hyperparameters. We will follow the :doc:`/user/quickstart`
-guide and search for the optimal combination of hyperparameters.
+In this example, we will use the `BPR` model and tune the number of factors `k` and the
+`learning_rate`. We will follow the :doc:`/user/quickstart`
+guide and search for the optimal combination of hyper-parameters.
 
-In order to do this, we perform hyperparameter searches on Cornac.
+In order to do this, we perform hyper-parameter searches on Cornac.
 
 Tuning the quickstart example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,9 +78,8 @@ with some slight changes:
     bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 
 
-We would like to optimize the `k` and `learning_rate` hyperparameters. To do
-this, we can use the `cornac.hyperopt` module to perform hyperparameter
-searches.
+We would like to optimize the `k` and `learning_rate` hyper-parameters. To do
+this, we can use the `cornac.hyperopt` module to perform the searches.
 
 .. code-block:: python
 
@@ -109,32 +109,28 @@ searches.
         n_trails=20,
     )
 
-As shown in the above code, we have defined two hyperparameter search methods,
+As shown in the above code, we have defined two methods for hyper-parameter search,
 ``GridSearch`` and ``RandomSearch``.
 
 +------------------------------------------+---------------------------------------------+
 | Grid Search                              | Random Search                               |
 +==========================================+=============================================+
-| Searches for all possible combintations  | Randomly searches for the hyperparameters   |
-| of the hyperparameters                   |                                             |
+| Searches for all possible combinations   | Randomly select combinations of hyper-      |
+| of the hyper-parameters provided         | parameters within a given search space      |
 +------------------------------------------+---------------------------------------------+
 | Only accepts discrete values             | Accepts both discrete and continuous values |
 +------------------------------------------+---------------------------------------------+
 
-For the ``space`` parameter, we have defined the hyperparameters we want to
-tune:
+For the search ``space``, we have defined the range/set of values of the hyper-parameters 
+we want to tune:
 
-- We have defined the ``k`` hyperparameter to be a set of discrete values
-  (5, 10, or 50). This will mean that the application would only attempt
-  to tune with those set values.
+- For GridSearch method, we defined the ``k`` to be a set of discrete values (5, 10, 50). 
+  This means that the model will only be tuned with those values. Similarly for the set of values
+  of the ``learning_rate``.
 
-- The ``learning_rate`` hyperparameter is set as continuous values between
-  0.001 and 0.01. this would mean that the application would attempt any
-  values in between 0.001 and 0.01.
-
-For the ``RandomSearch`` method, we have also set the ``n_trails`` parameter to
-``20``. This would mean that the application would attempt 20 random
-combinations.
+- For RandomSearch method, the searched ``learning_rate`` value will be randomized in the 
+  range of continuous values between 0.001 and 0.01. We have also set the ``n_trails=20`` meaning 
+  the application will attempt 20 random combinations of ``learning_rate`` and ``k``.
 
 
 Running the Experiment
@@ -291,15 +287,7 @@ Training Models
 
 After loading the data, you can train the models using the ``fit()`` method.
 For this example, we will follow the parameters we have determined in the
-earlier example.
-
-.. note::
-
-    Take note that different datasets could have different optimal
-    hyperparameters. Therefore, you may want to try different combinations of
-    hyperparameters to find the best combination for your dataset.
-
-To train the BPR model, we can do the following:
+earlier example. To train the BPR model, we can do the following:
 
 .. code-block:: python
 
@@ -311,6 +299,7 @@ To train the BPR model, we can do the following:
     # Train the model
     model.fit(dataset)
 
+
 Obtaining Recommendations
 -------------------------
 
@@ -321,7 +310,7 @@ for user ``U1``, we can do the following:
 .. code-block:: python
 
     # Obtain item recommendations for user U1
-    recs = model.recommend(user_id="U1")
+    recs = model.recommend(user_id="U1", k=5)
     print(r)
 
 The output of the ``recommend()`` method is a list of item IDs containing the
@@ -362,12 +351,16 @@ could be as follows:
         model.fit(dataset)
 
         # Obtain item recommendations for user U1
-        recs = model.recommend(user_id="U1")
+        recs = model.recommend(user_id="U1", k=5)
         print(recs)
 
 
-Saving a Trained Model
+Model Persistence
 ----------------------
+
+
+Saving a Trained Model
+^^^^^^^^^^^^^^^^^^^^^^
 
 There are 2 ways to saved a trained model. You can either save the model
 in an experiment, or manually save the model by code.
@@ -430,11 +423,10 @@ in an experiment, or manually save the model by code.
                 |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
 
 
-Loading a Trained Model
------------------------
-
-To load a trained model, you can use the ``load()`` function. You could either
-load a folder containing .pkl files, or load a specific .pkl file.
+Loading from a Saved Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+To load a model, you can use the ``load()`` function. You could either load a folder 
+containing ``.pkl`` files, or load a specific ``.pkl`` file.
 
 .. code-block:: bash
     :caption: Folder directory
@@ -444,15 +436,15 @@ load a folder containing .pkl files, or load a specific .pkl file.
         |- BPR
             |- yyyy-MM-dd HH:mm:ss.SSSSSS.pkl
 
-Option 1: By loading a folder containing multiple .pkl files, Cornac would pick
-the latest .pkl file in the folder.
+Option 1: By loading a folder containing multiple ``.pkl`` files, Cornac would pick
+the latest ``.pkl`` file in the folder.
 
 .. code-block:: python
 
     # Load the trained model
     model = BPR.load("saved_models/BPR/")
 
-Option 2: By loading a specific .pkl file, Cornac would load the specific
+Option 2: By loading a specific ``.pkl`` file, Cornac would load the specific
 model indicated.
 
 .. code-block:: python
@@ -489,7 +481,7 @@ obtain recommendations for users.
         model = BPR.load("saved_models/BPR/2023-10-30_16-39-36-318863.pkl")
 
         # Obtain item recommendations for user U1
-        recs = model.recommend(user_id="U1")
+        recs = model.recommend(user_id="U1", k=5)
         print(recs)
 
 Running an API Service
@@ -503,7 +495,7 @@ system for your own application.
     
     python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.BPR
 
-This will serve an API for the model saved in the directory ``save_dir/BPR``.
+This will serve an API for the BPR model saved in the directory ``save_dir/BPR``.
 
 To obtain a recommendation, do a call to the API endpoint ``/recommend`` with
 the following parameters:
