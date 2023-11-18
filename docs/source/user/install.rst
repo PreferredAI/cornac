@@ -33,10 +33,10 @@ environments on Windows, macOS, Linux, and other operating systems.
 
     conda install cornac -c conda-forge
 
-3. From Github Source - For the latest updates
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3. From GitHub source - For latest updates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Should you require the latest updates of Cornac from Github,
+Should you require the latest updates of Cornac from GitHub,
 you could manually build and install using the following codes:
 
 .. code-block:: bash
