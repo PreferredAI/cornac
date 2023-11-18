@@ -24,8 +24,8 @@ User   Item   Rating
 4      1      5
 =====  =====  =======
 
-1. Defining the Data structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. Defining data structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The data structure is a list of tuples. Each tuple represents a row in the
 data. The first element of the tuple is the user ID, the second element is
@@ -48,8 +48,8 @@ First, create a file called ``my_data.py`` and add the following code:
         (4, 1, 5)
     ]
 
-2. Creating the Dataset Object
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2. Creating Dataset object
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Next, we will create a dataset object from the data. The dataset object
 will be used to train the model.
@@ -61,8 +61,8 @@ will be used to train the model.
     # Load the data into a dataset object
     dataset = cornac.data.Dataset.from_uir(data)
 
-3. Create and Train the Model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3. Create and train model
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We will then create a model object and train it using the dataset object.
 
@@ -77,12 +77,11 @@ We will then create a model object and train it using the dataset object.
     model_pmf.fit(dataset)
 
 
-4. Getting the Predictions
+4. Getting recommendations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Finally, we will use the model to predict the ratings of the users to the
-items. The ``recommend()`` function will recommend the top rated items from
-the model for the user provided.
+Finally, we will use the model to get item recommendations for the users. The ``recommend()`` 
+function will recommend the top rated items from the model for the user provided.
 
 For example, we will get all recommendations for user 4.
 
@@ -140,7 +139,7 @@ recommended item for the user, followed by the second item, and so on.
     # Print the recommended items
     print(recommended_items)
 
-Loading Data from CSV
+Loading data from CSV
 ---------------------
 
 In this example, we will load the data from a CSV file. The CSV file
@@ -160,7 +159,7 @@ User   Item   Rating
 4      1      5
 =====  =====  =======
 
-1. Loading the Data
+1. Loading the data
 ^^^^^^^^^^^^^^^^^^^
 
 First, create a file called ``data.csv`` and add the following code:
@@ -180,18 +179,15 @@ In this file, the data is separated by commas. The first column is
 the user ID, the second column is the item ID, and the third column is the
 rating.
 
-Next, we have to load the data from the CSV file. We will use the
-csv module to load the data from the CSV file.
+Next, we have to load the data from the CSV file. We will use ``Reader``
+provided by Cornac to read our CSV file.
 
 .. code-block:: python
 
-    import csv
+    from cornac.data import Reader
 
-    # Load the data from the CSV file
-    with open('data.csv', 'r') as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        print(data)
+    data = Reader().read('data.csv', sep=',')
+    print(data)
 
 1. Creating the Dataset Object
 
@@ -205,7 +201,7 @@ will be used to train the model.
     # Load the data into a dataset object
     dataset = Dataset.from_uir(data, sep=',', skip_lines=1)
 
-3. Create and Train the Model
+3. Create and train model
 
 We will then create a model object and train it using the dataset object.
 
@@ -219,11 +215,10 @@ We will then create a model object and train it using the dataset object.
     # Use the fit() function to train the model
     model_pmf.fit(dataset)
 
-4. Getting the Predictions
+4. Getting recommendations
 
-Finally, we will use the model to predict the ratings of the users to the
-items. The ``recommend()`` function will recommend the top rated items from
-the model for the user provided.
+Finally, we will use the model to get item recommendations for the users. The ``recommend()`` 
+function will recommend the top rated items from the model for the user provided.
 
 For example, we will get all recommendations for user 4.
 
