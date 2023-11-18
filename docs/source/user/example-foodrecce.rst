@@ -26,7 +26,7 @@ connected to a backend server, which is connected to a database. The database
 stores the information of the restaurants, as well as the feedback provided
 by the users.
 
-Training Data
+Training data
 -------------
 
 Implicit data was collected by the users of FoodRecce. The data is in the form
@@ -86,7 +86,7 @@ restaurants are often added to the database, along with the increase of new user
     so. This is because we can then load the model directly from the saved
     directory without having to retrain the model again.
 
-Providing Feedback
+Providing feedback
 ------------------
 
 FoodRecce gives recommendations based on the trained model. We give users a
@@ -101,11 +101,8 @@ system more ideas on what they may like or dislike. Depending on our scenario,
 this could be just random sampling of restaurants, or specifically ranked
 restaurants based on an algorithm on Cornac.
 
-Giving Recommendations
+Giving recommendations
 ----------------------
-
-We periodically train the model to provide users with recommendations with
-fresher set of data, by retraining the model with new data.
 
 .. image:: images/foodrecce2.png
    :width: 200
@@ -117,7 +114,7 @@ You can easily do this by loading the model and calling the ``recommend``
 method.
 
 We first load our saved model. For subsequent runs, we can load the model
-directly from the saved directory. 
+directly from the saved directory.
 
 .. code-block:: python
 
@@ -171,9 +168,10 @@ Updating the Model
 
 Over the months, many new restaurants and food establishments would have
 been introduced to the public. To keep the app relevant, we would need to
-update the model with the new data. With an data source, new restaurants
+retrain the model with the new data. With an data source, new restaurants
 are consistently added into the database, in which we would retrain the
-model to increase coverage of restaurants.
+model to increase coverage of restaurants. Also, we periodically update 
+the model to better capture users' most recent preferences.
 
 
 Conclusion
