@@ -7,12 +7,12 @@ like you could use Cornac to conduct recommender systems research.
 In this guide, we will cover the following topics:
 
 - What can you do with Cornac?
-- Create experiments
-- Tuning parameters
-- Adding your Own Model
+- Conducting experiments
+- Tuning hyper-parameters
+- Adding your own model
 - Adding your own metric
 - Adding your own dataset
-- Development Workflow
+- Development workflow
 - Using additional packages
 
 What can you do with Cornac?
@@ -24,9 +24,8 @@ It is designed to be flexible and extensible, allowing researchers to
 easily conduct experiments and compare their models with existing ones.
 
 Cornac is written in Python and is built on top of the popular scientific
-computing libraries such as NumPy, SciPy, and scikit-learn.
-It is also designed to be compatible with the popular deep learning libraries
-such as PyTorch and TensorFlow.
+computing libraries such as NumPy and SciPy. It is also designed to be compatible 
+with the popular deep learning libraries such as PyTorch and TensorFlow.
 
 View the models, datasets, metrics that are currently built into Cornac:
 
@@ -34,14 +33,13 @@ View the models, datasets, metrics that are currently built into Cornac:
 - :doc:`/api_ref/datasets`
 - :doc:`/api_ref/metrics`
 
-Perform experiments
--------------------
+Conducting experiments
+----------------------
 
-Cornac provides a set of tools to help you create experiments. The main tool is
-the :class:`~cornac.experiment.Experiment` class. It is a wrapper around the
-:class:`~cornac.data.Dataset` class that allows you to easily split the dataset
-into training and testing sets, and to run experiments with different models and
-evaluation metrics.
+Cornac provides a set of tools to help you conduct experiments. The main tool is
+the :class:`~cornac.experiment.Experiment` class. As its name would suggests, this is
+where you manage an experiment with a method to split dataset (e.g., by ratio, k-fold 
+cross-validation), a set of models to be compared with, and different evaluation metrics.
 
 Recap from the :doc:`/user/quickstart` example, the following code snippet shows
 how to create an experiment with the MovieLens 100K dataset, split it into 
@@ -73,23 +71,14 @@ and the Precision, Recall evaluation metrics.
     # put it together in an experiment, voilà!
     cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
 
-Tuning parameters
------------------
-In this example, we will use the `BPR` model and tune the `k` and
-`learning_rate` hyperparameters. We will follow the :doc:`/user/quickstart`
-guide and search for the optimal combination of hyperparameters.
-
-In order to do this, we perform hyperparameter searches on Cornac.
-
-Tuning the quickstart example
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Given the below block fo code from the :doc:`/user/quickstart` guide,
+Tuning hyper-parameters
+-----------------------
+In this example, we will tune the number of factors `k` and the `learning_rate` of the 
+`BPR` model. Given the below block fo code from the :doc:`/user/quickstart` guide,
 with some slight changes:
 
 - We have added the validation set in the `RatioSplit` method
-- We instantiate the `Recall@100` metric
-- For this example, we only tune the BPR model
+- We instantiate the `Recall@100` metric used to track model performance
 
 .. code-block:: python
 
@@ -110,10 +99,9 @@ with some slight changes:
     # Instantiate a matrix factorization model (e.g., BPR)
     bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 
-
-We would like to optimize the `k` and `learning_rate` hyperparameters. To do
-this, we can use the `cornac.hyperopt` module to perform hyperparameter
-searches.
+We would like to optimize the `k` and `learning_rate` hyper-parameters. To do
+this, we can use the `cornac.hyperopt` module to perform the searches. Cornac supports two methods
+for hyper-parameter search, ``GridSearch`` and ``RandomSearch``.
 
 .. code-block:: python
 
@@ -143,38 +131,7 @@ searches.
         n_trails=20,
     )
 
-As shown in the above code, we have defined two hyperparameter search methods,
-``GridSearch`` and ``RandomSearch``.
-
-+------------------------------------------+---------------------------------------------+
-| Grid Search                              | Random Search                               |
-+==========================================+=============================================+
-| Searches for all possible combintations  | Randomly searches for the hyperparameters   |
-| of the hyperparameters                   |                                             |
-+------------------------------------------+---------------------------------------------+
-| Only accepts discrete values             | Accepts both discrete and continuous values |
-+------------------------------------------+---------------------------------------------+
-
-For the ``space`` parameter, we have defined the hyperparameters we want to
-tune:
-
-- We have defined the ``k`` hyperparameter to be a set of discrete values
-  (5, 10, or 50). This will mean that the application would only attempt
-  to tune with those set values.
-
-- The ``learning_rate`` hyperparameter is set as continuous values between
-  0.001 and 0.01. this would mean that the application would attempt any
-  values in between 0.001 and 0.01.
-
-For the ``RandomSearch`` method, we have also set the ``n_trails`` parameter to
-``20``. This would mean that the application would attempt 20 random
-combinations.
-
-
-Running the Experiment
-^^^^^^^^^^^^^^^^^^^^^^
-
-After defining the hyperparameter search methods, we can then run the
+After defining the hyper-parameter search methods, we can then run the
 experiments using the ``cornac.Experiment`` class.
 
 .. code-block:: python
@@ -275,7 +232,7 @@ with a Recall@100 score of 0.6988.
   https://github.com/PreferredAI/cornac/blob/master/tutorials/param_search_vaecf.ipynb
 
 
-Adding your Own Model
+Adding your own model
 ---------------------
 
 Adding your own model on Cornac is easy. Cornac is designed to be flexible and
@@ -312,8 +269,8 @@ We will use this as a reference to add our own model.
 
     Add the following line to the ``__init__.py`` file in your model folder.
     The ``.recom_pmf`` coincides with the name of the file that contains the
-    model, and ``PMF`` coincides with the name of the class in the
-    ``recon_pmf`` file.
+    model, and ``PMF`` coincides with the name of the class in the 
+    ``recon_pmf.py`` file.
 
     .. code-block:: python
         :caption: cornac/cornac/models/pmf/__init__.py
@@ -798,7 +755,7 @@ this in the next section.
   View the add model guide on Github:
   https://github.com/PreferredAI/cornac/blob/master/tutorials/add_model.md
 
-Development Workflow
+Development workflow
 --------------------
 
 Before we move on to the section of building a new model, let's take a look at
@@ -847,7 +804,7 @@ To run the example, ensure that your current working directory is in the top
 Whenever a new change is done to your model files, just run the example for
 testing and debugging.
 
-Analyze Results
+Analyze results
 ---------------
 Cornac makes it easy for you to run your model alongside other existing models.
 To do so, simply add you model to the list of models in the experiment.
@@ -867,12 +824,12 @@ To do so, simply add you model to the list of models in the experiment.
     # run the experiment and compare the results
     cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
 
-Using Additional packages
+Using additional packages
 -------------------------
 
 Cornac is built on top of the popular scientific computing libraries such as
-NumPy, SciPy, and scikit-learn. It is also designed to be compatible with the
-popular deep learning libraries such as PyTorch and TensorFlow.
+NumPy and SciPy. It is also designed to be compatible with the popular deep learning
+libraries such as PyTorch and TensorFlow.
 
 If you are using additional packages in your model, you can add them into the
 ``requirements.txt`` file. This will ensure that the packages are installed
@@ -956,7 +913,7 @@ package is only imported when the ``fit`` function is called.
 
         # remaining codes removed for brevity
 
-Adding a New Metric
+Adding a new metric
 -------------------
 
 Cornac provides a wide range of evaluation metrics for you to use. However, if
@@ -972,7 +929,10 @@ Let us know!
 ------------
 We hope you find Cornac useful for your research. Please share with us on how
 you find Cornac useful, and feel free to reach out to us if you have any
-questions or suggestions.
+questions or suggestions. If you do use Cornac in your research, we appreciate
+your citation to our papers_.
+
+.. _papers: https://github.com/PreferredAI/cornac#citation
 
 What's Next?
 ------------
