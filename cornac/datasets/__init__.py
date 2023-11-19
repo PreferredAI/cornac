@@ -21,4 +21,5 @@ from . import epinions
 from . import filmtrust
 from . import movielens
 from . import netflix
+from . import tafeng
 from . import tradesy
