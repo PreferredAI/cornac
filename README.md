@@ -190,7 +190,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 |      | [Bayesian Personalized Ranking (BPR)](cornac/models/bpr), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | N/A | [bpr_netflix.py](examples/bpr_netflix.py)
 |      | [Factorization Machines (FM)](cornac/models/fm), [paper](https://www.csie.ntu.edu.tw/~b97053/paper/Factorization%20Machines%20with%20libFM.pdf) | Linux only | [fm_example.py](examples/fm_example.py)
 |      | [Global Average (GlobalAvg)](cornac/models/global_avg), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | N/A | [biased_mf.py](examples/biased_mf.py)
-|      | [Global Personalized Top Frequent (GPTop)](cornac/models/gp_top), [paper](https://dl.acm.org/doi/pdf/10.1145/3587153) | N/A | N/A
+|      | [Global Personalized Top Frequent (GPTop)](cornac/models/gp_top), [paper](https://dl.acm.org/doi/pdf/10.1145/3587153) | N/A | [gp_top_tafeng.py](examples/gp_top_tafeng.py)
 |      | [Item K-Nearest-Neighbors (ItemKNN)](cornac/models/knn), [paper](https://dl.acm.org/doi/pdf/10.1145/371920.372071) | N/A | [knn_movielens.py](examples/knn_movielens.py)
 |      | [Matrix Factorization (MF)](cornac/models/mf), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | N/A | [biased_mf.py](examples/biased_mf.py), [given_data.py](examples/given_data.py)
 |      | [Maximum Margin Matrix Factorization (MMMF)](cornac/models/mmmf), [paper](https://link.springer.com/content/pdf/10.1007/s10994-008-5073-7.pdf) | N/A | [mmmf_exp.py](examples/mmmf_exp.py)
