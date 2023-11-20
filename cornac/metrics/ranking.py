@@ -274,6 +274,49 @@ class MeasureAtK(RankingMetric):
         return tp, tp_fn, tp_fp
 
 
+class PHR(MeasureAtK):
+    """Personalized Hit Ratio (PHR).
+
+    Parameters
+    ----------
+    k: int, optional, default: -1 (all)
+        The number of items in the top@k list.
+        If None, all items will be considered.
+
+    References
+    ----------
+    Hu, Haoji, and Xiangnan He. 2019.
+    Sets2sets: Learning from sequential sets with neural networks.
+    Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining. 
+    """
+
+    def __init__(self, k=-1):
+        super().__init__(name="PHR@{}".format(k), k=k)
+
+    def compute(self, gt_pos, pd_rank, **kwargs):
+        """Compute Personalized Hit Ratio.
+
+        Parameters
+        ----------
+        gt_pos: Numpy array
+            Vector of positive items.
+
+        pd_rank: Numpy array
+            Item ranking prediction.
+
+        **kwargs: For compatibility
+
+        Returns
+        -------
+        res: A scalar
+            F-Measure score.
+
+        """
+        tp, *_ = MeasureAtK.compute(self, gt_pos, pd_rank, **kwargs)
+
+        return 1.0 if tp > 0 else 0.0
+
+
 class Precision(MeasureAtK):
     """Precision@K.
 

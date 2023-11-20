@@ -47,6 +47,10 @@ Normalized Discount Cumulative Gain (NDCG)
 ------------------------------------------
 .. autoclass:: NDCG
 
+Personalized Hit Ratio (PHR)
+-------------------
+.. autoclass:: PHR
+
 Precision
 ---------
 .. autoclass:: Precision
