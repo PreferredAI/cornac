@@ -858,10 +858,10 @@ class BasketDataset(Dataset):
 
     def num_batches(self, batch_size):
         """Estimate number of batches per epoch"""
-        return estimate_batches(len(self.ubi_tuple[0]), batch_size)
+        return estimate_batches(len(self.user_data), batch_size)
 
-    def basket_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of users, baskets
+    def user_data_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of basket indices and batch of baskets
 
         Parameters
         ----------
@@ -872,11 +872,35 @@ class BasketDataset(Dataset):
 
         Returns
         -------
-        iterator : batch of users (array of 'int'), batch of baskets (list of list)
+        iterator : batch of user indices, batch of user data corresponding to user indices
 
         """
-        for batch_ids in self.idx_iter(len(self.ubi_tuple[0]), batch_size, shuffle):
-            batch_users = self.ubi_tuple[0][batch_ids]
-            batch_baskets = [self.ubi_tuple[-1][idx] for idx in batch_ids]
+        user_indices = np.array(list(self.user_data.keys()))
+        for batch_ids in self.idx_iter(
+            len(self.user_data), batch_size=batch_size, shuffle=shuffle
+        ):
+            batch_users = user_indices[batch_ids]
+            batch_basket_ids = [self.user_data[uid] for uid in batch_users]
+            yield batch_users, batch_basket_ids
 
-            yield batch_users, batch_baskets
+    def basket_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of basket indices and batch of baskets
+
+        Parameters
+        ----------
+        batch_size: int, optional, default = 1
+
+        shuffle: bool, optional, default: False
+            If `True`, orders of triplets will be randomized. If `False`, default orders kept.
+
+        Returns
+        -------
+        iterator : batch of basket indices, batch of baskets (list of list)
+
+        """
+        basket_indices = np.array(list(self.baskets.keys()))
+        baskets = list(self.baskets.values())
+        for batch_ids in self.idx_iter(len(basket_indices), batch_size, shuffle):
+            batch_basket_indices = basket_indices[batch_ids]
+            batch_baskets = [baskets[idx] for idx in batch_ids]
+            yield batch_basket_indices, batch_baskets
