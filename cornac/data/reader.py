@@ -38,7 +38,6 @@ def uirt_parser(tokens, **kwargs):
 
 
 def tup_parser(tokens, **kwargs):
-    tup_at = kwargs.get("tup_at", 2)
     return [
         (
             tokens[0],
@@ -95,6 +94,18 @@ class Reader:
         The minimum frequency of an item to be retained.
         If `min_item_freq = 1`, all items will be included.
 
+    min_basket_size: int, default = 1
+        The minimum number of items of a basket to be retained.
+        If `min_basket_size = 1`, all items will be included.
+
+    max_basket_size: int, default = -1
+        The maximum number of items of a basket to be retained.
+        If `min_basket_size = -1`, all items will be included.
+
+    min_basket_sequence: int, default = 1
+        The minimum number of baskets of a user to be retained.
+        If `min_basket_sequence = 1`, all baskets will be included.
+
     bin_threshold: float, default = None
         The rating threshold to binarize rating values (turn explicit feedback to implicit feedback).
         For example, if `bin_threshold = 3.0`, all rating values >= 3.0 will be set to 1.0,
@@ -115,8 +126,9 @@ class Reader:
         item_set=None,
         min_user_freq=1,
         min_item_freq=1,
-        min_basket_size=None,
-        max_basket_size=None,
+        min_basket_size=1,
+        max_basket_size=-1,
+        min_basket_sequence=1,
         bin_threshold=None,
         encoding="utf-8",
         errors=None,
@@ -135,6 +147,7 @@ class Reader:
         self.min_if = min_item_freq
         self.min_basket_size = min_basket_size
         self.max_basket_size = max_basket_size
+        self.min_basket_sequence = min_basket_sequence
         self.bin_threshold = bin_threshold
         self.encoding = encoding
         self.errors = errors
@@ -162,6 +175,18 @@ class Reader:
         if self.min_if > 1:
             item_freq = Counter(t[1] for t in tuples)
             tuples = [t for t in tuples if item_freq[t[1]] >= self.min_if]
+
+        if self.min_basket_size > 1:
+            basket_size = Counter(t[1] for t in tuples)
+            tuples = [t for t in tuples if basket_size[t[1]] >= self.min_basket_size]
+
+        if self.max_basket_size > 1:
+            basket_size = Counter(t[1] for t in tuples)
+            tuples = [t for t in tuples if basket_size[t[1]] <= self.max_basket_size]
+
+        if self.min_basket_sequence > 1:
+            basket_sequence = Counter(u for (u, _) in set((t[0], t[1]) for t in tuples))
+            tuples = [t for t in tuples if basket_sequence[t[0]] >= self.min_basket_sequence]
 
         return tuples
 
