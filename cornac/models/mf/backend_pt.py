@@ -18,7 +18,15 @@ import torch.nn as nn
 from tqdm.auto import trange
 
 
-class MF_Pytorch(nn.Module):
+OPTIMIZER_DICT = {
+    "sgd": torch.optim.SGD,
+    "adam": torch.optim.Adam,
+    "rmsprop": torch.optim.RMSprop,
+    "adagrad": torch.optim.Adagrad,
+}
+
+
+class MF(nn.Module):
     def __init__(
         self,
         n_users,
@@ -28,7 +36,7 @@ class MF_Pytorch(nn.Module):
         dropout=0,
         init_params={},
     ):
-        super(MF_Pytorch, self).__init__()
+        super(MF, self).__init__()
         self.n_users = n_users
         self.n_items = n_items
         self.u_factors = nn.Embedding(n_users, n_factors)
@@ -73,18 +81,6 @@ class MF_Pytorch(nn.Module):
             return self.forward(users, items)
 
 
-loss_fn_dict = {
-    "mse": nn.MSELoss(reduction="sum"),
-}
-
-optimizer_dict = {
-    "sgd": torch.optim.SGD,
-    "adam": torch.optim.Adam,
-    "rmsprop": torch.optim.RMSprop,
-    "adagrad": torch.optim.Adagrad,
-}
-
-
 def learn(
     model,
     train_set,
@@ -93,20 +89,22 @@ def learn(
     learn_rate=0.01,
     reg=0,
     verbose=True,
-    criteria="mse",
     optimizer="sgd",
     device=torch.device("cpu"),
 ):
     model = model.to(device)
-
-    criteria = loss_fn_dict[criteria]
-    optimizer = optimizer_dict[optimizer](params=model.parameters(), lr=learn_rate, weight_decay=reg)
+    criteria = nn.MSELoss(reduction="sum")
+    optimizer = OPTIMIZER_DICT[optimizer](
+        params=model.parameters(), lr=learn_rate, weight_decay=reg
+    )
 
     progress_bar = trange(1, n_epochs + 1, disable=not verbose)
     for _ in progress_bar:
         sum_loss = 0.0
         count = 0
-        for batch_id, (u_batch, i_batch, r_batch) in enumerate(train_set.uir_iter(batch_size, shuffle=True)):
+        for batch_id, (u_batch, i_batch, r_batch) in enumerate(
+            train_set.uir_iter(batch_size, shuffle=True)
+        ):
             u_batch = torch.from_numpy(u_batch).to(device)
             i_batch = torch.from_numpy(i_batch).to(device)
             r_batch = torch.tensor(r_batch, dtype=torch.float).to(device)

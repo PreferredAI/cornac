@@ -158,8 +158,8 @@ extensions = [
         language="c++",
     ),
     Extension(
-        name="cornac.models.mf.recom_mf",
-        sources=["cornac/models/mf/recom_mf" + ext],
+        name="cornac.models.mf.backend_cpu",
+        sources=["cornac/models/mf/backend_cpu" + ext],
         include_dirs=[np.get_include()],
         language="c++",
         extra_compile_args=compile_args,

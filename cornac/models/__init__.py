@@ -46,7 +46,6 @@ from .lightgcn import LightGCN
 from .lrppm import LRPPM
 from .mcf import MCF
 from .mf import MF
-from .mf import TorchMF
 from .mmmf import MMMF
 from .most_pop import MostPop
 from .mter import MTER
