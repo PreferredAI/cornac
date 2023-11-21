@@ -18,14 +18,11 @@ import cornac
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 
-
 # Load MovieLens 1M ratings
 ml_1m = movielens.load_feedback(variant="1M")
 
 # Define an evaluation method to split feedback into train and test sets
-ratio_split = RatioSplit(
-    data=ml_1m, test_size=0.2, exclude_unknowns=False, verbose=True
-)
+ratio_split = RatioSplit(data=ml_1m, test_size=0.2, exclude_unknowns=False, verbose=True)
 
 # Instantiate the global average baseline and MF model
 global_avg = cornac.models.GlobalAvg()
@@ -38,15 +35,32 @@ mf = cornac.models.MF(
     early_stop=True,
     verbose=True,
 )
+tmf = cornac.models.TorchMF(
+    k=10,
+    num_epochs=25,
+    batch_size=256,
+    lr=0.01,
+    reg=1e-2,
+    criteria="mse",
+    optimizer="sgd",
+    trainable=True,
+    verbose=True,
+)
 
 # Instantiate MAE and RMSE for evaluation
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
+ndcg = cornac.metrics.NDCG(k=10)
+recall = cornac.metrics.Recall(k=10)
 
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[global_avg, mf],
-    metrics=[mae, rmse],
+    models=[
+        global_avg,
+        mf,
+        tmf,
+    ],
+    metrics=[mae, rmse, ndcg, recall],
     user_based=True,
 ).run()
