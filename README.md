@@ -36,7 +36,7 @@
 
 Currently, we are supporting Python 3. There are several ways to install Cornac:
 
-- **From PyPI (you may need a C++ compiler):**
+- **From PyPI (recommended):**
   ```bash
   pip3 install cornac
   ```
@@ -48,10 +48,7 @@ Currently, we are supporting Python 3. There are several ways to install Cornac:
 
 - **From the GitHub source (for latest updates):**
   ```bash
-  pip3 install Cython numpy scipy
-  git clone https://github.com/PreferredAI/cornac.git
-  cd cornac
-  python3 setup.py install
+  pip3 install git+https://github.com/PreferredAI/cornac.git
   ```
 
 **Note:** 
@@ -136,6 +133,15 @@ options:
   --train_set TRAIN_SET         path to pickled file of the train_set (to remove seen items)
   --port PORT                   service port
 ```
+
+## Efficient retrieval with ANN search
+
+One important aspect of deploying recommender model is efficient retrieval via Approximate Nearest Neighor (ANN) search in vector space. Cornac integrates several vector similarity search frameworks for the ease of deployment. [This example](tutorials/ann_hnswlib.ipynb) demonstrates how ANN search will work seamlessly with any recommender models supporting it (e.g., MF).
+
+| Supported framework | Cornac wrapper | Examples |
+| :---: | :---: | :---: |
+| [nmslib/hnswlib](https://github.com/nmslib/hnswlib) | [HNSWLibANN](cornac/models/ann/recom_ann_hnswlib.py) | [ann_hnswlib.ipynb](tutorials/ann_hnswlib.ipynb)
+
 
 ## Models
 
