@@ -226,12 +226,13 @@ class MF(Recommender, ANNMixin):
 
         if not hasattr(self, "model"):
             self.model = MF(
-                self.num_users,
-                self.num_items,
-                self.k,
+                self.u_factors,
+                self.i_factors,
+                self.u_biases.reshape(-1, 1),
+                self.i_biases.reshape(-1, 1),
+                self.use_bias,
                 self.global_mean,
                 self.droppout,
-                self.init_params,
             )
 
         learn(
