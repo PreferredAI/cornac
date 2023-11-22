@@ -45,14 +45,13 @@ class MF(nn.Module):
 
         self.u_factors = nn.Embedding(*u_factors.shape)
         self.i_factors = nn.Embedding(*i_factors.shape)
-        self.u_biases = nn.Embedding(*u_biases.shape)
-        self.i_biases = nn.Embedding(*i_biases.shape)
-
-        # init params
         self.u_factors.weight.data = torch.from_numpy(u_factors)
         self.i_factors.weight.data = torch.from_numpy(i_factors)
-        self.u_biases.weight.data = torch.from_numpy(u_biases)
-        self.i_biases.weight.data = torch.from_numpy(i_biases)
+        if use_bias:
+            self.u_biases = nn.Embedding(*u_biases.shape)
+            self.i_biases = nn.Embedding(*i_biases.shape)
+            self.u_biases.weight.data = torch.from_numpy(u_biases)
+            self.i_biases.weight.data = torch.from_numpy(i_biases)
 
     def forward(self, uids, iids):
         ues = self.u_factors(uids)
@@ -64,34 +63,31 @@ class MF(nn.Module):
 
         return preds.squeeze()
 
-    def __call__(self, *args):
-        return self.forward(*args)
-
-    def predict(self, users, items):
-        with torch.no_grad():
-            return self.forward(users, items)
-
 
 def learn(
     model,
     train_set,
     n_epochs,
     batch_size=256,
-    learn_rate=0.01,
-    reg=0,
+    learning_rate=0.01,
+    reg=0.0,
     verbose=True,
     optimizer="sgd",
     device=torch.device("cpu"),
 ):
     model = model.to(device)
     criteria = nn.MSELoss(reduction="sum")
-    optimizer = OPTIMIZER_DICT[optimizer](params=model.parameters(), lr=learn_rate, weight_decay=reg)
+    optimizer = OPTIMIZER_DICT[optimizer](
+        params=model.parameters(), lr=learning_rate, weight_decay=reg
+    )
 
     progress_bar = trange(1, n_epochs + 1, disable=not verbose)
     for _ in progress_bar:
         sum_loss = 0.0
         count = 0
-        for batch_id, (u_batch, i_batch, r_batch) in enumerate(train_set.uir_iter(batch_size, shuffle=True)):
+        for batch_id, (u_batch, i_batch, r_batch) in enumerate(
+            train_set.uir_iter(batch_size, shuffle=True)
+        ):
             u_batch = torch.from_numpy(u_batch).to(device)
             i_batch = torch.from_numpy(i_batch).to(device)
             r_batch = torch.tensor(r_batch, dtype=torch.float).to(device)
@@ -108,5 +104,3 @@ def learn(
 
             if batch_id % 10 == 0:
                 progress_bar.set_postfix(loss=(sum_loss / count))
-
-    return model

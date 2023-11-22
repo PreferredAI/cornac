@@ -224,32 +224,32 @@ class MF(Recommender, ANNMixin):
             if torch.cuda.is_available():
                 torch.cuda.manual_seed_all(self.seed)
 
-        if not hasattr(self, "model"):
-            self.model = MF(
-                self.u_factors,
-                self.i_factors,
-                self.u_biases.reshape(-1, 1),
-                self.i_biases.reshape(-1, 1),
-                self.use_bias,
-                self.global_mean,
-                self.dropout,
-            )
+        model = MF(
+            self.u_factors,
+            self.i_factors,
+            self.u_biases.reshape(-1, 1),
+            self.i_biases.reshape(-1, 1),
+            self.use_bias,
+            self.global_mean,
+            self.dropout,
+        )
 
         learn(
-            model=self.model,
+            model=model,
             train_set=train_set,
             n_epochs=self.max_iter,
             batch_size=self.batch_size,
-            learn_rate=self.learning_rate,
+            learning_rate=self.learning_rate,
             reg=self.lambda_reg,
             optimizer=self.optimizer,
             device=device,
         )
 
-        self.u_factors = self.model.u_factors.weight.detach().cpu().numpy()
-        self.i_factors = self.model.i_factors.weight.detach().cpu().numpy()
-        self.u_biases = self.model.u_biases.weight.detach().cpu().squeeze().numpy()
-        self.i_biases = self.model.i_biases.weight.detach().cpu().squeeze().numpy()
+        self.u_factors = model.u_factors.weight.detach().cpu().numpy()
+        self.i_factors = model.i_factors.weight.detach().cpu().numpy()
+        if self.use_bias:
+            self.u_biases = model.u_biases.weight.detach().cpu().squeeze().numpy()
+            self.i_biases = model.i_biases.weight.detach().cpu().squeeze().numpy()
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
