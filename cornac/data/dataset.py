@@ -781,11 +781,7 @@ class BasketDataset(Dataset):
             else None
         )
 
-        extra_data = (
-            np.fromiter((data[i][4] for i in valid_idx), dtype=object)
-            if fmt in ["UBITJson"]
-            else None
-        )
+        extra_data = [data[i][4] for i in valid_idx] if fmt == "UBITJson" else None
 
         dataset = cls(
             num_users=len(global_uid_map),
