@@ -18,6 +18,7 @@
 import os
 import pickle
 from flask import Flask, request
+from csv import writer
 
 
 def _import_model_class(model_class):
@@ -91,6 +92,26 @@ def recommend():
     )
 
     return response
+
+@app.route("/feedback", methods=["POST"])
+def add_feedback():
+    params = request.args
+    uid = params.get("uid")
+    iid = params.get("iid")
+    rating = params.get("rating")
+    if uid is None:
+        return "uid is required", 400
+    if iid is None:
+        return "iid is required", 400
+    if rating is None:
+        rating = 1
+
+    with open('feedback.csv', 'a+', newline='') as write_obj:
+        csv_writer = writer(write_obj)
+        csv_writer.writerow([uid, iid, rating])
+        write_obj.close()
+
+    return "Feedback added", 200
 
 
 if __name__ == "__main__":
