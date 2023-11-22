@@ -1,9 +1,6 @@
 Data
 ====
 
-
-.. automodule:: cornac.data
-    :members:
 	
 Dataset
 ------------------------------------
