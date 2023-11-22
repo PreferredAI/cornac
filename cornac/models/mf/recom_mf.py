@@ -114,7 +114,7 @@ class MF(Recommender, ANNMixin):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.lambda_reg = lambda_reg
-        self.droppout = dropout
+        self.dropout = dropout
         self.use_bias = use_bias
         self.early_stop = early_stop
         self.seed = seed
@@ -232,7 +232,7 @@ class MF(Recommender, ANNMixin):
                 self.i_biases.reshape(-1, 1),
                 self.use_bias,
                 self.global_mean,
-                self.droppout,
+                self.dropout,
             )
 
         learn(
