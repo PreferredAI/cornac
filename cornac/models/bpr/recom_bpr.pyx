@@ -29,6 +29,7 @@ cimport numpy as np
 from tqdm.auto import trange
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
 from ...utils import get_rng
 from ...utils import fast_dot
@@ -60,7 +61,7 @@ cdef class RNGVector(object):
 
 
 
-class BPR(Recommender):
+class BPR(Recommender, ANNMixin):
     """Bayesian Personalized Ranking.
 
     Parameters
@@ -293,3 +294,39 @@ class BPR(Recommender):
             item_score = self.i_biases[item_idx]
             item_score += np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model. 
+        """
+        user_vectors = np.concatenate(
+            (self.u_factors, np.ones([self.u_factors.shape[0], 1])), axis=1
+        )
+        return user_vectors
+    
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model. 
+        """
+        item_vectors = np.concatenate(
+            (self.i_factors, self.i_biases.reshape((-1, 1))), axis=1
+        )
+        return item_vectors
