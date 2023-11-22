@@ -17,7 +17,7 @@
 
 import os
 import pickle
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from csv import writer
 
 
@@ -91,7 +91,12 @@ def recommend():
         train_set=train_set,
     )
 
-    return response
+    data = {
+        "recommendations": response,
+        "query": {"uid": uid, "k": k, "remove_seen": remove_seen},
+    }
+
+    return jsonify(data), 200
 
 @app.route("/feedback", methods=["POST"])
 def add_feedback():
@@ -111,7 +116,12 @@ def add_feedback():
         csv_writer.writerow([uid, iid, rating])
         write_obj.close()
 
-    return "Feedback added", 200
+    data = {
+        "message": "Feedback added",
+        "data": f"uid: {uid}, iid: {iid}, rating: {rating}"
+    }
+
+    return jsonify(data), 200
 
 
 if __name__ == "__main__":
