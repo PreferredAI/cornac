@@ -16,11 +16,12 @@
 import numpy as np
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...utils.common import scale
 from ...exception import ScoreException
 
 
-class BiVAECF(Recommender):
+class BiVAECF(Recommender, ANNMixin):
     """Bilateral Variational AutoEncoder for Collaborative Filtering.
 
     Parameters
@@ -160,7 +161,7 @@ class BiVAECF(Recommender):
                 torch.manual_seed(self.seed)
                 torch.cuda.manual_seed(self.seed)
 
-            if not hasattr(self, "bivaecf"):
+            if not hasattr(self, "bivae"):
                 num_items = train_set.matrix.shape[1]
                 num_users = train_set.matrix.shape[0]
                 self.bivae = BiVAE(
@@ -230,3 +231,35 @@ class BiVAECF(Recommender):
             pred = self.bivae.decode_user(theta_u, beta_i).cpu().numpy().ravel()
             pred = scale(pred, self.min_rating, self.max_rating, 0.0, 1.0)
             return pred
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        user_vectors = self.bivae.mu_theta.detach().cpu().numpy()
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = self.bivae.mu_beta.detach().cpu().numpy()
+        return item_vectors
