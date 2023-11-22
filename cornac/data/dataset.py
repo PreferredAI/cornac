@@ -89,11 +89,17 @@ class Dataset(object):
         self.seed = seed
         self.rng = get_rng(seed)
 
-        r_values = uir_tuple[2] if uir_tuple is not None else None
-        self.num_ratings = len(r_values) if r_values is not None else 0
-        self.max_rating = np.max(r_values, 0)
-        self.min_rating = np.min(r_values, 0)
-        self.global_mean = np.mean(r_values) if r_values is not None else 0
+        if uir_tuple is not None:
+            r_values = uir_tuple[2]
+            self.num_ratings = len(r_values)
+            self.max_rating = np.max(r_values)
+            self.min_rating = np.min(r_values)
+            self.global_mean = np.mean(r_values)
+        else:
+            self.num_ratings = 0
+            self.max_rating = 0
+            self.min_rating = 0
+            self.global_mean = 0
 
         self.__user_ids = None
         self.__item_ids = None
@@ -628,10 +634,10 @@ class BasketDataset(Dataset):
         self.bid_map = bid_map
         self.ubi_tuple = ubi_tuple
         self.extra_data = extra_data
-        basket_sizes = list(Counter(ubi_tuple[1]))
-        self.max_basket_size = np.max(basket_sizes) if basket_sizes is not None else 0
-        self.min_basket_size = np.min(basket_sizes) if basket_sizes is not None else 0
-        self.avg_basket_size = np.mean(basket_sizes) if basket_sizes is not None else 0
+        basket_sizes = list(Counter(ubi_tuple[1]).values())
+        self.max_basket_size = np.max(basket_sizes)
+        self.min_basket_size = np.min(basket_sizes)
+        self.avg_basket_size = np.mean(basket_sizes)
         self._build_basket()
         self.__user_data = None
         self.__chrono_user_data = None
@@ -776,7 +782,7 @@ class BasketDataset(Dataset):
         )
 
         extra_data = (
-            np.fromiter((data[i][4] for i in valid_idx), dtype="object")
+            np.fromiter((data[i][4] for i in valid_idx), dtype=object)
             if fmt in ["UBITJson"]
             else None
         )
