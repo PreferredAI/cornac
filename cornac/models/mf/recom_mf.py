@@ -287,12 +287,15 @@ class MF(Recommender, ANNMixin):
                         self.u_factors[user_idx], self.i_factors[item_idx]
                     )
             else:
-                if not self.knows_user(user_idx) or not self.knows_item(item_idx):
+                if self.knows_user(user_idx) and self.knows_item(item_idx):
+                    item_score = np.dot(
+                        self.u_factors[user_idx], self.i_factors[item_idx]
+                    )
+                else:
                     raise ScoreException(
                         "Can't make score prediction for (user_id=%d, item_id=%d)"
                         % (user_idx, item_idx)
                     )
-                item_score = np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score
 
     def get_vector_measure(self):
