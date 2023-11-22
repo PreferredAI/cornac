@@ -56,9 +56,9 @@ class MF(nn.Module):
 
     def forward(self, uids, iids):
         ues = self.u_factors(uids)
-        uis = self.i_factors(iids)
+        ies = self.i_factors(iids)
 
-        preds = (self.dropout(ues) * self.dropout(uis)).sum(dim=1, keepdim=True)
+        preds = (self.dropout(ues) * self.dropout(ies)).sum(dim=1, keepdim=True)
         if self.use_bias:
             preds += self.u_biases(uids) + self.i_biases(iids) + self.global_mean
 
@@ -85,17 +85,13 @@ def learn(
 ):
     model = model.to(device)
     criteria = nn.MSELoss(reduction="sum")
-    optimizer = OPTIMIZER_DICT[optimizer](
-        params=model.parameters(), lr=learn_rate, weight_decay=reg
-    )
+    optimizer = OPTIMIZER_DICT[optimizer](params=model.parameters(), lr=learn_rate, weight_decay=reg)
 
     progress_bar = trange(1, n_epochs + 1, disable=not verbose)
     for _ in progress_bar:
         sum_loss = 0.0
         count = 0
-        for batch_id, (u_batch, i_batch, r_batch) in enumerate(
-            train_set.uir_iter(batch_size, shuffle=True)
-        ):
+        for batch_id, (u_batch, i_batch, r_batch) in enumerate(train_set.uir_iter(batch_size, shuffle=True)):
             u_batch = torch.from_numpy(u_batch).to(device)
             i_batch = torch.from_numpy(i_batch).to(device)
             r_batch = torch.tensor(r_batch, dtype=torch.float).to(device)
