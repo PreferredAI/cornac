@@ -52,9 +52,7 @@ class GPTop(NextBasketRecommender):
     def fit(self, train_set, val_set=None):
         super().fit(train_set=train_set, val_set=val_set)
         if self.use_global_popularity:
-            self.item_freq = Counter(
-                self.train_set.ubi_tuple[2]
-            )
+            self.item_freq = Counter(self.train_set.uir_tuple[1])
         return self
 
     def score(self, user_idx, history_baskets, **kwargs):
@@ -64,9 +62,7 @@ class GPTop(NextBasketRecommender):
                 item_scores[iid] = freq
 
         if self.use_personalized_popularity:
-            p_item_freq = Counter(
-                [iid for iids in history_baskets for iid in iids]
-            )
+            p_item_freq = Counter([iid for iids in history_baskets for iid in iids])
 
             max_item_freq = (
                 max(self.item_freq.values()) if len(self.item_freq) > 0 else 1
