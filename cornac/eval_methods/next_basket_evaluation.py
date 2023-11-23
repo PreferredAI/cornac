@@ -76,15 +76,13 @@ def ranking_eval(
     def pos_items(baskets):
         return [item_idx for basket in baskets for item_idx in basket]
 
-    test_user_indices = set(test_set.uir_tuple[0])
+    (test_user_indices, test_item_indices, _) = test_set.uir_tuple
     for user_idx in tqdm(
-        test_user_indices, desc="Ranking", disable=not verbose, miniters=100
+        set(test_user_indices), desc="Ranking", disable=not verbose, miniters=100
     ):
+        [*history_bids, gt_bid] = test_set.user_basket_data[user_idx]
         test_pos_items = pos_items(
-            [
-                [test_set.uir_tuple[1][idx] for idx in test_set.baskets[bid]]
-                for bid in test_set.user_basket_data[user_idx][-1:]
-            ]
+            [[test_item_indices[idx] for idx in test_set.baskets[gt_bid]]]
         )
         if len(test_pos_items) == 0:
             continue
@@ -109,8 +107,8 @@ def ranking_eval(
         item_rank, item_scores = model.rank(
             user_idx,
             [
-                [test_set.uir_tuple[1][idx] for idx in test_set.baskets[bid]]
-                for bid in test_set.user_basket_data[user_idx][:-1]
+                [test_item_indices[idx] for idx in test_set.baskets[bid]]
+                for bid in history_bids
             ],
             item_indices,
             baskets=test_set.baskets,
