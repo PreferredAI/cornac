@@ -208,29 +208,23 @@ class BiVAECF(Recommender, ANNMixin):
             Relative scores that the user gives to the item or to all known items
 
         """
-
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-            theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
-            beta = self.bivae.mu_beta
-            known_item_scores = (
-                self.bivae.decode_user(theta_u, beta).cpu().numpy().ravel()
+            if self.knows_user(user_idx):
+                theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
+                beta = self.bivae.mu_beta
+                return self.bivae.decode_user(theta_u, beta).cpu().numpy().ravel()
+            raise ScoreException(
+                "Can't make score prediction for (user_id=%d)" % user_idx
             )
-            return known_item_scores
-        else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
+        elif self.knows_user(user_idx) and self.knows_item(item_idx):
             theta_u = self.bivae.mu_theta[user_idx].view(1, -1)
             beta_i = self.bivae.mu_beta[item_idx].view(1, -1)
             pred = self.bivae.decode_user(theta_u, beta_i).cpu().numpy().ravel()
-            pred = scale(pred, self.min_rating, self.max_rating, 0.0, 1.0)
-            return pred
+            return scale(pred, self.min_rating, self.max_rating, 0.0, 1.0)
+        raise ScoreException(
+            "Can't make score prediction for (user_id=%d, item_id=%d)"
+            % (user_idx, item_idx)
+        )
 
     def get_vector_measure(self):
         """Getting a valid choice of vector measurement in ANNMixin._measures.
