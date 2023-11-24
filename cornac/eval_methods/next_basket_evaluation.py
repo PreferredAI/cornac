@@ -41,18 +41,18 @@ def ranking_eval(
 
     Parameters
     ----------
-    model: :obj:`cornac.models.Recommender`, required
-        Recommender model to be evaluated.
+    model: :obj:`cornac.models.BasketRecommender`, required
+        BasketRecommender model to be evaluated.
 
     metrics: :obj:`iterable`, required
         List of rating metrics :obj:`cornac.metrics.RankingMetric`.
 
-    train_set: :obj:`cornac.data.Dataset`, required
-        Dataset to be used for model training. This will be used to exclude
+    train_set: :obj:`cornac.data.BasketDataset`, required
+        BasketDataset to be used for model training. This will be used to exclude
         observations already appeared during training.
 
-    test_set: :obj:`cornac.data.Dataset`, required
-        Dataset to be used for evaluation.
+    test_set: :obj:`cornac.data.BasketDataset`, required
+        BasketDataset to be used for evaluation.
 
     repetition_eval: boolean, optional,
         Evaluation on repetition items, appeared in history baskets.
