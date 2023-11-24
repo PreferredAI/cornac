@@ -27,20 +27,25 @@ Release instruction:
 import os
 import sys
 import glob
+import importlib.util
 from setuptools import Extension, setup, find_packages
 
 try:
     import numpy as np
 except ImportError as exc:
-    raise ImportError("Numpy is required to build Cornac. Install numpy using: pip install numpy.") from exc
+    raise ImportError("numpy is required to build Cornac. Install numpy using: pip install numpy.") from exc
+
+if importlib.util.find_spec("scipy") is None:
+    raise ImportError("scipy is required to build Cornac. Install cython using: pip install scipy.")
 
 try:
     from Cython.Build import cythonize
     from Cython.Distutils import build_ext
-except ImportError:
-    USE_CYTHON = False
+except ImportError as exc:
+    raise ImportError("Cython is required to build Cornac. Install cython using: pip install Cython.") from exc
+    # USE_CYTHON = False
 else:
-    USE_CYTHON = True
+    USE_CYTHON = True # to remove, since cython will always be required.
 
 
 with open("README.md", "r") as fh:
