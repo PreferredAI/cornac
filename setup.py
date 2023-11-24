@@ -27,25 +27,18 @@ Release instruction:
 import os
 import sys
 import glob
-import importlib.util
 from setuptools import Extension, setup, find_packages
-
-try:
-    import numpy as np
-except ImportError as exc:
-    raise ImportError("numpy is required to build Cornac. Install numpy using: pip install numpy.") from exc
-
-if importlib.util.find_spec("scipy") is None:
-    raise ImportError("scipy is required to build Cornac. Install cython using: pip install scipy.")
 
 try:
     from Cython.Build import cythonize
     from Cython.Distutils import build_ext
-except ImportError as exc:
-    raise ImportError("Cython is required to build Cornac. Install cython using: pip install Cython.") from exc
-    # USE_CYTHON = False
-else:
-    USE_CYTHON = True # to remove, since cython will always be required.
+    import numpy as np
+    import scipy
+except ImportError:
+    exit(
+        "We need some dependencies to build Cornac.\n"
+        + "Run: pip3 install Cython numpy scipy"
+    )
 
 
 with open("README.md", "r") as fh:
@@ -115,13 +108,12 @@ else:
     compile_args.append("-std=c++11")
     link_args.append("-std=c++11")
 
-ext = ".pyx" if USE_CYTHON else ".cpp"
 
 extensions = [
     Extension(
         name="cornac.models.c2pf.c2pf",
         sources=[
-            "cornac/models/c2pf/cython/c2pf" + ext,
+            "cornac/models/c2pf/cython/c2pf.pyx",
             "cornac/models/c2pf/cpp/cpp_c2pf.cpp",
         ],
         include_dirs=[
@@ -133,29 +125,29 @@ extensions = [
     ),
     Extension(
         name="cornac.models.nmf.recom_nmf",
-        sources=["cornac/models/nmf/recom_nmf" + ext],
+        sources=["cornac/models/nmf/recom_nmf.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.models.pmf.pmf",
-        sources=["cornac/models/pmf/cython/pmf" + ext],
+        sources=["cornac/models/pmf/cython/pmf.pyx"],
         language="c++",
     ),
     Extension(
         name="cornac.models.mcf.mcf",
-        sources=["cornac/models/mcf/cython/mcf" + ext],
+        sources=["cornac/models/mcf/cython/mcf.pyx"],
         language="c++",
     ),
     Extension(
         name="cornac.models.sorec.sorec",
-        sources=["cornac/models/sorec/cython/sorec" + ext],
+        sources=["cornac/models/sorec/cython/sorec.pyx"],
         language="c++",
     ),
     Extension(
         "cornac.models.hpf.hpf",
         sources=[
-            "cornac/models/hpf/cython/hpf" + ext,
+            "cornac/models/hpf/cython/hpf.pyx",
             "cornac/models/hpf/cpp/cpp_hpf.cpp",
         ],
         include_dirs=[
@@ -167,7 +159,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.mf.backend_cpu",
-        sources=["cornac/models/mf/backend_cpu" + ext],
+        sources=["cornac/models/mf/backend_cpu.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
@@ -175,7 +167,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.baseline_only.recom_bo",
-        sources=["cornac/models/baseline_only/recom_bo" + ext],
+        sources=["cornac/models/baseline_only/recom_bo.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
@@ -183,19 +175,19 @@ extensions = [
     ),
     Extension(
         name="cornac.models.efm.recom_efm",
-        sources=["cornac/models/efm/recom_efm" + ext],
+        sources=["cornac/models/efm/recom_efm.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_obj",
-        sources=["cornac/models/comparer/recom_comparer_obj" + ext],
+        sources=["cornac/models/comparer/recom_comparer_obj.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.models.bpr.recom_bpr",
-        sources=["cornac/models/bpr/recom_bpr" + ext],
+        sources=["cornac/models/bpr/recom_bpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -203,7 +195,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.bpr.recom_wbpr",
-        sources=["cornac/models/bpr/recom_wbpr" + ext],
+        sources=["cornac/models/bpr/recom_wbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -211,7 +203,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.sbpr.recom_sbpr",
-        sources=["cornac/models/sbpr/recom_sbpr" + ext],
+        sources=["cornac/models/sbpr/recom_sbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -219,7 +211,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.lrppm.recom_lrppm",
-        sources=["cornac/models/lrppm/recom_lrppm" + ext],
+        sources=["cornac/models/lrppm/recom_lrppm.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -227,7 +219,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.mter.recom_mter",
-        sources=["cornac/models/mter/recom_mter" + ext],
+        sources=["cornac/models/mter/recom_mter.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -235,7 +227,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_sub",
-        sources=["cornac/models/comparer/recom_comparer_sub" + ext],
+        sources=["cornac/models/comparer/recom_comparer_sub.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -243,7 +235,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.mmmf.recom_mmmf",
-        sources=["cornac/models/mmmf/recom_mmmf" + ext],
+        sources=["cornac/models/mmmf/recom_mmmf.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -251,7 +243,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.knn.similarity",
-        sources=["cornac/models/knn/similarity" + ext],
+        sources=["cornac/models/knn/similarity.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
@@ -259,20 +251,20 @@ extensions = [
     ),
     Extension(
         name="cornac.utils.fast_dict",
-        sources=["cornac/utils/fast_dict" + ext],
+        sources=["cornac/utils/fast_dict.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.utils.fast_dot",
-        sources=["cornac/utils/fast_dot" + ext],
+        sources=["cornac/utils/fast_dot.pyx"],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args,
     ),
     Extension(
         name="cornac.utils.fast_sparse_funcs",
-        sources=["cornac/utils/fast_sparse_funcs" + ext],
+        sources=["cornac/utils/fast_sparse_funcs.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
@@ -282,7 +274,7 @@ if sys.platform.startswith("linux"):  # Linux supported only
     extensions += [
         Extension(
             name="cornac.models.fm.recom_fm",
-            sources=["cornac/models/fm/recom_fm" + ext],
+            sources=["cornac/models/fm/recom_fm.pyx"],
             include_dirs=[
                 np.get_include(),
                 "cornac/models/fm/libfm/util",
@@ -298,9 +290,8 @@ if sys.platform.startswith("linux"):  # Linux supported only
 cmdclass = {}
 
 # cythonize c++ modules
-if USE_CYTHON:
-    extensions = cythonize(extensions)
-    cmdclass.update({"build_ext": build_ext})
+extensions = cythonize(extensions)
+cmdclass.update({"build_ext": build_ext})
 
 setup(
     name="cornac",
