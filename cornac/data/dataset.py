@@ -699,7 +699,7 @@ class BasketDataset(Dataset):
 
         if self.__chrono_user_basket_data is None:
             self.__chrono_user_basket_data = defaultdict()
-            for (bid, ids), t in zip(*self.baskets.values(), self.basket_timestamps):
+            for (bid, ids), t in zip(self.baskets.items(), self.basket_timestamps):
                 u = self.uir_tuple[0][ids[0]]
                 u_data = self.__chrono_user_basket_data.setdefault(u, ([], []))
                 u_data[0].append(bid)
