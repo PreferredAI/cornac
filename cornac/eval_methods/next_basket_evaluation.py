@@ -19,12 +19,9 @@ from collections import OrderedDict
 import numpy as np
 from tqdm.auto import tqdm
 
+from . import RatioSplit
 from ..data import BasketDataset
-from ..metrics import RankingMetric
 from ..experiment.result import Result
-from . import BaseMethod
-from ..utils.common import safe_indexing
-from .base_method import BaseMethod
 
 
 def ranking_eval(
@@ -128,11 +125,11 @@ def ranking_eval(
 
         item_rank, item_scores = model.rank(
             user_idx,
-            [
+            item_indices,
+            history_baskets=[
                 [test_item_indices[idx] for idx in test_set.baskets[bid]]
                 for bid in history_bids
             ],
-            item_indices,
             baskets=test_set.baskets,
             basket_ids=test_set.basket_ids,
             extra_data=test_set.extra_data,
@@ -206,19 +203,21 @@ def ranking_eval(
             sum(user_results["conventional"][i].values())
             / len(user_results["conventional"][i])
         )
-        avg_results["repetition"].append(
-            sum(user_results["repetition"][i].values())
-            / len(user_results["repetition"][i])
-        )
-        avg_results["exploration"].append(
-            sum(user_results["exploration"][i].values())
-            / len(user_results["exploration"][i])
-        )
+        if repetition_eval:
+            avg_results["repetition"].append(
+                sum(user_results["repetition"][i].values())
+                / len(user_results["repetition"][i])
+            )
+        if exploration_eval:
+            avg_results["exploration"].append(
+                sum(user_results["exploration"][i].values())
+                / len(user_results["exploration"][i])
+            )
 
     return avg_results, user_results
 
 
-class NextBasketEvaluation(BaseMethod):
+class NextBasketEvaluation(RatioSplit):
     """Next Basket Recommendation Evaluation method
 
     Parameters
@@ -260,6 +259,8 @@ class NextBasketEvaluation(BaseMethod):
     ):
         super().__init__(
             data=data,
+            test_size=test_size,
+            val_size=val_size,
             fmt=fmt,
             seed=seed,
             exclude_unknowns=exclude_unknowns,
@@ -268,13 +269,6 @@ class NextBasketEvaluation(BaseMethod):
         )
         self.repetition_eval = repetition_eval
         self.exploration_eval = exploration_eval
-        self.train_size, self.val_size, self.test_size = self.validate_size(
-            val_size, test_size, len(self._data)
-        )
-        self._split()
-
-        if verbose:
-            print("exclude_unknowns = {}".format(exclude_unknowns))
 
     @staticmethod
     def validate_size(val_size, test_size, num_users):
@@ -317,44 +311,6 @@ class NextBasketEvaluation(BaseMethod):
         train_size = num_users - (val_size + test_size)
 
         return int(train_size), int(val_size), int(test_size)
-
-    def _split(self):
-        data_idx = self.rng.permutation(len(self._data))
-        train_idx = data_idx[: self.train_size]
-        test_idx = data_idx[-self.test_size :]
-        val_idx = data_idx[self.train_size : -self.test_size]
-
-        train_data = safe_indexing(self._data, train_idx)
-        test_data = safe_indexing(self._data, test_idx)
-        val_data = safe_indexing(self._data, val_idx) if len(val_idx) > 0 else None
-
-        self.build(train_data=train_data, test_data=test_data, val_data=val_data)
-
-    def _organize_metrics(self, metrics):
-        """Organize metrics according to their types (rating or raking)
-
-        Parameters
-        ----------
-        metrics: :obj:`iterable`
-            List of metrics.
-
-        """
-        if isinstance(metrics, dict):
-            self.ranking_metrics = metrics.get("ranking", [])
-        elif isinstance(metrics, list):
-            self.ranking_metrics = []
-            for mt in metrics:
-                if isinstance(mt, RankingMetric) and hasattr(mt.k, "__len__"):
-                    self.ranking_metrics.extend(
-                        [mt.__class__(k=_k) for _k in sorted(set(mt.k))]
-                    )
-                else:
-                    self.ranking_metrics.append(mt)
-        else:
-            raise ValueError("Type of metrics has to be either dict or list!")
-
-        # sort metrics by name
-        self.ranking_metrics = sorted(self.ranking_metrics, key=lambda mt: mt.name)
 
     def _build_datasets(self, train_data, test_data, val_data=None):
         self.train_set = BasketDataset.build(
@@ -420,20 +376,6 @@ class NextBasketEvaluation(BaseMethod):
             print("Total users = {}".format(self.total_users))
             print("Total items = {}".format(self.total_items))
             print("Total baskets = {}".format(self.total_baskets))
-
-    def build(self, train_data, test_data, val_data=None):
-        if train_data is None or len(train_data) == 0:
-            raise ValueError("train_data is required but None or empty!")
-        if test_data is None or len(test_data) == 0:
-            raise ValueError("test_data is required but None or empty!")
-
-        self.global_uid_map.clear()
-        self.global_iid_map.clear()
-
-        self._build_datasets(train_data, test_data, val_data)
-        self._build_modalities()
-
-        return self
 
     def _eval(self, model, test_set, **kwargs):
         metric_avg_results = OrderedDict()

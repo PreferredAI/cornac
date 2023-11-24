@@ -23,7 +23,61 @@ from datetime import datetime
 import numpy as np
 
 from ..exception import ScoreException
-from ..utils.common import intersects, clip
+from ..utils.common import clip
+
+
+MEASURE_L2 = "l2 distance aka. Euclidean distance"
+MEASURE_DOT = "dot product aka. inner product"
+MEASURE_COSINE = "cosine similarity"
+
+
+def is_ann_supported(recom):
+    """Return True if the given recommender model support ANN search.
+
+    Parameters
+    ----------
+    recom : recommender model
+        Recommender object to test.
+
+    Returns
+    -------
+    out : bool
+        True if recom supports ANN search and False otherwise.
+    """
+    return getattr(recom, "_ann_supported", False)
+
+
+class ANNMixin:
+    """Mixin class for Approximate Nearest Neighbor Search."""
+
+    _ann_supported = True
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
 
 
 class Recommender:
@@ -352,7 +406,7 @@ class Recommender:
 
         return rating_pred
 
-    def rank(self, user_idx, item_indices=None):
+    def rank(self, user_idx, item_indices=None, **kwargs):
         """Rank all test items for a given user.
 
         Parameters
@@ -373,7 +427,7 @@ class Recommender:
         """
         # obtain item scores from the model
         try:
-            known_item_scores = self.score(user_idx)
+            known_item_scores = self.score(user_idx, **kwargs)
         except ScoreException:
             known_item_scores = np.ones(self.total_items) * self.default_score()
 
@@ -518,60 +572,6 @@ class Recommender:
         return False
 
 
-MEASURE_L2 = "l2 distance aka. Euclidean distance"
-MEASURE_DOT = "dot product aka. inner product"
-MEASURE_COSINE = "cosine similarity"
-
-
-class ANNMixin:
-    """Mixin class for Approximate Nearest Neighbor Search."""
-
-    _ann_supported = True
-
-    def get_vector_measure(self):
-        """Getting a valid choice of vector measurement in ANNMixin._measures.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-    def get_user_vectors(self):
-        """Getting a matrix of user vectors serving as query for ANN search.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-    def get_item_vectors(self):
-        """Getting a matrix of item vectors used for building the index for ANN search.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-
-def is_ann_supported(recom):
-    """Return True if the given recommender model support ANN search.
-
-    Parameters
-    ----------
-    recom : recommender model
-        Recommender object to test.
-
-    Returns
-    -------
-    out : bool
-        True if recom supports ANN search and False otherwise.
-    """
-    return getattr(recom, "_ann_supported", False)
-
-
 class NextBasketRecommender(Recommender):
     """Generic class for a next basket recommender model. All next basket recommendation models should inherit from this class.
 
@@ -627,46 +627,3 @@ class NextBasketRecommender(Recommender):
 
         """
         raise NotImplementedError("The algorithm is not able to make score prediction!")
-
-    def rank(self, user_idx, history_baskets, item_indices=None, **kwargs):
-        """Rank all test items for a given user.
-
-        Parameters
-        ----------
-        user_idx: int, required
-            The index of the user for whom to perform item raking.
-
-        item_indices: 1d array, optional, default: None
-            A list of candidate item indices to be ranked by the user.
-            If `None`, list of ranked known item indices and their scores will be returned.
-
-        Returns
-        -------
-        (ranked_items, item_scores): tuple
-            `ranked_items` contains item indices being ranked by their scores.
-            `item_scores` contains scores of items corresponding to index in `item_indices` input.
-
-        """
-        # obtain item scores from the model
-        try:
-            known_item_scores = self.score(user_idx, history_baskets)
-        except ScoreException:
-            known_item_scores = np.ones(self.total_items)
-
-        # check if the returned scores also cover unknown items
-        # if not, all unknown items will be given the MIN score
-        if len(known_item_scores) == self.total_items:
-            all_item_scores = known_item_scores
-        else:
-            all_item_scores = np.ones(self.total_items) * np.min(known_item_scores)
-            all_item_scores[: self.num_items] = known_item_scores
-
-        # rank items based on their scores
-        if item_indices is None:
-            item_scores = all_item_scores[: self.num_items]
-            ranked_items = item_scores.argsort()[::-1]
-        else:
-            item_scores = all_item_scores[item_indices]
-            ranked_items = np.array(item_indices)[item_scores.argsort()[::-1]]
-
-        return ranked_items, item_scores
