@@ -29,7 +29,10 @@ import sys
 import glob
 from setuptools import Extension, setup, find_packages
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError as exc:
+    raise ImportError("Numpy is required to build Cornac. Install numpy using: pip install numpy.") from exc
 
 try:
     from Cython.Build import cythonize
