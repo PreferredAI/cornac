@@ -32,6 +32,8 @@ def ranking_eval(
     metrics,
     train_set,
     test_set,
+    repetition_eval=False,
+    exploration_eval=False,
     exclude_unknowns=True,
     verbose=False,
 ):
@@ -52,6 +54,12 @@ def ranking_eval(
     test_set: :obj:`cornac.data.Dataset`, required
         Dataset to be used for evaluation.
 
+    repetition_eval: boolean, optional,
+        Evaluation on repetition items, appeared in history baskets.
+
+    exploration_eval: boolean, optional,
+        Evaluation on exploration items, not appeared in history baskets.
+
     exclude_unknowns: bool, optional, default: True
         Ignore unknown users and items during evaluation.
 
@@ -70,23 +78,21 @@ def ranking_eval(
     if len(metrics) == 0:
         return [], []
 
-    avg_results = []
-    user_results = [{} for _ in enumerate(metrics)]
+    avg_results = {
+        "conventional": [],
+        "repetition": [],
+        "exploration": [],
+    }
+    user_results = {
+        "conventional": [{} for _ in enumerate(metrics)],
+        "repetition": [{} for _ in enumerate(metrics)],
+        "exploration": [{} for _ in enumerate(metrics)],
+    }
 
     def pos_items(baskets):
         return [item_idx for basket in baskets for item_idx in basket]
 
-    (test_user_indices, test_item_indices, _) = test_set.uir_tuple
-    for user_idx in tqdm(
-        set(test_user_indices), desc="Ranking", disable=not verbose, miniters=100
-    ):
-        [*history_bids, gt_bid] = test_set.user_basket_data[user_idx]
-        test_pos_items = pos_items(
-            [[test_item_indices[idx] for idx in test_set.baskets[gt_bid]]]
-        )
-        if len(test_pos_items) == 0:
-            continue
-
+    def get_gt_items(train_set, test_set, test_pos_items, exclude_unknowns):
         # binary mask for ground-truth positive items
         u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
         u_gt_pos_mask[test_pos_items] = 1
@@ -100,9 +106,25 @@ def ranking_eval(
             u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
             u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
 
-        item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
         u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
         u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
+        item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
+        return item_indices, u_gt_pos_items, u_gt_neg_items
+
+    (test_user_indices, test_item_indices, _) = test_set.uir_tuple
+    for user_idx in tqdm(
+        set(test_user_indices), desc="Ranking", disable=not verbose, miniters=100
+    ):
+        [*history_bids, gt_bid] = test_set.user_basket_data[user_idx]
+        test_pos_items = pos_items(
+            [[test_item_indices[idx] for idx in test_set.baskets[gt_bid]]]
+        )
+        if len(test_pos_items) == 0:
+            continue
+
+        item_indices, u_gt_pos_items, u_gt_neg_items = get_gt_items(
+            train_set, test_set, test_pos_items, exclude_unknowns
+        )
 
         item_rank, item_scores = model.rank(
             user_idx,
@@ -124,11 +146,74 @@ def ranking_eval(
                 pd_scores=item_scores,
                 item_indices=item_indices,
             )
-            user_results[i][user_idx] = mt_score
+            user_results["conventional"][i][user_idx] = mt_score
 
+        history_items = set(
+            test_item_indices[idx]
+            for bid in history_bids
+            for idx in test_set.baskets[bid]
+        )
+        if repetition_eval:
+            test_repetition_pos_items = pos_items(
+                [
+                    [
+                        test_item_indices[idx]
+                        for idx in test_set.baskets[gt_bid]
+                        if test_item_indices[idx] in history_items
+                    ]
+                ]
+            )
+            if len(test_repetition_pos_items) > 0:
+                _, u_gt_pos_items, u_gt_neg_items = get_gt_items(
+                    train_set, test_set, test_repetition_pos_items, exclude_unknowns
+                )
+                for i, mt in enumerate(metrics):
+                    mt_score = mt.compute(
+                        gt_pos=u_gt_pos_items,
+                        gt_neg=u_gt_neg_items,
+                        pd_rank=item_rank,
+                        pd_scores=item_scores,
+                        item_indices=item_indices,
+                    )
+                    user_results["repetition"][i][user_idx] = mt_score
+
+        if exploration_eval:
+            test_exploration_pos_items = pos_items(
+                [
+                    [
+                        test_item_indices[idx]
+                        for idx in test_set.baskets[gt_bid]
+                        if test_item_indices[idx] not in history_items
+                    ]
+                ]
+            )
+            if len(test_exploration_pos_items) > 0:
+                _, u_gt_pos_items, u_gt_neg_items = get_gt_items(
+                    train_set, test_set, test_exploration_pos_items, exclude_unknowns
+                )
+                for i, mt in enumerate(metrics):
+                    mt_score = mt.compute(
+                        gt_pos=u_gt_pos_items,
+                        gt_neg=u_gt_neg_items,
+                        pd_rank=item_rank,
+                        pd_scores=item_scores,
+                        item_indices=item_indices,
+                    )
+                    user_results["exploration"][i][user_idx] = mt_score
     # avg results of ranking metrics
     for i, mt in enumerate(metrics):
-        avg_results.append(sum(user_results[i].values()) / len(user_results[i]))
+        avg_results["conventional"].append(
+            sum(user_results["conventional"][i].values())
+            / len(user_results["conventional"][i])
+        )
+        avg_results["repetition"].append(
+            sum(user_results["repetition"][i].values())
+            / len(user_results["repetition"][i])
+        )
+        avg_results["exploration"].append(
+            sum(user_results["exploration"][i].values())
+            / len(user_results["exploration"][i])
+        )
 
     return avg_results, user_results
 
@@ -167,6 +252,8 @@ class NextBasketEvaluation(BaseMethod):
         val_size=0.0,
         fmt="UBI",
         seed=None,
+        repetition_eval=False,
+        exploration_eval=False,
         exclude_unknowns=True,
         verbose=False,
         **kwargs
@@ -179,7 +266,8 @@ class NextBasketEvaluation(BaseMethod):
             verbose=verbose,
             kwargs=kwargs,
         )
-
+        self.repetition_eval = repetition_eval
+        self.exploration_eval = exploration_eval
         self.train_size, self.val_size, self.test_size = self.validate_size(
             val_size, test_size, len(self._data)
         )
@@ -356,11 +444,31 @@ class NextBasketEvaluation(BaseMethod):
             metrics=self.ranking_metrics,
             train_set=self.train_set,
             test_set=test_set,
+            repetition_eval=self.repetition_eval,
+            exploration_eval=self.exploration_eval,
             exclude_unknowns=self.exclude_unknowns,
             verbose=self.verbose,
         )
-        for i, mt in enumerate(self.ranking_metrics):
-            metric_avg_results[mt.name] = avg_results[i]
-            metric_user_results[mt.name] = user_results[i]
 
+        for i, mt in enumerate(self.ranking_metrics):
+            metric_avg_results[mt.name] = avg_results["conventional"][i]
+            metric_user_results[mt.name] = user_results["conventional"][i]
+
+        if self.repetition_eval:
+            for i, mt in enumerate(self.ranking_metrics):
+                metric_avg_results["{}-rep".format(mt.name)] = avg_results[
+                    "repetition"
+                ][i]
+                metric_user_results["{}-rep".format(mt.name)] = user_results[
+                    "repetition"
+                ][i]
+
+        if self.repetition_eval:
+            for i, mt in enumerate(self.ranking_metrics):
+                metric_avg_results["{}-expl".format(mt.name)] = avg_results[
+                    "exploration"
+                ][i]
+                metric_user_results["{}-expl".format(mt.name)] = user_results[
+                    "exploration"
+                ][i]
         return Result(model.name, metric_avg_results, metric_user_results)
