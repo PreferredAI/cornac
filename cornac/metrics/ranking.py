@@ -274,8 +274,8 @@ class MeasureAtK(RankingMetric):
         return tp, tp_fn, tp_fp
 
 
-class PHR(MeasureAtK):
-    """Personalized Hit Ratio (PHR).
+class HR(MeasureAtK):
+    """Hit Ratio (HR).
 
     Parameters
     ----------
@@ -291,10 +291,10 @@ class PHR(MeasureAtK):
     """
 
     def __init__(self, k=-1):
-        super().__init__(name="PHR@{}".format(k), k=k)
+        super().__init__(name="HR@{}".format(k), k=k)
 
     def compute(self, gt_pos, pd_rank, **kwargs):
-        """Compute Personalized Hit Ratio.
+        """Compute Hit Ratio.
 
         Parameters
         ----------
@@ -309,7 +309,7 @@ class PHR(MeasureAtK):
         Returns
         -------
         res: A scalar
-            F-Measure score.
+            Hit Ratio score (1.0 ground truth item(s) appear in top-k, 0 otherwise).
 
         """
         tp, *_ = MeasureAtK.compute(self, gt_pos, pd_rank, **kwargs)

@@ -22,7 +22,7 @@ from cornac.metrics.ranking import MeasureAtK
 from cornac.metrics import NDCG
 from cornac.metrics import NCRR
 from cornac.metrics import MRR
-from cornac.metrics import PHR
+from cornac.metrics import HR
 from cornac.metrics import Precision
 from cornac.metrics import Recall
 from cornac.metrics import FMeasure
@@ -146,33 +146,33 @@ class TestRanking(unittest.TestCase):
         self.assertEqual(2, tp_fn)
         self.assertEqual(3, tp_fp)
 
-    def test_personalized_hit_ratio(self):
-        phr = PHR()
+    def test_hit_ratio(self):
+        hr = HR()
 
-        self.assertEqual(phr.type, "ranking")
-        self.assertEqual(phr.name, "PHR@-1")
+        self.assertEqual(hr.type, "ranking")
+        self.assertEqual(hr.name, "HR@-1")
 
-        self.assertEqual(1, phr.compute(np.asarray([0]), np.asarray([0])))
-        self.assertEqual(1, phr.compute(np.asarray([0, 1]), np.asarray([0, 2])))
+        self.assertEqual(1, hr.compute(np.asarray([0]), np.asarray([0])))
+        self.assertEqual(1, hr.compute(np.asarray([0, 1]), np.asarray([0, 2])))
 
         gt_pos = np.asarray([0, 2])  # [1, 0, 1]
         pd_rank = np.asarray([0, 2, 1])  # [1, 1, 1]
-        self.assertEqual(1, phr.compute(gt_pos, pd_rank))
+        self.assertEqual(1, hr.compute(gt_pos, pd_rank))
 
         gt_pos = np.asarray([2])  # [0, 0, 1]
         pd_rank = np.asarray([1, 2, 0])  # [1, 1, 1]
-        self.assertEqual(1, phr.compute(gt_pos, pd_rank))
+        self.assertEqual(1, hr.compute(gt_pos, pd_rank))
 
-        phr_2 = PHR(k=2)
-        self.assertEqual(phr_2.k, 2)
+        hr_2 = HR(k=2)
+        self.assertEqual(hr_2.k, 2)
 
         gt_pos = np.asarray([0])  # [0, 0, 1]
         pd_rank = np.asarray([1, 2, 0])  # [1, 1, 1]
-        self.assertEqual(0, phr_2.compute(gt_pos, pd_rank))
+        self.assertEqual(0, hr_2.compute(gt_pos, pd_rank))
 
         gt_pos = np.asarray([2])  # [0, 0, 1]
         pd_rank = np.asarray([1, 2, 0])  # [1, 1, 1]
-        self.assertEqual(1, phr_2.compute(gt_pos, pd_rank))
+        self.assertEqual(1, hr_2.compute(gt_pos, pd_rank))
 
     def test_precision(self):
         prec = Precision()

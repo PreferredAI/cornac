@@ -16,8 +16,8 @@
 
 import cornac
 from cornac.eval_methods import NextBasketEvaluation
+from cornac.metrics import HR, NDCG, Recall
 from cornac.models import GPTop
-from cornac.metrics import Recall, NDCG
 
 data = cornac.datasets.tafeng.load_basket(
     reader=cornac.data.Reader(min_basket_size=3, max_basket_size=50)
@@ -33,6 +33,6 @@ models = [
     GPTop(),
 ]
 
-metrics = [Recall(k=50), Recall(k=20), Recall(k=10), NDCG(k=50), NDCG(k=20), NDCG(k=10)]
+metrics = [Recall(k=10), Recall(k=50), NDCG(k=10), NDCG(k=50), HR(k=10), HR(k=50)]
 
 cornac.Experiment(eval_method=next_basket_eval, models=models, metrics=metrics).run()

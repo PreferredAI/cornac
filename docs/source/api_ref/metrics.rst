@@ -31,6 +31,10 @@ Fmeasure (F1)
 -------------
 .. autoclass:: FMeasure
 
+Hit Ratio (HR)
+-------------------
+.. autoclass:: HR
+
 Mean Average Precision (MAP)
 ----------------------------
 .. autoclass:: MAP
@@ -46,10 +50,6 @@ Normalized Cumulative Reciprocal Rank (NCRR)
 Normalized Discount Cumulative Gain (NDCG)
 ------------------------------------------
 .. autoclass:: NDCG
-
-Personalized Hit Ratio (PHR)
--------------------
-.. autoclass:: PHR
 
 Precision
 ---------
