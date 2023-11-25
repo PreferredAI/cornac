@@ -19,9 +19,10 @@ from collections import OrderedDict
 import numpy as np
 from tqdm.auto import tqdm
 
-from . import RatioSplit
+from . import BaseMethod
 from ..data import BasketDataset
 from ..experiment.result import Result
+from ..utils.common import safe_indexing
 
 
 def ranking_eval(
@@ -217,7 +218,7 @@ def ranking_eval(
     return avg_results, user_results
 
 
-class NextBasketEvaluation(RatioSplit):
+class NextBasketEvaluation(BaseMethod):
     """Next Basket Recommendation Evaluation method
 
     Parameters
@@ -259,16 +260,19 @@ class NextBasketEvaluation(RatioSplit):
     ):
         super().__init__(
             data=data,
-            test_size=test_size,
-            val_size=val_size,
             fmt=fmt,
             seed=seed,
             exclude_unknowns=exclude_unknowns,
             verbose=verbose,
-            kwargs=kwargs,
+            **kwargs
         )
         self.repetition_eval = repetition_eval
         self.exploration_eval = exploration_eval
+
+        self.train_size, self.val_size, self.test_size = self.validate_size(
+            val_size, test_size, len(set(u for (u, *_) in self._data))
+        )
+        self._split()
 
     @staticmethod
     def validate_size(val_size, test_size, num_users):
@@ -311,6 +315,22 @@ class NextBasketEvaluation(RatioSplit):
         train_size = num_users - (val_size + test_size)
 
         return int(train_size), int(val_size), int(test_size)
+
+    def _split(self):
+        users = list(set(u for(u, *_) in self._data))
+        data_idx = self.rng.permutation(len(users))
+        train_idx = data_idx[: self.train_size]
+        test_idx = data_idx[-self.test_size :]
+        val_idx = data_idx[self.train_size : -self.test_size]
+
+        train_users = safe_indexing(users, train_idx)
+        test_users = safe_indexing(users, test_idx)
+        val_users = safe_indexing(users, val_idx) if len(val_idx) > 0 else None
+
+        train_data = [tup for tup in self._data if tup[0] in train_users]
+        val_data = [tup for tup in self._data if tup[0] in val_users]
+        test_data = [tup for tup in self._data if tup[0] in test_users]
+        self.build(train_data=train_data, test_data=test_data, val_data=val_data)
 
     def _build_datasets(self, train_data, test_data, val_data=None):
         self.train_set = BasketDataset.build(

@@ -55,7 +55,7 @@ def ubit_parser(tokens, **kwargs):
     return [(tokens[0], tokens[1], tokens[2], int(tokens[3]))]
 
 
-def ubitjson_parsor(tokens, **kwargs):
+def ubitjson_parser(tokens, **kwargs):
     return [
         (tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))
     ]
@@ -69,7 +69,7 @@ PARSERS = {
     "UIReview": review_parser,
     "UBI": ubi_parser,
     "UBIT": ubit_parser,
-    "UBITJson": ubitjson_parsor,
+    "UBITJson": ubitjson_parser,
 }
 
 
