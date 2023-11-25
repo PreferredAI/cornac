@@ -18,7 +18,6 @@ import cornac
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 
-
 # Load MovieLens 1M ratings
 ml_1m = movielens.load_feedback(variant="1M")
 
@@ -31,22 +30,42 @@ ratio_split = RatioSplit(
 global_avg = cornac.models.GlobalAvg()
 mf = cornac.models.MF(
     k=10,
+    backend="cpu",
     max_iter=25,
     learning_rate=0.01,
     lambda_reg=0.02,
     use_bias=True,
     early_stop=True,
     verbose=True,
+    name="MF-cpu",
+)
+tmf = cornac.models.MF(
+    k=10,
+    backend="pytorch",
+    optimizer="sgd",
+    max_iter=25,
+    batch_size=256,
+    learning_rate=0.01,
+    lambda_reg=1e-2,
+    trainable=True,
+    verbose=True,
+    name="MF-pytorch",
 )
 
 # Instantiate MAE and RMSE for evaluation
 mae = cornac.metrics.MAE()
 rmse = cornac.metrics.RMSE()
+ndcg = cornac.metrics.NDCG(k=10)
+recall = cornac.metrics.Recall(k=10)
 
 # Put everything together into an experiment and run it
 cornac.Experiment(
     eval_method=ratio_split,
-    models=[global_avg, mf],
-    metrics=[mae, rmse],
+    models=[
+        global_avg,
+        mf,
+        tmf,
+    ],
+    metrics=[mae, rmse, ndcg, recall],
     user_based=True,
 ).run()
