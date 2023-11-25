@@ -17,12 +17,13 @@ import numpy as np
 from tqdm.auto import trange
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
 from ...utils import get_rng
 from ...utils.init_utils import normal
 
 
-class HFT(Recommender):
+class HFT(Recommender, ANNMixin):
     """Hidden Factors and Hidden Topics
 
     Parameters
@@ -254,3 +255,39 @@ class HFT(Recommender):
                 + self.gamma_i[item_idx, :].dot(self.gamma_u[user_idx, :])
             )
             return user_pred
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        user_vectors = np.concatenate(
+            (self.gamma_u, np.ones([self.gamma_u.shape[0], 1])), axis=1
+        )
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = np.concatenate(
+            (self.gamma_i, self.beta_i.reshape((-1, 1))), axis=1
+        )
+        return item_vectors
