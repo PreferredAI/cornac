@@ -407,22 +407,19 @@ class NARRE(Recommender, ANNMixin):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
             h0 = (self.user_embedding[user_idx] + self.X[user_idx]) * (
                 self.item_embedding + self.Y
             )
             known_item_scores = h0.dot(self.W1) + self.bu[user_idx] + self.bi + self.mu
             return known_item_scores.ravel()
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
             h0 = (self.user_embedding[user_idx] + self.X[user_idx]) * (
                 self.item_embedding[item_idx] + self.Y[item_idx]
             )

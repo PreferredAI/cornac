@@ -268,33 +268,20 @@ class MF(Recommender, ANNMixin):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            known_item_scores = np.add(self.i_biases, self.global_mean)
+            known_item_scores = self.global_mean + self.i_biases
             if self.knows_user(user_idx):
-                known_item_scores = np.add(known_item_scores, self.u_biases[user_idx])
+                known_item_scores += self.u_biases[user_idx]
                 fast_dot(self.u_factors[user_idx], self.i_factors, known_item_scores)
             return known_item_scores
         else:
-            if self.use_bias:
-                item_score = self.global_mean
-                if self.knows_user(user_idx):
-                    item_score += self.u_biases[user_idx]
-                if self.knows_item(item_idx):
-                    item_score += self.i_biases[item_idx]
-                if self.knows_user(user_idx) and self.knows_item(item_idx):
-                    item_score += np.dot(
-                        self.u_factors[user_idx], self.i_factors[item_idx]
-                    )
-            else:
-                if self.knows_user(user_idx) and self.knows_item(item_idx):
-                    item_score = np.dot(
-                        self.u_factors[user_idx], self.i_factors[item_idx]
-                    )
-                else:
-                    raise ScoreException(
-                        "Can't make score prediction for (user_id=%d, item_id=%d)"
-                        % (user_idx, item_idx)
-                    )
+            item_score = self.global_mean + self.i_biases[item_idx]
+            if self.knows_user(user_idx):
+                item_score += self.u_biases[user_idx]
+                item_score += self.u_factors[user_idx].dot(self.i_factors[item_idx])
             return item_score
 
     def get_vector_measure(self):

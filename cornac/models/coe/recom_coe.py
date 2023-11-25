@@ -148,21 +148,17 @@ class COE(Recommender, ANNMixin):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            if self.knows_user(user_idx):
-                return np.sum((self.V - self.U[user_idx, :]) ** 2, axis=-1) ** (1.0 / 2)
+            return np.sum((self.V - self.U[user_idx, :]) ** 2, axis=-1) ** (1.0 / 2)
 
-            raise ScoreException(
-                "Can't make score prediction for (user_id=%d)" % user_idx
-            )
-        elif self.knows_user(user_idx) and self.knows_item(item_idx):
-            return np.sum(
-                (self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1
-            ) ** (1.0 / 2)
-
-        raise ScoreException(
-            "Can't make score prediction for (user_id=%d, item_id=%d)"
-            % (user_idx, item_idx)
+        return np.sum((self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1) ** (
+            1.0 / 2
         )
 
     def get_vector_measure(self):

@@ -250,20 +250,16 @@ class NGCF(Recommender, ANNMixin):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-            known_item_scores = self.V.dot(self.U[user_idx, :])
-            return known_item_scores
-        else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-            return self.V[item_idx, :].dot(self.U[user_idx, :])
+            return self.V.dot(self.U[user_idx, :])
+
+        return self.V[item_idx, :].dot(self.U[user_idx, :])
 
     def get_vector_measure(self):
         """Getting a valid choice of vector measurement in ANNMixin._measures.

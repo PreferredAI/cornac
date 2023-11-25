@@ -269,7 +269,7 @@ class Recommender:
         res : bool
             True if model knows the user from traning data, False otherwise.
         """
-        return user_idx >= 0 and user_idx < self.num_users
+        return user_idx is not None and user_idx >= 0 and user_idx < self.num_users
 
     def knows_item(self, item_idx):
         """Return whether the model knows item by its index
@@ -284,7 +284,39 @@ class Recommender:
         res : bool
             True if model knows the item from traning data, False otherwise.
         """
-        return item_idx >= 0 and item_idx < self.num_items
+        return item_idx is not None and item_idx >= 0 and item_idx < self.num_items
+
+    def is_unknown_user(self, user_idx):
+        """Return whether the model knows user by its index. Reverse of knows_user() function,
+        for better readability in some cases.
+
+        Parameters
+        ----------
+        user_idx: int, required
+            The index of the user (not the original user ID).
+
+        Returns
+        -------
+        res : bool
+            True if model knows the user from traning data, False otherwise.
+        """
+        return not self.knows_user(user_idx)
+
+    def is_unknown_item(self, item_idx):
+        """Return whether the model knows item by its index. Reverse of knows_item() function,
+        for better readability in some cases.
+
+        Parameters
+        ----------
+        item_idx: int, required
+            The index of the item (not the original item ID).
+
+        Returns
+        -------
+        res : bool
+            True if model knows the item from traning data, False otherwise.
+        """
+        return not self.knows_item(item_idx)
 
     def transform(self, test_set):
         """Transform test set into cached results accelerating the score function.

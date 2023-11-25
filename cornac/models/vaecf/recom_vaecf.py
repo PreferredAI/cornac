@@ -182,36 +182,27 @@ class VAECF(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         import torch
 
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-
             x_u = self.r_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
             z_u, _ = self.vae.encode(
                 torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
             )
-            known_item_scores = self.vae.decode(z_u).data.cpu().numpy().flatten()
-
-            return known_item_scores
+            return self.vae.decode(z_u).data.cpu().numpy().flatten()
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-
             x_u = self.r_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
             z_u, _ = self.vae.encode(
                 torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
             )
-            user_pred = (
+            return (
                 self.vae.decode(z_u).data.cpu().numpy().flatten()[item_idx]
             )  # Fix me I am not efficient
-
-            return user_pred

@@ -228,12 +228,13 @@ class HFT(Recommender, ANNMixin):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
-        if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
 
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
+        if item_idx is None:
             known_item_scores = (
                 self.alpha
                 + self.beta_u[user_idx]
@@ -242,12 +243,6 @@ class HFT(Recommender, ANNMixin):
             )
             return known_item_scores
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-
             user_pred = (
                 self.alpha
                 + self.beta_u[user_idx]

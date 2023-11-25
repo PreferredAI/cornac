@@ -208,32 +208,23 @@ class VMF(Recommender, ANNMixin):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
 
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
+        if item_idx is None:
             known_item_scores = self.V.dot(self.U[user_idx, :]) + self.Q.dot(
                 self.P[user_idx, :]
             )
-            # known_item_scores = np.asarray(np.zeros(self.V.shape[0]),dtype='float32')
-            # fast_dot(self.U[user_id], self.V, known_item_scores)
-            # fast_dot(self.P[user_id], self.Q, known_item_scores)
             return known_item_scores
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
             user_pred = self.V[item_idx, :].dot(self.U[user_idx, :]) + self.Q[
                 item_idx, :
             ].dot(self.P[user_idx, :])
             user_pred = sigmoid(user_pred)
-
             user_pred = scale(user_pred, self.min_rating, self.max_rating, 0.0, 1.0)
-
             return user_pred
 
     def get_vector_measure(self):
