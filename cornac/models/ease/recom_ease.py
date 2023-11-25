@@ -2,7 +2,7 @@ import numpy as np
 
 from ..recommender import Recommender
 from ..recommender import ANNMixin, MEASURE_DOT
-from ... import ScoreException
+from ...exception import ScoreException
 
 
 class EASE(Recommender, ANNMixin):
