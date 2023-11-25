@@ -29,32 +29,36 @@ def _import_model_class(model_class):
 
 
 def _load_model(instance_path):
-    model_dir = os.environ.get("MODEL_DIR")
+    model_path = os.environ.get("MODEL_PATH")
     model_class = os.environ.get("MODEL_CLASS")
-    train_set_dir = os.environ.get("TRAIN_SET")
+    train_set_path = os.environ.get("TRAIN_SET")
 
-    if model_dir is None:
-        raise ValueError("MODEL_DIR environment variable is not set.")
-    elif not os.path.isabs(model_dir):
-        model_dir = os.path.join(os.path.dirname(instance_path), model_dir)
+    if model_path is None:
+        raise ValueError("MODEL_PATH environment variable is not set.")
+    elif not os.path.isabs(model_path):
+        model_path = os.path.join(os.path.dirname(instance_path), model_path)
 
     if model_class is None:
         raise ValueError("MODEL_CLASS environment variable is not set.")
 
-    print(f"Loading the '{model_class}' model from '{model_dir}'...")
+    print(f"Loading the '{model_class}' model from '{model_path}'...")
 
     global model, train_set
 
     try:
-        model = _import_model_class(model_class).load(model_dir)
+        model = _import_model_class(model_class).load(model_path)
     except:  # fallback to Recommender as our last resort
         from ..models import Recommender
 
-        model = Recommender.load(model_dir)
+        model = Recommender.load(model_path)
 
     train_set = None
-    if train_set_dir is not None:
-        with open(train_set_dir, "rb") as f:
+    if train_set_path is not None:
+        if not os.path.isabs(train_set_path):
+            train_set_path = os.path.join(
+                os.path.dirname(instance_path), train_set_path
+            )
+        with open(train_set_path, "rb") as f:
             train_set = pickle.load(f)
 
     print(
