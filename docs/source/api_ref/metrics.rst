@@ -31,7 +31,7 @@ Fmeasure (F1)
 -------------
 .. autoclass:: FMeasure
 
-Hit Ratio (HR)
+Hit Ratio (HitRatio)
 -------------------
 .. autoclass:: HitRatio
 
