@@ -28,13 +28,15 @@ def _import_model_class(model_class):
     return klass
 
 
-def _load_model():
+def _load_model(instance_path):
     model_dir = os.environ.get("MODEL_DIR")
     model_class = os.environ.get("MODEL_CLASS")
     train_set_dir = os.environ.get("TRAIN_SET")
 
     if model_dir is None:
         raise ValueError("MODEL_DIR environment variable is not set.")
+    elif not os.path.isabs(model_dir):
+        model_dir = os.path.join(os.path.dirname(instance_path), model_dir)
 
     if model_class is None:
         raise ValueError("MODEL_CLASS environment variable is not set.")
@@ -42,22 +44,30 @@ def _load_model():
     print(f"Loading the '{model_class}' model from '{model_dir}'...")
 
     global model, train_set
-    model = _import_model_class(model_class).load(model_dir)
+
+    try:
+        model = _import_model_class(model_class).load(model_dir)
+    except:  # fallback to Recommender as our last resort
+        from ..models import Recommender
+
+        model = Recommender.load(model_dir)
 
     train_set = None
     if train_set_dir is not None:
         with open(train_set_dir, "rb") as f:
             train_set = pickle.load(f)
 
-    print("Model loaded" if train_set is None else
-          "Model and train set loaded. Remove seen items by adding \
+    print(
+        "Model loaded"
+        if train_set is None
+        else "Model and train set loaded. Remove seen items by adding \
             'remove_seen=true' query param to the recommend endpoint."
-          )
+    )
 
 
 def create_app():
     app = Flask(__name__)
-    _load_model()
+    _load_model(app.instance_path)
     return app
 
 
@@ -70,19 +80,14 @@ def recommend():
 
     params = request.args
     uid = params.get("uid")
-    k = params.get("k")
-    remove_seen = params.get("remove_seen")
-    
+    k = int(params.get("k", -1))
+    remove_seen = params.get("remove_seen", "false").lower() == "true"
+
     if uid is None:
         return "uid is required", 400
-    if k is None:
-        k = -1
-    if remove_seen is None:
-        remove_seen = False
-    elif remove_seen == "true":
-        if train_set is None:
-            return "Unable to remove seen items. 'train_set' is not provided", 400
-        remove_seen = True
+
+    if remove_seen and train_set is None:
+        return "Unable to remove seen items. 'train_set' is not provided", 400
 
     response = model.recommend(
         user_id=uid,
@@ -98,31 +103,32 @@ def recommend():
 
     return jsonify(data), 200
 
+
 @app.route("/feedback", methods=["POST"])
 def add_feedback():
     params = request.args
     uid = params.get("uid")
     iid = params.get("iid")
-    rating = params.get("rating")
+    rating = params.get("rating", 1)
+
     if uid is None:
         return "uid is required", 400
+
     if iid is None:
         return "iid is required", 400
-    if rating is None:
-        rating = 1
 
-    with open('feedback.csv', 'a+', newline='') as write_obj:
+    with open("feedback.csv", "a+", newline="") as write_obj:
         csv_writer = writer(write_obj)
         csv_writer.writerow([uid, iid, rating])
         write_obj.close()
 
     data = {
         "message": "Feedback added",
-        "data": f"uid: {uid}, iid: {iid}, rating: {rating}"
+        "data": f"uid: {uid}, iid: {iid}, rating: {rating}",
     }
 
     return jsonify(data), 200
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
+    app.run()
