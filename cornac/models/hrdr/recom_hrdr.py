@@ -18,13 +18,14 @@ import pickle
 from tqdm.auto import trange
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
 
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
-class HRDR(Recommender):
+class HRDR(Recommender, ANNMixin):
     """
 
     Parameters
@@ -406,3 +407,34 @@ class HRDR(Recommender):
                 h0.dot(self.W1) + self.bu[user_idx] + self.bi[item_idx] + self.mu
             )
             return known_item_score
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        return self.P
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = self.Q * self.W1.reshape((1, -1))
+        return item_vectors
