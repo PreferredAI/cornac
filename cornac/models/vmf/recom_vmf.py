@@ -16,12 +16,13 @@
 import numpy as np
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
 
 
-class VMF(Recommender):
+class VMF(Recommender, ANNMixin):
     """Visual Matrix Factorization.
 
     Parameters
@@ -234,3 +235,35 @@ class VMF(Recommender):
             user_pred = scale(user_pred, self.min_rating, self.max_rating, 0.0, 1.0)
 
             return user_pred
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        user_vectors = np.concatenate((self.U, self.P), axis=1)
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = np.concatenate((self.V, self.Q), axis=1)
+        return item_vectors
