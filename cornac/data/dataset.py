@@ -644,19 +644,6 @@ class BasketDataset(Dataset):
         self.__user_basket_data = None
         self.__chrono_user_basket_data = None
 
-    def _build_basket(self):
-        baskets = OrderedDict()
-        for idx, bid in enumerate(self.ubi_tuple[1]):
-            baskets.setdefault(bid, [])
-            baskets[bid].append(idx)
-        self.baskets = baskets
-        self.basket_timestamps = None
-        if self.timestamps is not None:
-            basket_timestamps = []
-            for _, ids in baskets.items():
-                basket_timestamps.append(self.timestamps[ids[0]])
-            self.basket_timestamps = basket_timestamps
-
     @property
     def baskets(self):
         if self.__baskets is None:
