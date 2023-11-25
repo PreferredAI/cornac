@@ -33,7 +33,7 @@ Fmeasure (F1)
 
 Hit Ratio (HR)
 -------------------
-.. autoclass:: HR
+.. autoclass:: HitRatio
 
 Mean Average Precision (MAP)
 ----------------------------

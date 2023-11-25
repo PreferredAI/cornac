@@ -274,8 +274,8 @@ class MeasureAtK(RankingMetric):
         return tp, tp_fn, tp_fp
 
 
-class HR(MeasureAtK):
-    """Hit Ratio (HR).
+class HitRatio(MeasureAtK):
+    """Hit Ratio.
 
     Parameters
     ----------
@@ -283,15 +283,10 @@ class HR(MeasureAtK):
         The number of items in the top@k list.
         If None, all items will be considered.
 
-    References
-    ----------
-    Hu, Haoji, and Xiangnan He. 2019.
-    Sets2sets: Learning from sequential sets with neural networks.
-    Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining. 
     """
 
     def __init__(self, k=-1):
-        super().__init__(name="HR@{}".format(k), k=k)
+        super().__init__(name="HitRatio@{}".format(k), k=k)
 
     def compute(self, gt_pos, pd_rank, **kwargs):
         """Compute Hit Ratio.
@@ -509,7 +504,7 @@ class MAP(RankingMetric):
         ----------
         item_indices: Numpy array
             Items being considered for evaluation.
-            
+
         pd_scores: Numpy array
             Prediction scores for items.
 

@@ -22,7 +22,7 @@ from cornac.metrics.ranking import MeasureAtK
 from cornac.metrics import NDCG
 from cornac.metrics import NCRR
 from cornac.metrics import MRR
-from cornac.metrics import HR
+from cornac.metrics import HitRatio
 from cornac.metrics import Precision
 from cornac.metrics import Recall
 from cornac.metrics import FMeasure
@@ -147,10 +147,10 @@ class TestRanking(unittest.TestCase):
         self.assertEqual(3, tp_fp)
 
     def test_hit_ratio(self):
-        hr = HR()
+        hr = HitRatio()
 
         self.assertEqual(hr.type, "ranking")
-        self.assertEqual(hr.name, "HR@-1")
+        self.assertEqual(hr.name, "HitRatio@-1")
 
         self.assertEqual(1, hr.compute(np.asarray([0]), np.asarray([0])))
         self.assertEqual(1, hr.compute(np.asarray([0, 1]), np.asarray([0, 2])))
@@ -163,7 +163,7 @@ class TestRanking(unittest.TestCase):
         pd_rank = np.asarray([1, 2, 0])  # [1, 1, 1]
         self.assertEqual(1, hr.compute(gt_pos, pd_rank))
 
-        hr_2 = HR(k=2)
+        hr_2 = HitRatio(k=2)
         self.assertEqual(hr_2.k, 2)
 
         gt_pos = np.asarray([0])  # [0, 0, 1]
