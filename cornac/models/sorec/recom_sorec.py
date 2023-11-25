@@ -17,12 +17,13 @@ import numpy as np
 import scipy
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...utils.common import sigmoid
 from ...utils.common import scale
 from ...exception import ScoreException
 
 
-class SoRec(Recommender):
+class SoRec(Recommender, ANNMixin):
     """Social recommendation using Probabilistic Matrix Factorization.
 
     Parameters
@@ -250,3 +251,33 @@ class SoRec(Recommender):
             else:
                 user_pred = scale(user_pred, self.min_rating, self.max_rating, 0.0, 1.0)
             return user_pred
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        return self.U
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        return self.V
