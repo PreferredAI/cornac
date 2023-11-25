@@ -102,11 +102,11 @@ For more details, please take a look at our [examples](examples) as well as [tut
 
 ## Model serving
 
-Here, we provide a simple way to serve a Cornac model by launching a standalone web service with Flask. It is quite handy for testing or creating a demo application. Supposed that we use the trained BPR from previous example, we first need to save the model:
+Here, we provide a simple way to serve a Cornac model by launching a standalone web service with [Flask](https://github.com/pallets/flask). It is quite handy for testing or creating a demo application. Supposed that we use the trained BPR from previous example, we first need to save the model:
 ```python
 bpr.save("save_dir")
 ```
-The model can be deployed easily by triggering Cornac serving module:
+The model can be deployed easily by running Cornac serving app using Flask:
 ```bash
 $ FLASK_APP='cornac.serving.app' \
   MODEL_DIR='save_dir/BPR' \
@@ -121,7 +121,7 @@ $ curl -X GET "http://localhost:8080/recommend?uid=63&k=5&remove_seen=false"
 
 # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 ```
-If we want to remove seen items during training, we need to provide `TRAIN_SET` when starting the serving app. We can also leverage [WSGI server](https://flask.palletsprojects.com/en/3.0.x/deploying/) for model deployment in production. 
+If we want to remove seen items during training, we need to provide `TRAIN_SET` when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. 
 
 ## Efficient retrieval with ANN search
 
