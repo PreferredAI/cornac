@@ -255,7 +255,7 @@ class BaseMethod:
         verbose=False,
         **kwargs
     ):
-        self._data = data
+        self.data = data
         self.fmt = fmt
         self.train_set = None
         self.test_set = None

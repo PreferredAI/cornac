@@ -13,13 +13,12 @@
 # limitations under the License.
 # ============================================================================
 
-from math import ceil
 from collections import OrderedDict
 
 import numpy as np
 from tqdm.auto import tqdm
 
-from . import BaseMethod
+from . import RatioSplit
 from ..data import BasketDataset
 from ..experiment.result import Result
 from ..utils.common import safe_indexing
@@ -218,7 +217,7 @@ def ranking_eval(
     return avg_results, user_results
 
 
-class NextBasketEvaluation(BaseMethod):
+class NextBasketEvaluation(RatioSplit):
     """Next Basket Recommendation Evaluation method
 
     Parameters
@@ -260,80 +259,35 @@ class NextBasketEvaluation(BaseMethod):
     ):
         super().__init__(
             data=data,
+            test_size=test_size,
+            val_size=val_size,
             fmt=fmt,
             seed=seed,
             exclude_unknowns=exclude_unknowns,
             verbose=verbose,
+            data_size=len(set(u for (u, *_) in data)),  # number of users
             **kwargs
         )
         self.repetition_eval = repetition_eval
         self.exploration_eval = exploration_eval
 
-        self.train_size, self.val_size, self.test_size = self.validate_size(
-            val_size, test_size, len(set(u for (u, *_) in self._data))
-        )
-        self._split()
-
-    @staticmethod
-    def validate_size(val_size, test_size, num_users):
-        if val_size is None:
-            val_size = 0.0
-        elif val_size < 0:
-            raise ValueError("val_size={} should be greater than zero".format(val_size))
-        elif val_size >= num_users:
-            raise ValueError(
-                "val_size={} should be less than the number of users {}".format(
-                    val_size, num_users
-                )
-            )
-
-        if test_size is None:
-            test_size = 0.0
-        elif test_size < 0:
-            raise ValueError(
-                "test_size={} should be greater than zero".format(test_size)
-            )
-        elif test_size >= num_users:
-            raise ValueError(
-                "test_size={} should be less than the number of users {}".format(
-                    test_size, num_users
-                )
-            )
-
-        if val_size < 1:
-            val_size = ceil(val_size * num_users)
-        if test_size < 1:
-            test_size = ceil(test_size * num_users)
-
-        if val_size + test_size >= num_users:
-            raise ValueError(
-                "The sum of val_size and test_size ({}) should be smaller than the number of users {}".format(
-                    val_size + test_size, num_users
-                )
-            )
-
-        train_size = num_users - (val_size + test_size)
-
-        return int(train_size), int(val_size), int(test_size)
-
     def _split(self):
-        users = list(set(u for(u, *_) in self._data))
-        data_idx = self.rng.permutation(len(users))
-        train_idx = data_idx[: self.train_size]
-        test_idx = data_idx[-self.test_size :]
-        val_idx = data_idx[self.train_size : -self.test_size]
+        user_arr = [u for (u, *_) in self.data]
+        all_users = np.unique(user_arr)
+        self.rng.shuffle(all_users)
 
-        train_users = safe_indexing(users, train_idx)
-        test_users = safe_indexing(users, test_idx)
-        val_users = safe_indexing(users, val_idx) if len(val_idx) > 0 else None
+        train_users = set(all_users[: self.train_size])
+        test_users = set(all_users[-self.test_size :])
+        val_users = set(all_users[self.train_size : -self.test_size])
 
-        data_by_user = OrderedDict()
-        for tup in self._data:
-            data_by_user.setdefault(tup[0], [])
-            data_by_user[tup[0]].append(tup)
-        train_data = [tup for u in train_users for tup in data_by_user[u]]
-        val_data = [tup for u in val_users for tup in data_by_user[u]]
-        test_data = [tup for u in test_users for tup in data_by_user[u]]
+        train_idx = [i for i, u in enumerate(user_arr) if u in train_users]
+        test_idx = [i for i, u in enumerate(user_arr) if u in test_users]
+        val_idx = [i for i, u in enumerate(user_arr) if u in val_users]
+
+        train_data = safe_indexing(self.data, train_idx)
+        test_data = safe_indexing(self.data, test_idx)
+        val_data = safe_indexing(self.data, val_idx) if len(val_idx) > 0 else None
+
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)
 
     def _build_datasets(self, train_data, test_data, val_data=None):

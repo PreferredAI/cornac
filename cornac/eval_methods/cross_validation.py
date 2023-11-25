@@ -73,7 +73,7 @@ class CrossValidation(BaseMethod):
         )
 
         self.n_folds = n_folds
-        self.n_ratings = len(self._data)
+        self.n_ratings = len(self.data)
         self.current_fold = 0
         self.current_split = None
 
@@ -116,8 +116,8 @@ class CrossValidation(BaseMethod):
         test_idx = np.where(self._partition == self.current_fold)[0]
         train_idx = np.where(self._partition != self.current_fold)[0]
 
-        train_data = safe_indexing(self._data, train_idx)
-        test_data = safe_indexing(self._data, test_idx)
+        train_data = safe_indexing(self.data, train_idx)
+        test_data = safe_indexing(self.data, test_idx)
         self.build(train_data=train_data, test_data=test_data, val_data=test_data)
 
     def _next_fold(self):
@@ -141,4 +141,3 @@ class CrossValidation(BaseMethod):
         result.organize()
 
         return result, None  # no validation result of CV
-
