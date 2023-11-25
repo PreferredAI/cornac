@@ -24,7 +24,7 @@ from ...utils import get_rng
 from ...utils.init_utils import zeros, xavier_uniform
 
 
-class VBPR(Recommender):
+class VBPR(Recommender, ANNMixin):
     """Visual Bayesian Personalized Ranking.
 
     Parameters
