@@ -640,27 +640,18 @@ class BasketDataset(Dataset):
         self.avg_basket_size = np.mean(basket_sizes)
 
         self.__baskets = None
-        self.__basket_timestamps = None
         self.__user_basket_data = None
         self.__chrono_user_basket_data = None
 
     @property
     def baskets(self):
+        """A dictionary to store indices where basket ID appears in the data."""
         if self.__baskets is None:
             self.__baskets = OrderedDict()
             for idx, bid in enumerate(self.basket_ids):
                 self.__baskets.setdefault(bid, [])
                 self.__baskets[bid].append(idx)
         return self.__baskets
-
-    @property
-    def basket_timestamps(self):
-        if self.__basket_timestamps is None:
-            if self.timestamps is not None:
-                self.__basket_timestamps = []
-                for _, ids in self.baskets.items():
-                    self.__basket_timestamps.append(self.timestamps[ids[0]])
-        return self.__basket_timestamps
 
     @property
     def user_basket_data(self):
@@ -681,16 +672,19 @@ class BasketDataset(Dataset):
         A dictionary where keys are users, values are tuples of three chronologically
         sorted lists (baskets, timestamps) interacted by the corresponding users.
         """
-        if self.basket_timestamps is None:
-            raise ValueError("Basket Timestamps are required but None!")
-
         if self.__chrono_user_basket_data is None:
-            self.__chrono_user_basket_data = defaultdict()
-            for (bid, ids), t in zip(self.baskets.items(), self.basket_timestamps):
+            assert self.timestamps is not None  # we need timestamps
+
+            basket_timestamps = [
+                self.timestamps[ids[0]] for ids in self.baskets.values()
+            ]  # one-off
+
+            self.__chrono_user_basket_data = defaultdict(lambda: ([], []))
+            for (bid, ids), t in zip(self.baskets.items(), basket_timestamps):
                 u = self.uir_tuple[0][ids[0]]
-                u_data = self.__chrono_user_basket_data.setdefault(u, ([], []))
-                u_data[0].append(bid)
-                u_data[1].append(t)
+                self.__chrono_user_basket_data[u][0].append(bid)
+                self.__chrono_user_basket_data[u][1].append(t)
+
             # sorting based on timestamps
             for user, (baskets, timestamps) in self.__chrono_user_basket_data.items():
                 sorted_idx = np.argsort(timestamps)
@@ -700,6 +694,7 @@ class BasketDataset(Dataset):
                     sorted_baskets,
                     sorted_timestamps,
                 )
+
         return self.__chrono_user_basket_data
 
     @classmethod
@@ -892,7 +887,9 @@ class BasketDataset(Dataset):
             len(self.user_basket_data), batch_size=batch_size, shuffle=shuffle
         ):
             batch_users = user_indices[batch_ids]
-            batch_basket_ids = np.asarray([self.user_basket_data[uid] for uid in batch_users], dtype="int")
+            batch_basket_ids = np.asarray(
+                [self.user_basket_data[uid] for uid in batch_users], dtype="int"
+            )
             yield batch_users, batch_basket_ids
 
     def basket_iter(self, batch_size=1, shuffle=False):
