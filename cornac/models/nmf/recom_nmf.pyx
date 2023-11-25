@@ -27,13 +27,14 @@ cimport numpy as np
 from tqdm.auto import trange
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
 from ...utils import fast_dot
 from ...utils import get_rng
 from ...utils.init_utils import uniform, zeros
 
 
-class NMF(Recommender):
+class NMF(Recommender, ANNMixin):
     """Non-negative Matrix Factorization
 
     Parameters
@@ -304,3 +305,43 @@ class NMF(Recommender):
                     raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
                 item_score = np.dot(self.u_factors[user_idx], self.i_factors[item_idx])
             return item_score
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        user_vectors = self.u_factors
+        if self.use_bias:
+            user_vectors = np.concatenate(
+                (user_vectors, np.ones([user_vectors.shape[0], 1])), axis=1
+            )
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = self.i_factors
+        if self.use_bias:
+            item_vectors = np.concatenate(
+                (item_vectors, self.i_biases.reshape((-1, 1))), axis=1
+            )
+        return item_vectors
