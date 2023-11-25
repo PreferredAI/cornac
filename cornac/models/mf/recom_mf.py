@@ -17,7 +17,6 @@
 import multiprocessing
 
 import numpy as np
-from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ..recommender import ANNMixin, MEASURE_DOT
@@ -319,12 +318,7 @@ class MF(Recommender, ANNMixin):
         user_vectors = self.u_factors
         if self.use_bias:
             user_vectors = np.concatenate(
-                (
-                    user_vectors,
-                    self.u_biases.reshape((-1, 1)),
-                    np.ones([user_vectors.shape[0], 1]),  # augmented for item bias
-                ),
-                axis=1,
+                (user_vectors, np.ones([user_vectors.shape[0], 1])), axis=1
             )
         return user_vectors
 
@@ -339,11 +333,6 @@ class MF(Recommender, ANNMixin):
         item_vectors = self.i_factors
         if self.use_bias:
             item_vectors = np.concatenate(
-                (
-                    item_vectors,
-                    np.ones([item_vectors.shape[0], 1]),  # augmented for user bias
-                    self.i_biases.reshape((-1, 1)),
-                ),
-                axis=1,
+                (item_vectors, self.i_biases.reshape((-1, 1))), axis=1
             )
         return item_vectors
