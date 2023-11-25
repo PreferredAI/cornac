@@ -692,11 +692,11 @@ class MTER(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if self.is_unknown_user(user_idx):
-            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+        if self.is_unknown_user(u_idx):
+            raise ScoreException("Can't make score prediction for user %d" % u_idx)
 
-        if item_idx is not None and self.is_unknown_item(item_idx):
-            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+        if i_idx is not None and self.is_unknown_item(i_idx):
+            raise ScoreException("Can't make score prediction for item %d" % i_idx)
 
         if i_idx is None:
             tensor_value1 = np.einsum(
