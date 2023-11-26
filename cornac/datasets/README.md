@@ -195,3 +195,30 @@ Samples from ratings: [('1', '1', 2.0), ('1', '2', 4.0), ('1', '3', 3.5)]
 Samples from trust: [('2', '966', 1.0), ('2', '104', 1.0), ('5', '1509', 1.0)]
 ```
 Our dataset is now ready to use for model training and evaluation. A concrete example is [sorec_filmtrust](../../examples/sorec_filmtrust.py), which illustrates how to perform an experiment with the [SoRec](../models/sorec/) model on FilmTrust. More details regarding the other datasets are available in the [documentation](https://cornac.readthedocs.io/en/latest/datasets.html).
+
+---
+
+## Next-Basket Datasets
+
+<table>
+  <tr>
+    <th rowspan="2"><br>Dataset</th>
+    <th colspan="4">Preference Info.</th>
+    <th rowspan="2">Extra Info.</th>
+  </tr>
+  <tr>
+    <td>#Users</td>
+    <td>#Items</td>
+    <td>#Baskets</td>
+    <td>#Interactions</td>
+  </tr>
+  <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.tafeng">Ta Feng</a><br>(<a href="https://www.kaggle.com/datasets/chiranjivdas09/ta-feng-grocery-dataset/">source</a>)</td>
+    <td align="right">28,297</td>
+    <td align="right">22,542</td>
+    <td align="right">86,403</td>
+    <td align="right">817,741</td>
+    <td align="center">price, quantity</td>
+    <td></td>
+  </tr>
+</table>
