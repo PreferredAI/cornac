@@ -103,3 +103,9 @@
 [vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
 
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
+
+----
+
+## Next-Basket Algorithms
+
+[gp_top_tafeng.py](gp_top_tafeng.py) - Next-basket recommendation model that merely uses item top frequency.
