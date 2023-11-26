@@ -230,6 +230,12 @@ class BaseMethod:
     data: array-like, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value)].
 
+    fmt: str, default: 'UIR'
+        Format of the input data. Currently, we are supporting:
+
+        'UIR': User, Item, Rating
+        'UIRT': User, Item, Rating, Timestamp
+
     rating_threshold: float, optional, default: 1.0
         Threshold used to binarize rating values into positive or negative feedback for
         model evaluation using ranking metrics (rating metrics are not affected).
