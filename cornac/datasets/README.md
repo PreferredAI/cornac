@@ -8,7 +8,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
 **How to cite.** If you are using one of the datasets listed below in your research, please follow the citation guidelines by the authors (the "source" link below) of each respective dataset.  
 <table>
   <tr>
-    <th rowspan="2"><br>Dataset</th>
+    <th rowspan="2">Dataset</th>
     <th colspan="4">Preference Info.</th>
     <th colspan="3">Item Auxiliary Info.</th>
     <th>User Auxiliary Info.</th>
@@ -202,7 +202,7 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
 
 <table>
   <tr>
-    <th rowspan="2"><br>Dataset</th>
+    <th rowspan="2">Dataset</th>
     <th colspan="4">Preference Info.</th>
     <th rowspan="2">Extra Info.</th>
   </tr>
@@ -219,6 +219,5 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <td align="right">86,403</td>
     <td align="right">817,741</td>
     <td align="center">price, quantity</td>
-    <td></td>
   </tr>
 </table>
