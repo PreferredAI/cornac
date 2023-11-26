@@ -233,6 +233,13 @@ class NextBasketEvaluation(RatioSplit):
         The proportion of the validation set, \
         if > 1 then it is treated as the size of the validation set.
 
+    fmt: str, default: 'UBI'
+        Format of the input data. Currently, we are supporting:
+
+        'UBI': User, Basket, Item
+        'UBIT': User, Basket, Item, Timestamp
+        'UBITJson': User, Basket, Item, Timestamp, Json
+
     seed: int, optional, default: None
         Random seed for reproducibility.
 
@@ -257,15 +264,18 @@ class NextBasketEvaluation(RatioSplit):
         verbose=False,
         **kwargs
     ):
+        assert fmt.startswith("U")
+        data_size = len(set(u for (u, *_) in data))  # number of users
+
         super().__init__(
             data=data,
+            data_size=data_size,
             test_size=test_size,
             val_size=val_size,
             fmt=fmt,
             seed=seed,
             exclude_unknowns=exclude_unknowns,
             verbose=verbose,
-            data_size=len(set(u for (u, *_) in data)),  # number of users
             **kwargs
         )
         self.repetition_eval = repetition_eval
