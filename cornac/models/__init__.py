@@ -14,6 +14,7 @@
 # ============================================================================
 
 from .recommender import Recommender
+from .recommender import NextBasketRecommender
 
 from .amr import AMR
 from .ann import HNSWLibANN
@@ -36,6 +37,7 @@ from .ease import EASE
 from .efm import EFM
 from .gcmc import GCMC
 from .global_avg import GlobalAvg
+from .gp_top import GPTop
 from .hft import HFT
 from .hpf import HPF
 from .hrdr import HRDR

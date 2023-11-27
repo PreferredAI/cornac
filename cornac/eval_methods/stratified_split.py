@@ -90,7 +90,7 @@ class StratifiedSplit(BaseMethod):
                 )
             )
 
-        if chrono and (fmt != "UIRT" or len(self._data[0]) != 4):
+        if chrono and (fmt != "UIRT" or len(self.data[0]) != 4):
             raise ValueError(
                 'Input data must be in "UIRT" format for sorting chronologically.'
             )
@@ -104,7 +104,7 @@ class StratifiedSplit(BaseMethod):
 
     def _split(self):
         data = (
-            sorted(self._data, key=lambda x: x[3]) if self.chrono else self._data
+            sorted(self.data, key=lambda x: x[3]) if self.chrono else self.data
         )  # sort data chronologically
 
         grouped_indices = defaultdict(list)

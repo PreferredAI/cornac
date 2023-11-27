@@ -23,7 +23,61 @@ from datetime import datetime
 import numpy as np
 
 from ..exception import ScoreException
-from ..utils.common import intersects, clip
+from ..utils.common import clip
+
+
+MEASURE_L2 = "l2 distance aka. Euclidean distance"
+MEASURE_DOT = "dot product aka. inner product"
+MEASURE_COSINE = "cosine similarity"
+
+
+def is_ann_supported(recom):
+    """Return True if the given recommender model support ANN search.
+
+    Parameters
+    ----------
+    recom : recommender model
+        Recommender object to test.
+
+    Returns
+    -------
+    out : bool
+        True if recom supports ANN search and False otherwise.
+    """
+    return getattr(recom, "_ann_supported", False)
+
+
+class ANNMixin:
+    """Mixin class for Approximate Nearest Neighbor Search."""
+
+    _ann_supported = True
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
 
 
 class Recommender:
@@ -352,7 +406,7 @@ class Recommender:
 
         return rating_pred
 
-    def rank(self, user_idx, item_indices=None):
+    def rank(self, user_idx, item_indices=None, **kwargs):
         """Rank all test items for a given user.
 
         Parameters
@@ -373,7 +427,7 @@ class Recommender:
         """
         # obtain item scores from the model
         try:
-            known_item_scores = self.score(user_idx)
+            known_item_scores = self.score(user_idx, **kwargs)
         except ScoreException:
             known_item_scores = np.ones(self.total_items) * self.default_score()
 
@@ -518,55 +572,58 @@ class Recommender:
         return False
 
 
-MEASURE_L2 = "l2 distance aka. Euclidean distance"
-MEASURE_DOT = "dot product aka. inner product"
-MEASURE_COSINE = "cosine similarity"
-
-
-class ANNMixin:
-    """Mixin class for Approximate Nearest Neighbor Search."""
-
-    _ann_supported = True
-
-    def get_vector_measure(self):
-        """Getting a valid choice of vector measurement in ANNMixin._measures.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-    def get_user_vectors(self):
-        """Getting a matrix of user vectors serving as query for ANN search.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-    def get_item_vectors(self):
-        """Getting a matrix of item vectors used for building the index for ANN search.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-
-def is_ann_supported(recom):
-    """Return True if the given recommender model support ANN search.
+class NextBasketRecommender(Recommender):
+    """Generic class for a next basket recommender model. All next basket recommendation models should inherit from this class.
 
     Parameters
-    ----------
-    recom : recommender model
-        Recommender object to test.
+    ----------------
+    name: str, required
+        Name of the recommender model.
 
-    Returns
-    -------
-    out : bool
-        True if recom supports ANN search and False otherwise.
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable.
+
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+
+    Attributes
+    ----------
+    num_users: int
+        Number of users in training data.
+
+    num_items: int
+        Number of items in training data.
+
+    total_users: int
+        Number of users in training, validation, and test data.
+        In other words, this includes unknown/unseen users.
+
+    total_items: int
+        Number of items in training, validation, and test data.
+        In other words, this includes unknown/unseen items.
+
+    uid_map: int
+        Global mapping of user ID-index.
+
+    iid_map: int
+        Global mapping of item ID-index.
     """
-    return getattr(recom, "_ann_supported", False)
+
+    def __init__(self, name, trainable=True, verbose=False):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+
+    def score(self, user_idx, history_baskets, **kwargs):
+        """Predict the scores for all items based on input history baskets
+
+        Parameters
+        ----------
+        history_baskets: list of lists
+            The list of history baskets in sequential manner for next-basket prediction.
+
+        Returns
+        -------
+        res : a Numpy array
+            Relative scores of all known items
+
+        """
+        raise NotImplementedError("The algorithm is not able to make score prediction!")

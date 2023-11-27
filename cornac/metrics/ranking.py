@@ -274,6 +274,44 @@ class MeasureAtK(RankingMetric):
         return tp, tp_fn, tp_fp
 
 
+class HitRatio(MeasureAtK):
+    """Hit Ratio.
+
+    Parameters
+    ----------
+    k: int, optional, default: -1 (all)
+        The number of items in the top@k list.
+        If None, all items will be considered.
+
+    """
+
+    def __init__(self, k=-1):
+        super().__init__(name="HitRatio@{}".format(k), k=k)
+
+    def compute(self, gt_pos, pd_rank, **kwargs):
+        """Compute Hit Ratio.
+
+        Parameters
+        ----------
+        gt_pos: Numpy array
+            Vector of positive items.
+
+        pd_rank: Numpy array
+            Item ranking prediction.
+
+        **kwargs: For compatibility
+
+        Returns
+        -------
+        res: A scalar
+            Hit Ratio score (1.0 ground truth item(s) appear in top-k, 0 otherwise).
+
+        """
+        tp, *_ = MeasureAtK.compute(self, gt_pos, pd_rank, **kwargs)
+
+        return 1.0 if tp > 0 else 0.0
+
+
 class Precision(MeasureAtK):
     """Precision@K.
 
@@ -466,7 +504,7 @@ class MAP(RankingMetric):
         ----------
         item_indices: Numpy array
             Items being considered for evaluation.
-            
+
         pd_scores: Numpy array
             Prediction scores for items.
 

@@ -23,6 +23,7 @@ from .ranking import RankingMetric
 from .ranking import NDCG
 from .ranking import NCRR
 from .ranking import MRR
+from .ranking import HitRatio
 from .ranking import Precision
 from .ranking import Recall
 from .ranking import FMeasure
