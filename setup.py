@@ -308,7 +308,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw", "Flask>=3.0.0"],
+    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw"],
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),

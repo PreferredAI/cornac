@@ -17,8 +17,15 @@
 
 import os
 import pickle
-from flask import Flask, jsonify, request
 from csv import writer
+
+try:
+    from flask import Flask, jsonify, request
+except ImportError:
+    exit(
+        "Flask is required in order to serve models.\n"
+        + "Run: pip3 install Flask"
+    )
 
 
 def _import_model_class(model_class):
