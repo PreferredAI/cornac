@@ -48,6 +48,7 @@ Currently, we are supporting Python 3. There are several ways to install Cornac:
 
 - **From the GitHub source (for latest updates):**
   ```bash
+  pip3 install Cython numpy scipy
   pip3 install git+https://github.com/PreferredAI/cornac.git
   ```
 
