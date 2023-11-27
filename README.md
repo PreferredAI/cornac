@@ -103,11 +103,15 @@ For more details, please take a look at our [examples](examples) as well as [tut
 
 ## Model serving
 
-Here, we provide a simple way to serve a Cornac model by launching a standalone web service with [Flask](https://github.com/pallets/flask). It is quite handy for testing or creating a demo application. Supposed that we use the trained BPR from previous example, we first need to save the model:
+Here, we provide a simple way to serve a Cornac model by launching a standalone web service with [Flask](https://github.com/pallets/flask). It is very handy for testing or creating a demo application. First, we install the dependency:
+```bash
+$ pip3 install Flask
+```
+Supposed that we want to serve the trained BPR model from previous example, we need to save it:
 ```python
 bpr.save("save_dir")
 ```
-The model can be deployed easily by running Cornac serving app using Flask:
+After that, the model can be deployed easily by running Cornac serving app as follows:
 ```bash
 $ FLASK_APP='cornac.serving.app' \
   MODEL_PATH='save_dir/BPR' \
