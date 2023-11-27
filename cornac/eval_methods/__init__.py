@@ -20,10 +20,12 @@ from .base_method import BaseMethod
 from .ratio_split import RatioSplit
 from .stratified_split import StratifiedSplit
 from .cross_validation import CrossValidation
+from .next_basket_evaluation import NextBasketEvaluation
 from .propensity_stratified_evaluation import PropensityStratifiedEvaluation
 
 __all__ = ['BaseMethod',
            'RatioSplit',
            'StratifiedSplit',
            'CrossValidation',
+           'NextBasketEvaluation',
            'PropensityStratifiedEvaluation']

@@ -1,4 +1,4 @@
-# Copyright 2018 The Cornac Authors. All Rights Reserved.
+# Copyright 2023 The Cornac Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,13 +13,4 @@
 # limitations under the License.
 # ============================================================================
 
-from . import amazon_clothing
-from . import amazon_office
-from . import amazon_toy
-from . import citeulike
-from . import epinions
-from . import filmtrust
-from . import movielens
-from . import netflix
-from . import tafeng
-from . import tradesy
+from .recom_gp_top import GPTop

@@ -13,6 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
+import ast
 import itertools
 from collections import Counter
 
@@ -46,7 +47,30 @@ def tup_parser(tokens, **kwargs):
     ]
 
 
-PARSERS = {"UI": ui_parser, "UIR": uir_parser, "UIRT": uirt_parser, "UITup": tup_parser, "UIReview": review_parser}
+def ubi_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2])]
+
+
+def ubit_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2], int(tokens[3]))]
+
+
+def ubitjson_parser(tokens, **kwargs):
+    return [
+        (tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))
+    ]
+
+
+PARSERS = {
+    "UI": ui_parser,
+    "UIR": uir_parser,
+    "UIRT": uirt_parser,
+    "UITup": tup_parser,
+    "UIReview": review_parser,
+    "UBI": ubi_parser,
+    "UBIT": ubit_parser,
+    "UBITJson": ubitjson_parser,
+}
 
 
 class Reader:
@@ -70,6 +94,18 @@ class Reader:
         The minimum frequency of an item to be retained.
         If `min_item_freq = 1`, all items will be included.
 
+    min_basket_size: int, default = 1
+        The minimum number of items of a basket to be retained.
+        If `min_basket_size = 1`, all items will be included.
+
+    max_basket_size: int, default = -1
+        The maximum number of items of a basket to be retained.
+        If `min_basket_size = -1`, all items will be included.
+
+    min_basket_sequence: int, default = 1
+        The minimum number of baskets of a user to be retained.
+        If `min_basket_sequence = 1`, all baskets will be included.
+
     bin_threshold: float, default = None
         The rating threshold to binarize rating values (turn explicit feedback to implicit feedback).
         For example, if `bin_threshold = 3.0`, all rating values >= 3.0 will be set to 1.0,
@@ -90,6 +126,9 @@ class Reader:
         item_set=None,
         min_user_freq=1,
         min_item_freq=1,
+        min_basket_size=1,
+        max_basket_size=-1,
+        min_basket_sequence=1,
         bin_threshold=None,
         encoding="utf-8",
         errors=None,
@@ -106,6 +145,9 @@ class Reader:
         )
         self.min_uf = min_user_freq
         self.min_if = min_item_freq
+        self.min_basket_size = min_basket_size
+        self.max_basket_size = max_basket_size
+        self.min_basket_sequence = min_basket_sequence
         self.bin_threshold = bin_threshold
         self.encoding = encoding
         self.errors = errors
@@ -134,6 +176,18 @@ class Reader:
             item_freq = Counter(t[1] for t in tuples)
             tuples = [t for t in tuples if item_freq[t[1]] >= self.min_if]
 
+        if self.min_basket_size > 1:
+            basket_size = Counter(t[1] for t in tuples)
+            tuples = [t for t in tuples if basket_size[t[1]] >= self.min_basket_size]
+
+        if self.max_basket_size > 1:
+            basket_size = Counter(t[1] for t in tuples)
+            tuples = [t for t in tuples if basket_size[t[1]] <= self.max_basket_size]
+
+        if self.min_basket_sequence > 1:
+            basket_sequence = Counter(u for (u, _) in set((t[0], t[1]) for t in tuples))
+            tuples = [t for t in tuples if basket_sequence[t[0]] >= self.min_basket_sequence]
+
         return tuples
 
     def read(
@@ -154,7 +208,7 @@ class Reader:
             Path to the data file.
 
         fmt: str, default: 'UIR'
-            Line format to be parsed ('UIR' or 'UIRT').
+            Line format to be parsed ('UI', 'UIR', 'UIRT', 'UITup', 'UIReview', 'UBI', 'UBIT', or 'UBITJson')
 
         sep: str, default: '\t'
             The delimiter string.
@@ -218,7 +272,7 @@ def read_text(fpath, sep=None, encoding="utf-8", errors=None):
         Optional string that specifies how encoding errors are to be handled.
         Pass 'strict' to raise a ValueError exception if there is an encoding error
         (None has the same effect), or pass 'ignore' to ignore errors.
-    
+
     Returns
     -------
     texts, ids (optional): list, list
