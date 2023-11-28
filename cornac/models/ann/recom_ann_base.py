@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
-
+import copy
 import numpy as np
 
 from ..recommender import Recommender
@@ -40,6 +40,11 @@ class BaseANN(Recommender):
 
         if not is_ann_supported(model):
             raise ValueError(f"{model.name} doesn't support ANN search")
+
+        # ANN required attributes
+        self.measure = copy.deepcopy(model.get_vector_measure())
+        self.user_vectors = copy.deepcopy(model.get_user_vectors())
+        self.item_vectors = copy.deepcopy(model.get_item_vectors())
 
         # get basic attributes to be a proper recommender
         super().fit(train_set=model.train_set, val_set=model.val_set)
