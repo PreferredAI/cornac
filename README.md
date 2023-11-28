@@ -101,39 +101,32 @@ cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=Tru
 For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials). For learning purposes, this list of [tutorials on recommender systems](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems) will be more organized and comprehensive. 
 
 
-## Simple model serving
+## Model serving
 
-Here, we provide a simple way to serve a Cornac model by launching a standalone web service. While this will not be an optimized service for model deployment in production, it is quite handy for testing or creating a demo application. Supposed that we use the trained BPR from previous example, we first need to save the model:
+Here, we provide a simple way to serve a Cornac model by launching a standalone web service with [Flask](https://github.com/pallets/flask). It is very handy for testing or creating a demo application. First, we install the dependency:
+```bash
+$ pip3 install Flask
+```
+Supposed that we want to serve the trained BPR model from previous example, we need to save it:
 ```python
 bpr.save("save_dir")
 ```
-The model can be deployed easily by triggering Cornac serving module:
+After that, the model can be deployed easily by running Cornac serving app as follows:
 ```bash
-$ python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.BPR
+$ FLASK_APP='cornac.serving.app' \
+  MODEL_PATH='save_dir/BPR' \
+  MODEL_CLASS='cornac.models.BPR' \
+  flask run --host localhost --port 8080
 
-# Serving BPR at port 8080
+# Running on http://localhost:8080
 ```
 Here we go, our model service is now ready. Let's get `top-5` item recommendations for the user `"63"`:
 ```bash
-$ curl -X GET "http://127.0.0.1:8080/recommend?uid=63&k=5&remove_seen=false"
+$ curl -X GET "http://localhost:8080/recommend?uid=63&k=5&remove_seen=false"
 
 # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 ```
-If we want to remove seen items during training, we need to provide `train_set` when starting the serving service.
-```bash
-$ python -m cornac.serving --help
-
-usage: serving.py [-h] --model_dir MODEL_DIR [--model_class MODEL_CLASS] [--train_set TRAIN_SET] [--port PORT]
-
-Cornac model serving
-
-options:
-  -h, --help                    show this help message and exit
-  --model_dir MODEL_DIR         path to directory where the model was saved
-  --model_class MODEL_CLASS     class of the model being deployed
-  --train_set TRAIN_SET         path to pickled file of the train_set (to remove seen items)
-  --port PORT                   service port
-```
+If we want to remove seen items during training, we need to provide `TRAIN_SET` when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. Please refer to [this](https://cornac.readthedocs.io/en/latest/user/iamadeveloper.html#running-an-api-service) guide for more details.
 
 ## Efficient retrieval with ANN search
 
@@ -204,13 +197,9 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 |      | [Weighted Matrix Factorization (WMF)](cornac/models/wmf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cornac/models/wmf/requirements.txt) | [wmf_exp.py](examples/wmf_example.py)
 
 
-## Support
+## Contributing
 
-Your contributions at any level of the library are welcome. If you intend to contribute, please:
-  - Fork the Cornac repository to your own account.
-  - Make changes and create pull requests.
-
-You can also post bug reports and feature requests in [GitHub issues](https://github.com/PreferredAI/cornac/issues).
+This project welcomes contributions and suggestions. Before contributing, please see our [contribution guidelines](https://cornac.readthedocs.io/en/latest/developer/index.html).
 
 ## Citation
 
