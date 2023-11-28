@@ -42,6 +42,7 @@ cdef extern from "matrix.h" nogil:
     cppclass DVectorDouble:
         void init_normal(double mean, double stdev)
         double get(unsigned int)
+        void set(unsigned int, double)
 
     cppclass DMatrix[T]:
         DMatrix() except + 

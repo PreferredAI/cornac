@@ -35,6 +35,7 @@ from .cvae import CVAE
 from .cvaecf import CVAECF
 from .ease import EASE
 from .efm import EFM
+from .fm import FM
 from .gcmc import GCMC
 from .global_avg import GlobalAvg
 from .gp_top import GPTop
@@ -69,11 +70,3 @@ from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
 from .wmf import WMF
-
-try:
-    from .fm import FM
-except ModuleNotFoundError:
-    print(
-        "FM model is only supported on Linux.\n"
-        + "Windows executable can be found at http://www.libfm.org."
-    )
