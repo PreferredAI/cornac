@@ -126,7 +126,7 @@ $ curl -X GET "http://localhost:8080/recommend?uid=63&k=5&remove_seen=false"
 
 # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 ```
-If we want to remove seen items during training, we need to provide `TRAIN_SET` when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. 
+If we want to remove seen items during training, we need to provide `TRAIN_SET` when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. Please refer to [this](https://cornac.readthedocs.io/en/latest/user/iamadeveloper.html#running-an-api-service) guide for more details.
 
 ## Efficient retrieval with ANN search
 
@@ -196,13 +196,9 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 |      | [Weighted Matrix Factorization (WMF)](cornac/models/wmf), [paper](http://yifanhu.net/PUB/cf.pdf) | [requirements.txt](cornac/models/wmf/requirements.txt) | [wmf_exp.py](examples/wmf_example.py)
 
 
-## Support
+## Contributing
 
-Your contributions at any level of the library are welcome. If you intend to contribute, please:
-  - Fork the Cornac repository to your own account.
-  - Make changes and create pull requests.
-
-You can also post bug reports and feature requests in [GitHub issues](https://github.com/PreferredAI/cornac/issues).
+This project welcomes contributions and suggestions. Before contributing, please see our [contribution guidelines](https://cornac.readthedocs.io/en/latest/developer/index.html).
 
 ## Citation
 
