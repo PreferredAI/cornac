@@ -10,7 +10,7 @@ class TestPWLearningSampler(unittest.TestCase):
 
     def setUp(self):
         self.num_neg = 2
-        docs, item_ids = citeulike.load_text()
+        _, item_ids = citeulike.load_text()
         feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
         cornac_dataset = Dataset.build(
             data=feedback)

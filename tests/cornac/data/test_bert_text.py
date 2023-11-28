@@ -3,11 +3,16 @@ import unittest
 import numpy as np
 import unittest
 import torch
-
+from torch.utils.data import DataLoader
 from cornac.data.bert_text import BertTextModality
 from sentence_transformers import util
+from cornac.data.dataset import Dataset
+from cornac.data.reader import Reader
+from cornac.datasets import citeulike
 
 from cornac.models.dmrl.dmrl import DMRL
+from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
+
 
 class TestBertTextModality(unittest.TestCase):
 
@@ -31,26 +36,48 @@ class TestBertTextModality(unittest.TestCase):
 class TestDMRL(unittest.TestCase):
 
     def setUp(self):
-        corpus = ["this is an amazing book. it is so great", "This bike was ok"]
-        self.item_ids = [0, 1]
-        self.feedback = [(0, 0, 1), (0, 1, 1), (1, 1, 1)]
-        num_items = 2
-        num_users = 2
+        # initialize sampler
+        self.num_neg = 2
+        docs, item_ids = citeulike.load_text()
+        feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
+        cornac_dataset = Dataset.build(
+            data=feedback)
+        self.sampler = PWLearningSampler(cornac_dataset, num_neg=self.num_neg)
+        cornac_dataset = Dataset.build(
+            data=feedback)
+
+        self.item_ids = item_ids
         embedding_dim = 100
         bert_text_dim = 384
-        self.modality = BertTextModality(corpus=corpus, ids=self.item_ids)
+        self.modality = BertTextModality(corpus=docs, ids=self.item_ids)
+        self.dmrl = DMRL(cornac_dataset.num_users, cornac_dataset.num_items, embedding_dim, bert_text_dim)
 
-        self.input_tensor_u_ids = torch.tensor([i[0] for i in self.feedback])
-        self.input_tensor_i_ids = torch.tensor([i[1] for i in self.feedback])
-        self.dmrl = DMRL(num_users, num_items, embedding_dim, bert_text_dim)
-        self.item_text_embeddimgs = self.modality.batch_encode(self.input_tensor_i_ids)
+        # initialize sampler
+        self.num_neg = 4
+        docs, item_ids = citeulike.load_text()
+        feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
+        cornac_dataset = Dataset.build(
+            data=feedback)
+        self.sampler = PWLearningSampler(cornac_dataset, num_neg=self.num_neg)
+
+        batch_size = 32
+        dataloader = DataLoader(self.sampler, batch_size=batch_size, num_workers=4, shuffle=True, prefetch_factor=3)
+        generator_data_loader = iter(dataloader)
+        # col 0 is users, col1 is pos items col 2 through num_neg is negative items
+        self.batch = next(generator_data_loader)
+
+        # self.input_tensor_u_ids = torch.tensor([i[0] for i in self.feedback])
+        # self.input_tensor_i_ids = torch.tensor([i[1] for i in self.feedback])
+
+        # get the encodings for the items (positive in col1, neg in 2 through last col)
+        shape = self.batch[:, 1:].shape
+        all_items = self.batch[:, 1:].flatten()
+        self.item_text_embeddimgs = self.modality.batch_encode(all_items)
+        self.item_text_embeddimgs = self.item_text_embeddimgs.reshape((*shape, self.modality.output_dim))
 
     def test_forward_pass(self):
-        # Create a random input tensor
-        input = torch.randn(10, 10)
-
         # Forward pass through the network
-        output = self.dmrl(self.input_tensor_u_ids, self.input_tensor_i_ids, self.item_text_embeddimgs)
+        output = self.dmrl(self.batch, self.item_text_embeddimgs)
 
         # Check that the output tensor has the correct size
         self.assertEqual(output.size(), (10, 10))

@@ -23,14 +23,11 @@ class BertTextModality(FeatureModality):
         List of user/item texts that the indices are aligned with `ids`.
     """
 
-    def __init__(self,
-                corpus: List[str] = None,
-                ids: List = None,
-                **kwargs):
-
-                super().__init__(ids=ids, **kwargs)
-                self.corpus = corpus
-                self.model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+    def __init__(self, corpus: List[str] = None, ids: List = None, **kwargs):
+        super().__init__(ids=ids, **kwargs)
+        self.corpus = corpus
+        self.model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+        self.output_dim = self.model[-1].pooling_output_dimension
     
     def build(self):
         """
