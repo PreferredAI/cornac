@@ -17,6 +17,7 @@
 
 import os
 import pickle
+from datetime import datetime, timezone
 from csv import writer
 
 try:
@@ -89,6 +90,9 @@ app = create_app()
 def recommend():
     global model, train_set
 
+    if model is None:
+        return "Model is not yet loaded. Please try again later.", 400
+
     params = request.args
     uid = params.get("uid")
     k = int(params.get("k", -1))
@@ -121,6 +125,7 @@ def add_feedback():
     uid = params.get("uid")
     iid = params.get("iid")
     rating = params.get("rating", 1)
+    time = datetime.now(timezone.utc)
 
     if uid is None:
         return "uid is required", 400
@@ -130,12 +135,17 @@ def add_feedback():
 
     with open("feedback.csv", "a+", newline="") as write_obj:
         csv_writer = writer(write_obj)
-        csv_writer.writerow([uid, iid, rating])
+        csv_writer.writerow([uid, iid, rating, time])
         write_obj.close()
 
     data = {
         "message": "Feedback added",
-        "data": f"uid: {uid}, iid: {iid}, rating: {rating}",
+        "data": {
+            "uid": uid,
+            "iid": iid,
+            "rating": rating,
+            "time": str(time),
+        },
     }
 
     return jsonify(data), 200
