@@ -27,14 +27,6 @@ from libcpp.string cimport string
 
 import numpy as np
 cimport numpy as np
-from tqdm.auto import trange
-
-from ..recommender import Recommender
-from ...exception import ScoreException
-from ...utils import get_rng
-from ...utils import fast_dot
-from ...utils.common import scale
-from ...utils.init_utils import zeros, normal
 
 from .backend_libfm cimport Data
 from .backend_libfm cimport DataMetaInfo
