@@ -15,6 +15,8 @@
 
 import numpy as np
 from ..recommender import Recommender
+from ...utils.common import scale
+from ...exception import ScoreException
 
 
 class PCRL(Recommender):
@@ -188,10 +190,34 @@ class PCRL(Recommender):
         """
 
         if item_idx is None:
-            user_pred = self.Beta * self.Theta[user_idx, :].T
-        else:
-            user_pred = self.Beta[item_idx, :] * self.Theta[user_idx, :].T
-        # transform user_pred to a flatten array
-        user_pred = np.array(user_pred, dtype="float64").flatten()
+            if self.train_set.is_unk_user(user_idx):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d)" % user_idx
+                )
 
+            user_pred = self.Beta.dot(self.Theta[user_idx, :].T)
+        else:
+            if self.train_set.is_unk_user(user_idx) or self.train_set.is_unk_item(
+                item_idx
+            ):
+                raise ScoreException(
+                    "Can't make score prediction for (user_id=%d, item_id=%d)"
+                    % (user_idx, item_idx)
+                )
+
+            user_pred = self.Beta[item_idx, :] * self.Theta[user_idx, :].T
+            if self.train_set.min_rating == self.train_set.max_rating:
+                user_pred = scale(user_pred, 0.0, self.train_set.max_rating, 0.0, 1.0)
+            else:
+                user_pred = scale(
+                    user_pred,
+                    self.train_set.min_rating,
+                    self.train_set.max_rating,
+                    0.0,
+                    1.0,
+                )
+        
+        # transform user_pred to a flatten array    
+        user_pred = np.array(user_pred, dtype="float64").flatten()
+        
         return user_pred
