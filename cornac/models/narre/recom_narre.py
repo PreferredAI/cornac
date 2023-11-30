@@ -16,15 +16,17 @@
 import os
 import pickle
 from tqdm.auto import trange
+import numpy as np
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
 
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
-class NARRE(Recommender):
+class NARRE(Recommender, ANNMixin):
     """Neural Attentional Rating Regression with Review-level Explanations
 
     Parameters
@@ -405,22 +407,19 @@ class NARRE(Recommender):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
             h0 = (self.user_embedding[user_idx] + self.X[user_idx]) * (
                 self.item_embedding + self.Y
             )
             known_item_scores = h0.dot(self.W1) + self.bu[user_idx] + self.bi + self.mu
             return known_item_scores.ravel()
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
             h0 = (self.user_embedding[user_idx] + self.X[user_idx]) * (
                 self.item_embedding[item_idx] + self.Y[item_idx]
             )
@@ -428,3 +427,47 @@ class NARRE(Recommender):
                 h0.dot(self.W1) + self.bu[user_idx] + self.bi[item_idx] + self.mu
             )
             return known_item_score
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        user_vectors = np.concatenate(
+            (
+                self.user_embedding + self.X,
+                np.ones([self.user_embedding.shape[0], 1]),
+            ),
+            axis=1,
+        )
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = np.concatenate(
+            (
+                (self.item_embedding + self.Y) * self.W1.reshape((-1, 1)),
+                self.bi.reshape((-1, 1)),
+            ),
+            axis=1,
+        )
+        return item_vectors

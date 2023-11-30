@@ -15,9 +15,10 @@
 
 import numpy as np
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 
 
-class PCRL(Recommender):
+class PCRL(Recommender, ANNMixin):
     """Probabilistic Collaborative Representation Learning.
 
     Parameters
@@ -195,3 +196,33 @@ class PCRL(Recommender):
         user_pred = np.array(user_pred, dtype="float64").flatten()
 
         return user_pred
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        return self.Theta
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        return self.Beta

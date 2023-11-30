@@ -692,11 +692,13 @@ class MTER(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(u_idx):
+            raise ScoreException("Can't make score prediction for user %d" % u_idx)
+
+        if i_idx is not None and self.is_unknown_item(i_idx):
+            raise ScoreException("Can't make score prediction for item %d" % i_idx)
+
         if i_idx is None:
-            if not self.knows_user(u_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d" & u_idx
-                )
             tensor_value1 = np.einsum(
                 "abc,Ma->Mbc",
                 self.G1,
@@ -706,11 +708,6 @@ class MTER(Recommender):
             item_scores = np.einsum("MNc,c->MN", tensor_value2, self.A[-1]).flatten()
             return item_scores
         else:
-            if not (self.knows_user(u_idx) and self.knows_item(i_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (u_idx, i_idx)
-                )
             tensor_value1 = np.einsum("abc,a->bc", self.G1, self.U[u_idx])
             tensor_value2 = np.einsum("bc,b->c", tensor_value1, self.I[i_idx])
             item_score = np.einsum("c,c-> ", tensor_value2, self.A[-1])

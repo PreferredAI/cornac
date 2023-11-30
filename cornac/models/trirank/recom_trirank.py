@@ -291,15 +291,15 @@ class TriRank(Recommender):
         # Algorithm 1: Online recommendation line 9
         return p, a, u
 
-    def score(self, u_idx, i_idx=None):
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
         Parameters
         ----------
-        u_idx: int, required
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
 
-        i_idx: int, optional, default: None
+        item_idx: int, optional, default: None
             The index of the item for which to perform score prediction.
             If None, scores for all known items will be returned.
 
@@ -309,14 +309,15 @@ class TriRank(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if not self.knows_user(u_idx):
-            raise ScoreException("Can't make score prediction for (user_id=%d" & u_idx)
-        if i_idx is not None and not self.knows_item(i_idx):
-            raise ScoreException("Can't make score prediction for (item_id=%d" & i_idx)
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
 
-        item_scores, *_ = self._online_recommendation(u_idx)
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
+        item_scores, *_ = self._online_recommendation(user_idx)
         # Set already rated items to zero.
-        item_scores[self.r_mat[u_idx].indices] = 0
+        item_scores[self.r_mat[user_idx].indices] = 0
 
         # Scale to match rating scale.
         item_scores = (
@@ -324,7 +325,4 @@ class TriRank(Recommender):
             + self.min_rating
         )
 
-        if i_idx is None:
-            return item_scores
-        else:
-            return item_scores[i_idx]
+        return item_scores if item_idx is None else item_scores[item_idx]

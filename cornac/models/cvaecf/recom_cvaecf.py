@@ -208,14 +208,15 @@ class CVAECF(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         import torch
 
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-
             y_u = self.r_mat[user_idx].copy()
             y_u.data = np.ones(len(y_u.data))
             y_u = torch.tensor(y_u.A, dtype=torch.float32, device=self.device)
@@ -227,15 +228,8 @@ class CVAECF(Recommender):
             h_u, _ = self.cvae.encode_qhx(x_u)
 
             known_item_scores = self.cvae.decode(z_u, h_u).data.cpu().numpy().flatten()
-
             return known_item_scores
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-
             y_u = self.r_mat[user_idx].copy()
             y_u.data = np.ones(len(y_u.data))
             y_u = torch.tensor(y_u.A, dtype=torch.float32, device=self.device)
@@ -249,5 +243,4 @@ class CVAECF(Recommender):
             user_pred = (
                 self.cvae.decode(z_u, h_u).data.cpu().numpy().flatten()[item_idx]
             )
-
             return user_pred

@@ -650,14 +650,16 @@ class ComparERObj(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_id):
+            raise ScoreException("Can't make score prediction for user %d" % user_id)
+
+        if item_id is not None and self.is_unknown_item(item_id):
+            raise ScoreException("Can't make score prediction for item %d" % item_id)
+            
         if item_id is None:
-            if not self.knows_user(user_id):
-                raise ScoreException("Can't make score prediction for (user_id=%d" & user_id)
             item_scores = self.U2.dot(self.U1[user_id, :]) + self.H2.dot(self.H1[user_id, :])
             return item_scores
         else:
-            if not (self.knows_user(user_id) and self.knows_item(item_id)):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_id, item_id))
             item_score = self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
             return item_score
 
