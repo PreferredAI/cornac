@@ -20,11 +20,12 @@ import multiprocessing
 import numpy as np
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...utils import get_rng
 from ...utils.init_utils import zeros, normal
 
 
-class FM(Recommender):
+class FM(Recommender, ANNMixin):
     """Factorization Machines.
 
     Parameters
@@ -222,9 +223,7 @@ class FM(Recommender):
         if self.k1:
             score += self.w[uid] + self.w[iid]
         if self.k2:
-            sum_ = self.v[:, uid] + self.v[:, iid]
-            sum_sqr_ = self.v[:, uid] ** 2 + self.v[:, iid] ** 2
-            score += 0.5 * (sum_**2 - sum_sqr_).sum()
+            score += self.v[:, uid].dot(self.v[:, iid])
         return score
 
     def _fm_predict_all(self, user_idx):
@@ -263,3 +262,43 @@ class FM(Recommender):
             return self._fm_predict_all(user_idx)
         else:
             return self._fm_predict(user_idx, item_idx)
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        user_vectors = self.v[:, : self.total_users]
+        if self.k1:  # has bias term
+            user_vectors = np.concatenate(
+                (user_vectors, np.ones([user_vectors.shape[0], 1])), axis=1
+            )
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = self.v[:, self.total_users :]
+        if self.k1:  # has bias term
+            item_vectors = np.concatenate(
+                (item_vectors, self.w[self.total_users :].reshape((-1, 1))), axis=1
+            )
+        return item_vectors
