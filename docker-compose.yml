@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  cornac:
+    image: registry.preferred.ai/cornac/cornac-server:1.17.0-test
+    volumes:
+      - $PWD/save_dir:/app/cornac/serving/save_dir
+      - cornacvol:/app/cornac/serving/data
+    environment:
+      - PORT=5000
+      - MODEL_PATH=save_dir/bpr
+      - MODEL_CLASS=cornac.models.BPR
+    ports:
+      - 5000:5000
+volumes:
+  cornacvol:
