@@ -359,16 +359,11 @@ class NCFBase(Recommender):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
-        if not self.knows_user(user_idx):
-            raise ScoreException(
-                "Can't make score prediction for (user_id=%d)" % user_idx
-            )
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
 
-        if item_idx is not None and not self.knows_item(item_idx):
-            raise ScoreException(
-                "Can't make score prediction for (user_id=%d, item_id=%d)"
-                % (user_idx, item_idx)
-            )
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
 
         if self.backend == "tensorflow":
             pred_scores = self._score_tf(user_idx, item_idx)

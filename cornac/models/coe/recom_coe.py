@@ -16,10 +16,11 @@
 import numpy as np
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_L2
 from ...exception import ScoreException
 
 
-class COE(Recommender):
+class COE(Recommender, ANNMixin):
     """Collaborative Ordinal Embedding.
 
     Parameters
@@ -129,9 +130,6 @@ class COE(Recommender):
 
         return self
 
-    # get prefiction for a single user (predictions for one user at a time for efficiency purposes)
-    # predictions are not stored for the same efficiency reasons"""
-
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
@@ -150,22 +148,45 @@ class COE(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-            known_item_scores = np.sum(
-                np.abs(self.V - self.U[user_idx, :]) ** 2, axis=-1
-            ) ** (1.0 / 2)
-            return known_item_scores
-        else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-            user_pred = np.sum(
-                np.abs(self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1
-            ) ** (1.0 / 2)
-            return user_pred
+            return np.sum((self.V - self.U[user_idx, :]) ** 2, axis=-1) ** (1.0 / 2)
+
+        return np.sum((self.V[item_idx, :] - self.U[user_idx, :]) ** 2, axis=-1) ** (
+            1.0 / 2
+        )
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_L2
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        return self.U
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        return self.V

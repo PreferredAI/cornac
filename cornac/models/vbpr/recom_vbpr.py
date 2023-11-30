@@ -17,15 +17,14 @@ import numpy as np
 from tqdm.auto import tqdm
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import CornacException
-from ...exception import ScoreException
 from ...utils import fast_dot
-from ...utils.common import intersects
 from ...utils import get_rng
 from ...utils.init_utils import zeros, xavier_uniform
 
 
-class VBPR(Recommender):
+class VBPR(Recommender, ANNMixin):
     """Visual Bayesian Personalized Ranking.
 
     Parameters
@@ -303,3 +302,51 @@ class VBPR(Recommender):
             item_score += np.dot(self.gamma_item[item_idx], self.gamma_user[user_idx])
             item_score += np.dot(self.theta_item[item_idx], self.theta_user[user_idx])
             return item_score
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        user_vectors = np.concatenate(
+            (
+                self.gamma_user,
+                self.theta_user,
+                np.ones([self.gamma_user.shape[0], 1]),
+                np.ones([self.gamma_user.shape[0], 1]),
+            ),
+            axis=1,
+        )
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        item_vectors = np.concatenate(
+            (
+                self.gamma_item,
+                self.theta_item,
+                self.beta_item.reshape((-1, 1)),
+                self.visual_bias.reshape((-1, 1)),
+            ),
+            axis=1,
+        )
+        return item_vectors
