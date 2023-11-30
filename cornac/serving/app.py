@@ -126,6 +126,7 @@ def add_feedback():
     iid = params.get("iid")
     rating = params.get("rating", 1)
     time = datetime.now(timezone.utc)
+    directory = "data/"
 
     if uid is None:
         return "uid is required", 400
@@ -133,7 +134,10 @@ def add_feedback():
     if iid is None:
         return "iid is required", 400
 
-    with open("feedback.csv", "a+", newline="") as write_obj:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    with open(directory + "feedback.csv", "a+", newline="") as write_obj:
         csv_writer = writer(write_obj)
         csv_writer.writerow([uid, iid, rating, time])
         write_obj.close()
