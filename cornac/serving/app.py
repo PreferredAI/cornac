@@ -18,7 +18,10 @@
 import os
 import pickle
 from datetime import datetime, timezone
-from csv import writer
+from csv import writer, reader
+from cornac.data import Dataset
+from cornac.metrics import Precision, Recall
+from cornac.eval_methods import BaseMethod
 
 try:
     from flask import Flask, jsonify, request
@@ -150,6 +153,46 @@ def add_feedback():
             "rating": rating,
             "time": str(time),
         },
+    }
+
+    return jsonify(data), 200
+
+@app.route("/evaluate", methods=["GET"])
+def evaluate():
+    global model, train_set
+
+    # read from csv
+    directory = "data/"
+    file_name = "feedback.csv"
+    if os.path.exists(directory + file_name):
+        with open(directory + file_name, "r") as read_obj:
+            csv_reader = reader(read_obj)
+            list_of_rows = list(csv_reader)
+            read_obj.close()
+    else:
+        list_of_rows = []
+    
+    test_data = [(row[0], row[1], row[2]) for row in list_of_rows]
+    test_set = Dataset.from_uir(test_data)
+
+    if model is None:
+        return "Model is not yet loaded. Please try again later.", 400
+
+    if train_set is None:
+        return "Unable to evaluate. 'train_set' is not provided", 400
+    
+    metrics = [Precision(k=10), Recall(k=10)]
+
+    response = BaseMethod.from_splits(
+        train_data=train_set,
+        test_data=test_set,
+        exclude_unknowns=True,
+        verbose=True,
+    ).evaluate(model, metrics)
+
+    data = {
+        "evaluation": response,
+        "query": {"metrics": metrics},
     }
 
     return jsonify(data), 200
