@@ -582,6 +582,114 @@ For more information about gunicorn, you can view the documentation at
 https://docs.gunicorn.org/en/stable/run.html.
 
 
+Running the API service with Docker
+-----------------------------------
+
+You can also deploy the API service using Docker. To do so, you need to have
+Docker installed in your environment. You can install Docker by following the
+instructions at https://docs.docker.com/get-docker/.
+
+Running with docker run command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After installing Docker, you may run the Docker image by running the
+following command:
+
+.. code-block:: bash
+
+    docker run \
+    -dp 8080:5000 \
+    -e MODEL_PATH=save_dir/bpr \
+    -e MODEL_CLASS=cornac.models.BPR \
+    -v $(pwd)/cornacdata:/app/cornac/serving/save_dir \
+    --mount type=volume,source="cornac_vol",target=/app/cornac/serving/data \
+    registry.preferred.ai/cornac/cornac-server:1.17.0-test
+
+The above command will run the Docker image and bind it to port 8080. You can
+change the port to bind to by changing the port in the ``-dp`` parameter. For
+example, if you want to bind it to port 8081, you can change the ``-dp``
+parameter to ``-dp 8081:5000``.
+
+The ``MODEL_PATH`` and ``MODEL_CLASS`` needs to be specified. The ``MODEL_PATH``
+is the path to the model to be loaded. The ``MODEL_CLASS`` is the class of the
+model to be loaded. For example, if you want to load a BPR model, you should
+set the ``MODEL_CLASS`` to ``cornac.models.BPR``.
+
+The ``-v`` parameter is used to mount a directory in your local machine to the
+Docker container. In the above example, we mounted the ``cornacdata`` folder
+in the current directory to the ``save_dir`` folder in the Docker container.
+This is where the trained models will be saved.
+
+Add your saved model to the ``cornacdata`` folder in the current directory. In
+the above example, we added the ``bpr`` folder to the ``cornacdata`` folder in
+the current directory. This folder will be attached to the container, which
+will then be loaded from.
+
+The ``--mount`` parameter is used to mount a Docker volume to the Docker
+container. In the above example, we mounted a Docker volume named ``cornac_vol``
+to the ``data`` folder in the Docker container. Reason for mounting a volume is
+so that we could have a persistent volume for the feedback data. You can leave
+this parameter as it is.
+
+
+Running with docker-compose
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Alternatively, you can also run the Docker image using docker-compose. To do
+so, you need to have docker-compose installed in your environment.
+
+To run the Docker image using docker-compose, you can run the following
+command:
+
+.. code-block:: bash
+
+    docker-compose up 
+
+The ``docker-compose.yml`` file contains configuration in which you can change
+the port to bind to, the model path, and the model class.
+
+.. code-block:: yaml
+    :caption: docker-compose.yml
+
+    version: "3.8"
+    services:
+      cornac-server:
+        image: registry.preferred.ai/cornac/cornac-server:1.17.0-test
+      volumes:
+        - $PWD/save_dir:/app/cornac/serving/save_dir
+        - cornacvol:/app/cornac/serving/data
+      environment:
+        - PORT=5000
+        - MODEL_PATH=save_dir/bpr
+        - MODEL_CLASS=cornac.models.BPR
+      ports:
+        - 5000:5000
+    volumes:
+      cornac_vol:
+
+Similar to the ``docker run`` version, the ``PORT`` environment variable is
+used to specify the port to bind to.
+
+The ``MODEL_PATH`` and ``MODEL_CLASS`` environment variables are used to specify
+the model to be loaded. 
+
+The ``volumes`` section is used to mount the
+``cornacdata`` folder in the current directory to the ``save_dir`` folder in
+the Docker container.
+
+The ``cornac_vol`` volume is used to mount a Docker volume to
+the Docker container. This is so that we could have a persistent volume for the
+feedback data. You can leave this parameter as it is.
+
+Add your saved model to the ``cornacdata`` folder in the current directory. In
+the above example, we added the ``bpr`` folder to the ``cornacdata`` folder in
+the current directory. This folder will be attached to the container, which
+will then be loaded from.
+
+After running the above command, the API service will be launched at
+`localhost:8080`.
+
+
 What's Next?
 ------------
 
