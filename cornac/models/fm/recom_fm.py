@@ -207,7 +207,7 @@ class FM(Recommender):
             self.method,
             self.verbose,
         )
-    
+
         if self.verbose:
             print("Optimization finished!")
 
@@ -226,6 +226,20 @@ class FM(Recommender):
             sum_sqr_ = self.v[:, uid] ** 2 + self.v[:, iid] ** 2
             score += 0.5 * (sum_**2 - sum_sqr_).sum()
         return score
+
+    def _fm_predict_all(self, user_idx):
+        uid = user_idx
+        iid_start = self.total_users
+        scores = np.zeros(self.total_items)
+        if self.k0:
+            scores += self.w0
+        if self.k1:
+            scores += self.w[uid] + self.w[iid_start:]
+        if self.k2:
+            sum_ = self.v[:, uid, np.newaxis] + self.v[:, iid_start:]
+            sum_sqr_ = self.v[:, uid, np.newaxis] ** 2 + self.v[:, iid_start:] ** 2
+            scores += 0.5 * (sum_**2 - sum_sqr_).sum(0)
+        return scores
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -246,11 +260,6 @@ class FM(Recommender):
 
         """
         if item_idx is None:
-            known_item_scores = np.fromiter(
-                (self._fm_predict(user_idx, i) for i in range(self.total_items)),
-                dtype=np.double,
-                count=self.total_items,
-            )
-            return known_item_scores
+            return self._fm_predict_all(user_idx)
         else:
             return self._fm_predict(user_idx, item_idx)
