@@ -36,9 +36,6 @@ class ScaNNANN(BaseANN):
     model: object: :obj:`cornac.models.Recommender`, required
         Trained recommender model which to get user/item vectors from.
 
-    num_neighbors: int, optional, default: 100
-        The default number of neighbors/items to be returned.
-
     partition_params: dict, optional
         Parameters for the partitioning phase, to send to the tree() call in ScaNN.
 
@@ -68,7 +65,6 @@ class ScaNNANN(BaseANN):
     def __init__(
         self,
         model,
-        num_neighbors=100,
         partition_params=None,
         score_params=None,
         score_brute_force=False,
@@ -84,7 +80,6 @@ class ScaNNANN(BaseANN):
             score_params = {}
 
         self.model = model
-        self.num_neighbors = num_neighbors
         self.partition_params = partition_params
         self.score_params = score_params
         self.score_brute_force = score_brute_force
@@ -109,21 +104,24 @@ class ScaNNANN(BaseANN):
         assert self.measure in SUPPORTED_MEASURES
 
         if self.measure == MEASURE_COSINE:
-            self.item_vectors = (
-                self.item_vectors
-                / np.linalg.norm(self.item_vectors, axis=1)[:, np.newaxis]
-            )
+            self.partition_params["spherical"] = True
+            self.item_vectors /= np.linalg.norm(self.item_vectors, axis=1)[
+                :, np.newaxis
+            ]
             self.measure = MEASURE_DOT
+        else:
+            self.partition_params["spherical"] = False
 
         index_builder = scann.scann_ops_pybind.builder(
-            db=self.item_vectors,
-            num_neighbors=self.num_neighbors,
-            distance_measure=SUPPORTED_MEASURES[self.measure],
+            self.item_vectors, 10, SUPPORTED_MEASURES[self.measure]
         )
         index_builder.set_n_training_threads(self.num_threads)
 
         # partitioning
         if self.partition_params:
+            self.partition_params.setdefault(
+                "training_sample_size", self.item_vectors.shape[0]
+            )
             index_builder = index_builder.tree(**self.partition_params)
 
         # scoring
