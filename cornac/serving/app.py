@@ -16,20 +16,16 @@
 """
 
 import os
-import pickle
 from datetime import datetime, timezone
-from csv import writer, reader
-from cornac.data import Dataset
-from cornac.metrics import Precision, Recall
+from csv import writer
+from cornac.data import Dataset, Reader
 from cornac.eval_methods import BaseMethod
+from cornac.metrics import *
 
 try:
     from flask import Flask, jsonify, request
 except ImportError:
-    exit(
-        "Flask is required in order to serve models.\n"
-        + "Run: pip3 install Flask"
-    )
+    exit("Flask is required in order to serve models.\n" + "Run: pip3 install Flask")
 
 
 def _import_model_class(model_class):
@@ -69,8 +65,9 @@ def _load_model(instance_path):
             train_set_path = os.path.join(
                 os.path.dirname(instance_path), train_set_path
             )
-        with open(train_set_path, "rb") as f:
-            train_set = pickle.load(f)
+        train_set = Dataset.load(train_set_path)
+    elif os.path.exists(train_set_path := model.load_from + ".trainset"):
+        train_set = Dataset.load(train_set_path)
 
     print(
         "Model loaded"
@@ -129,7 +126,7 @@ def add_feedback():
     iid = params.get("iid")
     rating = params.get("rating", 1)
     time = datetime.now(timezone.utc)
-    directory = "data/"
+    data_fpath = "data/feedback.csv"
 
     if uid is None:
         return "uid is required", 400
@@ -137,10 +134,9 @@ def add_feedback():
     if iid is None:
         return "iid is required", 400
 
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    os.makedirs(os.path.dirname(data_fpath), exist_ok=True)
 
-    with open(directory + "feedback.csv", "a+", newline="") as write_obj:
+    with open(data_fpath, "a+", newline="") as write_obj:
         csv_writer = writer(write_obj)
         csv_writer.writerow([uid, iid, rating, time])
         write_obj.close()
@@ -157,40 +153,11 @@ def add_feedback():
 
     return jsonify(data), 200
 
+
+# curl -X POST -H "Content-Type: application/json" -d '{"metrics": ["RMSE()", "NDCG(k=10)"]}' "http://localhost:8080/evaluate"
 @app.route("/evaluate", methods=["POST"])
 def evaluate():
     global model, train_set
-
-    content = request.json
-
-    metric_input = content.get("metrics")
-
-    if metric_input is None:
-        return "metrics is required", 400
-    elif not isinstance(metric_input, list):
-        return "metrics must be an array of metrics", 400
-    
-    metrics = []
-    for metric in metric_input:
-        try:
-            metric_class = _import_model_class(metric)
-            metrics.append(metric_class)
-        except:
-            return f"Invalid metric: {metric}", 400
-    
-    # read from csv
-    directory = "data/"
-    file_name = "feedback.csv"
-    if os.path.exists(directory + file_name):
-        with open(directory + file_name, "r") as read_obj:
-            csv_reader = reader(read_obj)
-            list_of_rows = list(csv_reader)
-            read_obj.close()
-    else:
-        list_of_rows = []
-    
-    test_data = [(row[0], row[1], row[2]) for row in list_of_rows]
-    test_set = Dataset.from_uir(test_data)
 
     if model is None:
         return "Model is not yet loaded. Please try again later.", 400
@@ -198,19 +165,71 @@ def evaluate():
     if train_set is None:
         return "Unable to evaluate. 'train_set' is not provided", 400
 
-    response = BaseMethod.from_splits(
-        train_data=train_set,
-        test_data=test_set,
-        exclude_unknowns=True,
-        verbose=True,
-    ).evaluate(model, metrics)
+    query = request.json
 
-    data = {
-        "evaluation": response,
-        "query": {"metrics": metrics},
+    query_metrics = query.get("metrics")
+    rating_threshold = query.get("rating_threshold", 1.0)
+    exclude_unknowns = (
+        query.get("exclude_unknowns", "true").lower() == "true"
+    )  # exclude unknown users/items by default, otherwise specified
+    user_based = (
+        query.get("user_based", "true").lower() == "true"
+    )  # user_based evaluation by default, otherwise specified
+
+    if query_metrics is None:
+        return "metrics is required", 400
+    elif not isinstance(query_metrics, list):
+        return "metrics must be an array of metrics", 400
+
+    # organize metrics
+    metrics = []
+    for i, metric in enumerate(query_metrics):
+        try:
+            metrics.append(eval(metric))
+        except:
+            return f"Invalid metric initiation: {metric}", 400
+
+    rating_metrics, ranking_metrics = BaseMethod.organize_metrics(metrics)
+
+    # read data
+    data = []
+    data_fpath = "data/feedback.csv"
+    if os.path.exists(data_fpath):
+        reader = Reader()
+        data = reader.read(data_fpath, fmt="UIRT", sep=",")
+
+    if not len(data):
+        raise ValueError("No data available to evaluate the model.")
+
+    test_set = Dataset.build(
+        data,
+        fmt="UIRT",
+        global_uid_map=train_set.uid_map,
+        global_iid_map=train_set.iid_map,
+        exclude_unknowns=exclude_unknowns,
+    )
+
+    # evaluation
+    result = BaseMethod.eval(
+        model=model,
+        train_set=train_set,
+        test_set=test_set,
+        val_set=None,
+        rating_threshold=rating_threshold,
+        exclude_unknowns=exclude_unknowns,
+        rating_metrics=rating_metrics,
+        ranking_metrics=ranking_metrics,
+        user_based=user_based,
+        verbose=False,
+    )
+
+    # response
+    response = {
+        "result": result.metric_avg_results,
+        "query": query,
     }
 
-    return jsonify(data), 200
+    return jsonify(response), 200
 
 
 if __name__ == "__main__":
