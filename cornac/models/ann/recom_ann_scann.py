@@ -116,7 +116,9 @@ class ScaNNANN(BaseANN):
             self.measure = MEASURE_DOT
 
         index_builder = scann.scann_ops_pybind.builder(
-            self.item_vectors, self.num_neighbors, SUPPORTED_MEASURES[self.measure]
+            db=self.item_vectors,
+            num_neighbors=self.num_neighbors,
+            distance_measure=SUPPORTED_MEASURES[self.measure],
         )
 
         # partitioning
@@ -148,7 +150,9 @@ class ScaNNANN(BaseANN):
 
     def save(self, save_dir=None):
         saved_path = super().save(save_dir)
-        self.index.searcher.serialize(os.path.dirname(saved_path))
+        idx_path = saved_path + ".idx"
+        os.makedirs(idx_path, exist_ok=True)
+        self.index.searcher.serialize(idx_path)
         return saved_path
 
     @staticmethod
@@ -156,5 +160,6 @@ class ScaNNANN(BaseANN):
         from scann.scann_ops.py import scann_ops_pybind
 
         ann = BaseANN.load(model_path, trainable)
-        ann.index = scann_ops_pybind.load_searcher(os.path.dirname(model_path))
+        idx_path = ann.load_from + ".idx"
+        ann.index = scann_ops_pybind.load_searcher(idx_path)
         return ann
