@@ -157,10 +157,27 @@ def add_feedback():
 
     return jsonify(data), 200
 
-@app.route("/evaluate", methods=["GET"])
+@app.route("/evaluate", methods=["POST"])
 def evaluate():
     global model, train_set
 
+    content = request.json
+
+    metric_input = content.get("metrics")
+
+    if metric_input is None:
+        return "metrics is required", 400
+    elif not isinstance(metric_input, list):
+        return "metrics must be an array of metrics", 400
+    
+    metrics = []
+    for metric in metric_input:
+        try:
+            metric_class = _import_model_class(metric)
+            metrics.append(metric_class)
+        except:
+            return f"Invalid metric: {metric}", 400
+    
     # read from csv
     directory = "data/"
     file_name = "feedback.csv"
@@ -180,8 +197,6 @@ def evaluate():
 
     if train_set is None:
         return "Unable to evaluate. 'train_set' is not provided", 400
-    
-    metrics = [Precision(k=10), Recall(k=10)]
 
     response = BaseMethod.from_splits(
         train_data=train_set,
