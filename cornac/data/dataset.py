@@ -13,6 +13,9 @@
 # limitations under the License.
 # ============================================================================
 
+import os
+import copy
+import pickle
 import warnings
 from collections import Counter, OrderedDict, defaultdict
 
@@ -97,7 +100,6 @@ class Dataset(object):
 
         self.__user_ids = None
         self.__item_ids = None
-
         self.__user_data = None
         self.__item_data = None
         self.__chrono_user_data = None
@@ -105,6 +107,18 @@ class Dataset(object):
         self.__csr_matrix = None
         self.__csc_matrix = None
         self.__dok_matrix = None
+
+        self.ignored_attrs = [
+            "__user_ids",
+            "__item_ids",
+            "__user_data",
+            "__item_data",
+            "__chrono_user_data",
+            "__chrono_item_data",
+            "__csr_matrix",
+            "__csc_matrix",
+            "__dok_matrix",
+        ]
 
     @property
     def user_ids(self):
@@ -562,6 +576,45 @@ class Dataset(object):
         self.item_graph = kwargs.get("item_graph", None)
         self.sentiment = kwargs.get("sentiment", None)
         self.review_text = kwargs.get("review_text", None)
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        for k, v in self.__dict__.items():
+            if k in self.ignored_attrs:
+                continue
+            setattr(result, k, copy.deepcopy(v))
+        return result
+
+    def save(self, fpath):
+        """Save a dataset to the filesystem.
+
+        Parameters
+        ----------
+        fpath: str, required
+            Path to a file for the dataset to be stored.
+
+        """
+        os.makedirs(os.path.dirname(fpath), exist_ok=True)
+        dataset = copy.deepcopy(self)
+        pickle.dump(dataset, open(fpath, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def load(fpath):
+        """Load a recommender model from the filesystem.
+
+        Parameters
+        ----------
+        fpath: str, required
+            Path to a file where the dataset is stored.
+
+        Returns
+        -------
+        self : object
+        """
+        dataset = pickle.load(open(fpath, "rb"))
+        dataset.load_from = fpath  # for further loading
+        return dataset
 
 
 class BasketDataset(Dataset):
