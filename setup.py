@@ -31,7 +31,6 @@ import shutil
 from setuptools import Extension, Command, setup, find_packages
 
 try:
-    from Cython.Build import cythonize
     from Cython.Distutils import build_ext
     import numpy as np
     import scipy
@@ -96,8 +95,11 @@ else:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
+            if not os.path.exists("/usr/bin/g++"):
+                print(
+                    "No GCC available. Install gcc from Homebrew using brew install gcc."
+                )
             USE_OPENMP = False
-            print("No GCC available. Install gcc from Homebrew using brew install gcc.")
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
@@ -341,7 +343,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw"],
+    install_requires=["numpy", "scipy", "tqdm", "powerlaw"],
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
