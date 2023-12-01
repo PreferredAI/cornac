@@ -86,11 +86,6 @@ class HNSWLibANN(BaseANN):
         )
         self.seed = seed
 
-        # ANN required attributes
-        self.measure = model.get_vector_measure()
-        self.user_vectors = model.get_user_vectors()
-        self.item_vectors = model.get_item_vectors()
-
         self.index = None
         self.ignored_attrs.extend(
             [
