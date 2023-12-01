@@ -18,6 +18,7 @@ from .recommender import NextBasketRecommender
 
 from .amr import AMR
 from .ann import HNSWLibANN
+from .ann import ScaNNANN
 from .baseline_only import BaselineOnly
 from .bivaecf import BiVAECF
 from .bpr import BPR

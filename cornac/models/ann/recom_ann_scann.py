@@ -14,6 +14,7 @@
 # ============================================================================
 
 
+import os
 import multiprocessing
 import numpy as np
 
@@ -35,10 +36,10 @@ class ScaNNANN(BaseANN):
     model: object: :obj:`cornac.models.Recommender`, required
         Trained recommender model which to get user/item vectors from.
 
-    num_neighbors: int, optional
+    num_neighbors: int, optional, default: 100
         The default number of neighbors/items to be returned.
 
-    parition_params: dict, optional
+    partition_params: dict, optional
         Parameters for the partitioning phase, to send to the tree() call in ScaNN.
 
     score_params: dict, optional
@@ -67,8 +68,8 @@ class ScaNNANN(BaseANN):
     def __init__(
         self,
         model,
-        num_neighbors=10,
-        parition_params=None,
+        num_neighbors=100,
+        partition_params=None,
         score_params=None,
         score_brute_force=False,
         rescore_params=None,
@@ -84,7 +85,7 @@ class ScaNNANN(BaseANN):
 
         self.model = model
         self.num_neighbors = num_neighbors
-        self.parition_params = parition_params
+        self.partition_params = partition_params
         self.score_params = score_params
         self.score_brute_force = score_brute_force
         self.rescore_params = rescore_params
@@ -119,8 +120,8 @@ class ScaNNANN(BaseANN):
         )
 
         # partitioning
-        if self.parition_params:
-            index_builder = index_builder.tree(**self.parition_params)
+        if self.partition_params:
+            index_builder = index_builder.tree(**self.partition_params)
 
         # scoring
         if self.score_brute_force:
@@ -142,23 +143,18 @@ class ScaNNANN(BaseANN):
         neighbors, distances: numpy.array and numpy.array
             Array of k-nearest neighbors and corresponding distances for the given query.
         """
-        neighbors, distances = self.index.search_batched(query, leaves_to_search=k)
+        neighbors, distances = self.index.search_batched(query, final_num_neighbors=k)
         return neighbors, distances
 
-    # def save(self, save_dir=None):
-    #     saved_path = super().save(save_dir)
-    #     self.index.save_index(saved_path + ".idx")
-    #     return saved_path
+    def save(self, save_dir=None):
+        saved_path = super().save(save_dir)
+        self.index.searcher.serialize(os.path.dirname(saved_path))
+        return saved_path
 
-    # @staticmethod
-    # def load(model_path, trainable=False):
-    #     import hnswlib
+    @staticmethod
+    def load(model_path, trainable=False):
+        from scann.scann_ops.py import scann_ops_pybind
 
-    #     ann = BaseANN.load(model_path, trainable)
-    #     ann.index = hnswlib.Index(
-    #         space=SUPPORTED_MEASURES[ann.measure], dim=ann.user_vectors.shape[1]
-    #     )
-    #     ann.index.load_index(ann.load_from + ".idx")
-    #     ann.index.set_ef(ann.ef)
-    #     ann.index.set_num_threads(ann.num_threads)
-    #     return ann
+        ann = BaseANN.load(model_path, trainable)
+        ann.index = scann_ops_pybind.load_searcher(os.path.dirname(model_path))
+        return ann
