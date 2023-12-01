@@ -53,7 +53,7 @@ class ScaNNANN(BaseANN):
         Parameters for the rescoring phase, to send to the reorder() call in ScaNN.
 
     num_threads: int, optional, default: -1
-        Default number of threads to use when querying. If num_threads = -1, all cores will be used.
+        Default number of threads used for training. If num_threads = -1, all cores will be used.
 
     seed: int, optional, default: None
         Random seed for reproducibility.
@@ -120,6 +120,7 @@ class ScaNNANN(BaseANN):
             num_neighbors=self.num_neighbors,
             distance_measure=SUPPORTED_MEASURES[self.measure],
         )
+        index_builder.set_n_training_threads(self.num_threads)
 
         # partitioning
         if self.partition_params:
