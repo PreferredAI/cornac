@@ -19,7 +19,7 @@ Setting Up Your Development Environment
 
 .. code-block:: bash
 
-    git clone https://github.com/PreferredAI/cornac.git
+    git clone https://github.com/your-github-id/cornac.git
     cd cornac
     python -m venv venv
     source venv/bin/activate  # On Windows, use 'venv\Scripts\activate'
