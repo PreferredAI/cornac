@@ -273,11 +273,11 @@ extensions = [
 if sys.platform.startswith("linux"):  # Linux supported only
     extensions += [
         Extension(
-            name="cornac.models.fm.recom_fm",
-            sources=["cornac/models/fm/recom_fm.pyx"],
+            name="cornac.models.fm.backend_libfm",
+            sources=["cornac/models/fm/backend_libfm.pyx"],
             include_dirs=[
                 np.get_include(),
-                "cornac/models/fm/libfm/util",
+                "cornac/models/fm/libfm/util/",
                 "cornac/models/fm/libfm/fm_core/",
                 "cornac/models/fm/libfm/libfm/src/",
             ],
