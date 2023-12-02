@@ -97,7 +97,7 @@ class AnnoyANN(BaseANN):
         for i, v in enumerate(self.item_vectors):
             self.index.add_item(i, v)
 
-        self.index.build(self.n_trees, self.num_threads)
+        self.index.build(self.n_trees, n_jobs=self.num_threads)
 
     def knn_query(self, query, k):
         """Implementing ANN search for a given query.
