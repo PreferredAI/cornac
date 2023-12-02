@@ -14,6 +14,7 @@
 # ============================================================================
 
 
+import multiprocessing
 import numpy as np
 
 from ..recommender import MEASURE_L2, MEASURE_DOT, MEASURE_COSINE
@@ -40,6 +41,10 @@ class FaissANN(BaseANN):
         Whether or not to run Faiss on GPU. Requires faiss-gpu to be installed
         instead of faiss-cpu.
 
+    num_threads: int, optional, default: -1
+        Default number of threads used for building index. If num_threads = -1,
+        all cores will be used.
+
     seed: int, optional, default: None
         Random seed for reproducibility.
 
@@ -56,6 +61,7 @@ class FaissANN(BaseANN):
         nlist=100,
         nprobe=50,
         use_gpu=False,
+        num_threads=-1,
         seed=None,
         name="FaissANN",
         verbose=False,
@@ -66,6 +72,9 @@ class FaissANN(BaseANN):
         self.nlist = nlist
         self.nprobe = nprobe
         self.use_gpu = use_gpu
+        self.num_threads = (
+            num_threads if num_threads != -1 else multiprocessing.cpu_count()
+        )
         self.seed = seed
 
         self.index = None
@@ -79,6 +88,8 @@ class FaissANN(BaseANN):
     def build_index(self):
         """Building index from the base recommender model."""
         import faiss
+
+        faiss.omp_set_num_threads(self.num_threads)
 
         SUPPORTED_MEASURES = {
             MEASURE_L2: faiss.METRIC_L2,
@@ -95,20 +106,15 @@ class FaissANN(BaseANN):
 
         self.item_vectors = self.item_vectors.astype("float32")
 
+        self.index = faiss.IndexIVFFlat(
+            faiss.IndexFlat(self.item_vectors.shape[1]),
+            self.item_vectors.shape[1],
+            self.nlist,
+            SUPPORTED_MEASURES[self.measure],
+        )
+
         if self.use_gpu:
-            self.index = faiss.GpuIndexIVFFlat(
-                faiss.StandardGpuResources(),
-                self.item_vectors.shape[1],
-                self.nlist,
-                SUPPORTED_MEASURES[self.measure],
-            )
-        else:
-            self.index = faiss.IndexIVFFlat(
-                faiss.IndexFlat(self.item_vectors.shape[1]),
-                self.item_vectors.shape[1],
-                self.nlist,
-                SUPPORTED_MEASURES[self.measure],
-            )
+            self.index = faiss.index_cpu_to_all_gpus(self.index)
 
         self.index.train(self.item_vectors)
         self.index.add(self.item_vectors)
@@ -130,6 +136,8 @@ class FaissANN(BaseANN):
 
         saved_path = super().save(save_dir)
         idx_path = saved_path + ".index"
+        if self.use_gpu:
+            self.index = faiss.index_gpu_to_cpu(self.index)
         faiss.write_index(self.index, idx_path)
         return saved_path
 
@@ -140,4 +148,6 @@ class FaissANN(BaseANN):
         ann = BaseANN.load(model_path, trainable)
         idx_path = ann.load_from + ".index"
         ann.index = faiss.read_index(idx_path)
+        if ann.use_gpu:
+            ann.index = faiss.index_cpu_to_all_gpus(ann.index)
         return ann
