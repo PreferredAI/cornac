@@ -22,7 +22,11 @@ from ..recommender import MEASURE_L2, MEASURE_DOT, MEASURE_COSINE
 from .recom_ann_base import BaseANN
 
 
-SUPPORTED_MEASURES = {MEASURE_L2: "squared_l2", MEASURE_DOT: "dot_product"}
+SUPPORTED_MEASURES = {
+    MEASURE_L2: "squared_l2",
+    MEASURE_DOT: "dot_product",
+    MEASURE_COSINE: "dot_product",
+}
 
 
 class ScaNNANN(BaseANN):
@@ -108,7 +112,6 @@ class ScaNNANN(BaseANN):
             self.item_vectors /= np.linalg.norm(self.item_vectors, axis=1)[
                 :, np.newaxis
             ]
-            self.measure = MEASURE_DOT
         else:
             self.partition_params["spherical"] = False
 
@@ -149,7 +152,7 @@ class ScaNNANN(BaseANN):
 
     def save(self, save_dir=None):
         saved_path = super().save(save_dir)
-        idx_path = saved_path + ".idx"
+        idx_path = saved_path + ".index"
         os.makedirs(idx_path, exist_ok=True)
         self.index.searcher.serialize(idx_path)
         return saved_path
@@ -159,6 +162,6 @@ class ScaNNANN(BaseANN):
         from scann.scann_ops.py import scann_ops_pybind
 
         ann = BaseANN.load(model_path, trainable)
-        idx_path = ann.load_from + ".idx"
+        idx_path = ann.load_from + ".index"
         ann.index = scann_ops_pybind.load_searcher(idx_path)
         return ann

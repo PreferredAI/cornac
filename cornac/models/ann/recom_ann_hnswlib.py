@@ -133,7 +133,7 @@ class HNSWLibANN(BaseANN):
 
     def save(self, save_dir=None):
         saved_path = super().save(save_dir)
-        self.index.save_index(saved_path + ".idx")
+        self.index.save_index(saved_path + ".index")
         return saved_path
 
     @staticmethod
@@ -144,7 +144,7 @@ class HNSWLibANN(BaseANN):
         ann.index = hnswlib.Index(
             space=SUPPORTED_MEASURES[ann.measure], dim=ann.user_vectors.shape[1]
         )
-        ann.index.load_index(ann.load_from + ".idx")
+        ann.index.load_index(ann.load_from + ".index")
         ann.index.set_ef(ann.ef)
         ann.index.set_num_threads(ann.num_threads)
         return ann
