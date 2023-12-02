@@ -109,7 +109,7 @@ $ pip3 install Flask
 ```
 Supposed that we want to serve the trained BPR model from previous example, we need to save it:
 ```python
-bpr.save("save_dir")
+bpr.save("save_dir", save_trainset=True)
 ```
 After that, the model can be deployed easily by running Cornac serving app as follows:
 ```bash
@@ -126,7 +126,7 @@ $ curl -X GET "http://localhost:8080/recommend?uid=63&k=5&remove_seen=false"
 
 # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 ```
-If we want to remove seen items during training, we need to provide `TRAIN_SET` when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. Please refer to [this](https://cornac.readthedocs.io/en/latest/user/iamadeveloper.html#running-an-api-service) guide for more details.
+If we want to remove seen items during training, we need to provide `TRAIN_SET` which has been saved with the model earlier, when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. Please refer to [this](https://cornac.readthedocs.io/en/latest/user/iamadeveloper.html#running-an-api-service) guide for more details.
 
 ## Efficient retrieval with ANN search
 
