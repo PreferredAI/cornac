@@ -199,7 +199,7 @@ def evaluate():
     metrics = []
     for metric in query_metrics:
         try:
-            # checking valid metric name before code excecution,
+            # checking valid metric name before code execution,
             # crucial for security reason
             if not metric.split("(")[0] in metric_classnames:
                 raise ValueError("Invalid metric name")
