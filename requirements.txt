@@ -1,0 +1,5 @@
+numpy
+scipy
+Cython
+tqdm
+powerlaw

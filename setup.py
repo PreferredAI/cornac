@@ -27,10 +27,10 @@ Release instruction:
 import os
 import sys
 import glob
-from setuptools import Extension, setup, find_packages
+import shutil
+from setuptools import Extension, Command, setup, find_packages
 
 try:
-    from Cython.Build import cythonize
     from Cython.Distutils import build_ext
     import numpy as np
     import scipy
@@ -95,8 +95,11 @@ else:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
+            if not os.path.exists("/usr/bin/g++"):
+                print(
+                    "No GCC available. Install gcc from Homebrew using brew install gcc."
+                )
             USE_OPENMP = False
-            print("No GCC available. Install gcc from Homebrew using brew install gcc.")
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
@@ -287,11 +290,43 @@ if sys.platform.startswith("linux"):  # Linux supported only
         )
     ]
 
-cmdclass = {}
 
-# cythonize c++ modules
-extensions = cythonize(extensions)
-cmdclass.update({"build_ext": build_ext})
+class CleanCommand(Command):
+    description = "Remove build artifacts from the source tree"
+
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Remove .cpp and .so files for a clean build
+        if os.path.exists("build"):
+            shutil.rmtree("build")
+        for dirpath, dirnames, filenames in os.walk("cornac"):
+            for filename in filenames:
+                root, extension = os.path.splitext(filename)
+
+                if extension in [".so", ".pyd", ".dll", ".pyc"]:
+                    os.unlink(os.path.join(dirpath, filename))
+
+                if extension in [".c", ".cpp"]:
+                    pyx_file = str.replace(filename, extension, ".pyx")
+                    if os.path.exists(os.path.join(dirpath, pyx_file)):
+                        os.unlink(os.path.join(dirpath, filename))
+
+            for dirname in dirnames:
+                if dirname == "__pycache__":
+                    shutil.rmtree(os.path.join(dirpath, dirname))
+
+
+cmdclass = {
+    "clean": CleanCommand,
+    "build_ext": build_ext,
+}
 
 setup(
     name="cornac",
@@ -308,7 +343,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw"],
+    install_requires=["numpy", "scipy", "tqdm", "powerlaw"],
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
