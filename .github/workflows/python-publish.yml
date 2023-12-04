@@ -9,8 +9,8 @@
 name: upload
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [ master ]
 
 jobs:
   build-wheels:
@@ -70,6 +70,7 @@ jobs:
         path: ./dist/*.whl
 
 
+
   publish-pypi:
     needs: [build-wheels]
     runs-on: ubuntu-20.04
@@ -80,33 +81,54 @@ jobs:
       with:
         name: wheels
         path: dist/
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.10"
-
-    - name: Display Python version
-      run: python -c "import sys; print(sys.version)"
-
-    - name: Install numpy
-      run: |
-        python -m pip install numpy==1.22.4
-        python -c "import numpy; print(numpy.__version__)"
-
-    - name: Install other dependencies
-      run: |
-        python -m pip install scipy Cython wheel
-
-    - name: Build source tar file
-      run: python setup.py sdist
         
-    - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@master
+    - name: Publish wheels to Release
+      uses: marvinpinto/action-automatic-releases@latest
       with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
-        packages_dir: ./dist/
-        verify_metadata: false
-        skip_existing: true
-        verbose: true
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Release ${{ env.date_now }}"
+        files: |
+          ./dist/*.whl
+
+  # publish-pypi:
+  #   needs: [build-wheels]
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #   - uses: actions/checkout@v2
+          
+  #   - uses: actions/download-artifact@v2
+  #     with:
+  #       name: wheels
+  #       path: dist/
+
+  #   - name: Set up Python
+  #     uses: actions/setup-python@v2
+  #     with:
+  #       python-version: "3.10"
+
+  #   - name: Display Python version
+  #     run: python -c "import sys; print(sys.version)"
+
+  #   - name: Install numpy
+  #     run: |
+  #       python -m pip install numpy==1.22.4
+  #       python -c "import numpy; print(numpy.__version__)"
+
+  #   - name: Install other dependencies
+  #     run: |
+  #       python -m pip install scipy Cython wheel
+
+  #   - name: Build source tar file
+  #     run: python setup.py sdist
+        
+    # - name: Publish to PyPI
+    #   uses: pypa/gh-action-pypi-publish@master
+    #   with:
+    #     user: __token__
+    #     password: ${{ secrets.PYPI_API_TOKEN }}
+    #     packages_dir: ./dist/
+    #     verify_metadata: false
+    #     skip_existing: true
+    #     verbose: true
