@@ -16,8 +16,11 @@
 """
 
 import os
+import sys
+import inspect
 from datetime import datetime, timezone
 from csv import writer
+
 from cornac.data import Dataset, Reader
 from cornac.eval_methods import BaseMethod
 from cornac.metrics import *
@@ -77,9 +80,20 @@ def _load_model(instance_path):
     )
 
 
+def _get_cornac_metric_classnames():
+    """For security checking in the evaluate API"""
+    global metric_classnames
+
+    metric_classnames = set()
+    for name, obj in inspect.getmembers(sys.modules[__name__]):
+        if inspect.isclass(obj) and obj.__module__.startswith("cornac.metrics"):
+            metric_classnames.add(name)
+
+
 def create_app():
     app = Flask(__name__)
     _load_model(app.instance_path)
+    _get_cornac_metric_classnames()
     return app
 
 
@@ -157,7 +171,7 @@ def add_feedback():
 # curl -X POST -H "Content-Type: application/json" -d '{"metrics": ["RMSE()", "NDCG(k=10)"]}' "http://localhost:8080/evaluate"
 @app.route("/evaluate", methods=["POST"])
 def evaluate():
-    global model, train_set
+    global model, train_set, metric_classnames
 
     if model is None:
         return "Model is not yet loaded. Please try again later.", 400
@@ -183,11 +197,19 @@ def evaluate():
 
     # organize metrics
     metrics = []
-    for i, metric in enumerate(query_metrics):
+    for metric in query_metrics:
         try:
+            # checking valid metric name before code excecution,
+            # crucial for security reason
+            if not metric.split("(")[0] in metric_classnames:
+                raise ValueError("Invalid metric name")
             metrics.append(eval(metric))
         except:
-            return f"Invalid metric initiation: {metric}", 400
+            return (
+                f"Invalid metric initiation: {metric}.\n"
+                + "Please input correct metrics (e.g., 'RMSE()', 'Recall(k=10)')",
+                400,
+            )
 
     rating_metrics, ranking_metrics = BaseMethod.organize_metrics(metrics)
 
