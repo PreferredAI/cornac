@@ -12,7 +12,7 @@ Clone your forked repository to your local machine using the following command:
 
 .. code-block:: bash
 
-    git clone https://github.com/PreferredAI/cornac.git
+    git clone https://github.com/your-github-id/cornac.git
 
 Create a New Branch
 ^^^^^^^^^^^^^^^^^^^
@@ -40,6 +40,7 @@ are working as expected.
 
 .. code-block:: bash
 
+    python3 setup.py clean
     python3 setup.py install
 
 
