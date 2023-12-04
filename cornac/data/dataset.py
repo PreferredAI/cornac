@@ -601,7 +601,7 @@ class Dataset(object):
 
     @staticmethod
     def load(fpath):
-        """Load a recommender model from the filesystem.
+        """Load a dataset from the filesystem.
 
         Parameters
         ----------
