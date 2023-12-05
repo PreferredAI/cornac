@@ -31,6 +31,21 @@ except ImportError:
     exit("Flask is required in order to serve models.\n" + "Run: pip3 install Flask")
 
 
+ALLOWED_METRIC_NAMES = {
+    name: obj
+    for name, obj in inspect.getmembers(sys.modules[__name__])
+    if inspect.isclass(obj) and obj.__module__.startswith("cornac.metrics")
+}
+
+
+def _safe_eval(metric_str):
+    code = compile(metric_str, "<string>", "eval")
+    for name in code.co_names:
+        if name not in ALLOWED_METRIC_NAMES:
+            raise NameError(f"Use of {name} not allowed")
+    return eval(code, {"__builtins__": {}}, ALLOWED_METRIC_NAMES)
+
+
 def _import_model_class(model_class):
     components = model_class.split(".")
     mod = __import__(".".join(components[:-1]), fromlist=[components[-1]])
@@ -75,8 +90,10 @@ def _load_model(instance_path):
     print(
         "Model loaded"
         if train_set is None
-        else "Model and train set loaded. Remove seen items by adding \
-            'remove_seen=true' query param to the recommend endpoint."
+        else """
+        Model and train set loaded. Remove seen items by adding 
+        remove_seen=true' query param to the recommend endpoint.
+        """
     )
 
 
@@ -199,11 +216,7 @@ def evaluate():
     metrics = []
     for metric in query_metrics:
         try:
-            # checking valid metric name before code execution,
-            # crucial for security reason
-            if not metric.split("(")[0] in metric_classnames:
-                raise ValueError("Invalid metric name")
-            metrics.append(eval(metric))
+            metrics.append(_safe_eval(metric))
         except:
             return (
                 f"Invalid metric initiation: {metric}.\n"
