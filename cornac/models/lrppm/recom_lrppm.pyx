@@ -39,13 +39,13 @@ from ..mter.recom_mter cimport get_key
 cdef extern from "../bpr/recom_bpr.h" namespace "recom_bpr" nogil:
     cdef int get_thread_num()
 
-cdef int get_key3(int i_id, int j_id, int k_id) nogil:
+cdef int get_key3(int i_id, int j_id, int k_id) noexcept nogil:
     return get_key(get_key(i_id, j_id), k_id)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef floating get_score(floating[:, :] U, floating[:, :] I, floating[:, :] UA, floating[:, :] IA,
-                        int n_factors, int u_idx, int i_idx, int a_idx) nogil:
+                        int n_factors, int u_idx, int i_idx, int a_idx) noexcept nogil:
     cdef floating score = 0.
     cdef int k
     for k in range(n_factors):
