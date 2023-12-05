@@ -35,7 +35,7 @@ MODEL_TYPES = {"Dominant": 0, "Finer": 1, "Around": 2}
 
 
 cdef floating _dot(int n, floating *x, int incx,
-                   floating *y, int incy) nogil:
+                   floating *y, int incy) noexcept nogil:
     if floating is float:
         return sdot(&n, x, &incx, y, &incy)
     else:
