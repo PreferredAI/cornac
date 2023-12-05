@@ -1,0 +1,95 @@
+from scipy.spatial.distance import pdist, squareform, cdist
+from torch.nn.functional import pdist
+import torch
+
+
+class DistanceCorrelationCalculator:
+    """
+    Class used to calculate the distance correlation between two tensors.
+    """
+
+    def __init__(self, n_factors, num_neg) -> None:
+        self.n_factors = n_factors
+        self.num_neg = num_neg
+        pass
+
+    def calculate_cov(self, X, Y):
+        """
+        Computes the distance covariance between X and Y.
+        :param X: A 3D torch tensor.
+        :param Y: A 3D torch tensor.
+        :return: A 1D torch tensor of len 1+mum_neg.
+        """
+        # first create centered distance matrices
+        X = self.cent_dist(X)
+        Y = self.cent_dist(Y)
+
+        # batch_size is dim 1, as dim 0 is one positive and num_neg negative samples
+        n_samples = X.shape[1]
+        # then calculate the covariance as a 1D array of length 1+num_neg
+        cov = torch.sqrt(torch.max(torch.sum(X * Y, dim=(1, 2)) / (n_samples * n_samples), torch.tensor(0.0)))
+        return cov
+
+    def calculate_var(self, X):
+        """
+        Computes the distance variance of X.
+        :param X: A 3D torch tensor.
+        :return: A 1D torch tensor of len 1+mum_neg.
+        """
+        return self.calculate_cov(X, X)
+
+    def calculate_cor(self, X, Y):
+        """
+        Computes the distance correlation between X and Y.
+
+        :param X: A 3D torch tensor.
+        :param Y: A 3D torch tensor.
+        :return: A 1D torch tensor of len 1+mum_neg.
+        """
+        return self.calculate_cov(X, Y) / torch.sqrt(torch.max(self.calculate_var(X) * self.calculate_var(Y), torch.tensor(0.0)))
+
+    def cent_dist(self, X):
+        """
+        Computes the pairwise euclidean distance between rows of X and centers
+        each cell of the distance matrix with row mean, column mean, and grand mean.
+        """
+        # put the samples from dim 1 into dim 0
+        X = X = torch.transpose(X, dim0=0, dim1=1)
+
+        # Now use pythagoras to calculate the distance matrix
+        first_part = torch.sum(torch.square(X), dim=-1, keepdims=True)
+        middle_part = torch.matmul(X, torch.transpose(X, dim0=1, dim1=2))
+        last_part = torch.transpose(first_part, dim0=1, dim1=2)
+
+        D = torch.sqrt(torch.max(first_part - 2 * middle_part + last_part, torch.tensor(0.0)))
+        # dim0 is the negative samples, dim1 is batch_size, dim2 is the kth factor of the embedding_dim
+
+        row_mean = torch.mean(D, dim=2, keepdim=True)
+        column_mean = torch.mean(D, dim=1, keepdim=True)
+        global_mean = torch.mean(D, dim=(1, 2), keepdim=True)
+        D = D - row_mean - column_mean + global_mean
+        return D
+
+    def calculate_disentangled_loss(self, item_embedding_factors, user_embedding_factors, text_embedding_factors):
+        """
+        Calculates the disentangled loss for the given factors.
+
+        :param item_embedding_factors: A list of 3D torch tensors.
+        :param user_embedding_factors: A list of 3D torch tensors.
+        :param text_embedding_factors: A list of 3D torch tensors.
+        :return: A 1D torch tensor of len 1+mum_neg.
+        """
+        cor_loss = torch.tensor([0.0] * (1 + self.num_neg))
+        for i in range(0, self.n_factors - 2):
+            for j in range(i + 1, self.n_factors - 1):
+                cor_loss += self.calculate_cor(item_embedding_factors[i], item_embedding_factors[j])
+                cor_loss += self.calculate_cor(user_embedding_factors[i], user_embedding_factors[j])
+                cor_loss += self.calculate_cor(text_embedding_factors[i], text_embedding_factors[j])
+
+        cor_loss = cor_loss / ((self.n_factors + 1.0) * self.n_factors / 2)
+
+        # two options, we can either return the sum over the 1 positive and num_neg negative samples.
+        # or we can return only the loss of the one positive sample, as they did in the paper
+
+        return torch.sum(cor_loss)
+        # return cor_loss[0]

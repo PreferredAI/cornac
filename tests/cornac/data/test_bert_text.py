@@ -37,7 +37,7 @@ class TestDMRL(unittest.TestCase):
 
     def setUp(self):
         # initialize sampler
-        self.num_neg = 2
+        self.num_neg = 4
         docs, item_ids = citeulike.load_text()
         feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
         cornac_dataset = Dataset.build(
@@ -50,10 +50,9 @@ class TestDMRL(unittest.TestCase):
         embedding_dim = 100
         bert_text_dim = 384
         self.modality = BertTextModality(corpus=docs, ids=self.item_ids)
-        self.dmrl = DMRL(cornac_dataset.num_users, cornac_dataset.num_items, embedding_dim, bert_text_dim)
+        self.dmrl = DMRL(cornac_dataset.num_users, cornac_dataset.num_items, embedding_dim, bert_text_dim, self.num_neg)
 
         # initialize sampler
-        self.num_neg = 4
         docs, item_ids = citeulike.load_text()
         feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
         cornac_dataset = Dataset.build(
