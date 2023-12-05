@@ -39,7 +39,7 @@ cdef extern from "../bpr/recom_bpr.h" namespace "recom_bpr" nogil:
     cdef int get_thread_num()
 
 
-cdef int get_key(int i_id, int j_id) nogil:
+cdef int get_key(int i_id, int j_id) noexcept nogil:
     return (i_id + j_id) * (i_id + j_id + 1) // 2 + j_id
 
 
@@ -47,7 +47,7 @@ cdef int get_key(int i_id, int j_id) nogil:
 @cython.wraparound(False)
 cdef floating get_score(floating[:, :, :] G, int dim1, int dim2, int dim3,
                         floating[:, :] U, floating[:, :] I, floating[:, :] A,
-                        int u_idx, int i_idx, int a_idx) nogil:
+                        int u_idx, int i_idx, int a_idx) noexcept nogil:
     cdef floating score = 0.
     for i in range(dim1):
         for j in range(dim2):
