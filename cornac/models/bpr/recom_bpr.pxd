@@ -20,7 +20,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 
 
-cdef bool has_non_zero(integral[:], integral[:], integral, integral) nogil
+cdef bool has_non_zero(integral[:], integral[:], integral, integral) noexcept nogil
 
 
 cdef extern from "<boost/random.hpp>" namespace "boost::random":
@@ -29,7 +29,7 @@ cdef extern from "<boost/random.hpp>" namespace "boost::random":
 
     cdef cppclass uniform_int_distribution[T]:
         uniform_int_distribution(T, T)
-        T operator()(mt19937) nogil
+        T operator()(mt19937) noexcept nogil
 
 
 cdef class RNGVector(object):
@@ -38,4 +38,4 @@ cdef class RNGVector(object):
     cdef vector[mt19937] rng
     cdef vector[uniform_int_distribution[long]] dist
 
-    cdef inline long generate(self, int thread_id) nogil
+    cdef inline long generate(self, int thread_id) noexcept nogil
