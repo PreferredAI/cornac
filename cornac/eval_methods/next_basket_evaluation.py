@@ -108,14 +108,15 @@ def ranking_eval(
         item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
         return item_indices, u_gt_pos_items, u_gt_neg_items
 
-    (test_user_indices, test_item_indices, _) = test_set.uir_tuple
-    for user_idx in tqdm(
-        set(test_user_indices), desc="Ranking", disable=not verbose, miniters=100
+    (test_user_indices, *_) = test_set.uir_tuple
+    for [user_idx], [(*history_baskets, gt_basket)] in tqdm(
+        test_set.user_basket_items_iter(batch_size=1, shuffle=False),
+        total=len(set(test_user_indices)),
+        desc="Ranking",
+        disable=not verbose,
+        miniters=100,
     ):
-        [*history_bids, gt_bid] = test_set.user_basket_data[user_idx]
-        test_pos_items = pos_items(
-            [[test_item_indices[idx] for idx in test_set.baskets[gt_bid]]]
-        )
+        test_pos_items = pos_items([gt_basket])
         if len(test_pos_items) == 0:
             continue
 
@@ -126,10 +127,7 @@ def ranking_eval(
         item_rank, item_scores = model.rank(
             user_idx,
             item_indices,
-            history_baskets=[
-                [test_item_indices[idx] for idx in test_set.baskets[bid]]
-                for bid in history_bids
-            ],
+            history_baskets=history_baskets,
             baskets=test_set.baskets,
             basket_ids=test_set.basket_ids,
             extra_data=test_set.extra_data,
@@ -146,19 +144,11 @@ def ranking_eval(
             user_results["conventional"][i][user_idx] = mt_score
 
         history_items = set(
-            test_item_indices[idx]
-            for bid in history_bids
-            for idx in test_set.baskets[bid]
+            item_idx for basket in history_baskets for item_idx in basket
         )
         if repetition_eval:
             test_repetition_pos_items = pos_items(
-                [
-                    [
-                        test_item_indices[idx]
-                        for idx in test_set.baskets[gt_bid]
-                        if test_item_indices[idx] in history_items
-                    ]
-                ]
+                [[iid for iid in gt_basket if iid in history_items]]
             )
             if len(test_repetition_pos_items) > 0:
                 _, u_gt_pos_items, u_gt_neg_items = get_gt_items(
@@ -176,13 +166,7 @@ def ranking_eval(
 
         if exploration_eval:
             test_exploration_pos_items = pos_items(
-                [
-                    [
-                        test_item_indices[idx]
-                        for idx in test_set.baskets[gt_bid]
-                        if test_item_indices[idx] not in history_items
-                    ]
-                ]
+                [[iid for iid in gt_basket if iid not in history_items]]
             )
             if len(test_exploration_pos_items) > 0:
                 _, u_gt_pos_items, u_gt_neg_items = get_gt_items(
@@ -365,13 +349,13 @@ class NextBasketEvaluation(RatioSplit):
             print("Total items = {}".format(self.total_items))
             print("Total baskets = {}".format(self.total_baskets))
 
-    def _eval(self, model, test_set, **kwargs):
+    def eval(self, model, test_set, ranking_metrics, **kwargs):
         metric_avg_results = OrderedDict()
         metric_user_results = OrderedDict()
 
         avg_results, user_results = ranking_eval(
             model=model,
-            metrics=self.ranking_metrics,
+            metrics=ranking_metrics,
             train_set=self.train_set,
             test_set=test_set,
             repetition_eval=self.repetition_eval,
@@ -380,12 +364,12 @@ class NextBasketEvaluation(RatioSplit):
             verbose=self.verbose,
         )
 
-        for i, mt in enumerate(self.ranking_metrics):
+        for i, mt in enumerate(ranking_metrics):
             metric_avg_results[mt.name] = avg_results["conventional"][i]
             metric_user_results[mt.name] = user_results["conventional"][i]
 
         if self.repetition_eval:
-            for i, mt in enumerate(self.ranking_metrics):
+            for i, mt in enumerate(ranking_metrics):
                 metric_avg_results["{}-rep".format(mt.name)] = avg_results[
                     "repetition"
                 ][i]
@@ -394,7 +378,7 @@ class NextBasketEvaluation(RatioSplit):
                 ][i]
 
         if self.repetition_eval:
-            for i, mt in enumerate(self.ranking_metrics):
+            for i, mt in enumerate(ranking_metrics):
                 metric_avg_results["{}-expl".format(mt.name)] = avg_results[
                     "exploration"
                 ][i]
