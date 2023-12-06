@@ -14,13 +14,11 @@
 # ============================================================================
 
 import unittest
-from collections import OrderedDict
 
 import numpy as np
 import numpy.testing as npt
 
-from cornac.data import Reader
-from cornac.data import Dataset
+from cornac.data import BasketDataset, Dataset, Reader
 
 
 class TestDataset(unittest.TestCase):
@@ -171,7 +169,7 @@ class TestDataset(unittest.TestCase):
         self.assertEqual(train_set.num_batches(batch_size=5), 2)
 
     def test_matrix(self):
-        from scipy.sparse import csr_matrix, csc_matrix, dok_matrix
+        from scipy.sparse import csc_matrix, csr_matrix, dok_matrix
 
         train_set = Dataset.from_uir(self.triplet_data)
 
@@ -232,6 +230,35 @@ class TestDataset(unittest.TestCase):
             Dataset.from_uir(self.triplet_data).chrono_item_data
         except ValueError:
             assert True
+
+
+class TestBasketDataset(unittest.TestCase):
+    def setUp(self):
+        self.basket_data = Reader().read("./tests/basket.txt", fmt="UBITJson")
+
+    def test_init(self):
+        train_set = BasketDataset.from_ubi(self.basket_data)
+
+        self.assertEqual(train_set.num_baskets, 25)
+        self.assertEqual(train_set.max_basket_size, 3)
+        self.assertEqual(train_set.min_basket_size, 1)
+
+        self.assertEqual(train_set.num_users, 10)
+        self.assertEqual(train_set.num_items, 7)
+
+        self.assertEqual(train_set.uid_map["1"], 0)
+        self.assertEqual(train_set.bid_map["1"], 0)
+        self.assertEqual(train_set.iid_map["1"], 0)
+
+        self.assertSetEqual(
+            set(train_set.user_ids),
+            set(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]),
+        )
+
+        self.assertSetEqual(
+            set(train_set.item_ids),
+            set(["1", "2", "3", "4", "5", "6", "7"]),
+        )
 
 
 if __name__ == "__main__":
