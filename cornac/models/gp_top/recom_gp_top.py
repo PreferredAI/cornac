@@ -56,17 +56,16 @@ class GPTop(NextBasketRecommender):
         return self
 
     def score(self, user_idx, history_baskets, **kwargs):
-        item_scores = np.ones(self.total_items)
+        item_scores = np.zeros(self.total_items, dtype=np.float32)
         if self.use_global_popularity:
-            for iid, freq in self.item_freq.items():
-                item_scores[iid] = freq
-
-        if self.use_personalized_popularity:
-            p_item_freq = Counter([iid for iids in history_baskets for iid in iids])
-
             max_item_freq = (
                 max(self.item_freq.values()) if len(self.item_freq) > 0 else 1
             )
+            for iid, freq in self.item_freq.items():
+                item_scores[iid] = freq / max_item_freq
+
+        if self.use_personalized_popularity:
+            p_item_freq = Counter([iid for iids in history_baskets for iid in iids])
             for iid, cnt in p_item_freq.most_common():
-                item_scores[iid] = max_item_freq + cnt
+                item_scores[iid] += cnt
         return item_scores
