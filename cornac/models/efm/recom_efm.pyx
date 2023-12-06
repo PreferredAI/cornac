@@ -36,7 +36,7 @@ from ...utils.init_utils import uniform
 
 
 cdef floating _dot(int n, floating *x, int incx,
-                   floating *y, int incy) nogil:
+                   floating *y, int incy) noexcept nogil:
     if floating is float:
         return sdot(&n, x, &incx, y, &incy)
     else:

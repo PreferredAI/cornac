@@ -43,7 +43,7 @@ cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
 
 @cython.boundscheck(False)
 cdef bool has_non_zero(integral[:] indptr, integral[:] indices,
-                       integral rowid, integral colid) nogil:
+                       integral rowid, integral colid) noexcept nogil:
     """Given a CSR matrix, returns whether the [rowid, colid] contains a non zero.
     Assumes the CSR matrix has sorted indices"""
     return binary_search(&indices[indptr[rowid]], &indices[indptr[rowid + 1]], colid)
@@ -56,7 +56,7 @@ cdef class RNGVector(object):
             self.rng.push_back(mt19937(rng.randint(2 ** 31)))
             self.dist.push_back(uniform_int_distribution[long](0, rows))
 
-    cdef inline long generate(self, int thread_id) nogil:
+    cdef inline long generate(self, int thread_id) noexcept nogil:
         return self.dist[thread_id](self.rng[thread_id])
 
 

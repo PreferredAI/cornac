@@ -19,8 +19,8 @@ from cython cimport floating, integral
 from libcpp.vector cimport vector
 
 
-cdef int get_key(int i_id, int j_id) nogil
+cdef int get_key(int i_id, int j_id) noexcept nogil
 
 cdef floating get_score(floating[:, :, :] G, int dim1, int dim2, int dim3,
                         floating[:, :] U, floating[:, :] I, floating[:, :] A,
-                        int u_idx, int i_idx, int a_idx) nogil
+                        int u_idx, int i_idx, int a_idx) noexcept nogil
