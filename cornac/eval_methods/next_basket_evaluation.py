@@ -184,18 +184,21 @@ def ranking_eval(
     # avg results of ranking metrics
     for i, mt in enumerate(metrics):
         avg_results["conventional"].append(
-            sum(user_results["conventional"][i].values())
-            / len(user_results["conventional"][i])
+            np.mean(list(user_results["conventional"][i].values()))
+            if len(user_results["conventional"][i]) > 0
+            else 0
         )
         if repetition_eval:
             avg_results["repetition"].append(
-                sum(user_results["repetition"][i].values())
-                / len(user_results["repetition"][i])
+                np.mean(list(user_results["repetition"][i].values()))
+                if len(user_results["repetition"][i]) > 0
+                else 0
             )
         if exploration_eval:
             avg_results["exploration"].append(
-                sum(user_results["exploration"][i].values())
-                / len(user_results["exploration"][i])
+                np.mean(list(user_results["exploration"][i].values()))
+                if len(user_results["repetition"][i]) > 0
+                else 0
             )
 
     return avg_results, user_results
