@@ -231,14 +231,14 @@ def evaluate():
     data_fpath = "data/feedback.csv"
     if os.path.exists(data_fpath):
         reader = Reader()
-        data = reader.read(data_fpath, fmt="UIRT", sep=",")
+        data = reader.read(data_fpath, fmt="UIR", sep=",")
 
     if not len(data):
         raise ValueError("No data available to evaluate the model.")
 
     test_set = Dataset.build(
         data,
-        fmt="UIRT",
+        fmt="UIR",
         global_uid_map=train_set.uid_map,
         global_iid_map=train_set.iid_map,
         exclude_unknowns=exclude_unknowns,
