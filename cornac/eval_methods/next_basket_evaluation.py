@@ -110,7 +110,7 @@ def ranking_eval(
 
     (test_user_indices, *_) = test_set.uir_tuple
     for [user_idx], [(*history_baskets, gt_basket)] in tqdm(
-        test_set.user_basket_items_iter(batch_size=1, shuffle=False),
+        test_set.ubis_iter(batch_size=1, shuffle=False),
         total=len(set(test_user_indices)),
         desc="Ranking",
         disable=not verbose,

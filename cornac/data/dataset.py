@@ -920,8 +920,8 @@ class BasketDataset(Dataset):
         """Estimate number of batches per epoch"""
         return estimate_batches(len(self.user_data), batch_size)
 
-    def user_basket_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of basket indices and batch of baskets
+    def ub_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of users and batch of baskets
 
         Parameters
         ----------
@@ -932,7 +932,7 @@ class BasketDataset(Dataset):
 
         Returns
         -------
-        iterator : batch of user indices, batch of user data corresponding to user indices
+        iterator : batch of user indices, batch of baskets corresponding to user indices
 
         """
         user_indices = np.asarray(list(self.user_basket_data.keys()), dtype="int")
@@ -940,11 +940,11 @@ class BasketDataset(Dataset):
             len(self.user_basket_data), batch_size=batch_size, shuffle=shuffle
         ):
             batch_users = user_indices[batch_ids]
-            batch_basket_ids = [self.user_basket_data[uid] for uid in batch_users]
-            yield batch_users, batch_basket_ids
+            batch_baskets = [self.user_basket_data[uid] for uid in batch_users]
+            yield batch_users, batch_baskets
 
-    def user_basket_items_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of basket indices and batch of baskets
+    def ubis_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of users and batch of baskets (each basket is a list of items)
 
         Parameters
         ----------
@@ -955,7 +955,7 @@ class BasketDataset(Dataset):
 
         Returns
         -------
-        iterator : batch of user indices, batch of user basket items corresponding to user indices
+        iterator : batch of user indices, batch of baskets (each basket is a list of items) corresponding to user indices
 
         """
         user_indices = np.asarray(list(self.user_basket_data.keys()), dtype="int")
@@ -973,7 +973,7 @@ class BasketDataset(Dataset):
             yield batch_users, batch_basket_items
 
     def basket_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of basket indices and batch of baskets
+        """Create an iterator over data yielding batch of basket indices
 
         Parameters
         ----------
@@ -984,12 +984,9 @@ class BasketDataset(Dataset):
 
         Returns
         -------
-        iterator : batch of basket indices, batch of baskets (list of list)
+        iterator : batch of basket indices (array of 'int')
 
         """
-        basket_indices = np.array(list(self.baskets.keys()))
-        baskets = list(self.baskets.values())
+        basket_indices = np.fromiter(set(self.baskets.keys()), dtype="int")
         for batch_ids in self.idx_iter(len(basket_indices), batch_size, shuffle):
-            batch_basket_indices = basket_indices[batch_ids]
-            batch_baskets = [baskets[idx] for idx in batch_ids]
-            yield batch_basket_indices, batch_baskets
+            yield basket_indices[batch_ids]
