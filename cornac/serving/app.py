@@ -16,17 +16,34 @@
 """
 
 import os
-import pickle
+import sys
+import inspect
 from datetime import datetime, timezone
 from csv import writer
+
+from cornac.data import Dataset, Reader
+from cornac.eval_methods import BaseMethod
+from cornac.metrics import *
 
 try:
     from flask import Flask, jsonify, request
 except ImportError:
-    exit(
-        "Flask is required in order to serve models.\n"
-        + "Run: pip3 install Flask"
-    )
+    exit("Flask is required in order to serve models.\n" + "Run: pip3 install Flask")
+
+
+ALLOWED_METRIC_NAMES = {
+    name: obj
+    for name, obj in inspect.getmembers(sys.modules[__name__])
+    if inspect.isclass(obj) and obj.__module__.startswith("cornac.metrics")
+}
+
+
+def _safe_eval(metric_str):
+    code = compile(metric_str, "<string>", "eval")
+    for name in code.co_names:
+        if name not in ALLOWED_METRIC_NAMES:
+            raise NameError(f"Use of {name} not allowed")
+    return eval(code, {"__builtins__": {}}, ALLOWED_METRIC_NAMES)
 
 
 def _import_model_class(model_class):
@@ -66,20 +83,34 @@ def _load_model(instance_path):
             train_set_path = os.path.join(
                 os.path.dirname(instance_path), train_set_path
             )
-        with open(train_set_path, "rb") as f:
-            train_set = pickle.load(f)
+        train_set = Dataset.load(train_set_path)
+    elif os.path.exists(train_set_path := model.load_from + ".trainset"):
+        train_set = Dataset.load(train_set_path)
 
     print(
         "Model loaded"
         if train_set is None
-        else "Model and train set loaded. Remove seen items by adding \
-            'remove_seen=true' query param to the recommend endpoint."
+        else """
+        Model and train set loaded. Remove seen items by adding 
+        remove_seen=true' query param to the recommend endpoint.
+        """
     )
+
+
+def _get_cornac_metric_classnames():
+    """For security checking in the evaluate API"""
+    global metric_classnames
+
+    metric_classnames = set()
+    for name, obj in inspect.getmembers(sys.modules[__name__]):
+        if inspect.isclass(obj) and obj.__module__.startswith("cornac.metrics"):
+            metric_classnames.add(name)
 
 
 def create_app():
     app = Flask(__name__)
     _load_model(app.instance_path)
+    _get_cornac_metric_classnames()
     return app
 
 
@@ -126,6 +157,7 @@ def add_feedback():
     iid = params.get("iid")
     rating = params.get("rating", 1)
     time = datetime.now(timezone.utc)
+    data_fpath = "data/feedback.csv"
 
     if uid is None:
         return "uid is required", 400
@@ -133,7 +165,9 @@ def add_feedback():
     if iid is None:
         return "iid is required", 400
 
-    with open("feedback.csv", "a+", newline="") as write_obj:
+    os.makedirs(os.path.dirname(data_fpath), exist_ok=True)
+
+    with open(data_fpath, "a+", newline="") as write_obj:
         csv_writer = writer(write_obj)
         csv_writer.writerow([uid, iid, rating, time])
         write_obj.close()
@@ -149,6 +183,88 @@ def add_feedback():
     }
 
     return jsonify(data), 200
+
+
+# curl -X POST -H "Content-Type: application/json" -d '{"metrics": ["RMSE()", "NDCG(k=10)"]}' "http://localhost:8080/evaluate"
+@app.route("/evaluate", methods=["POST"])
+def evaluate():
+    global model, train_set, metric_classnames
+
+    if model is None:
+        return "Model is not yet loaded. Please try again later.", 400
+
+    if train_set is None:
+        return "Unable to evaluate. 'train_set' is not provided", 400
+
+    query = request.json
+
+    query_metrics = query.get("metrics")
+    rating_threshold = query.get("rating_threshold", 1.0)
+    exclude_unknowns = (
+        query.get("exclude_unknowns", "true").lower() == "true"
+    )  # exclude unknown users/items by default, otherwise specified
+    user_based = (
+        query.get("user_based", "true").lower() == "true"
+    )  # user_based evaluation by default, otherwise specified
+
+    if query_metrics is None:
+        return "metrics is required", 400
+    elif not isinstance(query_metrics, list):
+        return "metrics must be an array of metrics", 400
+
+    # organize metrics
+    metrics = []
+    for metric in query_metrics:
+        try:
+            metrics.append(_safe_eval(metric))
+        except:
+            return (
+                f"Invalid metric initiation: {metric}.\n"
+                + "Please input correct metrics (e.g., 'RMSE()', 'Recall(k=10)')",
+                400,
+            )
+
+    rating_metrics, ranking_metrics = BaseMethod.organize_metrics(metrics)
+
+    # read data
+    data = []
+    data_fpath = "data/feedback.csv"
+    if os.path.exists(data_fpath):
+        reader = Reader()
+        data = reader.read(data_fpath, fmt="UIR", sep=",")
+
+    if not len(data):
+        raise ValueError("No data available to evaluate the model.")
+
+    test_set = Dataset.build(
+        data,
+        fmt="UIR",
+        global_uid_map=train_set.uid_map,
+        global_iid_map=train_set.iid_map,
+        exclude_unknowns=exclude_unknowns,
+    )
+
+    # evaluation
+    result = BaseMethod.eval(
+        model=model,
+        train_set=train_set,
+        test_set=test_set,
+        val_set=None,
+        rating_threshold=rating_threshold,
+        exclude_unknowns=exclude_unknowns,
+        rating_metrics=rating_metrics,
+        ranking_metrics=ranking_metrics,
+        user_based=user_based,
+        verbose=False,
+    )
+
+    # response
+    response = {
+        "result": result.metric_avg_results,
+        "query": query,
+    }
+
+    return jsonify(response), 200
 
 
 if __name__ == "__main__":

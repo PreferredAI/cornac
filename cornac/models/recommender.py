@@ -217,13 +217,18 @@ class Recommender:
 
         return self.__class__(**init_params)
 
-    def save(self, save_dir=None):
+    def save(self, save_dir=None, save_trainset=False):
         """Save a recommender model to the filesystem.
 
         Parameters
         ----------
         save_dir: str, default: None
             Path to a directory for the model to be stored.
+
+        save_trainset: bool, default: False
+            Save train_set together with the model. This is useful
+            if we want to deploy model later because train_set is
+            required for certain evaluation steps.
 
         Returns
         -------
@@ -244,6 +249,13 @@ class Recommender:
         )
         if self.verbose:
             print("{} model is saved to {}".format(self.name, model_file))
+
+        if save_trainset:
+            pickle.dump(
+                self.train_set,
+                open(model_file + ".trainset", "wb"),
+                protocol=pickle.HIGHEST_PROTOCOL,
+            )
 
         return model_file
 

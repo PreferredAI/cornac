@@ -16,7 +16,13 @@
 import unittest
 
 from cornac.eval_methods import BaseMethod
-from cornac.data import FeatureModality, TextModality, ReviewModality, ImageModality, SentimentModality
+from cornac.data import (
+    FeatureModality,
+    TextModality,
+    ReviewModality,
+    ImageModality,
+    SentimentModality,
+)
 from cornac.data import Dataset, Reader
 from cornac.metrics import MAE, AUC
 from cornac.models import MF
@@ -78,9 +84,7 @@ class TestBaseMethod(unittest.TestCase):
         sentiment_data = Reader().read(
             "./tests/sentiment_data.txt", fmt="UITup", sep=",", tup_sep=":"
         )
-        review_data = Reader().read(
-            "./tests/review.txt", fmt="UIReview"
-        )
+        review_data = Reader().read("./tests/review.txt", fmt="UIReview")
         bm = BaseMethod.from_splits(train_data=data[:-1], test_data=data[-1:])
 
         self.assertIsNone(bm.user_feature)
@@ -95,7 +99,7 @@ class TestBaseMethod(unittest.TestCase):
 
         bm.user_feature = FeatureModality()
         bm.user_text = TextModality()
-        bm.item_text = ReviewModality(data=review_data, filter_by='item')
+        bm.item_text = ReviewModality(data=review_data, filter_by="item")
         bm.item_image = ImageModality()
         bm.sentiment = SentimentModality(data=sentiment_data)
         bm._build_modalities()
@@ -104,7 +108,7 @@ class TestBaseMethod(unittest.TestCase):
             bm.user_feature = ()
         except ValueError:
             assert True
-        
+
         try:
             bm.item_feature = ()
         except ValueError:
@@ -151,14 +155,12 @@ class TestBaseMethod(unittest.TestCase):
             assert True
 
     def test_organize_metrics(self):
-        bm = BaseMethod()
-
-        bm._organize_metrics([MAE(), AUC()])
-        self.assertEqual(len(bm.rating_metrics), 1)  # MAE
-        self.assertEqual(len(bm.ranking_metrics), 1)  # AUC
+        rating_metrics, ranking_metrics = BaseMethod.organize_metrics([MAE(), AUC()])
+        self.assertEqual(len(rating_metrics), 1)  # MAE
+        self.assertEqual(len(ranking_metrics), 1)  # AUC
 
         try:
-            bm._organize_metrics(None)
+            BaseMethod.organize_metrics(None)
         except ValueError:
             assert True
 
