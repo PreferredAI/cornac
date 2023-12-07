@@ -933,7 +933,7 @@ class BasketDataset(Dataset):
         iterator : batch of user indices, batch of baskets corresponding to user indices
 
         """
-        for batch_users in self.user_iter(batch_size=batch_size, shuffle=shuffle):
+        for batch_users in self.user_iter(batch_size, shuffle):
             batch_baskets = [self.user_basket_data[uid] for uid in batch_users]
             yield batch_users, batch_baskets
 
@@ -952,18 +952,11 @@ class BasketDataset(Dataset):
         iterator : batch of user indices, batch of baskets corresponding to user indices, and batch of items correponding to baskets
 
         """
-        user_indices = np.asarray(list(self.user_basket_data.keys()), dtype="int")
-        for batch_ids in self.idx_iter(
-            len(self.user_basket_data), batch_size=batch_size, shuffle=shuffle
-        ):
-            batch_users = user_indices[batch_ids]
-            batch_baskets = [self.user_basket_data[uid] for uid in batch_users]
+        _, item_indices, _ = self.uir_tuple
+        for batch_users, batch_baskets in self.ub_iter(batch_size, shuffle):
             batch_basket_items = [
-                [
-                    [self.uir_tuple[1][idx] for idx in self.baskets[bid]]
-                    for bid in self.user_basket_data[uid]
-                ]
-                for uid in batch_users
+                [item_indices[self.baskets[bid]] for bid in user_baskets]
+                for user_baskets in batch_baskets
             ]
             yield batch_users, batch_baskets, batch_basket_items
 
