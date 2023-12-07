@@ -700,9 +700,8 @@ class BasketDataset(Dataset):
     def baskets(self):
         """A dictionary to store indices where basket ID appears in the data."""
         if self.__baskets is None:
-            self.__baskets = OrderedDict()
+            self.__baskets = defaultdict(list)
             for idx, bid in enumerate(self.basket_ids):
-                self.__baskets.setdefault(bid, [])
                 self.__baskets[bid].append(idx)
         return self.__baskets
 
@@ -712,10 +711,9 @@ class BasketDataset(Dataset):
         values are list of baskets purchased by corresponding users.
         """
         if self.__user_basket_data is None:
-            self.__user_basket_data = defaultdict()
+            self.__user_basket_data = defaultdict(list)
             for bid, ids in self.baskets.items():
                 u = self.uir_tuple[0][ids[0]]
-                self.__user_basket_data.setdefault(u, [])
                 self.__user_basket_data[u].append(bid)
         return self.__user_basket_data
 
