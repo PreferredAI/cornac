@@ -415,6 +415,14 @@ class Dataset(object):
         """Estimate number of batches per epoch"""
         return estimate_batches(len(self.uir_tuple[0]), batch_size)
 
+    def num_user_batches(self, batch_size):
+        """Estimate number of batches per epoch iterating over users"""
+        return estimate_batches(self.num_users, batch_size)
+
+    def num_item_batches(self, batch_size):
+        """Estimate number of batches per epoch iterating over items"""
+        return estimate_batches(self.num_items, batch_size)
+
     def idx_iter(self, idx_range, batch_size=1, shuffle=False):
         """Create an iterator over batch of indices
 
@@ -913,10 +921,6 @@ class BasketDataset(Dataset):
 
         """
         return cls.build(data, fmt="UBITJson", seed=seed)
-
-    def num_batches(self, batch_size):
-        """Estimate number of batches per epoch"""
-        return estimate_batches(len(self.user_data), batch_size)
 
     def ub_iter(self, batch_size=1, shuffle=False):
         """Create an iterator over data yielding batch of users and batch of baskets
