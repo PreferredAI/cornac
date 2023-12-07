@@ -109,8 +109,8 @@ def ranking_eval(
         return item_indices, u_gt_pos_items, u_gt_neg_items
 
     (test_user_indices, *_) = test_set.uir_tuple
-    for [user_idx], [(*history_baskets, gt_basket)] in tqdm(
-        test_set.ubis_iter(batch_size=1, shuffle=False),
+    for [user_idx], [bids], [(*history_baskets, gt_basket)] in tqdm(
+        test_set.ubi_iter(batch_size=1, shuffle=False),
         total=len(set(test_user_indices)),
         desc="Ranking",
         disable=not verbose,
@@ -128,7 +128,7 @@ def ranking_eval(
             user_idx,
             item_indices,
             history_baskets=history_baskets,
-            history_basket_ids=test_set.user_basket_data[user_idx][:-1],
+            history_basket_ids=bids[:-1],
             uir_tuple=test_set.uir_tuple,
             baskets=test_set.baskets,
             basket_ids=test_set.basket_ids,
