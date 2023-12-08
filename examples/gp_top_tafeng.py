@@ -30,8 +30,9 @@ next_basket_eval = NextBasketEvaluation(
 )
 
 models = [
-    GPTop(name="PTop", use_global_popularity=False),
     GPTop(name="GTop", use_personalized_popularity=False),
+    GPTop(name="PTop", use_global_popularity=False),
+    GPTop(name="GPTop-quantity", use_quantity=True),
     GPTop(),
 ]
 
