@@ -15,6 +15,7 @@
 
 import os
 import pytest
+import json
 
 
 @pytest.fixture()
@@ -23,7 +24,7 @@ def app():
     relative_path = os.path.dirname(__file__)
     print(relative_path)
     os.environ["MODEL_PATH"] = os.path.join(relative_path, "saved_model.pkl")
-    os.environ["MODEL_CLASS"] = "cornac.models.BPR"
+    os.environ["MODEL_CLASS"] = "cornac.models.MF"
 
     from cornac.serving.app import app
 
@@ -77,3 +78,26 @@ def test_feedback_missing_iid(client):
 def test_feedback_missing_rating(client):
     response = client.post('/feedback?uid=1&iid=1')
     assert response.status_code == 200
+
+
+def test_evaluate_json(client):
+    json_data = {
+        'metrics': ['RMSE()', 'Recall(k=10)']
+    }
+    response = client.post('/evaluate', json=json_data)
+    # assert response.content_type == 'application/json'
+    assert response.status_code == 200
+    assert len(response.json['query']['metrics']) == 2
+    assert 'RMSE' in response.json['result']
+    assert 'Recall@10' in response.json['result']
+
+
+def test_evalulate_incorrect_get(client):
+    response = client.get('/evaluate')
+    assert response.status_code == 405  # method not allowed
+
+
+def test_evalulate_incorrect_post(client):
+    response = client.post('/evaluate')
+    assert response.status_code == 415  # bad request, expect json
+
