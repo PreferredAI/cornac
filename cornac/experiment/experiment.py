@@ -139,7 +139,7 @@ class Experiment:
             if self.val_result is not None:
                 self.val_result.append(val_result)
 
-            if not isinstance(self.result, CVExperimentResult):
+            if self.save_dir and (not isinstance(self.result, CVExperimentResult)):
                 model.save(self.save_dir)
 
         output = ""
