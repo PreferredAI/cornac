@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for using Faiss for ANN Search with BPR model"""
+"""Example for comparing different ANN Searchers with BPR model"""
 
 import cornac
 from cornac.data import Reader
@@ -24,7 +24,7 @@ from cornac.models import BPR, AnnoyANN, FaissANN, HNSWLibANN, ScaNNANN
 
 bpr = BPR(k=50, max_iter=200, learning_rate=0.001, lambda_reg=0.001, verbose=True)
 
-# using default params of the ANN models
+# using default params of the ANN searchers
 # performance could be better if they are carefuly tuned
 ann1 = AnnoyANN(bpr, verbose=True)
 ann2 = FaissANN(bpr, verbose=True)
