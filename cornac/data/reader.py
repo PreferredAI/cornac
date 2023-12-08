@@ -60,19 +60,19 @@ def ubitjson_parser(tokens, **kwargs):
 
 
 def sit_parser(tokens, **kwargs):
-    return [(tokens[0], tokens[1], tokens[2])]
+    return [(tokens[0], tokens[1], int(tokens[2]))]
 
 
 def sitjson_parser(tokens, **kwargs):
-    return [(tokens[0], tokens[1], tokens[2], ast.literal_eval(tokens[3]))]
+    return [(tokens[0], tokens[1], int(tokens[2]), ast.literal_eval(tokens[3]))]
 
 
 def usit_parser(tokens, **kwargs):
-    return [(tokens[0], tokens[1], tokens[2], tokens[3])]
+    return [(tokens[0], tokens[1], tokens[2], int(tokens[3]))]
 
 
 def usitjson_parser(tokens, **kwargs):
-    return [(tokens[0], tokens[1], tokens[2], tokens[3], ast.literal_eval(tokens[4]))]
+    return [(tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))]
 
 
 PARSERS = {
@@ -112,6 +112,14 @@ class Reader:
         The minimum frequency of an item to be retained.
         If `min_item_freq = 1`, all items will be included.
 
+    num_top_freq_user: int, default = 0
+        The number of top popular users to be retained.
+        If `num_top_freq_user = 0`, all users will be included.
+
+    num_top_freq_item: int, default = 0
+        The number of top popular items to be retained.
+        If `num_top_freq_item = 0`, all items will be included.
+
     min_basket_size: int, default = 1
         The minimum number of items of a basket to be retained.
         If `min_basket_size = 1`, all items will be included.
@@ -123,6 +131,14 @@ class Reader:
     min_basket_sequence: int, default = 1
         The minimum number of baskets of a user to be retained.
         If `min_basket_sequence = 1`, all baskets will be included.
+
+    min_sequence_size: int, default = 1
+        The minimum number of items of a sequence to be retained.
+        If `min_sequence_size = 1`, all sequences will be included.
+
+    max_sequence_size: int, default = -1
+        The maximum number of items of a sequence to be retained.
+        If `min_sequence_size = -1`, all sequences will be included.
 
     bin_threshold: float, default = None
         The rating threshold to binarize rating values (turn explicit feedback to implicit feedback).
@@ -144,9 +160,13 @@ class Reader:
         item_set=None,
         min_user_freq=1,
         min_item_freq=1,
+        num_top_freq_user=0,
+        num_top_freq_item=0,
         min_basket_size=1,
         max_basket_size=-1,
         min_basket_sequence=1,
+        min_sequence_size=1,
+        max_sequence_size=-1,
         bin_threshold=None,
         encoding="utf-8",
         errors=None,
@@ -155,9 +175,13 @@ class Reader:
         self.item_set = item_set if (item_set is None or isinstance(item_set, set)) else set(item_set)
         self.min_uf = min_user_freq
         self.min_if = min_item_freq
+        self.num_top_freq_user = num_top_freq_user
+        self.num_top_freq_item = num_top_freq_item
         self.min_basket_size = min_basket_size
         self.max_basket_size = max_basket_size
         self.min_basket_sequence = min_basket_sequence
+        self.min_sequence_size = min_sequence_size
+        self.max_sequence_size = max_sequence_size
         self.bin_threshold = bin_threshold
         self.encoding = encoding
         self.errors = errors
@@ -186,13 +210,33 @@ class Reader:
             item_freq = Counter(t[1] for t in tuples)
             tuples = [t for t in tuples if item_freq[t[1]] >= self.min_if]
 
-        if self.min_basket_size > 1:
-            basket_size = Counter(t[1] for t in tuples)
-            tuples = [t for t in tuples if basket_size[t[1]] >= self.min_basket_size]
+        if self.num_top_freq_user > 0:
+            user_freq = Counter(t[0] for t in tuples)
+            top_freq_users = {
+                u: cnt
+                for inc, (u, cnt) in enumerate(user_freq.most_common())
+                if inc < self.num_top_freq_user
+            }
+            tuples = [t for t in tuples if top_freq_users.get(t[0], 0) > 0]
 
-        if self.max_basket_size > 1:
-            basket_size = Counter(t[1] for t in tuples)
-            tuples = [t for t in tuples if basket_size[t[1]] <= self.max_basket_size]
+        if self.num_top_freq_item > 0:
+            item_freq = Counter(t[2] for t in tuples)
+            top_freq_items = {
+                i: cnt
+                for inc, (i, cnt) in enumerate(item_freq.most_common())
+                if inc < self.num_top_freq_item
+            }
+            tuples = [t for t in tuples if top_freq_items.get(t[2], 0) > 0]
+
+        if self.min_basket_size > 1 or self.min_sequence_size > 1:
+            min_size = max(self.min_basket_size, self.min_sequence_size)
+            sizes = Counter(t[1] for t in tuples)
+            tuples = [t for t in tuples if sizes[t[1]] >= min_size]
+
+        if self.max_basket_size > 1 or self.max_sequence_size > 1:
+            max_size = max(self.max_basket_size, self.max_sequence_size)
+            sizes = Counter(t[1] for t in tuples)
+            tuples = [t for t in tuples if sizes[t[1]] <= max_size]
 
         if self.min_basket_sequence > 1:
             basket_sequence = Counter(u for (u, _) in set((t[0], t[1]) for t in tuples))
