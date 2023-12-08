@@ -15,8 +15,8 @@
 
 import unittest
 
-from cornac.data import Reader, Dataset
-from cornac.models import MF
+from cornac.data import BasketDataset, Dataset, Reader
+from cornac.models import MF, GPTop, NextBasketRecommender
 
 
 class TestRecommender(unittest.TestCase):
@@ -49,6 +49,24 @@ class TestRecommender(unittest.TestCase):
                 ]
             )
         )
+
+
+class TestNextBasketRecommender(unittest.TestCase):
+    def setUp(self):
+        self.data = Reader().read("./tests/basket.txt", fmt="UBITJson")
+
+    def test_init(self):
+        model = NextBasketRecommender("test")
+        self.assertTrue(model.name == "test")
+
+    def test_fit(self):
+        dataset = BasketDataset.from_ubi(self.data)
+        model = NextBasketRecommender("")
+        model.fit(dataset)
+        model = GPTop()
+        model.fit(dataset)
+        model.score(0, [[]])
+        model.rank(0, history_baskets=[[]])
 
 
 if __name__ == "__main__":

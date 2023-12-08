@@ -415,6 +415,14 @@ class Dataset(object):
         """Estimate number of batches per epoch"""
         return estimate_batches(len(self.uir_tuple[0]), batch_size)
 
+    def num_user_batches(self, batch_size):
+        """Estimate number of batches per epoch iterating over users"""
+        return estimate_batches(self.num_users, batch_size)
+
+    def num_item_batches(self, batch_size):
+        """Estimate number of batches per epoch iterating over items"""
+        return estimate_batches(self.num_items, batch_size)
+
     def idx_iter(self, idx_range, batch_size=1, shuffle=False):
         """Create an iterator over batch of indices
 
@@ -700,9 +708,8 @@ class BasketDataset(Dataset):
     def baskets(self):
         """A dictionary to store indices where basket ID appears in the data."""
         if self.__baskets is None:
-            self.__baskets = OrderedDict()
+            self.__baskets = defaultdict(list)
             for idx, bid in enumerate(self.basket_ids):
-                self.__baskets.setdefault(bid, [])
                 self.__baskets[bid].append(idx)
         return self.__baskets
 
@@ -712,10 +719,9 @@ class BasketDataset(Dataset):
         values are list of baskets purchased by corresponding users.
         """
         if self.__user_basket_data is None:
-            self.__user_basket_data = defaultdict()
+            self.__user_basket_data = defaultdict(list)
             for bid, ids in self.baskets.items():
                 u = self.uir_tuple[0][ids[0]]
-                self.__user_basket_data.setdefault(u, [])
                 self.__user_basket_data[u].append(bid)
         return self.__user_basket_data
 
@@ -916,37 +922,50 @@ class BasketDataset(Dataset):
         """
         return cls.build(data, fmt="UBITJson", seed=seed)
 
-    def num_batches(self, batch_size):
-        """Estimate number of batches per epoch"""
-        return estimate_batches(len(self.user_data), batch_size)
-
-    def user_basket_data_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of basket indices and batch of baskets
+    def ub_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of users and batch of baskets
 
         Parameters
         ----------
         batch_size: int, optional, default = 1
 
         shuffle: bool, optional, default: False
-            If `True`, orders of triplets will be randomized. If `False`, default orders kept.
+            If `True`, orders of users will be randomized. If `False`, default orders kept.
 
         Returns
         -------
-        iterator : batch of user indices, batch of user data corresponding to user indices
+        iterator : batch of user indices, batch of baskets corresponding to user indices
 
         """
-        user_indices = np.asarray(list(self.user_basket_data.keys()), dtype="int")
-        for batch_ids in self.idx_iter(
-            len(self.user_basket_data), batch_size=batch_size, shuffle=shuffle
-        ):
-            batch_users = user_indices[batch_ids]
-            batch_basket_ids = np.asarray(
-                [self.user_basket_data[uid] for uid in batch_users], dtype="int"
-            )
-            yield batch_users, batch_basket_ids
+        for batch_users in self.user_iter(batch_size, shuffle):
+            batch_baskets = [self.user_basket_data[uid] for uid in batch_users]
+            yield batch_users, batch_baskets
+
+    def ubi_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of users, basket ids, and batch of the corresponding items
+
+        Parameters
+        ----------
+        batch_size: int, optional, default = 1
+
+        shuffle: bool, optional, default: False
+            If `True`, orders of users will be randomized. If `False`, default orders kept.
+
+        Returns
+        -------
+        iterator : batch of user indices, batch of baskets corresponding to user indices, and batch of items correponding to baskets
+
+        """
+        _, item_indices, _ = self.uir_tuple
+        for batch_users, batch_baskets in self.ub_iter(batch_size, shuffle):
+            batch_basket_items = [
+                [item_indices[self.baskets[bid]] for bid in user_baskets]
+                for user_baskets in batch_baskets
+            ]
+            yield batch_users, batch_baskets, batch_basket_items
 
     def basket_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of basket indices and batch of baskets
+        """Create an iterator over data yielding batch of basket indices
 
         Parameters
         ----------
@@ -957,12 +976,9 @@ class BasketDataset(Dataset):
 
         Returns
         -------
-        iterator : batch of basket indices, batch of baskets (list of list)
+        iterator : batch of basket indices (array of 'int')
 
         """
-        basket_indices = np.array(list(self.baskets.keys()))
-        baskets = list(self.baskets.values())
+        basket_indices = np.fromiter(set(self.baskets.keys()), dtype="int")
         for batch_ids in self.idx_iter(len(basket_indices), batch_size, shuffle):
-            batch_basket_indices = basket_indices[batch_ids]
-            batch_baskets = [baskets[idx] for idx in batch_ids]
-            yield batch_basket_indices, batch_baskets
+            yield basket_indices[batch_ids]
