@@ -344,7 +344,7 @@ setup(
     ],
     ext_modules=extensions,
     install_requires=["numpy", "scipy", "tqdm", "powerlaw"],
-    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
+    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov", "Flask"]},
     cmdclass=cmdclass,
     packages=find_packages(),
     classifiers=[
