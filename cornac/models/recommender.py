@@ -13,18 +13,17 @@
 # limitations under the License.
 # ============================================================================
 
-import os
 import copy
 import inspect
+import os
 import pickle
-from glob import glob
 from datetime import datetime
+from glob import glob
 
 import numpy as np
 
 from ..exception import ScoreException
 from ..utils.common import clip
-
 
 MEASURE_L2 = "l2 distance aka. Euclidean distance"
 MEASURE_DOT = "dot product aka. inner product"
@@ -244,9 +243,7 @@ class Recommender:
         model_file = os.path.join(model_dir, "{}.pkl".format(timestamp))
 
         saved_model = copy.deepcopy(self)
-        pickle.dump(
-            saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
-        )
+        pickle.dump(saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
         if self.verbose:
             print("{} model is saved to {}".format(self.name, model_file))
 
@@ -523,9 +520,7 @@ class Recommender:
             raise ValueError(f"{user_id} is unknown to the model.")
 
         if k < -1 or k > self.total_items:
-            raise ValueError(
-                f"k={k} is invalid, there are {self.total_users} users in total."
-            )
+            raise ValueError(f"k={k} is invalid, there are {self.total_users} users in total.")
 
         item_indices = np.arange(self.total_items)
         if remove_seen:
@@ -602,11 +597,7 @@ class Recommender:
 
         if self.stopped_epoch > 0:
             print("Early stopping:")
-            print(
-                "- best epoch = {}, stopped epoch = {}".format(
-                    self.best_epoch, self.stopped_epoch
-                )
-            )
+            print("- best epoch = {}, stopped epoch = {}".format(self.best_epoch, self.stopped_epoch))
             print(
                 "- best monitored value = {:.6f} (delta = {:.6f})".format(
                     self.best_value, current_value - self.best_value
@@ -663,6 +654,63 @@ class NextBasketRecommender(Recommender):
         ----------
         history_baskets: list of lists
             The list of history baskets in sequential manner for next-basket prediction.
+
+        Returns
+        -------
+        res : a Numpy array
+            Relative scores of all known items
+
+        """
+        raise NotImplementedError("The algorithm is not able to make score prediction!")
+
+
+class NextItemRecommender(Recommender):
+    """Generic class for a next item recommender model. All next item recommendation models should inherit from this class.
+
+    Parameters
+    ----------------
+    name: str, required
+        Name of the recommender model.
+
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable.
+
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+
+    Attributes
+    ----------
+    num_users: int
+        Number of users in training data.
+
+    num_items: int
+        Number of items in training data.
+
+    total_users: int
+        Number of users in training, validation, and test data.
+        In other words, this includes unknown/unseen users.
+
+    total_items: int
+        Number of items in training, validation, and test data.
+        In other words, this includes unknown/unseen items.
+
+    uid_map: int
+        Global mapping of user ID-index.
+
+    iid_map: int
+        Global mapping of item ID-index.
+    """
+
+    def __init__(self, name, trainable=True, verbose=False):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+
+    def score(self, user_idx, history_items, **kwargs):
+        """Predict the scores for all items based on input history items
+
+        Parameters
+        ----------
+        history_items: list of lists
+            The list of history items in sequential manner for next-item prediction.
 
         Returns
         -------

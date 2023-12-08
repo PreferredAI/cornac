@@ -13,8 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
-import os
 import copy
+import os
 import pickle
 import warnings
 from collections import Counter, OrderedDict, defaultdict
@@ -249,9 +249,7 @@ class Dataset(object):
     def dok_matrix(self):
         """The user-item interaction matrix in DOK sparse format"""
         if self.__dok_matrix is None:
-            self.__dok_matrix = dok_matrix(
-                (self.num_users, self.num_items), dtype="float"
-            )
+            self.__dok_matrix = dok_matrix((self.num_users, self.num_items), dtype="float")
             for u, i, r in zip(*self.uir_tuple):
                 self.__dok_matrix[u, i] = r
         return self.__dok_matrix
@@ -317,9 +315,7 @@ class Dataset(object):
         dup_count = 0
 
         for idx, (uid, iid, rating, *_) in enumerate(data):
-            if exclude_unknowns and (
-                uid not in global_uid_map or iid not in global_iid_map
-            ):
+            if exclude_unknowns and (uid not in global_uid_map or iid not in global_iid_map):
                 continue
 
             if (uid, iid) in ui_set:
@@ -347,11 +343,7 @@ class Dataset(object):
             np.asarray(r_values, dtype="float"),
         )
 
-        timestamps = (
-            np.fromiter((int(data[i][3]) for i in valid_idx), dtype="int")
-            if fmt == "UIRT"
-            else None
-        )
+        timestamps = np.fromiter((int(data[i][3]) for i in valid_idx), dtype="int") if fmt == "UIRT" else None
 
         dataset = cls(
             num_users=len(global_uid_map),
@@ -491,9 +483,7 @@ class Dataset(object):
                     neg_items[i] = j
                 batch_users = np.concatenate((batch_users, repeated_users))
                 batch_items = np.concatenate((batch_items, neg_items))
-                batch_ratings = np.concatenate(
-                    (batch_ratings, np.zeros_like(neg_items))
-                )
+                batch_ratings = np.concatenate((batch_ratings, np.zeros_like(neg_items)))
 
             yield batch_users, batch_items, batch_ratings
 
@@ -521,9 +511,7 @@ class Dataset(object):
         elif neg_sampling.lower() == "popularity":
             neg_population = self.uir_tuple[1]
         else:
-            raise ValueError(
-                "Unsupported negative sampling option: {}".format(neg_sampling)
-            )
+            raise ValueError("Unsupported negative sampling option: {}".format(neg_sampling))
 
         for batch_ids in self.idx_iter(len(self.uir_tuple[0]), batch_size, shuffle):
             batch_users = self.uir_tuple[0][batch_ids]
@@ -734,9 +722,7 @@ class BasketDataset(Dataset):
         if self.__chrono_user_basket_data is None:
             assert self.timestamps is not None  # we need timestamps
 
-            basket_timestamps = [
-                self.timestamps[ids[0]] for ids in self.baskets.values()
-            ]  # one-off
+            basket_timestamps = [self.timestamps[ids[0]] for ids in self.baskets.values()]  # one-off
 
             self.__chrono_user_basket_data = defaultdict(lambda: ([], []))
             for (bid, ids), t in zip(self.baskets.items(), basket_timestamps):
@@ -839,9 +825,7 @@ class BasketDataset(Dataset):
         basket_ids = np.asarray(b_indices, dtype="int")
 
         timestamps = (
-            np.fromiter((int(data[i][3]) for i in valid_idx), dtype="int")
-            if fmt in ["UBIT", "UBITJson"]
-            else None
+            np.fromiter((int(data[i][3]) for i in valid_idx), dtype="int") if fmt in ["UBIT", "UBITJson"] else None
         )
 
         extra_data = [data[i][4] for i in valid_idx] if fmt == "UBITJson" else None
@@ -959,8 +943,7 @@ class BasketDataset(Dataset):
         _, item_indices, _ = self.uir_tuple
         for batch_users, batch_baskets in self.ub_iter(batch_size, shuffle):
             batch_basket_items = [
-                [item_indices[self.baskets[bid]] for bid in user_baskets]
-                for user_baskets in batch_baskets
+                [item_indices[self.baskets[bid]] for bid in user_baskets] for user_baskets in batch_baskets
             ]
             yield batch_users, batch_baskets, batch_basket_items
 
@@ -982,3 +965,368 @@ class BasketDataset(Dataset):
         basket_indices = np.fromiter(set(self.baskets.keys()), dtype="int")
         for batch_ids in self.idx_iter(len(basket_indices), batch_size, shuffle):
             yield basket_indices[batch_ids]
+
+
+class SequentialDataset(Dataset):
+    """Training set contains history sessions
+
+    Parameters
+    ----------
+    num_users: int, required
+        Number of users.
+
+    num_items: int, required
+        Number of items.
+
+    uid_map: :obj:`OrderDict`, required
+        The dictionary containing mapping from user original ids to mapped integer indices.
+
+    iid_map: :obj:`OrderDict`, required
+        The dictionary containing mapping from item original ids to mapped integer indices.
+
+    uir_tuple: tuple, required
+        Tuple of 3 numpy arrays (user_indices, item_indices, rating_values).
+
+    session_ids: numpy.array, required
+        Array of session indices corresponding to observation in `uir_tuple`.
+
+    timestamps: numpy.array, optional, default: None
+        Numpy array of timestamps corresponding to feedback in `uir_tuple`.
+        This is only available when input data is in `SIT`, `USIT`, SITJson`, and `USITJson` formats.
+
+    extra_data: numpy.array, optional, default: None
+        Array of json object corresponding to observations in `uir_tuple`.
+
+    seed: int, optional, default: None
+        Random seed for reproducing data sampling.
+
+    Attributes
+    ----------
+    timestamps: numpy.array
+        Numpy array of timestamps corresponding to feedback in `ubi_tuple`.
+        This is only available when input data is in `UTB` format.
+    """
+
+    def __init__(
+        self,
+        num_users,
+        num_sessions,
+        num_items,
+        uid_map,
+        sid_map,
+        iid_map,
+        uir_tuple,
+        session_ids=None,
+        timestamps=None,
+        extra_data=None,
+        seed=None,
+    ):
+        super().__init__(
+            num_users=num_users,
+            num_items=num_items,
+            uid_map=uid_map,
+            iid_map=iid_map,
+            uir_tuple=uir_tuple,
+            timestamps=timestamps,
+            seed=seed,
+        )
+        self.num_sessions = num_sessions
+        self.sid_map = sid_map
+        self.session_ids = session_ids
+        self.extra_data = extra_data
+        session_sizes = list(Counter(session_ids).values())
+        self.max_session_size = np.max(session_sizes)
+        self.min_session_size = np.min(session_sizes)
+        self.avg_session_size = np.mean(session_sizes)
+
+        self.__sessions = None
+        self.__user_session_data = None
+        self.__chrono_user_session_data = None
+
+    @property
+    def sessions(self):
+        """A dictionary to store indices where session ID appears in the data."""
+        if self.__sessions is None:
+            self.__sessions = OrderedDict()
+            for idx, sid in enumerate(self.session_ids):
+                self.__sessions.setdefault(sid, [])
+                self.__sessions[sid].append(idx)
+        return self.__sessions
+
+    @property
+    def user_session_data(self):
+        """Data organized by user. A dictionary where keys are users,
+        values are list of sessions purchased by corresponding users.
+        """
+        if self.__user_session_data is None:
+            self.__user_session_data = defaultdict()
+            for sid, ids in self.sessions.items():
+                u = self.uir_tuple[0][ids[0]]
+                self.__user_session_data.setdefault(u, [])
+                self.__user_session_data[u].append(sid)
+        return self.__user_session_data
+
+    @property
+    def chrono_user_session_data(self):
+        """Data organized by user sorted chronologically (timestamps required).
+        A dictionary where keys are users, values are tuples of three chronologically
+        sorted lists (sessions, timestamps) interacted by the corresponding users.
+        """
+        if self.__chrono_user_session_data is None:
+            assert self.timestamps is not None  # we need timestamps
+
+            session_timestamps = [self.timestamps[ids[0]] for ids in self.sessions.values()]  # one-off
+
+            self.__chrono_user_session_data = defaultdict(lambda: ([], []))
+            for (sid, ids), t in zip(self.sessions.items(), session_timestamps):
+                u = self.uir_tuple[0][ids[0]]
+                self.__chrono_user_session_data[u][0].append(sid)
+                self.__chrono_user_session_data[u][1].append(t)
+
+            # sorting based on timestamps
+            for user, (sessions, timestamps) in self.__chrono_user_session_data.items():
+                sorted_idx = np.argsort(timestamps)
+                sorted_sessions = [sessions[i] for i in sorted_idx]
+                sorted_timestamps = [timestamps[i] for i in sorted_idx]
+                self.__chrono_user_session_data[user] = (
+                    sorted_sessions,
+                    sorted_timestamps,
+                )
+
+        return self.__chrono_user_session_data
+
+    @classmethod
+    def build(
+        cls,
+        data,
+        fmt="SIT",
+        global_uid_map=None,
+        global_sid_map=None,
+        global_iid_map=None,
+        seed=None,
+        exclude_unknowns=False,
+    ):
+        """Constructing Dataset from given data of specific format.
+
+        Parameters
+        ----------
+        data: list, required
+            Data in the form of tuple (user, session) for UB format,
+            or tuple (user, timestamps, session) for UTB format.
+
+        fmt: str, default: 'SIT'
+            Format of the input data. Currently, we are supporting:
+
+            'SIT': Session_ID, Item, Timestamp
+            'USIT': User, Session_ID, Item, Timestamp
+            'SITJson': Session_ID, Item, Timestamp, Extra data in Json format
+            'USITJson': User, Session_ID, Item, Timestamp, Extra data in Json format
+
+        global_uid_map: :obj:`defaultdict`, optional, default: None
+            The dictionary containing global mapping from original ids to mapped ids of users.
+
+        global_sid_map: :obj:`defaultdict`, optional, default: None
+            The dictionary containing global mapping from original ids to mapped ids of sessions.
+
+        global_iid_map: :obj:`defaultdict`, optional, default: None
+            The dictionary containing global mapping from original ids to mapped ids of items.
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        exclude_unknowns: bool, default: False
+            Ignore unknown users and items.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.SequentialDataset>`
+            SequentialDataset object.
+
+        """
+        fmt = validate_format(fmt, ["SIT", "USIT", "SITJson", "USITJson"])
+
+        if global_uid_map is None:
+            global_uid_map = OrderedDict()
+        if global_sid_map is None:
+            global_sid_map = OrderedDict()
+        if global_iid_map is None:
+            global_iid_map = OrderedDict()
+
+        u_indices = []
+        s_indices = []
+        i_indices = []
+        valid_idx = []
+        extra_data = []
+        for idx, tup in enumerate(data):
+            uid, sid, iid, *_ = tup if fmt in ["USIT", "USITJson"] else [None] + list(tup)
+            if exclude_unknowns and (iid not in global_iid_map):
+                continue
+            global_uid_map.setdefault(uid, len(global_uid_map))
+            global_sid_map.setdefault(sid, len(global_sid_map))
+            global_iid_map.setdefault(iid, len(global_iid_map))
+
+            u_indices.append(global_uid_map[uid])
+            s_indices.append(global_sid_map[sid])
+            i_indices.append(global_iid_map[iid])
+            valid_idx.append(idx)
+
+        uir_tuple = (
+            np.asarray(u_indices, dtype="int"),
+            np.asarray(i_indices, dtype="int"),
+            np.ones(len(u_indices), dtype="float"),
+        )
+
+        session_ids = np.asarray(s_indices, dtype="int")
+
+        ts_pos = 3 if fmt in ["USIT", "USITJson"] else 2
+        timestamps = (
+            np.fromiter((int(data[i][ts_pos]) for i in valid_idx), dtype="int")
+            if fmt in ["UBIT", "UBITJson"]
+            else None
+        )
+
+        extra_pos = ts_pos + 1
+        extra_data = [data[i][extra_pos] for i in valid_idx] if fmt in ["SITJson", "USITJson"] else None
+
+        dataset = cls(
+            num_users=len(global_uid_map),
+            num_sessions=len(global_sid_map),
+            num_items=len(global_iid_map),
+            uid_map=global_uid_map,
+            sid_map=global_sid_map,
+            iid_map=global_iid_map,
+            uir_tuple=uir_tuple,
+            session_ids=session_ids,
+            timestamps=timestamps,
+            extra_data=extra_data,
+            seed=seed,
+        )
+
+        return dataset
+
+    @classmethod
+    def from_sit(cls, data, seed=None):
+        """Constructing Dataset from SIT (Session, Item, Timestamp) triples data.
+
+        Parameters
+        ----------
+        data: list
+            Data in the form of tuples (session, item, timestamp).
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.SequentialDataset>`
+            SequentialDataset object.
+
+        """
+        return cls.build(data, fmt="SIT", seed=seed)
+
+    @classmethod
+    def from_usit(cls, data, seed=None):
+        """Constructing Dataset from USIT format (User, Session, Item, Timestamp)
+
+        Parameters
+        ----------
+        data: tuple
+            Data in the form of quadruples (user, session, item, timestamp)
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.SequentialDataset>`
+            SequentialDataset object.
+
+        """
+        return cls.build(data, fmt="USIT", seed=seed)
+
+    @classmethod
+    def from_sitjson(cls, data, seed=None):
+        """Constructing Dataset from SITJson format (Session, Item, Timestamp, Json)
+
+        Parameters
+        ----------
+        data: tuple
+            Data in the form of tuples (session, item, timestamp, json)
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.SequentialDataset>`
+            SequentialDataset object.
+
+        """
+        return cls.build(data, fmt="SITJson", seed=seed)
+
+    @classmethod
+    def from_usitjson(cls, data, seed=None):
+        """Constructing Dataset from USITJson format (User, Session, Item, Timestamp, Json)
+
+        Parameters
+        ----------
+        data: tuple
+            Data in the form of tuples (user, session, item, timestamp, json)
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.SequentialDataset>`
+            SequentialDataset object.
+
+        """
+        return cls.build(data, fmt="USITJson", seed=seed)
+
+    def num_batches(self, batch_size):
+        """Estimate number of batches per epoch"""
+        return estimate_batches(len(self.sessions), batch_size)
+
+    def session_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over session indices
+
+        Parameters
+        ----------
+        batch_size: int, optional, default = 1
+
+        shuffle: bool, optional, default: False
+            If `True`, orders of session_ids will be randomized. If `False`, default orders kept.
+
+        Returns
+        -------
+        iterator : batch of session indices (array of 'int')
+
+        """
+        session_indices = np.array(list(self.sessions.keys()))
+        for batch_ids in self.idx_iter(len(session_indices), batch_size, shuffle):
+            batch_session_indices = session_indices[batch_ids]
+            yield batch_session_indices
+
+    def si_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of session indices and batch of sessions
+
+        Parameters
+        ----------
+        batch_size: int, optional, default = 1
+
+        shuffle: bool, optional, default: False
+            If `True`, orders of triplets will be randomized. If `False`, default orders kept.
+
+        Returns
+        -------
+        iterator : batch of session indices, batch of sessions (list of list)
+
+        """
+        session_indices = np.array(list(self.sessions.keys()))
+        mapped_ids = list(self.sessions.values())
+        for batch_ids in self.idx_iter(len(session_indices), batch_size, shuffle):
+            batch_session_indices = session_indices[batch_ids]
+            batch_mapped_ids = [mapped_ids[idx] for idx in batch_ids]
+            batch_session_items = [[self.uir_tuple[1][i] for i in ids] for ids in batch_mapped_ids]
+            yield batch_session_indices, batch_session_items

@@ -67,6 +67,7 @@ from .pmf import PMF
 from .sbpr import SBPR
 from .skm import SKMeans
 from .sorec import SoRec
+from .spop import SPop
 from .svd import SVD
 from .trirank import TriRank
 from .vaecf import VAECF

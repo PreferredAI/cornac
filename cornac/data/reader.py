@@ -56,9 +56,23 @@ def ubit_parser(tokens, **kwargs):
 
 
 def ubitjson_parser(tokens, **kwargs):
-    return [
-        (tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))
-    ]
+    return [(tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))]
+
+
+def sit_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2])]
+
+
+def sitjson_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2], ast.literal_eval(tokens[3]))]
+
+
+def usit_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2], tokens[3])]
+
+
+def usitjson_parser(tokens, **kwargs):
+    return [(tokens[0], tokens[1], tokens[2], tokens[3], ast.literal_eval(tokens[4]))]
 
 
 PARSERS = {
@@ -70,6 +84,10 @@ PARSERS = {
     "UBI": ubi_parser,
     "UBIT": ubit_parser,
     "UBITJson": ubitjson_parser,
+    "SIT": sit_parser,
+    "SITJson": sitjson_parser,
+    "USIT": usit_parser,
+    "USITJson": usitjson_parser,
 }
 
 
@@ -133,16 +151,8 @@ class Reader:
         encoding="utf-8",
         errors=None,
     ):
-        self.user_set = (
-            user_set
-            if (user_set is None or isinstance(user_set, set))
-            else set(user_set)
-        )
-        self.item_set = (
-            item_set
-            if (item_set is None or isinstance(item_set, set))
-            else set(item_set)
-        )
+        self.user_set = user_set if (user_set is None or isinstance(user_set, set)) else set(user_set)
+        self.item_set = item_set if (item_set is None or isinstance(item_set, set)) else set(item_set)
         self.min_uf = min_user_freq
         self.min_if = min_item_freq
         self.min_basket_size = min_basket_size
@@ -190,16 +200,7 @@ class Reader:
 
         return tuples
 
-    def read(
-        self,
-        fpath,
-        fmt="UIR",
-        sep="\t",
-        skip_lines=0,
-        id_inline=False,
-        parser=None,
-        **kwargs
-    ):
+    def read(self, fpath, fmt="UIR", sep="\t", skip_lines=0, id_inline=False, parser=None, **kwargs):
         """Read data and parse line by line based on provided `fmt` or `parser`.
 
         Parameters
@@ -234,18 +235,13 @@ class Reader:
         """
         parser = PARSERS.get(fmt, None) if parser is None else parser
         if parser is None:
-            raise ValueError(
-                "Invalid line format: {}\n"
-                "Only support: {}".format(fmt, PARSERS.keys())
-            )
+            raise ValueError("Invalid line format: {}\n" "Only support: {}".format(fmt, PARSERS.keys()))
 
         with open(fpath, encoding=self.encoding, errors=self.errors) as f:
             tuples = [
                 tup
                 for idx, line in enumerate(itertools.islice(f, skip_lines, None))
-                for tup in parser(
-                    line.strip().split(sep), line_idx=idx, id_inline=id_inline, **kwargs
-                )
+                for tup in parser(line.strip().split(sep), line_idx=idx, id_inline=id_inline, **kwargs)
             ]
             return self._filter(tuples)
 
