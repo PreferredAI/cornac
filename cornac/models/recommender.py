@@ -22,7 +22,7 @@ from datetime import datetime
 
 import numpy as np
 
-from ..exception import ScoreException
+from ..exception import ScoreException, ModelFittedException
 from ..utils.common import clip
 
 
@@ -305,7 +305,7 @@ class Recommender:
         self : object
         """
         if self.is_fitted:
-            raise ValueError("Model is already fitted.")
+            raise ModelFittedException()
 
         self.reset_info()
         train_set.reset()

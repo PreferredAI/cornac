@@ -30,6 +30,7 @@ from ..metrics import RatingMetric
 from ..metrics import RankingMetric
 from ..experiment.result import Result
 from ..utils import get_rng
+from ..exception import ModelFittedException
 
 
 def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
@@ -731,7 +732,10 @@ class BaseMethod:
             print("\n[{}] Training started!".format(model.name))
 
         start = time.time()
-        model.fit(self.train_set, self.val_set)
+        try:
+            model.fit(self.train_set, self.val_set)
+        except ModelFittedException:
+            pass
         train_time = time.time() - start
 
         ##############

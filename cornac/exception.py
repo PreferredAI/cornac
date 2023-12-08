@@ -13,17 +13,22 @@
 # limitations under the License.
 # ============================================================================
 
-class CornacException(Exception):
-    """Exception base class to extend from
 
-    """
+class CornacException(Exception):
+    """Exception base class to extend from"""
 
     pass
 
 
 class ScoreException(CornacException):
-    """Exception raised in score function when facing unknowns
+    """Exception raised in score function when facing unknowns"""
 
+    pass
+
+
+class ModelFittedException(CornacException):
+    """Exception raised in fit function when the
+    recommender model is already fitted
     """
 
     pass
