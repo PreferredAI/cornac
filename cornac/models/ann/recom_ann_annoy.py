@@ -69,7 +69,6 @@ class AnnoyANN(BaseANN):
     ):
         super().__init__(model=model, name=name, verbose=verbose)
 
-        self.model = model
         self.n_trees = n_trees
         self.search_k = search_k
         self.num_threads = num_threads
@@ -85,6 +84,8 @@ class AnnoyANN(BaseANN):
 
     def build_index(self):
         """Building index from the base recommender model."""
+        super().build_index()
+
         from annoy import AnnoyIndex
 
         assert self.measure in SUPPORTED_MEASURES
@@ -92,7 +93,9 @@ class AnnoyANN(BaseANN):
         self.index = AnnoyIndex(
             self.item_vectors.shape[1], SUPPORTED_MEASURES[self.measure]
         )
-        self.index.set_seed(self.seed)
+
+        if self.seed is not None:
+            self.index.set_seed(self.seed)
 
         for i, v in enumerate(self.item_vectors):
             self.index.add_item(i, v)

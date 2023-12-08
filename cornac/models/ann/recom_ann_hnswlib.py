@@ -78,6 +78,7 @@ class HNSWLibANN(BaseANN):
         verbose=False,
     ):
         super().__init__(model=model, name=name, verbose=verbose)
+
         self.M = M
         self.ef_construction = ef_construction
         self.ef = ef
@@ -96,6 +97,8 @@ class HNSWLibANN(BaseANN):
 
     def build_index(self):
         """Building index from the base recommender model."""
+        super().build_index()
+
         import hnswlib
 
         assert self.measure in SUPPORTED_MEASURES

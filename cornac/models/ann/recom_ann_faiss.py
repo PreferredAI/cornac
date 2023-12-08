@@ -68,7 +68,6 @@ class FaissANN(BaseANN):
     ):
         super().__init__(model=model, name=name, verbose=verbose)
 
-        self.model = model
         self.nlist = nlist
         self.nprobe = nprobe
         self.use_gpu = use_gpu
@@ -87,6 +86,8 @@ class FaissANN(BaseANN):
 
     def build_index(self):
         """Building index from the base recommender model."""
+        super().build_index()
+
         import faiss
 
         faiss.omp_set_num_threads(self.num_threads)
