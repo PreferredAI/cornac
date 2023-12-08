@@ -130,6 +130,7 @@ class Recommender:
         self.name = name
         self.trainable = trainable
         self.verbose = verbose
+        self.is_fitted = False
 
         # attributes to be ignored when saving model
         self.ignored_attrs = ["train_set", "val_set", "test_set"]
@@ -180,8 +181,9 @@ class Recommender:
     def __deepcopy__(self, memo):
         cls = self.__class__
         result = cls.__new__(cls)
+        ignored_attrs = set(self.ignored_attrs)
         for k, v in self.__dict__.items():
-            if k in self.ignored_attrs:
+            if k in ignored_attrs:
                 continue
             setattr(result, k, copy.deepcopy(v))
         return result
@@ -302,6 +304,9 @@ class Recommender:
         -------
         self : object
         """
+        if self.is_fitted:
+            raise ValueError("Model is already fitted.")
+
         self.reset_info()
         train_set.reset()
         if val_set is not None:
@@ -319,6 +324,8 @@ class Recommender:
         # just for future wrapper to call fit(), not supposed to be used during prediction
         self.train_set = train_set
         self.val_set = val_set
+
+        self.is_fitted = True
 
         return self
 
@@ -450,7 +457,7 @@ class Recommender:
 
         return rating_pred
 
-    def rank(self, user_idx, item_indices=None, **kwargs):
+    def rank(self, user_idx, item_indices=None, k=-1, **kwargs):
         """Rank all test items for a given user.
 
         Parameters
@@ -461,6 +468,10 @@ class Recommender:
         item_indices: 1d array, optional, default: None
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned.
+
+        k: int, required
+            Cut-off length for recommendations, k=-1 will return ranked list of all items.
+            This is more important for ANN to know the limit to avoid exhaustive ranking.
 
         Returns
         -------
