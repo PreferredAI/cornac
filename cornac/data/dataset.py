@@ -1181,7 +1181,7 @@ class SequentialDataset(Dataset):
         ts_pos = 3 if fmt in ["USIT", "USITJson"] else 2
         timestamps = (
             np.fromiter((int(data[i][ts_pos]) for i in valid_idx), dtype="int")
-            if fmt in ["UBIT", "UBITJson"]
+            if fmt in ["SIT", "SITJson", "USIT", "USITJson"]
             else None
         )
 
