@@ -271,8 +271,8 @@ class BaseMethod:
         self.verbose = verbose
         self.seed = seed
         self.rng = get_rng(seed)
-        self.global_uid_map = OrderedDict()
-        self.global_iid_map = OrderedDict()
+        self.global_uid_map = kwargs.get("global_uid_map", OrderedDict())
+        self.global_iid_map = kwargs.get("global_iid_map", OrderedDict())
 
         self.user_feature = kwargs.get("user_feature", None)
         self.user_text = kwargs.get("user_text", None)
