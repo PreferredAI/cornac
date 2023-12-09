@@ -158,6 +158,11 @@ class ScaNNANN(BaseANN):
             Array of k-nearest neighbors and corresponding distances for the given query.
         """
         neighbors, distances = self.index.search_batched(query, final_num_neighbors=k)
+
+        # make sure distances respect the notion of nearest neighbors (smaller is better)
+        if self.higher_is_better:
+            distances = 1.0 - distances
+
         return neighbors, distances
 
     def save(self, save_dir=None):

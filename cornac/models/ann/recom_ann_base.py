@@ -18,6 +18,7 @@ import numpy as np
 
 from ..recommender import Recommender
 from ..recommender import is_ann_supported
+from ..recommender import MEASURE_DOT, MEASURE_COSINE
 
 
 class BaseANN(Recommender):
@@ -79,6 +80,8 @@ class BaseANN(Recommender):
         self.user_vectors = copy.deepcopy(self.model.get_user_vectors())
         self.item_vectors = copy.deepcopy(self.model.get_item_vectors())
 
+        self.higher_is_better = self.measure in {MEASURE_DOT, MEASURE_COSINE}
+
     def knn_query(self, query, k):
         """Implementing ANN search for a given query.
 
@@ -116,13 +119,12 @@ class BaseANN(Recommender):
         top_k_items = knn_items[0]
         top_k_scores = -distances[0]
 
-        item_scores = np.ones(self.total_items) * -np.Inf
+        item_scores = np.full(self.total_items, -np.Inf)
         item_scores[top_k_items] = top_k_scores
 
-        ranked_items = np.arange(self.total_items)
-        ranked_items[np.arange(k)], ranked_items[top_k_items] = (
-            ranked_items[top_k_items],
-            ranked_items[np.arange(k)],
+        all_items = np.arange(self.total_items)
+        ranked_items = np.concatenate(
+            [top_k_items, all_items[~np.in1d(all_items, top_k_items)]]
         )
 
         # rank items based on their scores
@@ -131,7 +133,6 @@ class BaseANN(Recommender):
             ranked_items = ranked_items[: self.num_items]
         else:
             item_scores = item_scores[item_indices]
-            ranked_items = np.array(item_indices)[item_scores.argsort()[::-1]]
             ranked_items = ranked_items[np.in1d(ranked_items, item_indices)]
 
         return ranked_items, item_scores

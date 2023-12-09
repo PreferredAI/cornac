@@ -118,6 +118,11 @@ class AnnoyANN(BaseANN):
         ]
         neighbors = np.array([r[0] for r in result], dtype="int")
         distances = np.array([r[1] for r in result], dtype="float32")
+
+        # make sure distances respect the notion of nearest neighbors (smaller is better)
+        if self.higher_is_better:
+            distances = 1.0 - distances
+
         return neighbors, distances
 
     def save(self, save_dir=None):
