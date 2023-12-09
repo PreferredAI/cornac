@@ -82,15 +82,13 @@ class GPTop(NextBasketRecommender):
 
         if self.use_personalized_popularity:
             if self.use_quantity:
-                history_basket_bids = kwargs.get("history_basket_ids")
+                history_basket_indices = kwargs.get("history_basket_indices")
                 baskets = kwargs.get("baskets")
                 p_item_freq = Counter()
-                (_, item_ids, _) = kwargs.get("uir_tuple")
                 extra_data = kwargs.get("extra_data")
-                for bid in history_basket_bids:
-                    ids = baskets[bid]
-                    for idx in ids:
-                        p_item_freq[item_ids[idx]] += extra_data[idx].get("quantity", 0)
+                for bid, iids in zip(history_basket_indices, history_baskets):
+                    for idx, iid in zip(baskets[bid], iids):
+                        p_item_freq[iid] += extra_data[idx].get("quantity", 0)
             else:
                 p_item_freq = Counter([iid for iids in history_baskets for iid in iids])
             for iid, cnt in p_item_freq.most_common():

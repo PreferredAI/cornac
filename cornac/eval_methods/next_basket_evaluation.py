@@ -128,10 +128,10 @@ def ranking_eval(
             user_idx,
             item_indices,
             history_baskets=history_baskets,
-            history_basket_ids=bids[:-1],
+            history_basket_indices=bids[:-1],
             uir_tuple=test_set.uir_tuple,
             baskets=test_set.baskets,
-            basket_ids=test_set.basket_ids,
+            basket_indices=test_set.basket_indices,
             extra_data=test_set.extra_data,
         )
 
