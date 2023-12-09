@@ -105,7 +105,7 @@ def ranking_eval(
         item_rank, item_scores = model.rank(
             user_idx,
             item_indices,
-            history_items=test_set.uir_tuple[1][mapped_ids[:-1]],  # history items
+            history_items=session_items[:-1],
             history_mapped_ids=mapped_ids[:-1],
             sessions=test_set.sessions,
             session_indices=test_set.session_indices,
