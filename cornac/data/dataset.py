@@ -1016,7 +1016,7 @@ class SequentialDataset(Dataset):
         sid_map,
         iid_map,
         uir_tuple,
-        session_ids=None,
+        session_indices=None,
         timestamps=None,
         extra_data=None,
         seed=None,
@@ -1032,23 +1032,31 @@ class SequentialDataset(Dataset):
         )
         self.num_sessions = num_sessions
         self.sid_map = sid_map
-        self.session_ids = session_ids
+        self.session_indices = session_indices
         self.extra_data = extra_data
-        session_sizes = list(Counter(session_ids).values())
+        session_sizes = list(Counter(session_indices).values())
         self.max_session_size = np.max(session_sizes)
         self.min_session_size = np.min(session_sizes)
         self.avg_session_size = np.mean(session_sizes)
 
         self.__sessions = None
+        self.__session_ids = None
         self.__user_session_data = None
         self.__chrono_user_session_data = None
+
+    @property
+    def session_ids(self):
+        """Return the list of raw session ids"""
+        if self.__session_ids is None:
+            self.__session_ids = list(self.sid_map.keys())
+        return self.__session_ids
 
     @property
     def sessions(self):
         """A dictionary to store indices where session ID appears in the data."""
         if self.__sessions is None:
             self.__sessions = OrderedDict()
-            for idx, sid in enumerate(self.session_ids):
+            for idx, sid in enumerate(self.session_indices):
                 self.__sessions.setdefault(sid, [])
                 self.__sessions[sid].append(idx)
         return self.__sessions
@@ -1059,10 +1067,9 @@ class SequentialDataset(Dataset):
         values are list of sessions purchased by corresponding users.
         """
         if self.__user_session_data is None:
-            self.__user_session_data = defaultdict()
+            self.__user_session_data = defaultdict(list)
             for sid, ids in self.sessions.items():
                 u = self.uir_tuple[0][ids[0]]
-                self.__user_session_data.setdefault(u, [])
                 self.__user_session_data[u].append(sid)
         return self.__user_session_data
 
@@ -1176,7 +1183,7 @@ class SequentialDataset(Dataset):
             np.ones(len(u_indices), dtype="float"),
         )
 
-        session_ids = np.asarray(s_indices, dtype="int")
+        session_indices = np.asarray(s_indices, dtype="int")
 
         ts_pos = 3 if fmt in ["USIT", "USITJson"] else 2
         timestamps = (
@@ -1196,7 +1203,7 @@ class SequentialDataset(Dataset):
             sid_map=global_sid_map,
             iid_map=global_iid_map,
             uir_tuple=uir_tuple,
-            session_ids=session_ids,
+            session_indices=session_indices,
             timestamps=timestamps,
             extra_data=extra_data,
             seed=seed,
@@ -1308,8 +1315,27 @@ class SequentialDataset(Dataset):
             batch_session_indices = session_indices[batch_ids]
             yield batch_session_indices
 
+    def s_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of sessions
+
+        Parameters
+        ----------
+        batch_size: int, optional, default = 1
+
+        shuffle: bool, optional, default: False
+            If `True`, orders of sessions will be randomized. If `False`, default orders kept.
+
+        Returns
+        -------
+        iterator : batch of session indices, batch of indices corresponding to session indices
+
+        """
+        for batch_session_ids in self.session_iter(batch_size, shuffle):
+            batch_mapped_ids = [self.sessions[sid] for sid in batch_session_ids]
+            yield batch_session_ids, batch_mapped_ids
+
     def si_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of session indices and batch of sessions
+        """Create an iterator over data yielding batch of session indices, batch of mapped ids, and batch of sessions' items
 
         Parameters
         ----------
@@ -1320,13 +1346,9 @@ class SequentialDataset(Dataset):
 
         Returns
         -------
-        iterator : batch of session indices, batch of sessions (list of list)
+        iterator : batch of session indices, batch mapped ids, batch of sessions' items (list of list)
 
         """
-        session_indices = np.array(list(self.sessions.keys()))
-        mapped_ids = list(self.sessions.values())
-        for batch_ids in self.idx_iter(len(session_indices), batch_size, shuffle):
-            batch_session_indices = session_indices[batch_ids]
-            batch_mapped_ids = [mapped_ids[idx] for idx in batch_ids]
+        for batch_session_indices, batch_mapped_ids in self.s_iter(batch_size, shuffle):
             batch_session_items = [[self.uir_tuple[1][i] for i in ids] for ids in batch_mapped_ids]
-            yield batch_session_indices, batch_session_items
+            yield batch_session_indices, batch_mapped_ids, batch_session_items

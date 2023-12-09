@@ -20,7 +20,6 @@ from tqdm.auto import tqdm
 
 from ..data import SequentialDataset
 from ..experiment.result import Result
-from ..utils.common import safe_indexing
 from . import BaseMethod
 
 
@@ -73,14 +72,14 @@ def ranking_eval(
     user_results = [defaultdict(list) for _ in enumerate(metrics)]
 
     user_sessions = defaultdict(list)
-    for [sid], [mapped_ids] in tqdm(
-        test_set.session_iter(batch_size=1, shuffle=False),
+    for [sid], [mapped_ids], [session_items] in tqdm(
+        test_set.si_iter(batch_size=1, shuffle=False),
         total=len(test_set.sessions),
         desc="Ranking",
         disable=not verbose,
         miniters=100,
     ):
-        test_pos_items = [test_set.uir_tuple[1][mapped_ids[-1]]]  # last item in the session
+        test_pos_items = session_items[-1:]  # last item in the session
         if len(test_pos_items) == 0:
             continue
         user_idx = test_set.uir_tuple[0][mapped_ids[0]]
@@ -106,9 +105,10 @@ def ranking_eval(
         item_rank, item_scores = model.rank(
             user_idx,
             item_indices,
-            history_items=train_set.uir_tuple[1][mapped_ids[:-1]],  # history items
+            history_items=test_set.uir_tuple[1][mapped_ids[:-1]],  # history items
+            history_mapped_ids=mapped_ids[:-1],
             sessions=test_set.sessions,
-            session_ids=test_set.session_ids,
+            session_indices=test_set.session_indices,
             extra_data=test_set.extra_data,
         )
 
@@ -193,6 +193,7 @@ class NextItemEvaluation(BaseMethod):
             verbose=verbose,
             **kwargs,
         )
+        self.global_sid_map = kwargs.get("global_sid_map", OrderedDict())
 
     def _build_datasets(self, train_data, test_data, val_data=None):
         self.train_set = SequentialDataset.build(
@@ -200,6 +201,7 @@ class NextItemEvaluation(BaseMethod):
             fmt=self.fmt,
             global_uid_map=self.global_uid_map,
             global_iid_map=self.global_iid_map,
+            global_sid_map=self.global_sid_map,
             seed=self.seed,
             exclude_unknowns=False,
         )
@@ -215,6 +217,7 @@ class NextItemEvaluation(BaseMethod):
             fmt=self.fmt,
             global_uid_map=self.global_uid_map,
             global_iid_map=self.global_iid_map,
+            global_sid_map=self.global_sid_map,
             seed=self.seed,
             exclude_unknowns=self.exclude_unknowns,
         )
@@ -328,7 +331,7 @@ class NextItemEvaluation(BaseMethod):
 
         Returns
         -------
-        method: :obj:`<cornac.eval_methods.BaseMethod>`
+        method: :obj:`<cornac.eval_methods.NextItemEvaluation>`
             Evaluation method object.
 
         """
