@@ -202,12 +202,12 @@ class Reader:
 
         if self.num_top_freq_user > 0:
             user_freq = Counter(t[u_pos] for t in tuples)
-            top_freq_users = user_freq.most_common(self.num_top_freq_user)
+            top_freq_users = set(k for (k, _) in user_freq.most_common(self.num_top_freq_user))
             tuples = [t for t in tuples if t[u_pos] in top_freq_users]
 
         if self.num_top_freq_item > 0:
             item_freq = Counter(t[i_pos] for t in tuples)
-            top_freq_items = item_freq.most_common(self.num_top_freq_item)
+            top_freq_items = set(k for (k, _) in item_freq.most_common(self.num_top_freq_item))
             tuples = [t for t in tuples if t[i_pos] in top_freq_items]
 
         if self.user_set is not None:
