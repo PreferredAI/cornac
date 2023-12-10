@@ -186,61 +186,72 @@ class Reader:
         self.encoding = encoding
         self.errors = errors
 
-    def _filter(self, tuples):
-        if self.bin_threshold is not None:
+    def _filter(self, tuples, fmt="UIR"):
+        i_pos = fmt.find("I")
+        u_pos = fmt.find("U")
+        r_pos = fmt.find("R")
+
+        if self.bin_threshold is not None and r_pos >= 0:
 
             def binarize(t):
                 t = list(t)
-                t[2] = 1.0
+                t[r_pos] = 1.0
                 return tuple(t)
 
-            tuples = [binarize(t) for t in tuples if t[2] >= self.bin_threshold]
-
-        if self.user_set is not None:
-            tuples = [t for t in tuples if t[0] in self.user_set]
-
-        if self.item_set is not None:
-            tuples = [t for t in tuples if t[1] in self.item_set]
-
-        if self.min_uf > 1:
-            user_freq = Counter(t[0] for t in tuples)
-            tuples = [t for t in tuples if user_freq[t[0]] >= self.min_uf]
-
-        if self.min_if > 1:
-            item_freq = Counter(t[1] for t in tuples)
-            tuples = [t for t in tuples if item_freq[t[1]] >= self.min_if]
+            tuples = [binarize(t) for t in tuples if t[r_pos] >= self.bin_threshold]
 
         if self.num_top_freq_user > 0:
-            user_freq = Counter(t[0] for t in tuples)
-            top_freq_users = {
-                u: cnt
-                for inc, (u, cnt) in enumerate(user_freq.most_common())
-                if inc < self.num_top_freq_user
-            }
-            tuples = [t for t in tuples if top_freq_users.get(t[0], 0) > 0]
+            user_freq = Counter(t[u_pos] for t in tuples)
+            top_freq_users = user_freq.most_common(self.num_top_freq_user)
+            tuples = [t for t in tuples if t[u_pos] in top_freq_users]
 
         if self.num_top_freq_item > 0:
-            item_freq = Counter(t[2] for t in tuples)
-            top_freq_items = {
-                i: cnt
-                for inc, (i, cnt) in enumerate(item_freq.most_common())
-                if inc < self.num_top_freq_item
-            }
-            tuples = [t for t in tuples if top_freq_items.get(t[2], 0) > 0]
+            item_freq = Counter(t[i_pos] for t in tuples)
+            top_freq_items = item_freq.most_common(self.num_top_freq_item)
+            tuples = [t for t in tuples if t[i_pos] in top_freq_items]
 
-        if self.min_basket_size > 1 or self.min_sequence_size > 1:
-            min_size = max(self.min_basket_size, self.min_sequence_size)
-            sizes = Counter(t[1] for t in tuples)
-            tuples = [t for t in tuples if sizes[t[1]] >= min_size]
+        if self.user_set is not None:
+            tuples = [t for t in tuples if t[u_pos] in self.user_set]
 
-        if self.max_basket_size > 1 or self.max_sequence_size > 1:
-            max_size = max(self.max_basket_size, self.max_sequence_size)
-            sizes = Counter(t[1] for t in tuples)
-            tuples = [t for t in tuples if sizes[t[1]] <= max_size]
+        if self.item_set is not None:
+            tuples = [t for t in tuples if t[i_pos] in self.item_set]
+
+        if self.min_uf > 1:
+            user_freq = Counter(t[u_pos] for t in tuples)
+            tuples = [t for t in tuples if user_freq[t[u_pos]] >= self.min_uf]
+
+        if self.min_if > 1:
+            item_freq = Counter(t[i_pos] for t in tuples)
+            tuples = [t for t in tuples if item_freq[t[i_pos]] >= self.min_if]
+
+        return tuples
+
+    def _filter_basket(self, tuples, fmt="UBI"):
+        u_pos = fmt.find("U")
+        b_pos = fmt.find("B")
+        if self.min_basket_size > 1:
+            sizes = Counter(t[b_pos] for t in tuples)
+            tuples = [t for t in tuples if sizes[t[b_pos]] >= self.min_basket_size]
+
+        if self.max_basket_size > 1:
+            sizes = Counter(t[b_pos] for t in tuples)
+            tuples = [t for t in tuples if sizes[t[b_pos]] <= self.max_basket_size]
 
         if self.min_basket_sequence > 1:
-            basket_sequence = Counter(u for (u, _) in set((t[0], t[1]) for t in tuples))
-            tuples = [t for t in tuples if basket_sequence[t[0]] >= self.min_basket_sequence]
+            basket_sequence = Counter(u for (u, _) in set((t[u_pos], t[b_pos]) for t in tuples))
+            tuples = [t for t in tuples if basket_sequence[t[u_pos]] >= self.min_basket_sequence]
+
+        return tuples
+
+    def _filter_sequence(self, tuples, fmt="SIT"):
+        s_pos = fmt.find("S")
+        if self.min_sequence_size > 1:
+            sizes = Counter(t[s_pos] for t in tuples)
+            tuples = [t for t in tuples if sizes[t[s_pos]] >= self.min_sequence_size]
+
+        if self.max_sequence_size > 1:
+            sizes = Counter(t[s_pos] for t in tuples)
+            tuples = [t for t in tuples if sizes[t[s_pos]] <= self.max_sequence_size]
 
         return tuples
 
@@ -287,7 +298,12 @@ class Reader:
                 for idx, line in enumerate(itertools.islice(f, skip_lines, None))
                 for tup in parser(line.strip().split(sep), line_idx=idx, id_inline=id_inline, **kwargs)
             ]
-            return self._filter(tuples)
+            tuples = self._filter(tuples=tuples, fmt=fmt)
+            if fmt in ["UBI", "UBIT", "UBITJson"]:
+                tuples = self._filter_basket(tuples=tuples, fmt=fmt)
+            elif fmt in ["SIT", "SITJson", "USIT", "USITJson"]:
+                tuples = self._filter_sequence(tuples=tuples, fmt=fmt)
+            return tuples
 
 
 def read_text(fpath, sep=None, encoding="utf-8", errors=None):
