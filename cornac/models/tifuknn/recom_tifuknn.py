@@ -14,7 +14,10 @@
 # ============================================================================
 
 import warnings
+from time import time
+
 import numpy as np
+from tqdm import tqdm
 
 from ..recommender import NextBasketRecommender
 
@@ -33,12 +36,11 @@ class TIFUKNN(NextBasketRecommender):
     within_decay_rate: float, optional, default: 0.9
         Within-basket time-decayed ratio in range [0, 1]
 
-    
     group_decay_rate: float, optional, default: 0.7
         Group time-decayed ratio in range [0, 1]
 
     alpha: float, optional, default: 0.7
-        The trade-off between current user vector and neighbors vectors 
+        The trade-off between current user vector and neighbors vectors
         to compute final item scores
 
     n_groups: int, optional, default: 7
@@ -75,19 +77,29 @@ class TIFUKNN(NextBasketRecommender):
         self.n_groups = n_groups
 
     def fit(self, train_set, val_set=None):
-        from sklearn.neighbors import NearestNeighbors
+        from scipy.spatial import KDTree
 
         super().fit(train_set=train_set, val_set=val_set)
         self.user_vectors = self._get_user_vectors(self.train_set)
         if self.n_neighbors > len(self.user_vectors):
             warnings.warn("Number of users is %d, smaller than number of neighbors %d" % (len(self.user_vectors), self.n_neighbors))
             self.n_neighbors = len(self.user_vectors)
-        self.nbrs = NearestNeighbors(n_neighbors=self.n_neighbors, algorithm="brute").fit(list(self.user_vectors.values()))
+
+        start_time = time()
+        if self.verbose:
+            print("Constructing kd-tree for quick nearest-neighbor lookup")
+        self.tree = KDTree(list(self.user_vectors.values()))
+        if self.verbose:
+            print("Constructing kd-tree for quick nearest-neighbor lookup takes %.0f" % (time() - start_time))
         return self
 
     def _get_user_vectors(self, data_set):
         user_vectors = {}
-        for [user_idx], _, [basket_items] in data_set.ubi_iter(batch_size=1, shuffle=False):
+        for [user_idx], _, [basket_items] in tqdm(
+            data_set.ubi_iter(batch_size=1, shuffle=False),
+            desc="Getting user vectors",
+            total=data_set.num_users,
+        ):
             user_vectors[user_idx] = self._compute_user_vector(basket_items[:-1])
         return user_vectors
 
@@ -155,5 +167,5 @@ class TIFUKNN(NextBasketRecommender):
             return np.zeros(self.total_items, dtype="float32")
         user_vector = self._compute_user_vector(history_baskets)
         user_indices = np.fromiter(list(self.user_vectors.keys()), dtype="int32")
-        _, indices = self.nbrs.kneighbors([user_vector])
+        _, indices = self.tree.query([user_vector], k=self.n_neighbors)
         return self.alpha * user_vector + (1 - self.alpha) * np.sum([self.user_vectors[user_indices[idx]] for idx in indices.squeeze()], axis=0)
