@@ -19,6 +19,7 @@ from . import amazon_toy
 from . import citeulike
 from . import epinions
 from . import filmtrust
+from . import gowalla
 from . import movielens
 from . import netflix
 from . import tafeng
