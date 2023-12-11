@@ -24,11 +24,3 @@ class ScoreException(CornacException):
     """Exception raised in score function when facing unknowns"""
 
     pass
-
-
-class ModelFittedException(CornacException):
-    """Exception raised in fit function when the
-    recommender model is already fitted
-    """
-
-    pass

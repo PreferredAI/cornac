@@ -14,6 +14,7 @@
 # ============================================================================
 
 import copy
+import warnings
 import numpy as np
 
 from ..recommender import Recommender
@@ -67,6 +68,8 @@ class BaseANN(Recommender):
         Recommender.fit(self, train_set, val_set)
 
         if not self.model.is_fitted:
+            if self.verbose:
+                print(f"Fitting base recommender model {self.model.name}...")
             self.model.fit(train_set, val_set)
 
         self.build_index()
@@ -75,6 +78,9 @@ class BaseANN(Recommender):
 
     def build_index(self):
         """Building index from the base recommender model."""
+        if not self.model.is_fitted:
+            warnings.warn(f"Base recommender model {self.model.name} is not fitted!")
+
         # ANN required attributes
         self.measure = copy.deepcopy(self.model.get_vector_measure())
         self.user_vectors = copy.deepcopy(self.model.get_user_vectors())
