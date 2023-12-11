@@ -17,6 +17,7 @@ import os
 import copy
 import inspect
 import pickle
+import warnings
 from glob import glob
 from datetime import datetime
 
@@ -304,6 +305,11 @@ class Recommender:
         -------
         self : object
         """
+        if self.is_fitted:
+            warnings.warn(
+                "Model is already fitted. Re-fitting will overwrite the previous model."
+            )
+
         self.reset_info()
         train_set.reset()
         if val_set is not None:
