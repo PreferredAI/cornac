@@ -498,12 +498,23 @@ class Recommender:
             all_item_scores[: self.num_items] = known_item_scores
 
         # rank items based on their scores
-        if item_indices is None:
-            item_scores = all_item_scores[: self.num_items]
-            ranked_items = item_scores.argsort()[::-1]
-        else:
-            item_scores = all_item_scores[item_indices]
-            ranked_items = np.array(item_indices)[item_scores.argsort()[::-1]]
+        item_indices = (
+            np.arange(self.num_items)
+            if item_indices is None
+            else np.asarray(item_indices)
+        )
+        item_scores = all_item_scores[item_indices]
+
+        if (
+            k != -1
+        ):  # O(n + k log k), faster for small k which is usually the case
+            partitioned_idx = np.argpartition(item_scores, -k)
+            top_k_idx = partitioned_idx[-k:]
+            sorted_top_k_idx = top_k_idx[np.argsort(item_scores[top_k_idx])]
+            partitioned_idx[-k:] = sorted_top_k_idx
+            ranked_items = item_indices[partitioned_idx[::-1]]
+        else:  # O(n log n)
+            ranked_items = item_indices[item_scores.argsort()[::-1]]
 
         return ranked_items, item_scores
 
