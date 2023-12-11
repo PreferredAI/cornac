@@ -56,7 +56,9 @@ def ubit_parser(tokens, **kwargs):
 
 
 def ubitjson_parser(tokens, **kwargs):
-    return [(tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))]
+    return [
+        (tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))
+    ]
 
 
 def sit_parser(tokens, **kwargs):
@@ -72,7 +74,9 @@ def usit_parser(tokens, **kwargs):
 
 
 def usitjson_parser(tokens, **kwargs):
-    return [(tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))]
+    return [
+        (tokens[0], tokens[1], tokens[2], int(tokens[3]), ast.literal_eval(tokens[4]))
+    ]
 
 
 PARSERS = {
@@ -171,8 +175,16 @@ class Reader:
         encoding="utf-8",
         errors=None,
     ):
-        self.user_set = user_set if (user_set is None or isinstance(user_set, set)) else set(user_set)
-        self.item_set = item_set if (item_set is None or isinstance(item_set, set)) else set(item_set)
+        self.user_set = (
+            user_set
+            if (user_set is None or isinstance(user_set, set))
+            else set(user_set)
+        )
+        self.item_set = (
+            item_set
+            if (item_set is None or isinstance(item_set, set))
+            else set(item_set)
+        )
         self.min_uf = min_user_freq
         self.min_if = min_item_freq
         self.num_top_freq_user = num_top_freq_user
@@ -202,12 +214,16 @@ class Reader:
 
         if self.num_top_freq_user > 0:
             user_freq = Counter(t[u_pos] for t in tuples)
-            top_freq_users = set(k for (k, _) in user_freq.most_common(self.num_top_freq_user))
+            top_freq_users = set(
+                k for (k, _) in user_freq.most_common(self.num_top_freq_user)
+            )
             tuples = [t for t in tuples if t[u_pos] in top_freq_users]
 
         if self.num_top_freq_item > 0:
             item_freq = Counter(t[i_pos] for t in tuples)
-            top_freq_items = set(k for (k, _) in item_freq.most_common(self.num_top_freq_item))
+            top_freq_items = set(
+                k for (k, _) in item_freq.most_common(self.num_top_freq_item)
+            )
             tuples = [t for t in tuples if t[i_pos] in top_freq_items]
 
         if self.user_set is not None:
@@ -229,6 +245,7 @@ class Reader:
     def _filter_basket(self, tuples, fmt="UBI"):
         u_pos = fmt.find("U")
         b_pos = fmt.find("B")
+
         if self.min_basket_size > 1:
             sizes = Counter(t[b_pos] for t in tuples)
             tuples = [t for t in tuples if sizes[t[b_pos]] >= self.min_basket_size]
@@ -238,13 +255,20 @@ class Reader:
             tuples = [t for t in tuples if sizes[t[b_pos]] <= self.max_basket_size]
 
         if self.min_basket_sequence > 1:
-            basket_sequence = Counter(u for (u, _) in set((t[u_pos], t[b_pos]) for t in tuples))
-            tuples = [t for t in tuples if basket_sequence[t[u_pos]] >= self.min_basket_sequence]
+            basket_sequence = Counter(
+                u for (u, _) in set((t[u_pos], t[b_pos]) for t in tuples)
+            )
+            tuples = [
+                t
+                for t in tuples
+                if basket_sequence[t[u_pos]] >= self.min_basket_sequence
+            ]
 
         return tuples
 
     def _filter_sequence(self, tuples, fmt="SIT"):
         s_pos = fmt.find("S")
+
         if self.min_sequence_size > 1:
             sizes = Counter(t[s_pos] for t in tuples)
             tuples = [t for t in tuples if sizes[t[s_pos]] >= self.min_sequence_size]
@@ -255,7 +279,16 @@ class Reader:
 
         return tuples
 
-    def read(self, fpath, fmt="UIR", sep="\t", skip_lines=0, id_inline=False, parser=None, **kwargs):
+    def read(
+        self,
+        fpath,
+        fmt="UIR",
+        sep="\t",
+        skip_lines=0,
+        id_inline=False,
+        parser=None,
+        **kwargs
+    ):
         """Read data and parse line by line based on provided `fmt` or `parser`.
 
         Parameters
@@ -290,18 +323,23 @@ class Reader:
         """
         parser = PARSERS.get(fmt, None) if parser is None else parser
         if parser is None:
-            raise ValueError("Invalid line format: {}\n" "Only support: {}".format(fmt, PARSERS.keys()))
+            raise ValueError(
+                "Invalid line format: {}\n"
+                "Supported formats: {}".format(fmt, PARSERS.keys())
+            )
 
         with open(fpath, encoding=self.encoding, errors=self.errors) as f:
             tuples = [
                 tup
                 for idx, line in enumerate(itertools.islice(f, skip_lines, None))
-                for tup in parser(line.strip().split(sep), line_idx=idx, id_inline=id_inline, **kwargs)
+                for tup in parser(
+                    line.strip().split(sep), line_idx=idx, id_inline=id_inline, **kwargs
+                )
             ]
             tuples = self._filter(tuples=tuples, fmt=fmt)
-            if fmt in ["UBI", "UBIT", "UBITJson"]:
+            if fmt in {"UBI", "UBIT", "UBITJson"}:
                 tuples = self._filter_basket(tuples=tuples, fmt=fmt)
-            elif fmt in ["SIT", "SITJson", "USIT", "USITJson"]:
+            elif fmt in {"SIT", "SITJson", "USIT", "USITJson"}:
                 tuples = self._filter_sequence(tuples=tuples, fmt=fmt)
             return tuples
 
