@@ -15,7 +15,7 @@
 """Example of a next-basket recommendation model that merely uses item top frequency"""
 
 import cornac
-from cornac.datasets import gowalla, yoochoose
+from cornac.datasets import yoochoose
 from cornac.eval_methods import NextItemEvaluation
 from cornac.metrics import MRR, NDCG, Recall
 from cornac.models import SPop
