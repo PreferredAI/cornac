@@ -343,7 +343,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm", "powerlaw"],
+    install_requires=["numpy", "scipy", "tqdm", "powerlaw","bottleneck"],
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
     cmdclass=cmdclass,
     packages=find_packages(),
