@@ -15,16 +15,25 @@
 
 import os
 import pytest
-import json
+
+from cornac.data import Reader, Dataset
+from cornac.models import BPR
 
 
 @pytest.fixture()
-def app():
+def load_model():
+    triplet_data = Reader().read("tests/data.txt")
+    train_set = Dataset.from_uir(triplet_data)
+    model = BPR(k=10, max_iter=100, learning_rate=0.01, lambda_reg=0.01, seed=123)
+    model.fit(train_set)
+    return model.save(save_dir="saved_models", save_trainset=True)  # returns directory path
 
-    relative_path = os.path.dirname(__file__)
-    print(relative_path)
-    os.environ["MODEL_PATH"] = os.path.join(relative_path, "saved_model.pkl")
-    os.environ["MODEL_CLASS"] = "cornac.models.MF"
+
+@pytest.fixture()
+def app(load_model):
+    current_path = os.getcwd()
+    os.environ["MODEL_PATH"] = os.path.join(current_path, load_model)
+    os.environ["MODEL_CLASS"] = "cornac.models.BPR"
 
     from cornac.serving.app import app
 
@@ -50,46 +59,46 @@ def test_create_app(app):
 
 
 def test_recommend(client):
-    response = client.get('/recommend?uid=123&k=10')
+    response = client.get('/recommend?uid=930&k=5')
     assert response.status_code == 200
-    assert len(response.json['recommendations']) == 10
-    assert response.json['query']['uid'] == '123'
-    assert response.json['query']['k'] == 10
+    assert len(response.json['recommendations']) == 5
+    assert response.json['query']['uid'] == '930'
+    assert response.json['query']['k'] == 5
     assert response.json['query']['remove_seen'] == False
 
 
 def test_feedback(client):
-    response = client.post('/feedback?uid=1&iid=1&rating=5')
+    response = client.post('/feedback?uid=930&iid=795&rating=5')
     assert response.status_code == 200
 
 
 def test_feedback_missing_uid(client):
-    response = client.post('/feedback?iid=1&rating=5')
+    response = client.post('/feedback?iid=795&rating=5')
     assert response.status_code == 400
     assert response.data == b'uid is required'
 
 
 def test_feedback_missing_iid(client):
-    response = client.post('/feedback?uid=1&rating=5')
+    response = client.post('/feedback?uid=930&rating=5')
     assert response.status_code == 400
     assert response.data == b'iid is required'
 
 
 def test_feedback_missing_rating(client):
-    response = client.post('/feedback?uid=1&iid=1')
+    response = client.post('/feedback?uid=195&iid=795')
     assert response.status_code == 200
 
 
 def test_evaluate_json(client):
     json_data = {
-        'metrics': ['RMSE()', 'Recall(k=10)']
+        'metrics': ['RMSE()', 'Recall(k=5)']
     }
     response = client.post('/evaluate', json=json_data)
     # assert response.content_type == 'application/json'
     assert response.status_code == 200
     assert len(response.json['query']['metrics']) == 2
     assert 'RMSE' in response.json['result']
-    assert 'Recall@10' in response.json['result']
+    assert 'Recall@5' in response.json['result']
 
 
 def test_evalulate_incorrect_get(client):
