@@ -130,7 +130,10 @@ class BaseANN(Recommender):
 
         all_items = np.arange(self.total_items)
         ranked_items = np.concatenate(
-            [top_k_items, all_items[~np.in1d(all_items, top_k_items)]]
+            [
+                top_k_items,
+                all_items[~np.isin(all_items, top_k_items, assume_unique=True)],
+            ]
         )
 
         # rank items based on their scores
@@ -139,7 +142,9 @@ class BaseANN(Recommender):
             ranked_items = ranked_items[: self.num_items]
         else:
             item_scores = item_scores[item_indices]
-            ranked_items = ranked_items[np.in1d(ranked_items, item_indices)]
+            ranked_items = ranked_items[
+                np.isin(ranked_items, item_indices, assume_unique=True)
+            ]
 
         return ranked_items, item_scores
 
