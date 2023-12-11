@@ -17,6 +17,7 @@ import copy
 import inspect
 import os
 import pickle
+import warnings
 from datetime import datetime
 from glob import glob
 
@@ -243,7 +244,9 @@ class Recommender:
         model_file = os.path.join(model_dir, "{}.pkl".format(timestamp))
 
         saved_model = copy.deepcopy(self)
-        pickle.dump(saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(
+            saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
+        )
         if self.verbose:
             print("{} model is saved to {}".format(self.name, model_file))
 
@@ -299,6 +302,11 @@ class Recommender:
         -------
         self : object
         """
+        if self.is_fitted:
+            warnings.warn(
+                "Model is already fitted. Re-fitting will overwrite the previous model."
+            )
+
         self.reset_info()
         train_set.reset()
         if val_set is not None:
@@ -520,7 +528,9 @@ class Recommender:
             raise ValueError(f"{user_id} is unknown to the model.")
 
         if k < -1 or k > self.total_items:
-            raise ValueError(f"k={k} is invalid, there are {self.total_users} users in total.")
+            raise ValueError(
+                f"k={k} is invalid, there are {self.total_users} users in total."
+            )
 
         item_indices = np.arange(self.total_items)
         if remove_seen:
@@ -597,7 +607,11 @@ class Recommender:
 
         if self.stopped_epoch > 0:
             print("Early stopping:")
-            print("- best epoch = {}, stopped epoch = {}".format(self.best_epoch, self.stopped_epoch))
+            print(
+                "- best epoch = {}, stopped epoch = {}".format(
+                    self.best_epoch, self.stopped_epoch
+                )
+            )
             print(
                 "- best monitored value = {:.6f} (delta = {:.6f})".format(
                     self.best_value, current_value - self.best_value
