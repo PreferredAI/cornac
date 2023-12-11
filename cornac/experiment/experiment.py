@@ -46,6 +46,10 @@ class Experiment:
     show_validation: bool, optional, default: True 
         Whether to show the results on validation set (if exists).
 
+    verbose: bool, optional, default: False
+        Output running log/progress during model training and evaluation.
+        If verbose is True, it will overwrite verbosity setting of evaluation method and models.
+        
     save_dir: str, optional, default: None
         Path to a directory for storing trained models and logs. If None, 
         models will NOT be stored and logs will be saved in the current working directory.
@@ -126,6 +130,13 @@ class Experiment:
     def run(self):
         """Run the Cornac experiment"""
         self._create_result()
+
+        # overwrite verbosity setting of evaluation method and models
+        # if Experiment verbose is True
+        if self.verbose:
+            self.eval_method.verbose = self.verbose
+            for model in self.models:
+                model.verbose = self.verbose
 
         for model in self.models:
             test_result, val_result = self.eval_method.evaluate(
