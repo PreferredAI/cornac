@@ -24,3 +24,4 @@ from . import movielens
 from . import netflix
 from . import tafeng
 from . import tradesy
+from . import yoochoose

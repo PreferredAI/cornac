@@ -1197,7 +1197,7 @@ class SequentialDataset(Dataset):
 
         dataset = cls(
             num_users=len(global_uid_map),
-            num_sessions=len(global_sid_map),
+            num_sessions=len(set(session_indices)),
             num_items=len(global_iid_map),
             uid_map=global_uid_map,
             sid_map=global_sid_map,
