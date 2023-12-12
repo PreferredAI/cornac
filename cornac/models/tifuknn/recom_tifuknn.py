@@ -88,19 +88,20 @@ class TIFUKNN(NextBasketRecommender):
         start_time = time()
         if self.verbose:
             print("Constructing kd-tree for quick nearest-neighbor lookup")
-        self.tree = KDTree(list(self.user_vectors.values()))
+        self.tree = KDTree(self.user_vectors)
         if self.verbose:
             print("Constructing kd-tree for quick nearest-neighbor lookup takes %.0f" % (time() - start_time))
         return self
 
     def _get_user_vectors(self, data_set):
-        user_vectors = {}
-        for [user_idx], _, [basket_items] in tqdm(
+        user_vectors = []
+        for _, _, [basket_items] in tqdm(
             data_set.ubi_iter(batch_size=1, shuffle=False),
             desc="Getting user vectors",
             total=data_set.num_users,
         ):
-            user_vectors[user_idx] = self._compute_user_vector(basket_items[:-1])
+            user_vectors.append(self._compute_user_vector(basket_items[:-1]))
+        user_vectors = np.asarray(user_vectors, dtype="float32")
         return user_vectors
 
     def _compute_user_vector(self, history_baskets):
@@ -166,6 +167,5 @@ class TIFUKNN(NextBasketRecommender):
         if len(history_baskets) == 0:
             return np.zeros(self.total_items, dtype="float32")
         user_vector = self._compute_user_vector(history_baskets)
-        user_indices = np.fromiter(list(self.user_vectors.keys()), dtype="int32")
         _, indices = self.tree.query([user_vector], k=self.n_neighbors)
-        return self.alpha * user_vector + (1 - self.alpha) * np.sum([self.user_vectors[user_indices[idx]] for idx in indices.squeeze()], axis=0)
+        return self.alpha * user_vector + (1 - self.alpha) * np.sum([self.user_vectors[idx] for idx in indices.squeeze()], axis=0)
