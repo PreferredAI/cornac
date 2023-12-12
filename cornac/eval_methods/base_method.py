@@ -157,6 +157,8 @@ def ranking_eval(
     if len(metrics) == 0:
         return [], []
 
+    max_k = max(m.k for m in metrics)
+
     avg_results = []
     user_results = [{} for _ in enumerate(metrics)]
 
@@ -203,7 +205,9 @@ def ranking_eval(
         u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
         u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
 
-        item_rank, item_scores = model.rank(user_idx, item_indices)
+        item_rank, item_scores = model.rank(
+            user_idx=user_idx, item_indices=item_indices, k=max_k
+        )
 
         for i, mt in enumerate(metrics):
             mt_score = mt.compute(

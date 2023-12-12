@@ -17,6 +17,7 @@ import os
 import copy
 import inspect
 import pickle
+import warnings
 from glob import glob
 from datetime import datetime
 
@@ -130,6 +131,7 @@ class Recommender:
         self.name = name
         self.trainable = trainable
         self.verbose = verbose
+        self.is_fitted = False
 
         # attributes to be ignored when saving model
         self.ignored_attrs = ["train_set", "val_set", "test_set"]
@@ -180,8 +182,9 @@ class Recommender:
     def __deepcopy__(self, memo):
         cls = self.__class__
         result = cls.__new__(cls)
+        ignored_attrs = set(self.ignored_attrs)
         for k, v in self.__dict__.items():
-            if k in self.ignored_attrs:
+            if k in ignored_attrs:
                 continue
             setattr(result, k, copy.deepcopy(v))
         return result
@@ -302,6 +305,11 @@ class Recommender:
         -------
         self : object
         """
+        if self.is_fitted:
+            warnings.warn(
+                "Model is already fitted. Re-fitting will overwrite the previous model."
+            )
+
         self.reset_info()
         train_set.reset()
         if val_set is not None:
@@ -319,6 +327,8 @@ class Recommender:
         # just for future wrapper to call fit(), not supposed to be used during prediction
         self.train_set = train_set
         self.val_set = val_set
+
+        self.is_fitted = True
 
         return self
 
@@ -450,7 +460,7 @@ class Recommender:
 
         return rating_pred
 
-    def rank(self, user_idx, item_indices=None, **kwargs):
+    def rank(self, user_idx, item_indices=None, k=-1, **kwargs):
         """Rank all test items for a given user.
 
         Parameters
@@ -461,6 +471,10 @@ class Recommender:
         item_indices: 1d array, optional, default: None
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned.
+
+        k: int, required
+            Cut-off length for recommendations, k=-1 will return ranked list of all items.
+            This is more important for ANN to know the limit to avoid exhaustive ranking.
 
         Returns
         -------
@@ -484,12 +498,23 @@ class Recommender:
             all_item_scores[: self.num_items] = known_item_scores
 
         # rank items based on their scores
-        if item_indices is None:
-            item_scores = all_item_scores[: self.num_items]
-            ranked_items = item_scores.argsort()[::-1]
-        else:
-            item_scores = all_item_scores[item_indices]
-            ranked_items = np.array(item_indices)[item_scores.argsort()[::-1]]
+        item_indices = (
+            np.arange(self.num_items)
+            if item_indices is None
+            else np.asarray(item_indices)
+        )
+        item_scores = all_item_scores[item_indices]
+
+        if (
+            k != -1
+        ):  # O(n + k log k), faster for small k which is usually the case
+            partitioned_idx = np.argpartition(item_scores, -k)
+            top_k_idx = partitioned_idx[-k:]
+            sorted_top_k_idx = top_k_idx[np.argsort(item_scores[top_k_idx])]
+            partitioned_idx[-k:] = sorted_top_k_idx
+            ranked_items = item_indices[partitioned_idx[::-1]]
+        else:  # O(n log n)
+            ranked_items = item_indices[item_scores.argsort()[::-1]]
 
         return ranked_items, item_scores
 
