@@ -645,7 +645,7 @@ class BasketDataset(Dataset):
     uir_tuple: tuple, required
         Tuple of 3 numpy arrays (user_indices, item_indices, rating_values).
 
-    basket_ids: numpy.array, required
+    basket_indices: numpy.array, required
         Array of basket indices corresponding to observation in `uir_tuple`.
 
     timestamps: numpy.array, optional, default: None
@@ -677,7 +677,7 @@ class BasketDataset(Dataset):
         bid_map,
         iid_map,
         uir_tuple,
-        basket_ids=None,
+        basket_indices=None,
         timestamps=None,
         extra_data=None,
         seed=None,
@@ -693,23 +693,31 @@ class BasketDataset(Dataset):
         )
         self.num_baskets = num_baskets
         self.bid_map = bid_map
-        self.basket_ids = basket_ids
+        self.basket_indices = basket_indices
         self.extra_data = extra_data
-        basket_sizes = list(Counter(basket_ids).values())
+        basket_sizes = list(Counter(basket_indices).values())
         self.max_basket_size = np.max(basket_sizes)
         self.min_basket_size = np.min(basket_sizes)
         self.avg_basket_size = np.mean(basket_sizes)
 
         self.__baskets = None
+        self.__basket_ids = None
         self.__user_basket_data = None
         self.__chrono_user_basket_data = None
+
+    @property
+    def basket_ids(self):
+        """Return the list of raw basket ids"""
+        if self.__basket_ids is None:
+            self.__basket_ids = list(self.bid_map.keys())
+        return self.__basket_ids
 
     @property
     def baskets(self):
         """A dictionary to store indices where basket ID appears in the data."""
         if self.__baskets is None:
             self.__baskets = defaultdict(list)
-            for idx, bid in enumerate(self.basket_ids):
+            for idx, bid in enumerate(self.basket_indices):
                 self.__baskets[bid].append(idx)
         return self.__baskets
 
@@ -836,7 +844,7 @@ class BasketDataset(Dataset):
             np.ones(len(u_indices), dtype="float"),
         )
 
-        basket_ids = np.asarray(b_indices, dtype="int")
+        basket_indices = np.asarray(b_indices, dtype="int")
 
         timestamps = (
             np.fromiter((int(data[i][3]) for i in valid_idx), dtype="int")
@@ -854,7 +862,7 @@ class BasketDataset(Dataset):
             bid_map=global_bid_map,
             iid_map=global_iid_map,
             uir_tuple=uir_tuple,
-            basket_ids=basket_ids,
+            basket_indices=basket_indices,
             timestamps=timestamps,
             extra_data=extra_data,
             seed=seed,
