@@ -168,4 +168,4 @@ class TIFUKNN(NextBasketRecommender):
             return np.zeros(self.total_items, dtype="float32")
         user_vector = self._compute_user_vector(history_baskets)
         _, indices = self.tree.query([user_vector], k=self.n_neighbors)
-        return self.alpha * user_vector + (1 - self.alpha) * np.sum([self.user_vectors[idx] for idx in indices.squeeze()], axis=0)
+        return self.alpha * user_vector + (1 - self.alpha) * np.mean(self.user_vectors[indices.squeeze()])
