@@ -14,10 +14,12 @@
 # ============================================================================
 
 import copy
+import warnings
 import numpy as np
 
 from ..recommender import Recommender
 from ..recommender import is_ann_supported
+from ..recommender import MEASURE_DOT, MEASURE_COSINE
 
 
 class BaseANN(Recommender):
@@ -41,20 +43,50 @@ class BaseANN(Recommender):
         if not is_ann_supported(model):
             raise ValueError(f"{model.name} doesn't support ANN search")
 
-        # ANN required attributes
-        self.measure = copy.deepcopy(model.get_vector_measure())
-        self.user_vectors = copy.deepcopy(model.get_user_vectors())
-        self.item_vectors = copy.deepcopy(model.get_item_vectors())
+        self.model = model
 
-        # get basic attributes to be a proper recommender
-        super().fit(train_set=model.train_set, val_set=model.val_set)
+        self.ignored_attrs.append("model")  # not to save the base model with ANN
+
+        if model.is_fitted:
+            Recommender.fit(self, model.train_set, model.val_set)
+
+    def fit(self, train_set, val_set=None):
+        """Fit the model to observations.
+
+        Parameters
+        ----------
+        train_set: :obj:`cornac.data.Dataset`, required
+            User-Item preference data as well as additional modalities.
+
+        val_set: :obj:`cornac.data.Dataset`, optional, default: None
+            User-Item preference data for model selection purposes (e.g., early stopping).
+
+        Returns
+        -------
+        self : object
+        """
+        Recommender.fit(self, train_set, val_set)
+
+        if not self.model.is_fitted:
+            if self.verbose:
+                print(f"Fitting base recommender model {self.model.name}...")
+            self.model.fit(train_set, val_set)
+
+        self.build_index()
+
+        return self
 
     def build_index(self):
-        """Building index from the base recommender model.
+        """Building index from the base recommender model."""
+        if not self.model.is_fitted:
+            warnings.warn(f"Base recommender model {self.model.name} is not fitted!")
 
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
+        # ANN required attributes
+        self.measure = copy.deepcopy(self.model.get_vector_measure())
+        self.user_vectors = copy.deepcopy(self.model.get_user_vectors())
+        self.item_vectors = copy.deepcopy(self.model.get_item_vectors())
+
+        self.higher_is_better = self.measure in {MEASURE_DOT, MEASURE_COSINE}
 
     def knn_query(self, query, k):
         """Implementing ANN search for a given query.
@@ -64,6 +96,57 @@ class BaseANN(Recommender):
         :raise NotImplementedError
         """
         raise NotImplementedError()
+
+    def rank(self, user_idx, item_indices=None, k=-1, **kwargs):
+        """Rank all test items for a given user.
+
+        Parameters
+        ----------
+        user_idx: int, required
+            The index of the user for whom to perform item raking.
+
+        item_indices: 1d array, optional, default: None
+            A list of candidate item indices to be ranked by the user.
+            If `None`, list of ranked known item indices and their scores will be returned.
+
+        k: int, required
+            Cut-off length for recommendations, k=-1 will return ranked list of all items.
+
+        Returns
+        -------
+        (ranked_items, item_scores): tuple
+            `ranked_items` contains item indices being ranked by their scores.
+            `item_scores` contains scores of items corresponding to index in `item_indices` input.
+
+        """
+        query = self.user_vectors[[user_idx]]
+        knn_items, distances = self.knn_query(query, k=k)
+
+        top_k_items = knn_items[0]
+        top_k_scores = -distances[0]
+
+        item_scores = np.full(self.total_items, -np.Inf)
+        item_scores[top_k_items] = top_k_scores
+
+        all_items = np.arange(self.total_items)
+        ranked_items = np.concatenate(
+            [
+                top_k_items,
+                all_items[~np.isin(all_items, top_k_items, assume_unique=True)],
+            ]
+        )
+
+        # rank items based on their scores
+        if item_indices is None:
+            item_scores = item_scores[: self.num_items]
+            ranked_items = ranked_items[: self.num_items]
+        else:
+            item_scores = item_scores[item_indices]
+            ranked_items = ranked_items[
+                np.isin(ranked_items, item_indices, assume_unique=True)
+            ]
+
+        return ranked_items, item_scores
 
     def recommend(self, user_id, k=-1, remove_seen=False, train_set=None):
         """Generate top-K item recommendations for a given user. Backward compatibility.

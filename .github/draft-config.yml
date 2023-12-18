@@ -1,0 +1,62 @@
+name-template: 'Cornac $RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+autolabeler:
+  - label: 'docs'
+    files:
+      - '*.md'
+    branch:
+      - '/docs{0,1}\/.+/'
+  - label: 'models'
+    files:
+      - '/cornac/models/*.py'
+      - '/cornac/models/**/*.py'
+  - label: 'datasets'
+    files:
+      - '/cornac/datasets/*.py'
+
+template: |
+  # What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+categories:
+  - title: 'Breaking'
+    label: 'type: breaking'
+  - title: 'Models'
+    label: 'type: models'
+  - title: 'Datasets'
+    label: 'type: datasets'
+  - title: 'New'
+    label: 'type: feature'
+  - title: 'Bug Fixes'
+    label: 'type: bug'
+  - title: 'Maintenance'
+    label: 'type: maintenance'
+  - title: 'Documentation'
+    label: 'type: docs'
+  - title: 'Other changes'
+  - title: 'Dependency Updates'
+    label: 'type: dependencies'
+    collapse-after: 5
+
+version-resolver:
+  major:
+    labels:
+      - 'type: breaking'
+  minor:
+    labels:
+      - 'type: feature'
+  patch:
+    labels:
+      - 'type: bug'
+      - 'type: maintenance'
+      - 'type: docs'
+      - 'type: dependencies'
+      - 'type: security'
+      - 'type: models'
+      - 'type: datasets'
+
+exclude-labels:
+  - 'skip-changelog'

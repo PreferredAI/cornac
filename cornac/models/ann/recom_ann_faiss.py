@@ -68,7 +68,6 @@ class FaissANN(BaseANN):
     ):
         super().__init__(model=model, name=name, verbose=verbose)
 
-        self.model = model
         self.nlist = nlist
         self.nprobe = nprobe
         self.use_gpu = use_gpu
@@ -87,6 +86,8 @@ class FaissANN(BaseANN):
 
     def build_index(self):
         """Building index from the base recommender model."""
+        super().build_index()
+
         import faiss
 
         faiss.omp_set_num_threads(self.num_threads)
@@ -129,6 +130,11 @@ class FaissANN(BaseANN):
             Array of k-nearest neighbors and corresponding distances for the given query.
         """
         distances, neighbors = self.index.search(query, k)
+
+        # make sure distances respect the notion of nearest neighbors (smaller is better)
+        if self.higher_is_better:
+            distances = 1.0 - distances
+
         return neighbors, distances
 
     def save(self, save_dir=None):

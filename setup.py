@@ -330,7 +330,7 @@ cmdclass = {
 
 setup(
     name="cornac",
-    version="1.17.0",
+    version="1.18.0",
     description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -344,7 +344,7 @@ setup(
     ],
     ext_modules=extensions,
     install_requires=["numpy", "scipy", "tqdm", "powerlaw"],
-    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
+    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov", "Flask"]},
     cmdclass=cmdclass,
     packages=find_packages(),
     classifiers=[
