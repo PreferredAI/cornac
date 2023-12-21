@@ -15,8 +15,8 @@
 
 import unittest
 
-from cornac.data import BasketDataset, Dataset, Reader
-from cornac.models import MF, GPTop, NextBasketRecommender
+from cornac.data import BasketDataset, Dataset, SequentialDataset, Reader
+from cornac.models import MF, GPTop, SPop, NextBasketRecommender, NextItemRecommender
 
 
 class TestRecommender(unittest.TestCase):
@@ -67,6 +67,24 @@ class TestNextBasketRecommender(unittest.TestCase):
         model.fit(dataset)
         model.score(0, [[]])
         model.rank(0, history_baskets=[[]])
+
+
+class TestNextItemRecommender(unittest.TestCase):
+    def setUp(self):
+        self.data = Reader().read("./tests/sequence.txt", fmt="USIT", sep=" ")
+
+    def test_init(self):
+        model = NextItemRecommender("test")
+        self.assertTrue(model.name == "test")
+
+    def test_fit(self):
+        dataset = SequentialDataset.from_usit(self.data)
+        model = NextItemRecommender("")
+        model.fit(dataset)
+        model = SPop()
+        model.fit(dataset)
+        model.score(0, [])
+        model.rank(0, history_items=[])
 
 
 if __name__ == "__main__":

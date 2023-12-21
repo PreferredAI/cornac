@@ -15,6 +15,7 @@
 
 from .recommender import Recommender
 from .recommender import NextBasketRecommender
+from .recommender import NextItemRecommender
 
 from .amr import AMR
 from .ann import AnnoyANN
