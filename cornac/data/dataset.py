@@ -1362,8 +1362,8 @@ class SequentialDataset(Dataset):
             yield batch_session_indices, batch_mapped_ids, batch_session_items
 
     def io_iter(self, batch_size=1, shuffle=False):
-        """Create an iterator over data yielding batch of input item indices, batch of output item indices.
-        A sequence `a b c d` produces [a, b, c] and [b, c, d] as input items and output items respectively.
+        """Paralellize mini-batch of input-output items. Create an iterator over data yielding batch of input item indices, batch of output item indices, 
+        batch of start masking, batch of end masking, and batch of valid ids (relative positions of current sequences in the last batch).
 
         Parameters
         ----------
@@ -1374,21 +1374,55 @@ class SequentialDataset(Dataset):
 
         Returns
         -------
-        iterator : batch of input item indices, batch of output item indices
+        iterator : batch of input item indices, batch of output item indices, batch of starting sequence mask, batch of ending sequence mask, batch of valid ids
 
         """
-        input_iids = np.asarray([], dtype="int")
-        output_iids = np.asarray([], dtype="int")
-        for _, [mapped_ids] in self.s_iter(1, shuffle):
-            if len(mapped_ids) < 2:
-                continue
-            input_iids = np.concatenate([input_iids, self.uir_tuple[1][mapped_ids[:-1]]])
-            output_iids = np.concatenate([output_iids, self.uir_tuple[1][mapped_ids[1:]]])
-            if len(input_iids) >= batch_size:
-                batch_input_iids = input_iids[:batch_size]
-                batch_output_iids = output_iids[:batch_size]
-                input_iids = input_iids[batch_size:]
-                output_iids = output_iids[batch_size:]
-                yield batch_input_iids, batch_output_iids
-        if len(input_iids) > 0:
-            yield input_iids, output_iids
+        start_mask = np.zeros(batch_size, dtype="int")
+        end_mask = np.ones(batch_size, dtype="int")
+        input_iids = None
+        output_iids = None
+        l_pool = []
+        c_pool = [None for _ in range(batch_size)]
+        sizes = np.zeros(batch_size, dtype="int")
+        for _, batch_mapped_ids in self.s_iter(batch_size, shuffle):
+            l_pool += batch_mapped_ids
+            while len(l_pool) > 0:
+                if end_mask.sum() == 0:
+                    input_iids = self.uir_tuple[1][[mapped_ids[-sizes[idx]] for idx, mapped_ids in enumerate(c_pool)]]
+                    output_iids = self.uir_tuple[1][[mapped_ids[-sizes[idx] + 1] for idx, mapped_ids in enumerate(c_pool)]]
+                    sizes -= 1
+                    for idx, size in enumerate(sizes):
+                        if size == 1:
+                            end_mask[idx] = 1
+                    yield input_iids, output_iids, start_mask, end_mask, np.arange(batch_size, dtype="int")
+                    start_mask.fill(0) # reset start masking
+                while end_mask.sum() > 0 and len(l_pool) > 0:
+                    next_seq = l_pool.pop()
+                    if len(next_seq) > 1:
+                        idx = np.nonzero(end_mask)[0][0]
+                        end_mask[idx] = 0
+                        start_mask[idx] = 1
+                        c_pool[idx] = next_seq
+                        sizes[idx] = len(c_pool[idx])
+
+        valid_id = np.ones(batch_size, dtype="int")
+        while True:
+            for idx, size in enumerate(sizes):
+                if size == 1:
+                    end_mask[idx] = 1
+                    valid_id[idx] = 0
+            input_iids = self.uir_tuple[1][[mapped_ids[-sizes[idx]] for idx, mapped_ids in enumerate(c_pool) if sizes[idx] > 1]]
+            output_iids = self.uir_tuple[1][[mapped_ids[-sizes[idx] + 1] for idx, mapped_ids in enumerate(c_pool) if sizes[idx] > 1]]
+            sizes -= 1
+            for idx, size in enumerate(sizes):
+                if size == 1:
+                    end_mask[idx] = 1
+            start_mask = start_mask[np.nonzero(valid_id)[0]]
+            end_mask = end_mask[np.nonzero(valid_id)[0]]
+            sizes = sizes[np.nonzero(valid_id)[0]]
+            c_pool = [_ for _, valid in zip(c_pool, valid_id) if valid > 0]
+            yield input_iids, output_iids, start_mask, end_mask, np.nonzero(valid_id)[0]
+            valid_id = np.ones(len(input_iids), dtype="int")
+            if end_mask.sum() == len(input_iids):
+                break
+            start_mask.fill(0) # reset start masking
