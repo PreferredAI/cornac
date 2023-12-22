@@ -21,35 +21,6 @@ from copy import deepcopy
 
 
 from tqdm.auto import trange
-
-
-class Batch:
-
-    def __init__(self, device, idx, data_in, data_out=None):
-        self._device = device
-        self._idx = idx
-        self._data_in = data_in
-        self._data_out = data_out
-
-    def get_idx(self):
-        return self._idx
-
-    def get_idx_to_dev(self):
-        import torch
-        return torch.LongTensor(self.get_idx()).to(self._device)
-
-    def get_ratings(self, is_out=False):
-        data = self._data_out if is_out else self._data_in
-        return data[self._idx]
-
-    def get_ratings_to_dev(self, is_out=False):
-        import torch
-
-        return torch.Tensor(
-            self.get_ratings(is_out).toarray()
-        ).to(self._device)
-    
-
 class RecVAE(Recommender):
     def __init__(
         self,
@@ -68,7 +39,7 @@ class RecVAE(Recommender):
 
         trainable=True,
         verbose=False,
-        seed=None,
+        seed=1234,
         use_gpu=True,
     ):
 
@@ -88,6 +59,7 @@ class RecVAE(Recommender):
         self.not_alternating = not_alternating
         self.seed = seed
 
+
         import torch
         if use_gpu and torch.cuda.is_available():
             self.device = torch.device("cuda:0")
@@ -95,78 +67,17 @@ class RecVAE(Recommender):
             self.device = torch.device("cpu") 
 
 
-    def generate(self,my_batch_size, device, data_in, data_out=None, shuffle=False, samples_perc_per_epoch=1):
-        assert 0 < samples_perc_per_epoch <= 1
-
-        total_samples = data_in.shape[0]
-        samples_per_epoch = int(total_samples * samples_perc_per_epoch)
-
-        if shuffle:
-            idxlist = np.arange(total_samples)
-            np.random.shuffle(idxlist)
-            idxlist = idxlist[:samples_per_epoch]
-        else:
-            idxlist = np.arange(samples_per_epoch)
-
-        for st_idx in range(0, samples_per_epoch, my_batch_size):
-            end_idx = min(st_idx + my_batch_size, samples_per_epoch)
-            idx = idxlist[st_idx:end_idx]
-
-            # idx_len = len(idx)
-            # print(f"end_idx:{end_idx}")
-            # if idx_len != 500:
-            #   print(f"idx:{len(idx)}")
-            #   break
-
-            yield Batch(device, idx, data_in, data_out)
-
-
-
-    def evaluate(self,model, data_in, data_out, metrics, samples_perc_per_epoch=1, my_batch_size=500):
-        metrics = deepcopy(metrics)
-        model.eval()
-
-        for m in metrics:
-            m['score'] = []
-
-        for batch in self.generate(my_batch_size,
-                            self.device,
-                            data_in,
-                            data_out,
-                            samples_perc_per_epoch=samples_perc_per_epoch
-                            ):
-            
-            print(batch)
-
-            ratings_in = batch.get_ratings_to_dev()
-            ratings_out = batch.get_ratings(is_out=True)
-
-
-
-            ratings_pred = model(ratings_in, calculate_loss=False).cpu().detach().numpy()
-
-
-
-            if not (data_in is data_out):
-                # print("Pred : INF")
-                ratings_pred[batch.get_ratings().nonzero()] = -np.inf
-
-            for m in metrics:
-                m['score'].append(m['metric'](ratings_pred, ratings_out, k=m['k']))
-
-        for m in metrics:
-            m['score'] = np.concatenate(m['score']).mean()
-
-        return [x['score'] for x in metrics]
-
-
-
-
-    def run(self,model, opts, train_data, my_batch_size, n_epochs, beta, gamma, dropout_rate):
+    def run(self,model, opts, train_set, my_batch_size, n_epochs, beta, gamma, dropout_rate):
+        import torch
+        train_data = train_set.csc_matrix 
         model.train()
         for epoch in range(n_epochs):
-            for batch in self.generate(my_batch_size,self.device, train_data, shuffle=True):
-                ratings = batch.get_ratings_to_dev()
+            for i, batch_ids in enumerate(
+                train_set.user_iter(my_batch_size, shuffle=True)
+            ):
+
+                ratings = torch.Tensor((train_data[batch_ids,:]).toarray()).to(self.device)                
+
                 for optimizer in opts:
                     optimizer.zero_grad()
 
@@ -175,9 +86,7 @@ class RecVAE(Recommender):
 
                 for optimizer in opts:
                     optimizer.step()
-
-
-
+                    
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -207,7 +116,6 @@ class RecVAE(Recommender):
 
             if self.verbose:
                 print("Learning...")
-
             if self.seed is not None:
                 np.random.seed(self.seed)
                 torch.manual_seed(self.seed)
@@ -216,7 +124,6 @@ class RecVAE(Recommender):
                 torch.backends.cudnn.deterministic = True
                 torch.backends.cudnn.benchmark = False
                 torch.backends.cudnn.enabled = False
-
 
 
             model_kwargs = {
@@ -231,7 +138,7 @@ class RecVAE(Recommender):
 
             learning_kwargs = {
                 'model': self.recvae_model,
-                'train_data': train_set.matrix,
+                'train_set': train_set,
                 'my_batch_size': self.batch_size,
                 'beta': self.beta,
                 'gamma': self.gamma
@@ -253,8 +160,6 @@ class RecVAE(Recommender):
                     self.run(opts=[optimizer_encoder], n_epochs=self.n_enc_epochs, dropout_rate=0.5, **learning_kwargs)
                     self.recvae_model.update_prior()
                     self.run(opts=[optimizer_decoder], n_epochs=self.n_dec_epochs, dropout_rate=0, **learning_kwargs)
-              
-                
 
         
                 ndcg_100 = ranking_eval(
@@ -268,7 +173,7 @@ class RecVAE(Recommender):
                 progress_bar.set_postfix(ndcg100 = ndcg_100)
 
             if self.verbose:
-                print(f"Learning completed : [{value}]")
+                print(f"Learning completed : [{ndcg_100}]")
 
         elif self.verbose:
             print("%s is trained already (trainable = False)" % (self.name))
