@@ -39,7 +39,7 @@ class RecVAE(Recommender):
 
         trainable=True,
         verbose=False,
-        seed=1234,
+        seed=None,
         use_gpu=True,
     ):
 
@@ -71,7 +71,7 @@ class RecVAE(Recommender):
         import torch
         train_data = train_set.csc_matrix 
         model.train()
-        for epoch in range(n_epochs):
+        for _ in range(n_epochs):
             for i, batch_ids in enumerate(
                 train_set.user_iter(my_batch_size, shuffle=True)
             ):
@@ -198,24 +198,14 @@ class RecVAE(Recommender):
         res : A scalar or a Numpy array
             Relative scores that the user gives to the item or to all known items
         """
-        # print(f"###### {user_idx}")
         import torch
 
         ratings_in = self.mydata.matrix[user_idx,:]
 
-        #print(f"ratings_in : {ratings_in}")
-        #print(f"type ratings_in : {type(ratings_in)}")
+  
 
         ratings_pred = self.recvae_model(torch.Tensor(ratings_in.toarray()).to(self.device), calculate_loss=False).cpu().detach().numpy().flatten()
-        #print(f"ratings_pred : {ratings_pred}")
 
-        #print(f"ratings_pred_len : {len(ratings_pred)}")
-
-        #print(f"flattern : {ratings_pred.flatten()}")
-        #print(len(ratings_pred.flatten()))  # Add this line for inspection
-        #print(f"ratings_pred_len2 : {len(ratings_pred.flatten())}")
-        #print(f"item_idx : {item_idx}")
-        #print(f"user_idx : {user_idx}")
 
         if item_idx is None:
             if not self.knows_user(user_idx):
@@ -233,5 +223,3 @@ class RecVAE(Recommender):
 
             return ratings_pred[item_idx]
         
-            # return self.clean_pre[:,user_idx][item_idx]
-#print("UU")
