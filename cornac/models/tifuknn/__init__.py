@@ -1,4 +1,4 @@
-# Copyright 2018 The Cornac Authors. All Rights Reserved.
+# Copyright 2023 The Cornac Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,14 +13,4 @@
 # limitations under the License.
 # ============================================================================
 
-
-class CornacException(Exception):
-    """Exception base class to extend from"""
-
-    pass
-
-
-class ScoreException(CornacException):
-    """Exception raised in score function when facing unknowns"""
-
-    pass
+from .recom_tifuknn import TIFUKNN

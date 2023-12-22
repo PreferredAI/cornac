@@ -80,10 +80,18 @@ class ScaNNANN(BaseANN):
     ):
         super().__init__(model=model, name=name, verbose=verbose)
 
-        if score_params is None:
-            score_params = {}
+        if partition_params is None:
+            partition_params = {"num_leaves": 100, "num_leaves_to_search": 50}
 
-        self.model = model
+        if score_params is None:
+            score_params = {
+                "dimensions_per_block": 2,
+                "anisotropic_quantization_threshold": 0.2,
+            }
+
+        if rescore_params is None:
+            rescore_params = {"reordering_num_neighbors": 100}
+
         self.partition_params = partition_params
         self.score_params = score_params
         self.score_brute_force = score_brute_force
@@ -103,6 +111,8 @@ class ScaNNANN(BaseANN):
 
     def build_index(self):
         """Building index from the base recommender model."""
+        super().build_index()
+
         import scann
 
         assert self.measure in SUPPORTED_MEASURES
@@ -148,6 +158,11 @@ class ScaNNANN(BaseANN):
             Array of k-nearest neighbors and corresponding distances for the given query.
         """
         neighbors, distances = self.index.search_batched(query, final_num_neighbors=k)
+
+        # make sure distances respect the notion of nearest neighbors (smaller is better)
+        if self.higher_is_better:
+            distances = 1.0 - distances
+
         return neighbors, distances
 
     def save(self, save_dir=None):
