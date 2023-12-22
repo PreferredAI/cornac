@@ -135,6 +135,8 @@ class RecVAE(Recommender):
                             data_out,
                             samples_perc_per_epoch=samples_perc_per_epoch
                             ):
+            
+            print(batch)
 
             ratings_in = batch.get_ratings_to_dev()
             ratings_out = batch.get_ratings(is_out=True)
@@ -175,35 +177,6 @@ class RecVAE(Recommender):
                     optimizer.step()
 
 
-    def ndcg(self,X_pred, heldout_batch, k=100):
-        '''
-        normalized discounted cumulative gain@k for binary relevance
-        ASSUMPTIONS: all the 0's in heldout_data indicate 0 relevance
-        '''
-        import bottleneck as bn
-
-        batch_users = X_pred.shape[0]
-        idx_topk_part = bn.argpartition(-X_pred, k, axis=1)
-        topk_part = X_pred[np.arange(batch_users)[:, np.newaxis],
-                        idx_topk_part[:, :k]]
-        idx_part = np.argsort(-topk_part, axis=1)
-
-        idx_topk = idx_topk_part[np.arange(batch_users)[:, np.newaxis], idx_part]
-        tp = 1. / np.log2(np.arange(2, k + 2))
-
-        DCG = (heldout_batch[np.arange(batch_users)[:, np.newaxis],
-                            idx_topk].toarray() * tp).sum(axis=1)
-        IDCG = np.array([(tp[:min(n, k)]).sum()
-                        for n in heldout_batch.getnnz(axis=1)])
-
-
-        value = DCG / IDCG
-
-
-        value = np.nan_to_num(value, nan=0.0)
-
-        return value
-
 
 
     def fit(self, train_set, val_set=None):
@@ -227,6 +200,9 @@ class RecVAE(Recommender):
         import torch
         from torch import optim
 
+        from ...metrics import NDCG
+        from ...eval_methods import ranking_eval
+                
         if self.trainable:
 
             if self.verbose:
@@ -277,9 +253,19 @@ class RecVAE(Recommender):
                     self.run(opts=[optimizer_encoder], n_epochs=self.n_enc_epochs, dropout_rate=0.5, **learning_kwargs)
                     self.recvae_model.update_prior()
                     self.run(opts=[optimizer_decoder], n_epochs=self.n_dec_epochs, dropout_rate=0, **learning_kwargs)
-                metrics = [{'metric': self.ndcg, 'k': 100}]
-                value = self.evaluate(self.recvae_model, train_set.matrix, train_set.matrix, metrics, 0.01)[0]
-                progress_bar.set_postfix(ndcg100 = value)
+              
+                
+
+        
+                ndcg_100 = ranking_eval(
+                model=self,
+                metrics=[NDCG(k=100)],
+                train_set=train_set,
+                test_set=train_set,
+                )[0][0]
+                        
+                
+                progress_bar.set_postfix(ndcg100 = ndcg_100)
 
             if self.verbose:
                 print(f"Learning completed : [{value}]")
