@@ -1426,3 +1426,24 @@ class SequentialDataset(Dataset):
             if end_mask.sum() == len(input_iids):
                 break
             start_mask.fill(0) # reset start masking
+
+    def usi_iter(self, batch_size=1, shuffle=False):
+        """Create an iterator over data yielding batch of user indices, batch of session indices, batch of mapped ids, and batch of sessions' items
+
+        Parameters
+        ----------
+        batch_size: int, optional, default = 1
+
+        shuffle: bool, optional, default: False
+            If `True`, orders of triplets will be randomized. If `False`, default orders kept.
+
+        Returns
+        -------
+        iterator : batch of user indices, batch of session indices (list of list), batch mapped ids (list of list of list), batch of sessions' items (list of list of list)
+
+        """
+        for user_indices in self.user_iter(batch_size, shuffle):
+            batch_sids = [[sid for sid in self.user_session_data[uid]] for uid in user_indices]
+            batch_mapped_ids = [[self.sessions[sid] for sid in self.user_session_data[uid]] for uid in user_indices]
+            batch_session_items = [[[self.uir_tuple[1][i] for i in ids] for ids in u_batch_mapped_ids] for u_batch_mapped_ids in batch_mapped_ids]
+            yield user_indices, batch_sids, batch_mapped_ids, batch_session_items
