@@ -22,41 +22,38 @@ template: |
   **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
 categories:
-  - title: 'Breaking'
-    label: 'type: breaking'
-  - title: 'Models'
-    label: 'type: models'
-  - title: 'Datasets'
-    label: 'type: datasets'
-  - title: 'New'
-    label: 'type: feature'
-  - title: 'Bug Fixes'
-    label: 'type: bug'
-  - title: 'Maintenance'
-    label: 'type: maintenance'
-  - title: 'Documentation'
-    label: 'type: docs'
-  - title: 'Other changes'
-  - title: 'Dependency Updates'
-    label: 'type: dependencies'
+  - title: '💥 Breaking Changes'
+    label: 'breaking'
+  - title: '🧱 Models'
+    label: 'models'
+  - title: '🗃️ Datasets'
+    label: 'datasets'
+  - title: '🚀 Features'
+    label: 'feature'
+  - title: '🐛 Bug Fixes'
+    label: 'bug'
+  - title: '📝 Documentation'
+    label: 'docs'
+  - title: '✅ Other changes'
+  - title: '💯 Dependency Updates'
+    label: 'dependencies'
     collapse-after: 5
 
 version-resolver:
   major:
     labels:
-      - 'type: breaking'
+      - 'breaking'
   minor:
     labels:
-      - 'type: feature'
+      - 'feature'
   patch:
     labels:
-      - 'type: bug'
-      - 'type: maintenance'
-      - 'type: docs'
-      - 'type: dependencies'
-      - 'type: security'
-      - 'type: models'
-      - 'type: datasets'
+      - 'bug'
+      - 'maintenance'
+      - 'docs'
+      - 'dependencies'
+      - 'models'
+      - 'datasets'
 
 exclude-labels:
   - 'skip-changelog'
