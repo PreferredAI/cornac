@@ -201,9 +201,6 @@ class RecVAE(Recommender):
         import torch
 
         ratings_in = self.mydata.matrix[user_idx,:]
-
-  
-
         ratings_pred = self.recvae_model(torch.Tensor(ratings_in.toarray()).to(self.device), calculate_loss=False).cpu().detach().numpy().flatten()
 
 

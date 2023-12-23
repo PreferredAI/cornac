@@ -95,13 +95,6 @@ class VAE(nn.Module):
         mu, logvar = self.encoder(user_ratings, dropout_rate=dropout_rate)
         z = self.reparameterize(mu, logvar)
         x_pred = self.decoder(z)
-
-        # iszero = torch.sum(torch.isnan(x_pred)).item()
-        # print(f"z ::: {iszero}")
-        # import time
-        # time.sleep(10)
-
-
         if calculate_loss:
             if gamma:
                 norm = user_ratings.sum(dim=-1)
