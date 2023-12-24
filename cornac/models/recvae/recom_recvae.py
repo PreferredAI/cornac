@@ -22,6 +22,64 @@ from copy import deepcopy
 
 from tqdm.auto import trange
 class RecVAE(Recommender):
+    """
+    RecVAE, a recommender system based on a Variational Autoencoder.
+
+    Parameters
+    ----------
+    name : str, optional, default: 'RecVae'
+        Name of the recommender model.
+
+    hidden_dim : int, optional, default: 600
+        Dimension of the hidden layer in the VAE architecture.
+
+    latent_dim : int, optional, default: 200
+        Dimension of the latent layer in the VAE architecture.
+
+    batch_size : int, optional, default: 500
+        Size of the batches used during training.
+
+    beta : float, optional
+        Weighting factor for the KL divergence term in the VAE loss function.
+
+    gamma : float, optional, default: 0.005
+        Weighting factor for the regularization term in the loss function.
+
+    lr : float, optional, default: 5e-4
+        Learning rate for the optimizer.
+
+    n_epochs : int, optional, default: 50
+        Number of epochs to train the model.
+
+    n_enc_epochs : int, optional, default: 3
+        Number of epochs to train the encoder part of VAE.
+
+    n_dec_epochs : int, optional, default: 1
+        Number of epochs to train the decoder part of VAE.
+
+    not_alternating : boolean, optional, default: False
+        If True, the model training will not alternate between encoder and decoder.
+
+    trainable : boolean, optional, default: True
+        When False, the model will not be re-trained, and input of pre-trained parameters are required.
+
+    verbose : boolean, optional, default: False
+        When True, running logs are displayed.
+
+    seed : int, optional
+        Random seed for weight initialization and training reproducibility.
+
+    use_gpu : boolean, optional, default: True
+        When True, training utilizes GPU if available.
+
+    References
+    ----------
+    * RecVAE GitHub Repository: https://github.com/ilya-shenbin/RecVAE
+    * Paper Link: https://arxiv.org/abs/1912.11160
+    
+
+    """
+    
     def __init__(
         self,
         name="RecVae",
