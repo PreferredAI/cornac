@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for RecVAE  with biases"""
+"""Example for RecVAE"""
 
 import cornac
 from cornac.datasets import movielens
