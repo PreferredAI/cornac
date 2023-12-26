@@ -13,14 +13,13 @@
 # limitations under the License.
 # ============================================================================
 
+from tqdm.auto import trange
 import numpy as np
 
 from ..recommender import Recommender
 from ...exception import ScoreException
-from copy import deepcopy
 
 
-from tqdm.auto import trange
 class RecVAE(Recommender):
     """
     RecVAE, a recommender system based on a Variational Autoencoder.
