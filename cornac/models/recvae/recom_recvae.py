@@ -126,7 +126,7 @@ class RecVAE(Recommender):
 
     def run(self,model, opts, train_set, my_batch_size, n_epochs, beta, gamma, dropout_rate):
         import torch
-        train_data = train_set.csc_matrix 
+        train_data = train_set.csr_matrix 
         model.train()
         for _ in range(n_epochs):
             for i, batch_ids in enumerate(
