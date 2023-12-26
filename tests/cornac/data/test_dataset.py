@@ -18,7 +18,7 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 
-from cornac.data import BasketDataset, Dataset, Reader
+from cornac.data import BasketDataset, Dataset, SequentialDataset, Reader
 
 
 class TestDataset(unittest.TestCase):
@@ -260,6 +260,34 @@ class TestBasketDataset(unittest.TestCase):
             set(["1", "2", "3", "4", "5", "6", "7"]),
         )
 
+
+class TestSequentialDataset(unittest.TestCase):
+    def setUp(self):
+        self.sequential_data = Reader().read("./tests/sequence.txt", fmt="USIT", sep=" ")
+
+    def test_init(self):
+        train_set = SequentialDataset.from_usit(self.sequential_data)
+
+        self.assertEqual(train_set.num_sessions, 16)
+        self.assertEqual(train_set.max_session_size, 6)
+        self.assertEqual(train_set.min_session_size, 2)
+
+        self.assertEqual(train_set.num_users, 5)
+        self.assertEqual(train_set.num_items, 9)
+
+        self.assertEqual(train_set.uid_map["1"], 0)
+        self.assertEqual(train_set.sid_map["1"], 0)
+        self.assertEqual(train_set.iid_map["1"], 0)
+
+        self.assertSetEqual(
+            set(train_set.user_ids),
+            set(["1", "2", "3", "4", "5"]),
+        )
+
+        self.assertSetEqual(
+            set(train_set.item_ids),
+            set(["1", "2", "3", "4", "5", "6", "7", "8", "9"]),
+        )
 
 if __name__ == "__main__":
     unittest.main()
