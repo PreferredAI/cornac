@@ -34,9 +34,34 @@ Adversarial Training Towards Robust Multimedia Recommender System (AMR)
 .. automodule:: cornac.models.amr.recom_amr
    :members:
 
+Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)
+--------------------------------------------------------------------------------------------------
+.. automodule:: cornac.models.hrdr.recom_hrdr
+   :members:
+
+Simplifying and Powering Graph Convolution Network for Recommendation (LightGCN)
+--------------------------------------------------------------------------------
+.. automodule:: cornac.models.lightgcn.recom_lightgcn
+   :members:
+
+New Variational Autoencoder for Top-N Recommendations with Implicit Feedback (RecVAE)
+-------------------------------------------------------------------------------------
+.. automodule:: cornac.models.recvae.recom_recvae
+   :members:
+
+Temporal-Item-Frequency-based User-KNN (TIFUKNN)
+---------------------------------------------------
+.. automodule:: cornac.models.tifuknn.recom_tifuknn
+   :members:
+
 Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)
 -----------------------------------------------------------
 .. automodule:: cornac.models.ease.recom_ease
+   :members:
+
+Neural Graph Collaborative Filtering (NGCF)
+-------------------------------------------
+.. automodule:: cornac.models.ngcf.recom_ngcf
    :members:
 
 Collaborative Context Poisson Factorization (C2PF)
@@ -54,24 +79,9 @@ Multi-Task Explainable Recommendation (MTER)
 .. automodule:: cornac.models.mter.recom_mter
    :members:
 
-Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)
---------------------------------------------------------------------------------------------------
-.. automodule:: cornac.models.hrdr.recom_hrdr
-   :members:
-
-Simplifying and Powering Graph Convolution Network for Recommendation (LightGCN)
---------------------------------------------------------------------------------
-.. automodule:: cornac.models.lightgcn.recom_lightgcn
-   :members:
-
 Neural Attention Rating Regression with Review-level Explanations (NARRE)
 -------------------------------------------------------------------------
 .. automodule:: cornac.models.narre.recom_narre
-   :members:
-
-Neural Graph Collaborative Filtering (NGCF)
--------------------------------------------
-.. automodule:: cornac.models.ngcf.recom_ngcf
    :members:
 
 Probabilistic Collaborative Representation Learning (PCRL)
@@ -84,14 +94,14 @@ VAE for Collaborative Filtering (VAECF)
 .. automodule:: cornac.models.vaecf.recom_vaecf
    :members:
 
-Conditional VAE for Collaborative Filtering (CVAECF)
-----------------------------------------------------
-.. automodule:: cornac.models.cvaecf.recom_cvaecf
-   :members:
-
 Collaborative Variational Autoencoder (CVAE)
 --------------------------------------------
 .. automodule:: cornac.models.cvae.recom_cvae
+   :members:
+
+Conditional VAE for Collaborative Filtering (CVAECF)
+----------------------------------------------------
+.. automodule:: cornac.models.cvaecf.recom_cvaecf
    :members:
 
 Generalized Matrix Factorization (GMF)
