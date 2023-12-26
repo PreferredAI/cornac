@@ -96,6 +96,8 @@
 
 [pmf_ratio.py](pmf_ratio.py) - Probabilistic Matrix Factorization (PMF) with RatioSplit.
 
+[recvae_example.py](recvae_example.py) - New Variational Autoencoder for Top-N Recommendations with Implicit Feedback (RecVAE).
+
 [skm_movielens.py](skm_movielens.py) - SKMeans vs BPR on MovieLens data.
 
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
