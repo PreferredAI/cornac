@@ -35,14 +35,17 @@ class TestNextItemEvaluation(unittest.TestCase):
 
     def test_evaluate(self):
         next_item_eval = NextItemEvaluation.from_splits(train_data=self.data[:50], test_data=self.data[50:], fmt="USIT")
-        next_item_eval.evaluate(
-            SPop(), [HitRatio(k=2), Recall(k=2)], user_based=True
+        result = next_item_eval.evaluate(
+            SPop(), [HitRatio(k=2), Recall(k=2)], user_based=False
         )
-
+        self.assertEqual(result[0].metric_avg_results.get('HitRatio@2'), 0)
+        self.assertEqual(result[0].metric_avg_results.get('Recall@2'), 0)
         next_item_eval = NextItemEvaluation.from_splits(train_data=self.data[:50], test_data=self.data[50:], fmt="USIT")
-        next_item_eval.evaluate(
-            SPop(), [HitRatio(k=2), Recall(k=2)], user_based=True
+        result = next_item_eval.evaluate(
+            SPop(), [HitRatio(k=5), Recall(k=5)], user_based=True
         )
+        self.assertEqual(result[0].metric_avg_results.get('HitRatio@5'), 2/3)
+        self.assertEqual(result[0].metric_avg_results.get('Recall@5'), 2/3)
 
 
 if __name__ == "__main__":

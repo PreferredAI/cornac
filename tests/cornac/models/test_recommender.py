@@ -84,7 +84,8 @@ class TestNextItemRecommender(unittest.TestCase):
         model = SPop()
         model.fit(dataset)
         model.score(0, [])
-        model.rank(0, history_items=[])
+        result = model.rank(0, history_items=[])
+        self.assertTrue((result[0] == [3, 2, 4, 1, 0, 5, 8, 7, 6]).all())
 
 
 if __name__ == "__main__":
