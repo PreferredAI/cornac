@@ -13,8 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
-from tqdm.auto import trange
 import numpy as np
+from tqdm.auto import trange
 
 from ..recommender import Recommender
 from ...exception import ScoreException
