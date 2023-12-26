@@ -15,6 +15,7 @@
 
 from .recommender import Recommender
 from .recommender import NextBasketRecommender
+from .recommender import NextItemRecommender
 
 from .amr import AMR
 from .ann import AnnoyANN
@@ -68,6 +69,7 @@ from .recvae import RecVAE
 from .sbpr import SBPR
 from .skm import SKMeans
 from .sorec import SoRec
+from .spop import SPop
 from .svd import SVD
 from .tifuknn import TIFUKNN
 from .trirank import TriRank
