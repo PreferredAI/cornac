@@ -48,7 +48,7 @@ class SPop(NextItemRecommender):
         return self
 
     def score(self, user_idx, history_items, **kwargs):
-        item_scores = np.ones(self.total_items, dtype=np.float32)
+        item_scores = np.zeros(self.total_items, dtype=np.float32)
         max_item_freq = max(self.item_freq.values()) if len(self.item_freq) > 0 else 1
         for iid, freq in self.item_freq.items():
             item_scores[iid] = freq / max_item_freq

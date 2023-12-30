@@ -259,6 +259,11 @@ Probabilitic Matrix Factorization (PMF)
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
 
+Session Popular (SPop)
+----------------------
+.. automodule:: cornac.models.spop.recom_spop
+   :members:
+
 Singular Value Decomposition (SVD)
 ----------------------------------
 .. automodule:: cornac.models.svd.recom_svd
