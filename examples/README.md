@@ -108,6 +108,12 @@
 
 ----
 
+## Next-Item Algorithms
+
+[spop_yoochoose.py](spop_yoochoose.py) - Next-item recommendation based on item popularity.
+
+----
+
 ## Next-Basket Algorithms
 
 [gp_top_tafeng.py](gp_top_tafeng.py) - Next-basket recommendation model that merely uses item top frequency.
