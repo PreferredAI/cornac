@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example of a next-basket recommendation model that merely uses item top frequency"""
+"""Example of a next-item recommendation model based on item popularity"""
 
 import cornac
 from cornac.datasets import yoochoose
