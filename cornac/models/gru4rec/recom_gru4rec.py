@@ -118,7 +118,6 @@ class GRU4Rec(NextItemRecommender):
         super().__init__(name, trainable=trainable, verbose=verbose)
         self.layers = layers
         self.loss = loss
-        self._set_loss_function(loss)
         self.batch_size = batch_size
         self.dropout_p_embed = dropout_p_embed
         self.dropout_p_hidden = dropout_p_hidden
@@ -136,89 +135,32 @@ class GRU4Rec(NextItemRecommender):
         self.seed = seed
         self.rng = get_rng(seed)
 
-    def _set_loss_function(self, loss):
-        if loss == "cross-entropy":
-            self.loss_function = self._xe_loss_with_softmax
-        elif loss == "bpr-max":
-            self.loss_function = self._bpr_max_loss_with_elu
-        elif loss == "top1":
-            self.loss_function = self._top1
-        else:
-            raise NotImplementedError
-
-    def _xe_loss_with_softmax(self, O, Y, M):
-        import torch
-
-        if self.logq > 0:
-            O = O - self.logq * torch.log(
-                torch.cat([self.P0[Y[:M]], self.P0[Y[M:]] ** self.sample_alpha])
-            )
-        X = torch.exp(O - O.max(dim=1, keepdim=True)[0])
-        X = X / X.sum(dim=1, keepdim=True)
-        return -torch.sum(torch.log(torch.diag(X) + 1e-24))
-
-    def _softmax_neg(self, X):
-        import torch
-
-        hm = 1.0 - torch.eye(*X.shape, out=torch.empty_like(X))
-        X = X * hm
-        e_x = torch.exp(X - X.max(dim=1, keepdim=True)[0]) * hm
-        return e_x / e_x.sum(dim=1, keepdim=True)
-
-    def _bpr_max_loss_with_elu(self, O, Y, M):
-        import torch
-        from torch import nn
-
-        if self.elu_param > 0:
-            O = nn.functional.elu(O, self.elu_param)
-        softmax_scores = self._softmax_neg(O)
-        target_scores = torch.diag(O)
-        target_scores = target_scores.reshape(target_scores.shape[0], -1)
-        return torch.sum(
-            (
-                -torch.log(
-                    torch.sum(torch.sigmoid(target_scores - O) * softmax_scores, dim=1)
-                    + 1e-24
-                )
-                + self.bpreg * torch.sum((O**2) * softmax_scores, dim=1)
-            )
-        )
-
-    def _top1(self, O, Y, M):
-        import torch
-
-        target_scores = torch.diag(O)
-        target_scores = target_scores.reshape(target_scores.shape[0], -1)
-        return torch.sum(
-            (
-                torch.mean(
-                    torch.sigmoid(O - target_scores) + torch.sigmoid(O**2), axis=1
-                )
-                - torch.sigmoid(target_scores**2) / (M + self.n_sample)
-            )
-        )
-
     def fit(self, train_set, val_set=None):
         super().fit(train_set, val_set)
         import torch
 
         from .gru4rec import GRU4RecModel, IndexedAdagradM, io_iter
 
-        if self.logq and self.loss == "cross-entropy":
-            pop = Counter(self.train_set.uir_tuple[1])
-            self.P0 = torch.tensor(
-                [pop[iid] for (_, iid) in self.train_set.iid_map.items()],
-                dtype=torch.float32,
-                device=self.device,
-            )
+        item_freq = Counter(self.train_set.uir_tuple[1])
+        P0 = torch.tensor(
+            [item_freq[iid] for (_, iid) in self.train_set.iid_map.items()],
+            dtype=torch.float32,
+            device=self.device,
+        ) if self.logq > 0 else None
 
         self.model = GRU4RecModel(
-            self.total_items,
-            self.layers,
-            self.dropout_p_embed,
-            self.dropout_p_hidden,
-            self.embedding,
-            self.constrained_embedding,
+            n_items=self.total_items,
+            P0=P0,
+            layers=self.layers,
+            dropout_p_embed=self.dropout_p_embed,
+            dropout_p_hidden=self.dropout_p_hidden,
+            embedding=self.embedding,
+            constrained_embedding=self.constrained_embedding,
+            logq=self.logq,
+            sample_alpha=self.sample_alpha,
+            bpreg=self.bpreg,
+            elu_param=self.elu_param,
+            loss=self.loss,
         ).to(self.device)
 
         self.model._reset_weights_to_compatibility_mode()
@@ -262,7 +204,7 @@ class GRU4Rec(NextItemRecommender):
                 )
                 self.model.zero_grad()
                 R = self.model.forward(in_iids, H, out_iids, training=True)
-                L = self.loss_function(R, out_iids, len(in_iids)) / self.batch_size
+                L = self.model.loss_function(R, out_iids, len(in_iids)) / len(in_iids)
                 L.backward()
                 opt.step()
                 total_loss += L.cpu().detach().numpy() * len(in_iids)

@@ -121,19 +121,32 @@ class GRU4RecModel(nn.Module):
     def __init__(
         self,
         n_items,
+        P0=None,
         layers=[100],
         dropout_p_embed=0.0,
         dropout_p_hidden=0.0,
         embedding=0,
         constrained_embedding=True,
+        logq=0.0,
+        sample_alpha=0.5,
+        bpreg=1.0,
+        elu_param=0.5,
+        loss="cross-entropy",
     ):
         super(GRU4RecModel, self).__init__()
         self.n_items = n_items
+        self.P0 = P0
         self.layers = layers
         self.dropout_p_embed = dropout_p_embed
         self.dropout_p_hidden = dropout_p_hidden
         self.embedding = embedding
         self.constrained_embedding = constrained_embedding
+        self.logq = logq
+        self.sample_alpha = sample_alpha
+        self.elu_param = elu_param
+        self.bpreg = bpreg
+        self.loss = loss
+        self.set_loss_function(self.loss)
         self.start = 0
         if constrained_embedding:
             n_input = layers[-1]
@@ -169,6 +182,59 @@ class GRU4RecModel(nn.Module):
             nn.init.zeros_(self.G[i].bias_hh)
         init_parameter_matrix(self.Wy.weight)
         nn.init.zeros_(self.By.weight)
+
+    def set_loss_function(self, loss):
+        if loss == "cross-entropy":
+            self.loss_function = self.xe_loss_with_softmax
+        elif loss == "bpr-max":
+            self.loss_function = self.bpr_max_loss_with_elu
+        elif loss == "top1":
+            self.loss_function = self.top1
+        else:
+            raise NotImplementedError
+
+    def xe_loss_with_softmax(self, O, Y, M):
+        if self.logq > 0:
+            O = O - self.logq * torch.log(
+                torch.cat([self.P0[Y[:M]], self.P0[Y[M:]] ** self.sample_alpha])
+            )
+        X = torch.exp(O - O.max(dim=1, keepdim=True)[0])
+        X = X / X.sum(dim=1, keepdim=True)
+        return -torch.sum(torch.log(torch.diag(X) + 1e-24))
+
+    def softmax_neg(self, X):
+        hm = 1.0 - torch.eye(*X.shape, out=torch.empty_like(X))
+        X = X * hm
+        e_x = torch.exp(X - X.max(dim=1, keepdim=True)[0]) * hm
+        return e_x / e_x.sum(dim=1, keepdim=True)
+
+    def bpr_max_loss_with_elu(self, O, Y, M):
+        if self.elu_param > 0:
+            O = nn.functional.elu(O, self.elu_param)
+        softmax_scores = self.softmax_neg(O)
+        target_scores = torch.diag(O)
+        target_scores = target_scores.reshape(target_scores.shape[0], -1)
+        return torch.sum(
+            (
+                -torch.log(
+                    torch.sum(torch.sigmoid(target_scores - O) * softmax_scores, dim=1)
+                    + 1e-24
+                )
+                + self.bpreg * torch.sum((O**2) * softmax_scores, dim=1)
+            )
+        )
+
+    def top1(self, O, Y, M):
+        target_scores = torch.diag(O)
+        target_scores = target_scores.reshape(target_scores.shape[0], -1)
+        return torch.sum(
+            (
+                torch.mean(
+                    torch.sigmoid(O - target_scores) + torch.sigmoid(O**2), axis=1
+                )
+                - torch.sigmoid(target_scores**2) / (M + self.n_sample)
+            )
+        )
 
     def _init_numpy_weights(self, shape):
         sigma = np.sqrt(6.0 / (shape[0] + shape[1]))
