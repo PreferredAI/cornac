@@ -108,6 +108,12 @@
 
 ----
 
+## Next-Item Algorithms
+
+[gru4rec_yoochoose.py](gru4rec_yoochoose.py) - Example of Session-based Recommendations with Recurrent Neural Networks (GRU4Rec).
+
+----
+
 ## Next-Basket Algorithms
 
 [gp_top_tafeng.py](gp_top_tafeng.py) - Next-basket recommendation model that merely uses item top frequency.

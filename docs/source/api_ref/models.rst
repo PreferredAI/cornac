@@ -259,6 +259,11 @@ Probabilitic Matrix Factorization (PMF)
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
 
+Session-based Recommendations with Recurrent Neural Networks (GRU4Rec)
+----------------------------------------------------------------------
+.. automodule:: cornac.models.gru4rec.recom_gru4rec
+   :members:
+
 Singular Value Decomposition (SVD)
 ----------------------------------
 .. automodule:: cornac.models.svd.recom_svd
