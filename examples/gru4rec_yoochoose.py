@@ -19,23 +19,40 @@ from cornac.data import Reader
 from cornac.datasets import yoochoose
 from cornac.eval_methods import NextItemEvaluation
 from cornac.metrics import MRR, NDCG, Recall
-from cornac.models import GRU4Rec
+from cornac.models import GRU4Rec, SPop
 
 buy_data = yoochoose.load_buy(
-    reader=Reader(min_sequence_size=3, num_top_freq_item=30000)
+    reader=Reader(min_sequence_size=2, num_top_freq_item=30000)
 )
-print("buy data loaded")
-test_data = yoochoose.load_test(reader=Reader(min_sequence_size=3))
+print("train data loaded")
+item_set = set([tup[1] for tup in buy_data])
+test_data = yoochoose.load_test(reader=Reader(min_sequence_size=2, item_set=item_set))
 print("test data loaded")
 
 next_item_eval = NextItemEvaluation.from_splits(
     train_data=buy_data,
     test_data=test_data[:10000],  # illustration purpose only, subset of test data for faster experiment
+    exclude_unknowns=True,
     verbose=True,
     fmt="SITJson",
 )
 
-models = [GRU4Rec()]
+models = [
+    SPop(),
+    GRU4Rec(
+        layers=[100],
+        loss="bpr-max",
+        n_sample=2048,
+        dropout_p_embed=0.0,
+        dropout_p_hidden=0.5,
+        sample_alpha=0.75,
+        batch_size=512,
+        n_epochs=10,
+        device="cuda",
+        verbose=True,
+        seed=123,
+    )
+]
 
 metrics = [
     NDCG(k=10),
