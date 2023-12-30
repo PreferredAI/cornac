@@ -259,6 +259,11 @@ Probabilitic Matrix Factorization (PMF)
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
 
+Session Popular (SPop)
+----------------------
+.. automodule:: cornac.models.spop.recom_spop
+   :members:
+
 Session-based Recommendations with Recurrent Neural Networks (GRU4Rec)
 ----------------------------------------------------------------------
 .. automodule:: cornac.models.gru4rec.recom_gru4rec
