@@ -264,6 +264,11 @@ Session Popular (SPop)
 .. automodule:: cornac.models.spop.recom_spop
    :members:
 
+Session-based Recommendations with Recurrent Neural Networks (GRU4Rec)
+----------------------------------------------------------------------
+.. automodule:: cornac.models.gru4rec.recom_gru4rec
+   :members:
+
 Singular Value Decomposition (SVD)
 ----------------------------------
 .. automodule:: cornac.models.svd.recom_svd

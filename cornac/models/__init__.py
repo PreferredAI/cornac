@@ -43,6 +43,7 @@ from .fm import FM
 from .gcmc import GCMC
 from .global_avg import GlobalAvg
 from .gp_top import GPTop
+from .gru4rec import GRU4Rec
 from .hft import HFT
 from .hpf import HPF
 from .hrdr import HRDR
