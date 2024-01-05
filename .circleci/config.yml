@@ -1,0 +1,33 @@
+# This workflow will build and test, then publish code coverage to codecov.io
+version: 2.1
+
+orbs:
+  python: circleci/python@2.1.1
+
+jobs:
+  build-and-test: 
+    docker:
+      - image: cimg/python:3.10.2
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: pip
+      - run:
+          name: Install dependencies
+          no_output_timeout: 30m
+          command: |
+            sudo pip install --upgrade pip
+            sudo pip install --only-binary=numpy,scipy numpy==1.22.4 scipy Cython pytest pytest-cov codecov
+            sudo pip install -e .[tests]
+      - run:
+          name: Run tests
+          no_output_timeout: 30m
+          # This assumes pytest is installed via the install-package step above
+          command: |
+            python -m pytest --cov=cornac
+            codecov || echo "codecov failed"
+
+workflows:
+  codecov:
+    jobs:
+      - build-and-test
