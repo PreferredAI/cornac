@@ -272,7 +272,6 @@ class BaseMethod:
         self.val_set = None
         self.rating_threshold = rating_threshold
         self.exclude_unknowns = exclude_unknowns
-        self.mode = kwargs.get("mode", None)
         self.verbose = verbose
         self.seed = seed
         self.rng = get_rng(seed)
@@ -664,7 +663,6 @@ class BaseMethod:
         rating_metrics,
         ranking_metrics,
         verbose,
-        **kwargs,
     ):
         """Running evaluation for rating and ranking metrics respectively."""
         metric_avg_results = OrderedDict()
@@ -756,7 +754,6 @@ class BaseMethod:
             rating_metrics=rating_metrics,
             ranking_metrics=ranking_metrics,
             user_based=user_based,
-            mode=self.mode,
             verbose=self.verbose,
         )
         test_time = time.time() - start
@@ -777,7 +774,6 @@ class BaseMethod:
                 rating_metrics=rating_metrics,
                 ranking_metrics=ranking_metrics,
                 user_based=user_based,
-                mode=self.mode,
                 verbose=self.verbose,
             )
             val_time = time.time() - start
