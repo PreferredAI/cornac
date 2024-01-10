@@ -25,7 +25,7 @@ from ..experiment.result import Result
 from ..models import NextItemRecommender
 from . import BaseMethod
 
-EVALUATION_MODES = set([
+EVALUATION_MODES = frozenset([
     "last",
     "next",
 ])
@@ -215,7 +215,10 @@ class NextItemEvaluation(BaseMethod):
             mode=mode,
             **kwargs,
         )
-        assert mode in EVALUATION_MODES, "Evaluation mode is in %s, but '%s' is provided" % (EVALUATION_MODES, mode)
+        
+        if mode not in EVALUATION_MODES:
+            raise ValueError(f"{mode} is not supported. ({EVALUATION_MODES})")
+            
         self.mode = mode
         self.global_sid_map = kwargs.get("global_sid_map", OrderedDict())
 
