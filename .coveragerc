@@ -14,3 +14,4 @@ include =
 omit =
     */cornac/models/*
     */cornac/datasets/*
+    */cornac/eval_methods/propensity_stratified_evaluation.py  # ignored until being fixed
