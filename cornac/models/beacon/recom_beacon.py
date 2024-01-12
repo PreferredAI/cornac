@@ -31,6 +31,41 @@ class Beacon(NextBasketRecommender):
     name: string, default: 'Beacon'
         The name of the recommender model.
 
+    emb_dim: int, optional, default: 2
+        Embedding dimension
+    
+    rnn_unit: int, optional, default: 4
+        Number of dimension in a rnn unit.
+
+    alpha: float, optional, default: 0.5
+        Hyperparameter to control the balance between correlative and sequential associations.
+
+    rnn_cell_type: str, optional, default: 'LSTM'
+        RNN cell type, options including ['LSTM', 'GRU', None]
+        If None, BasicRNNCell will be used.
+
+    dropout_rate: float, optional, default: 0.5
+        Dropout rate of neural network dense layers
+
+    nb_hop: int, optional, default: 1
+        Number of hops for constructing correlation matrix.
+        If 0, zeros matrix will be used.
+
+    n_epochs: int, optional, default: 15
+        Number of training epochs
+
+    batch_size: int, optional, default: 32
+        Batch size
+
+    lr: float, optional, default: 0.001
+        Initial value of learning rate for the optimizer.
+
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+ 
+    seed: int, optional, default: None
+        Random seed
+
     References
     ----------
     LE, Duc Trong, Hady Wirawan LAUW, and Yuan Fang.
@@ -52,7 +87,7 @@ class Beacon(NextBasketRecommender):
         batch_size=32,
         lr=0.001,
         trainable=True,
-        verbose=True,
+        verbose=False,
         seed=None,
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
