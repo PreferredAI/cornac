@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+import time
+import warnings
 from collections import OrderedDict, defaultdict
 
 import numpy as np
@@ -20,8 +22,13 @@ from tqdm.auto import tqdm
 
 from ..data import SequentialDataset
 from ..experiment.result import Result
+from ..models import NextItemRecommender
 from . import BaseMethod
 
+EVALUATION_MODES = frozenset([
+    "last",
+    "next",
+])
 
 def ranking_eval(
     model,
@@ -30,6 +37,7 @@ def ranking_eval(
     test_set,
     user_based=False,
     exclude_unknowns=True,
+    mode="last",
     verbose=False,
 ):
     """Evaluate model on provided ranking metrics.
@@ -68,10 +76,11 @@ def ranking_eval(
         return [], []
 
     avg_results = []
-    session_results = [{} for _ in enumerate(metrics)]
+    session_results = [defaultdict(list) for _ in enumerate(metrics)]
     user_results = [defaultdict(list) for _ in enumerate(metrics)]
 
     user_sessions = defaultdict(list)
+    session_ids = []
     for [sid], [mapped_ids], [session_items] in tqdm(
         test_set.si_iter(batch_size=1, shuffle=False),
         total=len(test_set.sessions),
@@ -79,51 +88,56 @@ def ranking_eval(
         disable=not verbose,
         miniters=100,
     ):
-        test_pos_items = session_items[-1:]  # last item in the session
-        if len(test_pos_items) == 0:
+        if len(session_items) < 2:  # exclude all session with size smaller than 2
             continue
         user_idx = test_set.uir_tuple[0][mapped_ids[0]]
         if user_based:
             user_sessions[user_idx].append(sid)
-        # binary mask for ground-truth positive items
-        u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
-        u_gt_pos_mask[test_pos_items] = 1
+        session_ids.append(sid)
 
-        # binary mask for ground-truth negative items, removing all positive items
-        u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
-        u_gt_neg_mask[test_pos_items] = 0
+        start_pos = 1 if mode == "next" else len(session_items) - 1
+        for test_pos in range(start_pos, len(session_items), 1):
+            test_pos_items = session_items[test_pos]
 
-        # filter items being considered for evaluation
-        if exclude_unknowns:
-            u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
-            u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
+            # binary mask for ground-truth positive items
+            u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
+            u_gt_pos_mask[test_pos_items] = 1
 
-        u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
-        u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
-        item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
+            # binary mask for ground-truth negative items, removing all positive items
+            u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
+            u_gt_neg_mask[test_pos_items] = 0
 
-        item_rank, item_scores = model.rank(
-            user_idx,
-            item_indices,
-            history_items=session_items[:-1],
-            history_mapped_ids=mapped_ids[:-1],
-            sessions=test_set.sessions,
-            session_indices=test_set.session_indices,
-            extra_data=test_set.extra_data,
-        )
+            # filter items being considered for evaluation
+            if exclude_unknowns:
+                u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
+                u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
 
-        for i, mt in enumerate(metrics):
-            mt_score = mt.compute(
-                gt_pos=u_gt_pos_items,
-                gt_neg=u_gt_neg_items,
-                pd_rank=item_rank,
-                pd_scores=item_scores,
-                item_indices=item_indices,
+            u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
+            u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
+            item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
+
+            item_rank, item_scores = model.rank(
+                user_idx,
+                item_indices,
+                history_items=session_items[:test_pos],
+                history_mapped_ids=mapped_ids[:test_pos],
+                sessions=test_set.sessions,
+                session_indices=test_set.session_indices,
+                extra_data=test_set.extra_data,
             )
-            if user_based:
-                user_results[i][user_idx].append(mt_score)
-            else:
-                session_results[i][sid] = mt_score
+
+            for i, mt in enumerate(metrics):
+                mt_score = mt.compute(
+                    gt_pos=u_gt_pos_items,
+                    gt_neg=u_gt_neg_items,
+                    pd_rank=item_rank,
+                    pd_scores=item_scores,
+                    item_indices=item_indices,
+                )
+                if user_based:
+                    user_results[i][user_idx].append(mt_score)
+                else:
+                    session_results[i][sid].append(mt_score)
 
     # avg results of ranking metrics
     for i, mt in enumerate(metrics):
@@ -132,7 +146,8 @@ def ranking_eval(
             user_avg_results = [np.mean(user_results[i][user_idx]) for user_idx in user_ids]
             avg_results.append(np.mean(user_avg_results))
         else:
-            avg_results.append(sum(session_results[i].values()) / len(session_results[i]))
+            session_result = [score for sid in session_ids for score in session_results[i][sid]]
+            avg_results.append(np.mean(session_result))
     return avg_results, user_results
 
 
@@ -163,6 +178,11 @@ class NextItemEvaluation(BaseMethod):
     seed: int, optional, default: None
         Random seed for reproducibility.
 
+    mode: str, optional, default: 'last'
+        Evaluation mode is either 'next' or 'last'.
+        If 'last', only evaluate the last item.
+        If 'next', evaluate every next item in the sequence,
+
     exclude_unknowns: bool, optional, default: True
         If `True`, unknown items will be ignored during model evaluation.
 
@@ -178,6 +198,7 @@ class NextItemEvaluation(BaseMethod):
         val_size=0.0,
         fmt="SIT",
         seed=None,
+        mode="last",
         exclude_unknowns=True,
         verbose=False,
         **kwargs,
@@ -191,8 +212,14 @@ class NextItemEvaluation(BaseMethod):
             seed=seed,
             exclude_unknowns=exclude_unknowns,
             verbose=verbose,
+            mode=mode,
             **kwargs,
         )
+        
+        if mode not in EVALUATION_MODES:
+            raise ValueError(f"{mode} is not supported. ({EVALUATION_MODES})")
+            
+        self.mode = mode
         self.global_sid_map = kwargs.get("global_sid_map", OrderedDict())
 
     def _build_datasets(self, train_data, test_data, val_data=None):
@@ -263,6 +290,7 @@ class NextItemEvaluation(BaseMethod):
         ranking_metrics,
         user_based=False,
         verbose=False,
+        mode="last",
         **kwargs,
     ):
         metric_avg_results = OrderedDict()
@@ -275,6 +303,7 @@ class NextItemEvaluation(BaseMethod):
             test_set=test_set,
             user_based=user_based,
             exclude_unknowns=exclude_unknowns,
+            mode=mode,
             verbose=verbose,
         )
 
@@ -283,6 +312,95 @@ class NextItemEvaluation(BaseMethod):
             metric_user_results[mt.name] = user_results[i]
 
         return Result(model.name, metric_avg_results, metric_user_results)
+
+    def evaluate(self, model, metrics, user_based, show_validation=True):
+        """Evaluate given models according to given metrics. Supposed to be called by Experiment.
+
+        Parameters
+        ----------
+        model: :obj:`cornac.models.NextItemRecommender`
+            NextItemRecommender model to be evaluated.
+
+        metrics: :obj:`iterable`
+            List of metrics.
+
+        user_based: bool, required
+            Evaluation strategy for the rating metrics. Whether results
+            are averaging based on number of users or number of ratings.
+
+        show_validation: bool, optional, default: True
+            Whether to show the results on validation set (if exists).
+
+        Returns
+        -------
+        res: :obj:`cornac.experiment.Result`
+        """
+        if not isinstance(model, NextItemRecommender):
+            raise ValueError("model must be a NextItemRecommender but '%s' is provided" % type(model))
+
+        if self.train_set is None:
+            raise ValueError("train_set is required but None!")
+        if self.test_set is None:
+            raise ValueError("test_set is required but None!")
+
+        self._reset()
+
+        ###########
+        # FITTING #
+        ###########
+        if self.verbose:
+            print("\n[{}] Training started!".format(model.name))
+
+        start = time.time()
+        model.fit(self.train_set, self.val_set)
+        train_time = time.time() - start
+
+        ##############
+        # EVALUATION #
+        ##############
+        if self.verbose:
+            print("\n[{}] Evaluation started!".format(model.name))
+
+        rating_metrics, ranking_metrics = self.organize_metrics(metrics)
+        if len(rating_metrics) > 0:
+            warnings.warn("NextItemEvaluation only supports ranking metrics. The given rating metrics {} will be ignored!".format([mt.name for mt in rating_metrics]))
+
+        start = time.time()
+        model.transform(self.test_set)
+        test_result = self.eval(
+            model=model,
+            train_set=self.train_set,
+            test_set=self.test_set,
+            val_set=self.val_set,
+            exclude_unknowns=self.exclude_unknowns,
+            ranking_metrics=ranking_metrics,
+            user_based=user_based,
+            mode=self.mode,
+            verbose=self.verbose,
+        )
+        test_time = time.time() - start
+        test_result.metric_avg_results["Train (s)"] = train_time
+        test_result.metric_avg_results["Test (s)"] = test_time
+
+        val_result = None
+        if show_validation and self.val_set is not None:
+            start = time.time()
+            model.transform(self.val_set)
+            val_result = self.eval(
+                model=model,
+                train_set=self.train_set,
+                test_set=self.val_set,
+                val_set=None,
+                exclude_unknowns=self.exclude_unknowns,
+                ranking_metrics=ranking_metrics,
+                user_based=user_based,
+                mode=self.mode,
+                verbose=self.verbose,
+            )
+            val_time = time.time() - start
+            val_result.metric_avg_results["Time (s)"] = val_time
+
+        return test_result, val_result
 
     @classmethod
     def from_splits(
