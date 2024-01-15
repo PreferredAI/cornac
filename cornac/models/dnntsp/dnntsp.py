@@ -59,12 +59,6 @@ class MaskedSelfAttention(nn.Module):
         self.Wv = nn.Linear(input_dim, n_heads * self.dv, bias=False)
 
     def forward(self, input_tensor):
-        """
-        Args:
-            input_tensor: tensor, shape (nodes_num, T_max, features_num)
-        Returns:
-            output: tensor, shape (nodes_num, T_max, output_dim = features_num)
-        """
         seq_length = input_tensor.shape[1]
         # tensor, shape (nodes_num, T_max, n_heads * dim_per_head)
         Q = self.Wq(input_tensor)
@@ -126,13 +120,6 @@ class GlobalGatedUpdate(nn.Module):
         self.alpha = nn.Parameter(torch.rand(n_items, 1), requires_grad=True)
 
     def forward(self, graph, nodes, nodes_output):
-        """
-        :param graph: batched graphs, with the total number of nodes is `node_num`,
-                        including `batch_size` disconnected subgraphs
-        :param nodes: tensor (n_1+n_2+..., )
-        :param nodes_output: the output of self-attention model in time dimension, (n_1+n_2+..., F)
-        :return:
-        """
         nums_nodes, id = graph.batch_num_nodes(), 0
         items_embedding = self.embedding_matrix(
             torch.tensor([i for i in range(self.n_items)]).to(nodes.device)
@@ -162,21 +149,11 @@ class GlobalGatedUpdate(nn.Module):
 
 class AggregateNodesTemporalFeature(nn.Module):
     def __init__(self, item_embed_dim):
-        """
-        :param item_embed_dim: the dimension of input features
-        """
         super(AggregateNodesTemporalFeature, self).__init__()
 
         self.Wq = nn.Linear(item_embed_dim, 1, bias=False)
 
     def forward(self, graph, lengths, nodes_output):
-        """
-        :param graph: batched graphs, with the total number of nodes is `node_num`,
-                        including `batch_size` disconnected subgraphs
-        :param lengths: tensor, (batch_size, )
-        :param nodes_output: the output of self-attention model in time dimension, (n_1+n_2+..., T_max, F)
-        :return: aggregated_features, (n_1+n_2+..., F)
-        """
         nums_nodes, id = graph.batch_num_nodes(), 0
         aggregated_features = []
         for num_nodes, length in zip(nums_nodes, lengths):
@@ -197,10 +174,6 @@ class AggregateNodesTemporalFeature(nn.Module):
 
 
 class WeightedGraphConv(nn.Module):
-    """
-    Apply graph convolution over an input signal.
-    """
-
     def __init__(self, in_features: int, out_features: int):
         super(WeightedGraphConv, self).__init__()
         self.in_features = in_features
@@ -208,16 +181,6 @@ class WeightedGraphConv(nn.Module):
         self.linear = nn.Linear(in_features, out_features, bias=True)
 
     def forward(self, graph, node_features, edge_weights):
-        """Compute weighted graph convolution.
-        -----
-        Input:
-        graph : DGLGraph, batched graph.
-        node_features : torch.Tensor, input features for nodes (n_1+n_2+..., in_features) or (n_1+n_2+..., T, in_features)
-        edge_weights : torch.Tensor, input weights for edges  (T, n_1^2+n_2^2+..., n^2)
-
-        Output:
-        shape: (N, T, out_features)
-        """
         graph = graph.local_var()
         # multi W first to project the features, with bias
         # (N, F) / (N, T, F)
@@ -284,12 +247,6 @@ class WeightedGCN(nn.Module):
         node_features: torch.Tensor,
         edges_weight: torch.Tensor,
     ):
-        """
-        :param graph: a graph
-        :param node_features: shape (n_1+n_2+..., n_features)
-               edges_weight: shape (T, n_1^2+n_2^2+...)
-        :return:
-        """
         h = node_features
         for gcn, relu, bn in zip(self.gcns, self.relus, self.bns):
             # (n_1+n_2+..., T, features)
@@ -313,11 +270,6 @@ class StackedWeightedGCNBlocks(nn.ModuleList):
 
 class TemporalSetPrediction(nn.Module):
     def __init__(self, n_items, emb_dim):
-        """
-        :param n_items: int
-        :param emb_dim: int
-        :param n_heads: int
-        """
         super(TemporalSetPrediction, self).__init__()
 
         self.embedding_matrix = nn.Embedding(n_items, emb_dim)
@@ -350,16 +302,6 @@ class TemporalSetPrediction(nn.Module):
         batch_lengths,
         batch_nodes,
     ):
-        """
-
-        :param graph: batched graphs, with the total number of nodes is `node_num`,
-                        including `batch_size` disconnected subgraphs
-        :param nodes_feature:  [n_1+n_2+..., F]
-        :param edges_weight: [T_max, n_1^2+n_2^2+...]
-        :param lengths: [batch_size, ]
-        :param nodes: [n_1+n_2+..., ]
-        :return:
-        """
         # perform weighted gcn on dynamic graphs (n_1+n_2+..., T_max, item_embed_dim)
         batch_nodes_output = [
             self.stacked_gcn(graph, nodes_feature, edges_weight)
@@ -373,6 +315,7 @@ class TemporalSetPrediction(nn.Module):
             self.masked_self_attention(nodes_output)
             for nodes_output in batch_nodes_output
         ]
+
         # aggregate node features in temporal dimension, (n_1+n_2+..., item_embed_dim)
         batch_nodes_output = [
             self.aggregate_nodes_temporal_feature(graph, lengths, nodes_output)
@@ -390,10 +333,7 @@ class TemporalSetPrediction(nn.Module):
         ]
 
         # (batch_size, n_items)
-        outputs = [
-            self.fc_output(nodes_output).squeeze()
-            for nodes_output in batch_nodes_output
-        ]
+        outputs = self.fc_output(torch.stack(batch_nodes_output)).squeeze()
 
         return outputs
 
@@ -408,7 +348,9 @@ def get_edges_weight(history_baskets):
     return edges_weight_dict
 
 
-def transform_data(bi_batch, item_embedding, total_items, device=torch.device("cpu"), is_test=False):
+def transform_data(
+    bi_batch, item_embedding, total_items, device=torch.device("cpu"), is_test=False
+):
     if is_test:
         batch_history_items = [
             [np.unique(basket).tolist() for basket in basket_items]
@@ -626,12 +568,14 @@ def learn(
         lr=lr,
         weight_decay=weight_decay,
     )
-
+    scheduler = scheduler_fn(optimizer=optimizer)
     progress_bar = trange(1, n_epochs + 1, disable=not verbose)
     last_val_loss = np.inf
     last_loss = np.inf
     for _ in progress_bar:
         model.train()
+        total_loss = 0.0
+        cnt = 0
         for inc, (_, _, bi_batch) in enumerate(
             train_set.ubi_iter(batch_size, shuffle=True)
         ):
@@ -655,12 +599,16 @@ def learn(
             loss.backward()
             optimizer.step()
 
-            last_loss = loss.data.item()
+            total_loss += loss.data.item()
+            cnt += len(bi_batch)
+            last_loss = total_loss / cnt
             if inc % 10 == 0:
                 progress_bar.set_postfix(loss=last_loss, val_loss=last_val_loss)
 
         if val_set is not None:
             model.eval()
+            total_val_loss = 0.0
+            cnt = 0
             for inc, (_, _, bi_batch) in enumerate(
                 val_set.ubi_iter(batch_size, shuffle=False)
             ):
@@ -680,22 +628,20 @@ def learn(
                 preds = model(g, nodes_feature, edges_weight, lengths, nodes)
                 loss = criteria(preds, targets)
 
-                last_val_loss = loss.data.item()
+                total_val_loss += loss.data.item()
+                cnt += len(bi_batch)
+                last_val_loss = total_val_loss / cnt
                 if inc % 10 == 0:
                     progress_bar.set_postfix(loss=last_loss, val_loss=last_val_loss)
+
+            # Note that step should be called after validate
+            scheduler.step(total_val_loss)
 
 
 def score(model: TemporalSetPrediction, history_baskets, total_items, device="cpu"):
     model = model.to(device)
     model.eval()
-    (
-        g,
-        nodes_feature,
-        edges_weight,
-        lengths,
-        nodes,
-        _
-    ) = transform_data(
+    (g, nodes_feature, edges_weight, lengths, nodes, _) = transform_data(
         [history_baskets],
         item_embedding=model.embedding_matrix,
         total_items=total_items,
@@ -704,4 +650,3 @@ def score(model: TemporalSetPrediction, history_baskets, total_items, device="cp
     )
     preds = model(g, nodes_feature, edges_weight, lengths, nodes)
     return preds[0].cpu().detach().numpy()
-
