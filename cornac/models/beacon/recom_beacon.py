@@ -33,7 +33,7 @@ class Beacon(NextBasketRecommender):
 
     emb_dim: int, optional, default: 2
         Embedding dimension
-    
+
     rnn_unit: int, optional, default: 4
         Number of dimension in a rnn unit.
 
@@ -62,7 +62,7 @@ class Beacon(NextBasketRecommender):
 
     verbose: boolean, optional, default: False
         When True, running logs are displayed.
- 
+
     seed: int, optional, default: None
         Random seed
 
@@ -151,10 +151,14 @@ class Beacon(NextBasketRecommender):
             loss=last_loss,
             val_loss=last_val_loss,
         )
+        train_pool = []
+        validation_pool = []
         for _ in loop:
             train_loss = 0.0
             trained_cnt = 0
-            for batch_basket_items in self._data_iter(train_set, shuffle=True):
+            for batch_basket_items in self._data_iter(
+                train_set, shuffle=True, current_pool=train_pool
+            ):
                 s, s_length, y = self._transform_data(
                     batch_basket_items, self.total_items
                 )
@@ -167,10 +171,13 @@ class Beacon(NextBasketRecommender):
                     loss=last_loss,
                     val_loss=last_val_loss,
                 )
+
             if val_set is not None:
                 val_loss = 0.0
                 val_cnt = 0
-                for batch_basket_items in self._data_iter(val_set, shuffle=False):
+                for batch_basket_items in self._data_iter(
+                    val_set, shuffle=False, current_pool=validation_pool
+                ):
                     s, s_length, y = self._transform_data(
                         batch_basket_items, self.total_items
                     )
@@ -186,16 +193,15 @@ class Beacon(NextBasketRecommender):
 
         return self
 
-    def _data_iter(self, data_set, shuffle=False):
-        """This iterator ensure each batch has same size, the remaining data will be preceeded in the next epoch"""
-        current_pool = []
+    def _data_iter(self, data_set, shuffle=False, current_pool=[]):
+        """This iterator ensure each batch has same size, the remaining data will be preceded in the next epoch"""
         for _, _, batch_basket_items in data_set.ubi_iter(
             batch_size=self.batch_size, shuffle=shuffle
         ):
             current_pool += batch_basket_items
             if len(current_pool) >= self.batch_size:
                 yield current_pool[: self.batch_size]
-                current_pool = current_pool[self.batch_size :]
+                del current_pool[self.batch_size :]
 
     def _transform_data(self, batch_basket_items, n_items):
         assert len(batch_basket_items) == self.batch_size
