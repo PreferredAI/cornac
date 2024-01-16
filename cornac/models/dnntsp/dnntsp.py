@@ -10,25 +10,12 @@ import torch
 import torch.nn as nn
 from tqdm.auto import trange
 
-from ..mf.backend_pt import OPTIMIZER_DICT
-
-
-def get_optimizer(model, lr=0.001, weight_decay=0, momentum=0.9, optimizer="adam"):
-    if optimizer == "adam":
-        return torch.optim.Adam(
-            model.parameters(),
-            lr=lr,
-            weight_decay=weight_decay,
-            momentum=momentum,
-        )
-    elif optimizer == "sgd":
-        return torch.optim.SGD(
-            model.parameters(),
-            lr=lr,
-            momentum=momentum,
-        )
-    else:
-        raise NotImplementedError()
+OPTIMIZER_DICT = {
+    "sgd": torch.optim.SGD,
+    "adam": torch.optim.Adam,
+    "rmsprop": torch.optim.RMSprop,
+    "adagrad": torch.optim.Adagrad,
+}
 
 
 def scheduler_fn(optimizer):
