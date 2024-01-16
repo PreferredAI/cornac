@@ -63,7 +63,6 @@ class UPCF(NextBasketRecommender):
         self.recency = recency
         self.locality = locality
         self.asymmetry = asymmetry
-        self.seed = seed
 
     def fit(self, train_set, val_set=None):
         super().fit(train_set=train_set, val_set=val_set)
