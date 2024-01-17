@@ -23,6 +23,7 @@ from .ann import FaissANN
 from .ann import HNSWLibANN
 from .ann import ScaNNANN
 from .baseline_only import BaselineOnly
+from .beacon import Beacon
 from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR

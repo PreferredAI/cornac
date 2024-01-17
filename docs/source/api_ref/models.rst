@@ -54,6 +54,11 @@ Temporal-Item-Frequency-based User-KNN (TIFUKNN)
 .. automodule:: cornac.models.tifuknn.recom_tifuknn
    :members:
 
+Correlation-Sensitive Next-Basket Recommendation (Beacon)
+---------------------------------------------------
+.. automodule:: cornac.models.beacon.recom_beacon
+   :members:
+
 Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)
 -----------------------------------------------------------
 .. automodule:: cornac.models.ease.recom_ease
