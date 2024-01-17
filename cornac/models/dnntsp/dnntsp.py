@@ -636,4 +636,4 @@ def score(model: TemporalSetPrediction, history_baskets, total_items, device="cp
         is_test=True,
     )
     preds = model(g, nodes_feature, edges_weight, lengths, nodes)
-    return preds[0].cpu().detach().numpy()
+    return preds.cpu().detach().numpy()
