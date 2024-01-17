@@ -23,6 +23,7 @@ from .ann import FaissANN
 from .ann import HNSWLibANN
 from .ann import ScaNNANN
 from .baseline_only import BaselineOnly
+from .beacon import Beacon
 from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR
@@ -75,6 +76,7 @@ from .spop import SPop
 from .svd import SVD
 from .tifuknn import TIFUKNN
 from .trirank import TriRank
+from .upcf import UPCF
 from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
