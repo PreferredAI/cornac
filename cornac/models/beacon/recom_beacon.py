@@ -257,11 +257,15 @@ class Beacon(NextBasketRecommender):
         new_adj_matrix.eliminate_zeros()
         return new_adj_matrix
 
-    def _normalize(self, adj_matrix):
+    def _normalize(self, adj_matrix: csr_matrix):
         """Symmetrically normalize adjacency matrix."""
-        row_sum = np.array(adj_matrix.sum(1))
-        d_inv_sqrt = np.power(row_sum, -0.5).flatten()
-        d_inv_sqrt[np.isinf(d_inv_sqrt)] = 0.0
+        row_sum = adj_matrix.sum(1).A.squeeze()
+        d_inv_sqrt = np.power(
+            row_sum,
+            -0.5,
+            out=np.zeros_like(row_sum, dtype="float32"),
+            where=row_sum != 0,
+        )
         d_mat_inv_sqrt = diags(d_inv_sqrt)
 
         normalized_matrix = (
