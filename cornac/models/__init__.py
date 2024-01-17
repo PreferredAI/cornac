@@ -75,6 +75,7 @@ from .spop import SPop
 from .svd import SVD
 from .tifuknn import TIFUKNN
 from .trirank import TriRank
+from .upcf import UPCF
 from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
