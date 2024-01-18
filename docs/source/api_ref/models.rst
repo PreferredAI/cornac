@@ -49,6 +49,11 @@ New Variational Autoencoder for Top-N Recommendations with Implicit Feedback (Re
 .. automodule:: cornac.models.recvae.recom_recvae
    :members:
 
+Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF)
+---------------------------------------------------------------------------
+.. automodule:: cornac.models.upcf.recom_upcf
+   :members:
+
 Temporal-Item-Frequency-based User-KNN (TIFUKNN)
 ---------------------------------------------------
 .. automodule:: cornac.models.tifuknn.recom_tifuknn
