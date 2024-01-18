@@ -256,8 +256,12 @@ class StackedWeightedGCNBlocks(nn.ModuleList):
 
 
 class TemporalSetPrediction(nn.Module):
-    def __init__(self, n_items, emb_dim):
+    def __init__(self, n_items, emb_dim, seed):
         super(TemporalSetPrediction, self).__init__()
+        if seed is not None:
+            random.seed(seed)
+            np.random.seed(seed)
+            torch.manual_seed(seed)
 
         self.embedding_matrix = nn.Embedding(n_items, emb_dim)
 
@@ -328,7 +332,7 @@ class TemporalSetPrediction(nn.Module):
 def get_edges_weight(history_baskets):
     edges_weight_dict = defaultdict(float)
     for basket_items in history_baskets:
-        for (item_i,item_j) in itertools.combinations(basket_items, 2):
+        for item_i, item_j in itertools.combinations(basket_items, 2):
             edges_weight_dict[(item_i, item_j)] += 1
             edges_weight_dict[(item_j, item_i)] += 1
     return edges_weight_dict

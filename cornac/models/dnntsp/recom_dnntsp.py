@@ -102,6 +102,7 @@ class DNNTSP(NextBasketRecommender):
         self.model = TemporalSetPrediction(
             n_items=self.total_items,
             emb_dim=self.emb_dim,
+            seed=self.seed,
         )
 
         learn(
