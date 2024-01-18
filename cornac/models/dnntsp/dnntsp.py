@@ -10,16 +10,13 @@ import torch
 import torch.nn as nn
 from tqdm.auto import trange
 
+
 OPTIMIZER_DICT = {
     "sgd": torch.optim.SGD,
     "adam": torch.optim.Adam,
     "rmsprop": torch.optim.RMSprop,
     "adagrad": torch.optim.Adagrad,
 }
-
-
-def scheduler_fn(optimizer):
-    return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 
 
 class MaskedSelfAttention(nn.Module):
@@ -510,6 +507,13 @@ class W_multilabel(nn.Module):
             w_loss += torch.neg(torch.sum(c_loss))
         return w_loss
 
+
+#######################################################################################
+
+
+def scheduler_fn(optimizer):
+    return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+    
 
 def loss_fn(loss_type=None, weights=None):
     if loss_type == "bpr":
