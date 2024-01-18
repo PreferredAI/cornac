@@ -332,9 +332,8 @@ class TemporalSetPrediction(nn.Module):
 def get_edges_weight(history_baskets):
     edges_weight_dict = defaultdict(float)
     for basket_items in history_baskets:
-        for item_i, item_j in itertools.combinations(basket_items, 2):
+        for item_i, item_j in itertools.permutations(basket_items, 2):
             edges_weight_dict[(item_i, item_j)] += 1
-            edges_weight_dict[(item_j, item_i)] += 1
     return edges_weight_dict
 
 
