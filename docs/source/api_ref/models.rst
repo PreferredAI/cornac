@@ -54,6 +54,11 @@ Predicting Temporal Sets with Deep Neural Networks (DNNTSP)
 .. automodule:: cornac.models.dnntsp.recom_dnntsp
    :members:
 
+Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF)
+---------------------------------------------------------------------------
+.. automodule:: cornac.models.upcf.recom_upcf
+   :members:
+
 Temporal-Item-Frequency-based User-KNN (TIFUKNN)
 ---------------------------------------------------
 .. automodule:: cornac.models.tifuknn.recom_tifuknn
