@@ -328,10 +328,9 @@ class TemporalSetPrediction(nn.Module):
 def get_edges_weight(history_baskets):
     edges_weight_dict = defaultdict(float)
     for basket_items in history_baskets:
-        for i in range(len(basket_items)):
-            for j in range(i + 1, len(basket_items)):
-                edges_weight_dict[(basket_items[i], basket_items[j])] += 1
-                edges_weight_dict[(basket_items[j], basket_items[i])] += 1
+        for (item_i,item_j) in itertools.combinations(basket_items, 2):
+            edges_weight_dict[(item_i, item_j)] += 1
+            edges_weight_dict[(item_j, item_i)] += 1
     return edges_weight_dict
 
 
@@ -373,19 +372,11 @@ def transform_data(
         torch.tensor(list(range(nodes.shape[0]))) for nodes in batch_nodes
     ]
     batch_src = [
-        (
-            torch.stack([project_nodes for _ in range(project_nodes.shape[0])], dim=1)
-            .flatten()
-            .tolist()
-        )
+        project_nodes.repeat((project_nodes.shape[0], 1)).T.flatten().tolist()
         for project_nodes in batch_project_nodes
     ]
     batch_dst = [
-        (
-            torch.stack([project_nodes for _ in range(project_nodes.shape[0])], dim=0)
-            .flatten()
-            .tolist()
-        )
+        project_nodes.repeat((project_nodes.shape[0],)).flatten().tolist()
         for project_nodes in batch_project_nodes
     ]
     batch_g = [
@@ -487,11 +478,8 @@ class WeightMSELoss(nn.Module):
         Returns:
             output: tensor
         """
-        # predict = torch.softmax(predict, dim=-1)
         predict = torch.sigmoid(predict)
         truth = truth.float()
-        # print(predict.device)
-        # print(truth.device)
         if self.weights is not None:
             self.weights = self.weights.to(truth.device)
             predict = predict * self.weights
@@ -623,17 +611,3 @@ def learn(
 
             # Note that step should be called after validate
             scheduler.step(total_val_loss)
-
-
-def score(model: TemporalSetPrediction, history_baskets, total_items, device="cpu"):
-    model = model.to(device)
-    model.eval()
-    (g, nodes_feature, edges_weight, lengths, nodes, _) = transform_data(
-        [history_baskets],
-        item_embedding=model.embedding_matrix,
-        total_items=total_items,
-        device=device,
-        is_test=True,
-    )
-    preds = model(g, nodes_feature, edges_weight, lengths, nodes)
-    return preds.cpu().detach().numpy()

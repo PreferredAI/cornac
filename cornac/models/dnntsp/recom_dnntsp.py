@@ -122,9 +122,15 @@ class DNNTSP(NextBasketRecommender):
         return self
 
     def score(self, user_idx, history_baskets, **kwargs):
-        from .dnntsp import score
+        from .dnntsp import transform_data
 
-        item_scores = score(
-            self.model, history_baskets, self.total_items, device=self.device
+        self.model.eval()
+        (g, nodes_feature, edges_weight, lengths, nodes, _) = transform_data(
+            [history_baskets],
+            item_embedding=self.model.embedding_matrix,
+            total_items=self.total_items,
+            device=self.device,
+            is_test=True,
         )
-        return item_scores
+        preds = self.model(g, nodes_feature, edges_weight, lengths, nodes)
+        return preds.cpu().detach().numpy()
