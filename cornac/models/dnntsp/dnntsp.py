@@ -505,7 +505,7 @@ def loss_fn(loss_type=None, weights=None):
         assert weights is not None, f"weight_mse loss required 'weights' but {weights}"
         return WeightMSELoss(weights=weights)
     elif loss_type == "multi_label_soft_margin":
-        return nn.MultiLabelSoftMarginLoss(reduction="mean")
+        return nn.MultiLabelSoftMarginLoss(reduction="sum")
     else:
         raise ValueError("Unknown loss function")
 
