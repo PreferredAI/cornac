@@ -357,7 +357,7 @@ def transform_data(
         batch_targets = np.zeros((len(bi_batch), total_items), dtype="uint8")
         for inc, basket_items in enumerate(bi_batch):
             batch_targets[inc, basket_items[-1]] = 1
-        batch_targets = torch.tensor(batch_targets, dtype=torch.bool, device=device)
+        batch_targets = torch.tensor(batch_targets, dtype=torch.uint8, device=device)
     batch_nodes = [
         torch.tensor(
             list(set(itertools.chain.from_iterable(history_items))),
@@ -489,31 +489,12 @@ class WeightMSELoss(nn.Module):
         return loss
 
 
-class W_multilabel(nn.Module):
-    def __init__(self, weight):
-        self.weights = weight
-
-    def forward(self, predict, truth):
-        predict = torch.sigmoid(predict)
-        truth = truth.float()
-        assert len(self.weights) == 1
-        self.weights = self.weights.to(truth.device)
-        batch_size = predict.size(0)
-        w_loss = 0
-        for ind in range(batch_size):
-            c_loss = self.weights * (truth[ind] * torch.log(predict[ind])) + (
-                (1 - truth[ind]) * torch.log(1 - predict[ind])
-            )
-            w_loss += torch.neg(torch.sum(c_loss))
-        return w_loss
-
-
 #######################################################################################
 
 
 def scheduler_fn(optimizer):
     return torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
-    
+
 
 def loss_fn(loss_type=None, weights=None):
     if loss_type == "bpr":
@@ -521,12 +502,22 @@ def loss_fn(loss_type=None, weights=None):
     elif loss_type == "mse":
         return WeightMSELoss()
     elif loss_type == "weight_mse":
-        assert weights != None, f"weight_mse loss required 'weights' but {weights}"
+        assert weights is not None, f"weight_mse loss required 'weights' but {weights}"
         return WeightMSELoss(weights=weights)
     elif loss_type == "multi_label_soft_margin":
         return nn.MultiLabelSoftMarginLoss(reduction="mean")
     else:
         raise ValueError("Unknown loss function")
+
+
+def get_class_weights(train_set, total_items, device):
+    unique, counts = np.unique(train_set.uir_tuple[1], return_counts=True)
+    item_freq = torch.ones(total_items, dtype=torch.float32, device=device)
+    item_freq[unique] += torch.from_numpy(counts.astype(np.float32)).to(device)
+    item_freq /= train_set.num_baskets
+    weights = item_freq.max() / item_freq
+    weights = weights / weights.max()
+    return weights
 
 
 def learn(
@@ -544,7 +535,12 @@ def learn(
     verbose=True,
 ):
     model = model.to(device)
-    criteria = loss_fn(loss_type=loss_type)
+    weights = (
+        get_class_weights(train_set, total_items=total_items, device=device)
+        if loss_type in ["weight_mse"]
+        else None
+    )
+    criteria = loss_fn(loss_type=loss_type, weights=weights)
     optimizer = OPTIMIZER_DICT[optimizer](
         params=model.parameters(),
         lr=lr,
