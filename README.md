@@ -144,6 +144,7 @@ One important aspect of deploying recommender model is efficient retrieval via A
 
 The recommender models supported by Cornac are listed below. Why don't you join us to lengthen the list?
 
+
 | Year | Model and paper | Model type | Require-ments | Examples |
 | :---: | --- | :---: | :---: | :---: |
 | 2021 | [Bilateral Variational Autoencoder for Collaborative Filtering (BiVAECF)](cornac/models/bivaecf), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441759) | Collaborative Filtering / Content-Based | [reqs](cornac/models/bivaecf/requirements.txt) | [PreferredAI/bi-vae](https://github.com/PreferredAI/bi-vae)
@@ -152,11 +153,12 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 | 2020 | [Adversarial Multimedia Recommendation (AMR)](cornac/models/amr), [paper](https://ieeexplore.ieee.org/document/8618394) | Content-Based / Image | [reqs](cornac/models/amr/requirements.txt) | [amr_clothing.py](examples/amr_clothing.py)
 |      | [Hybrid Deep Representation Learning of Ratings and Reviews (HRDR)](cornac/models/hrdr), [paper](https://www.sciencedirect.com/science/article/abs/pii/S0925231219313207) | Content-Based / Text | [reqs](cornac/models/hrdr/requirements.txt) | [hrdr_example.py](examples/hrdr_example.py)
 |      | [LightGCN: Simplifying and Powering Graph Convolution Network](cornac/models/lightgcn), [paper](https://arxiv.org/pdf/2002.02126.pdf) | Collaborative Filtering | [reqs](cornac/models/lightgcn/requirements.txt) | [lightgcn_example.py](examples/lightgcn_example.py)
-|      | [Variational Autoencoder for Top-N Recommendations (RecVAE)](cornac/models/recvae), [paper](https://doi.org/10.1145/3336191.3371831) | Collaborative Filtering | [reqs](cornac/models/recvae/requirements.txt) | [recvae_example.py](examples/recvae_example.py)
+|      | [Predicting Temporal Sets with Deep Neural Networks (DNNTSP)](cornac/models/dnntsp), [paper](https://arxiv.org/pdf/2006.11483.pdf) | Next-Basket | [requirements.txt](cornac/models/dnntsp/requirements.txt) | [dnntsp_tafeng.py](examples/dnntsp_tafeng.py)
 |      | [Recency Aware Collaborative Filtering (UPCF)](cornac/models/upcf), [paper](https://dl.acm.org/doi/abs/10.1145/3340631.3394850) | Next-Basket | [reqs](cornac/models/upcf/requirements.txt) | [upcf_tafeng.py](examples/upcf_tafeng.py)
 |      | [Temporal-Item-Frequency-based User-KNN (TIFUKNN)](cornac/models/tifuknn), [paper](https://arxiv.org/pdf/2006.00556.pdf) | Next-Basket | N/A | [tifuknn_tafeng.py](examples/tifuknn_tafeng.py)
+|      | [Variational Autoencoder for Top-N Recommendations (RecVAE)](cornac/models/recvae), [paper](https://doi.org/10.1145/3336191.3371831) | Collaborative Filtering | [reqs](cornac/models/recvae/requirements.txt) | [recvae_example.py](examples/recvae_example.py)
 | 2019 | [Correlation-Sensitive Next-Basket Recommendation (Beacon)](cornac/models/beacon), [paper](https://www.ijcai.org/proceedings/2019/0389.pdf) | Next-Basket | [reqs](cornac/models/beacon/requirements.txt) | [beacon_tafeng.py](examples/beacon_tafeng.py)
-|     | [Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)](cornac/models/ease), [paper](https://arxiv.org/pdf/1905.03375.pdf) | Collaborative Filtering | N/A | [ease_movielens.py](examples/ease_movielens.py)
+|      | [Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)](cornac/models/ease), [paper](https://arxiv.org/pdf/1905.03375.pdf) | Collaborative Filtering | N/A | [ease_movielens.py](examples/ease_movielens.py)
 |      | [Neural Graph Collaborative Filtering (NGCF)](cornac/models/ngcf), [paper](https://arxiv.org/pdf/1905.08108.pdf) | Collaborative Filtering | [reqs](cornac/models/ngcf/requirements.txt) | [ngcf_example.py](examples/ngcf_example.py)
 | 2018 | [Collaborative Context Poisson Factorization (C2PF)](cornac/models/c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | Content-Based / Graph | N/A | [c2pf_exp.py](examples/c2pf_example.py)
 |      | [Graph Convolutional Matrix Completion (GCMC)](cornac/models/gcmc), [paper](https://www.kdd.org/kdd2018/files/deep-learning-day/DLDay18_paper_32.pdf) | Collaborative Filtering | [reqs](cornac/models/gcmc/requirements.txt) | [gcmc_example.py](examples/gcmc_example.py)
