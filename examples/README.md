@@ -120,6 +120,8 @@
 
 [gp_top_tafeng.py](gp_top_tafeng.py) - Next-basket recommendation model that merely uses item top frequency.
 
+[dnntsp_tafeng.py](dnntsp_tafeng.py) - Predicting Temporal Sets with Deep Neural Networks (DNNTSP).
+
 [beacon_tafeng.py](beacon_tafeng.py) - Correlation-Sensitive Next-Basket Recommendation (Beacon).
 
 [dream_tafeng.py](dream_tafeng.py) - Example of Dynamic REcurrent bAsket Model (DREAM).
