@@ -49,6 +49,11 @@ New Variational Autoencoder for Top-N Recommendations with Implicit Feedback (Re
 .. automodule:: cornac.models.recvae.recom_recvae
    :members:
 
+Predicting Temporal Sets with Deep Neural Networks (DNNTSP)
+-----------------------------------------------------------
+.. automodule:: cornac.models.dnntsp.recom_dnntsp
+   :members:
+
 Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF)
 ---------------------------------------------------------------------------
 .. automodule:: cornac.models.upcf.recom_upcf
