@@ -44,9 +44,9 @@ class DREAM(NextBasketRecommender):
     attention: int, optional, default: 0
         Attention
 
-    max_len: int, optional, default: None
+    max_seq_length: int, optional, default: None
         Max sequence length.
-        If None, maximum sequence length is the maximum sequence length of training data
+        If None, it is the maximum number of baskets in training sequences
 
     lr: string, optional, default: 0.001
         Learning rate of Adam optimizer
@@ -90,7 +90,7 @@ class DREAM(NextBasketRecommender):
         loss_mode=0,
         loss_uplift=100,
         attention=0,
-        max_len=None,
+        max_seq_length=None,
         lr=0.001,
         weight_decay=0,
         n_epochs=100,
@@ -108,8 +108,9 @@ class DREAM(NextBasketRecommender):
         self.loss_mode = loss_mode
         self.loss_uplift = loss_uplift
         self.attention = attention
-        self.max_len = max_len
+        self.max_seq_length = max_seq_length
         self.lr = lr
+        self.weight_decay = weight_decay
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.seed = seed
@@ -120,10 +121,10 @@ class DREAM(NextBasketRecommender):
         from .dream import DREAM, learn
 
         # max sequence length
-        self.max_len = (
+        self.max_seq_length = (
             max([len(bids) for bids in train_set.user_basket_data.values()])
-            if self.max_len is None
-            else self.max_len
+            if self.max_seq_length is None
+            else self.max_seq_length
         )
         self.model = DREAM(
             n_items=self.total_items,
@@ -131,7 +132,7 @@ class DREAM(NextBasketRecommender):
             emb_type=self.emb_type,
             hidden_size=self.hidden_size,
             dropout_prob=self.dropout,
-            max_len=self.max_len,
+            max_seq_length=self.max_seq_length,
             loss_mode=self.loss_mode,
             loss_uplift=self.loss_uplift,
             attention=self.attention,
@@ -143,8 +144,9 @@ class DREAM(NextBasketRecommender):
             self.model,
             train_set=train_set,
             val_set=val_set,
-            max_len=self.max_len,
+            max_seq_length=self.max_seq_length,
             lr=self.lr,
+            weight_decay=self.weight_decay,
             n_epochs=self.n_epochs,
             batch_size=self.batch_size,
             verbose=self.verbose,
@@ -154,5 +156,5 @@ class DREAM(NextBasketRecommender):
 
     def score(self, user_idx, history_baskets, **kwargs):
         self.model.eval()
-        preds = self.model([history_baskets[-self.max_len :]])
+        preds = self.model([history_baskets[-self.max_seq_length :]])
         return preds.squeeze().cpu().detach().numpy()

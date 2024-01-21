@@ -49,7 +49,7 @@ class DREAM(nn.Module):
         emb_type,
         hidden_size,
         dropout_prob,
-        max_len,
+        max_seq_length,
         loss_mode,
         loss_uplift,
         attention,
@@ -73,14 +73,14 @@ class DREAM(nn.Module):
         self.emb_type = emb_type
         self.hidden_size = hidden_size
         self.dropout_prob = dropout_prob
-        self.max_len = max_len  # max sequence length
+        self.max_seq_length = max_seq_length  # max sequence length
         self.loss_mode = loss_mode
         self.loss_uplift = loss_uplift
 
         self.BasketEmbedding = BasketEmbedding(
             hidden_size=self.emb_size,
             n_items=self.n_items,
-            max_len=self.max_len,
+            max_seq_length=self.max_seq_length,
             type=self.emb_type,
             device=self.device,
         )
@@ -92,7 +92,7 @@ class DREAM(nn.Module):
         self.attention = attention
         self.decoder = Decoder(
             hidden_size=self.hidden_size,
-            seq_len=self.max_len,
+            max_seq_length=self.max_seq_length,
             num_item=self.n_items,
             dropout_prob=self.dropout_prob,
             attention=self.attention,
@@ -177,14 +177,14 @@ class BasketEmbedding(nn.Module):
         self,
         hidden_size,
         n_items,
-        max_len,
+        max_seq_length,
         type,
         device,
     ):  # hidden_size is the emb_size
         super(BasketEmbedding, self).__init__()
         self.hidden_size = hidden_size
         self.n_items = n_items
-        self.max_len = max_len
+        self.max_seq_length = max_seq_length
         self.type = type
         self.device = device
         self.padding_idx = n_items
@@ -193,7 +193,7 @@ class BasketEmbedding(nn.Module):
 
     def forward(self, batch_basket):
         # need to padding here
-        batch_embed_seq = []  # batch * seq_len * hidden size
+        batch_embed_seq = []  # batch * max_seq_length * hidden size
         for basket_seq in batch_basket:
             embed_baskets = []
             for basket in basket_seq:
@@ -207,7 +207,7 @@ class BasketEmbedding(nn.Module):
                 if self.type == "sum":
                     embed_baskets.append(torch.sum(basket, 0))
             # padding the seq
-            pad_num = self.max_len - len(embed_baskets)
+            pad_num = self.max_seq_length - len(embed_baskets)
             for _ in range(pad_num):
                 embed_baskets.append(
                     torch.tile(
@@ -226,7 +226,7 @@ class Decoder(nn.Module):
     def __init__(
         self,
         hidden_size,
-        seq_len,
+        max_seq_length,
         num_item,
         dropout_prob,
         attention,
@@ -236,7 +236,7 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout_prob)
         self.hidden_size = hidden_size
         self.device = device
-        self.seq_len = seq_len
+        self.max_seq_length = max_seq_length
         self.n_items = num_item
         self.attention = attention
 
@@ -256,7 +256,7 @@ class Decoder(nn.Module):
             all_memory = self.dropout(self.U_repeat(all_memory))
             last_memory = self.dropout(self.W_repeat(last_memory))
             last_memory = last_memory.unsqueeze(1)
-            last_memory = last_memory.repeat(1, self.seq_len, 1)
+            last_memory = last_memory.repeat(1, self.max_seq_length, 1)
 
             output_er = self.tanh(all_memory + last_memory)
             output_er = self.V_repeat(output_er).squeeze(-1)
@@ -308,12 +308,12 @@ def get_label_tensor(labels, device, max_index=None):
     return label_tensor
 
 
-def transform_data(batch_basket_items, max_len):
+def transform_data(batch_basket_items, max_seq_length):
     batch_history_basket_items = []
     batch_target_items = []
     candidates = {"repeat": [], "explore": []}
     for basket_items in batch_basket_items:
-        history_basket_items = basket_items[-max_len - 1 : -1]
+        history_basket_items = basket_items[-max_seq_length - 1 : -1]
         target_items = basket_items[-1]
         batch_history_basket_items.append(history_basket_items)
         batch_target_items.append(target_items)
@@ -329,13 +329,14 @@ def learn(
     model,
     train_set,
     val_set,
-    max_len,
+    max_seq_length,
     lr,
+    weight_decay,
     n_epochs,
     batch_size,
     verbose,
 ):
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     loss_func = model.calculate_loss
     last_loss = np.inf
     last_val_loss = np.inf
@@ -346,7 +347,7 @@ def learn(
             train_set.ubi_iter(batch_size=batch_size, shuffle=True)
         ):
             batch_history_basket_items, batch_target_items, candidates = transform_data(
-                batch_basket_items, max_len=max_len
+                batch_basket_items, max_seq_length=max_seq_length
             )
             optimizer.zero_grad()
             loss = loss_func(batch_history_basket_items, batch_target_items, candidates)
@@ -366,7 +367,7 @@ def learn(
                     batch_history_basket_items,
                     batch_target_items,
                     candidates,
-                ) = transform_data(batch_basket_items, max_len=max_len)
+                ) = transform_data(batch_basket_items, max_seq_length=max_seq_length)
                 loss = loss_func(
                     batch_history_basket_items, batch_target_items, candidates
                 )
