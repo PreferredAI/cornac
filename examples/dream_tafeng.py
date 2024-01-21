@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example of Dynamic REcurrent bAsket Model (DREAM)"""
+"""Example of Dynamic Recurrent Basket Model (DREAM)"""
 
 import cornac
 from cornac.eval_methods import NextBasketEvaluation

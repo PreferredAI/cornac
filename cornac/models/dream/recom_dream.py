@@ -17,7 +17,7 @@ from ..recommender import NextBasketRecommender
 
 
 class DREAM(NextBasketRecommender):
-    """Dynamic REcurrent bAsket Model (DREAM)
+    """Dynamic Recurrent Basket Model (DREAM)
 
     Parameters
     ----------

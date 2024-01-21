@@ -124,7 +124,7 @@
 
 [beacon_tafeng.py](beacon_tafeng.py) - Correlation-Sensitive Next-Basket Recommendation (Beacon).
 
-[dream_tafeng.py](dream_tafeng.py) - Example of Dynamic REcurrent bAsket Model (DREAM).
+[dream_tafeng.py](dream_tafeng.py) - Example of Dynamic Recurrent Basket Model (DREAM).
 
 [tifuknn_tafeng.py](tifuknn_tafeng.py) - Example of Temporal-Item-Frequency-based User-KNN (TIFUKNN).
 
