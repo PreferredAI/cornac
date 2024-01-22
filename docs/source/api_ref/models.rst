@@ -169,6 +169,11 @@ Convolutional Matrix Factorization (ConvMF)
 .. automodule:: cornac.models.conv_mf.recom_convmf
    :members:
 
+Dynamic Recurrent Basket Model (DREAM)
+--------------------------------------
+.. automodule:: cornac.models.dream.recom_dream
+   :members:
+
 Spherical k-means (Skmeans)
 ---------------------------
 .. automodule:: cornac.models.skm.recom_skmeans

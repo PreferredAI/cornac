@@ -39,6 +39,7 @@ from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
 from .dnntsp import DNNTSP
+from .dream import DREAM
 from .ease import EASE
 from .efm import EFM
 from .fm import FM
