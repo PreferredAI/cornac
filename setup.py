@@ -287,44 +287,10 @@ if sys.platform.startswith("linux"):  # Linux supported only
         )
     ]
 
-cmdclass = {}
-
 # cythonize c++ modules
 if USE_CYTHON:
     extensions = cythonize(extensions)
-    cmdclass.update({"build_ext": build_ext})
 
-setup(
-    name="cornac",
-    version="1.17.0",
-    description="A Comparative Framework for Multimodal Recommender Systems",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://cornac.preferred.ai",
-    keywords=[
-        "recommender system",
-        "collaborative filtering",
-        "multimodal",
-        "preference learning",
-        "recommendation",
-    ],
-    ext_modules=extensions,
-    install_requires=["numpy", "scipy", "tqdm>=4.19", "powerlaw"],
-    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov"]},
-    cmdclass=cmdclass,
-    packages=find_packages(),
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Science/Research",
-        "Intended Audience :: Education",
-        "Intended Audience :: Developers",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "License :: OSI Approved :: Apache Software License",
-        "Topic :: Software Development",
-        "Topic :: Scientific/Engineering",
-    ],
-)
+    setup(
+        ext_modules=extensions
+    )

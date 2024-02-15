@@ -11,7 +11,6 @@ class DistanceCorrelationCalculator:
     def __init__(self, n_factors, num_neg) -> None:
         self.n_factors = n_factors
         self.num_neg = num_neg
-        pass
 
     def calculate_cov(self, X, Y):
         """
@@ -27,7 +26,7 @@ class DistanceCorrelationCalculator:
         # batch_size is dim 1, as dim 0 is one positive and num_neg negative samples
         n_samples = X.shape[1]
         # then calculate the covariance as a 1D array of length 1+num_neg
-        cov = torch.sqrt(torch.max(torch.sum(X * Y, dim=(1, 2)) / (n_samples * n_samples), torch.tensor(0.0)))
+        cov = torch.sqrt(torch.max(torch.sum(X * Y, dim=(1, 2)) / (n_samples * n_samples), torch.tensor(1e-5)))
         return cov
 
     def calculate_var(self, X):
@@ -54,14 +53,14 @@ class DistanceCorrelationCalculator:
         each cell of the distance matrix with row mean, column mean, and grand mean.
         """
         # put the samples from dim 1 into dim 0
-        X = X = torch.transpose(X, dim0=0, dim1=1)
+        X = torch.transpose(X, dim0=0, dim1=1)
 
         # Now use pythagoras to calculate the distance matrix
         first_part = torch.sum(torch.square(X), dim=-1, keepdims=True)
         middle_part = torch.matmul(X, torch.transpose(X, dim0=1, dim1=2))
         last_part = torch.transpose(first_part, dim0=1, dim1=2)
 
-        D = torch.sqrt(torch.max(first_part - 2 * middle_part + last_part, torch.tensor(0.0)))
+        D = torch.sqrt(torch.max(first_part - 2 * middle_part + last_part, torch.tensor(1e-5)))
         # dim0 is the negative samples, dim1 is batch_size, dim2 is the kth factor of the embedding_dim
 
         row_mean = torch.mean(D, dim=2, keepdim=True)

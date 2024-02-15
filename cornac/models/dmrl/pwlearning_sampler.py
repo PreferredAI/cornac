@@ -11,7 +11,35 @@ class PWLearningSampler(data.Dataset):
         # make sure we only have positive ratings no unseen interactions
         assert np.all(self.data.uir_tuple[2] > 0)
         self.user_array = self.data.uir_tuple[0]
+
         self.item_array = self.data.uir_tuple[1]
+        self.unique_items = np.unique(self.item_array)
+        self.unique_users = np.unique(self.user_array)
+        self.user_item_array = np.vstack([self.user_array, self.item_array]).T
+        # make sure users are assending from 0
+        np.all(np.unique(self.user_array) == np.arange(self.unique_users.shape[0]))
+
+        self.precompute_neg_items_per_user()
+
+
+    def precompute_neg_items_per_user(self):
+        """
+        Precompute negative items for each user so we can dynamically sample from this list
+        """
+        # precompute per user list of negative items
+        self.user_neg_items = []
+        for user in self.unique_users:
+            idxs_of_user = np.where(self.user_array == user)
+            items_of_user = self.item_array[idxs_of_user]
+            # get difference between all items and items of user
+            neg_items = np.setdiff1d(self.unique_items, items_of_user)
+            self.user_neg_items.append(neg_items)
+
+        # now fill -1 to make all user_neg_items the same length
+        max_len = max([len(x) for x in self.user_neg_items])
+        for i in range(len(self.user_neg_items)):
+            self.user_neg_items[i] = np.pad(self.user_neg_items[i], (0, max_len - len(self.user_neg_items[i])), 'constant', constant_values=-1)
+        self.user_neg_items = np.array(self.user_neg_items)
 
     def __getitems__(self, list_of_indexs):
         """
@@ -23,20 +51,24 @@ class PWLearningSampler(data.Dataset):
 
         pos_u_i = np.vstack([users, pos_items]).T
 
-        neg_examples_idxs = np.random.choice(len(self.data.uir_tuple[1]), (batch_size, self.num_neg))
-        while True:
-
-            filter = np.any(users.reshape(len(users), 1) == self.user_array[neg_examples_idxs], axis=1)
+        users_neg_items = self.user_neg_items[pos_u_i[:,0]]
+        # sample negative items
+        random_idxs = np.random.choice(range(0, users_neg_items.shape[1] - 1), batch_size * self.num_neg * 2)
+        selected_neg_items_per_user = users_neg_items[list(range(users_neg_items.shape[0])) * self.num_neg*2, random_idxs]
+        selected_neg_items_per_user = selected_neg_items_per_user.reshape(batch_size, self.num_neg*2)
+        
+        for i in range(2):
+            filter = (selected_neg_items_per_user[:, :self.num_neg] == -1)
             if np.any(filter):
-                num_pos_examples = neg_examples_idxs[~filter].shape[0]
-                new_neg_examples_idx = np.random.choice(len(self.data.uir_tuple[1]), (num_pos_examples, self.num_neg))
-                neg_examples_idxs[~filter] = new_neg_examples_idx
+                problem_candidates = np.where(selected_neg_items_per_user[:, :self.num_neg] == -1)
+                # draw the neg examples from the rest of the previously sampled neg examples
+                neg_items = selected_neg_items_per_user[problem_candidates[0], self.num_neg:]
+                selected_neg_items_per_user[problem_candidates[0], problem_candidates[1]] = neg_items[:, i]
             else:
                 # draw the neg examples
-                neg_i = self.item_array[neg_examples_idxs]
                 break
-
-        return np.hstack([pos_u_i, neg_i])
+        assert np.all(selected_neg_items_per_user[:, :self.num_neg] != -1)
+        return np.hstack([pos_u_i, selected_neg_items_per_user[:, :self.num_neg]])
 
 
     def __getitem__(self, index):
