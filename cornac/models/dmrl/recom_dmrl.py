@@ -109,6 +109,7 @@ class DMRL(Recommender):
         :return: trained model
         """
         device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Using device {device} for training")
 
         self.sampler = PWLearningSampler(train_set, num_neg=self.num_neg)
 
