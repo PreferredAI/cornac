@@ -5,8 +5,11 @@ from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
 from cornac.models.recommender import Recommender
 from cornac.data.dataset import Dataset
 import torch
+from torch.optim.lr_scheduler import StepLR
+
 from torch.utils.data import DataLoader
 import numpy as np
+from torch.utils.tensorboard import SummaryWriter
 
 class DMRL(Recommender):
     """
@@ -23,8 +26,8 @@ class DMRL(Recommender):
         Recommendation. https://arxiv.org/pdf/2203.05406.pdf.
     """
     def __init__(self, iid_map: Dict, num_users: int, num_items: int, bert_text_modality: BertTextModality, name: str = "DRML", batch_size: int = 32,
-                 learning_rate: float = 0.15, decay_c: float = 1, decay_r: float = 1,  epochs: int = 10, embedding_dim: int = 100, bert_text_dim: int = 384,
-                 num_neg: int = 4, num_factors: int =4, trainable: bool = True, verbose: bool = False, modalities_pre_built: bool = True):
+                 learning_rate: float = 1e-4, decay_c: float = 1, decay_r: float = 0.01,  epochs: int = 10, embedding_dim: int = 100, bert_text_dim: int = 384,
+                 num_neg: int = 4, num_factors: int =4, trainable: bool = True, verbose: bool = False, modalities_pre_built: bool = True, log_metrics: bool = False):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.learning_rate = learning_rate
         self.decay_c = decay_c
@@ -41,6 +44,10 @@ class DMRL(Recommender):
         self.modalities_pre_built = modalities_pre_built
         self.bert_text_modality = bert_text_modality
         self.num_factors = num_factors
+        self.log_metrics = log_metrics
+        if log_metrics:
+            self.tb_writer = SummaryWriter("temp/tb_data/run_1")
+
 
         if not self.modalities_pre_built:
             self.bert_text_modality.build(iid_map)
@@ -122,13 +129,16 @@ class DMRL(Recommender):
         loss_function = DMRLLoss(decay_c=1e-3, num_factors=self.num_factors, num_neg=self.num_neg)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate, weight_decay=self.decay_r)
-
+        # Create learning rate scheduler
+        scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
         dataloader = DataLoader(self.sampler, batch_size=self.batch_size, num_workers=0, shuffle=True, prefetch_factor=None)
 
         # Training loop
         for epoch in range(self.epochs):
             running_loss = 0
             last_loss = 0
+            # Create learning rate scheduler
+            scheduler.step()
             batch: torch.Tensor
             for i, batch in enumerate(dataloader):
                 optimizer.zero_grad()
@@ -145,17 +155,27 @@ class DMRL(Recommender):
 
                 # Backward pass and optimize
                 loss.backward()
-                optimizer.step()
+                model.log_gradients()
+                torch.nn.utils.clip_grad_value_(model.parameters(), 1)
 
+                optimizer.step()
 
                 # Gather data and report
                 running_loss += loss.item()
-                if i % 1000 == 999:
-                    last_loss = running_loss / 1000 # loss per batch
+                if i % 100 == 99:
+                    last_loss = running_loss / 100 # loss per batch
                     print('  batch {} loss: {}'.format(i + 1, last_loss))
-                    # tb_x = epoch * len(dataloader) + i + 1
-                    # tb_writer.add_scalar('Loss/train', last_loss, tb_x)
-                    running_loss = 0.
-                    print(f"Epoch: {epoch} is done")
+
+                    if self.log_metrics:
+                        tb_x = epoch * len(dataloader) + i + 1
+                        self.tb_writer.add_scalar('Loss/train', last_loss, tb_x)
+                        self.tb_writer.add_scalar('Gradient Norm/train', np.mean(model.grad_norms), tb_x)
+                        for name, param in model.named_parameters():
+                                self.tb_writer.add_scalar(name + '/grad_norm', np.mean(model.grad_dict[name]), tb_x)
+                                self.tb_writer.add_histogram(name + '/grad', param.grad, global_step=epoch)
+                        
+                        model.reset_grad_metrics()
+                        running_loss = 0
+            print(f"Epoch: {epoch} is done")
 
         print("Finished training!")

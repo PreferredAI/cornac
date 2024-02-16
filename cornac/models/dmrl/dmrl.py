@@ -23,6 +23,7 @@ class DMRLModel(nn.Module):
         self.num_neg = num_neg
         self.embedding_dim = embedding_dim
         self.num_modalities = 2
+        self.grad_norms = []
         self.text_module = torch.nn.Sequential(
                             torch.nn.Linear(bert_text_dim, 150),
                             torch.nn.LeakyReLU(),
@@ -41,13 +42,15 @@ class DMRLModel(nn.Module):
         self.attention_layer = []
         for _ in range(self.num_factors - 1):
             self.attention_layer.append(self.make_attention_layer(self.factor_size))
-        
+
         if last_factor_size > 0: # last factor size is < factor size
             self.attention_layer.append(self.make_attention_layer(last_factor_size))
         else: # last factor layer also has exactly factor size many input features
             self.attention_layer.append(self.make_attention_layer(self.factor_size))
         
         self.attention_layer = nn.ModuleList(self.attention_layer)
+        self.grad_dict = {i[0]: [] for i in self.named_parameters()}
+
 
     def make_attention_layer(self, size: int) -> torch.nn.Sequential:
         """
@@ -105,7 +108,26 @@ class DMRLModel(nn.Module):
             ratings_sum_over_mods = ratings_sum_over_mods + (r_ui + r_ut)
 
         return embedding_factor_lists, ratings_sum_over_mods
-    
+
+    def log_gradients(self):
+        """
+        Stores most recent gradient norms in a list.
+        """
+
+        for i in self.named_parameters():
+            self.grad_dict[i[0]].append(torch.norm(i[1].grad.detach().flatten()).item())
+
+        total_norm = torch.norm(torch.cat([p.grad.detach().flatten() for p in self.parameters()]))
+        self.grad_norms.append(total_norm.item())
+
+    def reset_grad_metrics(self):
+        """
+        Reset the gradient metrics.
+        """
+        self.grad_norms = []
+        self.grad_dict = {i[0]: [] for i in self.named_parameters()}
+
+
 
 class DMRLLoss(nn.Module):
     def __init__(self, decay_c, num_factors, num_neg):

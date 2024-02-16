@@ -50,6 +50,7 @@ class BertTextModality(FeatureModality):
             os.makedirs("temp", exist_ok = True) 
             torch.save(self.encoded_corpus, path)
 
+
     def build(self, id_map: OrderedDict, **kwargs):
         """
         Build the modality with the given global id_map.

@@ -23,7 +23,7 @@ item_text_modality = BertTextModality(
 # Define an evaluation method to split feedback into train and test sets
 ratio_split = RatioSplit(
     data=feedback,
-    test_size=0.2,
+    test_size=0.3,
     exclude_unknowns=True,
     item_text=item_text_modality,
     verbose=True,
@@ -37,8 +37,9 @@ dmrl_recommender = cornac.models.dmrl.DMRL(
     num_users = ratio_split.total_users,
     num_items = ratio_split.total_items,
     bert_text_modality = item_text_modality,
-    batch_size=128,
-    epochs=1)
+    batch_size=64,
+    epochs=1,
+    log_metrics=True)
 
 # Use Recall@300 for evaluation
 rec_300 = cornac.metrics.Recall(k=300)
