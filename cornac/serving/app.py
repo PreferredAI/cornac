@@ -26,7 +26,7 @@ from cornac.eval_methods import BaseMethod
 from cornac.metrics import *
 
 try:
-    from flask import Flask, jsonify, request
+    from flask import Flask, jsonify, request, abort
 except ImportError:
     exit("Flask is required in order to serve models.\n" + "Run: pip3 install Flask")
 
@@ -197,34 +197,11 @@ def evaluate():
         return "Unable to evaluate. 'train_set' is not provided", 400
 
     query = request.json
+    validate_query(query)
 
-    query_metrics = query.get("metrics")
-    rating_threshold = query.get("rating_threshold", 1.0)
     exclude_unknowns = (
         query.get("exclude_unknowns", "true").lower() == "true"
     )  # exclude unknown users/items by default, otherwise specified
-    user_based = (
-        query.get("user_based", "true").lower() == "true"
-    )  # user_based evaluation by default, otherwise specified
-
-    if query_metrics is None:
-        return "metrics is required", 400
-    elif not isinstance(query_metrics, list):
-        return "metrics must be an array of metrics", 400
-
-    # organize metrics
-    metrics = []
-    for metric in query_metrics:
-        try:
-            metrics.append(_safe_eval(metric))
-        except:
-            return (
-                f"Invalid metric initiation: {metric}.\n"
-                + "Please input correct metrics (e.g., 'RMSE()', 'Recall(k=10)')",
-                400,
-            )
-
-    rating_metrics, ranking_metrics = BaseMethod.organize_metrics(metrics)
 
     # read data
     data = []
@@ -244,6 +221,85 @@ def evaluate():
         exclude_unknowns=exclude_unknowns,
     )
 
+    return process_evaluation(test_set, query, exclude_unknowns)
+
+
+def validate_query(query):
+    query_metrics = query.get("metrics")
+
+    if query_metrics is None:
+        abort(400, "metrics is required")
+    elif not isinstance(query_metrics, list):
+        abort(400, "metrics must be an array of metrics")
+
+
+@app.route("/evaluate-json", methods=["POST"])
+def evaluate_json():
+    global model, train_set, metric_classnames
+
+    # Input validation
+    if model is None:
+        abort(400, "Model is not yet loaded. Please try again later.")
+
+    if train_set is None:
+        abort(400, "Unable to evaluate. 'train_set' is not provided")
+
+    query = request.get_json()
+
+    validate_query(query)
+
+    if "data" not in query:
+        abort(400, "Evaluation data is not provided. 'data' is required in the form of a list of tuples (uid, iid, rating).")
+
+    exclude_unknowns = (
+        query.get("exclude_unknowns", "true").lower() == "true"
+    )  # exclude unknown users/items by default, otherwise specified
+
+    # read data
+    data = query.get("data")
+
+    if not len(data):
+        raise ValueError("No data available to evaluate the model.")
+
+    # convert rows of data to tuples
+    for i, row in enumerate(data):
+        data[i] = tuple(row)
+
+    test_set = Dataset.build(
+        data,
+        fmt="UIR",
+        global_uid_map=train_set.uid_map,
+        global_iid_map=train_set.iid_map,
+        exclude_unknowns=exclude_unknowns,
+    )
+    
+    return process_evaluation(test_set, query, exclude_unknowns)
+
+
+def process_evaluation(test_set, query, exclude_unknowns):
+    global model, train_set
+    
+    rating_threshold = query.get("rating_threshold", 1.0)
+    user_based = (
+        query.get("user_based", "true").lower() == "true"
+    )  # user_based evaluation by default, otherwise specified
+
+    query_metrics = query.get("metrics")
+    
+    # organize metrics
+    metrics = []
+    for metric in query_metrics:
+        try:
+            metrics.append(_safe_eval(metric))
+        except:
+            return (
+                f"Invalid metric initiation: {metric}.\n"
+                + "Please input correct metrics (e.g., 'RMSE()', 'Recall(k=10)')",
+                400,
+            )
+
+    rating_metrics, ranking_metrics = BaseMethod.organize_metrics(metrics)
+
     # evaluation
     result = BaseMethod.eval(
         model=model,
@@ -257,10 +313,18 @@ def evaluate():
         user_based=user_based,
         verbose=False,
     )
+    
+    # change metric_user_results inner keys to string
+    metric_user_results = {}
+    for metric, user_results in result.metric_user_results.items():
+        metric_user_results[metric] = {
+            str(k): v for k, v in user_results.items()
+        }
 
     # response
     response = {
         "result": result.metric_avg_results,
+        "user_result": metric_user_results,
         "query": query,
     }
 
