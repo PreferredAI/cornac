@@ -325,7 +325,6 @@ def process_evaluation(test_set, query, exclude_unknowns):
     response = {
         "result": result.metric_avg_results,
         "user_result": metric_user_results,
-        "query": query,
     }
 
     return jsonify(response), 200
