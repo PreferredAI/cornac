@@ -96,9 +96,10 @@ def test_evaluate_json(client):
     response = client.post('/evaluate', json=json_data)
     # assert response.content_type == 'application/json'
     assert response.status_code == 200
-    assert len(response.json['query']['metrics']) == 2
     assert 'RMSE' in response.json['result']
     assert 'Recall@5' in response.json['result']
+    assert 'RMSE' in response.json['user_result']
+    assert 'Recall@5' in response.json['user_result']
 
 
 def test_evalulate_incorrect_get(client):
