@@ -314,14 +314,11 @@ def process_evaluation(test_set, query, exclude_unknowns):
         verbose=False,
     )
 
-    uid_map = train_set.uid_map
-    inversed_uid_map = {str(v): k for k, v in uid_map.items()}
-
-    # change metric_user_results inner keys to string
+    # map user index back into the original user ID
     metric_user_results = {}
     for metric, user_results in result.metric_user_results.items():
         metric_user_results[metric] = {
-            inversed_uid_map[str(k)]: v for k, v in user_results.items()
+            train_set.user_ids[int(k)]: v for k, v in user_results.items()
         }
 
     # response
