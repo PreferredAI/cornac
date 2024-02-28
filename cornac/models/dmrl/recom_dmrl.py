@@ -157,21 +157,24 @@ class DMRL(Recommender):
                                     "num_factors": self.num_factors, "Neg_to_total_ratio": neg_to_total_ration}, {})
 
         # loss_function = torch.nn.BCEWithLogitsLoss(reduction="sum", pos_weight=torch.tensor([neg_to_total_ration]))
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=self.decay_r)
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.decay_r, betas=(0.9, 0.999))
         # optimizer = torch.optim.RMSprop(self.model.parameters(), lr=self.learning_rate, weight_decay=self.decay_r)
         # Create learning rate scheduler
         # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0, last_epoch=-1)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.5, step_size=10)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.5, step_size=20)
         dataloader = DataLoader(self.sampler, batch_size=self.batch_size, num_workers=0, shuffle=True, prefetch_factor=None)
         j = 1
+        stop=False
         # Training loop
         for epoch in range(self.epochs):
+            if stop:
+                break
             running_loss = 0
             last_loss = 0
             i = 0
 
             batch: torch.Tensor
-            all_batches = []
+            # all_batches = []
             for i, batch in enumerate(dataloader):
             # for item_idxs in train_set.item_iter(self.batch_size, shuffle=True):
                 # batch_R = train_set.csc_matrix[:, item_idxs]
@@ -179,7 +182,7 @@ class DMRL(Recommender):
                 # i_batch = torch.from_numpy(item_idxs).to(device)
                 # r_batch = torch.tensor(batch_R.A, dtype=torch.float).to(device)
                 # text = self.bert_text_modality.encoded_corpus[i_batch]
-                all_batches.append(batch)
+                # all_batches.append(batch)
                 optimizer.zero_grad()
 
 

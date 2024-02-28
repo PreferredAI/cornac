@@ -37,14 +37,14 @@ dmrl_recommender = cornac.models.dmrl.DMRL(
     num_users = ratio_split.total_users,
     num_items = ratio_split.total_items,
     bert_text_modality = item_text_modality,
-    batch_size=2048,
-    epochs=40,
+    batch_size=4096,
+    epochs=30,
     log_metrics=True,
     learning_rate=0.01,
     num_factors=1,
-    decay_r=0.02,
-    num_neg=2,
-    embedding_dim=100)
+    decay_r=0.02,   
+    num_neg=4,
+    embedding_dim=200)
 
 # Use Recall@300 for evaluations
 rec_300 = cornac.metrics.Recall(k=300)
