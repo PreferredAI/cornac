@@ -161,7 +161,7 @@ class DMRL(Recommender):
         # optimizer = torch.optim.RMSprop(self.model.parameters(), lr=self.learning_rate, weight_decay=self.decay_r)
         # Create learning rate scheduler
         # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0, last_epoch=-1)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.1, step_size=15)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.5, step_size=10)
         dataloader = DataLoader(self.sampler, batch_size=self.batch_size, num_workers=0, shuffle=True, prefetch_factor=None)
         j = 1
         # Training loop
@@ -293,7 +293,7 @@ class DMRL(Recommender):
         with torch.no_grad():
             _, ratings_sum_over_mods = self.model(input_tensor, encoded_corpus)
 
-        return np.array(ratings_sum_over_mods[:, 0].detach())
+        return np.array(ratings_sum_over_mods[:, 0].detach().cpu())
     
     # def score(self, user_idx, item_idx=None):
     #     """Predict the scores/ratings of a user for an item.
