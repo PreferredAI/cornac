@@ -135,8 +135,8 @@ class DMRL(Recommender):
         :param train_set: User-Item preference data as well as additional modalities.
         :return: trained model
         """
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"Using device {device} for training")
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Using device {self.device} for training")
 
         self.sampler = PWLearningSampler(train_set, num_neg=self.num_neg)
 
@@ -145,7 +145,7 @@ class DMRL(Recommender):
                           self.embedding_dim,
                           self.bert_text_dim,
                           self.num_neg,
-                          self.num_factors).to(device)
+                          self.num_factors).to(self.device)
 
         loss_function = DMRLLoss(decay_c=1e-3, num_factors=self.num_factors, num_neg=self.num_neg)
         # loss_function = torch.nn.MSELoss(reduction="sum")
@@ -186,8 +186,8 @@ class DMRL(Recommender):
                 item_text_embeddings = self.get_modality_embeddings(batch)
 
                 # move the data to the device
-                batch = batch.to(device)
-                item_text_embeddings = item_text_embeddings.to(device)
+                batch = batch.to(self.device)
+                item_text_embeddings = item_text_embeddings.to(self.device)
 
                 # Forward pass
                 embedding_factor_lists, rating_scores = self.model(batch, item_text_embeddings)
@@ -287,6 +287,7 @@ class DMRL(Recommender):
         encoded_corpus = encoded_corpus[:, None, :]
         
         input_tensor = torch.stack((user_index, item_indices), axis=1)
+        input_tensor = input_tensor.to(self.device)
 
         with torch.no_grad():
             _, ratings_sum_over_mods = self.model(input_tensor, encoded_corpus)
