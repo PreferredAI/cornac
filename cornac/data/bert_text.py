@@ -32,6 +32,7 @@ class BertTextModality(FeatureModality):
         self.model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
         self.output_dim = self.model[-1].pooling_output_dimension
         self.preencode = preencode
+        self.preencoded = False
 
     def preencode_entire_corpus(self):
         """
@@ -41,14 +42,24 @@ class BertTextModality(FeatureModality):
         """
         
         path = 'temp/encoded_corpus.pt'
-        try:
-            self.encoded_corpus = torch.load(path)
-            self.preencoded = True
-        except FileNotFoundError:
+        id_path = "temp/encoded_corpus_ids.pt"
+
+        if os.path.exists(path) and os.path.exists(id_path):
+            saved_ids = torch.load(id_path)
+            if saved_ids == self.ids:
+                self.encoded_corpus = torch.load(path)
+                self.preencoded = True
+            else:
+                assert self.preencoded is False
+                print("The ids of the saved encoded corpus do not match the current ids. Re-encoding the corpus.")
+        
+        if not self.preencoded:
+            print("Pre-encoding the entire corpus. This might take a while.")
             self.encoded_corpus = self.model.encode(self.corpus, convert_to_tensor=True)
             self.preencoded = True
             os.makedirs("temp", exist_ok = True) 
             torch.save(self.encoded_corpus, path)
+            torch.save(self.ids, id_path)
 
 
     def build(self, id_map: OrderedDict, **kwargs):

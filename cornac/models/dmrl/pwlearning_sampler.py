@@ -53,11 +53,11 @@ class PWLearningSampler(data.Dataset):
 
         users_neg_items = self.user_neg_items[pos_u_i[:,0]]
         # sample negative items
-        random_idxs = np.random.choice(range(0, users_neg_items.shape[1] - 1), batch_size * self.num_neg * 2)
-        selected_neg_items_per_user = users_neg_items[list(range(users_neg_items.shape[0])) * self.num_neg*2, random_idxs]
-        selected_neg_items_per_user = selected_neg_items_per_user.reshape(batch_size, self.num_neg*2)
+        random_idxs = np.random.choice(range(0, users_neg_items.shape[1] - 1), batch_size * self.num_neg * 4)
+        selected_neg_items_per_user = users_neg_items[list(range(users_neg_items.shape[0])) * self.num_neg*4, random_idxs]
+        selected_neg_items_per_user = selected_neg_items_per_user.reshape(batch_size, self.num_neg*4, order="F")
         
-        for i in range(2):
+        for i in range(4):
             filter = (selected_neg_items_per_user[:, :self.num_neg] == -1)
             if np.any(filter):
                 problem_candidates = np.where(selected_neg_items_per_user[:, :self.num_neg] == -1)

@@ -4,11 +4,13 @@ import unittest
 
 import torch
 from torch.utils.data import DataLoader
+import cornac
 from cornac.data.bert_text import BertTextModality
 from cornac.data.dataset import Dataset
 from cornac.data.reader import Reader
 from cornac.datasets import citeulike
 import os
+from cornac.eval_methods.ratio_split import RatioSplit
 
 from cornac.models.dmrl.dmrl import DMRLLoss, DMRLModel
 from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
@@ -21,20 +23,18 @@ class TestDMRL(unittest.TestCase):
         self.num_neg = 4
         docs, item_ids = citeulike.load_text()
         feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
-        cornac_dataset = Dataset.build(
+        self.cornac_dataset = Dataset.build(
             data=feedback)
-        self.sampler = PWLearningSampler(cornac_dataset, num_neg=self.num_neg)
-        cornac_dataset = Dataset.build(
-            data=feedback)
+        self.sampler = PWLearningSampler(self.cornac_dataset, num_neg=self.num_neg)
 
         self.item_ids = item_ids
         embedding_dim = 100
         bert_text_dim = 384
         self.modality = BertTextModality(corpus=docs, ids=self.item_ids)
-        self.modality.build(cornac_dataset.iid_map)
-        self.dmrl = DMRLModel(cornac_dataset.num_users, cornac_dataset.num_items, embedding_dim, bert_text_dim, self.num_neg)
+        self.modality.build(self.cornac_dataset.iid_map)
+        self.dmrl = DMRLModel(self.cornac_dataset.num_users, self.cornac_dataset.num_items, embedding_dim, bert_text_dim, self.num_neg, 2)
         self.loss_func = DMRLLoss(decay_c=1e-3, num_factors=self.dmrl.num_factors, num_neg=self.num_neg)
-        self.sampler = PWLearningSampler(cornac_dataset, num_neg=self.num_neg)
+        self.sampler = PWLearningSampler(self.cornac_dataset, num_neg=self.num_neg)
 
         batch_size = 32
         path = 'temp/input_tensor.pt'
@@ -94,3 +94,31 @@ class TestDMRL(unittest.TestCase):
         # Check that the parameters of the network have been updated
         for key, tensor in self.dmrl.state_dict().items():
             assert not torch.eq(old_params[key], tensor).all()
+
+    def test_score_recom_dmrl(self):
+        """
+        Test the scoring of the model on an unseen instance. Tests the prediction of the rating for a user item pair.
+        """
+
+        dmrl_recommender = cornac.models.dmrl.DMRL(
+                                iid_map = self.cornac_dataset.iid_map,
+                                num_users = len(self.sampler.unique_users),
+                                num_items = len(self.sampler.unique_items),
+                                bert_text_modality = self.modality,
+                                batch_size=64,
+                                epochs=4,
+                                log_metrics=True,
+                                learning_rate=0.001,
+                                num_factors=2,
+                                num_neg=2)
+
+        dmrl_recommender.model = DMRLModel(dmrl_recommender.num_users,
+                          dmrl_recommender.num_items,
+                          dmrl_recommender.embedding_dim,
+                          dmrl_recommender.bert_text_dim,
+                          dmrl_recommender.num_neg,
+                          dmrl_recommender.num_factors)
+
+        score = dmrl_recommender.score(0)
+
+        assert len(score) == len(self.cornac_dataset.item_ids)
