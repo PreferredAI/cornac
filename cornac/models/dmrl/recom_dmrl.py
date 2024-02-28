@@ -161,7 +161,7 @@ class DMRL(Recommender):
         # optimizer = torch.optim.RMSprop(self.model.parameters(), lr=self.learning_rate, weight_decay=self.decay_r)
         # Create learning rate scheduler
         # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0, last_epoch=-1)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.1, step_size=100)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.1, step_size=15)
         dataloader = DataLoader(self.sampler, batch_size=self.batch_size, num_workers=0, shuffle=True, prefetch_factor=None)
         j = 1
         # Training loop
@@ -219,12 +219,12 @@ class DMRL(Recommender):
                         self.tb_writer.add_scalar('Loss/train', last_loss, tb_x)
                         self.tb_writer.add_scalar('Gradient Norm/train', np.mean(self.model.grad_norms), tb_x)
                         self.tb_writer.add_scalar('Param Norm/train', np.mean(self.model.param_norms), tb_x)
-                        self.tb_writer.add_scalar('User-Item based rating', np.mean(self.model.ui_ratings), tb_x)
-                        self.tb_writer.add_scalar('User-Text based rating', np.mean(self.model.ut_ratings), tb_x)
-                        self.tb_writer.add_scalar('User-Itm Attention', np.mean(self.model.ui_attention), tb_x)
-                        self.tb_writer.add_scalar('User-Text Attention', np.mean(self.model.ut_attention), tb_x)
+                        self.tb_writer.add_scalar('User-Item based rating', np.mean(self.model.ui_ratings.cpu()), tb_x)
+                        self.tb_writer.add_scalar('User-Text based rating', np.mean(self.model.ut_ratings.cpu()), tb_x)
+                        self.tb_writer.add_scalar('User-Itm Attention', np.mean(self.model.ui_attention.cpu()), tb_x)
+                        self.tb_writer.add_scalar('User-Text Attention', np.mean(self.model.ut_attention.cpu()), tb_x)
                         for name, param in self.model.named_parameters():
-                                self.tb_writer.add_scalar(name + '/grad_norm', np.mean(self.model.grad_dict[name]), tb_x)
+                                self.tb_writer.add_scalar(name + '/grad_norm', np.mean(self.model.grad_dict[name].cpu()), tb_x)
                                 self.tb_writer.add_histogram(name + '/grad', param.grad, global_step=epoch)
                         self.tb_writer.add_scalar('Learning rate', optimizer.param_groups[0]["lr"], tb_x)
                         self.model.reset_grad_metrics()
