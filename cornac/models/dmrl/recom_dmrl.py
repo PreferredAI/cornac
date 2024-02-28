@@ -288,6 +288,7 @@ class DMRL(Recommender):
         
         input_tensor = torch.stack((user_index, item_indices), axis=1)
         input_tensor = input_tensor.to(self.device)
+        encoded_corpus = encoded_corpus.to(self.device)
 
         with torch.no_grad():
             _, ratings_sum_over_mods = self.model(input_tensor, encoded_corpus)
