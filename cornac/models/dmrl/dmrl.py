@@ -156,10 +156,10 @@ class DMRLModel(nn.Module):
             # r_uv = torch.sum(user_embedding_inflated * visual_embedding, axis=-1)
 
             # sum up over modalities and factorss
-            self.ui_attention.append(torch.norm(attention[:, :, 0].detach().flatten()))
-            self.ut_attention.append(torch.norm(attention[:, :, 1].detach().flatten()))
-            self.ui_ratings.append(torch.norm(r_ui.detach().flatten()))
-            self.ut_ratings.append(torch.norm(r_ut.detach().flatten()))
+            self.ui_attention.append(torch.norm(attention[:, :, 0].detach().flatten()).cpu())
+            self.ut_attention.append(torch.norm(attention[:, :, 1].detach().flatten()).cpu())
+            self.ui_ratings.append(torch.norm(r_ui.detach().flatten()).cpu())
+            self.ut_ratings.append(torch.norm(r_ut.detach().flatten()).cpu())
             ratings_sum_over_mods = ratings_sum_over_mods + (r_ui + r_ut)
 
         return embedding_factor_lists, ratings_sum_over_mods
