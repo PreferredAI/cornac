@@ -139,7 +139,7 @@ def test_recommend_missing_uid(client):
 def test_evaluate_use_data(client):
     json_data = {
         'metrics': ['RMSE()', 'Recall(k=5)'],
-        'use_data': [['930', '795', 5], ['195', '795', 3]]
+        'data': [['930', '795', 5], ['195', '795', 3]]
     }
     response = client.post('/evaluate', json=json_data)
     # assert response.content_type == 'application/json'
@@ -153,10 +153,10 @@ def test_evaluate_use_data(client):
 def test_evaluate_use_data_empty(client):
     json_data = {
         'metrics': ['RMSE()', 'Recall(k=5)'],
-        'use_data': []
+        'data': []
     }
     response = client.post('/evaluate', json=json_data)
     assert response.status_code == 400
-    assert response.data == b"'use_data' is empty. No data available to evaluate the model."
+    assert response.data == b"No feedback has been provided so far. No data available to evaluate the model."
 
 
