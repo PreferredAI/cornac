@@ -215,7 +215,9 @@ def evaluate():
         data = reader.read(data_fpath, fmt="UIR", sep=",")
 
     if not data:
-        raise ValueError("No data available to evaluate the model.")
+        response = make_response("No feedback has been provided so far. No data available to evaluate the model.")
+        response.status_code = 400
+        abort(response)
 
     test_set = Dataset.build(
         data,
@@ -244,7 +246,9 @@ def validate_query(query):
 def evaluate_json(exclude_unknowns, query, data):
     # read data
     if not data:
-        raise ValueError("No data available to evaluate the model.")
+        response = make_response("'use_data' is empty. No data available to evaluate the model.")
+        response.status_code = 400
+        abort(response)
 
     # convert rows of data to tuples
     for i, row in enumerate(data):
