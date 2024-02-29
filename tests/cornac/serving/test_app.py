@@ -111,3 +111,26 @@ def test_evalulate_incorrect_post(client):
     response = client.post('/evaluate')
     assert response.status_code == 415  # bad request, expect json
 
+
+def test_evaluate_missing_metrics(client):
+    json_data = {
+        'metrics': []
+    }
+    response = client.post('/evaluate', json=json_data)
+    assert response.status_code == 400
+    assert response.data == b'metrics is required'
+
+
+def test_evaluate_not_list_metrics(client):
+    json_data = {
+        'metrics': 'RMSE()'
+    }
+    response = client.post('/evaluate', json=json_data)
+    assert response.status_code == 400
+    assert response.data == b'metrics must be an array of metrics'
+
+
+def test_recommend_missing_uid(client):
+    response = client.get('/recommend?k=5')
+    assert response.status_code == 400
+    assert response.data == b'uid is required'
