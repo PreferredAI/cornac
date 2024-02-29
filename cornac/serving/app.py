@@ -203,6 +203,10 @@ def evaluate():
         query.get("exclude_unknowns", "true").lower() == "true"
     )  # exclude unknown users/items by default, otherwise specified
 
+    if "use_data" in query:
+        data = query.get("use_data")
+        return evaluate_json(exclude_unknowns, query, data)
+
     # read data
     data = []
     data_fpath = "data/feedback.csv"
@@ -210,7 +214,7 @@ def evaluate():
         reader = Reader()
         data = reader.read(data_fpath, fmt="UIR", sep=",")
 
-    if not len(data):
+    if not data:
         raise ValueError("No data available to evaluate the model.")
 
     test_set = Dataset.build(
@@ -233,32 +237,9 @@ def validate_query(query):
         abort(400, "metrics must be an array of metrics")
 
 
-@app.route("/evaluate-json", methods=["POST"])
-def evaluate_json():
-    global model, train_set, metric_classnames
-
-    # Input validation
-    if model is None:
-        abort(400, "Model is not yet loaded. Please try again later.")
-
-    if train_set is None:
-        abort(400, "Unable to evaluate. 'train_set' is not provided")
-
-    query = request.get_json()
-
-    validate_query(query)
-
-    if "data" not in query:
-        abort(400, "Evaluation data is not provided. 'data' is required in the form of a list of tuples (uid, iid, rating).")
-
-    exclude_unknowns = (
-        query.get("exclude_unknowns", "true").lower() == "true"
-    )  # exclude unknown users/items by default, otherwise specified
-
+def evaluate_json(exclude_unknowns, query, data):
     # read data
-    data = query.get("data")
-
-    if not len(data):
+    if not data:
         raise ValueError("No data available to evaluate the model.")
 
     # convert rows of data to tuples
@@ -285,7 +266,7 @@ def process_evaluation(test_set, query, exclude_unknowns):
     )  # user_based evaluation by default, otherwise specified
 
     query_metrics = query.get("metrics")
-    
+
     # organize metrics
     metrics = []
     for metric in query_metrics:
