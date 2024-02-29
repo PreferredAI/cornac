@@ -21,7 +21,10 @@ class EmbeddingFactorLists:
 
 
 class DMRLModel(nn.Module):
-    def __init__(self, num_users, num_items, embedding_dim, bert_text_dim, num_neg, num_factors):
+    """
+    The actual Disentangled Multi-Modal Recommendation Model neural network.
+    """
+    def __init__(self, num_users, num_items, embedding_dim, bert_text_dim, num_neg, num_factors, seed=123):
         super(DMRLModel, self).__init__()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.num_factors = num_factors
@@ -83,25 +86,6 @@ class DMRLModel(nn.Module):
         # self.attention_layer = nn.ModuleList(self.attention_layer)
         self.grad_dict = {i[0]: [] for i in self.named_parameters()}
 
-
-    def make_attention_layer(self, size: int) -> torch.nn.Sequential:
-        """
-        Creates an attention layer that takes in a tensor of size
-        ((self.num_modalities+1) * size) and outputs a tensor of size
-        self.num_modalities
-
-        :param size: the factor size of each input vector that is concatenated
-            before insertion here. There are (self.num_modalities+1) of the
-            modality input vectors.
-        :return: a torch.nn.Sequential object that is the attention layer
-        """
-        # add normalization layer
-        return torch.nn.Sequential(
-            torch.nn.Linear((self.num_modalities+1) * size, self.num_modalities),
-            torch.nn.Tanh(),
-            torch.nn.Linear(self.num_modalities, self.num_modalities, bias=False),
-            torch.nn.Softmax()
-        )
     
     # def forward(self, u_indices, i_indices, text):
     #     """
@@ -194,6 +178,11 @@ class DMRLModel(nn.Module):
 
 
 class DMRLLoss(nn.Module):
+    """
+    The disentangled multi-modal recommendation model loss function. It's a
+    combination of pairwise based ranking loss and disentangled loss. For
+    details see DMRL paper.
+    """
     def __init__(self, decay_c, num_factors, num_neg):
         super(DMRLLoss, self).__init__()
         self.decay_c = decay_c
@@ -212,10 +201,10 @@ class DMRLLoss(nn.Module):
         # define the ranking loss for pairwise-based ranking approach
         loss_BPR = torch.sum(torch.nn.Softplus()(-(r_pos - r_neg)))
 
-        # # regularizer loss is added as weight decay in optimization function
-        # disentangled_loss = self.distance_cor_calc.calculate_disentangled_loss(embedding_factor_lists.user_embedding_factors,
-        #                                                                        embedding_factor_lists.item_embedding_factors,
-        #                                                                        embedding_factor_lists.text_embedding_factors)
+        # regularizer loss is added as weight decay in optimization function
+        disentangled_loss = self.distance_cor_calc.calculate_disentangled_loss(embedding_factor_lists.user_embedding_factors,
+                                                                               embedding_factor_lists.item_embedding_factors,
+                                                                               embedding_factor_lists.text_embedding_factors)
 
-        total_loss = loss_BPR #+ self.decay_c * disentangled_loss
+        total_loss = loss_BPR + self.decay_c * disentangled_loss
         return total_loss

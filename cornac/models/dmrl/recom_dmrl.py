@@ -16,21 +16,60 @@ from torch.utils.tensorboard import SummaryWriter
 
 class DMRL(Recommender):
     """
-    Disentangled multimodal representation learning for recomendation.
+    Disentangled multimodal representation learning
+    
+    Parameters
+    ----------
+    name: string, default: 'DMRL'
+        The name of the recommender model.
+    
+    batch_size: int, optional, default: 32
+        The number of samples per batch to load.
+    
+    learning_rate: float, optional, default: 1e-4
+        The learning rate for the optimizer.
+    
+    decay_c: float, optional, default: 1
+        The decay for the disentangled loss term in the loss function.
 
-
-
-
-
+    decay_r: float, optional, default: 0.01
+        The decay for the regularization term in the loss function.
+    
+    epochs: int, optional, default: 10
+        The number of epochs to train the model.
+    
+    embedding_dim: int, optional, default: 100
+        The dimension of the embeddings.
+    
+    bert_text_dim: int, optional, default: 384
+        The dimension of the bert text embeddings coming from the huggingface transformer model
+    
+    num_neg: int, optional, default: 4
+        The number of negative samples to use in the training per user per batch (1 positive and num_neg negatives are used)
+    
+    num_factors: int, optional, default: 4
+        The number of factors to use in the model.
+    
+    trainable: bool, optional, default: True
+        When False, the model is not trained and Cornac assumes that the model is already trained.
+    
+    verbose: bool, optional, default: False
+        When True, the model prints out more information during training.
+    
+    modalities_pre_built: bool, optional, default: True
+        When True, the model assumes that the modalities are already built and does not build them.
+    
+    log_metrics: bool, optional, default: False
+        When True, the model logs metrics to tensorboard.
 
     References
     ----------
     * Fan Liu, Huilin Chen,  Zhiyong Cheng, Anan Liu, Liqiang Nie, Mohan Kankanhalli. DMRL: Disentangled Multimodal Representation Learning for
         Recommendation. https://arxiv.org/pdf/2203.05406.pdf.
     """
-    def __init__(self, iid_map: Dict, num_users: int, num_items: int, bert_text_modality: BertTextModality, name: str = "DRML", batch_size: int = 32,
+    def __init__(self, bert_text_modality: BertTextModality, name: str = "DRML", batch_size: int = 32,
                  learning_rate: float = 1e-4, decay_c: float = 1, decay_r: float = 0.01,  epochs: int = 10, embedding_dim: int = 100, bert_text_dim: int = 384,
-                 num_neg: int = 4, num_factors: int =4, trainable: bool = True, verbose: bool = False, modalities_pre_built: bool = True, log_metrics: bool = False):
+                 num_neg: int = 4, num_factors: int =4, trainable: bool = True, verbose: bool = False, log_metrics: bool = False):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.learning_rate = learning_rate
         self.decay_c = decay_c
@@ -38,21 +77,15 @@ class DMRL(Recommender):
         self.batch_size = batch_size
         self.epochs = epochs
         self.verbose = verbose
-        self.num_users = num_users
-        self.num_items = num_items
-        self.iid_map = iid_map
         self.embedding_dim = embedding_dim
         self.bert_text_dim = bert_text_dim
         self.num_neg = num_neg
-        self.modalities_pre_built = modalities_pre_built
         self.bert_text_modality = bert_text_modality
         self.num_factors = num_factors
         self.log_metrics = log_metrics
         if log_metrics:
             self.tb_writer = SummaryWriter("temp/tb_data/run_1")
 
-        if not self.modalities_pre_built:
-            self.bert_text_modality.build(iid_map)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -82,11 +115,12 @@ class DMRL(Recommender):
         """
         pass
 
-    def get_item_text_embeddings(self, batch: torch.Tensor):
+    def get_item_text_embeddings(self, batch: torch.Tensor) -> torch.Tensor:
         """
-        Get the item text embeddings.
+        Get the item text embeddings from the BERT model. Either by encoding the
+        text on the fly or by using the preencoded text.
 
-        :param batch: user inidices in dirst column, pos item indices in second
+        :param batch: user inidices in first column, pos item indices in second
             and all other columns are negative item indices 
         """
         shape = batch[:, 1:].shape
@@ -247,7 +281,7 @@ class DMRL(Recommender):
     
     def eval_train_set_performance(self):
         """
-        Save the performance of the model.
+        Evaluate the models training set performance using Recall 300 metric.
         """
         print("Evaluating training set performance")
         user_recall = []
@@ -266,14 +300,19 @@ class DMRL(Recommender):
 
     def score(self, user_index: int, item_indices: torch.Tensor = None) -> torch.Tensor:
         """
-        Scores a user-item pair. If item_index is None, scores for all known items.       
+        Scores a user-item pair. If item_index is None, scores for all known
+        items.       
 
-        :param user_idx: int, required
+        Parameters
+        ----------
+        name: user_idx
             The index of the user for whom to perform score prediction.
-
-        :param item_idx: int, optional, default: None
+    
+        item_idx: int, optional, default: None
             The index of the item for which to perform score prediction.
             If None, scores for all known items will be returned.
+        
+        return: tensor containing predictions for the user-item pairs
         """
         self.model.num_neg = 0
 

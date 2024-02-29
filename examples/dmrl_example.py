@@ -33,22 +33,20 @@ ratio_split = RatioSplit(
 
 # Instantiate DMRL recommender
 dmrl_recommender = cornac.models.dmrl.DMRL(
-    iid_map = ratio_split.global_iid_map,
-    num_users = ratio_split.total_users,
-    num_items = ratio_split.total_items,
     bert_text_modality = item_text_modality,
     batch_size=4096,
-    epochs=30,
+    epochs=20,
     log_metrics=True,
     learning_rate=0.01,
-    num_factors=1,
-    decay_r=0.02,   
+    num_factors=4,
+    decay_r=0.5,
+    decay_c=0.01,   
     num_neg=4,
-    embedding_dim=200)
+    embedding_dim=100)
 
 # Use Recall@300 for evaluations
 rec_300 = cornac.metrics.Recall(k=300)
-prec_300 = cornac.metrics.Precision(k=300)
+prec_30 = cornac.metrics.Precision(k=30)
 
 # Put everything together into an experiment and run it
-cornac.Experiment(eval_method=ratio_split, models=[dmrl_recommender], metrics=[prec_300, rec_300]).run()
+cornac.Experiment(eval_method=ratio_split, models=[dmrl_recommender], metrics=[prec_30, rec_300]).run()
