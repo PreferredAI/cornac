@@ -26,7 +26,7 @@ from cornac.eval_methods import BaseMethod
 from cornac.metrics import *
 
 try:
-    from flask import Flask, jsonify, request, abort
+    from flask import Flask, jsonify, request, abort, make_response
 except ImportError:
     exit("Flask is required in order to serve models.\n" + "Run: pip3 install Flask")
 
@@ -231,10 +231,14 @@ def evaluate():
 def validate_query(query):
     query_metrics = query.get("metrics")
 
-    if query_metrics is None:
-        abort(400, "metrics is required")
+    if not query_metrics:
+        response = make_response("metrics is required")
+        response.status_code = 400
+        abort(response)
     elif not isinstance(query_metrics, list):
-        abort(400, "metrics must be an array of metrics")
+        response = make_response("metrics must be an array of metrics")
+        response.status_code = 400
+        abort(response)
 
 
 def evaluate_json(exclude_unknowns, query, data):
