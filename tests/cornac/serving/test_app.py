@@ -134,3 +134,29 @@ def test_recommend_missing_uid(client):
     response = client.get('/recommend?k=5')
     assert response.status_code == 400
     assert response.data == b'uid is required'
+
+
+def test_evaluate_use_data(client):
+    json_data = {
+        'metrics': ['RMSE()', 'Recall(k=5)'],
+        'use_data': [['930', '795', 5], ['195', '795', 3]]
+    }
+    response = client.post('/evaluate', json=json_data)
+    # assert response.content_type == 'application/json'
+    assert response.status_code == 200
+    assert 'RMSE' in response.json['result']
+    assert 'Recall@5' in response.json['result']
+    assert 'RMSE' in response.json['user_result']
+    assert 'Recall@5' in response.json['user_result']
+
+
+def test_evaluate_use_data_empty(client):
+    json_data = {
+        'metrics': ['RMSE()', 'Recall(k=5)'],
+        'use_data': []
+    }
+    response = client.post('/evaluate', json=json_data)
+    assert response.status_code == 400
+    assert response.data == b"'use_data' is empty. No data available to evaluate the model."
+
+
