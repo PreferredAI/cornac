@@ -185,7 +185,6 @@ def add_feedback():
     return jsonify(data), 200
 
 
-# curl -X POST -H "Content-Type: application/json" -d '{"metrics": ["RMSE()", "NDCG(k=10)"]}' "http://localhost:8080/evaluate"
 @app.route("/evaluate", methods=["POST"])
 def evaluate():
     global model, train_set, metric_classnames
@@ -203,16 +202,14 @@ def evaluate():
         query.get("exclude_unknowns", "true").lower() == "true"
     )  # exclude unknown users/items by default, otherwise specified
 
-    if "use_data" in query:
-        data = query.get("use_data")
-        return evaluate_json(exclude_unknowns, query, data)
-
-    # read data
-    data = []
-    data_fpath = "data/feedback.csv"
-    if os.path.exists(data_fpath):
-        reader = Reader()
-        data = reader.read(data_fpath, fmt="UIR", sep=",")
+    if "data" in query:
+        data = query.get("data")
+    else:
+        data = []
+        data_fpath = "data/feedback.csv"
+        if os.path.exists(data_fpath):
+            reader = Reader()
+            data = reader.read(data_fpath, fmt="UIR", sep=",")
 
     if not data:
         response = make_response("No feedback has been provided so far. No data available to evaluate the model.")
@@ -241,28 +238,6 @@ def validate_query(query):
         response = make_response("metrics must be an array of metrics")
         response.status_code = 400
         abort(response)
-
-
-def evaluate_json(exclude_unknowns, query, data):
-    # read data
-    if not data:
-        response = make_response("'use_data' is empty. No data available to evaluate the model.")
-        response.status_code = 400
-        abort(response)
-
-    # convert rows of data to tuples
-    for i, row in enumerate(data):
-        data[i] = tuple(row)
-
-    test_set = Dataset.build(
-        data,
-        fmt="UIR",
-        global_uid_map=train_set.uid_map,
-        global_iid_map=train_set.iid_map,
-        exclude_unknowns=exclude_unknowns,
-    )
-    
-    return process_evaluation(test_set, query, exclude_unknowns)
 
 
 def process_evaluation(test_set, query, exclude_unknowns):
