@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
@@ -18,19 +18,20 @@ class EmbeddingFactorLists:
     user_embedding_factors: List[torch.Tensor]
     item_embedding_factors: List[torch.Tensor]
     text_embedding_factors: List[torch.Tensor]
+    image_embedding_factors: List[torch.Tensor]
 
 
 class DMRLModel(nn.Module):
     """
     The actual Disentangled Multi-Modal Recommendation Model neural network.
     """
-    def __init__(self, num_users, num_items, embedding_dim, bert_text_dim, num_neg, num_factors, seed=123):
+    def __init__(self, num_users, num_items, embedding_dim, bert_text_dim, image_dim, num_neg, num_factors, seed=123):
         super(DMRLModel, self).__init__()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.num_factors = num_factors
         self.num_neg = num_neg
         self.embedding_dim = embedding_dim
-        self.num_modalities = 2
+        self.num_modalities = 3 if image_dim else 2
         self.grad_norms = []
         self.param_norms = []
         self.ui_ratings = []
@@ -42,6 +43,13 @@ class DMRLModel(nn.Module):
                             torch.nn.LeakyReLU(),
                             torch.nn.Linear(150, embedding_dim),
                             torch.nn.LeakyReLU())
+        if image_dim:
+            self.image_module = torch.nn.Sequential(
+                                torch.nn.Linear(image_dim, 150),
+                                torch.nn.LeakyReLU(),
+                                torch.nn.Linear(150, embedding_dim),
+                                torch.nn.LeakyReLU())
+            
         
         rng = get_rng(123)
 
@@ -106,8 +114,22 @@ class DMRLModel(nn.Module):
     #     return preds_ui + preds_ut
 
 
-    def forward(self, batch, text):
+    def forward(self, batch: torch.Tensor, text: torch.Tensor, image: torch.Tensor) -> Tuple[EmbeddingFactorLists, torch.Tensor]:
+        """
+        Forward pass of the model.
+
+        Parameters:
+        -----------
+        batch: torch.Tensor
+            A batch of data. The first column contains the user indices, the
+            rest of the columns contain the item indices (one pos and num_neg negatives)
+        text: torch.Tensor
+            The text data for the items in the batch (encoded)
+        image: torch.Tensor
+            The image data for the items in the batch (encoded)
+        """
         text_embedding = self.text_module(text)
+        image_embedding = self.image_module(image)
         users = batch[:, 0]
         items = batch[:, 1:]
         user_embedding: torch.tensor
@@ -123,18 +145,22 @@ class DMRLModel(nn.Module):
         user_embedding_factors = torch.split(user_embedding_inflated, self.embedding_dim // self.num_factors, dim=-1)
         item_embedding_factors = torch.split(item_embedding, self.embedding_dim // self.num_factors, dim=-1)
         text_embedding_factors = torch.split(text_embedding, self.embedding_dim // self.num_factors, dim=-1)
+        image_embedding_factors = torch.split(image_embedding, self.embedding_dim // self.num_factors, dim=-1)
 
-        embedding_factor_lists = EmbeddingFactorLists(user_embedding_factors, item_embedding_factors, text_embedding_factors)
+        embedding_factor_lists = EmbeddingFactorLists(user_embedding_factors, item_embedding_factors, text_embedding_factors, image_embedding_factors)
 
         # attentionLayer: implemented per factor k
         ratings_sum_over_mods = torch.zeros((batch_size, 1 + self.num_neg)).to(self.device)
         for i in range(self.num_factors):
 
-            concatted_features = torch.concatenate([user_embedding_factors[i], item_embedding_factors[i], text_embedding_factors[i]], axis=2)
+            concatted_features = torch.concatenate([user_embedding_factors[i], item_embedding_factors[i], text_embedding_factors[i], image_embedding_factors[i]], axis=2)
             attention = self.attention_layer(torch.nn.functional.normalize(concatted_features, dim=-1))
 
             r_ui = attention[:, :, 0] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * item_embedding_factors[i], axis=-1))
             r_ut = attention[:, :, 1] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * text_embedding_factors[i], axis=-1))
+            r_uv = attention[:, :, 1] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * image_embedding_factors[i], axis=-1))
+
+
             # r_ui = torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * item_embedding_factors[i], axis=-1))
             # r_ut = torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * text_embedding_factors[i], axis=-1))
             # r_uv = torch.sum(user_embedding_inflated * visual_embedding, axis=-1)
@@ -144,7 +170,7 @@ class DMRLModel(nn.Module):
             self.ut_attention.append(torch.norm(attention[:, :, 1].detach().flatten()).cpu())
             self.ui_ratings.append(torch.norm(r_ui.detach().flatten()).cpu())
             self.ut_ratings.append(torch.norm(r_ut.detach().flatten()).cpu())
-            ratings_sum_over_mods = ratings_sum_over_mods + (r_ui + r_ut)
+            ratings_sum_over_mods = ratings_sum_over_mods + (r_ui + r_ut + r_uv)
 
         return embedding_factor_lists, ratings_sum_over_mods
 

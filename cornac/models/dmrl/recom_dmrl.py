@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 from cornac.data.bert_text import BertTextModality
 from cornac.exception import ScoreException
 from cornac.metrics.ranking import Recall
@@ -67,9 +67,9 @@ class DMRL(Recommender):
     * Fan Liu, Huilin Chen,  Zhiyong Cheng, Anan Liu, Liqiang Nie, Mohan Kankanhalli. DMRL: Disentangled Multimodal Representation Learning for
         Recommendation. https://arxiv.org/pdf/2203.05406.pdf.
     """
-    def __init__(self, bert_text_modality: BertTextModality, name: str = "DRML", batch_size: int = 32,
+    def __init__(self, name: str = "DRML", batch_size: int = 32,
                  learning_rate: float = 1e-4, decay_c: float = 1, decay_r: float = 0.01,  epochs: int = 10, embedding_dim: int = 100, bert_text_dim: int = 384,
-                 num_neg: int = 4, num_factors: int =4, trainable: bool = True, verbose: bool = False, log_metrics: bool = False):
+                 image_dim: int = None, num_neg: int = 4, num_factors: int =4, trainable: bool = True, verbose: bool = False, log_metrics: bool = False):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.learning_rate = learning_rate
         self.decay_c = decay_c
@@ -79,8 +79,8 @@ class DMRL(Recommender):
         self.verbose = verbose
         self.embedding_dim = embedding_dim
         self.bert_text_dim = bert_text_dim
+        self.image_dim = image_dim
         self.num_neg = num_neg
-        self.bert_text_modality = bert_text_modality
         self.num_factors = num_factors
         self.log_metrics = log_metrics
         if log_metrics:
@@ -109,11 +109,18 @@ class DMRL(Recommender):
 
         return self
 
-    def get_item_image_embedding(self, batch: torch.Tensor):
+    def get_item_image_embedding(self, batch: torch.Tensor) -> torch.Tensor:
         """
-        Get the item image embeddings.
+        Get the item image embeddings from the image modality. Expect the image
+        modaility to be preencded and available as a numpy array.
+
+        :param batch: user inidices in first column, pos item indices in second
+            and all other columns are negative item indices
         """
-        pass
+        shape = batch[:, 1:].shape
+        all_items = batch[:, 1:].flatten()
+        
+        return torch.tensor(self.image_modality.features[all_items, :].reshape((*shape, self.image_modality.feature_dim)), dtype=torch.float32)
 
     def get_item_text_embeddings(self, batch: torch.Tensor) -> torch.Tensor:
         """
@@ -135,14 +142,14 @@ class DMRL(Recommender):
 
         return item_text_embeddings
 
-    def get_modality_embeddings(self, batch: torch.Tensor):
+    def get_modality_embeddings(self, batch: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Get the modality embeddings.
         """
         item_text_embeddings = self.get_item_text_embeddings(batch)
-        # item_image_embeddings = self.get_item_image_embedding(batch)
+        item_image_embeddings = self.get_item_image_embedding(batch)
 
-        return item_text_embeddings
+        return item_text_embeddings, item_image_embeddings
 
     # def _fit_dmrl(self, train_set: Dataset):
     #     self.model = DMRLModel(self.num_users,
@@ -169,6 +176,8 @@ class DMRL(Recommender):
         :param train_set: User-Item preference data as well as additional modalities.
         :return: trained model
         """
+        self.bert_text_modality = train_set.item_text
+        self.image_modality = train_set.item_image
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"Using device {self.device} for training")
 
@@ -178,6 +187,7 @@ class DMRL(Recommender):
                           self.num_items,
                           self.embedding_dim,
                           self.bert_text_dim,
+                          self.image_dim,
                           self.num_neg,
                           self.num_factors).to(self.device)
 
@@ -195,7 +205,7 @@ class DMRL(Recommender):
         # optimizer = torch.optim.RMSprop(self.model.parameters(), lr=self.learning_rate, weight_decay=self.decay_r)
         # Create learning rate scheduler
         # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0, last_epoch=-1)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.5, step_size=20)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=0.5, step_size=5)
         dataloader = DataLoader(self.sampler, batch_size=self.batch_size, num_workers=0, shuffle=True, prefetch_factor=None)
         j = 1
         stop=False
@@ -220,14 +230,15 @@ class DMRL(Recommender):
                 optimizer.zero_grad()
 
 
-                item_text_embeddings = self.get_modality_embeddings(batch)
+                item_text_embeddings, item_image_embeddings = self.get_modality_embeddings(batch)
 
                 # move the data to the device
                 batch = batch.to(self.device)
                 item_text_embeddings = item_text_embeddings.to(self.device)
+                item_image_embeddings = item_image_embeddings.to(self.device)
 
                 # Forward pass
-                embedding_factor_lists, rating_scores = self.model(batch, item_text_embeddings)
+                embedding_factor_lists, rating_scores = self.model(batch, item_text_embeddings, item_image_embeddings)
                 # preds = self.model(u_batch, i_batch, text)
                 loss = loss_function(embedding_factor_lists, rating_scores)
                 # loss = loss_function(preds, r_batch)
@@ -283,19 +294,25 @@ class DMRL(Recommender):
         """
         Evaluate the models training set performance using Recall 300 metric.
         """
-        print("Evaluating training set performance")
-        user_recall = []
-        # first calculate Recall@k
-        for user in range(self.train_set.csr_matrix.shape[0]):
-            pos_items = self.train_set.csr_matrix[user, :].nonzero()[1]
-            all_items = torch.tensor(range(0, self.train_set.num_items), dtype=torch.long)
-            item_scores = self.score(user, all_items)
-            ranked_items = np.array(all_items)[item_scores.argsort()[::-1]]
+        from cornac.eval_methods.base_method import ranking_eval
 
-            user_recall.append(Recall(k=300).compute(pos_items, ranked_items))
+        print("Evaluating training set performance")
+        avg_results, user_results = ranking_eval(self, [Recall(k=300)], self.train_set, self.train_set, verbose=True) 
+
+        print(avg_results)
+
+        # user_recall = []
+        # # first calculate Recall@k
+        # for user in range(self.train_set.csr_matrix.shape[0]//2):
+        #     pos_items = self.train_set.csr_matrix[user, :].nonzero()[1]
+        #     all_items = torch.tensor(range(0, self.train_set.num_items), dtype=torch.long)
+        #     item_scores = self.score(user, all_items)
+        #     ranked_items = np.array(all_items)[item_scores.argsort()[::-1]]
+
+        #     user_recall.append(Recall(k=300).compute(pos_items, ranked_items))
         
-        user_recall_mean = np.mean(user_recall)
-        return user_recall_mean
+        # user_recall_mean = np.mean(user_recall)
+        return avg_results
 
 
     def score(self, user_index: int, item_indices: torch.Tensor = None) -> torch.Tensor:
@@ -325,15 +342,19 @@ class DMRL(Recommender):
             self.bert_text_modality.preencode_entire_corpus()
         
         # since the model expects as (batch size, 1 + num_neg, encoding dim) we just add one dim and repeat
-        encoded_corpus = self.bert_text_modality.encoded_corpus[item_indices,:]
-        encoded_corpus = encoded_corpus[:, None, :]
-        
+        encoded_text = self.bert_text_modality.encoded_corpus[item_indices,:]
+        encoded_text = encoded_text[:, None, :]
+
+        encoded_image = torch.tensor(self.image_modality.features[item_indices, :], dtype=torch.float32)
+        encoded_image = encoded_image[:, None, :]
+
         input_tensor = torch.stack((user_index, item_indices), axis=1)
         input_tensor = input_tensor.to(self.device)
-        encoded_corpus = encoded_corpus.to(self.device)
+        encoded_text = encoded_text.to(self.device)
+        encoded_image = encoded_image.to(self.device)
 
         with torch.no_grad():
-            _, ratings_sum_over_mods = self.model(input_tensor, encoded_corpus)
+            _, ratings_sum_over_mods = self.model(input_tensor, encoded_text, encoded_image)
 
         return np.array(ratings_sum_over_mods[:, 0].detach().cpu())
     

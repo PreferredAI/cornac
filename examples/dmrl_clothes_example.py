@@ -1,50 +1,53 @@
-"""Example for Disentangled Multimodal Recommendation"""
+import sys
+sys.path.append('/workspaces/cornac')
 
 import cornac
-from cornac.data import Reader
 from cornac.data.bert_text import BertTextModality
-from cornac.datasets import citeulike
+from cornac.datasets import amazon_clothing
+from cornac.data import ImageModality
 from cornac.eval_methods import RatioSplit
 
 
-# CDL composes an autoencoder with matrix factorization to model item (article) texts and user-item preferences
-# The necessary data can be loaded as follows
-docs, item_ids = citeulike.load_text()
-feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
+
+feedback = amazon_clothing.load_feedback()
+features, item_ids = amazon_clothing.load_visual_feature()  # BIG file
+docs, item_ids = amazon_clothing.load_text()
 
 
-
-# Instantiate a TextModality, it makes it convenient to work with text auxiliary information
+# Instantiate a ImageModality, it makes it convenient to work with visual auxiliary information
 # For more details, please refer to the tutorial on how to work with auxiliary data
+item_image_modality = ImageModality(features=features, ids=item_ids, normalized=True)
+
+item_image_modality = ImageModality(features=features, ids=item_ids, normalized=True)
 item_text_modality = BertTextModality(
     corpus=docs,
     ids=item_ids,
     preencode=True
 )
 
-# Define an evaluation method to split feedback into train and test sets
 ratio_split = RatioSplit(
     data=feedback,
     test_size=0.2,
     exclude_unknowns=True,
     item_text=item_text_modality,
+    item_image=item_image_modality,
     verbose=True,
     seed=123,
     rating_threshold=0.5,
 )
 
-# Instantiate DMRL recommender
 dmrl_recommender = cornac.models.dmrl.DMRL(
-    bert_text_modality = item_text_modality,
-    batch_size=4096,
+    batch_size=256,
     epochs=20,
     log_metrics=True,
     learning_rate=0.01,
-    num_factors=4,
-    decay_r=0.5,
-    decay_c=0.01,   
+    num_factors=1,
+    decay_r=2,
+    decay_c=0.01,
     num_neg=3,
-    embedding_dim=100)
+    embedding_dim=100,
+    image_dim=4096)
+
 
 # Use Recall@300 for evaluations
 rec_300 = cornac.metrics.Recall(k=300)
