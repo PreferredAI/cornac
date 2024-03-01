@@ -96,9 +96,10 @@ def test_evaluate_json(client):
     response = client.post('/evaluate', json=json_data)
     # assert response.content_type == 'application/json'
     assert response.status_code == 200
-    assert len(response.json['query']['metrics']) == 2
     assert 'RMSE' in response.json['result']
     assert 'Recall@5' in response.json['result']
+    assert 'RMSE' in response.json['user_result']
+    assert 'Recall@5' in response.json['user_result']
 
 
 def test_evalulate_incorrect_get(client):
@@ -109,4 +110,53 @@ def test_evalulate_incorrect_get(client):
 def test_evalulate_incorrect_post(client):
     response = client.post('/evaluate')
     assert response.status_code == 415  # bad request, expect json
+
+
+def test_evaluate_missing_metrics(client):
+    json_data = {
+        'metrics': []
+    }
+    response = client.post('/evaluate', json=json_data)
+    assert response.status_code == 400
+    assert response.data == b'metrics is required'
+
+
+def test_evaluate_not_list_metrics(client):
+    json_data = {
+        'metrics': 'RMSE()'
+    }
+    response = client.post('/evaluate', json=json_data)
+    assert response.status_code == 400
+    assert response.data == b'metrics must be an array of metrics'
+
+
+def test_recommend_missing_uid(client):
+    response = client.get('/recommend?k=5')
+    assert response.status_code == 400
+    assert response.data == b'uid is required'
+
+
+def test_evaluate_use_data(client):
+    json_data = {
+        'metrics': ['RMSE()', 'Recall(k=5)'],
+        'data': [['930', '795', 5], ['195', '795', 3]]
+    }
+    response = client.post('/evaluate', json=json_data)
+    # assert response.content_type == 'application/json'
+    assert response.status_code == 200
+    assert 'RMSE' in response.json['result']
+    assert 'Recall@5' in response.json['result']
+    assert 'RMSE' in response.json['user_result']
+    assert 'Recall@5' in response.json['user_result']
+
+
+def test_evaluate_use_data_empty(client):
+    json_data = {
+        'metrics': ['RMSE()', 'Recall(k=5)'],
+        'data': []
+    }
+    response = client.post('/evaluate', json=json_data)
+    assert response.status_code == 400
+    assert response.data == b"No feedback has been provided so far. No data available to evaluate the model."
+
 
