@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   cornac:
-    image: registry.preferred.ai/cornac/cornac-server:1.18.0
+    image: registry.preferred.ai/cornac/cornac-server:latest
     volumes:
       - $PWD/save_dir:/app/cornac/serving/save_dir
       - cornacvol:/app/cornac/serving/data
