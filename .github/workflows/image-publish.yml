@@ -22,7 +22,7 @@ jobs:
             VERSION=${GITHUB_REF#refs/tags/}
             VERSION="${VERSION:1}"
           fi
-          IMAGE="registry.preferred.ai/cornac/cornac-server"
+          IMAGE="ghcr.io/cornac/cornac-server"
           echo ::set-output name=tagged_image::${IMAGE}:${VERSION},${IMAGE}:latest
         shell: bash
 
@@ -36,9 +36,9 @@ jobs:
       - name: Login to registry
         uses: docker/login-action@v3
         with:
-          registry: registry.preferred.ai
-          username: ${{ secrets.PREFERRED_REGISTRY_USERNAME }}
-          password: ${{ secrets.PREFERRED_REGISTRY_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
