@@ -22,7 +22,7 @@ jobs:
             VERSION=${GITHUB_REF#refs/tags/}
             VERSION="${VERSION:1}"
           fi
-          IMAGE="ghcr.io/cornac/cornac-server"
+          IMAGE="ghcr.io/PreferredAI/cornac-server"
           echo ::set-output name=tagged_image::${IMAGE}:${VERSION},${IMAGE}:latest
         shell: bash
 
