@@ -1,20 +1,9 @@
 # Links for torch and dgl
 -f https://download.pytorch.org/whl/torch_stable.html
 
-numpy==1.19.*
-matplotlib==3.6.1
-tensorflow==2.6.0
-keras==2.6.0
-protobuf==3.20
 pandas==1.4.*
-scipy==1.9.3
-tqdm==4.64.1
-powerlaw==1.5
-nltk==3.7
-filelock==3.8.2
 gensim==4.2.0
 sentence-transformers==2.2.2
 dgl==1.0.*
-torchvision==0.13.1
-torch==1.12.1
+torch==1.*
 filelock==3.8.2

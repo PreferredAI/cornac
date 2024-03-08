@@ -460,7 +460,7 @@ class Model(nn.Module):
                  hypergraph_attention=False,
                  **kwargs):
         super().__init__()
-        from cornac.models.lightgcn import Model as lightgcn
+        from cornac.models.lightgcn.lightgcn import Model as lightgcn
         self.aggregator = aggregator
         self.embedding_type = embedding_type
         self.predictor = predictor
@@ -489,8 +489,7 @@ class Model(nn.Module):
         self.node_dropout = nn.Dropout(layer_dropout[0])
 
 
-        self.lightgcn = lightgcn(g, node_dim, [node_dim]*3, dropout=layer_dropout[0],
-                                                  lightgcn=True, use_cuda=use_cuda)
+        self.lightgcn = lightgcn(g, node_dim, 3, 0)
 
         self.W_s = nn.Linear(node_dim, node_dim, bias=False)
         if aggregator.startswith('narre'):
@@ -595,7 +594,8 @@ class Model(nn.Module):
         # Compute preference embeddings
         blocks, lgcn_blocks, mask = blocks
         if self.preference_module == 'lightgcn':
-            e = self.lightgcn(lgcn_blocks[0].ndata[dgl.NID], lgcn_blocks[:-1])
+            u, i, _ = self.lightgcn(lgcn_blocks[:-1])
+            e = {'user': u, 'item': i}
         elif self.preference_module == 'mf':
             # Get user/item representation without any graph convolutions.
             e = {ntype: self.lightgcn.features[ntype](nids) for ntype, nids in
@@ -781,8 +781,8 @@ class Model(nn.Module):
 
         # Node preference embedding
         if self.preference_module == 'lightgcn':
-            self.lightgcn.inference(ui_graph, batch_size)
-            x = self.lightgcn.embeddings
+            u, i, _ = self.lightgcn(ui_graph)
+            x = {'user': u, 'item': i}
         else:
             x = {nt: e.weight for nt, e in self.lightgcn.features.items()}
 

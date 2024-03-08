@@ -5,7 +5,6 @@ from collections import defaultdict
 from contextlib import nullcontext
 from copy import deepcopy
 
-from ..lightgcn.lightgcn import construct_graph
 from ..recommender import Recommender
 from ...data import Dataset
 
@@ -49,7 +48,6 @@ class HypAR(Recommender):
                  embedding_type='ao_embeddings',
                  debug=False
                  ):
-        from torch.utils.tensorboard import SummaryWriter
 
         super().__init__(name)
         # Default values
@@ -443,9 +441,9 @@ class HypAR(Recommender):
         return torch.tensor(a_embeddings), torch.tensor(o_embeddings)
 
     def fit(self, train_set: Dataset, val_set=None):
-        # from . import Model
-        from cornac.models import NGCF
         import torch
+        from ..lightgcn.lightgcn import construct_graph
+
 
         super().fit(train_set, val_set)
         n_nodes, self.n_relations, self.sid_aos, self.aos_list = self._graph_wrapper(train_set, self.graph_type)  # graphs are as attributes of model.
@@ -509,7 +507,7 @@ class HypAR(Recommender):
         from torch import optim
         from . import dgl_utils
         import cornac
-        import tqdm
+        from tqdm import tqdm
 
         # Get graph and edges
         g = self.train_graph
@@ -541,7 +539,7 @@ class HypAR(Recommender):
             ic = collections.Counter(self.train_set.matrix.nonzero()[1])
             probabilities = torch.FloatTensor([ic.get(i) for i in sorted(ic)]) if self.popularity_biased_sampling \
                 else None
-            neg_sampler = cornac.utils.dgl.GlobalUniformItemSampler(self.num_neg_samples, self.train_set.num_items,
+            neg_sampler = dgl_utils.GlobalUniformItemSampler(self.num_neg_samples, self.train_set.num_items,
                                                                     probabilities)
         else:
             neg_sampler = None
@@ -621,10 +619,6 @@ class HypAR(Recommender):
                         for k, v in cur_losses.items():
                             tot_losses[k] += v.cpu()
 
-                        if self.summary_writer is not None:
-                            for k, v in cur_losses.items():
-                                self.summary_writer.add_scalar(f'train/cf/{k}', v, e * epoch_length + i)
-
                         optimizer.step()
                         optimizer.zero_grad()
                         loss_str = ','.join([f'{k}:{v/i:.3f}' for k, v in tot_losses.items()])
@@ -634,10 +628,6 @@ class HypAR(Recommender):
                             results = self._validate(val_set, metrics)
                             res_str = 'Val: ' + ', '.join([f'{m.name}:{r:.4f}' for m, r in zip(metrics, results)])
                             progress.set_description(f'Epoch {e}, ' + f'{loss_str}, ' + res_str)
-
-                            if self.summary_writer is not None:
-                                for m, r in zip(metrics, results):
-                                    self.summary_writer.add_scalar(f'val/{m.name}', r, e)
 
                             if self.model_selection == 'best' and (results[0] > best_score if metrics[0].higher_better
                                     else results[0] < best_score):

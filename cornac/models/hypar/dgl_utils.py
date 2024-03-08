@@ -1,10 +1,12 @@
-from collections import OrderedDict, Counter
+import re
+from collections import OrderedDict, Counter, defaultdict
 from typing import Mapping
+from functools import lru_cache
 
 import dgl.dataloading
 import torch
-from dgl import DGLError, function
-
+from dgl.dataloading.negative_sampler import _BaseNegativeSampler
+import dgl.backend as F
 
 class HEAREdgeSampler(dgl.dataloading.EdgePredictionSampler):
     def __init__(self, sampler, exclude=None, reverse_eids=None,
@@ -121,7 +123,7 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
             sid = g.edata['sid'][exclude_eids].to(u.device)
             nrg_exclude_eids = self.node_review_graph.edge_ids(sid, u, etype='part_of')
             lgcn_exclude_eids = dgl.dataloading.find_exclude_eids(
-                self.ui_graph, {'ui': seed_edges}, 'reverse_types', None, {'ui': 'iu', 'iu': 'ui'},
+                self.ui_graph, {'user_item': seed_edges}, 'reverse_types', None, {'user_item': 'item_user', 'item_user': 'user_item'},
                 self.output_device)
             mask = torch.ones((len(self.sid_aos)))
             mask[sid] = 0
@@ -189,11 +191,27 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
 
         return input_nodes, output_nodes, [pos_aos, neg_aos], [blocks, blocks2, mask]
 
-import re
-from collections import OrderedDict, defaultdict
 
-import numpy as np
-from functools import lru_cache
+class GlobalUniformItemSampler(_BaseNegativeSampler):
+    def __init__(self, k, n_items, probabilities=None):
+        super(_BaseNegativeSampler, self).__init__()
+        self.k = k
+        self.n_items = n_items
+        self.probabilities = probabilities
+
+    def _generate(self, g, eids, canonical_etype):
+        _, _, vtype = canonical_etype
+        shape = F.shape(eids)
+        dtype = F.dtype(eids)
+        ctx = F.context(eids)
+        src, _ = g.find_edges(eids, etype=canonical_etype)
+        src = F.repeat(src, self.k, 0)
+        if self.probabilities is not None:
+            dst = torch.multinomial(self.probabilities, self.k, replacement=True).reshape(1, self.k)
+        else:
+            dst = F.randint((1, self.k), dtype, ctx, 0, self.n_items)
+        dst = F.repeat(dst, shape[0], 0).reshape(-1)
+        return src, dst
 
 
 def stem_fn(x):
@@ -218,6 +236,7 @@ def stem(sentiment):
         s[i] = [(a_o_n[a], o_o_n[o], s) for a, o, s in aos]
 
     return s, a_o_n, o_o_n
+
 
 @lru_cache()
 def generate_mappings(sentiment, match, get_ao_mappings=False, get_sent_edge_mappings=False):
