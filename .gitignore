@@ -55,3 +55,14 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Dataset stuff
+**.pickle
+**.csv
+**.lock
+**.zip
+
+# Virtual envs
+.env/
+.venv/
+venv/
