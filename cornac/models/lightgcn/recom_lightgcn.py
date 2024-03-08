@@ -124,11 +124,11 @@ class LightGCN(Recommender, ANNMixin):
         from .lightgcn import Model
         from .lightgcn import construct_graph
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        if self.seed is not None:
-            torch.manual_seed(self.seed)
-            if torch.cuda.is_available():
-                torch.cuda.manual_seed_all(self.seed)
+        self.device = "cpu" # torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # if self.seed is not None:
+        #     torch.manual_seed(self.seed)
+        #     if torch.cuda.is_available():
+        #         torch.cuda.manual_seed_all(self.seed)
 
         graph = construct_graph(train_set, self.total_users, self.total_items).to(
             self.device
