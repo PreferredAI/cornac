@@ -353,6 +353,16 @@ class HypAR(Recommender):
         return n_nodes, n_types, sid_aos, aos_list
 
     def _ao_embeddings(self, train_set):
+        """
+        Learn aspect and opinion embeddings using word2vec.
+        Parameters
+        ----------
+        train_set: dataset
+            Dataset to use for learning embeddings.
+        Returns
+        -------
+            Aspect and opinion embeddings, and word2vec model.
+        """
         from .dgl_utils import generate_mappings, stem_fn
         from gensim.models import Word2Vec
         from gensim.parsing import remove_stopwords, preprocess_string, stem_text
@@ -365,21 +375,21 @@ class HypAR(Recommender):
         # Define preprocess functions for text, aspects and opinions.
         preprocess_fn = stem_fn
 
-        # Process corpus
+        # Process corpus, getting all sentences and words.
         corpus = []
-
         for review in tqdm(train_set.review_text.corpus, desc='Processing text', disable=not self.verbose):
             for sentence in review.split('.'):
                 words = word_tokenize(sentence.replace(' n\'t ', 'n ').replace('/', ' '))
                 corpus.append(' '.join(preprocess_fn(word) for word in words))
 
-        # Process aspects and opinions.
+        # Process words to match with aos extraction methodology used in SEER.
         a_old_new_map = {a: preprocess_fn(a) for a in sentiment.aspect_id_map}
         o_old_new_map = {o: preprocess_fn(o) for o in sentiment.opinion_id_map}
 
+        # Generate mappings for aspect and opinion ids.
         _, _, _, _, _, _, a2a, o2o = generate_mappings(train_set.sentiment, 'a', get_ao_mappings=True)
 
-        # Define a progressbar for easier training.
+        # Define a progressbar for training word2vec as no information is displayed without.
         class CallbackProgressBar:
             def __init__(self, verbose):
                 self.verbose = verbose
@@ -398,15 +408,18 @@ class HypAR(Recommender):
             def on_epoch_end(self, method):
                 self.progress.update(1)
 
-        # Get words and train model
+        # Split words on space and get all unique words
         wc = [s.split(' ') for s in corpus]
         all_words = set(s for se in wc for s in se)
 
+        # Assert all aspects and opinions in dataset are in corpus. If not, print missing words.
+        # New datasets may require more preprocessing.
         assert all([a in all_words for a in a_old_new_map.values()]), [a for a in a_old_new_map.values() if
                                                                        a not in all_words]
         assert all([o in all_words for o in o_old_new_map.values()]), [o for o in o_old_new_map.values() if
                                                                        o not in all_words]
 
+        # Train word2vec model using callbacks for progressbar.
         l = CallbackProgressBar(self.verbose)
         embedding_dim = 100
         w2v_model = Word2Vec(wc, vector_size=embedding_dim, min_count=1, window=5, callbacks=[l], epochs=100)
@@ -427,6 +440,7 @@ class HypAR(Recommender):
 
             return embedding
 
+        # Assign embeddings to correct aspect and opinion.
         a_embeddings = get_info(a_old_new_map.items(), lambda x: a2a[sentiment.aspect_id_map[x]], a_embeddings)
         o_embeddings = get_info(o_old_new_map.items(), lambda x: o2o[sentiment.opinion_id_map[x]], o_embeddings)
 
