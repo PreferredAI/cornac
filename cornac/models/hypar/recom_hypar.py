@@ -96,7 +96,7 @@ class HypAR(Recommender):
                           'fanout', 'use_relation', 'model_selection', 'review_aggregator', 'objective',
                           'predictor', 'preference_module', 'layer_dropout', 'attention_dropout', 'stemming',
                           'learn_explainability', 'learn_method', 'learn_weight', 'learn_pop_sampling',
-                          'popularity_biased_sampling', 'combiner','self_enhance_loss']
+                          'popularity_biased_sampling', 'combiner', 'self_enhance_loss']
         self.parameters = collections.OrderedDict({k: self.__getattribute__(k) for k in parameter_list})
 
         # Method
@@ -126,32 +126,49 @@ class HypAR(Recommender):
         if early_stopping is not None:
             assert early_stopping % eval_interval == 0, 'interval should be a divisor of early stopping value.'
 
-    def _create_graphs(self, train_set: Dataset, graph_type):
+    def _create_graphs(self, train_set: Dataset, graph_type='aos'):
+        """
+        Create graphs required for training and returns all relevant data for future computations.
+        Parameters
+        ----------
+        train_set: Dataset
+        graph_type: str, which can contain a,o and s, where a is aspect, o is opinion and s is sentiment. E.g., if
+        a or o, then aspect and opinion are included, if s, then splitting on sentiment is included.
+
+        Returns
+        -------
+        num nodes, num node types, num items, train graph, hyper edges, node review graph, type ranges, sid to aos, and
+        aos triple list.
+        """
         import dgl
-        import dgl.sparse as dglsp
         import torch
         from tqdm import tqdm
         from .dgl_utils import generate_mappings
 
-        # create 1) u,i,a, 2) u,i,o 3) u, a, o, 4) i, o, a
         sentiment_modality = train_set.sentiment
-        edge_id = 0
         n_users = len(train_set.uid_map)
         n_items = len(train_set.iid_map)
 
+        # Group and prune aspects and opinions
         _, _, _, _, _, _, a2a, o2o = generate_mappings(train_set.sentiment, 'a', get_ao_mappings=True)
 
+        # Get num and depending on graphtype, calculate tot num of embeddings
         n_aspects = max(a2a.values()) + 1 if self.stemming else len(sentiment_modality.aspect_id_map)
         n_opinions = max(o2o.values()) + 1 if self.stemming else len(sentiment_modality.opinion_id_map)
         n_nodes = n_users + n_items
+        n_types = 4
         if 'a' in graph_type:
             n_nodes += n_aspects
+            n_types += 1
         if 'o' in graph_type:
             n_nodes += n_opinions
-        n_types = 4
+            n_types += 1
 
+        # Map users to review ids.
         user_item_review_map = {(uid + n_items, iid): rid for uid, irid in sentiment_modality.user_sentiment.items()
                                 for iid, rid in irid.items()}
+
+        # Initialize relevant lists
         review_edges = []
         ratings = []
         if 's' in graph_type:
@@ -159,39 +176,48 @@ class HypAR(Recommender):
         else:
             hyper_edges = {'n': []}
         sent_mapping = {-1: 'n', 1: 'p'}
+
+        # Create review edges and ratings
         sid_map = {sid: i for i, sid in enumerate(train_set.sentiment.sentiment)}
         for uid, isid in tqdm(sentiment_modality.user_sentiment.items(), desc='Creating review graphs',
                               total=len(sentiment_modality.user_sentiment), disable=not self.verbose):
-            uid += n_items
+            uid += n_items  # Shift to user node id.
 
             for iid, sid in isid.items():
-                first_sentiment = {'p': True, 'n': True}
-                review_edges.extend([[sid, uid], [sid, iid]])
-                ratings.extend([train_set.matrix[uid-n_items, iid]]*2)
-                aos = sentiment_modality.sentiment[sid]
-                # sid = sid_map[sid]
+                # Sid is used as edge id, i.e., each sid represent a single review.
+                first_sentiment = {'p': True, 'n': True}  # special handling for initial sentiment.
+                review_edges.extend([[sid, uid], [sid, iid]])  # Add u/i to review aggregation
+                ratings.extend([train_set.matrix[uid - n_items, iid]] * 2)  # Add to rating list
+                aos = sentiment_modality.sentiment[sid]  # get aspects, opinions and sentiments for review.
                 for aid, oid, s in aos:
+                    # Map sentiments if using else, use default (n).
                     if 's' in graph_type:
                         sent = sent_mapping[s]
                     else:
                         sent = 'n'
-                    # sent = 'n'
+
+                    # If stemming and pruning data, use simplified id (i.e., mapping)
                     if self.stemming:
                         aid = a2a[aid]
                         oid = o2o[oid]
 
+                    # Add to hyper edges, i.e., connect user, item, aspect and opinion to sentiment.
                     if first_sentiment[sent]:
                         hyper_edges[sent].extend([(iid, sid), (uid, sid)])
                         first_sentiment[sent] = False
 
+                    # Shift aspect and opinion ids to node id.
                     aid += n_items + n_users
                     oid += n_items + n_users
+
+                    # If using aspect/opinion, add to hyper edges.
                     if 'a' in graph_type:
                         hyper_edges[sent].append((aid, sid))
-                        oid += n_aspects
+                        oid += n_aspects  # Shift opinion id to correct node id if using both aspect and opinion.
                     if 'o' in graph_type:
                         hyper_edges[sent].append((oid, sid))
 
+        # Convert to tensor
         for k, v in hyper_edges.items():
             hyper_edges[k] = torch.LongTensor(v).T
 
@@ -213,7 +239,7 @@ class HypAR(Recommender):
         node_review_graph.edata['nid'][eids % 2 == 1] = v[eids % 2 == 0]
 
         # Scale ratings with denominator if not integers. I.e., if .25 multiply by 4.
-        # A mapping from frac to int. If
+        # A mapping from frac to int. Thus if scale is from 1-5 and in .5 increments, will be converted to 1-10.
         denominators = [e.as_integer_ratio()[1] for e in ratings]
         i = 0
         while any(d != 1 for d in denominators):
@@ -222,18 +248,25 @@ class HypAR(Recommender):
             i += 1
             assert i < 100, 'Tried to convert ratings to integers but took to long.'
 
-        node_review_graph.edata['r_type'] = torch.LongTensor(ratings)-1
+        node_review_graph.edata['r_type'] = torch.LongTensor(ratings) - 1
 
-        ntype_ranges = {'item': (0, n_items), 'user': (n_items, n_items+n_users),
-                        'aspect': (n_items+n_users, n_items+n_users+n_aspects),
-                        'opinion': (n_items+n_users+n_aspects, n_items+n_users+n_aspects+n_opinions)}
+        # Define ntype ranges
+        ntype_ranges = {'item': (0, n_items), 'user': (n_items, n_items + n_users)}
+        start = n_items + n_users
+        if 'a' in graph_type:
+            ntype_ranges['aspect'] = (start, start + n_aspects)
+            start += n_aspects
+        if 'o' in graph_type:
+            ntype_ranges['opinion'] = (start, start + n_opinions)
 
+        # Get all aos triples
         sid_aos = []
-        for sid in range(max(train_set.sentiment.sentiment)+1):
+        for sid in range(max(train_set.sentiment.sentiment) + 1):
             aoss = train_set.sentiment.sentiment.get(sid, [])
-            sid_aos.append([(a2a[a]+n_items+n_users, o2o[o]+n_users+n_items+n_aspects, 0 if s == -1 else 1)
+            sid_aos.append([(a2a[a] + n_items + n_users, o2o[o] + n_users + n_items + n_aspects, 0 if s == -1 else 1)
                             for a, o, s in aoss])
 
+        
         aos_list = sorted({aos for aoss in sid_aos for aos in aoss})
         aos_id = {aos: i for i, aos in enumerate(aos_list)}
         sid_aos = [torch.LongTensor([aos_id[aos] for aos in aoss]) for aoss in sid_aos]
@@ -300,7 +333,6 @@ class HypAR(Recommender):
                 words = word_tokenize(sentence.replace(' n\'t ', 'n ').replace('/', ' '))
                 corpus.append(' '.join(preprocess_fn(word) for word in words))
 
-
         # Process aspects and opinions.
         a_old_new_map = {a: preprocess_fn(a) for a in sentiment.aspect_id_map}
         o_old_new_map = {o: preprocess_fn(o) for o in sentiment.opinion_id_map}
@@ -330,8 +362,10 @@ class HypAR(Recommender):
         wc = [s.split(' ') for s in corpus]
         all_words = set(s for se in wc for s in se)
 
-        assert all([a in all_words for a in a_old_new_map.values()]), [a for a in a_old_new_map.values() if a not in all_words]
-        assert all([o in all_words for o in o_old_new_map.values()]), [o for o in o_old_new_map.values() if o not in all_words]
+        assert all([a in all_words for a in a_old_new_map.values()]), [a for a in a_old_new_map.values() if
+                                                                       a not in all_words]
+        assert all([o in all_words for o in o_old_new_map.values()]), [o for o in o_old_new_map.values() if
+                                                                       o not in all_words]
 
         l = CallbackProgressBar(self.verbose)
         embedding_dim = 100
@@ -444,9 +478,9 @@ class HypAR(Recommender):
         import torch
         from ..lightgcn.lightgcn import construct_graph
 
-
         super().fit(train_set, val_set)
-        n_nodes, self.n_relations, self.sid_aos, self.aos_list = self._graph_wrapper(train_set, self.graph_type)  # graphs are as attributes of model.
+        n_nodes, self.n_relations, self.sid_aos, self.aos_list = self._graph_wrapper(train_set,
+                                                                                     self.graph_type)  # graphs are as attributes of model.
 
         kwargs = {}
         if self.embedding_type == 'ao_embeddings':
@@ -474,7 +508,7 @@ class HypAR(Recommender):
         from .hypar import Model
 
         self.model = Model(self.ui_graph, n_nodes, self.n_relations, n_r_types, self.review_aggregator,
-                           self.predictor, self.node_dim, self.review_graphs, self.num_heads, [self.layer_dropout]*2,
+                           self.predictor, self.node_dim, self.review_graphs, self.num_heads, [self.layer_dropout] * 2,
                            self.attention_dropout, self.preference_module, self.use_cuda, combiner=self.combiner,
                            aos_predictor=self.learn_method, non_linear=self.non_linear,
                            embedding_type=self.embedding_type, hypergraph_attention=self.hypergraph_attention,
@@ -540,7 +574,7 @@ class HypAR(Recommender):
             probabilities = torch.FloatTensor([ic.get(i) for i in sorted(ic)]) if self.popularity_biased_sampling \
                 else None
             neg_sampler = dgl_utils.GlobalUniformItemSampler(self.num_neg_samples, self.train_set.num_items,
-                                                                    probabilities)
+                                                             probabilities)
         else:
             neg_sampler = None
 
@@ -576,7 +610,9 @@ class HypAR(Recommender):
                         else:
                             input_nodes, edge_subgraph, blocks = batch
 
-                        node_rep, e_star, node_rep_subset = self.model(blocks, self.model.get_initial_embedings(all_nodes), input_nodes)
+                        node_rep, e_star, node_rep_subset = self.model(blocks,
+                                                                       self.model.get_initial_embedings(all_nodes),
+                                                                       input_nodes)
 
                         rp, pred = self.model.graph_predict(edge_subgraph, [node_rep_subset, e_star])
                         rp = rp.unsqueeze(-1)
@@ -621,7 +657,7 @@ class HypAR(Recommender):
 
                         optimizer.step()
                         optimizer.zero_grad()
-                        loss_str = ','.join([f'{k}:{v/i:.3f}' for k, v in tot_losses.items()])
+                        loss_str = ','.join([f'{k}:{v / i:.3f}' for k, v in tot_losses.items()])
                         if i != epoch_length or val_set is None:
                             progress.set_description(f'Epoch {e}, ' + loss_str)
                         elif (e + 1) % self.eval_interval == 0:
@@ -630,7 +666,7 @@ class HypAR(Recommender):
                             progress.set_description(f'Epoch {e}, ' + f'{loss_str}, ' + res_str)
 
                             if self.model_selection == 'best' and (results[0] > best_score if metrics[0].higher_better
-                                    else results[0] < best_score):
+                            else results[0] < best_score):
                                 best_state = deepcopy(self.model.state_dict())
                                 best_score = results[0]
                                 best_epoch = e
@@ -652,7 +688,8 @@ class HypAR(Recommender):
 
         self.model.eval()
         with torch.no_grad():
-            self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device, self.batch_size)
+            self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device,
+                                 self.batch_size)
 
         self.best_epoch = best_epoch
         self.best_value = best_score
@@ -663,7 +700,8 @@ class HypAR(Recommender):
 
         self.model.eval()
         with torch.no_grad():
-            self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device, self.batch_size)
+            self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device,
+                                 self.batch_size)
             if self.objective == 'ranking':
                 (result, _) = ranking_eval(self, metrics, self.train_set, val_set)
             else:
