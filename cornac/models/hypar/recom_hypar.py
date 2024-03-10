@@ -496,10 +496,14 @@ class HypAR(Recommender):
         import torch
         from ..lightgcn.lightgcn import construct_graph
 
+        # Initialize self variables
         super().fit(train_set, val_set)
-        n_nodes, self.n_relations, self.sid_aos, self.aos_list = self._graph_wrapper(train_set,
-                                                                                     self.graph_type)  # graphs are as attributes of model.
 
+        # Create graphs and assigns to self (e.g., see self.review_graphs).
+        n_nodes, self.n_relations, self.sid_aos, self.aos_list = self._graph_wrapper(train_set,
+                                                                                     self.graph_type)
+
+        # If using learned ao embeddings, learn and assign to kwargs
         kwargs = {}
         if self.embedding_type == 'ao_embeddings':
             a_embs, o_embs = self._learn_initial_ao_embeddings(train_set)
@@ -519,6 +523,7 @@ class HypAR(Recommender):
         if not self.use_relation:
             self.n_relations = 0
 
+        # Construct user-item graph used by lightgcn
         self.ui_graph = construct_graph(train_set, self.num_users, self.num_items)
         n_r_types = max(self.node_review_graph.edata['r_type']) + 1
 
@@ -543,13 +548,9 @@ class HypAR(Recommender):
         else:
             prefetch = []
 
-        # x = self.model.get_initial_embedings(torch.arange(n_nodes + kwargs['ao_embeddings'].size(0), device=self.device))
-        # self.model.review_conv(x)
+        # Train model
         if self.trainable:
             self._fit(prefetch, val_set)
-
-        if self.summary_writer is not None:
-            self.summary_writer.close()
 
         return self
 
