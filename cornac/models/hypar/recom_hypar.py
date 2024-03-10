@@ -447,12 +447,35 @@ class HypAR(Recommender):
         return a_embeddings, o_embeddings, kv
 
     def _normalize_embedding(self, embedding):
+        """
+        Normalize embeddings using standard scaler.
+        Parameters
+        ----------
+        embedding: np.array
+            Embedding to normalize.
+
+        Returns
+        -------
+        Normalized embedding and scaler.
+        """
         from sklearn.preprocessing import StandardScaler
         scaler = StandardScaler()
         scaler.fit(embedding)
         return scaler.transform(embedding), scaler
 
     def _learn_initial_ao_embeddings(self, train_set):
+        """
+        Learn initial aspect and opinion embeddings.
+        Parameters
+        ----------
+        train_set: Dataset
+            Dataset to use for learning embeddings.
+
+        Returns
+        -------
+        Aspect and opinion embeddings as torch tensors.
+        """
+
         import torch
 
         ao_fname = 'ao_embeddingsv2.pickle'
