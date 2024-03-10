@@ -446,70 +446,11 @@ class HypAR(Recommender):
 
         return a_embeddings, o_embeddings, kv
 
-    def _ui_embeddings(self, train_set):
-        from sentence_transformers import SentenceTransformer
-        import numpy as np
-
-        # Create sentence embeddings using sentence bert
-        user_sentences = defaultdict(list)
-        item_sentences = defaultdict(list)
-        corpus = []
-        index = 0
-        for uid, irid in train_set.review_text.user_review.items():
-            for iid, rid in irid.items():
-                for s in train_set.review_text.reviews[rid].split('.'):
-                    user_sentences[uid].append(index)
-                    item_sentences[iid].append(index)
-                    corpus.append(s)
-                    index += 1
-
-        # https://huggingface.co/sentence-transformers/all-mpnet-base-v2
-        model = SentenceTransformer('all-mpnet-base-v2', device='cuda')
-        embedding_dim = model[1].pooling_output_dimension
-        u_embeddings = np.zeros((train_set.num_users, embedding_dim))
-        i_embeddings = np.zeros((train_set.num_items, embedding_dim))
-
-        def generate_embeddings(id_sentences, embeddings, sentence_embeddings):
-            for nid, sents in id_sentences:
-                embeddings[nid] = sentence_embeddings[sents].mean(0)
-
-            return embeddings
-
-        sent_embeddings = model.encode(corpus)
-        u_embeddings = generate_embeddings(user_sentences.items(), u_embeddings, sent_embeddings)
-        i_embeddings = generate_embeddings(item_sentences.items(), i_embeddings, sent_embeddings)
-
-        return u_embeddings, i_embeddings
-
     def _normalize_embedding(self, embedding):
         from sklearn.preprocessing import StandardScaler
         scaler = StandardScaler()
         scaler.fit(embedding)
         return scaler.transform(embedding), scaler
-
-    def _learn_initial_embeddings(self, train_set):
-        import torch
-
-        ao_fname = 'ao_embeddings.pickle'
-        ui_fname = 'ui_embeddings.pickle'
-        a_fname = 'aspect_embeddings.pickle'
-        o_fname = 'opinion_embeddings.pickle'
-        u_fname = 'user_embeddings.pickle'
-        i_fname = 'item_embeddings.pickle'
-
-        # Get embeddings and store result
-        a_embeddings, o_embeddings, _ = self._flock_wrapper(self._ao_embeddings, ao_fname, train_set)
-        u_embeddings, i_embeddings = self._flock_wrapper(self._ui_embeddings, ui_fname, train_set)
-
-        # Scale embeddings and store results. Function returns scaler, which is not needed, but required if new data is
-        # added.hyper_edges[sent].append((aid, sid))
-        a_embeddings, _ = self._flock_wrapper(self._normalize_embedding, a_fname, a_embeddings)
-        o_embeddings, _ = self._flock_wrapper(self._normalize_embedding, o_fname, o_embeddings)
-        u_embeddings, _ = self._flock_wrapper(self._normalize_embedding, u_fname, u_embeddings)
-        i_embeddings, _ = self._flock_wrapper(self._normalize_embedding, i_fname, i_embeddings)
-
-        return torch.tensor(a_embeddings), torch.tensor(o_embeddings), torch.tensor(u_embeddings), \
-            torch.tensor(i_embeddings)
 
     def _learn_initial_ao_embeddings(self, train_set):
         import torch
