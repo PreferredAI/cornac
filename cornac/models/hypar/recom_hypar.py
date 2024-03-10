@@ -266,7 +266,7 @@ class HypAR(Recommender):
             sid_aos.append([(a2a[a] + n_items + n_users, o2o[o] + n_users + n_items + n_aspects, 0 if s == -1 else 1)
                             for a, o, s in aoss])
 
-        
+
         aos_list = sorted({aos for aoss in sid_aos for aos in aoss})
         aos_id = {aos: i for i, aos in enumerate(aos_list)}
         sid_aos = [torch.LongTensor([aos_id[aos] for aos in aoss]) for aoss in sid_aos]
@@ -274,6 +274,26 @@ class HypAR(Recommender):
         return n_nodes, n_types, n_items, train_graph, hyper_edges, node_review_graph, ntype_ranges, sid_aos, aos_list
 
     def _flock_wrapper(self, func, fname, *args, rerun=False, **kwargs):
+        """
+        Wrapper for loading and saving data without accidental overrides and dual computation when running in parallel.
+        If file exists, load, else run function and save.
+        Parameters
+        ----------
+        func: function
+            Function to run.
+        fname: str
+            File name to save/load.
+        args: list
+            Arguments to function.
+        rerun: bool, default: False
+            If true, rerun function.
+        kwargs: dict
+            Keyword arguments to function.
+
+        Returns
+        -------
+        Data from function.
+        """
         from filelock import FileLock
 
         fpath = os.path.join(self.out_path, fname)
