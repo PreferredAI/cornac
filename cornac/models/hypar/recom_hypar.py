@@ -311,21 +311,41 @@ class HypAR(Recommender):
         return data
 
     def _graph_wrapper(self, train_set, graph_type, *args):
+        """
+        Wrapper for creating graphs and converting to correct format.
+        Assigns values to self, such as train graph, review graphs, node review graph, and ntype ranges.
+        Define self.node_filter based on type ranges.
+        Parameters
+        ----------
+        train_set: Dataset
+            Dataset to use for graph construction
+        graph_type: str
+            Which graph to create. Can contain a, o and s, where a is aspect, o is opinion and s is sentiment.
+        args: list
+            Additional arguments to graph creation function.
+
+        Returns
+        -------
+        Num nodes, num types, sid to aos mapping, list of aos triples.
+        """
         import dgl.sparse as dglsp
         import torch
 
+        # Load graph data
         fname = f'graph_{graph_type}_data.pickle'
         data = self._flock_wrapper(self._create_graphs, fname, train_set, graph_type, *args, rerun=False)
 
+        # Expland data and assign to self
         n_nodes, n_types, self.n_items, self.train_graph, self.review_graphs, self.node_review_graph, \
             self.ntype_ranges, sid_aos, aos_list = data
 
+        # Convert data to sparse matrices and assign to self.
+        # Review graphs is dict with positive/negative sentiment (possibly).
         shape = torch.cat(list(self.review_graphs.values()), dim=-1).max(-1)[0] + 1
         for k, edges in self.review_graphs.items():
             H = dglsp.spmatrix(
                 torch.unique(edges, dim=1), shape=shape.tolist()
             ).coalesce()
-            # H = H + dglsp.identity(H.shape)
             assert (H.val == 1).all()
             self.review_graphs[k] = H.to(self.device)
 
