@@ -3,3 +3,5 @@ scipy
 Cython
 tqdm
 powerlaw
+sentence_transformers
+torch

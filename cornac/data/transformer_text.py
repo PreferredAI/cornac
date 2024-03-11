@@ -18,8 +18,7 @@ from typing import List
 from collections import OrderedDict
 from sentence_transformers import SentenceTransformer
 from operator import itemgetter
-
-import torch
+import numpy as np
 
 from . import FeatureModality
 
@@ -57,13 +56,13 @@ class TransformersTextModality(FeatureModality):
         larger datasets.
         """
         
-        path = 'temp/encoded_corpus.pt'
-        id_path = "temp/encoded_corpus_ids.pt"
+        path = 'temp/encoded_corpus.npy'
+        id_path = "temp/encoded_corpus_ids.npy"
 
         if os.path.exists(path) and os.path.exists(id_path):
-            saved_ids = torch.load(id_path)
+            saved_ids = np.load(id_path)
             if saved_ids == self.ids:
-                self.features = torch.load(path)
+                self.features = np.load(path)
                 self.preencoded = True
             else:
                 assert self.preencoded is False
@@ -73,10 +72,9 @@ class TransformersTextModality(FeatureModality):
             print("Pre-encoding the entire corpus. This might take a while.")
             self.features = self.model.encode(self.corpus, convert_to_tensor=True)
             self.preencoded = True
-            os.makedirs("temp", exist_ok = True) 
-            torch.save(self.features, path)
-            torch.save(self.ids, id_path)
-
+            os.makedirs("temp", exist_ok = True)
+            np.save(path, self.features)
+            np.save(id_path, self.ids)
 
     def build(self, id_map: OrderedDict, **kwargs):
         """
