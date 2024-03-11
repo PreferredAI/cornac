@@ -62,15 +62,21 @@ class AOSPredictionLayer(nn.Module):
         Calculates the AOS prediction
         Parameters
         ----------
-        u_emb
-        i_emb
-        a_emb
-        o_emb
-        s
+        u_emb: torch.Tensor
+            User embedding
+        i_emb: torch.Tensor
+            Item embedding
+        a_emb: torch.Tensor
+            Aspect embedding
+        o_emb: torch.Tensor
+            Opinion embedding
+        s: torch.Tensor
+            Sentiment label
 
         Returns
         -------
-
+        torch.Tensor
+            Score of ui/aos ranking.
         """
 
         # Concatenate user and item embeddings
@@ -115,28 +121,51 @@ class AOSPredictionLayer(nn.Module):
 
 
 class HypergraphLayer(nn.Module):
-    def __init__(self, H, in_dim, non_linear=True, num_layers=1, dropout=0, aggregator='sum',
+    def __init__(self, H, in_dim, non_linear=True, num_layers=1, dropout=0, aggregator='mean',
                  normalize=False):
+        """
+        Hypergraph layer doing propagation along edges in the hypergraph.
+
+        Parameters
+        ----------
+        H: dict
+            Hypergraph incidence matrix for each relation relation type. I.e., positive and negative AO pairs.
+        in_dim: int
+            Input dimension
+        non_linear: bool
+            Whether to use non-linear activation function
+        num_layers: int
+            Number of layers
+        dropout: float
+            Dropout rate
+        aggregator: str
+            Aggregator to use. Can be 'sum' or mean, otherwise should be implemented.
+        normalize: bool, default False
+            Whether to normalize the output.
+        """
+
         super().__init__()
         self.aggregator = aggregator
         self.non_linear = non_linear
         self.normalize = normalize
 
+        # Initialize matrices
         self.H = None
         self.D_e_inv = None
         self.L_left = None
         self.L_right = None
         self.L = None
         self.O = None
-        self.N = None
         self.D_v_invsqrt = None
         self.heads = None
         self.tails = None
         self.edges = None
         self.uniques = None
 
+        # Set matrices
         self.set_matrices(H)
 
+        # Define layers
         self.num_layers = num_layers
         self.in_dim = in_dim
         self.W = nn.ModuleList([
@@ -145,23 +174,32 @@ class HypergraphLayer(nn.Module):
                 }) for _ in range(num_layers)
             ])
 
+        # Set dropout and activation
         self.dropout = nn.Dropout(dropout)
         self.activation = nn.LeakyReLU()
 
     def set_matrices(self, H):
+        """
+        Initialize matrices for hypergraph layer for faster computation in forward and backward pass.
+        Parameters
+        ----------
+        H: dict
+            Hypergraph incidence matrix for each relation relation type. I.e., positive and negative AO pairs.
+
+        Returns
+        -------
+        None
+        """
+
+        # Set hypergraph
         self.H = H
+
+        # Compute degree matrices, node and edge-wise
         d_V = {k: v.sum(1) for k, v in H.items()}
         d_E = {k: v.sum(0) for k, v in H.items()}
-        self.N = {}
-        for k in H:
-            nz = d_V[k].nonzero()
-            d_V[k][nz] = d_V[k][nz] ** -.5
-            nz = d_E[k].nonzero()
-            d_E[k][nz] = d_E[k][nz] ** -1
-            self.N[k] = H[k] @ H[k].T
 
-        self.D_v_invsqrt = {k: dglsp.diag(v) for k, v in d_V.items()}
-        self.D_e_inv = {k: dglsp.diag(v) for k, v in d_E.items()}
+        self.D_v_invsqrt = {k: dglsp.diag(v ** -.5) for k, v in d_V.items()}
+        self.D_e_inv = {k: dglsp.diag(v ** -1) for k, v in d_E.items()}
 
         # Compute Laplacian from the equation above.
         self.L_left = {k: self.D_v_invsqrt[k] @ H[k] for k in H}
@@ -171,18 +209,6 @@ class HypergraphLayer(nn.Module):
         # Out representation
         self.O = {k: self.D_e_inv[k] @ H[k].T for k in H}
 
-        # ## Attention
-        # # Get head to tail interactions
-        # n = {k: self.H[k] @ self.H[k].T for k in self.H}
-        # self.heads = {k: torch.repeat_interleave(n[k].row, n[k].val.to(torch.int64)) for k in n}
-        # self.tails = {k: torch.repeat_interleave(n[k].col, n[k].val.to(torch.int64)) for k in n}
-        # self.edges = {k: torch.repeat_interleave(self.H[k].col, self.H[k].sum(0)[self.H[k].col].to(torch.int64))
-        #               for k in self.H}
-        #
-        # # Find unique head-edge interactions.
-        # self.uniques = {k: torch.unique(torch.stack([self.heads[k], self.edges[k]]).T, dim=0, return_inverse=True)
-        #                 for k in n}
-
     def unset_matrices(self):
         self.H = None
         self.D_e_inv = None
@@ -190,63 +216,75 @@ class HypergraphLayer(nn.Module):
         self.L_right = None
         self.L = None
         self.O = None
-        self.N = None
         self.D_v_invsqrt = None
 
     def forward(self, x, mask=None):
-        node_out = [x]
-        review_out = []
         D_e = self.D_e_inv
 
         # Mask if in train
         if mask is not None:
+            # Compute laplacian matrix
             D_e = {k: dglsp.diag(D_e[k].val * mask) for k in D_e}
             L = {k: self.L_left[k]  @ D_e[k] @ self.L_right[k] for k in D_e}
-            att_mask = {k: torch.repeat_interleave(mask, self.H[k].sum(0).to(torch.int64)) for k in D_e}
         else:
             L = self.L
-            att_mask = None
 
+        node_out = [x]
+        review_out = []
+        # Iterate over layers
         for i, layer in enumerate(self.W):
+
+            # Initialize in and out layers
             inner_x = []
             inner_o = []
+
+            # Iterate over relation types (i.e., positive and negative AO pairs)
+            # k is type and l linear layer.
             for k, l in layer.items():
+                # Compute next layer
                 e = L[k] @ l(self.dropout(x))
 
+                # Apply non-linear activation
                 if self.non_linear:
                     e = self.activation(e)
 
+                # Get node representation
                 o = self.O[k] @ e  # average of nodes participating in review edge
-
-                # if mask is not None:
-                #     o = mask * o
 
                 inner_x.append(e)
                 inner_o.append(o)
 
+            # Combine sentiments
             x = torch.stack(inner_x)
+            inner_o = torch.stack(inner_o)
+
+            # Aggregate over sentiments
             if self.aggregator == 'sum':
                 x = x.sum(0)
-                inner_o = torch.stack(inner_o).sum(0)
-
+                inner_o = inner_o.sum(0)
+            elif self.aggregator == 'mean':
+                x = x.mean(0)
+                inner_o = inner_o.mean(0)
             else:
                 raise NotImplementedError(self.aggregator)
 
+            # If using layer normalization, normalize using l2 norm.
             if self.normalize:
-                x = x / (x.norm(2, dim=-1, keepdim=True) + 1e-5)
+                x = x / (x.norm(2, dim=-1, keepdim=True) + 1e-5)  # add epsilon to avoid division by zero.
                 inner_o = inner_o / (inner_o.norm(2, dim=-1, keepdim=True) + 1e-5)
 
+            # Append representations
             node_out.append(x)
             review_out.append(inner_o)
 
+        # Return aggregated representation using mean.
         return torch.stack(node_out).mean(0), torch.stack(review_out).mean(0)
 
 
-class HEARConv(nn.Module):
+class ReviewConv(nn.Module):
     def __init__(self,
                  aggregator,
                  n_nodes,
-                 n_relations,
                  in_feats,
                  attention_feats,
                  num_heads,
@@ -256,44 +294,55 @@ class HEARConv(nn.Module):
                  activation=None,
                  allow_zero_in_degree=False,
                  bias=True):
-        super(HEARConv, self).__init__()
+        """
+        Review attention aggregation layer
+        Parameters
+        ----------
+        aggregator: str
+            Aggregator to use. Can be 'gatv2' and 'narre'.
+        n_nodes: int
+            Number of nodes
+        in_feats: int
+            Input dimension
+        attention_feats: int
+            Attention dimension
+        num_heads: int
+            Number of heads
+        feat_drop: float, default 0.
+            Dropout rate for feature
+        attn_drop: float, default 0.
+            Dropout rate for attention
+        negative_slope: float, default 0.2
+            Negative slope for LeakyReLU
+        activation: callable, default None
+            Activation function
+        allow_zero_in_degree: bool, default False
+            Whether to allow zero in degree
+        bias: bool, default True
+            Whether to include bias in linear transformations
+        """
+
+        super(ReviewConv, self).__init__()
+
+        # Set parameters
         self.aggregator = aggregator
         self._num_heads = num_heads
         self._in_src_feats, self._in_dst_feats = dgl.utils.expand_as_pair(in_feats)
         self._out_feats = attention_feats
         self._allow_zero_in_degree = allow_zero_in_degree
-        if self.aggregator != 'narre-rel':
-            self.fc_src = nn.Linear(
-                self._in_src_feats, attention_feats * num_heads, bias=bias)
-        else:
-            self.fc_src = nn.Parameter(torch.Tensor(
-                n_relations, self._in_src_feats, attention_feats * num_heads
-            ))
-            self.fc_src_bias = nn.Parameter(torch.Tensor(
-                n_relations, attention_feats * num_heads
-            ))
+        self.fc_src = nn.Linear(
+            self._in_src_feats, attention_feats * num_heads, bias=bias)
 
-        if self.aggregator.startswith('narre'):
+        # Initialize embeddings and layers used for other methods
+        if self.aggregator == 'narre':
             self.node_quality = nn.Embedding(n_nodes, self._in_dst_feats)
-            if self.aggregator == 'narre':
-                self.fc_qual = nn.Linear(self._in_dst_feats, attention_feats * num_heads, bias=bias)
-            elif self.aggregator == 'narre-rel':
-                self.fc_qual = nn.Parameter(torch.Tensor(
-                    n_relations, self._in_dst_feats, attention_feats * num_heads
-                ))
-                self.fc_qual_bias = nn.Parameter(torch.Tensor(
-                    n_relations, attention_feats * num_heads
-                ))
-            else:
-                raise NotImplementedError(f'Not implemented any aggregator named {self.aggregator}.')
+            self.fc_qual = nn.Linear(self._in_dst_feats, attention_feats * num_heads, bias=bias)
         elif self.aggregator == 'gatv2':
             pass
         else:
             raise NotImplementedError(f'Not implemented any aggregator named {self.aggregator}.')
-        if self.aggregator != 'narre-rel':
-            self.attn = nn.Parameter(torch.FloatTensor(size=(1, num_heads, attention_feats)))
-        else:
-            self.attn = nn.Parameter(torch.FloatTensor(size=(n_relations, num_heads, attention_feats)))
+
+        self.attn = nn.Parameter(torch.FloatTensor(size=(1, num_heads, attention_feats)))
         self.feat_drop = nn.Dropout(feat_drop)
         self.attn_drop = nn.Dropout(attn_drop)
         self.leaky_relu = nn.LeakyReLU(negative_slope)
@@ -308,7 +357,7 @@ class HEARConv(nn.Module):
         return func
 
     def forward(self, graph, feat, get_attention=False):
-        r"""
+        """
         Description
         -----------
         Compute graph attention network layer.
@@ -342,6 +391,7 @@ class HEARConv(nn.Module):
             The error can be ignored by setting ``allow_zero_in_degree`` parameter to ``True``.
         """
         with graph.local_scope():
+            # Check if any 0-in-degree nodes
             if not self._allow_zero_in_degree:
                 if (graph.in_degrees() == 0).any():
                     raise dgl.DGLError('There are 0-in-degree nodes in the graph, '
@@ -354,52 +404,50 @@ class HEARConv(nn.Module):
                                    'to be `True` when constructing this module will '
                                    'suppress the check and let the code run.')
 
+            # Drop features
             h_src = self.feat_drop(feat)
-            if self.aggregator != 'narre-rel':
-                feat_src = self.fc_src(h_src).view(-1, self._num_heads, self._out_feats)
-                graph.srcdata.update({'el': feat_src})# (num_src_edge, num_heads, out_dim)
-            else:
-                graph.srcdata.update({'el': h_src})
-                graph.apply_edges(self.rel_attention('el', 'r_type', 'el', self.fc_src, self.fc_src_bias))
-                graph.edata.update({'el': graph.edata['el'].view(-1, self._num_heads, self._out_feats)})
 
-            if self.aggregator.startswith('narre'):
+            # Transform src node features to attention space
+            feat_src = self.fc_src(h_src).view(-1, self._num_heads, self._out_feats)
+            graph.srcdata.update({'el': feat_src}) # (num_src_edge, num_heads, out_dim)
+
+            # Move messages to edges
+            if self.aggregator == 'narre':
+                # Get quality representation for user/item
                 h_qual = self.feat_drop(self.node_quality(graph.edata['nid']))
-                if self.aggregator != 'narre-rel':
-                    feat_qual = self.fc_qual(h_qual).view(-1, self._num_heads, self._out_feats)
-                    graph.edata.update({'qual': feat_qual})
-                    graph.apply_edges(fn.u_add_e('el', 'qual', 'e'))
-                else:
-                    graph.edata.update({'qual': h_qual})
-                    graph.apply_edges(self.rel_attention('qual', 'r_type', 'qual', self.fc_qual, self.fc_qual_bias,
-                                                         False))
-                    graph.edata.update({'qual': graph.edata['qual'].view(-1, self._num_heads, self._out_feats)})
-                    graph.edata.update({'e': graph.edata.pop('el') + graph.edata.pop('qual')})
+
+                # Transform to attention space and add to edge data
+                feat_qual = self.fc_qual(h_qual).view(-1, self._num_heads, self._out_feats)
+                graph.edata.update({'qual': feat_qual})
+
+                # Add node and quality represenation on edges.
+                graph.apply_edges(fn.u_add_e('el', 'qual', 'e'))
             else:
                 graph.apply_edges(fn.copy_u('el', 'e'))
 
+            # Get attention representation
             e = self.leaky_relu(graph.edata.pop('e'))# (num_src_edge, num_heads, out_dim)
 
-            if self.aggregator != 'narre-rel':
-                e = (e * self.attn).sum(dim=-1).unsqueeze(dim=2)# (num_edge, num_heads, 1)
-            else:
-                e = (e * self.attn[graph.edata['r_type']]).sum(dim=-1).unsqueeze(dim=2)
+            # Compute attention score
+            e = (e * self.attn).sum(dim=-1).unsqueeze(dim=2)# (num_edge, num_heads, 1)
 
-            # compute softmax
+            # Normalize attention using softmax on edges
             graph.edata['a'] = self.attn_drop(edge_softmax(graph, e)) # (num_edge, num_heads)
 
-            if self.aggregator.startswith('narre'):
+            # If using narre set node representation to original input instead of attention representation
+            if self.aggregator == 'narre':
                 graph.srcdata.update({'el': h_src})
 
-            # message passing
+            # Aggregate reviews to nodes.
             graph.update_all(fn.u_mul_e('el', 'a', 'm'),
                              fn.sum('m', 'ft'))
             rst = graph.dstdata['ft']
 
-            # activation
+            # If using activation, apply
             if self.activation:
                 rst = self.activation(rst)
 
+            # In inference, we may want to get the attention. If so return both review representation and attention.
             if get_attention:
                 return rst, graph.edata['a']
             else:
@@ -407,7 +455,7 @@ class HEARConv(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, g, n_nodes, n_lgcn_relations, aggregator, predictor, node_dim,
+    def __init__(self, g, n_nodes, aggregator, predictor, node_dim,
                  incidence_dict,
                  num_heads, layer_dropout, attention_dropout, preference_module='lightgcn', use_cuda=True,
                  combiner='add', aos_predictor='non-linear', non_linear=False, embedding_type='learned',
@@ -436,8 +484,8 @@ class Model(nn.Module):
         n_layers = 3
         self.review_conv = HypergraphLayer(incidence_dict, node_dim, non_linear=non_linear, num_layers=n_layers,
                                            dropout=layer_dropout[0])
-        self.review_agg = HEARConv(aggregator, n_nodes, n_lgcn_relations, node_dim, node_dim, num_heads,
-                                   feat_drop=layer_dropout[1], attn_drop=attention_dropout)
+        self.review_agg = ReviewConv(aggregator, n_nodes, node_dim, node_dim, num_heads,
+                                     feat_drop=layer_dropout[1], attn_drop=attention_dropout)
 
         self.node_dropout = nn.Dropout(layer_dropout[0])
 

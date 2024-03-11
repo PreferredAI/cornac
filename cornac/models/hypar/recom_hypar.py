@@ -43,7 +43,6 @@ class HypAR(Recommender):
                  learn_explainability=False,
                  learn_method='transr',
                  learn_weight=1.,
-                 learn_pop_sampling=False,
                  embedding_type='ao_embeddings',
                  debug=False,
                  ):
@@ -84,7 +83,6 @@ class HypAR(Recommender):
         self.learn_explainability = learn_explainability
         self.learn_method = learn_method
         self.learn_weight = learn_weight
-        self.learn_pop_sampling = learn_pop_sampling
         self.embedding_type = embedding_type
 
         # Method
@@ -511,12 +509,11 @@ class HypAR(Recommender):
 
         # Construct user-item graph used by lightgcn
         self.ui_graph = construct_graph(train_set, self.num_users, self.num_items)
-        n_r_types = max(self.node_review_graph.edata['r_type']) + 1
 
         # create model
         from .hypar import Model
 
-        self.model = Model(self.ui_graph, n_nodes, n_r_types, self.review_aggregator,
+        self.model = Model(self.ui_graph, n_nodes, self.review_aggregator,
                            self.predictor, self.node_dim, self.review_graphs, self.num_heads, [self.layer_dropout] * 2,
                            self.attention_dropout, self.preference_module, self.use_cuda, combiner=self.combiner,
                            aos_predictor=self.learn_method, non_linear=self.non_linear,
@@ -566,7 +563,7 @@ class HypAR(Recommender):
         # Create sampler
         sampler = dgl_utils.HearBlockSampler(self.node_review_graph, self.review_graphs, self.review_aggregator,
                                              self.sid_aos, self.aos_list, 5,
-                                             self.ui_graph, fanout=self.fanout, hard_negatives=self.learn_pop_sampling)
+                                             self.ui_graph, fanout=self.fanout)
 
         # If trained for ranking, define negative sampler only sampling items as negative samples.
         if self.objective == 'ranking':
@@ -631,7 +628,7 @@ class HypAR(Recommender):
                         # Calculate rating loss, if using prediction instead of ranking.
                         loss = self.model.rating_loss(pred, edge_subgraph.edata['label'])
 
-                    cur_losses['lloss'] = loss.detach()  # Learning loss
+                    cur_losses['lloss'] = loss.clone().detach()  # Learning loss
 
                     # If using explainability, calculate loss and accuracy for explainability.
                     if self.learn_explainability:

@@ -53,7 +53,7 @@ class HEAREdgeSampler(dgl.dataloading.EdgePredictionSampler):
 
 class HearBlockSampler(dgl.dataloading.NeighborSampler):
     def __init__(self, node_review_graph, review_graphs, aggregator, sid_aos, aos_list, n_neg, ui_graph,
-                 compact=True, hard_negatives=False, fanout=5, **kwargs):
+                 compact=True, fanout=5, **kwargs):
         """
         Given nodes, samples reviews and creates a batched review-graph of all sampled reviews.
         Parameters
@@ -80,7 +80,6 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
         self.n_neg = n_neg
         self.ui_graph = ui_graph
         self.compact = compact
-        self.hard_negatives = hard_negatives
         self.n_ui_graph = self._nu_graph()
         self.exclude_sids = self._create_exclude_sids(self.node_review_graph)
 
@@ -171,10 +170,7 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
             aosid = self.sid_aos[sid]
             aosid = aosid[torch.randperm(len(aosid))[0]]
 
-            if self.hard_negatives:
-                propability = self.aos_probabilities
-            else:
-                propability = torch.ones(len(self.aos_probabilities))
+            propability = torch.ones(len(self.aos_probabilities))
 
             # Exclude self and other aspects/opinions mentioned by the user or item.
             propability[aosid] = 0

@@ -201,13 +201,11 @@ hypar = cornac.models.HypAR(
     verbose=True,
     index=0,
     out_path=os.path.abspath(os.curdir),
-    learn_explainability=False,
+    learn_explainability=True,
     learn_method='transr',
     learn_weight=0.5,
-    learn_pop_sampling=False,
     embedding_type='ao_embeddings',
-    debug=False,
-    self_enhance_loss=False
+    debug=False
 )
 
 # Instantiate evaluation measures
