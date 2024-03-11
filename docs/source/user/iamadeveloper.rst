@@ -489,11 +489,42 @@ Cornac also provides an API service that you can use to run your own
 recommendation service. This is useful if you want to build a recommendation
 system for your own application.
 
+In order to do so, you need to have flask installed in your environment.
+You can do so by running the following command:
+
+.. code-block:: bash
+
+    pip install Flask
+
+
+After installing flask, you can run the API service by running the following
+command:
+
 .. code-block:: bash
     
-    python -m cornac.serving --model_dir save_dir/BPR --model_class cornac.models.BPR
+    FLASK_APP='cornac.serving.app' \
+    MODEL_PATH='save_dir/BPR' \
+    MODEL_CLASS='cornac.models.BPR' \
+    flask run --host localhost --port 8080
 
 This will serve an API for the BPR model saved in the directory ``save_dir/BPR``.
+The API will be launched at `localhost:8080` and following output will be shown:
+
+.. code-block:: bash
+    :caption: Output
+
+    Model loaded
+     * Serving Flask app 'cornac.serving.app'
+     * Debug mode: off
+    WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+     * Running on http://localhost:8080
+
+Note that it mentions that this is a development server and should not be used
+in production. If you want to use it in production, you should use a production
+WSGI server instead. This will be covered in the following section.
+
+Obtaining a Recommendation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To obtain a recommendation, do a call to the API endpoint ``/recommend`` with
 the following parameters:
@@ -503,29 +534,160 @@ the following parameters:
 - ``remove_seen``: Whether to remove seen items during training
 
 .. code-block:: bash
-    
+
     curl -X GET "http://127.0.0.1:8080/recommend?uid=63&k=5&remove_seen=false"
 
     # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 
 If we want to remove seen items during training, we need to provide `train_set` when starting the serving service.
 
+Deploying in Production
+^^^^^^^^^^^^^^^^^^^^^^^
+
+In the previous section, we have shown how to run the API service in a
+development environment. However, if you want to run it in a production
+environment, you should use a production WSGI server instead.
+
+We can use gunicorn to run the API service in a production environment.
+
+Install gunicorn by running the following command:
 
 .. code-block:: bash
 
-    $ python -m cornac.serving --help
+    pip install gunicorn
 
-    usage: serving.py [-h] --model_dir MODEL_DIR [--model_class MODEL_CLASS] [--train_set TRAIN_SET] [--port PORT]
+Once installed, you can run the API service using gunicorn by running the
+following command:
 
-    Cornac model serving
+.. code-block:: bash
 
-    options:
-    -h, --help                    show this help message and exit
-    --model_dir MODEL_DIR         path to directory where the model was saved
-    --model_class MODEL_CLASS     class of the model being deployed
-    --train_set TRAIN_SET         path to pickled file of the train_set (to remove seen items)
-    --port PORT                   service port
+    MODEL_PATH='save_dir/BPR' \
+    MODEL_CLASS='cornac.models.BPR' \
+    gunicorn -b localhost:8080 -w 4 cornac.serving.app:app
 
+Similar to the development server, the ``MODEL_PATH`` and ``MODEL_CLASS`` needs
+to be specified.
+
+The command will run the API service and bind it to port 8080. 
+You can also specify the port to bind to by changing the port
+in the ``-b`` parameter.
+
+Gunicorn will run with 4 workers. You can change the number of workers by
+changing the number in the ``-w`` parameter. Gunicorn recommends that the
+number of workers should be ``(2 x number of CPU cores) + 1``. View more information
+about gunicorn workers at https://docs.gunicorn.org/en/stable/design.html#how-many-workers.
+
+
+For more information about gunicorn, you can view the documentation at
+https://docs.gunicorn.org/en/stable/run.html.
+
+
+Running the API service with Docker
+-----------------------------------
+
+You can also deploy the API service using Docker. To do so, you need to have
+Docker installed in your environment. You can install Docker by following the
+instructions at https://docs.docker.com/get-docker/.
+
+Running with docker run command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After installing Docker, you may run the Docker image by running the
+following command:
+
+.. code-block:: bash
+
+    docker run \
+    -dp 8080:5000 \
+    -e MODEL_PATH=save_dir/bpr \
+    -e MODEL_CLASS=cornac.models.BPR \
+    -v $(pwd)/cornacdata:/app/cornac/serving/save_dir \
+    --mount type=volume,source="cornac_vol",target=/app/cornac/serving/data \
+    registry.preferred.ai/cornac/cornac-server:1.17.0-test
+
+The above command will run the Docker image and bind it to port 8080. You can
+change the port to bind to by changing the port in the ``-dp`` parameter. For
+example, if you want to bind it to port 8081, you can change the ``-dp``
+parameter to ``-dp 8081:5000``.
+
+The ``MODEL_PATH`` and ``MODEL_CLASS`` needs to be specified. The ``MODEL_PATH``
+is the path to the model to be loaded. The ``MODEL_CLASS`` is the class of the
+model to be loaded. For example, if you want to load a BPR model, you should
+set the ``MODEL_CLASS`` to ``cornac.models.BPR``.
+
+The ``-v`` parameter is used to mount a directory in your local machine to the
+Docker container. In the above example, we mounted the ``cornacdata`` folder
+in the current directory to the ``save_dir`` folder in the Docker container.
+This is where the trained models will be saved.
+
+Add your saved model to the ``cornacdata`` folder in the current directory. In
+the above example, we added the ``bpr`` folder to the ``cornacdata`` folder in
+the current directory. This folder will be attached to the container, which
+will then be loaded from.
+
+The ``--mount`` parameter is used to mount a Docker volume to the Docker
+container. In the above example, we mounted a Docker volume named ``cornac_vol``
+to the ``data`` folder in the Docker container. Reason for mounting a volume is
+so that we could have a persistent volume for the feedback data. You can leave
+this parameter as it is.
+
+
+Running with docker-compose
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Alternatively, you can also run the Docker image using docker-compose. To do
+so, you need to have docker-compose installed in your environment.
+
+To run the Docker image using docker-compose, you can run the following
+command:
+
+.. code-block:: bash
+
+    docker-compose up 
+
+The ``docker-compose.yml`` file contains configuration in which you can change
+the port to bind to, the model path, and the model class.
+
+.. code-block:: yaml
+    :caption: docker-compose.yml
+
+    version: "3.8"
+    services:
+      cornac-server:
+        image: registry.preferred.ai/cornac/cornac-server:1.17.0-test
+      volumes:
+        - $PWD/save_dir:/app/cornac/serving/save_dir
+        - cornacvol:/app/cornac/serving/data
+      environment:
+        - PORT=5000
+        - MODEL_PATH=save_dir/bpr
+        - MODEL_CLASS=cornac.models.BPR
+      ports:
+        - 5000:5000
+    volumes:
+      cornac_vol:
+
+Similar to the ``docker run`` version, the ``PORT`` environment variable is
+used to specify the port to bind to.
+
+The ``MODEL_PATH`` and ``MODEL_CLASS`` environment variables are used to specify
+the model to be loaded. 
+
+The ``volumes`` section is used to mount the
+``cornacdata`` folder in the current directory to the ``save_dir`` folder in
+the Docker container.
+
+The ``cornac_vol`` volume is used to mount a Docker volume to
+the Docker container. This is so that we could have a persistent volume for the
+feedback data. You can leave this parameter as it is.
+
+Add your saved model to the ``cornacdata`` folder in the current directory. In
+the above example, we added the ``bpr`` folder to the ``cornacdata`` folder in
+the current directory. This folder will be attached to the container, which
+will then be loaded from.
+
+After running the above command, the API service will be launched at
+`localhost:8080`.
 
 
 What's Next?

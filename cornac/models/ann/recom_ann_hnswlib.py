@@ -78,6 +78,7 @@ class HNSWLibANN(BaseANN):
         verbose=False,
     ):
         super().__init__(model=model, name=name, verbose=verbose)
+
         self.M = M
         self.ef_construction = ef_construction
         self.ef = ef
@@ -85,11 +86,6 @@ class HNSWLibANN(BaseANN):
             num_threads if num_threads != -1 else multiprocessing.cpu_count()
         )
         self.seed = seed
-
-        # ANN required attributes
-        self.measure = model.get_vector_measure()
-        self.user_vectors = model.get_user_vectors()
-        self.item_vectors = model.get_item_vectors()
 
         self.index = None
         self.ignored_attrs.extend(
@@ -101,6 +97,8 @@ class HNSWLibANN(BaseANN):
 
     def build_index(self):
         """Building index from the base recommender model."""
+        super().build_index()
+
         import hnswlib
 
         assert self.measure in SUPPORTED_MEASURES
@@ -138,7 +136,7 @@ class HNSWLibANN(BaseANN):
 
     def save(self, save_dir=None):
         saved_path = super().save(save_dir)
-        self.index.save_index(saved_path + ".idx")
+        self.index.save_index(saved_path + ".index")
         return saved_path
 
     @staticmethod
@@ -149,7 +147,7 @@ class HNSWLibANN(BaseANN):
         ann.index = hnswlib.Index(
             space=SUPPORTED_MEASURES[ann.measure], dim=ann.user_vectors.shape[1]
         )
-        ann.index.load_index(ann.load_from + ".idx")
+        ann.index.load_index(ann.load_from + ".index")
         ann.index.set_ef(ann.ef)
         ann.index.set_num_threads(ann.num_threads)
         return ann

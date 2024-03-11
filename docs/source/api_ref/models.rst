@@ -34,9 +34,49 @@ Adversarial Training Towards Robust Multimedia Recommender System (AMR)
 .. automodule:: cornac.models.amr.recom_amr
    :members:
 
+Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)
+--------------------------------------------------------------------------------------------------
+.. automodule:: cornac.models.hrdr.recom_hrdr
+   :members:
+
+Simplifying and Powering Graph Convolution Network for Recommendation (LightGCN)
+--------------------------------------------------------------------------------
+.. automodule:: cornac.models.lightgcn.recom_lightgcn
+   :members:
+
+New Variational Autoencoder for Top-N Recommendations with Implicit Feedback (RecVAE)
+-------------------------------------------------------------------------------------
+.. automodule:: cornac.models.recvae.recom_recvae
+   :members:
+
+Predicting Temporal Sets with Deep Neural Networks (DNNTSP)
+-----------------------------------------------------------
+.. automodule:: cornac.models.dnntsp.recom_dnntsp
+   :members:
+
+Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF)
+---------------------------------------------------------------------------
+.. automodule:: cornac.models.upcf.recom_upcf
+   :members:
+
+Temporal-Item-Frequency-based User-KNN (TIFUKNN)
+---------------------------------------------------
+.. automodule:: cornac.models.tifuknn.recom_tifuknn
+   :members:
+
+Correlation-Sensitive Next-Basket Recommendation (Beacon)
+---------------------------------------------------
+.. automodule:: cornac.models.beacon.recom_beacon
+   :members:
+
 Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)
 -----------------------------------------------------------
 .. automodule:: cornac.models.ease.recom_ease
+   :members:
+
+Neural Graph Collaborative Filtering (NGCF)
+-------------------------------------------
+.. automodule:: cornac.models.ngcf.recom_ngcf
    :members:
 
 Collaborative Context Poisson Factorization (C2PF)
@@ -54,24 +94,9 @@ Multi-Task Explainable Recommendation (MTER)
 .. automodule:: cornac.models.mter.recom_mter
    :members:
 
-Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)
---------------------------------------------------------------------------------------------------
-.. automodule:: cornac.models.hrdr.recom_hrdr
-   :members:
-
-Simplifying and Powering Graph Convolution Network for Recommendation (LightGCN)
---------------------------------------------------------------------------------
-.. automodule:: cornac.models.lightgcn.recom_lightgcn
-   :members:
-
 Neural Attention Rating Regression with Review-level Explanations (NARRE)
 -------------------------------------------------------------------------
 .. automodule:: cornac.models.narre.recom_narre
-   :members:
-
-Neural Graph Collaborative Filtering (NGCF)
--------------------------------------------
-.. automodule:: cornac.models.ngcf.recom_ngcf
    :members:
 
 Probabilistic Collaborative Representation Learning (PCRL)
@@ -84,14 +109,14 @@ VAE for Collaborative Filtering (VAECF)
 .. automodule:: cornac.models.vaecf.recom_vaecf
    :members:
 
-Conditional VAE for Collaborative Filtering (CVAECF)
-----------------------------------------------------
-.. automodule:: cornac.models.cvaecf.recom_cvaecf
-   :members:
-
 Collaborative Variational Autoencoder (CVAE)
 --------------------------------------------
 .. automodule:: cornac.models.cvae.recom_cvae
+   :members:
+
+Conditional VAE for Collaborative Filtering (CVAECF)
+----------------------------------------------------
+.. automodule:: cornac.models.cvaecf.recom_cvaecf
    :members:
 
 Generalized Matrix Factorization (GMF)
@@ -247,6 +272,16 @@ Non-negative Matrix Factorization (NMF)
 Probabilitic Matrix Factorization (PMF)
 ---------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
+   :members:
+
+Session Popular (SPop)
+----------------------
+.. automodule:: cornac.models.spop.recom_spop
+   :members:
+
+Session-based Recommendations with Recurrent Neural Networks (GRU4Rec)
+----------------------------------------------------------------------
+.. automodule:: cornac.models.gru4rec.recom_gru4rec
    :members:
 
 Singular Value Decomposition (SVD)

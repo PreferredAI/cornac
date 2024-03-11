@@ -14,10 +14,16 @@
 # ============================================================================
 
 from .recommender import Recommender
+from .recommender import NextBasketRecommender
+from .recommender import NextItemRecommender
 
 from .amr import AMR
+from .ann import AnnoyANN
+from .ann import FaissANN
 from .ann import HNSWLibANN
+from .ann import ScaNNANN
 from .baseline_only import BaselineOnly
+from .beacon import Beacon
 from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR
@@ -32,10 +38,14 @@ from .conv_mf import ConvMF
 from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
+from .dnntsp import DNNTSP
 from .ease import EASE
 from .efm import EFM
+from .fm import FM
 from .gcmc import GCMC
 from .global_avg import GlobalAvg
+from .gp_top import GPTop
+from .gru4rec import GRU4Rec
 from .hft import HFT
 from .hpf import HPF
 from .hrdr import HRDR
@@ -58,11 +68,15 @@ from .nmf import NMF
 from .online_ibpr import OnlineIBPR
 from .pcrl import PCRL
 from .pmf import PMF
+from .recvae import RecVAE
 from .sbpr import SBPR
 from .skm import SKMeans
 from .sorec import SoRec
+from .spop import SPop
 from .svd import SVD
+from .tifuknn import TIFUKNN
 from .trirank import TriRank
+from .upcf import UPCF
 from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF

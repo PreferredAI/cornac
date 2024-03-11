@@ -31,6 +31,10 @@ Fmeasure (F1)
 -------------
 .. autoclass:: FMeasure
 
+Hit Ratio (HitRatio)
+--------------------
+.. autoclass:: HitRatio
+
 Mean Average Precision (MAP)
 ----------------------------
 .. autoclass:: MAP

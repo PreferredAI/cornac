@@ -96,6 +96,8 @@
 
 [pmf_ratio.py](pmf_ratio.py) - Probabilistic Matrix Factorization (PMF) with RatioSplit.
 
+[recvae_example.py](recvae_example.py) - New Variational Autoencoder for Top-N Recommendations with Implicit Feedback (RecVAE).
+
 [skm_movielens.py](skm_movielens.py) - SKMeans vs BPR on MovieLens data.
 
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
@@ -103,3 +105,25 @@
 [vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
 
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
+
+----
+
+## Next-Item Algorithms
+
+[spop_yoochoose.py](spop_yoochoose.py) - Next-item recommendation based on item popularity.
+
+[gru4rec_yoochoose.py](gru4rec_yoochoose.py) - Example of Session-based Recommendations with Recurrent Neural Networks (GRU4Rec).
+
+----
+
+## Next-Basket Algorithms
+
+[gp_top_tafeng.py](gp_top_tafeng.py) - Next-basket recommendation model that merely uses item top frequency.
+
+[dnntsp_tafeng.py](dnntsp_tafeng.py) - Predicting Temporal Sets with Deep Neural Networks (DNNTSP).
+
+[beacon_tafeng.py](beacon_tafeng.py) - Correlation-Sensitive Next-Basket Recommendation (Beacon).
+
+[tifuknn_tafeng.py](tifuknn_tafeng.py) - Example of Temporal-Item-Frequency-based User-KNN (TIFUKNN).
+
+[upcf_tafeng.py](upcf_tafeng.py) - Example of Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF).

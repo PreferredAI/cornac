@@ -36,7 +36,7 @@ from ...utils.init_utils import uniform
 
 
 cdef floating _dot(int n, floating *x, int incx,
-                   floating *y, int incy) nogil:
+                   floating *y, int incy) noexcept nogil:
     if floating is float:
         return sdot(&n, x, &incx, y, &incy)
     else:
@@ -455,14 +455,16 @@ class EFM(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException("Can't make score prediction for (user_id=%d" & user_idx)
             item_scores = self.U2.dot(self.U1[user_idx, :]) + self.H2.dot(self.H1[user_idx, :])
             return item_scores
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException("Can't make score prediction for (user_id=%d, item_id=%d)" % (user_idx, item_idx))
             item_score = self.U2[item_idx, :].dot(self.U1[user_idx, :]) + self.H2[item_idx, :].dot(self.H1[user_idx, :])
             return item_score
 

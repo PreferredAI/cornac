@@ -15,8 +15,8 @@
 
 import unittest
 
-from cornac.data import Reader, Dataset
-from cornac.models import MF
+from cornac.data import BasketDataset, Dataset, SequentialDataset, Reader
+from cornac.models import MF, GPTop, SPop, NextBasketRecommender, NextItemRecommender
 
 
 class TestRecommender(unittest.TestCase):
@@ -49,6 +49,43 @@ class TestRecommender(unittest.TestCase):
                 ]
             )
         )
+
+
+class TestNextBasketRecommender(unittest.TestCase):
+    def setUp(self):
+        self.data = Reader().read("./tests/basket.txt", fmt="UBITJson")
+
+    def test_init(self):
+        model = NextBasketRecommender("test")
+        self.assertTrue(model.name == "test")
+
+    def test_fit(self):
+        dataset = BasketDataset.from_ubi(self.data)
+        model = NextBasketRecommender("")
+        model.fit(dataset)
+        model = GPTop()
+        model.fit(dataset)
+        model.score(0, [[]])
+        model.rank(0, history_baskets=[[]])
+
+
+class TestNextItemRecommender(unittest.TestCase):
+    def setUp(self):
+        self.data = Reader().read("./tests/sequence.txt", fmt="USIT", sep=" ")
+
+    def test_init(self):
+        model = NextItemRecommender("test")
+        self.assertTrue(model.name == "test")
+
+    def test_fit(self):
+        dataset = SequentialDataset.from_usit(self.data)
+        model = NextItemRecommender("")
+        model.fit(dataset)
+        model = SPop()
+        model.fit(dataset)
+        model.score(0, [])
+        result = model.rank(0, history_items=[])
+        self.assertTrue((result[0] == [3, 2, 4, 1, 0, 5, 8, 7, 6]).all())
 
 
 if __name__ == "__main__":

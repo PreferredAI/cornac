@@ -22,8 +22,13 @@ from cython.parallel import prange
 from scipy.linalg.cython_blas cimport sdot, ddot
 
 
-cdef floating _dot(int n, floating *x, int incx,
-                   floating *y, int incy) nogil:
+cdef floating _dot(
+    int n, 
+    floating *x, 
+    int incx,
+    floating *y, 
+    int incy
+) noexcept nogil:
     if floating is float:
         return sdot(&n, x, &incx, y, &incy)
     else:

@@ -14,12 +14,13 @@
 # ============================================================================
 
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
 
 from tqdm.auto import tqdm, trange
 
 
-class LightGCN(Recommender):
+class LightGCN(Recommender, ANNMixin):
     """
     LightGCN
 
@@ -129,7 +130,9 @@ class LightGCN(Recommender):
             if torch.cuda.is_available():
                 torch.cuda.manual_seed_all(self.seed)
 
-        graph = construct_graph(train_set, self.total_users, self.total_items).to(self.device)
+        graph = construct_graph(train_set, self.total_users, self.total_items).to(
+            self.device
+        )
         model = Model(
             graph,
             self.emb_size,
@@ -255,3 +258,33 @@ class LightGCN(Recommender):
                     % (user_idx, item_idx)
                 )
             return self.V[item_idx, :].dot(self.U[user_idx, :])
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        return self.U
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        return self.V

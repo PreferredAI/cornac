@@ -21,12 +21,18 @@ from .graph import GraphModality
 from .sentiment import SentimentModality
 from .reader import Reader
 from .dataset import Dataset
+from .dataset import BasketDataset
+from .dataset import SequentialDataset
 
-__all__ = ['FeatureModality',
-           'TextModality',
-           'ReviewModality',
-           'ImageModality',
-           'GraphModality',
-           'SentimentModality',
-           'Dataset',
-           'Reader']
+__all__ = [
+    "FeatureModality",
+    "TextModality",
+    "ReviewModality",
+    "ImageModality",
+    "GraphModality",
+    "SentimentModality",
+    "BasketDataset",
+    "SequentialDataset",
+    "Dataset",
+    "Reader",
+]

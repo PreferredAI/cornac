@@ -27,17 +27,18 @@ Release instruction:
 import os
 import sys
 import glob
-from setuptools import Extension, setup, find_packages
-
-import numpy as np
+import shutil
+from setuptools import Extension, Command, setup, find_packages
 
 try:
-    from Cython.Build import cythonize
     from Cython.Distutils import build_ext
+    import numpy as np
+    import scipy
 except ImportError:
-    USE_CYTHON = False
-else:
-    USE_CYTHON = True
+    exit(
+        "We need some dependencies to build Cornac.\n"
+        + "Run: pip3 install Cython numpy scipy"
+    )
 
 
 with open("README.md", "r") as fh:
@@ -94,8 +95,11 @@ else:
             os.environ["CC"] = gcc
             os.environ["CXX"] = gcc
         else:
+            if not os.path.exists("/usr/bin/g++"):
+                print(
+                    "No GCC available. Install gcc from Homebrew using brew install gcc."
+                )
             USE_OPENMP = False
-            print("No GCC available. Install gcc from Homebrew using brew install gcc.")
             # required arguments for default gcc of OSX
             compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
             link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
@@ -107,13 +111,12 @@ else:
     compile_args.append("-std=c++11")
     link_args.append("-std=c++11")
 
-ext = ".pyx" if USE_CYTHON else ".cpp"
 
 extensions = [
     Extension(
         name="cornac.models.c2pf.c2pf",
         sources=[
-            "cornac/models/c2pf/cython/c2pf" + ext,
+            "cornac/models/c2pf/cython/c2pf.pyx",
             "cornac/models/c2pf/cpp/cpp_c2pf.cpp",
         ],
         include_dirs=[
@@ -125,29 +128,29 @@ extensions = [
     ),
     Extension(
         name="cornac.models.nmf.recom_nmf",
-        sources=["cornac/models/nmf/recom_nmf" + ext],
+        sources=["cornac/models/nmf/recom_nmf.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.models.pmf.pmf",
-        sources=["cornac/models/pmf/cython/pmf" + ext],
+        sources=["cornac/models/pmf/cython/pmf.pyx"],
         language="c++",
     ),
     Extension(
         name="cornac.models.mcf.mcf",
-        sources=["cornac/models/mcf/cython/mcf" + ext],
+        sources=["cornac/models/mcf/cython/mcf.pyx"],
         language="c++",
     ),
     Extension(
         name="cornac.models.sorec.sorec",
-        sources=["cornac/models/sorec/cython/sorec" + ext],
+        sources=["cornac/models/sorec/cython/sorec.pyx"],
         language="c++",
     ),
     Extension(
         "cornac.models.hpf.hpf",
         sources=[
-            "cornac/models/hpf/cython/hpf" + ext,
+            "cornac/models/hpf/cython/hpf.pyx",
             "cornac/models/hpf/cpp/cpp_hpf.cpp",
         ],
         include_dirs=[
@@ -159,7 +162,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.mf.backend_cpu",
-        sources=["cornac/models/mf/backend_cpu" + ext],
+        sources=["cornac/models/mf/backend_cpu.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
@@ -167,7 +170,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.baseline_only.recom_bo",
-        sources=["cornac/models/baseline_only/recom_bo" + ext],
+        sources=["cornac/models/baseline_only/recom_bo.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
@@ -175,19 +178,19 @@ extensions = [
     ),
     Extension(
         name="cornac.models.efm.recom_efm",
-        sources=["cornac/models/efm/recom_efm" + ext],
+        sources=["cornac/models/efm/recom_efm.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_obj",
-        sources=["cornac/models/comparer/recom_comparer_obj" + ext],
+        sources=["cornac/models/comparer/recom_comparer_obj.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.models.bpr.recom_bpr",
-        sources=["cornac/models/bpr/recom_bpr" + ext],
+        sources=["cornac/models/bpr/recom_bpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -195,7 +198,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.bpr.recom_wbpr",
-        sources=["cornac/models/bpr/recom_wbpr" + ext],
+        sources=["cornac/models/bpr/recom_wbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -203,7 +206,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.sbpr.recom_sbpr",
-        sources=["cornac/models/sbpr/recom_sbpr" + ext],
+        sources=["cornac/models/sbpr/recom_sbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -211,7 +214,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.lrppm.recom_lrppm",
-        sources=["cornac/models/lrppm/recom_lrppm" + ext],
+        sources=["cornac/models/lrppm/recom_lrppm.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -219,7 +222,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.mter.recom_mter",
-        sources=["cornac/models/mter/recom_mter" + ext],
+        sources=["cornac/models/mter/recom_mter.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -227,7 +230,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_sub",
-        sources=["cornac/models/comparer/recom_comparer_sub" + ext],
+        sources=["cornac/models/comparer/recom_comparer_sub.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -235,7 +238,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.mmmf.recom_mmmf",
-        sources=["cornac/models/mmmf/recom_mmmf" + ext],
+        sources=["cornac/models/mmmf/recom_mmmf.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
         extra_compile_args=compile_args,
@@ -243,7 +246,7 @@ extensions = [
     ),
     Extension(
         name="cornac.models.knn.similarity",
-        sources=["cornac/models/knn/similarity" + ext],
+        sources=["cornac/models/knn/similarity.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
         extra_compile_args=compile_args,
@@ -251,20 +254,20 @@ extensions = [
     ),
     Extension(
         name="cornac.utils.fast_dict",
-        sources=["cornac/utils/fast_dict" + ext],
+        sources=["cornac/utils/fast_dict.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
     Extension(
         name="cornac.utils.fast_dot",
-        sources=["cornac/utils/fast_dot" + ext],
+        sources=["cornac/utils/fast_dot.pyx"],
         language="c++",
         extra_compile_args=compile_args,
         extra_link_args=link_args,
     ),
     Extension(
         name="cornac.utils.fast_sparse_funcs",
-        sources=["cornac/utils/fast_sparse_funcs" + ext],
+        sources=["cornac/utils/fast_sparse_funcs.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
     ),
@@ -273,11 +276,11 @@ extensions = [
 if sys.platform.startswith("linux"):  # Linux supported only
     extensions += [
         Extension(
-            name="cornac.models.fm.recom_fm",
-            sources=["cornac/models/fm/recom_fm" + ext],
+            name="cornac.models.fm.backend_libfm",
+            sources=["cornac/models/fm/backend_libfm.pyx"],
             include_dirs=[
                 np.get_include(),
-                "cornac/models/fm/libfm/util",
+                "cornac/models/fm/libfm/util/",
                 "cornac/models/fm/libfm/fm_core/",
                 "cornac/models/fm/libfm/libfm/src/",
             ],
@@ -287,10 +290,75 @@ if sys.platform.startswith("linux"):  # Linux supported only
         )
     ]
 
-# cythonize c++ modules
-if USE_CYTHON:
-    extensions = cythonize(extensions)
 
-    setup(
-        ext_modules=extensions
-    )
+class CleanCommand(Command):
+    description = "Remove build artifacts from the source tree"
+
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Remove .cpp and .so files for a clean build
+        if os.path.exists("build"):
+            shutil.rmtree("build")
+        for dirpath, dirnames, filenames in os.walk("cornac"):
+            for filename in filenames:
+                root, extension = os.path.splitext(filename)
+
+                if extension in [".so", ".pyd", ".dll", ".pyc"]:
+                    os.unlink(os.path.join(dirpath, filename))
+
+                if extension in [".c", ".cpp"]:
+                    pyx_file = str.replace(filename, extension, ".pyx")
+                    if os.path.exists(os.path.join(dirpath, pyx_file)):
+                        os.unlink(os.path.join(dirpath, filename))
+
+            for dirname in dirnames:
+                if dirname == "__pycache__":
+                    shutil.rmtree(os.path.join(dirpath, dirname))
+
+
+cmdclass = {
+    "clean": CleanCommand,
+    "build_ext": build_ext,
+}
+
+setup(
+    name="cornac",
+    version="2.0.0",
+    description="A Comparative Framework for Multimodal Recommender Systems",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://cornac.preferred.ai",
+    keywords=[
+        "recommender system",
+        "collaborative filtering",
+        "multimodal",
+        "preference learning",
+        "recommendation",
+    ],
+    ext_modules=extensions,
+    install_requires=["numpy", "scipy", "tqdm", "powerlaw"],
+    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov", "Flask"]},
+    cmdclass=cmdclass,
+    packages=find_packages(),
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Education",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "License :: OSI Approved :: Apache Software License",
+        "Topic :: Software Development",
+        "Topic :: Scientific/Engineering",
+    ],
+)

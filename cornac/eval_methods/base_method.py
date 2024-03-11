@@ -159,6 +159,8 @@ def ranking_eval(
     if len(metrics) == 0:
         return [], []
 
+    max_k = max(m.k for m in metrics)
+
     avg_results = []
     user_results = [{} for _ in enumerate(metrics)]
 
@@ -205,7 +207,9 @@ def ranking_eval(
         u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
         u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
 
-        item_rank, item_scores = model.rank(user_idx, item_indices)
+        item_rank, item_scores = model.rank(
+            user_idx=user_idx, item_indices=item_indices, k=max_k
+        )
 
         for i, mt in enumerate(metrics):
             mt_score = mt.compute(
@@ -232,6 +236,12 @@ class BaseMethod:
     data: array-like, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value)].
 
+    fmt: str, default: 'UIR'
+        Format of the input data. Currently, we are supporting:
+
+        'UIR': User, Item, Rating
+        'UIRT': User, Item, Rating, Timestamp
+
     rating_threshold: float, optional, default: 1.0
         Threshold used to binarize rating values into positive or negative feedback for
         model evaluation using ranking metrics (rating metrics are not affected).
@@ -257,7 +267,7 @@ class BaseMethod:
         verbose=False,
         **kwargs
     ):
-        self._data = data
+        self.data = data
         self.fmt = fmt
         self.train_set = None
         self.test_set = None
@@ -267,8 +277,8 @@ class BaseMethod:
         self.verbose = verbose
         self.seed = seed
         self.rng = get_rng(seed)
-        self.global_uid_map = OrderedDict()
-        self.global_iid_map = OrderedDict()
+        self.global_uid_map = kwargs.get("global_uid_map", OrderedDict())
+        self.global_iid_map = kwargs.get("global_iid_map", OrderedDict())
 
         self.user_feature = kwargs.get("user_feature", None)
         self.user_text = kwargs.get("user_text", None)
@@ -446,7 +456,8 @@ class BaseMethod:
         self.rng = get_rng(self.seed)
         self.test_set = self.test_set.reset()
 
-    def _organize_metrics(self, metrics):
+    @staticmethod
+    def organize_metrics(metrics):
         """Organize metrics according to their types (rating or raking)
 
         Parameters
@@ -456,26 +467,27 @@ class BaseMethod:
 
         """
         if isinstance(metrics, dict):
-            self.rating_metrics = metrics.get("rating", [])
-            self.ranking_metrics = metrics.get("ranking", [])
+            rating_metrics = metrics.get("rating", [])
+            ranking_metrics = metrics.get("ranking", [])
         elif isinstance(metrics, list):
-            self.rating_metrics = []
-            self.ranking_metrics = []
+            rating_metrics = []
+            ranking_metrics = []
             for mt in metrics:
                 if isinstance(mt, RatingMetric):
-                    self.rating_metrics.append(mt)
+                    rating_metrics.append(mt)
                 elif isinstance(mt, RankingMetric) and hasattr(mt.k, "__len__"):
-                    self.ranking_metrics.extend(
+                    ranking_metrics.extend(
                         [mt.__class__(k=_k) for _k in sorted(set(mt.k))]
                     )
                 else:
-                    self.ranking_metrics.append(mt)
+                    ranking_metrics.append(mt)
         else:
             raise ValueError("Type of metrics has to be either dict or list!")
 
         # sort metrics by name
-        self.rating_metrics = sorted(self.rating_metrics, key=lambda mt: mt.name)
-        self.ranking_metrics = sorted(self.ranking_metrics, key=lambda mt: mt.name)
+        rating_metrics = sorted(rating_metrics, key=lambda mt: mt.name)
+        ranking_metrics = sorted(ranking_metrics, key=lambda mt: mt.name)
+        return rating_metrics, ranking_metrics
 
     def _build_datasets(self, train_data, test_data, val_data=None):
         self.train_set = Dataset.build(
@@ -641,39 +653,52 @@ class BaseMethod:
 
         return self
 
-    def _eval(self, model, test_set, val_set, user_based):
+    @staticmethod
+    def eval(
+        model,
+        train_set,
+        test_set,
+        val_set,
+        rating_threshold,
+        exclude_unknowns,
+        user_based,
+        rating_metrics,
+        ranking_metrics,
+        verbose,
+    ):
+        """Running evaluation for rating and ranking metrics respectively."""
         metric_avg_results = OrderedDict()
         metric_user_results = OrderedDict()
 
         avg_results, user_results = rating_eval(
             model=model,
-            metrics=self.rating_metrics,
+            metrics=rating_metrics,
             test_set=test_set,
             user_based=user_based,
-            verbose=self.verbose,
+            verbose=verbose,
         )
-        for i, mt in enumerate(self.rating_metrics):
+        for i, mt in enumerate(rating_metrics):
             metric_avg_results[mt.name] = avg_results[i]
             metric_user_results[mt.name] = user_results[i]
 
         avg_results, user_results = ranking_eval(
             model=model,
-            metrics=self.ranking_metrics,
-            train_set=self.train_set,
+            metrics=ranking_metrics,
+            train_set=train_set,
             test_set=test_set,
             val_set=val_set,
-            rating_threshold=self.rating_threshold,
-            exclude_unknowns=self.exclude_unknowns,
-            verbose=self.verbose,
+            rating_threshold=rating_threshold,
+            exclude_unknowns=exclude_unknowns,
+            verbose=verbose,
         )
-        for i, mt in enumerate(self.ranking_metrics):
+        for i, mt in enumerate(ranking_metrics):
             metric_avg_results[mt.name] = avg_results[i]
             metric_user_results[mt.name] = user_results[i]
 
         return Result(model.name, metric_avg_results, metric_user_results)
 
     def evaluate(self, model, metrics, user_based, show_validation=True):
-        """Evaluate given models according to given metrics
+        """Evaluate given models according to given metrics. Supposed to be called by Experiment.
 
         Parameters
         ----------
@@ -700,7 +725,6 @@ class BaseMethod:
             raise ValueError("test_set is required but None!")
 
         self._reset()
-        self._organize_metrics(metrics)
 
         ###########
         # FITTING #
@@ -718,13 +742,21 @@ class BaseMethod:
         if self.verbose:
             print("\n[{}] Evaluation started!".format(model.name))
 
+        rating_metrics, ranking_metrics = self.organize_metrics(metrics)
+
         start = time.time()
         model.transform(self.test_set)
-        test_result = self._eval(
+        test_result = self.eval(
             model=model,
+            train_set=self.train_set,
             test_set=self.test_set,
             val_set=self.val_set,
+            rating_threshold=self.rating_threshold,
+            exclude_unknowns=self.exclude_unknowns,
+            rating_metrics=rating_metrics,
+            ranking_metrics=ranking_metrics,
             user_based=user_based,
+            verbose=self.verbose,
         )
         test_time = time.time() - start
         test_result.metric_avg_results["Train (s)"] = train_time
@@ -734,8 +766,17 @@ class BaseMethod:
         if show_validation and self.val_set is not None:
             start = time.time()
             model.transform(self.val_set)
-            val_result = self._eval(
-                model=model, test_set=self.val_set, val_set=None, user_based=user_based
+            val_result = self.eval(
+                model=model,
+                train_set=self.train_set,
+                test_set=self.val_set,
+                val_set=None,
+                rating_threshold=self.rating_threshold,
+                exclude_unknowns=self.exclude_unknowns,
+                rating_metrics=rating_metrics,
+                ranking_metrics=ranking_metrics,
+                user_based=user_based,
+                verbose=self.verbose,
             )
             val_time = time.time() - start
             val_result.metric_avg_results["Time (s)"] = val_time

@@ -1,8 +1,5 @@
-pandas
-torch
+numpy
 scipy
-cython
-sentence_transformers
-pytest
+Cython
+tqdm
 powerlaw
-dcor

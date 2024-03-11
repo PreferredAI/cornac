@@ -1,10 +1,11 @@
 import numpy as np
 
-from cornac.models.recommender import Recommender
-from cornac.exception import ScoreException
+from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
+from ...exception import ScoreException
 
 
-class EASE(Recommender):
+class EASE(Recommender, ANNMixin):
     """Embarrassingly Shallow Autoencoders for Sparse Data.
 
     Parameters
@@ -113,18 +114,43 @@ class EASE(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
+
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
         if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
-            known_item_scores = self.U[user_idx, :].dot(self.B)
-            return known_item_scores
-        else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-            user_pred = self.B[item_idx, :].dot(self.U[user_idx, :])
-            return user_pred
+            return self.U[user_idx, :].dot(self.B)
+
+        return self.B[item_idx, :].dot(self.U[user_idx, :])
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        return self.U
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        return self.B

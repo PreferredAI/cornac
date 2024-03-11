@@ -16,7 +16,6 @@
 from math import ceil
 
 from .base_method import BaseMethod
-from ..utils import get_rng
 from ..utils.common import safe_indexing
 
 
@@ -52,54 +51,76 @@ class RatioSplit(BaseMethod):
 
     """
 
-    def __init__(self, data, test_size=0.2, val_size=0.0, rating_threshold=1.0,
-                 seed=None, exclude_unknowns=True, verbose=False, **kwargs):
-        super().__init__(data=data, rating_threshold=rating_threshold, seed=seed,
-                         exclude_unknowns=exclude_unknowns, verbose=verbose, **kwargs)
+    def __init__(
+        self,
+        data,
+        test_size=0.2,
+        val_size=0.0,
+        rating_threshold=1.0,
+        seed=None,
+        exclude_unknowns=True,
+        verbose=False,
+        **kwargs,
+    ):
+        super().__init__(
+            data=data,
+            rating_threshold=rating_threshold,
+            seed=seed,
+            exclude_unknowns=exclude_unknowns,
+            verbose=verbose,
+            **kwargs,
+        )
 
-        self.train_size, self.val_size, self.test_size = self.validate_size(val_size, test_size, len(self._data))
+        self.train_size, self.val_size, self.test_size = self.validate_size(
+            val_size=val_size,
+            test_size=test_size,
+            data_size=kwargs.get("data_size", len(data)),
+        )
         self._split()
 
     @staticmethod
-    def validate_size(val_size, test_size, num_ratings):
+    def validate_size(val_size, test_size, data_size):
         if val_size is None:
             val_size = 0.0
         elif val_size < 0:
-            raise ValueError('val_size={} should be greater than zero'.format(val_size))
-        elif val_size >= num_ratings:
+            raise ValueError("val_size={} should be greater than zero".format(val_size))
+        elif val_size >= data_size:
             raise ValueError(
-                'val_size={} should be less than the number of ratings {}'.format(val_size, num_ratings))
+                f"val_size={val_size} should be smaller than data_size={data_size}"
+            )
 
         if test_size is None:
             test_size = 0.0
         elif test_size < 0:
-            raise ValueError('test_size={} should be greater than zero'.format(test_size))
-        elif test_size >= num_ratings:
+            raise ValueError(f"test_size={test_size} should be greater than zero")
+        elif test_size >= data_size:
             raise ValueError(
-                'test_size={} should be less than the number of ratings {}'.format(test_size, num_ratings))
+                f"test_size={test_size} should be smaller than data_size={data_size}"
+            )
 
         if val_size < 1:
-            val_size = ceil(val_size * num_ratings)
+            val_size = ceil(val_size * data_size)
         if test_size < 1:
-            test_size = ceil(test_size * num_ratings)
+            test_size = ceil(test_size * data_size)
 
-        if val_size + test_size >= num_ratings:
+        val_test_size = val_size + test_size
+        if val_test_size >= data_size:
             raise ValueError(
-                'The sum of val_size and test_size ({}) should be smaller than the number of ratings {}'.format(
-                    val_size + test_size, num_ratings))
+                f"val_size + test_size ({val_test_size}) should be smaller than data_size={data_size}"
+            )
 
-        train_size = num_ratings - (val_size + test_size)
+        train_size = data_size - (val_size + test_size)
 
         return int(train_size), int(val_size), int(test_size)
 
     def _split(self):
-        data_idx = self.rng.permutation(len(self._data))
-        train_idx = data_idx[:self.train_size]
-        test_idx = data_idx[-self.test_size:]
-        val_idx = data_idx[self.train_size:-self.test_size]
+        data_idx = self.rng.permutation(len(self.data))
+        train_idx = data_idx[: self.train_size]
+        test_idx = data_idx[-self.test_size :]
+        val_idx = data_idx[self.train_size : -self.test_size]
 
-        train_data = safe_indexing(self._data, train_idx)
-        test_data = safe_indexing(self._data, test_idx)
-        val_data = safe_indexing(self._data, val_idx) if len(val_idx) > 0 else None
+        train_data = safe_indexing(self.data, train_idx)
+        test_data = safe_indexing(self.data, test_idx)
+        val_data = safe_indexing(self.data, val_idx) if len(val_idx) > 0 else None
 
         self.build(train_data=train_data, test_data=test_data, val_data=val_data)

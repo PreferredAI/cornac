@@ -13,17 +13,71 @@
 # limitations under the License.
 # ============================================================================
 
-import os
 import copy
 import inspect
+import os
 import pickle
-from glob import glob
+import warnings
 from datetime import datetime
+from glob import glob
 
 import numpy as np
 
 from ..exception import ScoreException
-from ..utils.common import intersects, clip
+from ..utils.common import clip
+
+MEASURE_L2 = "l2 distance aka. Euclidean distance"
+MEASURE_DOT = "dot product aka. inner product"
+MEASURE_COSINE = "cosine similarity"
+
+
+def is_ann_supported(recom):
+    """Return True if the given recommender model support ANN search.
+
+    Parameters
+    ----------
+    recom : recommender model
+        Recommender object to test.
+
+    Returns
+    -------
+    out : bool
+        True if recom supports ANN search and False otherwise.
+    """
+    return getattr(recom, "_ann_supported", False)
+
+
+class ANNMixin:
+    """Mixin class for Approximate Nearest Neighbor Search."""
+
+    _ann_supported = True
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        :raise NotImplementedError
+        """
+        raise NotImplementedError()
 
 
 class Recommender:
@@ -76,6 +130,7 @@ class Recommender:
         self.name = name
         self.trainable = trainable
         self.verbose = verbose
+        self.is_fitted = False
 
         # attributes to be ignored when saving model
         self.ignored_attrs = ["train_set", "val_set", "test_set"]
@@ -126,8 +181,9 @@ class Recommender:
     def __deepcopy__(self, memo):
         cls = self.__class__
         result = cls.__new__(cls)
+        ignored_attrs = set(self.ignored_attrs)
         for k, v in self.__dict__.items():
-            if k in self.ignored_attrs:
+            if k in ignored_attrs:
                 continue
             setattr(result, k, copy.deepcopy(v))
         return result
@@ -163,13 +219,18 @@ class Recommender:
 
         return self.__class__(**init_params)
 
-    def save(self, save_dir=None):
+    def save(self, save_dir=None, save_trainset=False):
         """Save a recommender model to the filesystem.
 
         Parameters
         ----------
         save_dir: str, default: None
             Path to a directory for the model to be stored.
+
+        save_trainset: bool, default: False
+            Save train_set together with the model. This is useful
+            if we want to deploy model later because train_set is
+            required for certain evaluation steps.
 
         Returns
         -------
@@ -185,11 +246,16 @@ class Recommender:
         model_file = os.path.join(model_dir, "{}.pkl".format(timestamp))
 
         saved_model = copy.deepcopy(self)
-        pickle.dump(
-            saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
-        )
+        pickle.dump(saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL)
         if self.verbose:
             print("{} model is saved to {}".format(self.name, model_file))
+
+        if save_trainset:
+            pickle.dump(
+                self.train_set,
+                open(model_file + ".trainset", "wb"),
+                protocol=pickle.HIGHEST_PROTOCOL,
+            )
 
         return model_file
 
@@ -236,6 +302,11 @@ class Recommender:
         -------
         self : object
         """
+        if self.is_fitted:
+            warnings.warn(
+                "Model is already fitted. Re-fitting will overwrite the previous model."
+            )
+
         self.reset_info()
         train_set.reset()
         if val_set is not None:
@@ -254,6 +325,8 @@ class Recommender:
         self.train_set = train_set
         self.val_set = val_set
 
+        self.is_fitted = True
+
         return self
 
     def knows_user(self, user_idx):
@@ -269,7 +342,7 @@ class Recommender:
         res : bool
             True if model knows the user from traning data, False otherwise.
         """
-        return user_idx >= 0 and user_idx < self.num_users
+        return user_idx is not None and user_idx >= 0 and user_idx < self.num_users
 
     def knows_item(self, item_idx):
         """Return whether the model knows item by its index
@@ -284,7 +357,39 @@ class Recommender:
         res : bool
             True if model knows the item from traning data, False otherwise.
         """
-        return item_idx >= 0 and item_idx < self.num_items
+        return item_idx is not None and item_idx >= 0 and item_idx < self.num_items
+
+    def is_unknown_user(self, user_idx):
+        """Return whether the model knows user by its index. Reverse of knows_user() function,
+        for better readability in some cases.
+
+        Parameters
+        ----------
+        user_idx: int, required
+            The index of the user (not the original user ID).
+
+        Returns
+        -------
+        res : bool
+            True if model knows the user from traning data, False otherwise.
+        """
+        return not self.knows_user(user_idx)
+
+    def is_unknown_item(self, item_idx):
+        """Return whether the model knows item by its index. Reverse of knows_item() function,
+        for better readability in some cases.
+
+        Parameters
+        ----------
+        item_idx: int, required
+            The index of the item (not the original item ID).
+
+        Returns
+        -------
+        res : bool
+            True if model knows the item from traning data, False otherwise.
+        """
+        return not self.knows_item(item_idx)
 
     def transform(self, test_set):
         """Transform test set into cached results accelerating the score function.
@@ -352,7 +457,7 @@ class Recommender:
 
         return rating_pred
 
-    def rank(self, user_idx, item_indices=None):
+    def rank(self, user_idx, item_indices=None, k=-1, **kwargs):
         """Rank all test items for a given user.
 
         Parameters
@@ -364,6 +469,10 @@ class Recommender:
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned.
 
+        k: int, required
+            Cut-off length for recommendations, k=-1 will return ranked list of all items.
+            This is more important for ANN to know the limit to avoid exhaustive ranking.
+
         Returns
         -------
         (ranked_items, item_scores): tuple
@@ -373,7 +482,7 @@ class Recommender:
         """
         # obtain item scores from the model
         try:
-            known_item_scores = self.score(user_idx)
+            known_item_scores = self.score(user_idx, **kwargs)
         except ScoreException:
             known_item_scores = np.ones(self.total_items) * self.default_score()
 
@@ -386,12 +495,23 @@ class Recommender:
             all_item_scores[: self.num_items] = known_item_scores
 
         # rank items based on their scores
-        if item_indices is None:
-            item_scores = all_item_scores[: self.num_items]
-            ranked_items = item_scores.argsort()[::-1]
-        else:
-            item_scores = all_item_scores[item_indices]
-            ranked_items = np.array(item_indices)[item_scores.argsort()[::-1]]
+        item_indices = (
+            np.arange(self.num_items)
+            if item_indices is None
+            else np.asarray(item_indices)
+        )
+        item_scores = all_item_scores[item_indices]
+
+        if (
+            k != -1
+        ):  # O(n + k log k), faster for small k which is usually the case
+            partitioned_idx = np.argpartition(item_scores, -k)
+            top_k_idx = partitioned_idx[-k:]
+            sorted_top_k_idx = top_k_idx[np.argsort(item_scores[top_k_idx])]
+            partitioned_idx[-k:] = sorted_top_k_idx
+            ranked_items = item_indices[partitioned_idx[::-1]]
+        else:  # O(n log n)
+            ranked_items = item_indices[item_scores.argsort()[::-1]]
 
         return ranked_items, item_scores
 
@@ -425,9 +545,7 @@ class Recommender:
             raise ValueError(f"{user_id} is unknown to the model.")
 
         if k < -1 or k > self.total_items:
-            raise ValueError(
-                f"k={k} is invalid, there are {self.total_users} users in total."
-            )
+            raise ValueError(f"k={k} is invalid, there are {self.total_users} users in total.")
 
         item_indices = np.arange(self.total_items)
         if remove_seen:
@@ -504,11 +622,7 @@ class Recommender:
 
         if self.stopped_epoch > 0:
             print("Early stopping:")
-            print(
-                "- best epoch = {}, stopped epoch = {}".format(
-                    self.best_epoch, self.stopped_epoch
-                )
-            )
+            print("- best epoch = {}, stopped epoch = {}".format(self.best_epoch, self.stopped_epoch))
             print(
                 "- best monitored value = {:.6f} (delta = {:.6f})".format(
                     self.best_value, current_value - self.best_value
@@ -518,55 +632,115 @@ class Recommender:
         return False
 
 
-MEASURE_L2 = "l2 distance aka. Euclidean distance"
-MEASURE_DOT = "dot product aka. inner product"
-MEASURE_COSINE = "cosine similarity"
-
-
-class ANNMixin:
-    """Mixin class for Approximate Nearest Neighbor Search."""
-
-    _ann_supported = True
-
-    def get_vector_measure(self):
-        """Getting a valid choice of vector measurement in ANNMixin._measures.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-    def get_user_vectors(self):
-        """Getting a matrix of user vectors serving as query for ANN search.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-    def get_item_vectors(self):
-        """Getting a matrix of item vectors used for building the index for ANN search.
-
-        Returns
-        -------
-        :raise NotImplementedError
-        """
-        raise NotImplementedError()
-
-
-def is_ann_supported(recom):
-    """Return True if the given recommender model support ANN search.
+class NextBasketRecommender(Recommender):
+    """Generic class for a next basket recommender model. All next basket recommendation models should inherit from this class.
 
     Parameters
-    ----------
-    recom : recommender model
-        Recommender object to test.
+    ----------------
+    name: str, required
+        Name of the recommender model.
 
-    Returns
-    -------
-    out : bool
-        True if recom supports ANN search and False otherwise.
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable.
+
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+
+    Attributes
+    ----------
+    num_users: int
+        Number of users in training data.
+
+    num_items: int
+        Number of items in training data.
+
+    total_users: int
+        Number of users in training, validation, and test data.
+        In other words, this includes unknown/unseen users.
+
+    total_items: int
+        Number of items in training, validation, and test data.
+        In other words, this includes unknown/unseen items.
+
+    uid_map: int
+        Global mapping of user ID-index.
+
+    iid_map: int
+        Global mapping of item ID-index.
     """
-    return getattr(recom, "_ann_supported", False)
+
+    def __init__(self, name, trainable=True, verbose=False):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+
+    def score(self, user_idx, history_baskets, **kwargs):
+        """Predict the scores for all items based on input history baskets
+
+        Parameters
+        ----------
+        history_baskets: list of lists
+            The list of history baskets in sequential manner for next-basket prediction.
+
+        Returns
+        -------
+        res : a Numpy array
+            Relative scores of all known items
+
+        """
+        raise NotImplementedError("The algorithm is not able to make score prediction!")
+
+
+class NextItemRecommender(Recommender):
+    """Generic class for a next item recommender model. All next item recommendation models should inherit from this class.
+
+    Parameters
+    ----------------
+    name: str, required
+        Name of the recommender model.
+
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable.
+
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+
+    Attributes
+    ----------
+    num_users: int
+        Number of users in training data.
+
+    num_items: int
+        Number of items in training data.
+
+    total_users: int
+        Number of users in training, validation, and test data.
+        In other words, this includes unknown/unseen users.
+
+    total_items: int
+        Number of items in training, validation, and test data.
+        In other words, this includes unknown/unseen items.
+
+    uid_map: int
+        Global mapping of user ID-index.
+
+    iid_map: int
+        Global mapping of item ID-index.
+    """
+
+    def __init__(self, name, trainable=True, verbose=False):
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+
+    def score(self, user_idx, history_items, **kwargs):
+        """Predict the scores for all items based on input history items
+
+        Parameters
+        ----------
+        history_items: list of lists
+            The list of history items in sequential manner for next-item prediction.
+
+        Returns
+        -------
+        res : a Numpy array
+            Relative scores of all known items
+
+        """
+        raise NotImplementedError("The algorithm is not able to make score prediction!")

@@ -18,10 +18,11 @@ import scipy.sparse as sp
 
 from cornac.models.c2pf import c2pf
 from ..recommender import Recommender
+from ..recommender import ANNMixin, MEASURE_DOT
 
 
 # Recommender class for Collaborative Context Poisson Factorization (C2PF)
-class C2PF(Recommender):
+class C2PF(Recommender, ANNMixin):
     """Collaborative Context Poisson Factorization.
 
     Parameters
@@ -295,3 +296,41 @@ class C2PF(Recommender):
         # transform user_pred to a flatten array,
         user_pred = np.array(user_pred, dtype="float64").flatten()
         return user_pred
+
+    def get_vector_measure(self):
+        """Getting a valid choice of vector measurement in ANNMixin._measures.
+
+        Returns
+        -------
+        measure: MEASURE_DOT
+            Dot product aka. inner product
+        """
+        return MEASURE_DOT
+
+    def get_user_vectors(self):
+        """Getting a matrix of user vectors serving as query for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of user vectors for all users available in the model.
+        """
+        if self.variant == "rc2pf":
+            user_vectors = np.concatenate((self.Theta, self.Theta), axis=1)
+        else:
+            user_vectors = self.Theta
+        return user_vectors
+
+    def get_item_vectors(self):
+        """Getting a matrix of item vectors used for building the index for ANN search.
+
+        Returns
+        -------
+        out: numpy.array
+            Matrix of item vectors for all items available in the model.
+        """
+        if self.variant == "rc2pf":
+            item_vectors = np.concatenate((self.Beta, self.Xi), axis=1)
+        else:
+            item_vectors = self.Beta
+        return item_vectors

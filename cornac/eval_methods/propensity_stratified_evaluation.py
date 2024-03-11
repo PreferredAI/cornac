@@ -197,7 +197,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
 
         # split the data into train/valid/test sets
         self.train_size, self.val_size, self.test_size = RatioSplit.validate_size(
-            val_size, test_size, len(self._data)
+            val_size, test_size, data
         )
         self._split()
 
@@ -233,14 +233,14 @@ class PropensityStratifiedEvaluation(BaseMethod):
         return Result(model.name, metric_avg_results, metric_user_results)
 
     def _split(self):
-        data_idx = self.rng.permutation(len(self._data))
+        data_idx = self.rng.permutation(len(self.data))
         train_idx = data_idx[: self.train_size]
         test_idx = data_idx[-self.test_size :]
         val_idx = data_idx[self.train_size : -self.test_size]
 
-        train_data = safe_indexing(self._data, train_idx)
-        test_data = safe_indexing(self._data, test_idx)
-        val_data = safe_indexing(self._data, val_idx) if len(val_idx) > 0 else None
+        train_data = safe_indexing(self.data, train_idx)
+        test_data = safe_indexing(self.data, test_idx)
+        val_data = safe_indexing(self.data, val_idx) if len(val_idx) > 0 else None
 
         # build train/test/valid datasets
         self._build_datasets(
@@ -253,7 +253,7 @@ class PropensityStratifiedEvaluation(BaseMethod):
     def _estimate_propensities(self):
         # find the item's frequencies
         item_freq = defaultdict(int)
-        for u, i, r in self._data:
+        for u, i, r in self.data:
             item_freq[i] += 1
 
         # fit the exponential param

@@ -147,12 +147,13 @@ class SKMeans(Recommender):
             Relative scores that the user gives to the item or to all known items
 
         """
-        if item_idx is None:
-            if not self.knows_user(user_idx):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d)" % user_idx
-                )
+        if self.is_unknown_user(user_idx):
+            raise ScoreException("Can't make score prediction for user %d" % user_idx)
 
+        if item_idx is not None and self.is_unknown_item(item_idx):
+            raise ScoreException("Can't make score prediction for item %d" % item_idx)
+
+        if item_idx is None:
             known_item_scores = self.centroids.multiply(
                 self.user_center_sim[user_idx, :].T
             )
@@ -161,12 +162,6 @@ class SKMeans(Recommender):
             )  # weighted average of cluster centroids
             return known_item_scores
         else:
-            if not (self.knows_user(user_idx) and self.knows_item(item_idx)):
-                raise ScoreException(
-                    "Can't make score prediction for (user_id=%d, item_id=%d)"
-                    % (user_idx, item_idx)
-                )
-
             user_pred = self.centroids[item_idx, :].multiply(
                 self.user_center_sim[user_idx, :].T
             )
@@ -174,5 +169,4 @@ class SKMeans(Recommender):
             user_pred = user_pred.sum(0).A1 / (
                 self.user_center_sim[user_idx, :].sum() + 1e-20
             )  # weighted average of cluster centroids
-
             return user_pred
