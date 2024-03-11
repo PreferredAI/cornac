@@ -20,7 +20,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from tqdm.auto import tqdm
 
-from cornac.data.bert_text import BertTextModality
+from cornac.data.transformer_text import TransformersTextModality
 
 from ..data import FeatureModality
 from ..data import TextModality, ReviewModality
@@ -373,7 +373,7 @@ class BaseMethod:
 
     @item_text.setter
     def item_text(self, input_modality):
-        if input_modality is not None and not isinstance(input_modality, BertTextModality):
+        if input_modality is not None and not (isinstance(input_modality, TransformersTextModality) or isinstance(input_modality, TextModality)):
             raise ValueError(
                 "input_modality has to be instance of TextModality but {}".format(
                     type(input_modality)
