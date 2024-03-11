@@ -612,67 +612,86 @@ class HypAR(Recommender):
                     else:
                         input_nodes, edge_subgraph, blocks = batch
 
-                    # Get node representations,
+                    # Get node representations and review representations
                     node_representation, e_star = self.model(blocks, self.model.get_initial_embedings(all_nodes), input_nodes)
 
+                    # Get preiction based on graph structure (edges represents ratings, thus predictions)
                     pred = self.model.graph_predict(edge_subgraph, e_star)
                     loss = 0
                     if self.objective == 'ranking':
+                        # Calculate predictions for negative subgraph and calculate ranking loss.
                         pred_j = self.model.graph_predict(neg_subgraph, e_star)
                         pred_j = pred_j.reshape(-1, self.num_neg_samples)
                         loss = self.model.ranking_loss(pred, pred_j)
+
+                        # Calculate accuracy
                         acc = (pred > pred_j).sum() / pred_j.shape.numel()
                         cur_losses['acc'] = acc.detach()
                     else:
+                        # Calculate rating loss, if using prediction instead of ranking.
                         loss = self.model.rating_loss(pred, edge_subgraph.edata['label'])
 
                     cur_losses['lloss'] = loss.detach()  # Learning loss
 
+                    # If using explainability, calculate loss and accuracy for explainability.
                     if self.learn_explainability:
                         aos_loss, aos_acc = self.model.aos_graph_predict(edge_subgraph, node_representation, e_star)
                         aos_loss = aos_loss.mean()
                         cur_losses['aos_loss'] = aos_loss.detach()
                         cur_losses['aos_acc'] = (aos_acc.sum() / aos_acc.shape.numel()).detach()
-                        loss += self.learn_weight * aos_loss
+                        loss += self.learn_weight * aos_loss  # Add to loss with weight.
 
                     cur_losses['totloss'] = loss.detach()
                     loss.backward()
 
+                    # Update batch losses
                     for k, v in cur_losses.items():
                         tot_losses[k] += v.cpu()
 
+                    # Update model
                     optimizer.step()
                     optimizer.zero_grad()
+
+                    # Define printing
                     loss_str = ','.join([f'{k}:{v / i:.3f}' for k, v in tot_losses.items()])
+
+                    # If not validating, else
                     if i != epoch_length or val_set is None:
                         progress.set_description(f'Epoch {e}, ' + loss_str)
                     elif (e + 1) % self.eval_interval == 0:
+                        # If validating, validate and print results.
                         results = self._validate(val_set, metrics)
                         res_str = 'Val: ' + ','.join([f'{m.name}:{r:.4f}' for m, r in zip(metrics, results)])
                         progress.set_description(f'Epoch {e}, ' + f'{loss_str}, ' + res_str)
 
-                        if self.model_selection == 'best' and (results[0] > best_score if metrics[0].higher_better
-                        else results[0] < best_score):
+                        # If use best state and new best score, save state.
+                        if self.model_selection == 'best' and \
+                                (results[0] > best_score if metrics[0].higher_better else results[0] < best_score):
                             best_state = deepcopy(self.model.state_dict())
                             best_score = results[0]
                             best_epoch = e
 
+            # Stop if no improvement.
             if self.early_stopping is not None and (e - best_epoch) >= self.early_stopping:
                 break
 
+        # Space efficiency
         del self.node_filter
         del g, eids
         del dataloader
         del sampler
 
+        # Load best state if using best state.
         if best_state is not None:
             self.model.load_state_dict(best_state)
 
+        # Do inference calculation
         self.model.eval()
         with torch.no_grad():
             self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device,
                                  self.batch_size)
 
+        # Set self values
         self.best_epoch = best_epoch
         self.best_value = best_score
 
@@ -680,22 +699,31 @@ class HypAR(Recommender):
         from ...eval_methods.base_method import rating_eval, ranking_eval
         import torch
 
+        # Do inference calculation
         self.model.eval()
         with torch.no_grad():
             self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device,
                                  self.batch_size)
+
+            # Evaluate model
             if self.objective == 'ranking':
                 (result, _) = ranking_eval(self, metrics, self.train_set, val_set)
             else:
                 (result, _) = rating_eval(self, metrics, val_set, user_based=self.user_based)
+
+        # Return best validation score
         return result
 
     def score(self, user_idx, item_idx=None):
         import torch
 
+        # Ensure model is in evaluation mode and not calculating gradient.
         self.model.eval()
         with torch.no_grad():
+            # Shift user ids
             user_idx = torch.tensor(user_idx + self.n_items, dtype=torch.int64).to(self.device)
+
+            # If item_idx is None, predict all items, else predict only item_idx.
             if item_idx is None:
                 item_idx = torch.arange(self.n_items, dtype=torch.int64).to(self.device)
                 pred = self.model.predict(user_idx, item_idx).reshape(-1).cpu().numpy()
@@ -703,23 +731,27 @@ class HypAR(Recommender):
                 item_idx = torch.tensor(item_idx, dtype=torch.int64).to(self.device)
                 pred = self.model.predict(user_idx, item_idx).cpu()
 
+            # Return predictions
             return pred
 
-    def monitor_value(self):
+    def monitor_value(self, train_set, val_set=None):
         pass
 
-    def save(self, save_dir=None):
+    def save(self, save_dir=None, save_trainset=False):
         import torch
-        import pandas as pd
 
         if save_dir is None:
             return
 
+        # Unset matrices to avoid pickling errors. Convert for review graphs due to same issues.
         self.model.review_conv.unset_matrices()
         self.review_graphs = {k: (v.row, v.col, v.shape) for k, v in self.review_graphs.items()}
-        path = super().save(save_dir)
+
+        # Save model
+        path = super().save(save_dir, save_trainset)
         name = path.rsplit('/', 1)[-1].replace('pkl', 'pt')
 
+        # Save state dict, only necessary if state should be used outside of class. Thus, not part of load.
         state = self.model.state_dict()
         torch.save(state, os.path.join(save_dir, str(self.index), name))
 
@@ -729,9 +761,14 @@ class HypAR(Recommender):
         import dgl.sparse as dglsp
         import torch
 
+        # Load model
         model = super().load(model_path, trainable)
+
+        # Convert review graphs to sparse matrices
         for k, v in model.review_graphs.items():
             model.review_graphs[k] = dglsp.spmatrix(torch.stack([v[0], v[1]]), shape=v[2]).coalesce().to(model.device)
 
+        # Set matrices.
         model.model.review_conv.set_matrices(model.review_graphs)
+
         return model
