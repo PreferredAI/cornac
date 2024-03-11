@@ -1,22 +1,18 @@
-"""Example for Disentangled Multimodal Recommendation"""
+"""Example for Disentangled Multimodal Recommendation, with only feedback and textual modality.
+For an example including image modality please see dmrl_clothes_example.py"""
 
 import cornac
 from cornac.data import Reader
-from cornac.data.bert_text import BertTextModality
+from cornac.data.transformer_text import TransformersTextModality
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 
-
-# CDL composes an autoencoder with matrix factorization to model item (article) texts and user-item preferences
 # The necessary data can be loaded as follows
 docs, item_ids = citeulike.load_text()
 feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
 
-
-# Instantiate a TextModality, it makes it convenient to work with text auxiliary information
-# For more details, please refer to the tutorial on how to work with auxiliary data
-item_text_modality = BertTextModality(
+item_text_modality = TransformersTextModality(
     corpus=docs,
     ids=item_ids,
     preencode=True
@@ -35,12 +31,11 @@ ratio_split = RatioSplit(
 
 # Instantiate DMRL recommender
 dmrl_recommender = cornac.models.dmrl.DMRL(
-    bert_text_modality = item_text_modality,
     batch_size=4096,
     epochs=20,
     log_metrics=True,
     learning_rate=0.01,
-    num_factors=4,
+    num_factors=2,
     decay_r=0.5,
     decay_c=0.01,   
     num_neg=3,

@@ -5,7 +5,7 @@ import unittest
 import torch
 from torch.utils.data import DataLoader
 import cornac
-from cornac.data.bert_text import BertTextModality
+from cornac.data.transformer_text import TransformersTextModality
 from cornac.data.dataset import Dataset
 from cornac.data.reader import Reader
 from cornac.datasets import citeulike
@@ -30,7 +30,7 @@ class TestDMRL(unittest.TestCase):
         self.item_ids = item_ids
         embedding_dim = 100
         bert_text_dim = 384
-        self.modality = BertTextModality(corpus=docs, ids=self.item_ids)
+        self.modality = TransformersTextModality(corpus=docs, ids=self.item_ids)
         self.modality.build(self.cornac_dataset.iid_map)
         self.dmrl = DMRLModel(self.cornac_dataset.num_users, self.cornac_dataset.num_items, embedding_dim, bert_text_dim, self.num_neg, 2)
         self.loss_func = DMRLLoss(decay_c=1e-3, num_factors=self.dmrl.num_factors, num_neg=self.num_neg)
@@ -115,7 +115,7 @@ class TestDMRL(unittest.TestCase):
         dmrl_recommender.model = DMRLModel(dmrl_recommender.num_users,
                           dmrl_recommender.num_items,
                           dmrl_recommender.embedding_dim,
-                          dmrl_recommender.bert_text_dim,
+                          dmrl_recommender.text_dim,
                           dmrl_recommender.num_neg,
                           dmrl_recommender.num_factors)
 

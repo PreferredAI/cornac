@@ -1,24 +1,33 @@
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+
 import os
-from typing import List, Dict, Callable, Union
-from collections import defaultdict, Counter, OrderedDict
-import string
-import pickle
-import re
-import scipy
-from sentence_transformers import SentenceTransformer, util
+from typing import List
+from collections import OrderedDict
+from sentence_transformers import SentenceTransformer
 from operator import itemgetter
 
-import numpy as np
-import scipy.sparse as sp
 import torch
 
 from . import FeatureModality
-from .modality import fallback_feature
-from ..utils import normalize
 
 
-class BertTextModality(FeatureModality):
-    """Text modality using bert sentence encoder
+class TransformersTextModality(FeatureModality):
+    """
+    Transformer text modality wrapped around SentenceTrasformer library.
+    https://huggingface.co/sentence-transformers.
 
     Parameters
     ----------
@@ -26,10 +35,17 @@ class BertTextModality(FeatureModality):
         List of user/item texts that the indices are aligned with `ids`.
     """
 
-    def __init__(self, corpus: List[str] = None, ids: List = None, preencode: bool = False, **kwargs):
+    def __init__(
+            self,
+            corpus: List[str] = None,
+            ids: List = None,
+            preencode: bool = False,
+            model_name_or_path: str = 'paraphrase-MiniLM-L6-v2',
+            **kwargs):
+
         super().__init__(ids=ids, **kwargs)
         self.corpus = corpus
-        self.model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+        self.model = SentenceTransformer(model_name_or_path)
         self.output_dim = self.model[-1].pooling_output_dimension
         self.preencode = preencode
         self.preencoded = False
@@ -47,7 +63,7 @@ class BertTextModality(FeatureModality):
         if os.path.exists(path) and os.path.exists(id_path):
             saved_ids = torch.load(id_path)
             if saved_ids == self.ids:
-                self.encoded_corpus = torch.load(path)
+                self.features = torch.load(path)
                 self.preencoded = True
             else:
                 assert self.preencoded is False
@@ -55,10 +71,10 @@ class BertTextModality(FeatureModality):
         
         if not self.preencoded:
             print("Pre-encoding the entire corpus. This might take a while.")
-            self.encoded_corpus = self.model.encode(self.corpus, convert_to_tensor=True)
+            self.features = self.model.encode(self.corpus, convert_to_tensor=True)
             self.preencoded = True
             os.makedirs("temp", exist_ok = True) 
-            torch.save(self.encoded_corpus, path)
+            torch.save(self.features, path)
             torch.save(self.ids, id_path)
 
 
@@ -76,6 +92,9 @@ class BertTextModality(FeatureModality):
         """
         Swap the text in the corpus according to the id_map. That way we can
         access the corpus by index, where the index represents the item id.
+
+        :param id_map: the global id map (train and test set and possibly
+            validation set)
         """
         new_corpus = self.corpus.copy()
         new_ids = self.ids.copy()
@@ -95,6 +114,12 @@ class BertTextModality(FeatureModality):
 
     def batch_encode(self, ids: List[int]):
         """
+        Batch encode on the fly the list of item ids
+
+        Parameters
+        ----------
+        ids: List[int]
+            List of item ids to encode.
         """
 
         text_batch = list(itemgetter(*ids)(self.corpus))

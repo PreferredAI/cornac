@@ -1,11 +1,25 @@
-from scipy.spatial.distance import pdist, squareform, cdist
-from torch.nn.functional import pdist
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+
 import torch
 
 
 class DistanceCorrelationCalculator:
     """
-    Class used to calculate the distance correlation between two tensors.
+    Calculates the disentangled loss for DMRL model.
+    Please see https://arxiv.org/pdf/2203.05406.pdf for more details.
     """
 
     def __init__(self, n_factors, num_neg) -> None:
@@ -17,7 +31,7 @@ class DistanceCorrelationCalculator:
         Computes the distance covariance between X and Y.
         :param X: A 3D torch tensor.
         :param Y: A 3D torch tensor.
-        :return: A 1D torch tensor of len 1+mum_neg.
+        :return: A 1D torch tensor of len 1+num_neg.
         """
         # first create centered distance matrices
         X = self.cent_dist(X)
@@ -69,7 +83,12 @@ class DistanceCorrelationCalculator:
         D = D - row_mean - column_mean + global_mean
         return D
 
-    def calculate_disentangled_loss(self, item_embedding_factors, user_embedding_factors, text_embedding_factors):
+    def  calculate_disentangled_loss(
+            self,
+            item_embedding_factors: torch.Tensor,
+            user_embedding_factors: torch.Tensor,
+            text_embedding_factors: torch.Tensor,
+            image_embedding_factors: torch.Tensor):
         """
         Calculates the disentangled loss for the given factors.
 
@@ -83,12 +102,15 @@ class DistanceCorrelationCalculator:
             for j in range(i + 1, self.n_factors - 1):
                 cor_loss += self.calculate_cor(item_embedding_factors[i], item_embedding_factors[j])
                 cor_loss += self.calculate_cor(user_embedding_factors[i], user_embedding_factors[j])
-                cor_loss += self.calculate_cor(text_embedding_factors[i], text_embedding_factors[j])
+                if text_embedding_factors[i].numel() > 0:
+                    cor_loss += self.calculate_cor(text_embedding_factors[i], text_embedding_factors[j])
+                if image_embedding_factors[i].numel() > 0:
+                    cor_loss += self.calculate_cor(image_embedding_factors[i], image_embedding_factors[j])
 
         cor_loss = cor_loss / ((self.n_factors + 1.0) * self.n_factors / 2)
 
         # two options, we can either return the sum over the 1 positive and num_neg negative samples.
         # or we can return only the loss of the one positive sample, as they did in the paper
 
-        return torch.sum(cor_loss)
-        # return cor_loss[0]
+        # return torch.sum(cor_loss)
+        return cor_loss[0]

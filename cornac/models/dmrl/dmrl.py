@@ -1,9 +1,22 @@
+# Copyright 2018 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+
 from typing import List, Tuple
-import numpy as np
 import torch
 import torch.nn as nn
 from cornac.models.dmrl.d_cor_calc import DistanceCorrelationCalculator
-from cornac.data.bert_text import BertTextModality
 from dataclasses import dataclass
 
 from cornac.utils.common import get_rng
@@ -17,102 +30,81 @@ class EmbeddingFactorLists:
     """
     user_embedding_factors: List[torch.Tensor]
     item_embedding_factors: List[torch.Tensor]
-    text_embedding_factors: List[torch.Tensor]
-    image_embedding_factors: List[torch.Tensor]
+    text_embedding_factors: List[torch.Tensor] = None
+    image_embedding_factors: List[torch.Tensor] = None
 
 
 class DMRLModel(nn.Module):
     """
     The actual Disentangled Multi-Modal Recommendation Model neural network.
     """
-    def __init__(self, num_users, num_items, embedding_dim, bert_text_dim, image_dim, num_neg, num_factors, seed=123):
+    def __init__(
+            self,
+            num_users: int,
+            num_items: int,
+            embedding_dim: int,
+            text_dim: int,
+            image_dim: int,
+            dropout: float,
+            num_neg: int,
+            num_factors: int,
+            seed: int=123):
+
         super(DMRLModel, self).__init__()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.num_factors = num_factors
         self.num_neg = num_neg
         self.embedding_dim = embedding_dim
-        self.num_modalities = 3 if image_dim else 2
+        self.num_modalities = 1 + bool(text_dim) + bool(image_dim)
+        self.dropout = dropout
         self.grad_norms = []
         self.param_norms = []
         self.ui_ratings = []
         self.ut_ratings = []
         self.ui_attention = []
         self.ut_attention = []
-        self.text_module = torch.nn.Sequential(
-                            torch.nn.Linear(bert_text_dim, 150),
-                            torch.nn.LeakyReLU(),
-                            torch.nn.Linear(150, embedding_dim),
-                            torch.nn.LeakyReLU())
-        if image_dim:
-            self.image_module = torch.nn.Sequential(
-                                torch.nn.Linear(image_dim, 150),
-                                torch.nn.LeakyReLU(),
-                                torch.nn.Linear(150, embedding_dim),
-                                torch.nn.LeakyReLU())
-            
         
         rng = get_rng(123)
 
+        if text_dim:
+            self.text_module = torch.nn.Sequential(
+                                torch.nn.Dropout(p=self.dropout),
+                                torch.nn.Linear(text_dim, 150),
+                                torch.nn.LeakyReLU(),
+                                torch.nn.Dropout(p=self.dropout),
+                                torch.nn.Linear(150, embedding_dim),
+                                torch.nn.LeakyReLU())
+            self.text_module[1].weight.data = torch.from_numpy(xavier_normal([150, text_dim], random_state=rng))#, std=0.02))
+            self.text_module[4].weight.data
+
+        if image_dim:
+            self.image_module = torch.nn.Sequential(
+                                torch.nn.Dropout(p=self.dropout),
+                                torch.nn.Linear(image_dim, 150),
+                                torch.nn.LeakyReLU(),
+                                torch.nn.Dropout(p=self.dropout),
+                                torch.nn.Linear(150, embedding_dim),
+                                torch.nn.LeakyReLU())
+            
         self.user_embedding = torch.nn.Embedding(num_users, embedding_dim)
         self.item_embedding = torch.nn.Embedding(num_items, embedding_dim)
 
-        self.user_embedding.weight.data = torch.from_numpy(normal([num_users, embedding_dim], random_state=rng, std=0.02))
-        self.item_embedding.weight.data = torch.from_numpy(normal([num_items, embedding_dim], random_state=rng, std=0.02))
-        self.text_module[0].weight.data = torch.from_numpy(normal([150, bert_text_dim], random_state=rng, std=0.02))
-        self.text_module[2].weight.data = torch.from_numpy(normal([embedding_dim, 150], random_state=rng, std=0.02))
+        self.user_embedding.weight.data = torch.from_numpy(xavier_normal([num_users, embedding_dim], random_state=rng))#, std=0.02))
+        self.item_embedding.weight.data = torch.from_numpy(xavier_normal([num_items, embedding_dim], random_state=rng))#, std=0.02))
 
         self.factor_size = self.embedding_dim // self.num_factors
-        # last_factor_size = self.embedding_dim % self.num_factors
 
-        self.attention_layer = torch.nn.Sequential(
+        self.attention_layer = torch.nn.Sequential( torch.nn.Dropout(p=self.dropout),
                                                     torch.nn.Linear((self.num_modalities+1) * self.factor_size, self.num_modalities),
-                                                    # nn.BatchNorm1d(self.num_neg+1), 
                                                     torch.nn.Tanh(),
+                                                    torch.nn.Dropout(p=self.dropout),
                                                     torch.nn.Linear(self.num_modalities, self.num_modalities, bias=False),
-                                                    # nn.BatchNorm1d(self.num_neg+1), 
                                                     torch.nn.Softmax(dim=-1)
                                                     )
-        self.attention_layer[0].weight.data = torch.from_numpy(normal([self.num_modalities, (self.num_modalities+1) * self.factor_size], random_state=rng, std=0.02))
-        # self.attention_layer[0].weight.data = torch.from_numpy(normal([self.num_modalities, (self.num_modalities+1) * self.factor_size], 10, 4, rng, np.float32))
-        # self.attention_layer[0].bias.data = torch.zeros(self.num_modalities)
-        self.attention_layer[2].weight.data = torch.from_numpy(normal([self.num_modalities, self.num_modalities], random_state=rng, std=0.02))
-        # self.attention_layer[2].weight.data = torch.from_numpy(normal([self.num_modalities, self.num_modalities], 10, 4, rng, np.float32))
+        self.attention_layer[1].weight.data = torch.from_numpy(xavier_normal([self.num_modalities, (self.num_modalities+1) * self.factor_size], random_state=rng))#, std=0.02))
+        self.attention_layer[4].weight.data = torch.from_numpy(xavier_normal([self.num_modalities, self.num_modalities], random_state=rng))#, std=0.02))
 
-
-        # create the attention layers. One NN layer per factor, however if
-        # embedding dim is not divisible into num_factors without rest the last
-        # attention layer will have a different input size
-        # self.attention_layer = []
-        # for _ in range(self.num_factors - 1):
-        #     self.attention_layer.append(self.make_attention_layer(self.factor_size))
-
-        # if last_factor_size > 0: # last factor size is < factor size
-        #     self.attention_layer.append(self.make_attention_layer(last_factor_size))
-        # else: # last factor layer also has exactly factor size many input features
-        #     self.attention_layer.append(self.make_attention_layer(self.factor_size))
-        
-        # self.attention_layer = nn.ModuleList(self.attention_layer)
         self.grad_dict = {i[0]: [] for i in self.named_parameters()}
-
-    
-    # def forward(self, u_indices, i_indices, text):
-    #     """
-    #     """
-    #     user_embedding = self.user_embedding(u_indices)
-    #     item_embedding = self.item_embedding(i_indices)
-
-    #     text_embedding = self.text_module(text)
-
-    #     # attention = self.attention_layer(torch.concatenate([user_embedding, item_embedding, text_embedding], axis=1))
-
-    #     preds_ui = torch.matmul(user_embedding, item_embedding.T)
-    #     preds_ut = torch.matmul(user_embedding, text_embedding.T)
-
-    #     self.ui_ratings.append(torch.norm(preds_ui.detach().flatten()))
-    #     self.ut_ratings.append(torch.norm(preds_ut.detach().flatten()))
-
-    #     return preds_ui + preds_ut
-
 
     def forward(self, batch: torch.Tensor, text: torch.Tensor, image: torch.Tensor) -> Tuple[EmbeddingFactorLists, torch.Tensor]:
         """
@@ -128,28 +120,37 @@ class DMRLModel(nn.Module):
         image: torch.Tensor
             The image data for the items in the batch (encoded)
         """
-        text_embedding = self.text_module(text)
-        image_embedding = self.image_module(image)
+        text_embedding_factors = [torch.tensor([]) for _ in range(self.num_factors)]
+        image_embedding_factors = [torch.tensor([]) for _ in range(self.num_factors)]
         users = batch[:, 0]
         items = batch[:, 1:]
-        user_embedding: torch.tensor
-        user_embedding = self.user_embedding(users)
-        item_embedding = self.item_embedding(items)
-        batch_size = users.shape[0]
 
+        # handle text
+        if text is not None:
+            text_embedding = self.text_module(torch.nn.functional.normalize(text, dim=-1))
+            text_embedding_factors = torch.split(text_embedding, self.embedding_dim // self.num_factors, dim=-1)
+
+        # handle image
+        if image is not None:
+            image_embedding = self.image_module(torch.nn.functional.normalize(image, dim=-1))
+            image_embedding_factors = torch.split(image_embedding, self.embedding_dim // self.num_factors, dim=-1)
+
+        # handle users
+        user_embedding = self.user_embedding(users)
         # we have to get users into shape batch, 1+num_neg, embedding_dim
         # therefore we repeat the users across the 1 pos and num_neg items
         user_embedding_inflated = user_embedding.unsqueeze(1).repeat(1, items.shape[1], 1)
-
-        # now split into the k factors
         user_embedding_factors = torch.split(user_embedding_inflated, self.embedding_dim // self.num_factors, dim=-1)
+
+        # handle items
+        item_embedding = self.item_embedding(items)
         item_embedding_factors = torch.split(item_embedding, self.embedding_dim // self.num_factors, dim=-1)
-        text_embedding_factors = torch.split(text_embedding, self.embedding_dim // self.num_factors, dim=-1)
-        image_embedding_factors = torch.split(image_embedding, self.embedding_dim // self.num_factors, dim=-1)
+
 
         embedding_factor_lists = EmbeddingFactorLists(user_embedding_factors, item_embedding_factors, text_embedding_factors, image_embedding_factors)
 
         # attentionLayer: implemented per factor k
+        batch_size = users.shape[0]
         ratings_sum_over_mods = torch.zeros((batch_size, 1 + self.num_neg)).to(self.device)
         for i in range(self.num_factors):
 
@@ -157,20 +158,24 @@ class DMRLModel(nn.Module):
             attention = self.attention_layer(torch.nn.functional.normalize(concatted_features, dim=-1))
 
             r_ui = attention[:, :, 0] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * item_embedding_factors[i], axis=-1))
-            r_ut = attention[:, :, 1] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * text_embedding_factors[i], axis=-1))
-            r_uv = attention[:, :, 1] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * image_embedding_factors[i], axis=-1))
-
-
-            # r_ui = torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * item_embedding_factors[i], axis=-1))
-            # r_ut = torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * text_embedding_factors[i], axis=-1))
-            # r_uv = torch.sum(user_embedding_inflated * visual_embedding, axis=-1)
-
-            # sum up over modalities and factorss
-            self.ui_attention.append(torch.norm(attention[:, :, 0].detach().flatten()).cpu())
-            self.ut_attention.append(torch.norm(attention[:, :, 1].detach().flatten()).cpu())
+            # log rating
             self.ui_ratings.append(torch.norm(r_ui.detach().flatten()).cpu())
-            self.ut_ratings.append(torch.norm(r_ut.detach().flatten()).cpu())
-            ratings_sum_over_mods = ratings_sum_over_mods + (r_ui + r_ut + r_uv)
+
+            factor_rating = r_ui
+
+            if text is not None:
+                r_ut = attention[:, :, 1] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * text_embedding_factors[i], axis=-1))
+                factor_rating = factor_rating + r_ut
+                # log rating
+                self.ut_ratings.append(torch.norm(r_ut.detach().flatten()).cpu())
+
+            if image is not None:
+                r_ui = attention[:, :, 1] * torch.nn.Softplus()(torch.sum(user_embedding_factors[i] * image_embedding_factors[i], axis=-1))
+                factor_rating = factor_rating + r_ui
+                self.ui_ratings.append(torch.norm(r_ui.detach().flatten()).cpu())
+            
+            # sum up over modalities and running sum over factors
+            ratings_sum_over_mods = ratings_sum_over_mods + factor_rating
 
         return embedding_factor_lists, ratings_sum_over_mods
 
@@ -228,9 +233,11 @@ class DMRLLoss(nn.Module):
         loss_BPR = torch.sum(torch.nn.Softplus()(-(r_pos - r_neg)))
 
         # regularizer loss is added as weight decay in optimization function
-        disentangled_loss = self.distance_cor_calc.calculate_disentangled_loss(embedding_factor_lists.user_embedding_factors,
-                                                                               embedding_factor_lists.item_embedding_factors,
-                                                                               embedding_factor_lists.text_embedding_factors)
+        if self.decay_c > 0:
+            disentangled_loss = self.distance_cor_calc.calculate_disentangled_loss(embedding_factor_lists.user_embedding_factors,
+                                                                                   embedding_factor_lists.item_embedding_factors,
+                                                                                   embedding_factor_lists.text_embedding_factors,
+                                                                                   embedding_factor_lists.image_embedding_factors)
 
-        total_loss = loss_BPR + self.decay_c * disentangled_loss
-        return total_loss
+            return loss_BPR + self.decay_c * disentangled_loss
+        return loss_BPR
