@@ -10,7 +10,10 @@ from ...data import Dataset
 
 
 class HypAR(Recommender):
-    def __init__(self, name='HypAR', use_cuda=False, use_uva=False, stemming=True,
+    def __init__(self,
+                 name='HypAR',
+                 use_cuda=False,
+                 stemming=True,
                  batch_size=128,
                  num_workers=0,
                  num_epochs=10,
@@ -22,7 +25,6 @@ class HypAR(Recommender):
                  node_dim=64,
                  num_heads=3,
                  fanout=5,
-                 use_relation=False,
                  non_linear=True,
                  model_selection='best',
                  objective='ranking',
@@ -34,19 +36,16 @@ class HypAR(Recommender):
                  num_neg_samples=50,
                  layer_dropout=None,
                  attention_dropout=.2,
-                 hypergraph_attention=False,
                  user_based=True,
                  verbose=True,
                  index=0,
                  out_path=None,
-                 popularity_biased_sampling=False,
-                 self_enhance_loss=True,
                  learn_explainability=False,
                  learn_method='transr',
                  learn_weight=1.,
                  learn_pop_sampling=False,
                  embedding_type='ao_embeddings',
-                 debug=False
+                 debug=False,
                  ):
 
         super().__init__(name)
@@ -57,7 +56,6 @@ class HypAR(Recommender):
         # CUDA
         self.use_cuda = use_cuda
         self.device = 'cuda' if use_cuda else 'cpu'
-        self.use_uva = use_uva
 
         # Parameters
         self.batch_size = batch_size
@@ -71,7 +69,6 @@ class HypAR(Recommender):
         self.l2_weight = l2_weight
         self.num_heads = num_heads
         self.fanout = fanout
-        self.use_relation = use_relation
         self.non_linear = non_linear
         self.model_selection = model_selection
         self.objective = objective
@@ -83,21 +80,12 @@ class HypAR(Recommender):
         self.num_neg_samples = num_neg_samples
         self.layer_dropout = layer_dropout
         self.attention_dropout = attention_dropout
-        self.hypergraph_attention = hypergraph_attention
         self.stemming = stemming
-        self.self_enhance_loss = self_enhance_loss
         self.learn_explainability = learn_explainability
         self.learn_method = learn_method
         self.learn_weight = learn_weight
         self.learn_pop_sampling = learn_pop_sampling
         self.embedding_type = embedding_type
-        self.popularity_biased_sampling = popularity_biased_sampling
-        parameter_list = ['batch_size', 'learning_rate', 'weight_decay', 'node_dim', 'num_heads',
-                          'fanout', 'use_relation', 'model_selection', 'review_aggregator', 'objective',
-                          'predictor', 'preference_module', 'layer_dropout', 'attention_dropout', 'stemming',
-                          'learn_explainability', 'learn_method', 'learn_weight', 'learn_pop_sampling',
-                          'popularity_biased_sampling', 'combiner', 'self_enhance_loss']
-        self.parameters = collections.OrderedDict({k: self.__getattribute__(k) for k in parameter_list})
 
         # Method
         self.node_review_graph = None
@@ -120,7 +108,6 @@ class HypAR(Recommender):
         self.out_path = out_path
 
         # assertions
-        assert use_uva == use_cuda or not use_uva, 'use_cuda must be true when using uva.'
         assert objective == 'ranking' or objective == 'rating', f'This method only supports ranking or rating, ' \
                                                                 f'not {objective}.'
         if early_stopping is not None:
@@ -520,8 +507,7 @@ class HypAR(Recommender):
             else:
                 kwargs['ao_embeddings'] = torch.zeros((0, 0))
 
-        if not self.use_relation:
-            self.n_relations = 0
+        self.n_relations = 0
 
         # Construct user-item graph used by lightgcn
         self.ui_graph = construct_graph(train_set, self.num_users, self.num_items)
@@ -530,11 +516,11 @@ class HypAR(Recommender):
         # create model
         from .hypar import Model
 
-        self.model = Model(self.ui_graph, n_nodes, self.n_relations, n_r_types, self.review_aggregator,
+        self.model = Model(self.ui_graph, n_nodes, n_r_types, self.review_aggregator,
                            self.predictor, self.node_dim, self.review_graphs, self.num_heads, [self.layer_dropout] * 2,
                            self.attention_dropout, self.preference_module, self.use_cuda, combiner=self.combiner,
                            aos_predictor=self.learn_method, non_linear=self.non_linear,
-                           embedding_type=self.embedding_type, hypergraph_attention=self.hypergraph_attention,
+                           embedding_type=self.embedding_type,
                            **kwargs)
 
         self.model.reset_parameters()
@@ -572,13 +558,6 @@ class HypAR(Recommender):
         eids = g.edges(form='eid')[mask]
         num_workers = self.num_workers
 
-        if self.use_uva:
-            # g = g.to(self.device)
-            eids = eids.to(self.device)
-            self.node_review_graph = self.node_review_graph.to(self.device)
-            self.ui_graph = self.ui_graph.to(self.device)
-            num_workers = 0
-
         if self.debug:
             num_workers = 0
 
@@ -588,107 +567,95 @@ class HypAR(Recommender):
         sampler = dgl_utils.HearBlockSampler(self.node_review_graph, self.review_graphs, self.review_aggregator,
                                              self.sid_aos, self.aos_list, 5,
                                              self.ui_graph, fanout=self.fanout, hard_negatives=self.learn_pop_sampling)
+
+        # If trained for ranking, define negative sampler only sampling items as negative samples.
         if self.objective == 'ranking':
             ic = collections.Counter(self.train_set.matrix.nonzero()[1])
-            probabilities = torch.FloatTensor([ic.get(i) for i in sorted(ic)]) if self.popularity_biased_sampling \
-                else None
-            neg_sampler = dgl_utils.GlobalUniformItemSampler(self.num_neg_samples, self.train_set.num_items,
-                                                             probabilities)
+            neg_sampler = dgl_utils.GlobalUniformItemSampler(self.num_neg_samples, self.train_set.num_items,)
         else:
             neg_sampler = None
 
+        # Initialize sampler and dataloader
         sampler = dgl_utils.HEAREdgeSampler(sampler, prefetch_labels=prefetch, negative_sampler=neg_sampler,
                                             exclude='self')
         dataloader = dgl.dataloading.DataLoader(g, eids, sampler, batch_size=self.batch_size, shuffle=True,
-                                                drop_last=True, device=self.device, use_uva=self.use_uva,
+                                                drop_last=True, device=self.device,
                                                 num_workers=num_workers, use_prefetch_thread=thread)
 
         # Initialize training params.
         optimizer = optim.AdamW(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
 
+        # Define metrics
         if self.objective == 'ranking':
             metrics = [cornac.metrics.NDCG(), cornac.metrics.AUC(), cornac.metrics.MAP(), cornac.metrics.MRR()]
         else:
             metrics = [cornac.metrics.MSE()]
 
+        # Initialize variables for training
         best_state = None
         best_score = 0 if metrics[0].higher_better else float('inf')
         best_epoch = 0
         epoch_length = len(dataloader)
         all_nodes = torch.arange(next(iter(self.review_graphs.values())).shape[0]).to(self.device)
+
+        # Train model
         for e in range(self.num_epochs):
+            # Initialize for logging
             tot_losses = defaultdict(int)
             cur_losses = {}
             self.model.train()
+            with tqdm(dataloader, disable=not self.verbose) as progress:
+                for i, batch in enumerate(progress, 1):
+                    # Batch depends on objective
+                    if self.objective == 'ranking':
+                        input_nodes, edge_subgraph, neg_subgraph, blocks = batch
+                    else:
+                        input_nodes, edge_subgraph, blocks = batch
 
-            with (dataloader.enable_cpu_affinity() if False else nullcontext()):
-                with tqdm(dataloader, disable=not self.verbose) as progress:
-                    for i, batch in enumerate(progress, 1):
-                        if self.objective == 'ranking':
-                            input_nodes, edge_subgraph, neg_subgraph, blocks = batch
-                        else:
-                            input_nodes, edge_subgraph, blocks = batch
+                    # Get node representations,
+                    node_representation, e_star = self.model(blocks, self.model.get_initial_embedings(all_nodes), input_nodes)
 
-                        node_rep, e_star, node_rep_subset = self.model(blocks,
-                                                                       self.model.get_initial_embedings(all_nodes),
-                                                                       input_nodes)
+                    pred = self.model.graph_predict(edge_subgraph, e_star)
+                    loss = 0
+                    if self.objective == 'ranking':
+                        pred_j = self.model.graph_predict(neg_subgraph, e_star)
+                        pred_j = pred_j.reshape(-1, self.num_neg_samples)
+                        loss = self.model.ranking_loss(pred, pred_j)
+                        acc = (pred > pred_j).sum() / pred_j.shape.numel()
+                        cur_losses['acc'] = acc.detach()
+                    else:
+                        loss = self.model.rating_loss(pred, edge_subgraph.edata['label'])
 
-                        rp, pred = self.model.graph_predict(edge_subgraph, [node_rep_subset, e_star])
-                        rp = rp.unsqueeze(-1)
-                        loss = 0
-                        if self.objective == 'ranking':
-                            rp_j, pred_j = self.model.graph_predict(neg_subgraph, [node_rep_subset, e_star])
-                            pred_j = pred_j.reshape(-1, self.num_neg_samples)
-                            rp_j = rp_j.reshape(-1, self.num_neg_samples)
-                            acc = (pred > pred_j).sum() / pred_j.shape.numel()
-                            # loss += self.model.ranking_loss(pred, pred_j)
-                            # cur_losses['loss'] = loss.detach()
-                            # cur_losses['acc'] = acc.detach()
+                    cur_losses['lloss'] = loss.detach()  # Learning loss
 
-                            acc = (rp > rp_j).sum() / rp_j.shape.numel()
-                            rl = self.model.ranking_loss(rp, rp_j)
+                    if self.learn_explainability:
+                        aos_loss, aos_acc = self.model.aos_graph_predict(edge_subgraph, node_representation, e_star)
+                        aos_loss = aos_loss.mean()
+                        cur_losses['aos_loss'] = aos_loss.detach()
+                        cur_losses['aos_acc'] = (aos_acc.sum() / aos_acc.shape.numel()).detach()
+                        loss += self.learn_weight * aos_loss
 
-                            if self.self_enhance_loss:
-                                cur_losses['rl'] = rl.detach()
-                                cur_losses['racc'] = acc.detach()
+                    cur_losses['totloss'] = loss.detach()
+                    loss.backward()
 
-                                loss += rl
+                    for k, v in cur_losses.items():
+                        tot_losses[k] += v.cpu()
 
-                            if self.l2_weight:
-                                l2 = self.l2_weight * self.model.l2_loss(edge_subgraph, neg_subgraph, e_star)
-                                loss += l2
-                                cur_losses['l2'] = l2.detach()
-                        else:
-                            loss = self.model.rating_loss(pred, edge_subgraph.edata['label'])
-                            cur_losses['loss'] = loss.detach()
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    loss_str = ','.join([f'{k}:{v / i:.3f}' for k, v in tot_losses.items()])
+                    if i != epoch_length or val_set is None:
+                        progress.set_description(f'Epoch {e}, ' + loss_str)
+                    elif (e + 1) % self.eval_interval == 0:
+                        results = self._validate(val_set, metrics)
+                        res_str = 'Val: ' + ','.join([f'{m.name}:{r:.4f}' for m, r in zip(metrics, results)])
+                        progress.set_description(f'Epoch {e}, ' + f'{loss_str}, ' + res_str)
 
-                        if self.learn_explainability:
-                            aos_loss, aos_acc = self.model.aos_graph_predict(edge_subgraph, node_rep, e_star)
-                            aos_loss = aos_loss.mean()
-                            cur_losses['aos_loss'] = aos_loss.detach()
-                            cur_losses['aos_acc'] = (aos_acc.sum() / aos_acc.shape.numel()).detach()
-                            loss += self.learn_weight * aos_loss
-
-                        loss.backward()
-
-                        for k, v in cur_losses.items():
-                            tot_losses[k] += v.cpu()
-
-                        optimizer.step()
-                        optimizer.zero_grad()
-                        loss_str = ','.join([f'{k}:{v / i:.3f}' for k, v in tot_losses.items()])
-                        if i != epoch_length or val_set is None:
-                            progress.set_description(f'Epoch {e}, ' + loss_str)
-                        elif (e + 1) % self.eval_interval == 0:
-                            results = self._validate(val_set, metrics)
-                            res_str = 'Val: ' + ', '.join([f'{m.name}:{r:.4f}' for m, r in zip(metrics, results)])
-                            progress.set_description(f'Epoch {e}, ' + f'{loss_str}, ' + res_str)
-
-                            if self.model_selection == 'best' and (results[0] > best_score if metrics[0].higher_better
-                            else results[0] < best_score):
-                                best_state = deepcopy(self.model.state_dict())
-                                best_score = results[0]
-                                best_epoch = e
+                        if self.model_selection == 'best' and (results[0] > best_score if metrics[0].higher_better
+                        else results[0] < best_score):
+                            best_state = deepcopy(self.model.state_dict())
+                            best_score = results[0]
+                            best_epoch = e
 
             if self.early_stopping is not None and (e - best_epoch) >= self.early_stopping:
                 break
@@ -700,10 +667,6 @@ class HypAR(Recommender):
 
         if best_state is not None:
             self.model.load_state_dict(best_state)
-
-        if val_set is not None and self.summary_writer is not None:
-            results = self._validate(val_set, metrics)
-            self.summary_writer.add_hparams(dict(self.parameters), dict(zip([m.name for m in metrics], results)))
 
         self.model.eval()
         with torch.no_grad():
@@ -759,15 +722,6 @@ class HypAR(Recommender):
 
         state = self.model.state_dict()
         torch.save(state, os.path.join(save_dir, str(self.index), name))
-
-        # results_path = os.path.join(path.rsplit('/', 1)[0], 'results.csv')
-        # header = not os.path.exists(results_path)
-        # self.parameters['score'] = self.best_value
-        # self.parameters['epoch'] = self.best_epoch
-        # self.parameters['file'] = path.rsplit('/')[-1]
-        # self.parameters['id'] = self.index
-        # df = pd.DataFrame({k: [v] for k, v in self.parameters.items()})
-        # df.to_csv(results_path, header=header, mode='a', index=False)
 
         return path
 
