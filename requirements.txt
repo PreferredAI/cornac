@@ -4,5 +4,6 @@ Cython
 tqdm
 powerlaw
 sentence_transformers
+torchvision
 torch
 dcor
