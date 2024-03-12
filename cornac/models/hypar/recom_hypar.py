@@ -561,9 +561,9 @@ class HypAR(Recommender):
         thread = False  # Memory saving and does not increase speed.
 
         # Create sampler
-        sampler = dgl_utils.HearBlockSampler(self.node_review_graph, self.review_graphs, self.review_aggregator,
-                                             self.sid_aos, self.aos_list, 5,
-                                             self.ui_graph, fanout=self.fanout)
+        sampler = dgl_utils.HypARBlockSampler(self.node_review_graph, self.review_graphs, self.review_aggregator,
+                                              self.sid_aos, self.aos_list, 5,
+                                              self.ui_graph, fanout=self.fanout)
 
         # If trained for ranking, define negative sampler only sampling items as negative samples.
         if self.objective == 'ranking':
@@ -573,8 +573,8 @@ class HypAR(Recommender):
             neg_sampler = None
 
         # Initialize sampler and dataloader
-        sampler = dgl_utils.HEAREdgeSampler(sampler, prefetch_labels=prefetch, negative_sampler=neg_sampler,
-                                            exclude='self')
+        sampler = dgl_utils.HypAREdgeSampler(sampler, prefetch_labels=prefetch, negative_sampler=neg_sampler,
+                                             exclude='self')
         dataloader = dgl.dataloading.DataLoader(g, eids, sampler, batch_size=self.batch_size, shuffle=True,
                                                 drop_last=True, device=self.device,
                                                 num_workers=num_workers, use_prefetch_thread=thread)

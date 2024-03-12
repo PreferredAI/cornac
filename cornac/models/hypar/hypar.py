@@ -838,9 +838,12 @@ class Model(nn.Module):
         return h.reshape(-1, 1)
 
     def _combine(self, user, item):
-        u_emb, i_emb = self.inf_emb[user], self.inf_emb[item]
-        lu_emb, li_emb = self.lemb[user], self.lemb[item]
+        # Use embeddings computed using self.inference
+        u_emb, i_emb = self.inf_emb[user], self.inf_emb[item]  # review user/item embedding
+        lu_emb, li_emb = self.lemb[user], self.lemb[item]  # preference user/item embedding, e.g., lightgcn
 
+        # Depending on combiner, combine embeddings
+        # if using self or self-only, then lu/li_emb are based on explainability module only, not preference module.
         if self.combiner in ['concat', 'self']:
             u_emb = torch.cat([u_emb, lu_emb], dim=-1)
             i_emb = torch.cat([i_emb, li_emb], dim=-1)
@@ -862,6 +865,7 @@ class Model(nn.Module):
         elif self.combiner == 'self-only':
             u_emb, i_emb = lu_emb, li_emb
 
+        # Return user item embeddings
         return u_emb, i_emb
 
     def predict(self, user, item):

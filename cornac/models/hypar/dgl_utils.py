@@ -8,7 +8,7 @@ import torch
 from dgl.dataloading.negative_sampler import _BaseNegativeSampler
 import dgl.backend as F
 
-class HEAREdgeSampler(dgl.dataloading.EdgePredictionSampler):
+class HypAREdgeSampler(dgl.dataloading.EdgePredictionSampler):
     def __init__(self, sampler, exclude=None, reverse_eids=None,
                  reverse_etypes=None, negative_sampler=None, prefetch_labels=None):
         super().__init__(sampler, exclude, reverse_eids, reverse_etypes, negative_sampler,
@@ -51,7 +51,7 @@ class HEAREdgeSampler(dgl.dataloading.EdgePredictionSampler):
             return self.assign_lazy_features((input_nodes, pair_graph, neg_graph, blocks))
 
 
-class HearBlockSampler(dgl.dataloading.NeighborSampler):
+class HypARBlockSampler(dgl.dataloading.NeighborSampler):
     def __init__(self, node_review_graph, review_graphs, aggregator, sid_aos, aos_list, n_neg, ui_graph,
                  compact=True, fanout=5, **kwargs):
         """
@@ -84,6 +84,17 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
         self.exclude_sids = self._create_exclude_sids(self.node_review_graph)
 
     def _create_exclude_sids(self, n_r_graph):
+        """
+        Create a list of sids to exclude based on the node_review_graph.
+        Parameters
+        ----------
+        n_r_graph: node_review graph
+
+        Returns
+        -------
+        list
+        """
+
         exclude_sids = []
         for sid in sorted(n_r_graph.nodes('review')):
             neighbors = n_r_graph.successors(sid)
@@ -97,15 +108,27 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
                 exclude_sids.append(torch.LongTensor([]))
         return exclude_sids
 
-
     def _nu_graph(self):
+        """
+        Create graph mapping user/items to node ids. Used for preference where users and items are seperated, while
+        for reviews they are combined or just seen as a node.
+
+        Returns
+        -------
+        DGLHeteroGraph
+        """
+
+        # Get number of user, item and nodes
         n_nodes = self.node_review_graph.num_nodes('node')
         n_users = self.ui_graph.num_nodes('user')
         n_items = self.ui_graph.num_nodes('item')
 
+        # Get all nodes. Nodes are user/item
         nodes = self.node_review_graph.nodes('node')
         device = nodes.device
         nodes = nodes.cpu()
+
+        # Create mapping
         data = {
             ('user', 'un', 'node'): (torch.arange(n_users, dtype=torch.int64), nodes[nodes >= n_items]),
             ('item', 'in', 'node'): (torch.arange(n_items, dtype=torch.int64), nodes[nodes < n_items])
@@ -117,10 +140,17 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
         # If exclude eids, find the equivalent eid of the node_review_graph.
         nrg_exclude_eids = None
         lgcn_exclude_eids = None
+
+        # If exclude ids, find the equivalent.
         if exclude_eids is not None:
+            # Find sid of the exclude eids.
             u, v = g.find_edges(exclude_eids)
             sid = g.edata['sid'][exclude_eids].to(u.device)
+
+            # Find exclude eids based on sid and source nodes in g.
             nrg_exclude_eids = self.node_review_graph.edge_ids(sid, u, etype='part_of')
+
+            # Find exclude eids based on sid and source nodes in g.
             lgcn_exclude_eids = dgl.dataloading.find_exclude_eids(
                 self.ui_graph, {'user_item': seed_edges}, 'reverse_types', None, {'user_item': 'item_user', 'item_user': 'user_item'},
                 self.output_device)
@@ -149,6 +179,7 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
         # LightGCN Sampling
         for i in range(4):
             if i == 0:
+                # Use node to user/item graph to sample first.
                 frontier = self.n_ui_graph.sample_neighbors(
                     seed_nodes, -1, edge_dir=self.edge_dir, prob=self.prob,
                     replace=self.replace, output_device=self.output_device,
@@ -158,6 +189,8 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
                     seed_nodes, -1, edge_dir=self.edge_dir, prob=self.prob,
                     replace=self.replace, output_device=self.output_device,
                     exclude_edges=lgcn_exclude_eids)
+
+            # Sample reviews based on the user/item graph.
             eid = frontier.edata[dgl.EID]
             block = dgl.to_block(frontier, seed_nodes)
             block.edata[dgl.EID] = eid
@@ -166,23 +199,27 @@ class HearBlockSampler(dgl.dataloading.NeighborSampler):
 
         pos_aos = []
         neg_aos = []
+        # Find aspect/opinion sentiment based on the sampled reviews.
         for sid in g.edata['sid'][exclude_eids].cpu().numpy():
             aosid = self.sid_aos[sid]
             aosid = aosid[torch.randperm(len(aosid))[0]]
+            pos_aos.append(aosid)  # Add positive sample.
 
-            propability = torch.ones(len(self.aos_probabilities))
+            probability = torch.ones(len(self.aos_probabilities))
 
             # Exclude self and other aspects/opinions mentioned by the user or item.
-            propability[aosid] = 0
+            probability[aosid] = 0
             exclude_sids = torch.cat([self.sid_aos[i] for i in self.exclude_sids[sid]])
-            propability[exclude_sids] = 0
+            probability[exclude_sids] = 0
 
-            neg_aos.append(torch.multinomial(propability, self.n_neg, replacement=True))
-            pos_aos.append(aosid)
+            # Add negative samples based on probability (allow duplicates).
+            neg_aos.append(torch.multinomial(probability, self.n_neg, replacement=True))
 
+        # Transform to tensors.
         pos_aos = torch.LongTensor(pos_aos)
         neg_aos = torch.stack(neg_aos)
 
+        # Based on sid id, get actual aos.
         pos_aos, neg_aos = self.aos_list[pos_aos], self.aos_list[neg_aos]
 
         return input_nodes, output_nodes, [pos_aos, neg_aos], [blocks, blocks2, mask]
@@ -213,32 +250,40 @@ class GlobalUniformItemSampler(_BaseNegativeSampler):
 def stem_fn(x):
     from gensim.parsing import stem_text
 
+    # Remove special characters and numbers. Multiple dashes, single quotes, and equal signs, and similar special chars.
     return stem_text(re.sub(r'--+.*|-+$|\+\+|\'.+|=+.*$|-\d.*', '', x))
 
 
 def stem(sentiment):
     ao_preprocess_fn = stem_fn
+
+    # Set seed for reproducibility
     import random
     random.seed(42)
+
+    # Map id to new word
     a_id_new = {i: ao_preprocess_fn(e) for e, i in sentiment.aspect_id_map.items()}
     o_id_new = {i: ao_preprocess_fn(e) for e, i in sentiment.opinion_id_map.items()}
+
+    # Assign new ids to words, mapping from word to id
     a_id = {e: i for i, e in enumerate(sorted(set(a_id_new.values())))}
     o_id = {e: i for i, e in enumerate(sorted(set(o_id_new.values())))}
+
+    # Map old id to new id
     a_o_n = {i: a_id[e] for i, e in a_id_new.items()}
     o_o_n = {i: o_id[e] for i, e in o_id_new.items()}
 
-    s = OrderedDict()
+    # Assign new ids to sentiment
+    sents = OrderedDict()
     for i, aos in sentiment.sentiment.items():
-        s[i] = [(a_o_n[a], o_o_n[o], s) for a, o, s in aos]
+        sents[i] = [(a_o_n[a], o_o_n[o], s) for a, o, s in aos]
 
-    return s, a_o_n, o_o_n
+    return sents, a_o_n, o_o_n
 
 
 @lru_cache()
 def generate_mappings(sentiment, match, get_ao_mappings=False, get_sent_edge_mappings=False):
     # Initialize all variables
-    sent, a_mapping, o_mapping = stem(sentiment)
-    # sent = sentiment.sentiment
     aos_user = defaultdict(list)
     aos_item = defaultdict(list)
     aos_sent = defaultdict(list)
@@ -248,10 +293,14 @@ def generate_mappings(sentiment, match, get_ao_mappings=False, get_sent_edge_map
     user_sent_edge_map = dict()
     item_sent_edge_map = dict()
 
+    # Get new sentiments and mappings from old to new id.
+    sent, a_mapping, o_mapping = stem(sentiment)
+
     # Iterate over all sentiment triples and create the corresponding mapping for users and items.
     edge_id = -1
     for uid, isid in sentiment.user_sentiment.items():
         for iid, sid in isid.items():
+            # Assign edge id mapping for user and item.
             user_sent_edge_map[(sid, uid)] = (edge_id := edge_id + 1)  # assign and increment
             item_sent_edge_map[(sid, iid)] = (edge_id := edge_id + 1)
             for a, o, s in sent[sid]:
