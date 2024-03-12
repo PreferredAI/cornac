@@ -24,7 +24,6 @@ import torch
 
 from torch.utils.data import DataLoader
 import numpy as np
-from torch.utils.tensorboard import SummaryWriter
 
 
 
@@ -118,6 +117,7 @@ class DMRL(Recommender):
         self.num_factors = num_factors
         self.log_metrics = log_metrics
         if log_metrics:
+            from torch.utils.tensorboard import SummaryWriter
             self.tb_writer = SummaryWriter("temp/tb_data/run_1")
 
         if self.num_factors == 1:
