@@ -460,6 +460,44 @@ class Model(nn.Module):
                  num_heads, layer_dropout, attention_dropout, preference_module='lightgcn', use_cuda=True,
                  combiner='add', aos_predictor='non-linear', non_linear=False, embedding_type='learned',
                  **kwargs):
+        """
+        HypAR model based on DGL and Torch.
+        Parameters
+        ----------
+        g: dgl.DGLGraph
+            Heterogeneous graph with user and item nodes.
+        n_nodes: int
+            Number of nodes
+        aggregator: str
+            Aggregator to use. Can be 'gatv2' and 'narre'.
+        predictor: str
+            Predictor to use. Can be 'narre' and 'dot'.
+        node_dim: int
+            Dimension of node embeddings
+        incidence_dict:
+            Incidence matrix for each relation relation type. I.e., positive and negative AO pairs.
+        num_heads: int
+            Number of heads to use for review aggregation.
+        layer_dropout: list
+            Dropout rate for hypergraph and for review attention layer.
+        attention_dropout: float
+            Dropout rate for attention.
+        preference_module: str
+            Preference module to use. Can be 'lightgcn' and 'mf'.
+        use_cuda: bool
+            Whether we are using cuda.
+        combiner: str
+            Combiner to use. Can be 'add', 'mul', 'bi-interaction', 'concat', 'review-only', 'self', 'self-only'.
+        aos_predictor: str
+            AOS predictor to use. Can be 'non-linear' and 'transr'.
+        non_linear: bool
+            Whether to use non-linear activation function.
+        embedding_type: str
+            Type of embedding to use. Can be 'learned' and 'ao_embeddings'.
+        kwargs: dict
+            Additional arguments, such the learned embeddings.
+        """
+
         super().__init__()
         from cornac.models.lightgcn.lightgcn import Model as lightgcn
         self.aggregator = aggregator
@@ -468,12 +506,15 @@ class Model(nn.Module):
         self.preference_module = preference_module
         self.node_dim = node_dim
         self.num_heads = num_heads
+        self.combiner = combiner
 
         if embedding_type == 'learned':
             self.node_embedding = nn.Embedding(n_nodes, node_dim)
         elif embedding_type == 'ao_embeddings':
             self.node_embedding = nn.Embedding(n_nodes, node_dim)
             self.learned_embeddings = kwargs['ao_embeddings']
+
+            # Layer to convert learned embeddings to node embeddings
             dims = [self.learned_embeddings.size(-1), 256, 128, self.node_dim]
             self.node_embedding_mlp = nn.Sequential(
                 *[nn.Sequential(nn.Linear(dims[i], dims[i+1]), nn.Tanh()) for i in range(len(dims)-1)]
@@ -481,27 +522,31 @@ class Model(nn.Module):
         else:
             raise ValueError(f'Invalid embedding type {embedding_type}')
 
+        # Define review aggregation layer
         n_layers = 3
         self.review_conv = HypergraphLayer(incidence_dict, node_dim, non_linear=non_linear, num_layers=n_layers,
                                            dropout=layer_dropout[0])
+        # Define review attention layer
         self.review_agg = ReviewConv(aggregator, n_nodes, node_dim, node_dim, num_heads,
                                      feat_drop=layer_dropout[1], attn_drop=attention_dropout)
-
+        # Define dropout
         self.node_dropout = nn.Dropout(layer_dropout[0])
 
-
+        # Define preference module
         self.lightgcn = lightgcn(g, node_dim, 3, 0)
 
+        # Define out layers
         self.W_s = nn.Linear(node_dim, node_dim, bias=False)
-        if aggregator.startswith('narre'):
+        if aggregator == 'narre':
             self.w_0 = nn.Linear(node_dim, node_dim)
 
+        # Define combiner
         final_dim = node_dim
-        self.combiner = combiner
         assert combiner in ['add', 'mul', 'bi-interaction', 'concat', 'review-only', 'self', 'self-only']
         if combiner in ['concat', 'self']:
-            final_dim *= 2
+            final_dim *= 2  # Increases out embeddings
         elif combiner == 'bi-interaction':
+            # Add and multiply MLPs
             self.add_mlp = nn.Sequential(
                 nn.Linear(node_dim, node_dim),
                 nn.Tanh()
@@ -511,14 +556,20 @@ class Model(nn.Module):
                 nn.Tanh()
             )
 
+        # Define predictor
         if self.predictor == 'narre':
             self.edge_predictor = dgl.nn.EdgePredictor('ele', final_dim, 1, bias=True)
             self.bias = nn.Parameter(torch.zeros((n_nodes, 1)))
 
+        # Define aos predictor
         self.aos_predictor = AOSPredictionLayer(aos_predictor, node_dim, final_dim, [node_dim, 64, 32], 2,
                                                 loss='transr')
+
+        # Define loss functions
         self.rating_loss_fn = nn.MSELoss(reduction='mean')
         self.bpr_loss_fn = nn.Softplus()
+
+        # Define embeddings used on inference.
         self.review_embs = None
         self.inf_emb = None
         self.lemb = None
@@ -527,6 +578,7 @@ class Model(nn.Module):
         self.ui_emb = None
         self.aos_emb = None
 
+        # Initialize parameters
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -537,74 +589,132 @@ class Model(nn.Module):
                 nn.init.xavier_normal_(parameter)
 
     def get_initial_embedings(self, nodes=None):
+        """
+        Get initial embeddings for nodes.
+        Parameters
+        ----------
+        nodes: torch.Tensor, optional
+            Nodes to get embeddings for, if none return all.
+
+        Returns
+        -------
+        torch.Tensor
+            Embeddings for nodes.
+        """
+
         if self.embedding_type == 'learned':
+            # If all nodes are learned, only use node embeddings
             if nodes is not None:
                 return self.node_embedding(nodes)
             else:
                 return self.node_embedding.weight
         elif self.embedding_type == 'ao_embeddings':
+            # If AO embeddings are prelearned, use them and filter rest.
+
+            # If nodes are given select those, else use all embeddings
             if nodes is not None:
                 filter_val = self.node_embedding.weight.size(0)
                 mask = nodes >= filter_val
                 emb = torch.empty((*nodes.size(), self.node_dim), device=nodes.device)
-                emb[~mask] = self.node_embedding(nodes[~mask])
+                emb[~mask] = self.node_embedding(nodes[~mask]) # Get node embeddings from learned embeddings for UI
+
+                # If any nodes are prelearned, get features from these.
                 if torch.any(mask):
                     emb[mask] = self.node_embedding_mlp(self.learned_embeddings[nodes[mask]-filter_val])
                 return emb
             else:
-                if len(self.learned_embeddings):
-                    return torch.cat([self.node_embedding.weight, self.node_embedding_mlp(self.learned_embeddings)], dim=0)
-                else:
-                    return self.node_embedding.weight
+                # Return all embeddings
+                return torch.cat([self.node_embedding.weight,
+                                  self.node_embedding_mlp(self.learned_embeddings)], dim=0)
         else:
             raise ValueError(f'Does not support {self.embedding_type}')
 
-    def l2_loss(self, pos, neg, emb):
-        if isinstance(emb, list):
-            emb = torch.cat(emb, dim=-1)
-
-        loss = 0
-        src, dst_i = pos.edges()
-        _, dst_j = neg.edges()
-
-        s_emb, i_emb, j_emb = emb[src], emb[dst_i], emb[dst_j]
-
-        loss += s_emb.norm(2).pow(2) + i_emb.norm(2).pow(2) + j_emb.norm(2).pow(2)
-
-        loss = 0.5 * loss / pos.num_src_nodes()
-
-        return loss
-
     def review_representation(self, x, mask=None):
+        """
+        Compute review representation.
+        Parameters
+        ----------
+        x: torch.Tensor
+            Input features
+        mask: torch.Tensor, optional
+            Mask to use for training.
+
+        Returns
+        -------
+        torch.Tensor
+            Review representation
+        """
+
         return self.review_conv(x, mask)
 
     def review_aggregation(self, g, x, attention=False):
+        """
+        Aggregate reviews.
+        Parameters
+        ----------
+        g: dgl.DGLGraph
+            Graph used for aggregation
+        x: torch.Tensor
+            Input features
+        attention: bool, default False
+            Whether to return attention.
+
+        Returns
+        -------
+        torch.Tensor, optional attention
+            user or item representation based on reviews. If attention is True, return attention as well.
+        """
+
+        # Aggregate reviews
         x = self.review_agg(g, x, attention)
 
+        # Expand if using attention
         if attention:
             x, a = x
 
+        # Sum over heads
         x = x.sum(1)
 
+        # Return attention if needed
         if attention:
             return x, a
         else:
             return x
 
     def forward(self, blocks, x, input_nodes):
+        """
+        Forward pass for HypAR model.
+        Parameters
+        ----------
+        blocks: list
+            List of blocks for preference module, review module and mask.
+        x: torch.Tensor
+            Input features
+        input_nodes: torch.Tensor
+            Nodes to use for input.
+
+        Returns
+        -------
+        torch.Tensor, torch.Tensor
+            Node representations used for AOS and node representations for prediction.
+        """
+
         # Compute preference embeddings
         blocks, lgcn_blocks, mask = blocks
+
+        # First L-1 blocks for LightGCN are used for convolutions. Last maps review and preference blocks.
         if self.preference_module == 'lightgcn':
             u, i, _ = self.lightgcn(lgcn_blocks[:-1])
             e = {'user': u, 'item': i}
         elif self.preference_module == 'mf':
             # Get user/item representation without any graph convolutions.
+            # Use srcdata from last block to get user/item embeddings.
             e = {ntype: self.lightgcn.features[ntype](nids) for ntype, nids in
                   lgcn_blocks[-1].srcdata[dgl.NID].items() if ntype != 'node'}
         else:
             raise NotImplementedError(f'{self.preference_module} is not supported')
 
-        # Move all nodes into same sorting (non-typed)
+        # Move all nodes into same sorting (non-typed) as reviews does not divide user/item by type.
         g = lgcn_blocks[-1]
         with g.local_scope():
             g.srcdata['h'] = e
@@ -616,12 +726,15 @@ class Model(nn.Module):
         x = self.node_dropout(x)
         node_representation, r_ui = self.review_representation(x, mask)
 
+        # Aggregate reviews
         b, = blocks
         r_ui = r_ui[b.srcdata[dgl.NID]]
         r_n = self.review_aggregation(b, r_ui)  # Node representation from reviews
 
+        # Dropout
         r_n, e = self.node_dropout(r_n), self.node_dropout(e)
 
+        # Combine preference and explainability
         if self.combiner == 'concat':
             e_star = torch.cat([r_n, e], dim=-1)
         elif self.combiner == 'add':
@@ -642,6 +755,7 @@ class Model(nn.Module):
         return node_representation, e_star
 
     def _graph_predict_dot(self, g: dgl.DGLGraph, x):
+        # Dot product prediction
         with g.local_scope():
             g.ndata['h'] = x
             g.apply_edges(fn.u_dot_v('h', 'h', 'm'))
@@ -649,6 +763,7 @@ class Model(nn.Module):
             return g.edata['m'].reshape(-1, 1)
 
     def _graph_predict_narre(self, g: dgl.DGLGraph, x):
+        # Narre prediction methodology
         with g.local_scope():
             g.ndata['b'] = self.bias[g.ndata[dgl.NID]]
             g.apply_edges(fn.u_add_v('b', 'b', 'b'))  # user/item bias
@@ -660,6 +775,7 @@ class Model(nn.Module):
             return out
 
     def graph_predict(self, g: dgl.DGLGraph, x):
+        # Predict using graph
         if self.predictor == 'dot':
             return self._graph_predict_dot(g, x)
         elif self.predictor == 'narre':
@@ -668,37 +784,58 @@ class Model(nn.Module):
             raise ValueError(f'Predictor not implemented for "{self.predictor}".')
 
     def aos_graph_predict(self, g: dgl.DGLGraph, node_rep, e_star):
+        """
+        AOS graph prediction.
+        Parameters
+        ----------
+        g: dgl.DGLGraph
+            Graph to use for prediction. Should have edata['pos'] and edata['neg'] representing positive and negative
+            aspect and opinion pairs.
+        node_rep: torch.Tensor
+            Node representation for AO representation.
+        e_star: torch.Tensor
+            Node representation for user/item.
+
+        Returns
+        -------
+        torch.Tensor
+            Loss of prediction.
+        """
         with g.local_scope():
+            # Get user/item embeddings
             u, v = g.edges()
             u_emb, i_emb = e_star[u], e_star[v]
-            a, o, s = g.edata['pos'].T  # todo reindex a and o to be proper values.
+
+            # Get positive a/o embeddings.
+            a, o, s = g.edata['pos'].T
             a_emb, o_emb = node_rep[a], node_rep[o]
+
+            # Predict using AOS predictor
             preds_i = self.aos_predictor(u_emb, i_emb, a_emb, o_emb, s)
+
+            # Get negative a/o embeddings
             a, o, s = g.edata['neg'].permute(2, 0, 1)
             a_emb, o_emb = node_rep[a], node_rep[o]
+
+            # Predict using AOS predictor
             preds_j = self.aos_predictor(u_emb, i_emb, a_emb, o_emb, s)
+
+            # Calculate loss using bpr or transr loss (order differs).
             if self.aos_predictor.loss == 'bpr':
                 return self.bpr_loss_fn(- (preds_i - preds_j)), preds_i > preds_j
             else:
                 return self.bpr_loss_fn(- (preds_j - preds_i)), preds_i < preds_j
 
     def _predict_dot(self, u_emb, i_emb):
+        # Predict using dot
         return (u_emb * i_emb).sum(-1)
 
     def _predict_narre(self, user, item, u_emb, i_emb):
+        # Predict using narre
         h = self.edge_predictor(u_emb, i_emb)
         h += (self.bias[user] + self.bias[item])
 
         return h.reshape(-1, 1)
-
-    def aos_predict(self, user, item, aspect, opinion, sentiment):
-        u_emb, i_emb = self._combine(user, item)
-
-        a_emb, o_emb = self.get_initial_embedings(aspect), self.get_initial_embedings(opinion)
-
-        preds = self.aos_predictor(u_emb, i_emb, a_emb, o_emb, sentiment)
-
-        return preds
 
     def _combine(self, user, item):
         u_emb, i_emb = self.inf_emb[user], self.inf_emb[item]
@@ -728,7 +865,20 @@ class Model(nn.Module):
         return u_emb, i_emb
 
     def predict(self, user, item):
-        # u_emb, i_emb = self.inf_emb[user], self.inf_emb[item]
+        """
+        Predict using model.
+        Parameters
+        ----------
+        user: torch.Tensor
+            User ids
+        item: torch.Tensor
+            Item ids
+
+        Returns
+        -------
+        torch.Tensor
+            Predicted ranking/rating.
+        """
         u_emb, i_emb = self._combine(user, item)
 
         if self.predictor == 'dot':
@@ -743,9 +893,6 @@ class Model(nn.Module):
     def rating_loss(self, preds, target):
         return self.rating_loss_fn(preds, target.unsqueeze(-1))
 
-    def _bpr_loss(self, preds_i, preds_j):
-        return
-
     def ranking_loss(self, preds_i, preds_j, loss_fn='bpr'):
         if loss_fn == 'bpr':
             loss = self.bpr_loss_fn(- (preds_i - preds_j))
@@ -754,9 +901,26 @@ class Model(nn.Module):
 
         return loss.mean()
 
-    def inference(self, review_graphs, node_review_graph, ui_graph, device, batch_size):
+    def inference(self, node_review_graph, ui_graph, device, batch_size):
+        """
+        Inference for HypAR model.
+        Parameters
+        ----------
+        node_review_graph: dgl.DGLGraph
+            Graph mapping reviews to nodes.
+        ui_graph: dgl.DGLGraph
+            Graph with user/item mappings
+        device: str
+            Device to use for inference.
+        batch_size: int
+            Batch size to use for inference.
 
-        # Review inference
+        Returns
+        -------
+        None
+        """
+
+        # Review inference. nx is the node representation.
         x = self.get_initial_embedings()
         nx, self.review_embs = self.review_representation(x)
 
@@ -766,10 +930,11 @@ class Model(nn.Module):
         dataloader = dgl.dataloading.DataLoader(node_review_graph, indices, sampler, batch_size=batch_size, shuffle=False,
                                                 drop_last=False, device=device)
 
+        # Initialize embeddings
         self.inf_emb = torch.zeros((torch.max(indices['node'])+1, self.node_dim)).to(device)
         self.review_attention = torch.zeros((node_review_graph.num_edges(), self.review_agg._num_heads, 1)).to(device)
 
-        # Node inference
+        # Aggregate reviews using attention
         for input_nodes, output_nodes, blocks in dataloader:
             x, a = self.review_aggregation(blocks[0]['part_of'], self.review_embs[input_nodes['review']], True)
             self.inf_emb[output_nodes['node']] = x
@@ -782,10 +947,13 @@ class Model(nn.Module):
         else:
             x = {nt: e.weight for nt, e in self.lightgcn.features.items()}
 
+        # Combine/stack useritem embeddings
         if self.combiner.startswith('self'):
             x = nx
         else:
             x = torch.cat([x['item'], x['user']], dim=0)
+
+        # Set embeddings for prediction
         self.lemb = x
 
 

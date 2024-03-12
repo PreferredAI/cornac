@@ -685,7 +685,7 @@ class HypAR(Recommender):
         # Do inference calculation
         self.model.eval()
         with torch.no_grad():
-            self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device,
+            self.model.inference(self.node_review_graph, self.ui_graph, self.device,
                                  self.batch_size)
 
         # Set self values
@@ -699,7 +699,7 @@ class HypAR(Recommender):
         # Do inference calculation
         self.model.eval()
         with torch.no_grad():
-            self.model.inference(self.review_graphs, self.node_review_graph, self.ui_graph, self.device,
+            self.model.inference(self.node_review_graph, self.ui_graph, self.device,
                                  self.batch_size)
 
             # Evaluate model
