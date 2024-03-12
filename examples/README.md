@@ -72,6 +72,10 @@
 
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
 
+### Sentiment
+[hypar_example.py](hypar_example.py) - Hypergraphs with Attention on Reviews (HypAR) with Cellphone dataset.
+
+
 ## Unimodal Algorithms
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
