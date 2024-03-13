@@ -52,9 +52,7 @@ class HypAREdgeSampler(dgl.dataloading.EdgePredictionSampler):
 
 
 class HypARBlockSampler(dgl.dataloading.NeighborSampler):
-    def __init__(self, node_review_graph, review_graphs, aggregator, sid_aos, aos_list, n_neg, ui_graph,
-                 compact=True, fanout=5, **kwargs):
-        """
+    """
         Given nodes, samples reviews and creates a batched review-graph of all sampled reviews.
         Parameters
         ----------
@@ -66,7 +64,10 @@ class HypARBlockSampler(dgl.dataloading.NeighborSampler):
             Number of reviews to sample per node.
         kwargs: dict
             Arguments to pass to NeighborSampler. Read DGL docs for options.
-        """
+"""
+
+    def __init__(self, node_review_graph, review_graphs, aggregator, sid_aos, aos_list, n_neg, ui_graph,
+                 compact=True, fanout=5, **kwargs):
         fanouts = [fanout]
 
         super().__init__(fanouts, **kwargs)

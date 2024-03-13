@@ -7,8 +7,7 @@ import dgl.sparse as dglsp
 
 
 class AOSPredictionLayer(nn.Module):
-    def __init__(self, aos_predictor, in_dim1, in_dim2, hidden_dims, n_relations, loss='bpr'):
-        """
+    """
         Ranking layer for AOS prediction.
 
         Parameters
@@ -27,6 +26,7 @@ class AOSPredictionLayer(nn.Module):
             Loss function to be used. Can be 'bpr' or 'transr'.
         """
 
+    def __init__(self, aos_predictor, in_dim1, in_dim2, hidden_dims, n_relations, loss='bpr'):
         # Initialize variables
         super().__init__()
         self.loss = loss
@@ -121,9 +121,7 @@ class AOSPredictionLayer(nn.Module):
 
 
 class HypergraphLayer(nn.Module):
-    def __init__(self, H, in_dim, non_linear=True, num_layers=1, dropout=0, aggregator='mean',
-                 normalize=False):
-        """
+    """
         Hypergraph layer doing propagation along edges in the hypergraph.
 
         Parameters
@@ -144,6 +142,8 @@ class HypergraphLayer(nn.Module):
             Whether to normalize the output.
         """
 
+    def __init__(self, H, in_dim, non_linear=True, num_layers=1, dropout=0, aggregator='mean',
+                 normalize=False):
         super().__init__()
         self.aggregator = aggregator
         self.non_linear = non_linear
@@ -282,19 +282,7 @@ class HypergraphLayer(nn.Module):
 
 
 class ReviewConv(nn.Module):
-    def __init__(self,
-                 aggregator,
-                 n_nodes,
-                 in_feats,
-                 attention_feats,
-                 num_heads,
-                 feat_drop=0.,
-                 attn_drop=0.,
-                 negative_slope=0.2,
-                 activation=None,
-                 allow_zero_in_degree=False,
-                 bias=True):
-        """
+    """
         Review attention aggregation layer
         Parameters
         ----------
@@ -322,6 +310,18 @@ class ReviewConv(nn.Module):
             Whether to include bias in linear transformations
         """
 
+    def __init__(self,
+                 aggregator,
+                 n_nodes,
+                 in_feats,
+                 attention_feats,
+                 num_heads,
+                 feat_drop=0.,
+                 attn_drop=0.,
+                 negative_slope=0.2,
+                 activation=None,
+                 allow_zero_in_degree=False,
+                 bias=True):
         super(ReviewConv, self).__init__()
 
         # Set parameters
@@ -455,12 +455,7 @@ class ReviewConv(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, g, n_nodes, aggregator, predictor, node_dim,
-                 incidence_dict,
-                 num_heads, layer_dropout, attention_dropout, preference_module='lightgcn', use_cuda=True,
-                 combiner='add', aos_predictor='non-linear', non_linear=False, embedding_type='learned',
-                 **kwargs):
-        """
+    """
         HypAR model based on DGL and Torch.
         Parameters
         ----------
@@ -498,6 +493,11 @@ class Model(nn.Module):
             Additional arguments, such the learned embeddings.
         """
 
+    def __init__(self, g, n_nodes, aggregator, predictor, node_dim,
+                 incidence_dict,
+                 num_heads, layer_dropout, attention_dropout, preference_module='lightgcn', use_cuda=True,
+                 combiner='add', aos_predictor='non-linear', non_linear=False, embedding_type='learned',
+                 **kwargs):
         super().__init__()
         from cornac.models.lightgcn.lightgcn import Model as lightgcn
         self.aggregator = aggregator

@@ -10,42 +10,7 @@ from ...data import Dataset
 
 
 class HypAR(Recommender):
-    def __init__(self,
-                 name='HypAR',
-                 use_cuda=False,
-                 stemming=True,
-                 batch_size=128,
-                 num_workers=0,
-                 num_epochs=10,
-                 early_stopping=10,
-                 eval_interval=1,
-                 learning_rate=0.1,
-                 weight_decay=0,
-                 node_dim=64,
-                 num_heads=3,
-                 fanout=5,
-                 non_linear=True,
-                 model_selection='best',
-                 objective='ranking',
-                 review_aggregator='narre',
-                 predictor='narre',
-                 preference_module='lightgcn',
-                 combiner='add',
-                 graph_type='aos',
-                 num_neg_samples=50,
-                 layer_dropout=None,
-                 attention_dropout=.2,
-                 user_based=True,
-                 verbose=True,
-                 index=0,
-                 out_path=None,
-                 learn_explainability=False,
-                 learn_method='transr',
-                 learn_weight=1.,
-                 embedding_type='ao_embeddings',
-                 debug=False,
-                 ):
-        """
+    """
         HypAR: Hypergraph with Attention on Review
 
         Parameters
@@ -117,7 +82,41 @@ class HypAR(Recommender):
         debug: bool, default: False
             Whether to use debug mode as errors might be thrown by dataloaders when debugging.
         """
-
+    def __init__(self,
+                 name='HypAR',
+                 use_cuda=False,
+                 stemming=True,
+                 batch_size=128,
+                 num_workers=0,
+                 num_epochs=10,
+                 early_stopping=10,
+                 eval_interval=1,
+                 learning_rate=0.1,
+                 weight_decay=0,
+                 node_dim=64,
+                 num_heads=3,
+                 fanout=5,
+                 non_linear=True,
+                 model_selection='best',
+                 objective='ranking',
+                 review_aggregator='narre',
+                 predictor='narre',
+                 preference_module='lightgcn',
+                 combiner='add',
+                 graph_type='aos',
+                 num_neg_samples=50,
+                 layer_dropout=None,
+                 attention_dropout=.2,
+                 user_based=True,
+                 verbose=True,
+                 index=0,
+                 out_path=None,
+                 learn_explainability=False,
+                 learn_method='transr',
+                 learn_weight=1.,
+                 embedding_type='ao_embeddings',
+                 debug=False,
+                 ):
         super().__init__(name)
         # Default values
         if layer_dropout is None:
