@@ -21,7 +21,6 @@ class HypAR(Recommender):
                  eval_interval=1,
                  learning_rate=0.1,
                  weight_decay=0,
-                 l2_weight=0.,
                  node_dim=64,
                  num_heads=3,
                  fanout=5,
@@ -46,6 +45,78 @@ class HypAR(Recommender):
                  embedding_type='ao_embeddings',
                  debug=False,
                  ):
+        """
+        HypAR: Hypergraph with Attention on Review
+
+        Parameters
+        ----------
+        name: str, default: 'HypAR'
+            Name of the model.
+        use_cuda: bool, default: False
+            Whether to use cuda.
+        stemming: bool, default: True
+            Whether to use stemming.
+        batch_size: int, default: 128
+            Batch size.
+        num_workers: int, default: 0
+            Number of workers for dataloader.
+        num_epochs: int, default: 10
+            Number of epochs.
+        early_stopping: int, default: 10
+            Early stopping.
+        eval_interval: int, default: 1
+            Evaluation interval, i.e., how often to evaluate on the validation set.
+        learning_rate: float, default: 0.1
+            Learning rate.
+        weight_decay: float, default: 0
+            Weight decay.
+        node_dim: int, default: 64
+            Dimension of learned and hidden layers.
+        num_heads: int, default: 3
+            Number of attention heads.
+        fanout: int, default: 5
+            Fanout for sampling.
+        non_linear: bool, default: True
+            Whether to use non-linear activation function.
+        model_selection: str, default: 'best'
+            Model selection method, i.e., whether to use the best model or the last model.
+        objective: str, default: 'ranking'
+            Objective, i.e., whether to use ranking or rating.
+        review_aggregator: str, default: 'narre'
+            Review aggregator, i.e., how to aggregate reviews.
+        predictor: str, default: 'narre'
+            Predictor, i.e., how to predict ratings.
+        preference_module: str, default: 'lightgcn'
+            Preference module, i.e., how to model preferences.
+        combiner: str, default: 'add'
+            Combiner, i.e., how to combine embeddings.
+        graph_type: str, default: 'aos'
+            Graph type, i.e., which nodes to include in hypergraph. Aspects, opinions and sentiment.
+        num_neg_samples: int, default: 50
+            Number of negative samples to use for ranking.
+        layer_dropout: float, default: None
+            Dropout for node and review embeddings.
+        attention_dropout: float, default: .2
+            Dropout for attention.
+        user_based: bool, default: True
+            Whether to use user-based or item-based.
+        verbose: bool, default: True
+            Whether to print information.
+        index: int, default: 0
+            Index for saving results, i.e., if hyparparameter tuning.
+        out_path: str, default: None
+            Path to save graphs, embeddings and similar.
+        learn_explainability: bool, default: False
+            Whether to learn explainability.
+        learn_method: str, default: 'transr'
+            Learning method, i.e., which method to use explainability learning.
+        learn_weight: float, default: 1.
+            Weight for explainability learning loss.
+        embedding_type: str, default: 'ao_embeddings'
+            Type of embeddings to use, i.e., whether to use prelearned embeddings or not.
+        debug: bool, default: False
+            Whether to use debug mode as errors might be thrown by dataloaders when debugging.
+        """
 
         super().__init__(name)
         # Default values
@@ -65,7 +136,6 @@ class HypAR(Recommender):
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
         self.node_dim = node_dim
-        self.l2_weight = l2_weight
         self.num_heads = num_heads
         self.fanout = fanout
         self.non_linear = non_linear
