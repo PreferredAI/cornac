@@ -18,14 +18,16 @@ from typing import List
 from collections import OrderedDict
 from sentence_transformers import SentenceTransformer
 from operator import itemgetter
-import numpy as np
 
-from . import FeatureModality
+import torch
+
+from cornac.data.modality import FeatureModality
+
 
 
 class TransformersTextModality(FeatureModality):
     """
-    Transformer text modality wrapped around SentenceTrasformer library.
+    Transformer text modality wrapped around SentenceTransformer library.
     https://huggingface.co/sentence-transformers.
 
     Parameters
@@ -56,16 +58,18 @@ class TransformersTextModality(FeatureModality):
         larger datasets.
         """
         
-        path = 'temp/encoded_corpus.npy'
-        id_path = "temp/encoded_corpus_ids.npy"
+        path = "temp/encoded_corpus.pt"
+        id_path = "temp/encoded_corpus_ids.pt"
 
         if os.path.exists(path) and os.path.exists(id_path):
-            saved_ids = np.load(id_path)
-            if saved_ids == self.ids:
-                self.features = np.load(path)
-                self.preencoded = True
-            else:
-                assert self.preencoded is False
+            saved_ids = torch.load(id_path)
+            try:
+                if saved_ids == self.ids:
+                    self.features = torch.load(path)
+                    self.preencoded = True
+                else:
+                    assert self.preencoded is False
+            except:  # noqa: E722
                 print("The ids of the saved encoded corpus do not match the current ids. Re-encoding the corpus.")
         
         if not self.preencoded:
@@ -73,8 +77,8 @@ class TransformersTextModality(FeatureModality):
             self.features = self.model.encode(self.corpus, convert_to_tensor=True)
             self.preencoded = True
             os.makedirs("temp", exist_ok = True)
-            np.save(path, self.features)
-            np.save(id_path, self.ids)
+            torch.save(self.features, path)
+            torch.save(self.ids, id_path)
 
     def build(self, id_map: OrderedDict, **kwargs):
         """

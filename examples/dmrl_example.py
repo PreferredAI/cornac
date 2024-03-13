@@ -3,7 +3,6 @@ For an example including image modality please see dmrl_clothes_example.py"""
 
 import cornac
 from cornac.data import Reader
-from cornac.data.transformer_text import TransformersTextModality
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
 
@@ -12,18 +11,11 @@ docs, item_ids = citeulike.load_text()
 feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
 
-item_text_modality = TransformersTextModality(
-    corpus=docs,
-    ids=item_ids,
-    preencode=True
-)
-
 # Define an evaluation method to split feedback into train and test sets
 ratio_split = RatioSplit(
     data=feedback,
     test_size=0.2,
     exclude_unknowns=True,
-    item_text=item_text_modality,
     verbose=True,
     seed=123,
     rating_threshold=0.5,
@@ -39,7 +31,9 @@ dmrl_recommender = cornac.models.dmrl.DMRL(
     decay_r=0.5,
     decay_c=0.01,   
     num_neg=3,
-    embedding_dim=100)
+    embedding_dim=100,
+    docs = docs,
+    original_item_ids = item_ids)
 
 # Use Recall@300 for evaluations
 rec_300 = cornac.metrics.Recall(k=300)

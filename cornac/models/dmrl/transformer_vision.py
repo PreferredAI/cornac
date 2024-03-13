@@ -29,13 +29,13 @@ class TransformersVisionModality(FeatureModality):
 
     Parameters
     ----------
-    corpus: List[str], default = None
+    corpus: List[JpegImageFile], default = None
         List of user/item texts that the indices are aligned with `ids`.
     """
 
     def __init__(
             self,
-            images: List[str] = None,
+            images: List[JpegImageFile] = None,
             ids: List = None,
             preencode: bool = False,
             model_weights: WeightsEnum = models.ViT_H_14_Weights.DEFAULT,

@@ -13,18 +13,21 @@
 # limitations under the License.
 # ============================================================================
 
-from typing import Tuple
+from typing import List, Tuple
+
+import numpy as np
+import torch
+from PIL.JpegImagePlugin import JpegImageFile
+from torch.utils.data import DataLoader
+
+from cornac.data.dataset import Dataset
 from cornac.data.modality import FeatureModality
 from cornac.metrics.ranking import Precision, Recall
 from cornac.models.dmrl.dmrl import DMRLLoss, DMRLModel
 from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
+from cornac.models.dmrl.transformer_text import TransformersTextModality
+from cornac.models.dmrl.transformer_vision import TransformersVisionModality
 from cornac.models.recommender import Recommender
-from cornac.data.dataset import Dataset
-import torch
-
-from torch.utils.data import DataLoader
-import numpy as np
-
 
 
 class DMRL(Recommender):
@@ -99,7 +102,12 @@ class DMRL(Recommender):
             num_factors: int = 4,
             trainable: bool = True,
             verbose: bool = False,
-            log_metrics: bool = False
+            log_metrics: bool = False,
+            docs: List[str] = None,
+            images: List[JpegImageFile] = None,
+            original_item_ids: List[int] = None,
+            preencoded_text_features: np.ndarray = None,
+            preencoded_image_features: np.ndarray = None
             ):
         
         super().__init__(name=name, trainable=trainable, verbose=verbose)
@@ -123,7 +131,13 @@ class DMRL(Recommender):
         if self.num_factors == 1:
             # deactivate disentangled portion of loss if theres only 1 factor
             self.decay_c == 0
-
+            
+        # modality attributes
+        self.original_item_ids = original_item_ids
+        self.docs = docs
+        self.images = images
+        self.encoded_text_features = preencoded_text_features
+        self.encoded_image_features = preencoded_image_features
 
     def fit(self, train_set: Dataset, val_set=None):
         """Fit the model to observations.
@@ -154,13 +168,13 @@ class DMRL(Recommender):
         param batch: user inidices in first column, pos item indices in second
             and all other columns are negative item indices
         """
-        if self.image_modality is None:
+        if not hasattr(self, "item_image_modality"):
             return None
 
         shape = batch[:, 1:].shape
         all_items = batch[:, 1:].flatten()
         
-        return torch.tensor(self.image_modality.features[all_items, :].reshape((*shape, self.image_modality.feature_dim)), dtype=torch.float32)
+        return torch.tensor(self.item_image_modality.features[all_items, :].reshape((*shape, self.item_image_modality.feature_dim)), dtype=torch.float32)
 
     def get_item_text_embeddings(self, batch: torch.Tensor) -> torch.Tensor:
         """
@@ -176,15 +190,15 @@ class DMRL(Recommender):
         shape = batch[:, 1:].shape
         all_items = batch[:, 1:].flatten()
 
-        if self.text_modality is None:
+        if not hasattr(self, "item_text_modality"):
             return None
 
-        if not self.text_modality.preencoded:
-            item_text_embeddings = self.text_modality.batch_encode(all_items)
-            item_text_embeddings = item_text_embeddings.reshape((*shape, self.text_modality.output_dim))
+        if not self.item_text_modality.preencoded:
+            item_text_embeddings = self.item_text_modality.batch_encode(all_items)
+            item_text_embeddings = item_text_embeddings.reshape((*shape, self.item_text_modality.output_dim))
         else:
-            item_text_embeddings = self.text_modality.features[all_items]
-            item_text_embeddings = item_text_embeddings.reshape((*shape, self.text_modality.output_dim))
+            item_text_embeddings = self.item_text_modality.features[all_items]
+            item_text_embeddings = item_text_embeddings.reshape((*shape, self.item_text_modality.output_dim))
 
         return item_text_embeddings
 
@@ -212,8 +226,9 @@ class DMRL(Recommender):
         ----------
         train_set: User-Item preference data as well as additional modalities.
         """
-        self.text_modality: FeatureModality = train_set.item_text
-        self.image_modality: FeatureModality = train_set.item_image
+        
+        self.initialize_and_build_modalities(train_set)
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"Using device {self.device} for training")
 
@@ -370,17 +385,17 @@ class DMRL(Recommender):
         
         user_index = user_index * torch.ones(len(item_indices), dtype=torch.long)
 
-        if not hasattr(self.text_modality, "encoded_corpus"):
-            self.text_modality.preencode_entire_corpus()
+        if self.item_text_modality.features is None:
+            self.item_text_modality.preencode_entire_corpus()
         
         # since the model expects as (batch size, 1 + num_neg, encoding dim) we just add one dim and repeat
-        if self.text_modality is not None:
-            encoded_text: torch.Tensor = self.text_modality.features[item_indices,:]
+        if hasattr(self, "item_text_modality"):
+            encoded_text: torch.Tensor = self.item_text_modality.features[item_indices,:]
             encoded_text = encoded_text[:, None, :]
             encoded_text = encoded_text.to(self.device)
 
-        if self.image_modality is not None:
-            encoded_image = torch.tensor(self.image_modality.features[item_indices, :], dtype=torch.float32)
+        if hasattr(self, "item_image_modality"):
+            encoded_image = torch.tensor(self.item_image_modality.features[item_indices, :], dtype=torch.float32)
             encoded_image = encoded_image[:, None, :]
             encoded_image = encoded_image.to(self.device)
 
@@ -391,3 +406,35 @@ class DMRL(Recommender):
             _, ratings_sum_over_mods = self.model(input_tensor, encoded_text, encoded_image)
 
         return np.array(ratings_sum_over_mods[:, 0].detach().cpu())
+
+    def initialize_and_build_modalities(self, trainset: Dataset):
+        """
+        Initializes text and image modalities for the model. Either takes in raw
+        text or image and performs pre-encoding given the transformer models in
+        TransformerTextModality and TransformerVisionModality. If preencoded
+        features are given, it uses those instead and simply wrapes them into a
+        general FeatureModality instance, as no further encoding model is
+        required.
+        """
+        if self.encoded_text_features is None:
+            if self.docs is not None:
+                self.item_text_modality = TransformersTextModality(corpus=self.docs, ids=self.original_item_ids, preencode=True)
+                del self.docs
+
+        else: # already have preencoded text features from outside
+            self.item_text_modality = FeatureModality(features=self.encoded_text_features, ids=self.original_item_ids)
+
+        if self.encoded_image_features is None:
+            if self.images is not None:
+                self.item_image_modality = TransformersVisionModality(features=self.images, ids=self.original_item_ids, preencode=True)
+                del self.images
+            
+        else: # already have preencoded image features from outside
+            self.item_image_modality = FeatureModality(features=self.encoded_image_features, ids=self.original_item_ids)
+
+        if hasattr(self, "item_text_modality"):
+            self.item_text_modality.build(trainset.iid_map)
+
+        if hasattr(self, "item_image_modality"):
+            self.item_image_modality.build(trainset.iid_map)
+
