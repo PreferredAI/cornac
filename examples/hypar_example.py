@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 """
-Example for HypAR, using the Computer dataset
+Example for HypAR, using the Cellphone dataset
 """
 import os
 from typing import List
