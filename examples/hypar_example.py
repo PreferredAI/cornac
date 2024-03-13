@@ -136,7 +136,7 @@ def load_sentiment(reader: Reader = None) -> List:
 
     References
     ----------
-    Gao, J., Wang, X., Wang, Y., & Xie, X. (2019). Explainable Recommendation Through Attentive Multi-View Learning. AAAI.
+    https://github.com/evison/Sentires
     """
     fpath = 'seer-ijcai2020/cellphone/sentiment.txt'
     reader = Reader() if reader is None else reader
