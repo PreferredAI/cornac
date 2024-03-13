@@ -72,7 +72,6 @@
 
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
 
-
 ## Unimodal Algorithms
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
