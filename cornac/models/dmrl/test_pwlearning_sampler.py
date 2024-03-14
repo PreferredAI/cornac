@@ -1,9 +1,24 @@
-import unittest
-from torch.utils.data import DataLoader
-from cornac.data.dataset import Dataset
-from cornac.data.reader import Reader
-from cornac.datasets import citeulike
-from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
+# add a checker to make sure all requirements needed in the imports here are really present.
+# if they are missing skip the respective test
+# If a user wants to un these please run: pip install -r cornac/models/dmrl/requirements.txt
+
+try:
+
+    import unittest
+    from torch.utils.data import DataLoader
+    from cornac.data.dataset import Dataset
+    from cornac.data.reader import Reader
+    from cornac.datasets import citeulike
+    from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
+    run_dmrl_test_funcs = True
+
+except ImportError:
+    run_dmrl_test_funcs = False
+
+
+def skip_test_in_case_of_missing_reqs(test_func):
+  test_func.__test__ = run_dmrl_test_funcs  # Mark the test function as (non-)discoverable by unittest
+  return test_func
 
 
 class TestPWLearningSampler(unittest.TestCase):
@@ -18,6 +33,7 @@ class TestPWLearningSampler(unittest.TestCase):
             data=feedback)
         self.sampler = PWLearningSampler(cornac_dataset, num_neg=self.num_neg)
 
+    @skip_test_in_case_of_missing_reqs
     def test_get_batch_multiprocessed(self):
         """
         Tests multiprocessed loading via Torch Datalodaer
@@ -28,6 +44,8 @@ class TestPWLearningSampler(unittest.TestCase):
         batch = next(generator_data_loader)
         assert batch.shape == (batch_size, 2+self.num_neg)
 
+
+    @skip_test_in_case_of_missing_reqs
     def test_correctness(self):
         """
         Tests the correctness of the PWLearningSampler by asserting that the
@@ -46,6 +64,8 @@ class TestPWLearningSampler(unittest.TestCase):
             for neg_item in neg_items:
                 assert neg_item not in self.sampler.data.csr_matrix[user].nonzero()[1]
 
+
+    @skip_test_in_case_of_missing_reqs
     def test_full_epoch_sampler(self):
         """
         Tests speed of loader for full epoch

@@ -63,13 +63,15 @@ class PWLearningSampler(data.Dataset):
 
         # sample negative items per user
         neg_item_list = []
-        for i in range(self.num_neg):
+        for _ in range(self.num_neg):
             neg_items = np.random.choice(self.data.csr_matrix.shape[1], batch_size)
             # make sure we dont sample a positive item
-            candidates = self.data.csr_matrix[pos_u_i[:,0], neg_items]
+            candidates = self.data.csr_matrix[users, neg_items]
             while candidates.nonzero()[0].size != 0:
                 replacement_neg_items = np.random.choice(self.data.csr_matrix.shape[1], candidates.nonzero()[0].size)
-                candidates[candidates.nonzero()[0], candidates.nonzero()[1]] = self.data.csr_matrix[candidates.nonzero()[0], replacement_neg_items]
+                neg_items[candidates.nonzero()[1]] = replacement_neg_items
+                candidates = self.data.csr_matrix[users, neg_items]
+            
             neg_item_list.append(neg_items)
         neg_items = np.vstack(neg_item_list).T
         return np.hstack([pos_u_i, neg_items])
