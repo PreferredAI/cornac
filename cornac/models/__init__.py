@@ -82,11 +82,3 @@ from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
 from .wmf import WMF
-
-try:
-    from .fm import FM
-except ModuleNotFoundError:
-    print(
-        "FM model is only supported on Linux.\n"
-        + "Windows executable can be found at http://www.libfm.org."
-    )
