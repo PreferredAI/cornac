@@ -38,6 +38,7 @@ from .conv_mf import ConvMF
 from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
+from .dmrl import DMRL
 from .dnntsp import DNNTSP
 from .ease import EASE
 from .efm import EFM
@@ -81,7 +82,6 @@ from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
 from .wmf import WMF
-from .dmrl import recom_dmrl
 
 try:
     from .fm import FM
