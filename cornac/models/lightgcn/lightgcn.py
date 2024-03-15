@@ -101,14 +101,18 @@ class Model(nn.Module):
 
         for k, (g, layer) in iterator:
             h_dict = layer(g, h_dict)
+            ue = h_dict[USER_KEY]
+            ie = h_dict[ITEM_KEY]
+
             if isinstance(in_g, list):
-                ue = h_dict[USER_KEY][in_g[-1].dstnodes(USER_KEY)]
-                ie = h_dict[ITEM_KEY][in_g[-1].dstnodes(ITEM_KEY)]
-                user_embeds = user_embeds + (ue * 1 / (len(self.layers) + 1))
-                item_embeds = item_embeds + (ie * 1 / (len(self.layers) + 1))
-            else:
-                user_embeds = user_embeds + (h_dict[USER_KEY] * 1 / (len(self.layers) + 1))
-                item_embeds = item_embeds + (h_dict[ITEM_KEY] * 1 / (len(self.layers) + 1))
+                ue = ue[in_g[-1].dstnodes(USER_KEY)]
+                ie = ie[in_g[-1].dstnodes(ITEM_KEY)]
+                
+            user_embeds = user_embeds + ue
+            item_embeds = item_embeds + ie
+
+        user_embeds = user_embeds / (len(self.layers) + 1)
+        item_embeds = item_embeds / (len(self.layers) + 1)
 
         u_g_embeddings = user_embeds if users is None else user_embeds[users, :]
         pos_i_g_embeddings = item_embeds if pos_items is None else item_embeds[pos_items, :]
