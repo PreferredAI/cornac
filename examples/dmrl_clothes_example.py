@@ -3,45 +3,31 @@ Example for Disentangled Multimodal Recommendation, with feedback, textual and v
 This example uses preencoded visual features from cornac dataset instead of TransformersVisionModality modality.
 """
 
-
-import sys
-sys.path.append('/workspaces/cornac')
-
 import cornac
-from cornac.data.transformer_text import TransformersTextModality
 from cornac.datasets import amazon_clothing
-from cornac.data import ImageModality
 from cornac.eval_methods import RatioSplit
-
+from cornac.models.dmrl.recom_dmrl import ImageModalityInput, TextModalityInput
 
 
 feedback = amazon_clothing.load_feedback()
-features, item_ids = amazon_clothing.load_visual_feature()  # BIG file
-docs, item_ids = amazon_clothing.load_text()
+encoded_image_features, item_id_ordering_image = amazon_clothing.load_visual_feature()  # BIG file
+docs, item_id_ordering_text = amazon_clothing.load_text()
 
 # only treat good feedback as positive user-item pair
 new_feedback = [f for f in feedback if f[2] >=4]
-
-# Instantiate a ImageModality, it makes it convenient to work with visual auxiliary information
-# For more details, please refer to the tutorial on how to work with auxiliary data
-item_image_modality = ImageModality(features=features, ids=item_ids, normalized=True)
-
-item_text_modality = TransformersTextModality(
-    corpus=docs,
-    ids=item_ids,
-    preencode=True
-)
 
 ratio_split = RatioSplit(
     data=new_feedback,
     test_size=0.25,
     exclude_unknowns=True,
-    item_text=item_text_modality,
-    item_image=item_image_modality,
     verbose=True,
     seed=123,
     rating_threshold=4,
 )
+
+text_modality_input = TextModalityInput(item_id_ordering_text, docs)
+image_modality_input = ImageModalityInput(item_id_ordering_image, preencoded_image_features=encoded_image_features)
+
 
 dmrl_recommender = cornac.models.dmrl.DMRL(
     batch_size=1024,
@@ -54,7 +40,9 @@ dmrl_recommender = cornac.models.dmrl.DMRL(
     num_neg=5,
     embedding_dim=100,
     image_dim=4096,
-    dropout=0)
+    dropout=0,
+    text_features=text_modality_input,
+    image_features=image_modality_input)
 
 
 # Use Recall@300 for evaluations

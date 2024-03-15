@@ -30,6 +30,33 @@ from cornac.models.dmrl.transformer_vision import TransformersVisionModality
 from cornac.models.recommender import Recommender
 
 
+
+class ImageModalityInput:
+    def __init__(self, ids: List[str], images: List[JpegImageFile] = None, preencoded_image_features: np.ndarray = None):
+        """
+        Image modality input for the DMRL model. Either takes in raw images
+        and performs pre-encoding given the vision transformer model in
+        TransformersVisionModality or uses preencoded features.
+        """
+        self.ids = ids
+        self.images = images
+        self.preencoded_image_features = preencoded_image_features
+        assert int(images is None) + int(preencoded_image_features is None) == 1, "Either images or preencoded_image_features must be given, not both"
+        
+
+class TextModalityInput:
+    def __init__(self, ids: List[str], docs: List[str] = None, preencoded_text_features: np.ndarray = None):
+        """
+        Text modality input for the DMRL model. Either takes in raw text and
+        performs pre-encoding given the transformer model in
+        TransformersTextModality or uses preencoded features.
+        """
+        self.ids = ids
+        self.docs = docs
+        self.preencoded_text_features = preencoded_text_features
+        assert int(docs is None) + int(preencoded_text_features is None) == 1, "Either docs or preencoded_text_features must be given, not both"
+
+
 class DMRL(Recommender):
     """
     Disentangled multimodal representation learning
@@ -103,11 +130,8 @@ class DMRL(Recommender):
             trainable: bool = True,
             verbose: bool = False,
             log_metrics: bool = False,
-            docs: List[str] = None,
-            images: List[JpegImageFile] = None,
-            original_item_ids: List[int] = None,
-            preencoded_text_features: np.ndarray = None,
-            preencoded_image_features: np.ndarray = None
+            image_features: ImageModalityInput = None,
+            text_features: TextModalityInput = None
             ):
         
         super().__init__(name=name, trainable=trainable, verbose=verbose)
@@ -131,13 +155,8 @@ class DMRL(Recommender):
         if self.num_factors == 1:
             # deactivate disentangled portion of loss if theres only 1 factor
             self.decay_c == 0
-            
-        # modality attributes
-        self.original_item_ids = original_item_ids
-        self.docs = docs
-        self.images = images
-        self.encoded_text_features = preencoded_text_features
-        self.encoded_image_features = preencoded_image_features
+        self.image_features: ImageModalityInput = image_features
+        self.text_features: TextModalityInput = text_features
 
     def fit(self, train_set: Dataset, val_set=None):
         """Fit the model to observations.
@@ -174,7 +193,12 @@ class DMRL(Recommender):
         shape = batch[:, 1:].shape
         all_items = batch[:, 1:].flatten()
         
-        return torch.tensor(self.item_image_modality.features[all_items, :].reshape((*shape, self.item_image_modality.feature_dim)), dtype=torch.float32)
+        item_image_embedding = self.item_image_modality.features[all_items, :].reshape((*shape, self.item_image_modality.feature_dim))
+
+        if not isinstance(item_image_embedding, torch.Tensor):
+            item_image_embedding = torch.tensor(item_image_embedding, dtype=torch.float32)
+        
+        return item_image_embedding
 
     def get_item_text_embeddings(self, batch: torch.Tensor) -> torch.Tensor:
         """
@@ -199,6 +223,9 @@ class DMRL(Recommender):
         else:
             item_text_embeddings = self.item_text_modality.features[all_items]
             item_text_embeddings = item_text_embeddings.reshape((*shape, self.item_text_modality.output_dim))
+            
+        if not isinstance(item_text_embeddings, torch.Tensor):
+            item_text_embeddings = torch.tensor(item_text_embeddings, dtype=torch.float32)
 
         return item_text_embeddings
 
@@ -416,21 +443,19 @@ class DMRL(Recommender):
         general FeatureModality instance, as no further encoding model is
         required.
         """
-        if self.encoded_text_features is None:
-            if self.docs is not None:
-                self.item_text_modality = TransformersTextModality(corpus=self.docs, ids=self.original_item_ids, preencode=True)
-                del self.docs
+        if self.text_features.preencoded_text_features is None:
+            if self.text_features.docs is not None:
+                self.item_text_modality = TransformersTextModality(corpus=self.text_features.docs, ids=self.text_features.ids , preencode=True)
 
         else: # already have preencoded text features from outside
-            self.item_text_modality = FeatureModality(features=self.encoded_text_features, ids=self.original_item_ids)
+            self.item_text_modality = FeatureModality(features=self.text_features.preencoded_text_features, ids=self.text_features.ids)
 
-        if self.encoded_image_features is None:
-            if self.images is not None:
-                self.item_image_modality = TransformersVisionModality(features=self.images, ids=self.original_item_ids, preencode=True)
-                del self.images
+        if self.image_features.preencoded_image_features is None:
+            if self.image_features.images is not None:
+                self.item_image_modality = TransformersVisionModality(features=self.image_features.images, ids=self.image_features.ids, preencode=True)
             
         else: # already have preencoded image features from outside
-            self.item_image_modality = FeatureModality(features=self.encoded_image_features, ids=self.original_item_ids)
+            self.item_image_modality = FeatureModality(features=self.image_features.preencoded_image_features, ids=self.image_features.ids)
 
         if hasattr(self, "item_text_modality"):
             self.item_text_modality.build(trainset.iid_map)
@@ -438,3 +463,5 @@ class DMRL(Recommender):
         if hasattr(self, "item_image_modality"):
             self.item_image_modality.build(trainset.iid_map)
 
+        del self.text_features
+        del self.image_features
