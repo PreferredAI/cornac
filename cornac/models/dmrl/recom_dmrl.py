@@ -16,27 +16,20 @@
 from typing import List, Tuple
 
 import numpy as np
-import torch
-from PIL.JpegImagePlugin import JpegImageFile
-from torch.utils.data import DataLoader
 
 from cornac.data.dataset import Dataset
 from cornac.data.modality import FeatureModality
 from cornac.metrics.ranking import Precision, Recall
-from cornac.models.dmrl.dmrl import DMRLLoss, DMRLModel
-from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
-from cornac.models.dmrl.transformer_text import TransformersTextModality
-from cornac.models.dmrl.transformer_vision import TransformersVisionModality
 from cornac.models.recommender import Recommender
 
 
-
 class ImageModalityInput:
-    def __init__(self, ids: List[str], images: List[JpegImageFile] = None, preencoded_image_features: np.ndarray = None):
+    def __init__(self, ids: List[str], images = None, preencoded_image_features: np.ndarray = None):
         """
         Image modality input for the DMRL model. Either takes in raw images
         and performs pre-encoding given the vision transformer model in
         TransformersVisionModality or uses preencoded features.
+        Please notce images must be a the following datatype: List[PIL.JpegImagePlugin.JpegImageFile]
         """
         self.ids = ids
         self.images = images
@@ -135,6 +128,7 @@ class DMRL(Recommender):
             ):
         
         super().__init__(name=name, trainable=trainable, verbose=verbose)
+
         self.learning_rate = learning_rate
         self.decay_c = decay_c
         self.decay_r = decay_r
@@ -176,7 +170,7 @@ class DMRL(Recommender):
 
         return self
 
-    def get_item_image_embedding(self, batch: torch.Tensor) -> torch.Tensor:
+    def get_item_image_embedding(self, batch):
         """
         Get the item image embeddings from the image modality. Expect the image
         modaility to be preencded and available as a numpy array.
@@ -184,9 +178,10 @@ class DMRL(Recommender):
         Parameters
         ----------
 
-        param batch: user inidices in first column, pos item indices in second
+        param batch: torch.Tensor, user inidices in first column, pos item indices in second
             and all other columns are negative item indices
         """
+        import torch
         if not hasattr(self, "item_image_modality"):
             return None
 
@@ -200,7 +195,7 @@ class DMRL(Recommender):
         
         return item_image_embedding
 
-    def get_item_text_embeddings(self, batch: torch.Tensor) -> torch.Tensor:
+    def get_item_text_embeddings(self, batch):
         """
         Get the item text embeddings from the BERT model. Either by encoding the
         text on the fly or by using the preencoded text.
@@ -208,9 +203,10 @@ class DMRL(Recommender):
         Parameters
         ----------
 
-        param batch: user inidices in first column, pos item indices in second
+        param batch: torch.Tensor, user inidices in first column, pos item indices in second
             and all other columns are negative item indices
         """
+        import torch
         shape = batch[:, 1:].shape
         all_items = batch[:, 1:].flatten()
 
@@ -229,7 +225,7 @@ class DMRL(Recommender):
 
         return item_text_embeddings
 
-    def get_modality_embeddings(self, batch: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_modality_embeddings(self, batch):
         """
         Get the modality embeddings for both text and image from the respectiv
         modality instances.
@@ -237,7 +233,8 @@ class DMRL(Recommender):
         Parameters
         ----------
 
-        param batch: user inidices in first column, pos item indices in second
+        param batch: torch.Tensor, user inidices in first column, pos item
+        indices in second
             and all other columns are negative item indices
         """
         item_text_embeddings = self.get_item_text_embeddings(batch)
@@ -253,6 +250,11 @@ class DMRL(Recommender):
         ----------
         train_set: User-Item preference data as well as additional modalities.
         """
+        import torch
+        from torch.utils.data import DataLoader
+
+        from cornac.models.dmrl.dmrl import DMRLLoss, DMRLModel
+        from cornac.models.dmrl.pwlearning_sampler import PWLearningSampler
         
         self.initialize_and_build_modalities(train_set)
 
@@ -387,7 +389,7 @@ class DMRL(Recommender):
         print(f"Mean train set recall and precision: {avg_results}")
         return avg_results
 
-    def score(self, user_index: int, item_indices: torch.Tensor = None) -> torch.Tensor:
+    def score(self, user_index: int, item_indices):
         """
         Scores a user-item pair. If item_index is None, scores for all known
         items.       
@@ -397,10 +399,12 @@ class DMRL(Recommender):
         name: user_idx
             The index of the user for whom to perform score prediction.
     
-        item_idx: int, optional, default: None
+        item_indices: torch.Tensor, optional, default: None
             The index of the item for which to perform score prediction.
             If None, scores for all known items will be returned.
         """
+        import torch
+
         self.model.num_neg = 0
         self.model.eval()
 
@@ -443,19 +447,24 @@ class DMRL(Recommender):
         general FeatureModality instance, as no further encoding model is
         required.
         """
-        if self.text_features.preencoded_text_features is None:
-            if self.text_features.docs is not None:
-                self.item_text_modality = TransformersTextModality(corpus=self.text_features.docs, ids=self.text_features.ids , preencode=True)
+        from cornac.models.dmrl.transformer_text import TransformersTextModality
+        from cornac.models.dmrl.transformer_vision import TransformersVisionModality
+        
+        if self.text_features is not None:
+            if self.text_features.preencoded_text_features is None:
+                if self.text_features.docs is not None:
+                    self.item_text_modality = TransformersTextModality(corpus=self.text_features.docs, ids=self.text_features.ids , preencode=True)
 
-        else: # already have preencoded text features from outside
-            self.item_text_modality = FeatureModality(features=self.text_features.preencoded_text_features, ids=self.text_features.ids)
+            else: # already have preencoded text features from outside
+                self.item_text_modality = FeatureModality(features=self.text_features.preencoded_text_features, ids=self.text_features.ids)
 
-        if self.image_features.preencoded_image_features is None:
-            if self.image_features.images is not None:
-                self.item_image_modality = TransformersVisionModality(features=self.image_features.images, ids=self.image_features.ids, preencode=True)
-            
-        else: # already have preencoded image features from outside
-            self.item_image_modality = FeatureModality(features=self.image_features.preencoded_image_features, ids=self.image_features.ids)
+        if self.image_features is not None:
+            if self.image_features.preencoded_image_features is None:
+                if self.image_features.images is not None:
+                    self.item_image_modality = TransformersVisionModality(features=self.image_features.images, ids=self.image_features.ids, preencode=True)
+                
+            else: # already have preencoded image features from outside
+                self.item_image_modality = FeatureModality(features=self.image_features.preencoded_image_features, ids=self.image_features.ids)
 
         if hasattr(self, "item_text_modality"):
             self.item_text_modality.build(trainset.iid_map)
