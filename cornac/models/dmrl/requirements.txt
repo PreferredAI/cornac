@@ -7,3 +7,6 @@ pytest
 powerlaw
 dcor
 torchvision
+numpy
+tqdm
+
