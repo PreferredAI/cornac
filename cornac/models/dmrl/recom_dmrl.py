@@ -108,7 +108,7 @@ class DMRL(Recommender):
     """
     def __init__(
             self,
-            name: str = "DRML",
+            name: str = "DMRL",
             batch_size: int = 32,
             learning_rate: float = 1e-4,
             decay_c: float = 1,
