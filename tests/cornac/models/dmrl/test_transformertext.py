@@ -2,32 +2,34 @@
 # if they are missing skip the respective test
 # If a user wants to un these please run: pip install -r cornac/models/dmrl/requirements.txt
 
-try:
-    import unittest
+import unittest
 
+try:
     import torch
     from sentence_transformers import util
-    import sys
-    with open("my_file.txt", "w") as file:
-        # Write content to the file
-        file.write(str(sys.path))
     from cornac.models.dmrl.transformer_text import TransformersTextModality
+
     run_dmrl_test_funcs = True
 
 except ImportError:
     run_dmrl_test_funcs = False
 
+
 def skip_test_in_case_of_missing_reqs(test_func):
-  test_func.__test__ = run_dmrl_test_funcs  # Mark the test function as (non-)discoverable by unittest
-  return test_func
+    test_func.__test__ = (
+        run_dmrl_test_funcs  # Mark the test function as (non-)discoverable by unittest
+    )
+    return test_func
 
 
 class TestTransformersTextModality(unittest.TestCase):
-
+    @skip_test_in_case_of_missing_reqs
     def setUp(self):
         self.corpus = ["I like you very much.", "I like you so much"]
         self.ids = [0, 1]
-        self.modality = TransformersTextModality(corpus=self.corpus, ids=self.ids, preencode=True)
+        self.modality = TransformersTextModality(
+            corpus=self.corpus, ids=self.ids, preencode=True
+        )
 
     @skip_test_in_case_of_missing_reqs
     def test_batch_encode(self):

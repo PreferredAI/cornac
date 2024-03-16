@@ -2,12 +2,26 @@
 Pytest tests for cornac.models.dmrl.d_cor_calc.py
 """
 
-import torch
-from cornac.models.dmrl.d_cor_calc import DistanceCorrelationCalculator
-import dcor
+try:
+    import torch
+    import dcor
+    from cornac.models.dmrl.d_cor_calc import DistanceCorrelationCalculator
+
+    run_dmrl_test_funcs = True
+
+except ImportError:
+    run_dmrl_test_funcs = False
+
+
+def skip_test_in_case_of_missing_reqs(test_func):
+    test_func.__test__ = (
+        run_dmrl_test_funcs  # Mark the test function as (non-)discoverable by unittest
+    )
+    return test_func
 
 
 # first test the distance correlation calculator
+@skip_test_in_case_of_missing_reqs
 def test_distance_correlation_calculator():
     """
     Test the distance correlation calculator. Compare agains the library dcor.
@@ -25,4 +39,9 @@ def test_distance_correlation_calculator():
 
     for sample in range(num_neg - 1):
         # cutoff everyyhing after 5th decimal
-        assert round(cor_per_sample[sample].item(), 2) == round(dcor.distance_correlation(tensor_x[:, sample, :], tensor_y[:, sample, :]).item(), 2)
+        assert round(cor_per_sample[sample].item(), 2) == round(
+            dcor.distance_correlation(
+                tensor_x[:, sample, :], tensor_y[:, sample, :]
+            ).item(),
+            2,
+        )
