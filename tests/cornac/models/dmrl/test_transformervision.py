@@ -5,13 +5,13 @@ your favorite beach and cat photos and check the similarity scores.
 """
 
 import unittest
-import requests
 
 # add a checker to make sure all requirements needed in the imports here are really present.
 # if they are missing skip the respective test
 # If a user wants to un these please run: pip install -r cornac/models/dmrl/requirements.txt
 try:
     import torch
+    import requests
     from PIL import Image
     from sentence_transformers import util
 
