@@ -1,12 +1,7 @@
 pandas
 torch
-scipy
-cython
 sentence_transformers
 pytest
-powerlaw
 dcor
 torchvision
-numpy
-tqdm
 
