@@ -62,7 +62,8 @@ docs/_build/
 **.lock
 **.zip
 
-# Virtual envs
-.env/
-.venv/
-venv/
+# Environment
+env
+venv
+.env
+.venv
