@@ -551,7 +551,7 @@ class HypAR(Recommender):
 
     def fit(self, train_set: Dataset, val_set=None):
         import torch
-        from ..lightgcn.lightgcn import construct_graph
+        from .lightgcn import construct_graph
 
         # Initialize self variables
         super().fit(train_set, val_set)

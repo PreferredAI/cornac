@@ -499,7 +499,7 @@ class Model(nn.Module):
                  combiner='add', aos_predictor='non-linear', non_linear=False, embedding_type='learned',
                  **kwargs):
         super().__init__()
-        from cornac.models.lightgcn.lightgcn import Model as lightgcn
+        from .lightgcn import Model as lightgcn
         self.aggregator = aggregator
         self.embedding_type = embedding_type
         self.predictor = predictor
