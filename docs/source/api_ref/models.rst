@@ -11,6 +11,11 @@ Recommender (Generic Class)
 .. automodule:: cornac.models.recommender
    :members:
 
+Disentangled Multimodal Representation Learning for Recommendation (DMRL)
+-------------------------------------------------------------------------
+.. automodule:: cornac.models.dmrl.recom_dmrl
+   :members:
+
 Bilateral VAE for Collaborative Filtering (BiVAECF)
 ---------------------------------------------------
 .. automodule:: cornac.models.bivaecf.recom_bivaecf
@@ -302,9 +307,4 @@ User K-Nearest-Neighbors (UserKNN)
 Weighted Matrix Factorization (WMF)
 -----------------------------------
 .. automodule:: cornac.models.wmf.recom_wmf
-   :members:
-
-Disentangled Multimodal Representation Learning for Recommendation (DMRL)
------------------------------------
-.. automodule:: cornac.models.dmrl.recom_dmrl
    :members:
