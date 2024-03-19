@@ -14,7 +14,7 @@ class HypAR(Recommender):
         HypAR: Hypergraph with Attention on Review. This model is from the paper "Hypergraph with Attention on Reviews
         for explainable recommendation", by Theis E. Jendal, Trung-Hoang Le, Hady W. Lauw, Matteo Lissandrini,
         Peter Dolog, and Katja Hose.
-        ECIR 2024: https://www.dropbox.com/scl/fi/mqg5cyztb2dy04c2eg6ua/ecir24.pdf?rlkey=qvj08y33hfvasl6syolp1yxg1&dl=0
+        ECIR 2024: https://doi.org/10.1007/978-3-031-56027-9_14
 
         Parameters
         ----------
