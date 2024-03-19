@@ -23,44 +23,6 @@ from cornac.metrics.ranking import Precision, Recall
 from cornac.models.recommender import Recommender
 
 
-class ImageModalityInput:
-    def __init__(
-        self, ids: List[str], images=None, preencoded_image_features: np.ndarray = None
-    ):
-        """
-        Image modality input for the DMRL model. Either takes in raw images
-        and performs pre-encoding given the vision transformer model in
-        TransformersVisionModality or uses preencoded features.
-        Please notce images must be a the following datatype: List[PIL.JpegImagePlugin.JpegImageFile]
-        """
-        self.ids = ids
-        self.images = images
-        self.preencoded_image_features = preencoded_image_features
-        assert (
-            int(images is None) + int(preencoded_image_features is None) == 1
-        ), "Either images or preencoded_image_features must be given, not both"
-
-
-class TextModalityInput:
-    def __init__(
-        self,
-        ids: List[str],
-        docs: List[str] = None,
-        preencoded_text_features: np.ndarray = None,
-    ):
-        """
-        Text modality input for the DMRL model. Either takes in raw text and
-        performs pre-encoding given the transformer model in
-        TransformersTextModality or uses preencoded features.
-        """
-        self.ids = ids
-        self.docs = docs
-        self.preencoded_text_features = preencoded_text_features
-        assert (
-            int(docs is None) + int(preencoded_text_features is None) == 1
-        ), "Either docs or preencoded_text_features must be given, not both"
-
-
 class DMRL(Recommender):
     """
     Disentangled multimodal representation learning
@@ -484,7 +446,7 @@ class DMRL(Recommender):
         print(f"Mean train set recall and precision: {avg_results}")
         return avg_results
 
-    def score(self, user_index: int, item_indices):
+    def score(self, user_index: int, item_indices = None):
         """
         Scores a user-item pair. If item_index is None, scores for all known
         items.
@@ -511,20 +473,20 @@ class DMRL(Recommender):
 
         user_index = user_index * torch.ones(len(item_indices), dtype=torch.long)
 
-        if self.item_text_modality.features is None:
-            self.item_text_modality.preencode_entire_corpus()
+        if self.item_text.features is None:
+            self.item_text.preencode_entire_corpus()
 
         # since the model expects as (batch size, 1 + num_neg, encoding dim) we just add one dim and repeat
-        if hasattr(self, "item_text_modality"):
-            encoded_text: torch.Tensor = self.item_text_modality.features[
+        if hasattr(self, "item_text"):
+            encoded_text: torch.Tensor = self.item_text.features[
                 item_indices, :
             ]
             encoded_text = encoded_text[:, None, :]
             encoded_text = encoded_text.to(self.device)
 
-        if hasattr(self, "item_image_modality"):
+        if hasattr(self, "item_image"):
             encoded_image = torch.tensor(
-                self.item_image_modality.features[item_indices, :], dtype=torch.float32
+                self.item_image.features[item_indices, :], dtype=torch.float32
             )
             encoded_image = encoded_image[:, None, :]
             encoded_image = encoded_image.to(self.device)
@@ -552,16 +514,20 @@ class DMRL(Recommender):
         from cornac.models.dmrl.transformer_vision import TransformersVisionModality
 
         if trainset.item_text is not None:
-            if isinstance(trainset.item_text, TextModality):
+            if (
+                isinstance(trainset.item_text, TextModality)
+                and trainset.item_text.corpus is not None
+            ):
                 self.item_text = TransformersTextModality(
                     corpus=trainset.item_text.corpus,
                     ids=trainset.item_text.ids,
-                    preencode=False,
+                    preencode=True,
                 )
             elif isinstance(
                 trainset.item_text, FeatureModality
             ):  # already have preencoded text features from outside
                 self.item_text = trainset.item_text
+                assert trainset.item_text.features is not None, "No pre-encoded features found, please use TextModality"
             else:
                 raise ValueError("Not supported type of modality for item text")
 
@@ -573,11 +539,12 @@ class DMRL(Recommender):
                 self.item_image = TransformersVisionModality(
                     images=trainset.item_image.images,
                     ids=trainset.item_image.ids,
-                    preencode=False,
+                    preencode=True,
                 )
             elif isinstance(
                 trainset.item_image, FeatureModality
             ):  # already have preencoded image features from outside
                 self.item_image = trainset.item_image
+                assert trainset.item_image.features is not None, "No pre-encoded features found, please use ImageModality"
             else:
                 raise ValueError("Not supported type of modality for item image")
