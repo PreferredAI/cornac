@@ -96,9 +96,6 @@ class Model(nn.Module):
             item_embeds = h_dict[ITEM_KEY]
             iterator = enumerate(zip([in_g] * len(self.layers), self.layers))
 
-        user_embeds = user_embeds * (1 / (len(self.layers) + 1))
-        item_embeds = item_embeds * (1 / (len(self.layers) + 1))
-
         for k, (g, layer) in iterator:
             h_dict = layer(g, h_dict)
             ue = h_dict[USER_KEY]
