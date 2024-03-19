@@ -5,12 +5,16 @@ import cornac
 from cornac.data import Reader
 from cornac.datasets import citeulike
 from cornac.eval_methods import RatioSplit
-from cornac.models.dmrl.recom_dmrl import TextModalityInput
+from cornac.data import TextModality
 
 # The necessary data can be loaded as follows
-docs, item_id_ordering_text = citeulike.load_text()
-feedback = citeulike.load_feedback(reader=Reader(item_set=item_id_ordering_text))
+docs, item_ids = citeulike.load_text()
+feedback = citeulike.load_feedback(reader=Reader(item_set=item_ids))
 
+item_text_modality = TextModality(
+    corpus=docs,
+    ids=item_ids,
+)
 
 # Define an evaluation method to split feedback into train and test sets
 ratio_split = RatioSplit(
@@ -20,9 +24,8 @@ ratio_split = RatioSplit(
     verbose=True,
     seed=123,
     rating_threshold=0.5,
+    item_text=item_text_modality,
 )
-
-text_modality_input = TextModalityInput(item_id_ordering_text, docs)
 
 # Instantiate DMRL recommender
 dmrl_recommender = cornac.models.dmrl.DMRL(
@@ -32,14 +35,16 @@ dmrl_recommender = cornac.models.dmrl.DMRL(
     learning_rate=0.01,
     num_factors=2,
     decay_r=0.5,
-    decay_c=0.01,   
+    decay_c=0.01,
     num_neg=3,
     embedding_dim=100,
-    text_features=text_modality_input)
+)
 
 # Use Recall@300 for evaluations
 rec_300 = cornac.metrics.Recall(k=300)
 prec_30 = cornac.metrics.Precision(k=30)
 
 # Put everything together into an experiment and run it
-cornac.Experiment(eval_method=ratio_split, models=[dmrl_recommender], metrics=[prec_30, rec_300]).run()
+cornac.Experiment(
+    eval_method=ratio_split, models=[dmrl_recommender], metrics=[prec_30, rec_300]
+).run()
