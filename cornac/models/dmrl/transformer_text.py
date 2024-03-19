@@ -24,7 +24,6 @@ import torch
 from cornac.data.modality import FeatureModality
 
 
-
 class TransformersTextModality(FeatureModality):
     """
     Transformer text modality wrapped around SentenceTransformer library.
@@ -50,6 +49,9 @@ class TransformersTextModality(FeatureModality):
         self.output_dim = self.model[-1].pooling_output_dimension
         self.preencode = preencode
         self.preencoded = False
+        
+        if self.preencode:
+            self.preencode_entire_corpus()
 
     def preencode_entire_corpus(self):
         """
@@ -79,40 +81,6 @@ class TransformersTextModality(FeatureModality):
             os.makedirs("temp", exist_ok = True)
             torch.save(self.features, path)
             torch.save(self.ids, id_path)
-
-    def build(self, id_map: OrderedDict, **kwargs):
-        """
-        Build the modality with the given global id_map.
-
-        :param id_map: the global id map (train and test set)
-        """
-        if (self.ids is not None) and (id_map is not None):
-            self._swap_text(id_map)
-        return self
-
-    def _swap_text(self, id_map: dict):
-        """
-        Swap the text in the corpus according to the id_map. That way we can
-        access the corpus by index, where the index represents the item id.
-
-        :param id_map: the global id map (train and test set and possibly
-            validation set)
-        """
-        new_corpus = self.corpus.copy()
-        new_ids = self.ids.copy()
-        for old_idx, raw_id in enumerate(self.ids):
-            new_idx = id_map.get(raw_id, None)
-            if new_idx is None:
-                continue
-            assert new_idx < len(self.corpus)
-            new_corpus[new_idx] = self.corpus[old_idx]
-            new_ids[new_idx] = raw_id
-        self.corpus = new_corpus
-        self.ids = new_ids
-
-        if self.preencode:
-            self.preencode_entire_corpus()
-
 
     def batch_encode(self, ids: List[int]):
         """

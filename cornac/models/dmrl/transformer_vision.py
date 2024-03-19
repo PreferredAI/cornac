@@ -34,12 +34,13 @@ class TransformersVisionModality(FeatureModality):
     """
 
     def __init__(
-            self,
-            images: List[JpegImageFile] = None,
-            ids: List = None,
-            preencode: bool = False,
-            model_weights: WeightsEnum = models.ViT_H_14_Weights.DEFAULT,
-            **kwargs):
+        self,
+        images: List[JpegImageFile] = None,
+        ids: List = None,
+        preencode: bool = False,
+        model_weights: WeightsEnum = models.ViT_H_14_Weights.DEFAULT,
+        **kwargs
+    ):
 
         super().__init__(ids=ids, **kwargs)
         self.images = images
@@ -49,14 +50,19 @@ class TransformersVisionModality(FeatureModality):
         self.model.eval()
 
         self.image_size = (self.model.image_size, self.model.image_size)
-        self.image_to_tensor_transformer = transforms.Compose([
-                                                transforms.ToTensor()
-                                                # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Normalize pixel values
-                                            ])
-                                                    
+        self.image_to_tensor_transformer = transforms.Compose(
+            [
+                transforms.ToTensor()
+                # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Normalize pixel values
+            ]
+        )
+
         self.preencode = preencode
         self.preencoded = False
         self.batch_size = 50
+        
+        if self.preencode:
+            self.preencode_images()
 
     def preencode_images(self):
         """
@@ -64,8 +70,8 @@ class TransformersVisionModality(FeatureModality):
         have to do it on the fly in training. Might take significant time to
         pre-encode.
         """
-        
-        path = 'temp/encoded_images.pt'
+
+        path = "temp/encoded_images.pt"
         id_path = "temp/encoded_images_ids.pt"
 
         if os.path.exists(path) and os.path.exists(id_path):
@@ -75,13 +81,15 @@ class TransformersVisionModality(FeatureModality):
                 self.preencoded = True
             else:
                 assert self.preencoded is False
-                print("The ids of the saved encoded images do not match the current ids. Re-encoding the images.")
-        
+                print(
+                    "The ids of the saved encoded images do not match the current ids. Re-encoding the images."
+                )
+
         if not self.preencoded:
             print("Pre-encoding the entire image library. This might take a while.")
-            self._encode_images()            
+            self._encode_images()
             self.preencoded = True
-            os.makedirs("temp", exist_ok = True) 
+            os.makedirs("temp", exist_ok=True)
             torch.save(self.features, path)
             torch.save(self.ids, id_path)
 
@@ -89,8 +97,10 @@ class TransformersVisionModality(FeatureModality):
         """
         Encode all images in the library.
         """
-        for i in range(len(self.images)//self.batch_size + 1):
-            tensor_batch = self.transform_images_to_torch_tensor(self.images[i*self.batch_size : (i+1)*self.batch_size])
+        for i in range(len(self.images) // self.batch_size + 1):
+            tensor_batch = self.transform_images_to_torch_tensor(
+                self.images[i * self.batch_size : (i + 1) * self.batch_size]
+            )
             with torch.no_grad():
                 encoded_batch = self.model(tensor_batch)
 
@@ -98,8 +108,10 @@ class TransformersVisionModality(FeatureModality):
                 self.features = encoded_batch
             else:
                 self.features = torch.cat((self.features, encoded_batch), 0)
-    
-    def transform_images_to_torch_tensor(self, images: List[JpegImageFile]) -> torch.Tensor:
+
+    def transform_images_to_torch_tensor(
+        self, images: List[JpegImageFile]
+    ) -> torch.Tensor:
         """
         Transorms a list of PIL images to a torch tensor batch.
 
@@ -118,41 +130,8 @@ class TransformersVisionModality(FeatureModality):
                 tensor_batch = tensor
             else:
                 tensor_batch = torch.cat((tensor_batch, tensor), 0)
-        
+
         return tensor_batch
-
-    def build(self, id_map: OrderedDict, **kwargs):
-        """
-        Build the modality with the given global id_map.
-
-        :param id_map: the global id map (train and test set)
-        """
-        if (self.ids is not None) and (id_map is not None):
-            self._swap_text(id_map)
-        return self
-
-    def _swap_text(self, id_map: dict):
-        """
-        Swap the text in the corpus according to the id_map. That way we can
-        access the corpus by index, where the index represents the item id.
-
-        :param id_map: the global id map (train and test set and possibly
-            validation set)
-        """
-        new_images = self.images.copy()
-        new_ids = self.ids.copy()
-        for old_idx, raw_id in enumerate(self.ids):
-            new_idx = id_map.get(raw_id, None)
-            if new_idx is None:
-                continue
-            assert new_idx < len(self.corpus)
-            new_images[new_idx] = self.corpus[old_idx]
-            new_ids[new_idx] = raw_id
-        self.images = new_images
-        self.ids = new_ids
-
-        if self.preencode:
-            self.preencode_images()
 
     def batch_encode(self, ids: List[int]):
         """
