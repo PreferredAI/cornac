@@ -4,17 +4,21 @@ This example uses preencoded visual features from cornac dataset instead of Tran
 """
 
 import cornac
+from cornac.data import TextModality, ImageModality
 from cornac.datasets import amazon_clothing
 from cornac.eval_methods import RatioSplit
-from cornac.models.dmrl.recom_dmrl import ImageModalityInput, TextModalityInput
 
 
 feedback = amazon_clothing.load_feedback()
-encoded_image_features, item_id_ordering_image = amazon_clothing.load_visual_feature()  # BIG file
-docs, item_id_ordering_text = amazon_clothing.load_text()
+image_features, image_item_ids = amazon_clothing.load_visual_feature()  # BIG file
+docs, text_item_ids = amazon_clothing.load_text()
+
 
 # only treat good feedback as positive user-item pair
-new_feedback = [f for f in feedback if f[2] >=4]
+new_feedback = [f for f in feedback if f[2] >= 4]
+
+text_modality = TextModality(corpus=docs, ids=text_item_ids)
+image_modality = ImageModality(features=image_features, ids=image_item_ids)
 
 ratio_split = RatioSplit(
     data=new_feedback,
@@ -23,11 +27,9 @@ ratio_split = RatioSplit(
     verbose=True,
     seed=123,
     rating_threshold=4,
+    item_text=text_modality,
+    item_image=image_modality,
 )
-
-text_modality_input = TextModalityInput(item_id_ordering_text, docs)
-image_modality_input = ImageModalityInput(item_id_ordering_image, preencoded_image_features=encoded_image_features)
-
 
 dmrl_recommender = cornac.models.dmrl.DMRL(
     batch_size=1024,
@@ -41,8 +43,7 @@ dmrl_recommender = cornac.models.dmrl.DMRL(
     embedding_dim=100,
     image_dim=4096,
     dropout=0,
-    text_features=text_modality_input,
-    image_features=image_modality_input)
+)
 
 
 # Use Recall@300 for evaluations
@@ -51,4 +52,8 @@ rec_900 = cornac.metrics.Recall(k=900)
 prec_30 = cornac.metrics.Precision(k=30)
 
 # Put everything together into an experiment and run it
-cornac.Experiment(eval_method=ratio_split, models=[dmrl_recommender], metrics=[prec_30, rec_300, rec_900]).run()
+cornac.Experiment(
+    eval_method=ratio_split,
+    models=[dmrl_recommender],
+    metrics=[prec_30, rec_300, rec_900],
+).run()
