@@ -566,11 +566,14 @@ class DMRL(Recommender):
                 raise ValueError("Not supported type of modality for item text")
 
         if trainset.item_image is not None:
-            if isinstance(trainset.item_image, ImageModality):
+            if (
+                isinstance(trainset.item_image, ImageModality)
+                and trainset.item_image.images is not None
+            ):
                 self.item_image = TransformersVisionModality(
                     images=trainset.item_image.images,
                     ids=trainset.item_image.ids,
-                    preencode=True,
+                    preencode=False,
                 )
             elif isinstance(
                 trainset.item_image, FeatureModality
