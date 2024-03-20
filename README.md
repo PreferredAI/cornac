@@ -148,6 +148,7 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 | Year | Model and paper | Model type | Require-ments | Examples |
 | :---: | --- | :---: | :---: | :---: |
 | 2024 | [Hypergraphs with Attention on Reviews (HypAR)](cornac/models/hypar), [paper](https://doi.org/10.1007/978-3-031-56027-9_14)| Hybrid / Sentiment / Explainable | [reqs](cornac/models/hypar/requirements_cu116.txt) | [exp](https://github.com/PreferredAI/HypAR)
+| 2022 | [Disentangled Multimodal Representation Learning for Recommendation (DMRL)](cornac/models/dmrl), [paper](https://arxiv.org/pdf/2203.05406.pdf) | Content-Based / Text & Image | [reqs](cornac/models/dmrl/requirements.txt) | [exp](examples/dmrl_example.py)
 | 2021 | [Bilateral Variational Autoencoder for Collaborative Filtering (BiVAECF)](cornac/models/bivaecf), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441759) | Collaborative Filtering / Content-Based | [reqs](cornac/models/bivaecf/requirements.txt) | [exp](https://github.com/PreferredAI/bi-vae)
 |      | [Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)](cornac/models/causalrec), [paper](https://arxiv.org/abs/2107.02390) | Content-Based / Image | [reqs](cornac/models/causalrec/requirements.txt) | [exp](examples/causalrec_clothing.py)
 |      | [Explainable Recommendation with Comparative Constraints on Product Aspects (ComparER)](cornac/models/comparer), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441754) | Explainable | N/A | [exp](https://github.com/PreferredAI/ComparER)

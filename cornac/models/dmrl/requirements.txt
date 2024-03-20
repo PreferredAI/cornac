@@ -1,0 +1,7 @@
+pandas
+torch
+sentence_transformers
+pytest
+dcor
+torchvision
+requests
