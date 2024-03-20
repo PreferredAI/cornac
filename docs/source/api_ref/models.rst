@@ -44,6 +44,11 @@ Hybrid neural recommendation with joint deep representation learning of ratings 
 .. automodule:: cornac.models.hrdr.recom_hrdr
    :members:
 
+Hypergraphs with Attention on Reviews for Explainable Recommendation
+--------------------------------------------------------------------------------------------------
+.. automodule:: cornac.models.hypar.recom_hypar
+   :members:
+
 Simplifying and Powering Graph Convolution Network for Recommendation (LightGCN)
 --------------------------------------------------------------------------------
 .. automodule:: cornac.models.lightgcn.recom_lightgcn
