@@ -54,6 +54,8 @@
 
 [cvae_example.py](cvae_example.py) - Collaborative Variational Autoencoder (CVAE) with CiteULike dataset.
 
+[dmrl_example.py](dmrl_example.py) - Disentangled Multimodal Representation Learning (DMRL) with citeulike dataset.
+
 [trirank_example.py](trirank_example.py) - TriRank with Amazon Toy and Games dataset.
 
 [efm_example.py](efm_example.py) - Explicit Factor Model (EFM) with Amazon Toy and Games dataset.
@@ -67,6 +69,8 @@
 ### Image
 
 [causalrec_clothing.py](causalrec_clothing.py) - CausalRec with Clothing dataset.
+
+[dmrl_clothes_example.py](dmrl_clothes_example.py) - Disentangled Multimodal Representation Learning (DMRL) with Amazon clothing dataset.
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
