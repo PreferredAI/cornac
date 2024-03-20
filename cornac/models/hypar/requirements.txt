@@ -1,0 +1,9 @@
+# Links for torch and dgl
+-f https://download.pytorch.org/whl/torch_stable.html
+
+pandas==1.4.*
+gensim==4.2.0
+sentence-transformers==2.2.2
+dgl==1.0.*
+torch==1.*
+filelock==3.8.2
