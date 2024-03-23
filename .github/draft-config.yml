@@ -46,14 +46,14 @@ version-resolver:
   minor:
     labels:
       - 'feature'
+      - 'models'
+      - 'datasets'
   patch:
     labels:
       - 'bug'
       - 'maintenance'
       - 'docs'
       - 'dependencies'
-      - 'models'
-      - 'datasets'
 
 exclude-labels:
   - 'skip-changelog'

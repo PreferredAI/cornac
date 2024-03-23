@@ -38,6 +38,7 @@ from .conv_mf import ConvMF
 from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
+from .dmrl import DMRL
 from .dnntsp import DNNTSP
 from .ease import EASE
 from .efm import EFM
@@ -49,6 +50,7 @@ from .gru4rec import GRU4Rec
 from .hft import HFT
 from .hpf import HPF
 from .hrdr import HRDR
+from .hypar import HypAR
 from .ibpr import IBPR
 from .knn import ItemKNN
 from .knn import UserKNN

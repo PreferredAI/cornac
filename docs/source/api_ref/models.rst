@@ -11,6 +11,11 @@ Recommender (Generic Class)
 .. automodule:: cornac.models.recommender
    :members:
 
+Disentangled Multimodal Representation Learning for Recommendation (DMRL)
+-------------------------------------------------------------------------
+.. automodule:: cornac.models.dmrl.recom_dmrl
+   :members:
+
 Bilateral VAE for Collaborative Filtering (BiVAECF)
 ---------------------------------------------------
 .. automodule:: cornac.models.bivaecf.recom_bivaecf
@@ -37,6 +42,11 @@ Adversarial Training Towards Robust Multimedia Recommender System (AMR)
 Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR)
 --------------------------------------------------------------------------------------------------
 .. automodule:: cornac.models.hrdr.recom_hrdr
+   :members:
+
+Hypergraphs with Attention on Reviews for Explainable Recommendation
+--------------------------------------------------------------------------------------------------
+.. automodule:: cornac.models.hypar.recom_hypar
    :members:
 
 Simplifying and Powering Graph Convolution Network for Recommendation (LightGCN)
