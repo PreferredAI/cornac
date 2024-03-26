@@ -220,7 +220,7 @@ class Recommender:
 
         return self.__class__(**init_params)
 
-    def save(self, save_dir=None, save_trainset=False):
+    def save(self, save_dir=None, save_trainset=False, metadata=None):
         """Save a recommender model to the filesystem.
 
         Parameters
@@ -232,6 +232,10 @@ class Recommender:
             Save train_set together with the model. This is useful
             if we want to deploy model later because train_set is
             required for certain evaluation steps.
+
+        metadata: dict, default: None
+            Metadata to be saved with the model. This is useful
+            to store model details.
 
         Returns
         -------
@@ -250,12 +254,12 @@ class Recommender:
         pickle.dump(
             saved_model, open(model_file, "wb"), protocol=pickle.HIGHEST_PROTOCOL
         )
-        metadata = {
-            "model_classname": type(saved_model).__name__,
-            "model_file": model_file,
-        }
         if self.verbose:
             print("{} model is saved to {}".format(self.name, model_file))
+
+        metadata = {} if metadata is None else metadata
+        metadata["model_classname"] = type(saved_model).__name__
+        metadata["model_file"] = model_file
 
         if save_trainset:
             trainset_file = model_file + ".trainset"
