@@ -13,7 +13,6 @@
 # limitations under the License.
 # ============================================================================
 
-import copy
 import numpy as np
 
 from ..recommender import Recommender
