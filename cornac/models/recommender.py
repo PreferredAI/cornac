@@ -259,16 +259,16 @@ class Recommender:
 
         metadata = {} if metadata is None else metadata
         metadata["model_classname"] = type(saved_model).__name__
-        metadata["model_file"] = model_file
+        metadata["model_file"] = os.path.basename(model_file)
 
         if save_trainset:
             trainset_file = model_file + ".trainset"
-            metadata["trainset_file"] = trainset_file
             pickle.dump(
                 self.train_set,
                 open(trainset_file, "wb"),
                 protocol=pickle.HIGHEST_PROTOCOL,
             )
+            metadata["trainset_file"] = os.path.basename(trainset_file)
 
         with open(model_file + ".meta", "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=4)
