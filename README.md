@@ -92,13 +92,10 @@ cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=Tru
 **Output:**
 
 |                          |    MAE |   RMSE |    AUC |     MAP | NDCG@10 | Precision@10 | Recall@10 |  Train (s) | Test (s) |
-| -----------------------: | -----: | -----: | -----: | ------: | ------: | -----------: | --------: | ---------: | -------: |
+| ------------------------ | -----: | -----: | -----: | ------: | ------: | -----------: | --------: | ---------: | -------: |
 | [MF](cornac/models/mf)   | 0.7430 | 0.8998 | 0.7445 |  0.0548 |  0.0761 |       0.0675 |    0.0463 |       0.13 |     1.57 |
 | [PMF](cornac/models/pmf) | 0.7534 | 0.9138 | 0.7744 |  0.0671 |  0.0969 |       0.0813 |    0.0639 |       2.18 |     1.64 |
 | [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.1042 |  0.1500 |       0.1110 |    0.1195 |       3.74 |     1.49 |
-
-
-For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials). For learning purposes, this list of [tutorials on recommender systems](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems) will be more organized and comprehensive. 
 
 
 ## Model serving
@@ -209,6 +206,13 @@ The recommender models supported by Cornac are listed below. Why don't you join 
 |      | [Weighted Matrix Factorization (WMF)](cornac/models/wmf), [paper](http://yifanhu.net/PUB/cf.pdf) | Collaborative Filtering | [requirements](cornac/models/wmf/requirements.txt), CPU / GPU | [quick-start](examples/wmf_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/04_implicit_feedback.ipynb)
 
 
+## Resources
+
+- [Cornac Examples](examples)
+- [Cornac Tutorials](tutorials)
+- [RecSys Tutorials by Preferred.AI](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems)
+- [Running Cornac Model with Microsoft Recommenders (BPR)](https://github.com/recommenders-team/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bpr_deep_dive.ipynb), [(BiVAE)](https://github.com/recommenders-team/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bivae_deep_dive.ipynb)
+- [Multimodal RecSys Tutorial at TheWebConf/WWW 2023](https://github.com/PreferredAI/tutorials/blob/master/multimodal-www23/00_slides.pdf), [earlier version at RecSys 2021](https://github.com/PreferredAI/tutorials/blob/master/multimodal-recsys/slides.pdf)
 
 
 ## Contributing
@@ -219,7 +223,8 @@ This project welcomes contributions and suggestions. Before contributing, please
 
 If you use Cornac in a scientific publication, we would appreciate citations to the following papers:
 
-- [Cornac: A Comparative Framework for Multimodal Recommender Systems](http://jmlr.org/papers/v21/19-805.html), Salah *et al.*, Journal of Machine Learning Research, 21(95):1–5, 2020.
+<details>
+  <summary><a href="http://jmlr.org/papers/v21/19-805.html">Cornac: A Comparative Framework for Multimodal Recommender Systems</a>, Salah <i>et al.</i>, Journal of Machine Learning Research, 21(95):1–5, 2020.</summary>
 
   ```
   @article{salah2020cornac,
@@ -232,8 +237,10 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
     year={2020}
   }
   ```
+</details>
 
-- [Exploring Cross-Modality Utilization in Recommender Systems](https://ieeexplore.ieee.org/abstract/document/9354572), Truong *et al.*, IEEE Internet Computing, 25(4):50–57, 2021.
+<details>
+  <summary><a href="https://ieeexplore.ieee.org/abstract/document/9354572">Exploring Cross-Modality Utilization in Recommender Systems</a>, Truong <i>et al.</i>, IEEE Internet Computing, 25(4):50–57, 2021.</summary>
 
   ```
   @article{truong2021exploring,
@@ -244,8 +251,10 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
     publisher={IEEE}
   }
   ```
+</details>
 
-- [Multi-Modal Recommender Systems: Hands-On Exploration](https://dl.acm.org/doi/10.1145/3460231.3473324), Truong *et al.*, ACM Conference on Recommender Systems, 2021.
+<details>
+  <summary><a href="http://jmlr.org/papers/v21/19-805.html">Multi-Modal Recommender Systems: Hands-On Exploration</a>, Truong <i>et al.</i>, ACM Conference on Recommender Systems, 2021.</summary>
 
   ```
   @inproceedings{truong2021multi,
@@ -256,6 +265,7 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
     year={2021}
   }
   ```
+</details>
 
 ## License
 
