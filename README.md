@@ -92,7 +92,7 @@ cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=Tru
 **Output:**
 
 |                          |    MAE |   RMSE |    AUC |     MAP | NDCG@10 | Precision@10 | Recall@10 |  Train (s) | Test (s) |
-| ------------------------ | -----: | -----: | -----: | ------: | ------: | -----------: | --------: | ---------: | -------: |
+| -----------------------: | -----: | -----: | -----: | ------: | ------: | -----------: | --------: | ---------: | -------: |
 | [MF](cornac/models/mf)   | 0.7430 | 0.8998 | 0.7445 |  0.0548 |  0.0761 |       0.0675 |    0.0463 |       0.13 |     1.57 |
 | [PMF](cornac/models/pmf) | 0.7534 | 0.9138 | 0.7744 |  0.0671 |  0.0969 |       0.0813 |    0.0639 |       2.18 |     1.64 |
 | [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.1042 |  0.1500 |       0.1110 |    0.1195 |       3.74 |     1.49 |
@@ -130,14 +130,14 @@ If we want to remove seen items during training, we need to provide `TRAIN_SET` 
 
 ## Efficient retrieval with ANN search
 
-One important aspect of deploying recommender model is efficient retrieval via Approximate Nearest Neighor (ANN) search in vector space. Cornac integrates several vector similarity search frameworks for the ease of deployment. [This example](tutorials/ann_hnswlib.ipynb) demonstrates how ANN search will work seamlessly with any recommender models supporting it (e.g., MF).
+One important aspect of deploying recommender model is efficient retrieval via Approximate Nearest Neighor (ANN) search in vector space. Cornac integrates several vector similarity search frameworks for the ease of deployment. [This example](tutorials/ann_hnswlib.ipynb) demonstrates how ANN search will work seamlessly with any recommender models supporting it (e.g., matrix factorization).
 
 | Supported Framework | Cornac Wrapper | Example |
-| :---: | :---: | :---: |
-| [spotify/annoy](https://github.com/spotify/annoy) | [AnnoyANN](cornac/models/ann/recom_ann_annoy.py) | [ann_example.py](examples/ann_example.py), [ann_all.ipynb](examples/ann_all.ipynb)
-| [meta/faiss](https://github.com/facebookresearch/faiss) | [FaissANN](cornac/models/ann/recom_ann_faiss.py) | [ann_example.py](examples/ann_example.py), [ann_all.ipynb](examples/ann_all.ipynb)
-| [nmslib/hnswlib](https://github.com/nmslib/hnswlib) | [HNSWLibANN](cornac/models/ann/recom_ann_hnswlib.py) | [ann_example.py](examples/ann_example.py), [ann_hnswlib.ipynb](tutorials/ann_hnswlib.ipynb), [ann_all.ipynb](examples/ann_all.ipynb)
-| [google/scann](https://github.com/google-research/google-research/tree/master/scann) | [ScaNNANN](cornac/models/ann/recom_ann_scann.py) | [ann_example.py](examples/ann_example.py), [ann_all.ipynb](examples/ann_all.ipynb)
+| :-----------------: | :------------: | :-----: |
+| [spotify/annoy](https://github.com/spotify/annoy) | [AnnoyANN](cornac/models/ann/recom_ann_annoy.py) | [quick-start](examples/ann_example.py), [deep-dive](examples/ann_all.ipynb)
+| [meta/faiss](https://github.com/facebookresearch/faiss) | [FaissANN](cornac/models/ann/recom_ann_faiss.py) | [quick-start](examples/ann_example.py), [deep-dive](examples/ann_all.ipynb)
+| [nmslib/hnswlib](https://github.com/nmslib/hnswlib) | [HNSWLibANN](cornac/models/ann/recom_ann_hnswlib.py) | [quick-start](examples/ann_example.py), [hnsw-lib](tutorials/ann_hnswlib.ipynb), [deep-dive](examples/ann_all.ipynb)
+| [google/scann](https://github.com/google-research/google-research/tree/master/scann) | [ScaNNANN](cornac/models/ann/recom_ann_scann.py) | [quick-start](examples/ann_example.py), [deep-dive](examples/ann_all.ipynb)
 
 
 ## Models
@@ -145,7 +145,7 @@ One important aspect of deploying recommender model is efficient retrieval via A
 The recommender models supported by Cornac are listed below. Why don't you join us to lengthen the list?
 
 | Year | Model and Paper | Type | Environment | Example |
-| :---: | --- | :---: | :---: | :---: |
+| :--: | --------------- | :--: | :---------: | :-----: |
 | 2024 | [Hypergraphs with Attention on Reviews (HypAR)](cornac/models/hypar), [paper](https://doi.org/10.1007/978-3-031-56027-9_14)| Hybrid / Sentiment / Explainable | [requirements](cornac/models/hypar/requirements_cu116.txt), CPU / GPU | [quick-start](https://github.com/PreferredAI/HypAR)
 | 2022 | [Disentangled Multimodal Representation Learning for Recommendation (DMRL)](cornac/models/dmrl), [paper](https://arxiv.org/pdf/2203.05406.pdf) | Content-Based / Text & Image | [requirements](cornac/models/dmrl/requirements.txt), CPU / GPU | [quick-start](examples/dmrl_example.py)
 | 2021 | [Bilateral Variational Autoencoder for Collaborative Filtering (BiVAECF)](cornac/models/bivaecf), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441759) | Collaborative Filtering / Content-Based | [requirements](cornac/models/bivaecf/requirements.txt), CPU / GPU | [quick-start](https://github.com/PreferredAI/bi-vae), [deep-dive](https://github.com/recommenders-team/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bivae_deep_dive.ipynb)
