@@ -139,7 +139,7 @@ One important aspect of deploying recommender model is efficient retrieval via A
 
 ## Models
 
-The recommender models supported by Cornac are listed below. Why don't you join us to lengthen the list?
+The table below lists the recommendation models/algorithms featured in Cornac. Examples are provided as quick-start showcasing an easy to run script, or as deep-dive explaining the math and intuition behind each model. Why don't you join us to lengthen the list?
 
 | Year | Model and Paper | Type | Environment | Example |
 | :--: | --------------- | :--: | :---------: | :-----: |
