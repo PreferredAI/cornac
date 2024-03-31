@@ -98,9 +98,6 @@ cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=Tru
 | [BPR](cornac/models/bpr) |    N/A |    N/A | 0.8695 |  0.1042 |  0.1500 |       0.1110 |    0.1195 |       3.74 |     1.49 |
 
 
-For more details, please take a look at our [examples](examples) as well as [tutorials](tutorials). For learning purposes, this list of [tutorials on recommender systems](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems) will be more organized and comprehensive. 
-
-
 ## Model serving
 
 Here, we provide a simple way to serve a Cornac model by launching a standalone web service with [Flask](https://github.com/pallets/flask). It is very handy for testing or creating a demo application. First, we install the dependency:
@@ -130,84 +127,92 @@ If we want to remove seen items during training, we need to provide `TRAIN_SET` 
 
 ## Efficient retrieval with ANN search
 
-One important aspect of deploying recommender model is efficient retrieval via Approximate Nearest Neighor (ANN) search in vector space. Cornac integrates several vector similarity search frameworks for the ease of deployment. [This example](tutorials/ann_hnswlib.ipynb) demonstrates how ANN search will work seamlessly with any recommender models supporting it (e.g., MF).
+One important aspect of deploying recommender model is efficient retrieval via Approximate Nearest Neighor (ANN) search in vector space. Cornac integrates several vector similarity search frameworks for the ease of deployment. [This example](tutorials/ann_hnswlib.ipynb) demonstrates how ANN search will work seamlessly with any recommender models supporting it (e.g., matrix factorization).
 
-| Supported framework | Cornac wrapper | Examples |
-| :---: | :---: | :---: |
-| [spotify/annoy](https://github.com/spotify/annoy) | [AnnoyANN](cornac/models/ann/recom_ann_annoy.py) | [ann_example.py](examples/ann_example.py), [ann_all.ipynb](examples/ann_all.ipynb)
-| [meta/faiss](https://github.com/facebookresearch/faiss) | [FaissANN](cornac/models/ann/recom_ann_faiss.py) | [ann_example.py](examples/ann_example.py), [ann_all.ipynb](examples/ann_all.ipynb)
-| [nmslib/hnswlib](https://github.com/nmslib/hnswlib) | [HNSWLibANN](cornac/models/ann/recom_ann_hnswlib.py) | [ann_example.py](examples/ann_example.py), [ann_hnswlib.ipynb](tutorials/ann_hnswlib.ipynb), [ann_all.ipynb](examples/ann_all.ipynb)
-| [google/scann](https://github.com/google-research/google-research/tree/master/scann) | [ScaNNANN](cornac/models/ann/recom_ann_scann.py) | [ann_example.py](examples/ann_example.py), [ann_all.ipynb](examples/ann_all.ipynb)
+| Supported Framework | Cornac Wrapper | Example |
+| :-----------------: | :------------: | :-----: |
+| [spotify/annoy](https://github.com/spotify/annoy) | [AnnoyANN](cornac/models/ann/recom_ann_annoy.py) | [quick-start](examples/ann_example.py), [deep-dive](examples/ann_all.ipynb)
+| [meta/faiss](https://github.com/facebookresearch/faiss) | [FaissANN](cornac/models/ann/recom_ann_faiss.py) | [quick-start](examples/ann_example.py), [deep-dive](examples/ann_all.ipynb)
+| [nmslib/hnswlib](https://github.com/nmslib/hnswlib) | [HNSWLibANN](cornac/models/ann/recom_ann_hnswlib.py) | [quick-start](examples/ann_example.py), [hnsw-lib](tutorials/ann_hnswlib.ipynb), [deep-dive](examples/ann_all.ipynb)
+| [google/scann](https://github.com/google-research/google-research/tree/master/scann) | [ScaNNANN](cornac/models/ann/recom_ann_scann.py) | [quick-start](examples/ann_example.py), [deep-dive](examples/ann_all.ipynb)
 
 
 ## Models
 
-The recommender models supported by Cornac are listed below. Why don't you join us to lengthen the list?
+The table below lists the recommendation models/algorithms featured in Cornac. Examples are provided as quick-start showcasing an easy to run script, or as deep-dive explaining the math and intuition behind each model. Why don't you join us to lengthen the list?
+
+| Year | Model and Paper | Type | Environment | Example |
+| :--: | --------------- | :--: | :---------: | :-----: |
+| 2024 | [Hypergraphs with Attention on Reviews (HypAR)](cornac/models/hypar), [paper](https://doi.org/10.1007/978-3-031-56027-9_14)| Hybrid / Sentiment / Explainable | [requirements](cornac/models/hypar/requirements_cu116.txt), CPU / GPU | [quick-start](https://github.com/PreferredAI/HypAR)
+| 2022 | [Disentangled Multimodal Representation Learning for Recommendation (DMRL)](cornac/models/dmrl), [paper](https://arxiv.org/pdf/2203.05406.pdf) | Content-Based / Text & Image | [requirements](cornac/models/dmrl/requirements.txt), CPU / GPU | [quick-start](examples/dmrl_example.py)
+| 2021 | [Bilateral Variational Autoencoder for Collaborative Filtering (BiVAECF)](cornac/models/bivaecf), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441759) | Collaborative Filtering / Content-Based | [requirements](cornac/models/bivaecf/requirements.txt), CPU / GPU | [quick-start](https://github.com/PreferredAI/bi-vae), [deep-dive](https://github.com/recommenders-team/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bivae_deep_dive.ipynb)
+|      | [Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)](cornac/models/causalrec), [paper](https://arxiv.org/abs/2107.02390) | Content-Based / Image | [requirements](cornac/models/causalrec/requirements.txt), CPU / GPU | [quick-start](examples/causalrec_clothing.py)
+|      | [Explainable Recommendation with Comparative Constraints on Product Aspects (ComparER)](cornac/models/comparer), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441754) | Explainable | CPU | [quick-start](https://github.com/PreferredAI/ComparER)
+| 2020 | [Adversarial Multimedia Recommendation (AMR)](cornac/models/amr), [paper](https://ieeexplore.ieee.org/document/8618394) | Content-Based / Image | [requirements](cornac/models/amr/requirements.txt), CPU / GPU | [quick-start](examples/amr_clothing.py)
+|      | [Hybrid Deep Representation Learning of Ratings and Reviews (HRDR)](cornac/models/hrdr), [paper](https://www.sciencedirect.com/science/article/abs/pii/S0925231219313207) | Content-Based / Text | [requirements](cornac/models/hrdr/requirements.txt), CPU / GPU | [quick-start](examples/hrdr_example.py)
+|      | [LightGCN: Simplifying and Powering Graph Convolution Network](cornac/models/lightgcn), [paper](https://arxiv.org/pdf/2002.02126.pdf) | Collaborative Filtering | [requirements](cornac/models/lightgcn/requirements.txt), CPU / GPU | [quick-start](examples/lightgcn_example.py)
+|      | [Predicting Temporal Sets with Deep Neural Networks (DNNTSP)](cornac/models/dnntsp), [paper](https://arxiv.org/pdf/2006.11483.pdf) | Next-Basket | [requirements](cornac/models/dnntsp/requirements.txt), CPU / GPU | [quick-start](examples/dnntsp_tafeng.py)
+|      | [Recency Aware Collaborative Filtering (UPCF)](cornac/models/upcf), [paper](https://dl.acm.org/doi/abs/10.1145/3340631.3394850) | Next-Basket | [requirements](cornac/models/upcf/requirements.txt), CPU | [quick-start](examples/upcf_tafeng.py)
+|      | [Temporal-Item-Frequency-based User-KNN (TIFUKNN)](cornac/models/tifuknn), [paper](https://arxiv.org/pdf/2006.00556.pdf) | Next-Basket | CPU | [quick-start](examples/tifuknn_tafeng.py)
+|      | [Variational Autoencoder for Top-N Recommendations (RecVAE)](cornac/models/recvae), [paper](https://doi.org/10.1145/3336191.3371831) | Collaborative Filtering | [requirements](cornac/models/recvae/requirements.txt), CPU / GPU | [quick-start](examples/recvae_example.py)
+| 2019 | [Correlation-Sensitive Next-Basket Recommendation (Beacon)](cornac/models/beacon), [paper](https://www.ijcai.org/proceedings/2019/0389.pdf) | Next-Basket | [requirements](cornac/models/beacon/requirements.txt), CPU / GPU | [quick-start](examples/beacon_tafeng.py)
+|      | [Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)](cornac/models/ease), [paper](https://arxiv.org/pdf/1905.03375.pdf) | Collaborative Filtering | CPU | [quick-start](examples/ease_movielens.py)
+|      | [Neural Graph Collaborative Filtering (NGCF)](cornac/models/ngcf), [paper](https://arxiv.org/pdf/1905.08108.pdf) | Collaborative Filtering | [requirements](cornac/models/ngcf/requirements.txt), CPU / GPU | [quick-start](examples/ngcf_example.py)
+| 2018 | [Collaborative Context Poisson Factorization (C2PF)](cornac/models/c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | Content-Based / Graph | CPU | [quick-start](examples/c2pf_example.py)
+|      | [Graph Convolutional Matrix Completion (GCMC)](cornac/models/gcmc), [paper](https://www.kdd.org/kdd2018/files/deep-learning-day/DLDay18_paper_32.pdf) | Collaborative Filtering | [requirements](cornac/models/gcmc/requirements.txt), CPU / GPU | [quick-start](examples/gcmc_example.py)
+|      | [Multi-Task Explainable Recommendation (MTER)](cornac/models/mter), [paper](https://arxiv.org/pdf/1806.03568.pdf) | Explainable | CPU | [quick-start](examples/mter_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/07_explanations.ipynb)
+|      | [Neural Attention Rating Regression with Review-level Explanations (NARRE)](cornac/models/narre), [paper](http://www.thuir.cn/group/~YQLiu/publications/WWW2018_CC.pdf) | Explainable / Content-Based | [requirements](cornac/models/narre/requirements.txt), CPU / GPU | [quick-start](examples/narre_example.py)
+|      | [Probabilistic Collaborative Representation Learning (PCRL)](cornac/models/pcrl), [paper](http://www.hadylauw.com/publications/uai18.pdf) | Content-Based / Graph | [requirements](cornac/models/pcrl/requirements.txt), CPU / GPU | [quick-start](examples/pcrl_example.py)
+|      | [Variational Autoencoder for Collaborative Filtering (VAECF)](cornac/models/vaecf), [paper](https://arxiv.org/pdf/1802.05814.pdf) | Collaborative Filtering | [requirements](cornac/models/vaecf/requirements.txt), CPU / GPU | [quick-start](examples/vaecf_citeulike.py), [param-search](tutorials/param_search_vaecf.ipynb), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/09_deep_learning.ipynb)
+| 2017 | [Collaborative Variational Autoencoder (CVAE)](cornac/models/cvae), [paper](http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf) | Content-Based / Text | [requirements](cornac/models/cvae/requirements.txt), CPU / GPU | [quick-start](examples/cvae_example.py)
+|      | [Conditional Variational Autoencoder for Collaborative Filtering (CVAECF)](cornac/models/cvaecf), [paper](https://dl.acm.org/doi/10.1145/3132847.3132972) | Content-Based / Text | [requirements](cornac/models/cvaecf/requirements.txt), CPU / GPU | [quick-start](examples/cvaecf_filmtrust.py)
+|      | [Generalized Matrix Factorization (GMF)](cornac/models/ncf), [paper](https://arxiv.org/pdf/1708.05031.pdf) | Collaborative Filtering | [requirements](cornac/models/ncf/requirements.txt), CPU / GPU | [quick-start](examples/ncf_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/09_deep_learning.ipynb)
+|      | [Indexable Bayesian Personalized Ranking (IBPR)](cornac/models/ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | Collaborative Filtering | [requirements](cornac/models/ibpr/requirements.txt), CPU / GPU | [quick-start](examples/ibpr_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/08_retrieval.ipynb)
+|      | [Matrix Co-Factorization (MCF)](cornac/models/mcf), [paper](https://dsail.kaist.ac.kr/files/WWW17.pdf) | Content-Based / Graph | CPU | [quick-start](examples/mcf_office.py), [cross-modality](https://github.com/lgabs/cornac/blob/luan/describe-gpu-supported-models-readme/tutorials/text_to_graph.ipynb)
+|      | [Multi-Layer Perceptron (MLP)](cornac/models/ncf), [paper](https://arxiv.org/pdf/1708.05031.pdf) | Collaborative Filtering | [requirements](cornac/models/ncf/requirements.txt), CPU / GPU | [quick-start](examples/ncf_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/09_deep_learning.ipynb)
+|      | [Neural Matrix Factorization (NeuMF) / Neural Collaborative Filtering (NCF)](cornac/models/ncf), [paper](https://arxiv.org/pdf/1708.05031.pdf) | Collaborative Filtering | [requirements](cornac/models/ncf/requirements.txt), CPU / GPU | [quick-start](examples/ncf_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/09_deep_learning.ipynb)
+|      | [Online Indexable Bayesian Personalized Ranking (Online IBPR)](cornac/models/online_ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | Collaborative Filtering | [requirements](cornac/models/online_ibpr/requirements.txt), CPU / GPU | [quick-start](examples/ibpr_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/08_retrieval.ipynb)
+|      | [Visual Matrix Factorization (VMF)](cornac/models/vmf), [paper](https://dsail.kaist.ac.kr/files/WWW17.pdf) | Content-Based / Image | [requirements](cornac/models/vmf/requirements.txt), CPU / GPU | [quick-start](examples/vmf_clothing.py)
+| 2016 | [Collaborative Deep Ranking (CDR)](cornac/models/cdr), [paper](http://inpluslab.com/chenliang/homepagefiles/paper/hao-pakdd2016.pdf) | Content-Based / Text | [requirements](cornac/models/cdr/requirements.txt), CPU / GPU | [quick-start](examples/cdr_example.py)
+|      | [Collaborative Ordinal Embedding (COE)](cornac/models/coe), [paper](http://www.hadylauw.com/publications/sdm16.pdf) | Collaborative Filtering | [requirements](cornac/models/coe/requirements.txt), CPU / GPU |
+|      | [Convolutional Matrix Factorization (ConvMF)](cornac/models/conv_mf), [paper](http://uclab.khu.ac.kr/resources/publication/C_351.pdf) | Content-Based / Text | [requirements](cornac/models/conv_mf/requirements.txt), CPU / GPU | [quick-start](examples/conv_mf_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/09_deep_learning.ipynb)
+|      | [Learning to Rank Features for Recommendation over Multiple Categories (LRPPM)](cornac/models/lrppm), [paper](https://www.yongfeng.me/attach/sigir16-chen.pdf) | Explainable | CPU | [quick-start](examples/lrppm_example.py)
+|      | [Session-based Recommendations With Recurrent Neural Networks (GRU4Rec)](cornac/models/gru4rec), [paper](https://arxiv.org/pdf/1511.06939.pdf) | Next-Item | [requirements](cornac/models/gru4rec/requirements.txt), CPU / GPU | [quick-start](examples/gru4rec_yoochoose.py)
+|      | [Spherical K-means (SKM)](cornac/models/skm), [paper](https://www.sciencedirect.com/science/article/pii/S092523121501509X) | Collaborative Filtering | CPU | [quick-start](examples/skm_movielens.py)
+|      | [Visual Bayesian Personalized Ranking (VBPR)](cornac/models/vbpr), [paper](https://arxiv.org/pdf/1510.01784.pdf) | Content-Based / Image | [requirements](cornac/models/vbpr/requirements.txt), CPU / GPU | [quick-start](examples/vbpr_tradesy.py), [cross-modality](tutorials/vbpr_text.ipynb), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/05_multimodality.ipynb)
+| 2015 | [Collaborative Deep Learning (CDL)](cornac/models/cdl), [paper](https://arxiv.org/pdf/1409.2944.pdf) | Content-Based / Text | [requirements](cornac/models/cdl/requirements.txt), CPU / GPU | [quick-start](examples/cdl_example.py), [deep-dive](https://github.com/lgabs/cornac/blob/luan/describe-gpu-supported-models-readme/tutorials/working_with_auxiliary_data.md)
+|      | [Hierarchical Poisson Factorization (HPF)](cornac/models/hpf), [paper](http://jakehofman.com/inprint/poisson_recs.pdf) | Collaborative Filtering | CPU | [quick-start](examples/hpf_movielens.py)
+|      | [TriRank: Review-aware Explainable Recommendation by Modeling Aspects](cornac/models/trirank), [paper](https://wing.comp.nus.edu.sg/wp-content/uploads/Publications/PDF/TriRank-%20Review-aware%20Explainable%20Recommendation%20by%20Modeling%20Aspects.pdf) | Explainable | CPU | [quick-start](examples/trirank_example.py)
+| 2014 | [Explicit Factor Model (EFM)](cornac/models/efm), [paper](https://www.yongfeng.me/attach/efm-zhang.pdf) | Explainable | CPU | [quick-start](examples/efm_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/07_explanations.ipynb)
+|      | [Social Bayesian Personalized Ranking (SBPR)](cornac/models/sbpr), [paper](https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf) | Content-Based / Social | CPU | [quick-start](examples/sbpr_epinions.py)
+| 2013 | [Hidden Factors and Hidden Topics (HFT)](cornac/models/hft), [paper](https://cs.stanford.edu/people/jure/pubs/reviews-recsys13.pdf) | Content-Based / Text | CPU | [quick-start](examples/hft_example.py)
+| 2012 | [Weighted Bayesian Personalized Ranking (WBPR)](cornac/models/bpr), [paper](http://proceedings.mlr.press/v18/gantner12a/gantner12a.pdf) | Collaborative Filtering | CPU | [quick-start](examples/bpr_netflix.py)
+| 2011 | [Collaborative Topic Regression (CTR)](cornac/models/ctr), [paper](http://www.cs.columbia.edu/~blei/papers/WangBlei2011.pdf) | Content-Based / Text | CPU | [quick-start](examples/ctr_example_citeulike.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/05_multimodality.ipynb)
+| Earlier | [Baseline Only](cornac/models/baseline_only), [paper](http://courses.ischool.berkeley.edu/i290-dm/s11/SECURE/a1-koren.pdf) | Baseline | CPU | [quick-start](examples/svd_example.py)
+|      | [Bayesian Personalized Ranking (BPR)](cornac/models/bpr), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | Collaborative Filtering | CPU | [quick-start](examples/bpr_netflix.py), [deep-dive](https://github.com/recommenders-team/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bpr_deep_dive.ipynb)
+|      | [Factorization Machines (FM)](cornac/models/fm), [paper](https://www.csie.ntu.edu.tw/~b97053/paper/Factorization%20Machines%20with%20libFM.pdf) | Collaborative Filtering / Content-Based | Linux, CPU | [quick-start](examples/fm_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/06_contextual_awareness.ipynb)
+|      | [Global Average (GlobalAvg)](cornac/models/global_avg), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | Baseline | CPU | [quick-start](examples/biased_mf.py)
+|      | [Global Personalized Top Frequent (GPTop)](cornac/models/gp_top), [paper](https://dl.acm.org/doi/pdf/10.1145/3587153) | Next-Basket | CPU | [quick-start](examples/gp_top_tafeng.py)
+|      | [Item K-Nearest-Neighbors (ItemKNN)](cornac/models/knn), [paper](https://dl.acm.org/doi/pdf/10.1145/371920.372071) | Neighborhood-Based | CPU | [quick-start](examples/knn_movielens.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/02_neighborhood.ipynb)
+|      | [Matrix Factorization (MF)](cornac/models/mf), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | Collaborative Filtering | CPU / GPU | [quick-start](examples/biased_mf.py), [pre-split-data](examples/given_data.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/03_matrix_factorization.ipynb)
+|      | [Maximum Margin Matrix Factorization (MMMF)](cornac/models/mmmf), [paper](https://link.springer.com/content/pdf/10.1007/s10994-008-5073-7.pdf) | Collaborative Filtering | CPU | [quick-start](examples/mmmf_exp.py)
+|      | [Most Popular (MostPop)](cornac/models/most_pop), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | Baseline | CPU | [quick-start](examples/bpr_netflix.py)
+|      | [Non-negative Matrix Factorization (NMF)](cornac/models/nmf), [paper](http://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf) | Collaborative Filtering | CPU | [quick-start](examples/nmf_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/03_matrix_factorization.ipynb)
+|      | [Probabilistic Matrix Factorization (PMF)](cornac/models/pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | Collaborative Filtering | CPU | [quick-start](examples/pmf_ratio.py)
+|      | [Session Popular (SPop)](cornac/models/spop), [paper](https://arxiv.org/pdf/1511.06939.pdf) | Next-Item / Baseline | CPU | [quick-start](examples/spop_yoochoose.py)
+|      | [Singular Value Decomposition (SVD)](cornac/models/svd), [paper](https://people.engr.tamu.edu/huangrh/Spring16/papers_course/matrix_factorization.pdf) | Collaborative Filtering | CPU | [quick-start](examples/svd_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/03_matrix_factorization.ipynb)
+|      | [Social Recommendation using PMF (SoRec)](cornac/models/sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | Content-Based / Social | CPU | [quick-start](examples/sorec_filmtrust.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/05_multimodality.ipynb)
+|      | [User K-Nearest-Neighbors (UserKNN)](cornac/models/knn), [paper](https://arxiv.org/pdf/1301.7363.pdf) | Neighborhood-Based | CPU | [quick-start](examples/knn_movielens.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/02_neighborhood.ipynb)
+|      | [Weighted Matrix Factorization (WMF)](cornac/models/wmf), [paper](http://yifanhu.net/PUB/cf.pdf) | Collaborative Filtering | [requirements](cornac/models/wmf/requirements.txt), CPU / GPU | [quick-start](examples/wmf_example.py), [deep-dive](https://github.com/PreferredAI/tutorials/blob/master/recommender-systems/04_implicit_feedback.ipynb)
 
 
-| Year | Model and paper | Model type | Require-ments | Examples |
-| :---: | --- | :---: | :---: | :---: |
-| 2024 | [Hypergraphs with Attention on Reviews (HypAR)](cornac/models/hypar), [paper](https://doi.org/10.1007/978-3-031-56027-9_14)| Hybrid / Sentiment / Explainable | [reqs](cornac/models/hypar/requirements_cu116.txt) | [exp](https://github.com/PreferredAI/HypAR)
-| 2022 | [Disentangled Multimodal Representation Learning for Recommendation (DMRL)](cornac/models/dmrl), [paper](https://arxiv.org/pdf/2203.05406.pdf) | Content-Based / Text & Image | [reqs](cornac/models/dmrl/requirements.txt) | [exp](examples/dmrl_example.py)
-| 2021 | [Bilateral Variational Autoencoder for Collaborative Filtering (BiVAECF)](cornac/models/bivaecf), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441759) | Collaborative Filtering / Content-Based | [reqs](cornac/models/bivaecf/requirements.txt) | [exp](https://github.com/PreferredAI/bi-vae)
-|      | [Causal Inference for Visual Debiasing in Visually-Aware Recommendation (CausalRec)](cornac/models/causalrec), [paper](https://arxiv.org/abs/2107.02390) | Content-Based / Image | [reqs](cornac/models/causalrec/requirements.txt) | [exp](examples/causalrec_clothing.py)
-|      | [Explainable Recommendation with Comparative Constraints on Product Aspects (ComparER)](cornac/models/comparer), [paper](https://dl.acm.org/doi/pdf/10.1145/3437963.3441754) | Explainable | N/A | [exp](https://github.com/PreferredAI/ComparER)
-| 2020 | [Adversarial Multimedia Recommendation (AMR)](cornac/models/amr), [paper](https://ieeexplore.ieee.org/document/8618394) | Content-Based / Image | [reqs](cornac/models/amr/requirements.txt) | [exp](examples/amr_clothing.py)
-|      | [Hybrid Deep Representation Learning of Ratings and Reviews (HRDR)](cornac/models/hrdr), [paper](https://www.sciencedirect.com/science/article/abs/pii/S0925231219313207) | Content-Based / Text | [reqs](cornac/models/hrdr/requirements.txt) | [exp](examples/hrdr_example.py)
-|      | [LightGCN: Simplifying and Powering Graph Convolution Network](cornac/models/lightgcn), [paper](https://arxiv.org/pdf/2002.02126.pdf) | Collaborative Filtering | [reqs](cornac/models/lightgcn/requirements.txt) | [exp](examples/lightgcn_example.py)
-|      | [Predicting Temporal Sets with Deep Neural Networks (DNNTSP)](cornac/models/dnntsp), [paper](https://arxiv.org/pdf/2006.11483.pdf) | Next-Basket | [reqs](cornac/models/dnntsp/requirements.txt) | [exp](examples/dnntsp_tafeng.py)
-|      | [Recency Aware Collaborative Filtering (UPCF)](cornac/models/upcf), [paper](https://dl.acm.org/doi/abs/10.1145/3340631.3394850) | Next-Basket | [reqs](cornac/models/upcf/requirements.txt) | [exp](examples/upcf_tafeng.py)
-|      | [Temporal-Item-Frequency-based User-KNN (TIFUKNN)](cornac/models/tifuknn), [paper](https://arxiv.org/pdf/2006.00556.pdf) | Next-Basket | N/A | [exp](examples/tifuknn_tafeng.py)
-|      | [Variational Autoencoder for Top-N Recommendations (RecVAE)](cornac/models/recvae), [paper](https://doi.org/10.1145/3336191.3371831) | Collaborative Filtering | [reqs](cornac/models/recvae/requirements.txt) | [exp](examples/recvae_example.py)
-| 2019 | [Correlation-Sensitive Next-Basket Recommendation (Beacon)](cornac/models/beacon), [paper](https://www.ijcai.org/proceedings/2019/0389.pdf) | Next-Basket | [reqs](cornac/models/beacon/requirements.txt) | [exp](examples/beacon_tafeng.py)
-|      | [Embarrassingly Shallow Autoencoders for Sparse Data (EASEᴿ)](cornac/models/ease), [paper](https://arxiv.org/pdf/1905.03375.pdf) | Collaborative Filtering | N/A | [exp](examples/ease_movielens.py)
-|      | [Neural Graph Collaborative Filtering (NGCF)](cornac/models/ngcf), [paper](https://arxiv.org/pdf/1905.08108.pdf) | Collaborative Filtering | [reqs](cornac/models/ngcf/requirements.txt) | [exp](examples/ngcf_example.py)
-| 2018 | [Collaborative Context Poisson Factorization (C2PF)](cornac/models/c2pf), [paper](https://www.ijcai.org/proceedings/2018/0370.pdf) | Content-Based / Graph | N/A | [exp](examples/c2pf_example.py)
-|      | [Graph Convolutional Matrix Completion (GCMC)](cornac/models/gcmc), [paper](https://www.kdd.org/kdd2018/files/deep-learning-day/DLDay18_paper_32.pdf) | Collaborative Filtering | [reqs](cornac/models/gcmc/requirements.txt) | [exp](examples/gcmc_example.py)
-|      | [Multi-Task Explainable Recommendation (MTER)](cornac/models/mter), [paper](https://arxiv.org/pdf/1806.03568.pdf) | Explainable | N/A | [exp](examples/mter_example.py)
-|      | [Neural Attention Rating Regression with Review-level Explanations (NARRE)](cornac/models/narre), [paper](http://www.thuir.cn/group/~YQLiu/publications/WWW2018_CC.pdf) | Explainable / Content-Based | [reqs](cornac/models/narre/requirements.txt) | [exp](examples/narre_example.py)
-|      | [Probabilistic Collaborative Representation Learning (PCRL)](cornac/models/pcrl), [paper](http://www.hadylauw.com/publications/uai18.pdf) | Content-Based / Graph | [reqs](cornac/models/pcrl/requirements.txt) | [exp](examples/pcrl_example.py)
-|      | [Variational Autoencoder for Collaborative Filtering (VAECF)](cornac/models/vaecf), [paper](https://arxiv.org/pdf/1802.05814.pdf) | Collaborative Filtering | [reqs](cornac/models/vaecf/requirements.txt) | [exp](examples/vaecf_citeulike.py)
-| 2017 | [Collaborative Variational Autoencoder (CVAE)](cornac/models/cvae), [paper](http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf) | Content-Based / Text | [reqs](cornac/models/cvae/requirements.txt) | [exp](examples/cvae_example.py)
-|      | [Conditional Variational Autoencoder for Collaborative Filtering (CVAECF)](cornac/models/cvaecf), [paper](https://dl.acm.org/doi/10.1145/3132847.3132972) | Content-Based / Text | [reqs](cornac/models/cvaecf/requirements.txt) | [exp](examples/cvaecf_filmtrust.py)
-|      | [Generalized Matrix Factorization (GMF)](cornac/models/ncf), [paper](https://arxiv.org/pdf/1708.05031.pdf) | Collaborative Filtering | [reqs](cornac/models/ncf/requirements.txt) | [exp](examples/ncf_example.py)
-|      | [Indexable Bayesian Personalized Ranking (IBPR)](cornac/models/ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | Collaborative Filtering | [reqs](cornac/models/ibpr/requirements.txt) | [exp](examples/ibpr_example.py)
-|      | [Matrix Co-Factorization (MCF)](cornac/models/mcf), [paper](https://dsail.kaist.ac.kr/files/WWW17.pdf) | Content-Based / Graph | N/A | [exp](examples/mcf_office.py)
-|      | [Multi-Layer Perceptron (MLP)](cornac/models/ncf), [paper](https://arxiv.org/pdf/1708.05031.pdf) | Collaborative Filtering | [reqs](cornac/models/ncf/requirements.txt) | [exp](examples/ncf_example.py)
-|      | [Neural Matrix Factorization (NeuMF) / Neural Collaborative Filtering (NCF)](cornac/models/ncf), [paper](https://arxiv.org/pdf/1708.05031.pdf) | Collaborative Filtering | [reqs](cornac/models/ncf/requirements.txt) | [exp](examples/ncf_example.py)
-|      | [Online Indexable Bayesian Personalized Ranking (Online IBPR)](cornac/models/online_ibpr), [paper](http://www.hadylauw.com/publications/cikm17a.pdf) | Collaborative Filtering | [reqs](cornac/models/online_ibpr/requirements.txt) |
-|      | [Visual Matrix Factorization (VMF)](cornac/models/vmf), [paper](https://dsail.kaist.ac.kr/files/WWW17.pdf) | Content-Based / Image | [reqs](cornac/models/vmf/requirements.txt) | [exp](examples/vmf_clothing.py)
-| 2016 | [Collaborative Deep Ranking (CDR)](cornac/models/cdr), [paper](http://inpluslab.com/chenliang/homepagefiles/paper/hao-pakdd2016.pdf) | Content-Based / Text | [reqs](cornac/models/cdr/requirements.txt) | [exp](examples/cdr_example.py)
-|      | [Collaborative Ordinal Embedding (COE)](cornac/models/coe), [paper](http://www.hadylauw.com/publications/sdm16.pdf) | Collaborative Filtering | [reqs](cornac/models/coe/requirements.txt) |
-|      | [Convolutional Matrix Factorization (ConvMF)](cornac/models/conv_mf), [paper](http://uclab.khu.ac.kr/resources/publication/C_351.pdf) | Content-Based / Text | [reqs](cornac/models/conv_mf/requirements.txt) | [exp](examples/conv_mf_example.py)
-|      | [Learning to Rank Features for Recommendation over Multiple Categories (LRPPM)](cornac/models/lrppm), [paper](https://www.yongfeng.me/attach/sigir16-chen.pdf) | Explainable | N/A | [exp](examples/lrppm_example.py)
-|      | [Session-based Recommendations With Recurrent Neural Networks (GRU4Rec)](cornac/models/gru4rec), [paper](https://arxiv.org/pdf/1511.06939.pdf) | Next-Item | [reqs](cornac/models/gru4rec/requirements.txt) | [exp](examples/gru4rec_yoochoose.py)
-|      | [Spherical K-means (SKM)](cornac/models/skm), [paper](https://www.sciencedirect.com/science/article/pii/S092523121501509X) | Collaborative Filtering | N/A | [exp](examples/skm_movielens.py)
-|      | [Visual Bayesian Personalized Ranking (VBPR)](cornac/models/vbpr), [paper](https://arxiv.org/pdf/1510.01784.pdf) | Content-Based / Image | [reqs](cornac/models/vbpr/requirements.txt) | [exp](examples/vbpr_tradesy.py)
-| 2015 | [Collaborative Deep Learning (CDL)](cornac/models/cdl), [paper](https://arxiv.org/pdf/1409.2944.pdf) | Content-Based / Text | [reqs](cornac/models/cdl/requirements.txt) | [exp](examples/cdl_example.py)
-|      | [Hierarchical Poisson Factorization (HPF)](cornac/models/hpf), [paper](http://jakehofman.com/inprint/poisson_recs.pdf) | Collaborative Filtering | N/A | [exp](examples/hpf_movielens.py)
-|      | [TriRank: Review-aware Explainable Recommendation by Modeling Aspects](cornac/models/trirank), [paper](https://wing.comp.nus.edu.sg/wp-content/uploads/Publications/PDF/TriRank-%20Review-aware%20Explainable%20Recommendation%20by%20Modeling%20Aspects.pdf) | Explainable | N/A | [exp](examples/trirank_example.py)
-| 2014 | [Explicit Factor Model (EFM)](cornac/models/efm), [paper](https://www.yongfeng.me/attach/efm-zhang.pdf) | Explainable | N/A | [exp](examples/efm_example.py)
-|      | [Social Bayesian Personalized Ranking (SBPR)](cornac/models/sbpr), [paper](https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf) | Content-Based / Social | N/A | [exp](examples/sbpr_epinions.py)
-| 2013 | [Hidden Factors and Hidden Topics (HFT)](cornac/models/hft), [paper](https://cs.stanford.edu/people/jure/pubs/reviews-recsys13.pdf) | Content-Based / Text | N/A | [exp](examples/hft_example.py)
-| 2012 | [Weighted Bayesian Personalized Ranking (WBPR)](cornac/models/bpr), [paper](http://proceedings.mlr.press/v18/gantner12a/gantner12a.pdf) | Collaborative Filtering | N/A | [exp](examples/bpr_netflix.py)
-| 2011 | [Collaborative Topic Regression (CTR)](cornac/models/ctr), [paper](http://www.cs.columbia.edu/~blei/papers/WangBlei2011.pdf) | Content-Based / Text | N/A | [exp](examples/ctr_example_citeulike.py)
-| Earlier | [Baseline Only](cornac/models/baseline_only), [paper](http://courses.ischool.berkeley.edu/i290-dm/s11/SECURE/a1-koren.pdf) | Baseline | N/A | [exp](examples/svd_example.py)
-|      | [Bayesian Personalized Ranking (BPR)](cornac/models/bpr), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | Collaborative Filtering | N/A | [exp](examples/bpr_netflix.py)
-|      | [Factorization Machines (FM)](cornac/models/fm), [paper](https://www.csie.ntu.edu.tw/~b97053/paper/Factorization%20Machines%20with%20libFM.pdf) | Collaborative Filtering / Content-Based | Linux only | [exp](examples/fm_example.py)
-|      | [Global Average (GlobalAvg)](cornac/models/global_avg), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | Baseline | N/A | [exp](examples/biased_mf.py)
-|      | [Global Personalized Top Frequent (GPTop)](cornac/models/gp_top), [paper](https://dl.acm.org/doi/pdf/10.1145/3587153) | Next-Basket | N/A | [exp](examples/gp_top_tafeng.py)
-|      | [Item K-Nearest-Neighbors (ItemKNN)](cornac/models/knn), [paper](https://dl.acm.org/doi/pdf/10.1145/371920.372071) | Neighborhood-Based | N/A | [exp](examples/knn_movielens.py)
-|      | [Matrix Factorization (MF)](cornac/models/mf), [paper](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | Collaborative Filtering | N/A | [exp1](examples/biased_mf.py), [exp2](examples/given_data.py)
-|      | [Maximum Margin Matrix Factorization (MMMF)](cornac/models/mmmf), [paper](https://link.springer.com/content/pdf/10.1007/s10994-008-5073-7.pdf) | Collaborative Filtering | N/A | [exp](examples/mmmf_exp.py)
-|      | [Most Popular (MostPop)](cornac/models/most_pop), [paper](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | Baseline | N/A | [exp](examples/bpr_netflix.py)
-|      | [Non-negative Matrix Factorization (NMF)](cornac/models/nmf), [paper](http://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf) | Collaborative Filtering | N/A | [exp](examples/nmf_example.py)
-|      | [Probabilistic Matrix Factorization (PMF)](cornac/models/pmf), [paper](https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf) | Collaborative Filtering | N/A | [exp](examples/pmf_ratio.py)
-|      | [Session Popular (SPop)](cornac/models/spop), [paper](https://arxiv.org/pdf/1511.06939.pdf) | Next-Item / Baseline | N/A | [exp](examples/spop_yoochoose.py)
-|      | [Singular Value Decomposition (SVD)](cornac/models/svd), [paper](https://people.engr.tamu.edu/huangrh/Spring16/papers_course/matrix_factorization.pdf) | Collaborative Filtering | N/A | [exp](examples/svd_example.py)
-|      | [Social Recommendation using PMF (SoRec)](cornac/models/sorec), [paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf) | Content-Based / Social | N/A | [exp](examples/sorec_filmtrust.py)
-|      | [User K-Nearest-Neighbors (UserKNN)](cornac/models/knn), [paper](https://arxiv.org/pdf/1301.7363.pdf) | Neighborhood-Based | N/A | [exp](examples/knn_movielens.py)
-|      | [Weighted Matrix Factorization (WMF)](cornac/models/wmf), [paper](http://yifanhu.net/PUB/cf.pdf) | Collaborative Filtering | [reqs](cornac/models/wmf/requirements.txt) | [exp](examples/wmf_example.py)
+## Resources
+
+- [Cornac Examples](examples)
+- [Cornac Tutorials](tutorials)
+- [RecSys Tutorials by Preferred.AI](https://github.com/PreferredAI/tutorials/tree/master/recommender-systems)
+- [Running Cornac Model with Microsoft Recommenders (BPR)](https://github.com/recommenders-team/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bpr_deep_dive.ipynb), [(BiVAE)](https://github.com/recommenders-team/recommenders/blob/main/examples/02_model_collaborative_filtering/cornac_bivae_deep_dive.ipynb)
+- [Multimodal RecSys Tutorial at TheWebConf/WWW 2023](https://github.com/PreferredAI/tutorials/blob/master/multimodal-www23/00_slides.pdf), [earlier version at RecSys 2021](https://github.com/PreferredAI/tutorials/blob/master/multimodal-recsys/slides.pdf)
 
 
 ## Contributing
@@ -218,7 +223,8 @@ This project welcomes contributions and suggestions. Before contributing, please
 
 If you use Cornac in a scientific publication, we would appreciate citations to the following papers:
 
-- [Cornac: A Comparative Framework for Multimodal Recommender Systems](http://jmlr.org/papers/v21/19-805.html), Salah *et al.*, Journal of Machine Learning Research, 21(95):1–5, 2020.
+<details>
+  <summary><a href="http://jmlr.org/papers/v21/19-805.html">Cornac: A Comparative Framework for Multimodal Recommender Systems</a>, Salah <i>et al.</i>, Journal of Machine Learning Research, 21(95):1–5, 2020.</summary>
 
   ```
   @article{salah2020cornac,
@@ -231,8 +237,10 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
     year={2020}
   }
   ```
+</details>
 
-- [Exploring Cross-Modality Utilization in Recommender Systems](https://ieeexplore.ieee.org/abstract/document/9354572), Truong *et al.*, IEEE Internet Computing, 25(4):50–57, 2021.
+<details>
+  <summary><a href="https://ieeexplore.ieee.org/abstract/document/9354572">Exploring Cross-Modality Utilization in Recommender Systems</a>, Truong <i>et al.</i>, IEEE Internet Computing, 25(4):50–57, 2021.</summary>
 
   ```
   @article{truong2021exploring,
@@ -243,8 +251,10 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
     publisher={IEEE}
   }
   ```
+</details>
 
-- [Multi-Modal Recommender Systems: Hands-On Exploration](https://dl.acm.org/doi/10.1145/3460231.3473324), Truong *et al.*, ACM Conference on Recommender Systems, 2021.
+<details>
+  <summary><a href="http://jmlr.org/papers/v21/19-805.html">Multi-Modal Recommender Systems: Hands-On Exploration</a>, Truong <i>et al.</i>, ACM Conference on Recommender Systems, 2021.</summary>
 
   ```
   @inproceedings{truong2021multi,
@@ -255,6 +265,7 @@ If you use Cornac in a scientific publication, we would appreciate citations to 
     year={2021}
   }
   ```
+</details>
 
 ## License
 
