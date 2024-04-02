@@ -123,7 +123,7 @@ jobs:
 
     - name: Install numpy for Python 3.12
       if: matrix.python-version == '3.12'
-      run: python -m pip install numpy==1.24.3
+      run: python -m pip install numpy==1.26.4
 
     - name: Display numpy version
       run: python -c "import numpy; print(numpy.__version__)"
