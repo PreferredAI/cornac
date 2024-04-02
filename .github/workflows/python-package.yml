@@ -90,7 +90,6 @@ jobs:
             python: 312
             platform_id: macosx_arm64
 
-
     steps:
     - uses: actions/checkout@v2
     
@@ -107,19 +106,23 @@ jobs:
       run: python -m pip install wheel setuptools pip --upgrade
 
     - name: Install numpy for Python 3.8
-      if: matrix.python-version == '3.8'
+      if: matrix.python == '38'
       run: python -m pip install numpy==1.20.3
         
     - name: Install numpy for Python 3.9
-      if: matrix.python-version == '3.9'
+      if: matrix.python == '39'
       run: python -m pip install numpy==1.20.3
 
     - name: Install numpy for Python 3.10
-      if: matrix.python-version == '3.10'
+      if: matrix.python == '310'
       run: python -m pip install numpy==1.22.4
 
     - name: Install numpy for Python 3.11
-      if: matrix.python-version == '3.11'
+      if: matrix.python == '311'
+      run: python -m pip install numpy==1.24.3
+
+    - name: Install numpy for Python 3.12
+      if: matrix.python == '312'
       run: python -m pip install numpy==1.24.3
 
     - name: Display numpy version
