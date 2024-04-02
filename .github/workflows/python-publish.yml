@@ -19,20 +19,95 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-        
+        include:
+          # Window 64 bit
+          - os: windows-latest
+            python-version: '3.8'
+            platform_id: win_amd64
+          - os: windows-latest
+            python-version: '3.9'
+            platform_id: win_amd64
+          - os: windows-latest
+            python-version: '3.10'
+            platform_id: win_amd64
+          - os: windows-latest
+            python-version: '3.11'
+            platform_id: win_amd64
+          - os: windows-latest
+            python-version: '3.12'
+            platform_id: win_amd64
+
+          # Linux 64 bit manylinux2014
+          - os: ubuntu-latest
+            python-version: '3.8'
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python-version: '3.9'
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python-version: '3.10'
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python-version: '3.11'
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+          - os: ubuntu-latest
+            python-version: '3.12'
+            platform_id: manylinux_x86_64
+            manylinux_image: manylinux2014
+
+          # MacOS x86_64
+          - os: macos-latest
+            python-version: '3.8'
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python-version: '3.9'
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python-version: '3.10'
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python-version: '3.11'
+            platform_id: macosx_x86_64
+          - os: macos-latest
+            python-version: '3.12'
+            platform_id: macosx_x86_64
+
+          # MacOS arm64
+          - os: macos-12
+            python-version: '3.8'
+            platform_id: macosx_arm64
+          - os: macos-12
+            python-version: '3.9'
+            platform_id: macosx_arm64
+          - os: macos-14
+            python-version: '3.10'
+            platform_id: macosx_arm64
+          - os: macos-14
+            python-version: '3.11'
+            platform_id: macosx_arm64
+          - os: macos-14
+            python-version: '3.12'
+            platform_id: macosx_arm64
+
     steps:
     - uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
-    
+
+    - name: Upgrade pip wheel setuptools
+      run: python -m pip install wheel setuptools pip --upgrade
+
     - name: Install numpy for Python 3.8
       if: matrix.python-version == '3.8'
       run: python -m pip install numpy==1.20.3
@@ -48,6 +123,10 @@ jobs:
     - name: Install numpy for Python 3.11
       if: matrix.python-version == '3.11'
       run: python -m pip install numpy==1.24.3
+
+    - name: Install numpy for Python 3.12
+      if: matrix.python-version == '3.12'
+      run: python -m pip install numpy==1.26.4
 
     - name: Display numpy version
       run: python -c "import numpy; print(numpy.__version__)"
