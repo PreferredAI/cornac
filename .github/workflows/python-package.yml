@@ -28,6 +28,10 @@ jobs:
             python-version: "3.8"
           - os: macos-14
             python-version: "3.9"
+          - os: macos-14
+            python-version: "3.10"
+          - os: macos-13
+            python-version: "3.10"
 
     steps:
     - name: Get number of CPU cores
@@ -80,12 +84,12 @@ jobs:
       run: pip install numpy==1.26.4
     
     - name: Display numpy version
-      run: python -c "import numpy; print(numpy.__version__)"
+      run: python${{ matrix.python-version }} -c "import numpy; print(numpy.__version__)"
 
     - name: Install other dependencies
       run: |
         pip install scipy Cython pytest pytest-cov flake8
-        python setup.py build_ext -j${{ steps.cpu-cores.outputs.count }}
+        python${{ matrix.python-version }} setup.py build_ext -j${{ steps.cpu-cores.outputs.count }}
         pip install -e .[tests]
 
     - name: Lint with flake8
