@@ -16,23 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [windows-latest, ubuntu-latest, macos-13, macos-14]
-        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        # exclude:
-        #   - os: macos-14
-        #     python-version: "3.8"
-        #   - os: macos-14
-        #     python-version: "3.9"
-        include:
-          - os: macos-14
-            python-version: "3.8"
-          - os: macos-14
-            python-version: "3.9"
-          - os: macos-14
-            python-version: "3.10"
-          - os: macos-13
-            python-version: "3.10"
-
+        os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        
     steps:
     - name: Get number of CPU cores
       uses: SimenB/github-actions-cpu-cores@v2
@@ -55,9 +41,9 @@ jobs:
         curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         python${{ matrix.python-version }} get-pip.py
 
-    - name: Display Python version
+    - name: Display Python and Pip versions
       run: | 
-        python -c "import sys; print(sys.version)"
+        python${{ matrix.python-version }} -c "import sys; print(sys.version)"
         pip --version
 
     - name: Upgrade pip wheel setuptools
