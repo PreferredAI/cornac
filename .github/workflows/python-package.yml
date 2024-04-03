@@ -16,18 +16,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-13, macos-14]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        exclude:
+        # os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        # exclude:
+        #   - os: macos-14
+        #     python-version: "3.8"
+        #   - os: macos-14
+        #     python-version: "3.9"
+        include:
           - os: macos-14
             python-version: "3.8"
           - os: macos-14
             python-version: "3.9"
-        include:
-          - os: macos-14
-            python-version: "pypy3.8"
-          - os: macos-14
-            python-version: "pypy3.9"
 
     steps:
     - name: Get number of CPU cores
@@ -37,53 +37,64 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup Python ${{ matrix.python-version }}
+      if: ${{ (matrix.os != 'macos-14') || ((matrix.os == 'macos-14') && (matrix.python-version != '3.8') && (matrix.python-version != '3.9')) }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
+    - name: Setup Python 3.8-3.9 - macos-arm
+      if: ${{ (matrix.os == 'macos-14') && ((matrix.python-version == '3.8') || (matrix.python-version == '3.9')) }}
+      run: |
+        brew update
+        brew install python@${{ matrix.python-version }}
+        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+        python${{ matrix.python-version }} get-pip.py
+
     - name: Display Python version
-      run: python -c "import sys; print(sys.version)"
+      run: | 
+        python -c "import sys; print(sys.version)"
+        pip --version
 
     - name: Upgrade pip wheel setuptools
-      run: python -m pip install wheel setuptools pip --upgrade
+      run: pip install wheel setuptools pip --upgrade
 
     - name: Install numpy for Python 3.8
       if: matrix.python-version == '3.8'
-      run: python -m pip install numpy==1.20.3
+      run: pip install numpy==1.20.3
         
     - name: Install numpy for Python 3.9
       if: matrix.python-version == '3.9'
-      run: python -m pip install numpy==1.20.3
+      run: pip install numpy==1.20.3
 
     - name: Install numpy for Python 3.10
       if: matrix.python-version == '3.10'
-      run: python -m pip install numpy==1.22.4
+      run: pip install numpy==1.22.4
 
     - name: Install numpy for Python 3.11
       if: matrix.python-version == '3.11'
-      run: python -m pip install numpy==1.24.3
+      run: pip install numpy==1.24.3
 
     - name: Install numpy for Python 3.12
       if: matrix.python-version == '3.12'
-      run: python -m pip install numpy==1.26.4
+      run: pip install numpy==1.26.4
 
     - name: Install numpy for Pypy 3.8 arm64
       if: matrix.python-version == 'pypy3.8'
-      run: python -m pip install numpy==1.20.3
+      run: pip install numpy==1.20.3
         
     - name: Install numpy for Pypy 3.9 arm64
       if: matrix.python-version == 'pypy3.9'
-      run: python -m pip install numpy==1.20.3
+      run: pip install numpy==1.20.3
     
     - name: Display numpy version
       run: python -c "import numpy; print(numpy.__version__)"
 
     - name: Install other dependencies
       run: |
-        python -m pip install scipy Cython pytest pytest-cov flake8
+        pip install scipy Cython pytest pytest-cov flake8
         python setup.py build_ext -j${{ steps.cpu-cores.outputs.count }}
-        python -m pip install -e .[tests]
+        pip install -e .[tests]
 
     - name: Lint with flake8
       run: |
@@ -94,4 +105,4 @@ jobs:
     
     - name: Test with pytest
       run: |
-        python -m pytest --cov=cornac
+        pytest --cov=cornac
