@@ -46,7 +46,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         $newPath = "${{ steps.pysetup.outputs.python-path }}".Replace("python.exe", "python${{ matrix.python-version }}.exe")
-        mklink "$newPath" "${{ steps.pysetup.outputs.python-path }}"
+        New-Item -ItemType HardLink -Path "$newPath" -Value "${{ steps.pysetup.outputs.python-path }}"
 
     - name: Display Python and Pip versions
       run: | 
