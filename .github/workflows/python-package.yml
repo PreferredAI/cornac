@@ -44,7 +44,7 @@ jobs:
 
     - name: Create Python alias for Windows 
       if: matrix.os == 'windows-latest'
-      run: New-Alias -Name "python${{ matrix.python-version }}" python
+      run: mklink "${{ steps.pysetup.outputs.python-path }}\python.exe" "${{ steps.pysetup.outputs.python-path }}\python${{ matrix.python-version }}.exe"
 
     - name: Display Python and Pip versions
       run: | 
