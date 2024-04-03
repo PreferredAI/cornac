@@ -72,15 +72,15 @@ jobs:
 
     - uses: actions/checkout@v2
     
-    - name: Setup Python ${{ matrix.os }} - ${{ matrix.python-version }}
-      if: ${{ (matrix.os != 'macos-14') && (matrix.python-version != '3.8') && (matrix.python-version != '3.9') }}
+    - name: Setup Python ${{ matrix.python-version }} - ${{ matrix.os }} 
+      if: ${{ (matrix.os != 'macos-14') || ((matrix.os == 'macos-14') && (matrix.python-version != '3.8') && (matrix.python-version != '3.9')) }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
-    - name: Setup Python and pip for macos-arm - Python 3.8-3.9
-      if: ${{ (matrix.os == 'macos-14') && ((matrix.python-version == '3.8') || (matrix.python-version != '3.9')) }}
+    - name: Setup Python 3.8-3.9 - macos-arm 
+      if: ${{ (matrix.os == 'macos-14') && ((matrix.python-version == '3.8') || (matrix.python-version == '3.9')) }}
       run: |
         brew update
         brew install python@${{ matrix.python-version }}
