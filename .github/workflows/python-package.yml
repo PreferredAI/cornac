@@ -61,11 +61,11 @@ jobs:
 
     - name: Install numpy for Python 3.8
       if: matrix.python-version == '3.8'
-      run: pip install numpy==1.20.3
+      run: pip install numpy==1.22.4
         
     - name: Install numpy for Python 3.9
       if: matrix.python-version == '3.9'
-      run: pip install numpy==1.20.3
+      run: pip install numpy==1.22.4
 
     - name: Install numpy for Python 3.10
       if: matrix.python-version == '3.10'
@@ -78,14 +78,6 @@ jobs:
     - name: Install numpy for Python 3.12
       if: matrix.python-version == '3.12'
       run: pip install numpy==1.26.4
-
-    - name: Install numpy for Pypy 3.8 arm64
-      if: matrix.python-version == 'pypy3.8'
-      run: pip install numpy==1.20.3
-        
-    - name: Install numpy for Pypy 3.9 arm64
-      if: matrix.python-version == 'pypy3.9'
-      run: pip install numpy==1.20.3
     
     - name: Display numpy version
       run: python -c "import numpy; print(numpy.__version__)"
