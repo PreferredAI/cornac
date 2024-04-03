@@ -86,7 +86,7 @@ jobs:
         brew install python@${{ matrix.python-version }}
         # curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         # python${{ matrix.python-version }} get-pip.py
-        alias python=python${{ matrix.python-version }}
+        export PATH=$(brew --prefix python@${{ matrix.python-version }})/libexec/bin:$PATH
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
