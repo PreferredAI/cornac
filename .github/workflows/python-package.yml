@@ -87,9 +87,9 @@ jobs:
     #     brew install python@${{ matrix.python-version }}
 
     - name: Setup Python
-      uses: actions/python-versions@v3
+      uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-versions: ${{ matrix.python-version }}
         cache: 'pip'
 
     - name: Display Python version
