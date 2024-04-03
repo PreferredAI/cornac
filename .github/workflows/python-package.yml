@@ -70,21 +70,27 @@ jobs:
       uses: SimenB/github-actions-cpu-cores@v2
       id: cpu-cores
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
-    - name: Setup Python ${{ matrix.python-version }} - ${{ matrix.os }} 
-      if: ${{ (matrix.os != 'macos-14') || ((matrix.os == 'macos-14') && (matrix.python-version != '3.8') && (matrix.python-version != '3.9')) }}
-      uses: actions/setup-python@v5
+    # - name: Setup Python ${{ matrix.python-version }} - ${{ matrix.os }} 
+    #   if: ${{ (matrix.os != 'macos-14') || ((matrix.os == 'macos-14') && (matrix.python-version != '3.8') && (matrix.python-version != '3.9')) }}
+    #   uses: actions/setup-python@v5
+    #   with:
+    #     python-version: ${{ matrix.python-version }}
+    #     cache: 'pip'
+
+    # - name: Setup Python 3.8-3.9 - macos-arm 
+    #   if: ${{ (matrix.os == 'macos-14') && ((matrix.python-version == '3.8') || (matrix.python-version == '3.9')) }}
+    #   run: |
+    #     brew update
+    #     brew uninstall --ignore-dependencies python3
+    #     brew install python@${{ matrix.python-version }}
+
+    - name: Setup Python
+      uses: actions/python-version@v3
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-
-    - name: Setup Python 3.8-3.9 - macos-arm 
-      if: ${{ (matrix.os == 'macos-14') && ((matrix.python-version == '3.8') || (matrix.python-version == '3.9')) }}
-      run: |
-        brew update
-        brew uninstall --ignore-dependencies python3
-        brew install python@${{ matrix.python-version }}
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
