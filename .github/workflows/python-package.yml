@@ -83,7 +83,7 @@ jobs:
       if: ${{ (matrix.os == 'macos-14') && ((matrix.python-version == '3.8') || (matrix.python-version == '3.9')) }}
       run: |
         brew update
-        brew uninstall python3
+        brew uninstall --ignore-dependencies python3
         brew install python@${{ matrix.python-version }}
 
     - name: Display Python version
