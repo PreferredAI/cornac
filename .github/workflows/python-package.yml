@@ -17,78 +17,53 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Window 64 bit
+          # Windows 64 bit
           - os: windows-latest
             python-version: '3.8'
-            platform_id: win_amd64
           - os: windows-latest
             python-version: '3.9'
-            platform_id: win_amd64
           - os: windows-latest
             python-version: '3.10'
-            platform_id: win_amd64
           - os: windows-latest
             python-version: '3.11'
-            platform_id: win_amd64
           - os: windows-latest
             python-version: '3.12'
-            platform_id: win_amd64
 
-          # Linux 64 bit manylinux2014
+          # Linux 64 bit
           - os: ubuntu-latest
             python-version: '3.8'
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
           - os: ubuntu-latest
             python-version: '3.9'
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
           - os: ubuntu-latest
             python-version: '3.10'
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
           - os: ubuntu-latest
             python-version: '3.11'
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
           - os: ubuntu-latest
             python-version: '3.12'
-            platform_id: manylinux_x86_64
-            manylinux_image: manylinux2014
 
           # MacOS x86_64
-          - os: macos-latest
+          - os: macos-13
             python-version: '3.8'
-            platform_id: macosx_x86_64
-          - os: macos-latest
+          - os: macos-13
             python-version: '3.9'
-            platform_id: macosx_x86_64
-          - os: macos-latest
+          - os: macos-13
             python-version: '3.10'
-            platform_id: macosx_x86_64
-          - os: macos-latest
+          - os: macos-13
             python-version: '3.11'
-            platform_id: macosx_x86_64
-          - os: macos-latest
+          - os: macos-13
             python-version: '3.12'
-            platform_id: macosx_x86_64
 
           # MacOS arm64
-          - os: macos-12
+          - os: macos-14
             python-version: '3.8'
-            platform_id: macosx_arm64
-          - os: macos-12
+          - os: macos-14
             python-version: '3.9'
-            platform_id: macosx_arm64
           - os: macos-14
             python-version: '3.10'
-            platform_id: macosx_arm64
           - os: macos-14
             python-version: '3.11'
-            platform_id: macosx_arm64
           - os: macos-14
             python-version: '3.12'
-            platform_id: macosx_arm64
 
     steps:
     - name: Get number of CPU cores
