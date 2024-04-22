@@ -473,7 +473,7 @@ class Recommender:
 
         return rating_pred
 
-    def rank(self, user_idx, item_indices=None, **kwargs):
+    def rank(self, user_idx, item_indices=None, k=-1, **kwargs):
         """Rank all test items for a given user.
 
         Parameters
@@ -485,7 +485,7 @@ class Recommender:
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned.
 
-        k: int, optional
+        k: int, required
             Cut-off length for recommendations, k=-1 will return ranked list of all items.
             This is more important for ANN to know the limit to avoid exhaustive ranking.
 
@@ -501,8 +501,6 @@ class Recommender:
             known_item_scores = self.score(user_idx, **kwargs)
         except ScoreException:
             known_item_scores = np.ones(self.total_items) * self.default_score()
-
-        k = kwargs.get("k", -1)
 
         # check if the returned scores also cover unknown items
         # if not, all unknown items will be given the MIN score
