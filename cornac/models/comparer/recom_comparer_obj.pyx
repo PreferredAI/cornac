@@ -663,7 +663,7 @@ class ComparERObj(Recommender):
             item_score = self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
             return item_score
 
-    def rank(self, user_idx, item_indices=None, k=None):
+    def rank(self, user_idx, item_indices=None, k=-1):
         """Rank all test items for a given user.
 
         Parameters
@@ -675,10 +675,15 @@ class ComparERObj(Recommender):
             A list of candidate item indices to be ranked by the user.
             If `None`, list of ranked known item indices and their scores will be returned
 
+        k: int, required
+            Cut-off length for recommendations, k=-1 will return ranked list of all items.
+            This is more important for ANN to know the limit to avoid exhaustive ranking.
+
         Returns
         -------
-        Tuple of `item_rank`, and `item_scores`. The order of values
-        in item_scores are corresponding to the order of their ids in item_indices
+        (ranked_items, item_scores): tuple
+            `ranked_items` contains item indices being ranked by their scores.
+            `item_scores` contains scores of items corresponding to index in `item_indices` input.
 
         """
         X_ = self.U1[user_idx, :].dot(self.V.T)
@@ -686,16 +691,23 @@ class ComparERObj(Recommender):
         most_cared_X_ = X_[most_cared_aspects_indices]
         most_cared_Y_ = self.U2.dot(self.V[most_cared_aspects_indices, :].T)
         explicit_scores = most_cared_X_.dot(most_cared_Y_.T) / (self.num_most_cared_aspects * self.rating_scale)
-        item_scores = self.alpha * explicit_scores + (1 - self.alpha) * self.score(user_idx)
+        all_item_scores = self.alpha * explicit_scores + (1 - self.alpha) * self.score(user_idx)
 
-        if item_indices is None:
-            item_scores = item_scores
-            item_rank = item_scores.argsort()[::-1]
-        else:
-            num_items = max(self.num_items, max(item_indices) + 1)
-            item_scores = np.ones(num_items) * np.min(item_scores)
-            item_scores[:self.num_items] = item_scores
-            item_rank = item_scores.argsort()[::-1]
-            item_rank = intersects(item_rank, item_indices, assume_unique=True)
-            item_scores = item_scores[item_indices]
-        return item_rank, item_scores
+        # rank items based on their scores
+        item_indices = (
+            np.arange(self.num_items)
+            if item_indices is None
+            else np.asarray(item_indices)
+        )
+        item_scores = all_item_scores[item_indices]
+
+        if k != -1:  # O(n + k log k), faster for small k which is usually the case
+            partitioned_idx = np.argpartition(item_scores, -k)
+            top_k_idx = partitioned_idx[-k:]
+            sorted_top_k_idx = top_k_idx[np.argsort(item_scores[top_k_idx])]
+            partitioned_idx[-k:] = sorted_top_k_idx
+            ranked_items = item_indices[partitioned_idx[::-1]]
+        else:  # O(n log n)
+            ranked_items = item_indices[item_scores.argsort()[::-1]]
+
+        return ranked_items, item_scores

@@ -759,7 +759,7 @@ class ComparERSub(MTER):
 
         return correct, skipped, loss, bpr_loss
 
-    def rank(self, user_idx, item_indices=None, k=None):
+    def rank(self, user_idx, item_indices=None, k=-1):
         if self.alpha > 0 and self.n_top_aspects > 0:
             n_top_aspects = min(self.n_top_aspects, self.num_aspects)
             ts1 = np.einsum("abc,a->bc", self.G1, self.U[user_idx])
@@ -786,12 +786,21 @@ class ComparERSub(MTER):
                 all_item_scores[: self.num_items] = known_item_scores
 
             # rank items based on their scores
-            if item_indices is None:
-                item_scores = all_item_scores[: self.num_items]
-                item_rank = item_scores.argsort()[::-1]
-            else:
-                item_scores = all_item_scores[item_indices]
-                item_rank = np.array(item_indices)[item_scores.argsort()[::-1]]
+            item_indices = (
+                np.arange(self.num_items)
+                if item_indices is None
+                else np.asarray(item_indices)
+            )
+            item_scores = all_item_scores[item_indices]
+                
+            if k != -1:  # O(n + k log k), faster for small k which is usually the case
+                partitioned_idx = np.argpartition(item_scores, -k)
+                top_k_idx = partitioned_idx[-k:]
+                sorted_top_k_idx = top_k_idx[np.argsort(item_scores[top_k_idx])]
+                partitioned_idx[-k:] = sorted_top_k_idx
+                ranked_items = item_indices[partitioned_idx[::-1]]
+            else:  # O(n log n)
+                ranked_items = item_indices[item_scores.argsort()[::-1]]
 
-            return item_rank, item_scores
-        return super().rank(user_idx, item_indices)
+            return ranked_items, item_scores
+        return super().rank(user_idx, item_indices, k)
