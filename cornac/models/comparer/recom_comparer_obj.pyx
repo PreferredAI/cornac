@@ -663,7 +663,7 @@ class ComparERObj(Recommender):
             item_score = self.U2[item_id, :].dot(self.U1[user_id, :]) + self.H2[item_id, :].dot(self.H1[user_id, :])
             return item_score
 
-    def rank(self, user_id, item_ids=None):
+    def rank(self, user_id, item_ids=None, k=None):
         """Rank all test items for a given user.
 
         Parameters

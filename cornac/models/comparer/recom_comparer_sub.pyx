@@ -759,7 +759,7 @@ class ComparERSub(MTER):
 
         return correct, skipped, loss, bpr_loss
 
-    def rank(self, user_idx, item_indices=None):
+    def rank(self, user_idx, item_indices=None, k=None):
         if self.alpha > 0 and self.n_top_aspects > 0:
             n_top_aspects = min(self.n_top_aspects, self.num_aspects)
             ts1 = np.einsum("abc,a->bc", self.G1, self.U[user_idx])
