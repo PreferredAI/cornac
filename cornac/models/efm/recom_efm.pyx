@@ -468,7 +468,7 @@ class EFM(Recommender):
             item_score = self.U2[item_idx, :].dot(self.U1[user_idx, :]) + self.H2[item_idx, :].dot(self.H1[user_idx, :])
             return item_score
 
-    def rank(self, user_idx, item_indices=None):
+    def rank(self, user_idx, item_indices=None, **kwargs):
         """Rank all test items for a given user.
 
         Parameters

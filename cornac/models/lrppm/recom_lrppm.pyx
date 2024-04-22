@@ -516,7 +516,7 @@ class LRPPM(Recommender):
             item_score = self.I[i_idx].dot(self.U[u_idx])
             return item_score
 
-    def rank(self, user_idx, item_indices=None):
+    def rank(self, user_idx, item_indices=None, **kwargs):
         if self.alpha > 0 and self.num_top_aspects > 0:
             n_items = self.num_items
             num_top_aspects = min(self.num_top_aspects, self.num_aspects)
