@@ -359,6 +359,10 @@ class EFM(Recommender):
             print('Optimization finished!')
 
     def _build_matrices(self, data_set):
+        self.num_users = data_set.num_users
+        self.num_items = data_set.num_items
+        self.num_aspects = data_set.sentiment.num_aspects
+
         sentiment = data_set.sentiment
         ratings = []
         map_uid = []
