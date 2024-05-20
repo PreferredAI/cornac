@@ -69,11 +69,11 @@ class TriRank(Recommender):
         R: csr_matrix, shape (n_users, n_items)
             The symmetric normalized of edge weight matrix of user-item relation, optional initialization via init_params
 
-        X: csr_matrix, shape (n_users, n_aspects)
-            The symmetric normalized of edge weight matrix of user-aspect relation, optional initialization via init_params
-
-        Y: csr_matrix, shape (n_items, n_aspects)
+        X: csr_matrix, shape (n_items, n_aspects)
             The symmetric normalized of edge weight matrix of item-aspect relation, optional initialization via init_params
+
+        Y: csr_matrix, shape (n_users, n_aspects)
+            The symmetric normalized of edge weight matrix of user-aspect relation, optional initialization via init_params
 
         p: ndarray, shape (n_items,)
             Initialized item weights, optional initialization via init_params
