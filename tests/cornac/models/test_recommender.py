@@ -88,9 +88,9 @@ class TestNextItemRecommender(unittest.TestCase):
         model.score(0, [])
         result = model.rank(0, history_items=[])
         self.assertTrue((result[0][0:3] == [3, 2, 4]).all())
-        self.assertTrue((np.sort(result[0][3:5]) == [0, 1]).any()) # identical scores, sorting may affect the ordering
+        self.assertTrue((np.sort(result[0][3:5]) == [0, 1]).all()) # identical scores, sorting may affect the ordering
         self.assertTrue((result[0][5:6] == [5]).all())
-        self.assertTrue((np.sort(result[0][6:9]) == [6, 7, 8]).any()) # identical scores, sorting may affect the ordering
+        self.assertTrue((np.sort(result[0][6:9]) == [6, 7, 8]).all()) # identical scores, sorting may affect the ordering
 
 
 if __name__ == "__main__":
