@@ -163,7 +163,7 @@ experiments using the ``cornac.Experiment`` class.
         ml_100k = cornac.datasets.movielens.load_feedback()
 
         # Split the data into training and testing sets
-        rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
+        rs = RatioSplit(data=ml_100k, test_size=0.1, val_size=0.1, rating_threshold=4.0, seed=123)
 
         # Instantiate Recall@100 for evaluation
         rec100 = cornac.metrics.Recall(100)
