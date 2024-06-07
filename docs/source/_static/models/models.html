@@ -1,0 +1,67 @@
+<html lang="en">
+ <head>
+   <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+ </head>
+ <body>
+    <div>
+        <button onclick="loadCFModels()">Collaborative Filtering Models</button>
+        <button onclick="loadContentModels()">Content Based Models</button>
+        <button onclick="loadExplainModels()">Explainable Models</button>
+        <button onclick="loadNextItemModels()">Next-Item Models</button>
+        <button onclick="loadNextBasketModels()">Next-Basket Models</button>
+        <button onclick="loadBaselineModels()">Baseline Models</button>
+        <button onclick="loadGpuModels()">GPU</button>
+        <button onclick="loadCpuModels()">CPU only</button>
+    </div>
+    <div>
+        <input type="text" id="filter-text-box" placeholder="Filter..." oninput="onFilterTextBoxChanged()" />
+    </div>
+    <div id="grid" class="ag-theme-quartz" style="height: 600px"></div>
+ </body>
+</html>
+<script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="_static/models/data.js"></script>
+<script type="text/javascript">
+    function LinkRenderer(url, title) {
+        return `<a href="${url}" target="_blank">${title}</a>`
+    }
+    // Row Data Interface
+    const github_url = "https://github.com/PreferredAI/cornac/tree/master/";
+
+    // Grid API: Access to Grid API methods
+    let gridApi;
+
+    function onFilterTextBoxChanged() {
+        gridApi.setGridOption(
+            "quickFilterText",
+            document.getElementById("filter-text-box").value,
+        );
+    }
+
+
+    // Grid Options: Contains all of the grid configurations
+    const gridOptions = {
+        // Data to be displayed
+        rowData: data,
+        // Columns to be displayed (Should match rowData properties)
+        columnDefs: [
+            { field: "name", headerName: "Model Name", flex: 4 },
+            { field: "type", flex: 2 },
+            { field: "year" },
+            { field: "platform" },
+            { field: "link", cellRenderer: params => LinkRenderer(github_url + params.value, "Source Code")},
+            { field: "paper", cellRenderer: params => LinkRenderer(params.value, "Paper") },
+            { field: "requirements", cellRenderer: params => LinkRenderer(github_url + params.value, "Requirements.txt") },
+            // { field: "quick-start" },
+            // { field: "deep-dive" }
+        ],
+        defaultColDef: {
+            flex: 1,
+            filter: true,
+        },
+        pagination: true,
+        paginationAutoPageSize: true,
+    };
+    // Create Grid: Create new grid within the #myGrid div, using the Grid Options object
+    gridApi = agGrid.createGrid(document.querySelector("#grid"), gridOptions);
+</script>
