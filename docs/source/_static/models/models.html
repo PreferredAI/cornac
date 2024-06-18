@@ -56,6 +56,12 @@
         .then(() => {
             gridApi.onFilterChanged();
         });
+        // reset filter box
+        document.getElementById("filter-text-box").value="";
+        gridApi.setGridOption(
+            "quickFilterText",
+            "",
+        );
     }
 
     // Grid Options: Contains all of the grid configurations
