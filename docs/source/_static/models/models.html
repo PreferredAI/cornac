@@ -1,0 +1,104 @@
+<html lang="en">
+ <head>
+   <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+ </head>
+ <body>
+    <h3>Filters</h3>
+    <div>
+        <button onclick="clearFilters()">Clear Filters</button>
+    </div>
+    <div style="margin-top: 16px;">
+        <button onclick="filterModels('Collaborative Filtering')">Collaborative Filtering Models</button>
+        <button onclick="filterModels('Content-Based')">Content Based Models</button>
+        <button onclick="filterModels('Explainable')">Explainable Models</button>
+        <button onclick="filterModels('Next-Item')">Next-Item Models</button>
+        <button onclick="filterModels('Next-Basket')">Next-Basket Models</button>
+        <button onclick="filterModels('Baseline')">Baseline Models</button>
+    </div>
+    <div style="margin-top: 16px;">
+        <input type="text" id="filter-text-box" size="50" placeholder="Fliter" oninput="onFilterTextBoxChanged()" />
+    </div>
+    <br />
+    <div id="grid" class="ag-theme-quartz" style="height: 480px"></div>
+ </body>
+</html>
+<script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="_static/models/data.js"></script>
+<script type="text/javascript">
+    function LinkRenderer(url, title) {
+        return `<a href="${url}" target="_blank">${title}</a>`
+    }
+    // Row Data Interface
+    const github_url = "https://github.com/PreferredAI/cornac/tree/master/";
+
+    // Grid API: Access to Grid API methods
+    let gridApi;
+
+    function onFilterTextBoxChanged() {
+        gridApi.setGridOption(
+            "quickFilterText",
+            document.getElementById("filter-text-box").value,
+        );
+    }
+
+    function filterModels(filter) {
+        gridApi.setColumnFilterModel("Type", {
+            type: "contains",
+            filter: filter,
+        })
+        .then(() => {
+            gridApi.onFilterChanged();
+        });
+    }
+
+    function clearFilters(){
+        gridApi.setColumnFilterModel("Type", null)
+        .then(() => {
+            gridApi.onFilterChanged();
+        });
+        // reset filter box
+        document.getElementById("filter-text-box").value="";
+        gridApi.setGridOption(
+            "quickFilterText",
+            "",
+        );
+    }
+
+    // Grid Options: Contains all of the grid configurations
+    const gridOptions = {
+        // Data to be displayed
+        rowData: data,
+        // Columns to be displayed (Should match rowData properties)
+        columnDefs: [
+            { field: "Year" },
+            { 
+                field: "Name",
+                headerName: "Model Name (Hover over for package name)",
+                
+                flex: 4,
+                cellRenderer: params => LinkRenderer(params.data.docs, params.data.Name),
+                tooltipValueGetter: (params) => "Package Name: " + params.data.packages,
+            },
+            { field: "Type", flex: 2 },
+            { 
+                field: "PyTorch", 
+                headerName: "PyTorch",
+                cellRenderer: params => params.value ? "✅" : "❌",
+            },
+            { 
+                field: "TensorFlow",
+                headerName: "TensorFlow",
+                cellRenderer: params => params.value ? "✅" : "❌",
+            },
+        ],
+        defaultColDef: {
+            flex: 1,
+            filter: true,
+            // floatingFilter: true,
+        },
+        pagination: true,
+        paginationAutoPageSize: true
+    };
+    // Create Grid: Create new grid within the #myGrid div, using the Grid Options object
+    gridApi = agGrid.createGrid(document.querySelector("#grid"), gridOptions);
+</script>
