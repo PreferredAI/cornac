@@ -114,3 +114,9 @@ Quick Links
          :click-parent:
 
          Contributor's Guide
+
+Models Available
+^^^^^^^^^^^^^^^^
+
+.. raw:: html
+   :file: _static/models/models.html
