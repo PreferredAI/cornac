@@ -17,8 +17,9 @@ jobs:
           no_output_timeout: 30m
           command: |
             pip install --upgrade pip
-            pip install --only-binary=numpy,scipy numpy==1.22.4 scipy Cython pytest pytest-cov codecov
+            pip install --only-binary=numpy,scipy numpy==1.22.4 scipy==1.10.1 Cython pytest pytest-cov codecov
             pip install -e .[tests]
+            pip install numpy==1.22.4 scipy==1.10.1
       - run:
           name: Run tests
           no_output_timeout: 30m
