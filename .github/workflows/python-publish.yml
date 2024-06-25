@@ -63,13 +63,13 @@ jobs:
     - name: Install numpy ${{ matrix.versions.numpy }}, scipy ${{ matrix.versions.scipy }}
       run: pip install numpy==${{ matrix.versions.numpy }} scipy==${{ matrix.versions.scipy }}
     
-    - name: Display numpy version
-      run: python${{ matrix.versions.python }} -c "import numpy; print(numpy.__version__)"
-
     - name: Install other dependencies
       run: |
         pip install Cython wheel
     
+    - name: Display numpy version
+      run: python${{ matrix.versions.python }} -c "import numpy; print(numpy.__version__)"
+
     - name: Build wheels
       run: python${{ matrix.versions.python }} setup.py bdist_wheel
         
