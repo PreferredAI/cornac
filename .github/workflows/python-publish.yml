@@ -58,7 +58,7 @@ jobs:
         pip --version
 
     - name: Upgrade pip wheel setuptools
-      run: pip install wheel setuptools pip --upgrade
+      run: python${{ matrix.versions.python }} -m pip install wheel setuptools pip --upgrade
 
     - name: Install numpy ${{ matrix.versions.numpy }}, scipy ${{ matrix.versions.scipy }}
       run: pip install numpy==${{ matrix.versions.numpy }} scipy==${{ matrix.versions.scipy }}
