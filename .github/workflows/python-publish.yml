@@ -21,11 +21,11 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-13, macos-14]
         versions:
-          - { python: "3.8", numpy: 1.22.4 }
-          - { python: "3.9", numpy: 1.22.4 }
-          - { python: "3.10", numpy: 1.22.4 }
-          - { python: "3.11", numpy: 1.24.3 }
-          - { python: "3.12", numpy: 1.26.4 }
+          - { python: "3.8", numpy: 1.22.4, scipy: 1.13.1 }
+          - { python: "3.9", numpy: 1.22.4, scipy: 1.13.1 }
+          - { python: "3.10", numpy: 1.22.4, scipy: 1.13.1 }
+          - { python: "3.11", numpy: 1.24.3, scipy: 1.13.1 }
+          - { python: "3.12", numpy: 1.26.4, scipy: 1.13.1 }
 
     steps:
     - uses: actions/checkout@v4
@@ -60,15 +60,15 @@ jobs:
     - name: Upgrade pip wheel setuptools
       run: pip install wheel setuptools pip --upgrade
 
-    - name: Install numpy ${{ matrix.versions.numpy }}
-      run: pip install numpy==${{ matrix.versions.numpy }}
+    - name: Install numpy ${{ matrix.versions.numpy }}, scipy ${{ matrix.versions.scipy }}
+      run: pip install numpy==${{ matrix.versions.numpy }} scipy==${{ matrix.versions.scipy }}
     
     - name: Display numpy version
       run: python${{ matrix.versions.python }} -c "import numpy; print(numpy.__version__)"
 
     - name: Install other dependencies
       run: |
-        pip install scipy Cython wheel
+        pip install Cython wheel
     
     - name: Build wheels
       run: python${{ matrix.versions.python }} setup.py bdist_wheel
@@ -105,12 +105,12 @@ jobs:
 
     - name: Install numpy
       run: |
-        python -m pip install numpy==1.22.4
+        python -m pip install numpy==1.22.4 scipy==1.13.1
         python -c "import numpy; print(numpy.__version__)"
 
     - name: Install other dependencies
       run: |
-        python -m pip install scipy Cython wheel
+        python -m pip install Cython wheel
 
     - name: Build source tar file
       run: python setup.py sdist
