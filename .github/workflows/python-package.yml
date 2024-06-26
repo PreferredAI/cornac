@@ -70,7 +70,7 @@ jobs:
         python${{ matrix.versions.python }} -m pip install numpy==${{ matrix.versions.numpy }} scipy==${{ matrix.versions.scipy }}
         python${{ matrix.versions.python }} setup.py build_ext -j${{ steps.cpu-cores.outputs.count }}
         python${{ matrix.versions.python }} -m pip install -e .[tests]
-        python${{ matrix.versions.python }} -m pip install numpy==${{ matrix.versions.numpy }} scipy==${{ matrix.versions.scipy }}
+        # python${{ matrix.versions.python }} -m pip install numpy==${{ matrix.versions.numpy }} scipy==${{ matrix.versions.scipy }}
 
     - name: Display numpy version
       run: python${{ matrix.versions.python }} -c "import numpy; print(numpy.__version__)"
