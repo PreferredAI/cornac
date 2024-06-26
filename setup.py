@@ -343,7 +343,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy<=1.26", "scipy<=1.13", "tqdm", "powerlaw"],
+    install_requires=["numpy<2.0.0", "scipy<=1.13.1", "tqdm", "powerlaw"],
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov", "Flask"]},
     cmdclass=cmdclass,
     packages=find_packages(),
