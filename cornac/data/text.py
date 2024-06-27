@@ -974,6 +974,7 @@ class TextModality(FeatureModality):
         tfidf_mat = self.tfidf_matrix[batch_ids]
         return tfidf_mat if keep_sparse else tfidf_mat.A
 
+
 class ReviewModality(TextModality):
     """Review modality
 
@@ -1034,6 +1035,7 @@ class ReviewModality(TextModality):
             Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
 
     """
+
     def __init__(self,
                  data: List[tuple] = None,
                  group_by: str = None,
