@@ -8,6 +8,9 @@ jobs:
   build-and-test: 
     docker:
       - image: cimg/python:3.10.2
+        environment:
+          LIMIT_NUMPY_VERSION: 2.0.0
+          LIMIT_SCIPY_VERSION: 1.13.1
     steps:
       - checkout
       - python/install-packages:
@@ -17,7 +20,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             pip install --upgrade pip
-            pip install --only-binary=numpy,scipy numpy==1.22.4 scipy Cython pytest pytest-cov codecov
+            pip install --only-binary=numpy,scipy "numpy<$LIMIT_NUMPY_VERSION" "scipy<=$LIMIT_SCIPY_VERSION" Cython pytest pytest-cov codecov
             pip install -e .[tests]
       - run:
           name: Run tests
