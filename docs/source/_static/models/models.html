@@ -4,19 +4,22 @@
  </head>
  <body>
     <h3>Filters</h3>
-    <div>
-        <button onclick="clearFilters()">Clear Filters</button>
+
+    <h4 id="selected-filter-label" style="height: 8px;">Filter by Type</h4>
+
+    <div style="margin-top: 16px;">
+        <button onclick="filterModels('Collaborative Filtering')">Collaborative Filtering</button>
+        <button onclick="filterModels('Content-Based')">Content Based</button>
+        <button onclick="filterModels('Explainable')">Explainable</button>
+        <button onclick="filterModels('Next-Item')">Next-Item</button>
+        <button onclick="filterModels('Next-Basket')">Next-Basket</button>
+        <button onclick="filterModels('Baseline')">Baseline</button>
     </div>
     <div style="margin-top: 16px;">
-        <button onclick="filterModels('Collaborative Filtering')">Collaborative Filtering Models</button>
-        <button onclick="filterModels('Content-Based')">Content Based Models</button>
-        <button onclick="filterModels('Explainable')">Explainable Models</button>
-        <button onclick="filterModels('Next-Item')">Next-Item Models</button>
-        <button onclick="filterModels('Next-Basket')">Next-Basket Models</button>
-        <button onclick="filterModels('Baseline')">Baseline Models</button>
+        <input type="text" id="filter-text-box" size="50" spellcheck="false" placeholder="Filter by Text" oninput="onFilterTextBoxChanged()" />
     </div>
     <div style="margin-top: 16px;">
-        <input type="text" id="filter-text-box" size="50" placeholder="Filter by Text" oninput="onFilterTextBoxChanged()" />
+        <button id="btn-clear-filter" onclick="clearFilters()" disabled>Clear Filters</button>
     </div>
     <br />
     <div id="grid" class="ag-theme-quartz-auto-dark" style="height: 480px"></div>
@@ -40,6 +43,12 @@
             "quickFilterText",
             document.getElementById("filter-text-box").value,
         );
+
+        if (document.getElementById("filter-text-box").value.length > 0) {
+            document.getElementById("btn-clear-filter").disabled=false; // Enable clear button
+        } else {
+            document.getElementById("btn-clear-filter").disabled=true; // Disable clear button
+        }
     }
 
     function filterModels(filter) {
@@ -49,6 +58,9 @@
         })
         .then(() => {
             gridApi.onFilterChanged();
+            document.getElementById("selected-filter-label").innerHTML=`Filtering by type: ${filter}`; // Update label
+            document.getElementById("filter-text-box").value=""; // Clear text box (if any)
+            document.getElementById("btn-clear-filter").disabled=false; // Enable clear button
         });
     }
 
@@ -63,6 +75,8 @@
             "quickFilterText",
             "",
         );
+        document.getElementById("selected-filter-label").innerHTML="Filter by Type"; // Update label
+        document.getElementById("btn-clear-filter").disabled=true; // Disable clear button
     }
 
     // Grid Options: Contains all of the grid configurations
