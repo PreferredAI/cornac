@@ -239,7 +239,7 @@ class UserKNN(Recommender):
         if item_idx is not None:
             weighted_avg = compute_score_single(
                 True,
-                self.sim_mat[user_idx].A.ravel(),
+                self.sim_mat[user_idx].toarray().ravel(),
                 self.iu_mat.indptr[item_idx],
                 self.iu_mat.indptr[item_idx + 1],
                 self.iu_mat.indices,
@@ -251,7 +251,7 @@ class UserKNN(Recommender):
         weighted_avg = np.zeros(self.num_items)
         compute_score(
             True,
-            self.sim_mat[user_idx].A.ravel(),
+            self.sim_mat[user_idx].toarray().ravel(),
             self.iu_mat.indptr,
             self.iu_mat.indices,
             self.iu_mat.data,
@@ -412,7 +412,7 @@ class ItemKNN(Recommender):
         if item_idx is not None:
             weighted_avg = compute_score_single(
                 False,
-                self.ui_mat[user_idx].A.ravel(),
+                self.ui_mat[user_idx].toarray().ravel(),
                 self.sim_mat.indptr[item_idx],
                 self.sim_mat.indptr[item_idx + 1],
                 self.sim_mat.indices,
@@ -424,7 +424,7 @@ class ItemKNN(Recommender):
         weighted_avg = np.zeros(self.num_items)
         compute_score(
             False,
-            self.ui_mat[user_idx].A.ravel(),
+            self.ui_mat[user_idx].toarray().ravel(),
             self.sim_mat.indptr,
             self.sim_mat.indices,
             self.sim_mat.data,
