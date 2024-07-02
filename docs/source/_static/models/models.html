@@ -5,15 +5,13 @@
  <body>
     <h3>Filters</h3>
 
-    <h4 id="selected-filter-label" style="height: 8px;">Filter by Type</h4>
-
     <div style="margin-top: 16px;">
-        <button onclick="filterModels('Collaborative Filtering')">Collaborative Filtering</button>
-        <button onclick="filterModels('Content-Based')">Content Based</button>
-        <button onclick="filterModels('Explainable')">Explainable</button>
-        <button onclick="filterModels('Next-Item')">Next-Item</button>
-        <button onclick="filterModels('Next-Basket')">Next-Basket</button>
-        <button onclick="filterModels('Baseline')">Baseline</button>
+        <button id='btn-filter-cf' onclick="filterModels('Collaborative Filtering')">Collaborative Filtering</button>
+        <button id='btn-filter-content' onclick="filterModels('Content-Based')">Content Based</button>
+        <button id='btn-filter-explainable' onclick="filterModels('Explainable')">Explainable</button>
+        <button id='btn-filter-nextitem' onclick="filterModels('Next-Item')">Next-Item</button>
+        <button id='btn-filter-nextbasket' onclick="filterModels('Next-Basket')">Next-Basket</button>
+        <button id='btn-filter-baseline' onclick="filterModels('Baseline')">Baseline</button>
     </div>
     <div style="margin-top: 16px;">
         <input type="text" id="filter-text-box" size="50" spellcheck="false" placeholder="Filter by Text" oninput="onFilterTextBoxChanged()" />
@@ -51,6 +49,14 @@
         }
     }
 
+    function resetButtonColors() {
+        var btns = document.getElementsByTagName('button');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].style.background="";
+            btns[i].style.color="";
+        }
+    }
+
     function filterModels(filter) {
         gridApi.setColumnFilterModel("Type", {
             type: "contains",
@@ -58,9 +64,30 @@
         })
         .then(() => {
             gridApi.onFilterChanged();
-            document.getElementById("selected-filter-label").innerHTML=`Filtering by type: ${filter}`; // Update label
             document.getElementById("filter-text-box").value=""; // Clear text box (if any)
             document.getElementById("btn-clear-filter").disabled=false; // Enable clear button
+            
+            // reset all button colors
+            resetButtonColors();
+
+            // change button color for selected button
+            var btnId = "";
+
+            if (filter === "Collaborative Filtering") {
+                btnId = "btn-filter-cf";
+            } else if (filter === "Content-Based") {
+                btnId = "btn-filter-content";
+            } else if (filter === "Explainable") {
+                btnId = "btn-filter-explainable";
+            } else if (filter === "Next-Item") {
+                btnId = "btn-filter-nextitem";
+            } else if (filter === "Next-Basket") {
+                btnId = "btn-filter-nextbasket";
+            } else if (filter === "Baseline") {
+                btnId = "btn-filter-baseline";
+            } 
+            document.getElementById(btnId).style.background="#A3361F";
+            document.getElementById(btnId).style.color="white";
         });
     }
 
@@ -75,8 +102,10 @@
             "quickFilterText",
             "",
         );
-        document.getElementById("selected-filter-label").innerHTML="Filter by Type"; // Update label
         document.getElementById("btn-clear-filter").disabled=true; // Disable clear button
+
+        // reset all button colors
+        resetButtonColors();
     }
 
     // Grid Options: Contains all of the grid configurations
