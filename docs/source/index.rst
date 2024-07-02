@@ -7,6 +7,7 @@ Cornac: A Comparative Framework for Multimodal Recommender Systems
    :hidden:
 
    User Guide <user/index>
+   Models Available <models/index>
    Contributors Guide <developer/index>
    API Reference <api_ref/index>
 
@@ -15,11 +16,11 @@ Cornac: A Comparative Framework for Multimodal Recommender Systems
 
 
 Quick Links
-   `GitHub <https://github.com/PreferredAI/cornac/>`_ |
+   :doc:`/models/index` |
    `Tutorials <https://github.com/PreferredAI/cornac/tree/master/tutorials#tutorials>`_ |
    `Examples <https://github.com/PreferredAI/cornac/tree/master/examples#cornac-examples-directory>`_ |
-   `Models <https://github.com/PreferredAI/cornac#models>`_ |
    `Datasets <https://github.com/PreferredAI/cornac/blob/master/cornac/datasets/README.md#datasets>`_ |
+   `GitHub <https://github.com/PreferredAI/cornac/>`_ |
    `Paper <http://www.jmlr.org/papers/volume21/19-805/19-805.pdf>`_ |
    `Preferred.AI <https://preferred.ai/>`_ 
 
@@ -114,9 +115,3 @@ Quick Links
          :click-parent:
 
          Contributor's Guide
-
-Models Available
-^^^^^^^^^^^^^^^^
-
-.. raw:: html
-   :file: _static/models/models.html
