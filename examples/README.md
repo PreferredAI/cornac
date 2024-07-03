@@ -66,6 +66,8 @@
 
 [mter_example.py](mter_example.py) - Multi-Task Explainable Recommendation (MTER) with Amazon Toy and Games dataset.
 
+[companion_example.py](companion_example.py) - Comparative Aspects and Opinions Ranking for Recommendation Explanations (Companion) with Amazon Toy and Games dataset.
+
 ### Image
 
 [causalrec_clothing.py](causalrec_clothing.py) - CausalRec with Clothing dataset.
