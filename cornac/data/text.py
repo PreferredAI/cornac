@@ -951,7 +951,7 @@ class TextModality(FeatureModality):
         if binary:
             bow_mat.data.fill(1)
 
-        return bow_mat if keep_sparse else bow_mat.A
+        return bow_mat if keep_sparse else bow_mat.toarray()
 
     def batch_tfidf(self, batch_ids, keep_sparse=False):
         """Return matrix of TF-IDF features corresponding to provided batch_ids
@@ -972,7 +972,8 @@ class TextModality(FeatureModality):
 
         """
         tfidf_mat = self.tfidf_matrix[batch_ids]
-        return tfidf_mat if keep_sparse else tfidf_mat.A
+        return tfidf_mat if keep_sparse else tfidf_mat.toarray()
+
 
 class ReviewModality(TextModality):
     """Review modality
@@ -1034,6 +1035,7 @@ class ReviewModality(TextModality):
             Apply sublinear tf scaling, i.e. replace tf with 1 + log(tf).
 
     """
+
     def __init__(self,
                  data: List[tuple] = None,
                  group_by: str = None,
