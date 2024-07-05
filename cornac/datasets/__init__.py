@@ -14,6 +14,7 @@
 # ============================================================================
 
 from . import amazon_clothing
+from . import amazon_digital_music
 from . import amazon_office
 from . import amazon_toy
 from . import citeulike
