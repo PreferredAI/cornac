@@ -125,9 +125,9 @@ $ curl -X GET "http://localhost:8080/recommend?uid=63&k=5&remove_seen=false"
 ```
 If we want to remove seen items during training, we need to provide `TRAIN_SET` which has been saved with the model earlier, when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. Please refer to [this](https://cornac.readthedocs.io/en/stable/user/iamadeveloper.html#running-an-api-service) guide for more details.
 
-## Enhance your model with Foreward Testing
+## Model A/B testing
 
-Cornac-AB is an extension of Cornac using the Cornac Serving API. Create and manage A/B testing experiments to further understand your model performance with real testing users. [View Cornac-AB](https://github.com/preferredAI/cornac-ab).
+[Cornac-AB](https://github.com/preferredAI/cornac-ab) is an extension of Cornac using the Cornac Serving API. Easily create and manage A/B testing experiments to further understand your model performance with online users.
 
 | User Interaction Solution | Recommendations Dashboard | Feedback Dashboard |
 |:------------------------:|:------------------------:|:------------------:|
