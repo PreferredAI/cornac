@@ -63,7 +63,7 @@ brew install gcc | brew link gcc
 
 ## Getting started: your first Cornac experiment
 
-![](flow.jpg)
+![](assets/flow.jpg)
 <p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
 ```python
@@ -131,7 +131,7 @@ If we want to remove seen items during training, we need to provide `TRAIN_SET` 
 
 | User Interaction Solution | Recommendations Dashboard | Feedback Dashboard |
 |:------------------------:|:------------------------:|:------------------:|
-| <img src="screenshots/demo.png" alt="demo" width="250"/> | <img src="screenshots/recommendation-dashboard.png" alt="recommendations" width="250"/> | <img src="screenshots/feedback-dashboard.png" alt="feedback" width="250"/> |
+| <img src="assets/demo.png" alt="demo" width="250"/> | <img src="assets/recommendation-dashboard.png" alt="recommendations" width="250"/> | <img src="assets/feedback-dashboard.png" alt="feedback" width="250"/> |
 
 ## Efficient retrieval with ANN search
 
