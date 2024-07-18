@@ -125,6 +125,14 @@ $ curl -X GET "http://localhost:8080/recommend?uid=63&k=5&remove_seen=false"
 ```
 If we want to remove seen items during training, we need to provide `TRAIN_SET` which has been saved with the model earlier, when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. Please refer to [this](https://cornac.readthedocs.io/en/stable/user/iamadeveloper.html#running-an-api-service) guide for more details.
 
+## Enhance your model with Foreward Testing
+
+Cornac-AB is an extension of Cornac using the Cornac Serving API. Create and manage A/B testing experiments to further understand your model performance with real testing users. [View Cornac-AB](https://github.com/preferredAI/cornac-ab).
+
+| User Interaction Solution | Recommendations Dashboard | Feedback Dashboard |
+|:------------------------:|:------------------------:|:------------------:|
+| <img src="screenshots/demo.png" alt="demo" width="250"/> | <img src="screenshots/recommendation-dashboard.png" alt="recommendations" width="250"/> | <img src="screenshots/feedback-dashboard.png" alt="feedback" width="250"/> |
+
 ## Efficient retrieval with ANN search
 
 One important aspect of deploying recommender model is efficient retrieval via Approximate Nearest Neighbor (ANN) search in vector space. Cornac integrates several vector similarity search frameworks for the ease of deployment. [This example](tutorials/ann_hnswlib.ipynb) demonstrates how ANN search will work seamlessly with any recommender models supporting it (e.g., matrix factorization).
