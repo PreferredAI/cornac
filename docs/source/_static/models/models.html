@@ -4,25 +4,27 @@
  </head>
  <body>
     <h3>Filters</h3>
-    <div>
-        <button onclick="clearFilters()">Clear Filters</button>
+
+    <div style="margin-top: 16px;">
+        <button id='btn-filter-cf' onclick="filterModels('Collaborative Filtering')">Collaborative Filtering</button>
+        <button id='btn-filter-content' onclick="filterModels('Content-Based')">Content Based</button>
+        <button id='btn-filter-explainable' onclick="filterModels('Explainable')">Explainable</button>
+        <button id='btn-filter-nextitem' onclick="filterModels('Next-Item')">Next-Item</button>
+        <button id='btn-filter-nextbasket' onclick="filterModels('Next-Basket')">Next-Basket</button>
+        <button id='btn-filter-baseline' onclick="filterModels('Baseline')">Baseline</button>
     </div>
     <div style="margin-top: 16px;">
-        <button onclick="filterModels('Collaborative Filtering')">Collaborative Filtering Models</button>
-        <button onclick="filterModels('Content-Based')">Content Based Models</button>
-        <button onclick="filterModels('Explainable')">Explainable Models</button>
-        <button onclick="filterModels('Next-Item')">Next-Item Models</button>
-        <button onclick="filterModels('Next-Basket')">Next-Basket Models</button>
-        <button onclick="filterModels('Baseline')">Baseline Models</button>
+        <input type="text" id="filter-text-box" size="50" spellcheck="false" placeholder="Filter by Text" oninput="onFilterTextBoxChanged()" />
     </div>
     <div style="margin-top: 16px;">
-        <input type="text" id="filter-text-box" size="50" placeholder="Fliter" oninput="onFilterTextBoxChanged()" />
+        <button id="btn-clear-filter" onclick="clearFilters()" disabled>Clear Filters</button>
     </div>
     <br />
-    <div id="grid" class="ag-theme-quartz" style="height: 480px"></div>
+    <div id="grid" class="ag-theme-quartz-auto-dark" style="height: 480px"></div>
  </body>
 </html>
 <script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="../_static/models/data.js"></script>
 <script type="text/javascript" src="_static/models/data.js"></script>
 <script type="text/javascript">
     function LinkRenderer(url, title) {
@@ -39,6 +41,20 @@
             "quickFilterText",
             document.getElementById("filter-text-box").value,
         );
+
+        if (document.getElementById("filter-text-box").value.length > 0) {
+            document.getElementById("btn-clear-filter").disabled=false; // Enable clear button
+        } else {
+            document.getElementById("btn-clear-filter").disabled=true; // Disable clear button
+        }
+    }
+
+    function resetButtonColors() {
+        var btns = document.getElementsByTagName('button');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].style.background="";
+            btns[i].style.color="";
+        }
     }
 
     function filterModels(filter) {
@@ -48,6 +64,30 @@
         })
         .then(() => {
             gridApi.onFilterChanged();
+            document.getElementById("filter-text-box").value=""; // Clear text box (if any)
+            document.getElementById("btn-clear-filter").disabled=false; // Enable clear button
+            
+            // reset all button colors
+            resetButtonColors();
+
+            // change button color for selected button
+            var btnId = "";
+
+            if (filter === "Collaborative Filtering") {
+                btnId = "btn-filter-cf";
+            } else if (filter === "Content-Based") {
+                btnId = "btn-filter-content";
+            } else if (filter === "Explainable") {
+                btnId = "btn-filter-explainable";
+            } else if (filter === "Next-Item") {
+                btnId = "btn-filter-nextitem";
+            } else if (filter === "Next-Basket") {
+                btnId = "btn-filter-nextbasket";
+            } else if (filter === "Baseline") {
+                btnId = "btn-filter-baseline";
+            } 
+            document.getElementById(btnId).style.background="#A3361F";
+            document.getElementById(btnId).style.color="white";
         });
     }
 
@@ -62,6 +102,10 @@
             "quickFilterText",
             "",
         );
+        document.getElementById("btn-clear-filter").disabled=true; // Disable clear button
+
+        // reset all button colors
+        resetButtonColors();
     }
 
     // Grid Options: Contains all of the grid configurations
