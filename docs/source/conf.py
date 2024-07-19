@@ -108,8 +108,8 @@ html_theme_options = {
 }
 
 html_sidebars = {
-  "models/index": [],
-  "index": [],
+    "models/index": [],
+    "index": [],
 }
 
 # -- Options for intersphinx extension ---------------------------------------
