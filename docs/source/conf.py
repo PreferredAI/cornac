@@ -100,6 +100,14 @@ html_theme_options = {
     },
     "pygment_light_style": "default",
     "pygment_dark_style": "github-dark",
+    "secondary_sidebar_items": {
+        "models/index": [],
+    },
+}
+
+html_sidebars = {
+  "models/index": [],
+  "index": [],
 }
 
 # -- Options for intersphinx extension ---------------------------------------
