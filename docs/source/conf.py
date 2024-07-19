@@ -101,8 +101,10 @@ html_theme_options = {
     "pygment_light_style": "default",
     "pygment_dark_style": "github-dark",
     "secondary_sidebar_items": {
+        "**": ["page-toc", "sourcelink"],
+        "index": [],
         "models/index": [],
-    },
+    }
 }
 
 html_sidebars = {
