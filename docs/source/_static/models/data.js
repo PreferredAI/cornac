@@ -16,8 +16,6 @@ var data = [
         "Item Text": false,
         "Item Image": false,
         "Item Graph": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.HypAR"
         ]
@@ -39,8 +37,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.DMRL"
         ]
@@ -54,14 +50,12 @@ var data = [
         "paper": "https://dl.acm.org/doi/pdf/10.1145/3437963.3441759",
         "PyTorch": true,
         "TensorFlow": false,
-        "User Feature": true,
-        "Item Feature": true,
-        "User Text": false,
-        "User Image": false,
-        "User Graph": false,
-        "Item Text": false,
-        "Item Image": false,
-        "Item Graph": false,
+        "User Text": true,
+        "User Image": true,
+        "User Graph": true,
+        "Item Text": true,
+        "Item Image": true,
+        "Item Graph": true,
         "Sentiment": false,
         "Review Text": false,
         "packages": [
@@ -85,8 +79,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.CausalRec"
         ]
@@ -108,8 +100,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.ComparERSub",
             "cornac.models.ComparERObj"
@@ -132,8 +122,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.AMR"
         ]
@@ -155,8 +143,6 @@ var data = [
         "Item Image": false,
         "Item Graph": false,
         "Sentiment": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.HRDR"
         ]
@@ -178,8 +164,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.LightGCN"
         ]
@@ -201,8 +185,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.DNNTSP"
         ]
@@ -224,8 +206,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.UPCF"
         ]
@@ -247,8 +227,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.TIFUKNN"
         ]
@@ -270,8 +248,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.RecVAE"
         ]
@@ -293,8 +269,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.Beacon"
         ]
@@ -316,8 +290,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.EASE"
         ]
@@ -339,8 +311,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.NGCF"
         ]
@@ -362,8 +332,6 @@ var data = [
         "Item Image": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.C2PF"
         ]
@@ -385,8 +353,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.GCMC"
         ]
@@ -408,8 +374,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.MTER"
         ]
@@ -431,8 +395,6 @@ var data = [
         "Item Image": false,
         "Item Graph": false,
         "Sentiment": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.NARRE"
         ]
@@ -454,8 +416,6 @@ var data = [
         "Item Image": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.PCRL"
         ]
@@ -477,8 +437,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.VAECF"
         ]
@@ -500,8 +458,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.CVAE"
         ]
@@ -523,8 +479,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.CVAECF"
         ]
@@ -546,8 +500,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.GMF",
             "cornac.models.MLP",
@@ -571,8 +523,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.IBPR"
         ]
@@ -594,8 +544,6 @@ var data = [
         "Item Image": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.MCF"
         ]
@@ -617,8 +565,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.GMF",
             "cornac.models.MLP",
@@ -642,8 +588,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.GMF",
             "cornac.models.MLP",
@@ -667,8 +611,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.OnlineIBPR"
         ]
@@ -683,15 +625,13 @@ var data = [
         "PyTorch": true,
         "TensorFlow": false,
         "Item Image": true,
-        "Item Feature": true,
+        "Item Text": true,
+        "Item Graph": true,
         "User Text": false,
         "User Image": false,
         "User Graph": false,
-        "Item Text": false,
-        "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
         "packages": [
             "cornac.models.VMF"
         ]
@@ -713,8 +653,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.CDR"
         ]
@@ -736,8 +674,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.COE"
         ]
@@ -759,8 +695,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.ConvMF"
         ]
@@ -782,8 +716,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.LRPPM"
         ]
@@ -805,8 +737,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.GRU4Rec"
         ]
@@ -828,8 +758,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.SKMeans"
         ]
@@ -851,8 +779,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.VBPR"
         ]
@@ -874,8 +800,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.CDL"
         ]
@@ -897,8 +821,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.HPF"
         ]
@@ -920,8 +842,6 @@ var data = [
         "Item Image": false,
         "Item Graph": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.TriRank"
         ]
@@ -943,8 +863,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.EFM"
         ]
@@ -966,8 +884,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.SBPR"
         ]
@@ -989,8 +905,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.HFT"
         ]
@@ -1012,8 +926,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.BPR",
             "cornac.models.WBPR"
@@ -1036,8 +948,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.CTR"
         ]
@@ -1059,8 +969,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.BaselineOnly"
         ]
@@ -1081,8 +989,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.BPR",
             "cornac.models.WBPR"
@@ -1105,8 +1011,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.FM"
         ]
@@ -1128,8 +1032,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.GlobalAvg"
         ]
@@ -1150,8 +1052,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.GPTop"
         ]
@@ -1173,8 +1073,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.ItemKNN",
             "cornac.models.UserKNN"
@@ -1197,8 +1095,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.MF"
         ]
@@ -1220,8 +1116,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.MMMF"
         ]
@@ -1243,8 +1137,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.MostPop"
         ]
@@ -1266,8 +1158,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.NMF"
         ]
@@ -1289,8 +1179,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.PMF"
         ]
@@ -1312,8 +1200,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.SPop"
         ]
@@ -1335,8 +1221,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.SVD"
         ]
@@ -1358,8 +1242,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.SoRec"
         ]
@@ -1381,8 +1263,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.ItemKNN",
             "cornac.models.UserKNN"
@@ -1405,8 +1285,6 @@ var data = [
         "Item Graph": false,
         "Sentiment": false,
         "Review Text": false,
-        "User Feature": false,
-        "Item Feature": false,
         "packages": [
             "cornac.models.WMF"
         ]

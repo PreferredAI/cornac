@@ -47,8 +47,6 @@ def add_modalities_for_model(model):
         "Item Graph": "item_graph",
         "Sentiment": "sentiment",
         "Review Text": "review_text",
-        "User Feature": "user_feature",
-        "Item Feature": "item_feature",
     }
     
     for filename in glob.glob(f'../{model["Link"]}/*.py', recursive=True):
@@ -59,6 +57,21 @@ def add_modalities_for_model(model):
                 is_found = modality_keyword in file_data
                 if is_found:
                     model[header] = True
+            
+            # for user feature and item feature
+            # >> if user feature is found, we set user text, image and graph to true
+            is_found = "user_feature" in file_data
+            if is_found:
+                model["User Text"] = True
+                model["User Image"] = True
+                model["User Graph"] = True
+                
+            # likewise for item feature
+            is_found = "item_feature" in file_data
+            if is_found:
+                model["Item Text"] = True
+                model["Item Image"] = True
+                model["Item Graph"] = True
     
     for header, modality_keyword in modalities_keywords.items():
         if header not in model:
