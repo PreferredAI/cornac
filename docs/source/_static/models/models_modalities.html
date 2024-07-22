@@ -39,12 +39,12 @@
                     {
                         field: "User Text",
                         headerName: "User",
-                        cellRenderer: params => params.value ? "✅" : "❌",
+                        cellRenderer: params => params.value ? "✅" : "",
                     },
                     {
                         field: "Item Text",
                         headerName: "Item",
-                        cellRenderer: params => params.value ? "✅" : "❌",
+                        cellRenderer: params => params.value ? "✅" : "",
                     },
                 ]
             },
@@ -54,12 +54,12 @@
                     {
                         field: "User Image",
                         headerName: "User",
-                        cellRenderer: params => params.value ? "✅" : "❌",
+                        cellRenderer: params => params.value ? "✅" : "",
                     },
                     {
                         field: "Item Image",
                         headerName: "Item",
-                        cellRenderer: params => params.value ? "✅" : "❌",
+                        cellRenderer: params => params.value ? "✅" : "",
                     },
                 ]
             },
@@ -69,39 +69,24 @@
                     {
                         field: "User Graph",
                         headerName: "User",
-                        cellRenderer: params => params.value ? "✅" : "❌",
+                        cellRenderer: params => params.value ? "✅" : "",
                     },
                     {
                         field: "Item Graph",
                         headerName: "Item",
-                        cellRenderer: params => params.value ? "✅" : "❌",
+                        cellRenderer: params => params.value ? "✅" : "",
                     },
                 ]
             },
             {
                 field: "Sentiment",
                 headerName: "Sentiment",
-                cellRenderer: params => params.value ? "✅" : "❌",
+                cellRenderer: params => params.value ? "✅" : "",
             },
             {
                 field: "Review Text",
                 headerName: "Review Text",
-                cellRenderer: params => params.value ? "✅" : "❌",
-            },
-            {
-                "headerName": "Feature",
-                children: [
-                    {
-                        field: "User Feature",
-                        headerName: "User",
-                        cellRenderer: params => params.value ? "✅" : "❌",
-                    },
-                    {
-                        field: "Item Feature",
-                        headerName: "Item",
-                        cellRenderer: params => params.value ? "✅" : "❌",
-                    },
-                ]
+                cellRenderer: params => params.value ? "✅" : "",
             },
         ],
         defaultColDef: {
