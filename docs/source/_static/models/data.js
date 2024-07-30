@@ -8,6 +8,14 @@ var data = [
         "paper": "https://doi.org/10.1007/978-3-031-56027-9_14",
         "PyTorch": true,
         "TensorFlow": false,
+        "Sentiment": true,
+        "Review Text": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
         "packages": [
             "cornac.models.HypAR"
         ]
@@ -21,6 +29,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/2203.05406.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "Item Text": true,
+        "Item Image": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.DMRL"
         ]
@@ -34,6 +50,14 @@ var data = [
         "paper": "https://dl.acm.org/doi/pdf/10.1145/3437963.3441759",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": true,
+        "User Image": true,
+        "User Graph": true,
+        "Item Text": true,
+        "Item Image": true,
+        "Item Graph": true,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.BiVAECF"
         ]
@@ -47,6 +71,14 @@ var data = [
         "paper": "https://arxiv.org/abs/2107.02390",
         "PyTorch": true,
         "TensorFlow": false,
+        "Item Image": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.CausalRec"
         ]
@@ -60,6 +92,14 @@ var data = [
         "paper": "https://dl.acm.org/doi/pdf/10.1145/3437963.3441754",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.ComparERSub",
             "cornac.models.ComparERObj"
@@ -74,6 +114,14 @@ var data = [
         "paper": "https://ieeexplore.ieee.org/document/8618394",
         "PyTorch": true,
         "TensorFlow": false,
+        "Item Image": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.AMR"
         ]
@@ -87,6 +135,14 @@ var data = [
         "paper": "https://www.sciencedirect.com/science/article/abs/pii/S0925231219313207",
         "PyTorch": false,
         "TensorFlow": true,
+        "User Text": true,
+        "Item Text": true,
+        "Review Text": true,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
         "packages": [
             "cornac.models.HRDR"
         ]
@@ -100,6 +156,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/2002.02126.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.LightGCN"
         ]
@@ -113,6 +177,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/2006.11483.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.DNNTSP"
         ]
@@ -126,6 +198,14 @@ var data = [
         "paper": "https://dl.acm.org/doi/abs/10.1145/3340631.3394850",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.UPCF"
         ]
@@ -139,6 +219,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/2006.00556.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.TIFUKNN"
         ]
@@ -152,6 +240,14 @@ var data = [
         "paper": "https://doi.org/10.1145/3336191.3371831",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.RecVAE"
         ]
@@ -165,6 +261,14 @@ var data = [
         "paper": "https://www.ijcai.org/proceedings/2019/0389.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.Beacon"
         ]
@@ -178,6 +282,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1905.03375.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.EASE"
         ]
@@ -191,6 +303,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1905.08108.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.NGCF"
         ]
@@ -204,6 +324,14 @@ var data = [
         "paper": "https://www.ijcai.org/proceedings/2018/0370.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "Item Graph": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.C2PF"
         ]
@@ -217,6 +345,14 @@ var data = [
         "paper": "https://www.kdd.org/kdd2018/files/deep-learning-day/DLDay18_paper_32.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Graph": true,
+        "User Text": false,
+        "User Image": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.GCMC"
         ]
@@ -230,6 +366,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1806.03568.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.MTER"
         ]
@@ -243,6 +387,14 @@ var data = [
         "paper": "http://www.thuir.cn/group/~YQLiu/publications/WWW2018_CC.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "Review Text": true,
+        "User Text": true,
+        "Item Text": true,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
         "packages": [
             "cornac.models.NARRE"
         ]
@@ -256,6 +408,14 @@ var data = [
         "paper": "http://www.hadylauw.com/publications/uai18.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "Item Graph": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.PCRL"
         ]
@@ -269,6 +429,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1802.05814.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.VAECF"
         ]
@@ -282,6 +450,14 @@ var data = [
         "paper": "http://eelxpeng.github.io/assets/paper/Collaborative_Variational_Autoencoder.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "Item Text": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.CVAE"
         ]
@@ -295,6 +471,14 @@ var data = [
         "paper": "https://dl.acm.org/doi/10.1145/3132847.3132972",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Graph": true,
+        "User Text": false,
+        "User Image": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.CVAECF"
         ]
@@ -308,6 +492,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1708.05031.pdf",
         "PyTorch": true,
         "TensorFlow": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.GMF",
             "cornac.models.MLP",
@@ -323,6 +515,14 @@ var data = [
         "paper": "http://www.hadylauw.com/publications/cikm17a.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.IBPR"
         ]
@@ -336,6 +536,14 @@ var data = [
         "paper": "https://dsail.kaist.ac.kr/files/WWW17.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "Item Graph": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.MCF"
         ]
@@ -349,6 +557,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1708.05031.pdf",
         "PyTorch": true,
         "TensorFlow": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.GMF",
             "cornac.models.MLP",
@@ -364,6 +580,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1708.05031.pdf",
         "PyTorch": true,
         "TensorFlow": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.GMF",
             "cornac.models.MLP",
@@ -379,6 +603,14 @@ var data = [
         "paper": "http://www.hadylauw.com/publications/cikm17a.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.OnlineIBPR"
         ]
@@ -392,6 +624,14 @@ var data = [
         "paper": "https://dsail.kaist.ac.kr/files/WWW17.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "Item Image": true,
+        "Item Text": true,
+        "Item Graph": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.VMF"
         ]
@@ -405,6 +645,14 @@ var data = [
         "paper": "http://inpluslab.com/chenliang/homepagefiles/paper/hao-pakdd2016.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "Item Text": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.CDR"
         ]
@@ -418,6 +666,14 @@ var data = [
         "paper": "http://www.hadylauw.com/publications/sdm16.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.COE"
         ]
@@ -431,6 +687,14 @@ var data = [
         "paper": "http://uclab.khu.ac.kr/resources/publication/C_351.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "Item Text": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.ConvMF"
         ]
@@ -444,6 +708,14 @@ var data = [
         "paper": "https://www.yongfeng.me/attach/sigir16-chen.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.LRPPM"
         ]
@@ -457,6 +729,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1511.06939.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.GRU4Rec"
         ]
@@ -470,6 +750,14 @@ var data = [
         "paper": "https://www.sciencedirect.com/science/article/pii/S092523121501509X",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.SKMeans"
         ]
@@ -483,6 +771,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1510.01784.pdf",
         "PyTorch": true,
         "TensorFlow": false,
+        "Item Image": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.VBPR"
         ]
@@ -496,6 +792,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1409.2944.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "Item Text": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.CDL"
         ]
@@ -509,6 +813,14 @@ var data = [
         "paper": "http://jakehofman.com/inprint/poisson_recs.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.HPF"
         ]
@@ -522,6 +834,14 @@ var data = [
         "paper": "https://wing.comp.nus.edu.sg/wp-content/uploads/Publications/PDF/TriRank-%20Review-aware%20Explainable%20Recommendation%20by%20Modeling%20Aspects.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "Sentiment": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.TriRank"
         ]
@@ -535,6 +855,14 @@ var data = [
         "paper": "https://www.yongfeng.me/attach/efm-zhang.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.EFM"
         ]
@@ -548,6 +876,14 @@ var data = [
         "paper": "https://cseweb.ucsd.edu/~jmcauley/pdfs/cikm14.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.SBPR"
         ]
@@ -561,6 +897,14 @@ var data = [
         "paper": "https://cs.stanford.edu/people/jure/pubs/reviews-recsys13.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "Item Text": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.HFT"
         ]
@@ -574,6 +918,14 @@ var data = [
         "paper": "http://proceedings.mlr.press/v18/gantner12a/gantner12a.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.BPR",
             "cornac.models.WBPR"
@@ -588,6 +940,14 @@ var data = [
         "paper": "http://www.cs.columbia.edu/~blei/papers/WangBlei2011.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "Item Text": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.CTR"
         ]
@@ -601,6 +961,14 @@ var data = [
         "paper": "http://courses.ischool.berkeley.edu/i290-dm/s11/SECURE/a1-koren.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.BaselineOnly"
         ]
@@ -613,6 +981,14 @@ var data = [
         "docs": "https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.BPR",
             "cornac.models.WBPR"
@@ -627,6 +1003,14 @@ var data = [
         "paper": "https://www.csie.ntu.edu.tw/~b97053/paper/Factorization%20Machines%20with%20libFM.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.FM"
         ]
@@ -640,6 +1024,14 @@ var data = [
         "paper": "https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.GlobalAvg"
         ]
@@ -652,6 +1044,14 @@ var data = [
         "paper": "https://dl.acm.org/doi/pdf/10.1145/3587153",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.GPTop"
         ]
@@ -665,6 +1065,14 @@ var data = [
         "paper": "https://dl.acm.org/doi/pdf/10.1145/371920.372071",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.ItemKNN",
             "cornac.models.UserKNN"
@@ -679,6 +1087,14 @@ var data = [
         "paper": "https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.MF"
         ]
@@ -692,6 +1108,14 @@ var data = [
         "paper": "https://link.springer.com/content/pdf/10.1007/s10994-008-5073-7.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.MMMF"
         ]
@@ -705,6 +1129,14 @@ var data = [
         "paper": "https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.MostPop"
         ]
@@ -718,6 +1150,14 @@ var data = [
         "paper": "http://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.NMF"
         ]
@@ -731,6 +1171,14 @@ var data = [
         "paper": "https://papers.nips.cc/paper/3208-probabilistic-matrix-factorization.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.PMF"
         ]
@@ -744,6 +1192,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1511.06939.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.SPop"
         ]
@@ -757,6 +1213,14 @@ var data = [
         "paper": "https://people.engr.tamu.edu/huangrh/Spring16/papers_course/matrix_factorization.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.SVD"
         ]
@@ -770,6 +1234,14 @@ var data = [
         "paper": "http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.304.2464&rep=rep1&type=pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Graph": true,
+        "User Text": false,
+        "User Image": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.SoRec"
         ]
@@ -783,6 +1255,14 @@ var data = [
         "paper": "https://arxiv.org/pdf/1301.7363.pdf",
         "PyTorch": false,
         "TensorFlow": false,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.ItemKNN",
             "cornac.models.UserKNN"
@@ -797,6 +1277,14 @@ var data = [
         "paper": "http://yifanhu.net/PUB/cf.pdf",
         "PyTorch": false,
         "TensorFlow": true,
+        "User Text": false,
+        "User Image": false,
+        "User Graph": false,
+        "Item Text": false,
+        "Item Image": false,
+        "Item Graph": false,
+        "Sentiment": false,
+        "Review Text": false,
         "packages": [
             "cornac.models.WMF"
         ]

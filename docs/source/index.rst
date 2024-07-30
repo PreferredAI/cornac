@@ -115,3 +115,11 @@ Quick Links
          :click-parent:
 
          Contributor's Guide
+
+.. raw:: html
+
+    <style>
+      .bd-main .bd-content .bd-article-container {
+        max-width: 100%;
+      }
+    </style>
