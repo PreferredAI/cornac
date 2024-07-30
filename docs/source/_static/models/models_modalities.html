@@ -1,0 +1,118 @@
+<html lang="en">
+ <head>
+   <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+ </head>
+ <body>
+    <h3>Models with Modalities</h3>
+    <br />
+    <div id="modalityGrid" class="ag-theme-quartz-auto-dark" style="height: 500px"></div>
+ </body>
+</html>
+<script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="../_static/models/data.js"></script>
+<script type="text/javascript" src="_static/models/data.js"></script>
+<script type="text/javascript">
+    function LinkRenderer(url, title) {
+        return `<a href="${url}" target="_blank">${title}</a>`
+    }
+    // Grid API: Access to Grid API methods
+    let modalityGridApi;
+
+    // Grid Options: Contains all of the grid configurations
+    const modalityGridOptions = {
+        // Data to be displayed
+        rowData: data,
+        // Columns to be displayed (Should match rowData properties)
+        columnDefs: [
+            { field: "Year" },
+            { 
+                field: "Name",
+                headerName: "Model Name (Hover over for package name)",
+                
+                flex: 4,
+                cellRenderer: params => LinkRenderer(params.data.docs, params.data.Name),
+                tooltipValueGetter: (params) => "Package Name: " + params.data.packages,
+            },
+            {
+                headerName: "Text",
+                children: [
+                    {
+                        field: "User Text",
+                        headerName: "User",
+                        cellRenderer: params => params.value ? "✅" : "",
+                    },
+                    {
+                        field: "Item Text",
+                        headerName: "Item",
+                        cellRenderer: params => params.value ? "✅" : "",
+                    },
+                ]
+            },
+            {
+                headerName: "Image",
+                children: [
+                    {
+                        field: "User Image",
+                        headerName: "User",
+                        cellRenderer: params => params.value ? "✅" : "",
+                    },
+                    {
+                        field: "Item Image",
+                        headerName: "Item",
+                        cellRenderer: params => params.value ? "✅" : "",
+                    },
+                ]
+            },
+            {
+                headerName: "Graph",
+                children: [
+                    {
+                        field: "User Graph",
+                        headerName: "User",
+                        cellRenderer: params => params.value ? "✅" : "",
+                    },
+                    {
+                        field: "Item Graph",
+                        headerName: "Item",
+                        cellRenderer: params => params.value ? "✅" : "",
+                    },
+                ]
+            },
+            {
+                field: "Sentiment",
+                headerName: "Sentiment",
+                cellRenderer: params => params.value ? "✅" : "",
+            },
+            {
+                field: "Review Text",
+                headerName: "Review Text",
+                cellRenderer: params => params.value ? "✅" : "",
+            },
+        ],
+        defaultColDef: {
+            flex: 1,
+            filter: true,
+            // floatingFilter: true,
+        },
+        pagination: true,
+        paginationAutoPageSize: true
+    };
+    // Create Grid: Create new grid within the #myGrid div, using the Grid Options object
+    modalityGridApi = agGrid.createGrid(document.querySelector("#modalityGrid"), modalityGridOptions);
+</script>
+
+<style>
+    /* Make h2 bigger */
+    .bd-page-width {
+        width: 100%;
+    }
+    .bd-main .bd-content .bd-article-container {
+        max-width: 100%;  /* default is 60em */
+    }
+
+    .ag-theme-quartz-auto-dark {
+        /* add border between cell columns */
+        --ag-cell-horizontal-border: solid rgb(230, 230, 230);
+    }
+</style>
+
