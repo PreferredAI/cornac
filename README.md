@@ -63,7 +63,7 @@ brew install gcc | brew link gcc
 
 ## Getting started: your first Cornac experiment
 
-![](flow.jpg)
+![](assets/flow.jpg)
 <p align="center"><i>Flow of an Experiment in Cornac</i></p>
 
 ```python
@@ -124,6 +124,14 @@ $ curl -X GET "http://localhost:8080/recommend?uid=63&k=5&remove_seen=false"
 # Response: {"recommendations": ["50", "181", "100", "258", "286"], "query": {"uid": "63", "k": 5, "remove_seen": false}}
 ```
 If we want to remove seen items during training, we need to provide `TRAIN_SET` which has been saved with the model earlier, when starting the serving app. We can also leverage [WSGI](https://flask.palletsprojects.com/en/3.0.x/deploying/) server for model deployment in production. Please refer to [this](https://cornac.readthedocs.io/en/stable/user/iamadeveloper.html#running-an-api-service) guide for more details.
+
+## Model A/B testing
+
+[Cornac-AB](https://github.com/preferredAI/cornac-ab) is an extension of Cornac using the Cornac Serving API. Easily create and manage A/B testing experiments to further understand your model performance with online users.
+
+| User Interaction Solution | Recommendations Dashboard | Feedback Dashboard |
+|:------------------------:|:------------------------:|:------------------:|
+| <img src="assets/demo.png" alt="demo" width="250"/> | <img src="assets/recommendation-dashboard.png" alt="recommendations" width="250"/> | <img src="assets/feedback-dashboard.png" alt="feedback" width="250"/> |
 
 ## Efficient retrieval with ANN search
 
