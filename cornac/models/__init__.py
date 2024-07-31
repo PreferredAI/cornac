@@ -32,6 +32,7 @@ from .c2pf import C2PF
 from .cdl import CDL
 from .cdr import CDR
 from .coe import COE
+from .companion import Companion
 from .comparer import ComparERObj
 from .comparer import ComparERSub
 from .conv_mf import ConvMF

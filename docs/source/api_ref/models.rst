@@ -11,6 +11,11 @@ Recommender (Generic Class)
 .. automodule:: cornac.models.recommender
    :members:
 
+Comparative Aspects and Opinions Ranking for Recommendation Explanations (Companion)
+-------------------------------------------------------------------------
+.. automodule:: cornac.models.companion.recom_companion
+   :members:
+
 Disentangled Multimodal Representation Learning for Recommendation (DMRL)
 -------------------------------------------------------------------------
 .. automodule:: cornac.models.dmrl.recom_dmrl
@@ -307,7 +312,7 @@ Social Recommendation using PMF (SoRec)
 User K-Nearest-Neighbors (UserKNN)
 ----------------------------------
 .. autoclass:: cornac.models.knn.recom_knn.UserKNN
-   :members:   
+   :members:
 
 Weighted Matrix Factorization (WMF)
 -----------------------------------
