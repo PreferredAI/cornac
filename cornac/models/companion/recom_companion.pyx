@@ -88,6 +88,18 @@ class Companion(Recommender):
     lambda_bpr: float, optional, default: 10.0
         The regularization parameter for BPR.
 
+    lambda_p: float, optional, default: 10.0
+        The regularization parameter aspect ranking on item.
+
+    lambda_a: float, optional, default: 10.0
+        The regularization parameter for item ranking by aspect.
+
+    lambda_y: float, optional, default: 10.0
+        The regularization parameter for positive opinion ranking.
+
+    lambda_z: float, optional, default: 10.0
+        The regularization parameter for negative opinion ranking.
+
     max_iter: int, optional, default: 200000
         Maximum number of iterations for training.
 
@@ -137,8 +149,10 @@ class Companion(Recommender):
         use_item_aspect_popularity=True,
         enum_window=None,
         lambda_reg=0.1,
-        lambda_s=0.1,
-        lambda_r=10,
+        lambda_p=10,
+        lambda_a=10,
+        lambda_y=10,
+        lambda_z=10,
         lambda_bpr=10,
         max_iter=200000,
         lr=0.1,
@@ -164,8 +178,10 @@ class Companion(Recommender):
         self.alpha = alpha
         self.lambda_reg = lambda_reg
         self.lambda_bpr = lambda_bpr
-        self.lambda_s = lambda_s
-        self.lambda_r = lambda_r
+        self.lambda_p = lambda_p
+        self.lambda_a = lambda_a
+        self.lambda_y = lambda_y
+        self.lambda_z = lambda_z
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
         self.lr = lr
@@ -458,7 +474,7 @@ class Companion(Recommender):
 
         with trange(self.max_iter, disable=not self.verbose) as progress:
             for epoch in progress:
-                correct, skipped, sentiment_correct, sentiment_skipped, loss, bpr_loss, sentiment_loss = self._fit_mter(
+                correct, skipped, loss, bpr_loss = self._fit(
                     rng_pos, rng_neg,
                     rng_pos_uia, rng_neg_uia,
                     rng_pos_uiaop, rng_pos_uiaon,
@@ -483,8 +499,6 @@ class Companion(Recommender):
                     "bpr_loss": "%.2f" % (bpr_loss / self.n_bpr_samples),
                     "correct": "%.2f%%" % (100.0 * correct / (self.n_bpr_samples - skipped)),
                     "skipped": "%.2f%%" % (100.0 * skipped / self.n_bpr_samples),
-                    "sentiment_loss": "%.2f" % (sentiment_loss / max(self.n_sentiment_samples, 1)),
-                    "sentiment_correct": "%.2f%%" % (100.0 * sentiment_correct / max(self.n_sentiment_samples - sentiment_skipped, 1)),
                 })
 
         if self.verbose:
@@ -495,7 +509,7 @@ class Companion(Recommender):
     @cython.cdivision(True)
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def _fit_mter(
+    def _fit(
         self,
         RNGVector rng_pos,
         RNGVector rng_neg,
@@ -547,8 +561,8 @@ class Companion(Recommender):
         """
         cdef:
             long s, i_index, j_index
-            long correct = 0, correct_uia = 0, correct_uia_i = 0, correct_uiaop = 0, correct_uiaon = 0, sentiment_correct = 0, aspect_correct = 0
-            long skipped = 0, skipped_uia = 0, skipped_uia_i = 0, skipped_uiaop = 0, skipped_uiaon = 0, sentiment_skipped = 0
+            long correct = 0, correct_uia = 0, correct_uia_i = 0, correct_uiaop = 0, correct_uiaon = 0, aspect_correct = 0
+            long skipped = 0, skipped_uia = 0, skipped_uia_i = 0, skipped_uiaop = 0, skipped_uiaon = 0
             long n_users = self.train_set.num_users
             long n_items = self.train_set.num_items
             long n_aspects = self.train_set.sentiment.num_aspects
@@ -559,22 +573,22 @@ class Companion(Recommender):
             long n_opinion_factors = self.n_opinion_factors
             int num_samples = self.n_element_samples
             int num_bpr_samples = self.n_bpr_samples
-            int num_sentiment_samples = self.n_sentiment_samples
             int num_aspect_ranking_samples = self.n_aspect_ranking_samples
             int num_opinion_ranking_samples = self.n_opinion_ranking_samples
 
             integral _, i, j, k, idx, jdx, u_idx, i_idx, i_jdx, a_idx, a_jdx, o_idx, o_jdx, j_idx, thread_id
             floating z, score, i_score, j_score, pred, temp, i_ij, uia_ij, uia_ij_i, uiaop_ij, uiaon_ij, a_ji
-            floating loss = 0., sentiment_loss = 0., bpr_loss = 0., bpr_loss_uia = 0., bpr_loss_uia_i = 0., bpr_loss_uiaop = 0., bpr_loss_uiaon = 0., aspect_bpr_loss = 0.
+            floating loss = 0., bpr_loss = 0., bpr_loss_uia = 0., bpr_loss_uia_i = 0., bpr_loss_uiaop = 0., bpr_loss_uiaon = 0., aspect_bpr_loss = 0.
             floating del_sqerror, del_s_uia, del_bpr, del_bpr_uia, del_bpr_uia_i, del_bpr_uiaop, del_bpr_uiaon, del_aspect_bpr
             floating eps = 1e-9
 
             floating lr = self.lr
             floating ld_reg = self.lambda_reg
             floating ld_bpr = self.lambda_bpr
-            floating ld_s = self.lambda_s
-            floating ld_r = self.lambda_r
-
+            floating ld_p = self.lambda_p
+            floating ld_a = self.lambda_a
+            floating ld_y = self.lambda_y
+            floating ld_z = self.lambda_z
         del_g1.fill(0)
         del_g2.fill(0)
         del_g3.fill(0)
@@ -610,7 +624,7 @@ class Companion(Recommender):
                             del_i[i_idx, j] += del_sqerror * G1[i, j, k] * U[u_idx, i] * A[a_idx, k]
                             del_a[a_idx, k] += del_sqerror * G1[i, j, k] * U[u_idx, i] * I[i_idx, j]
 
-                # get user aspect opinion element
+                # get user aspect positive opinion element
                 idx = rng_pos_uiaop.generate(thread_id)
                 u_idx = YP_uids[idx]
                 i_idx = YP_iids[idx]
@@ -641,7 +655,7 @@ class Companion(Recommender):
                             del_a[a_idx, j] += del_sqerror * G2[i, j, k] * I[i_idx, i] * O[o_idx, k]
                             del_o[o_idx, k] += del_sqerror * G2[i, j, k] * I[i_idx, i] * A[a_idx, j]
 
-                # get user aspect neg opinion element
+                # get user aspect negative opinion element
                 idx = rng_pos_uiaon.generate(thread_id)
                 u_idx = YN_uids[idx]
                 i_idx = YN_iids[idx]
@@ -671,35 +685,6 @@ class Companion(Recommender):
                             del_i[i_idx, i] += del_sqerror * G3[i, j, k] * A[a_idx, j] * O[o_idx, k]
                             del_a[a_idx, j] += del_sqerror * G3[i, j, k] * I[i_idx, i] * O[o_idx, k]
                             del_o[o_idx, k] += del_sqerror * G3[i, j, k] * I[i_idx, i] * A[a_idx, j]
-
-
-            for _ in prange(num_sentiment_samples, schedule='guided'):
-                idx = rng_pos_uia.generate(thread_id)
-                u_idx = X_uids[idx]
-                i_idx = X_iids[idx]
-                a_idx = X_aids[idx]
-                score = X[idx]
-                s = 1
-                if score < 3.0:
-                    s = -1
-                elif score == 3.0:
-                    sentiment_skipped += 1
-                    continue
-
-                pred = get_score(G1, n_user_factors, n_item_factors, n_aspect_factors, U, I, A, u_idx, i_idx, a_idx)
-                pred = (pred - 3) * s
-                z = (1.0 / (1.0 + exp(pred)))
-                if z < .5:
-                    sentiment_correct += 1
-                del_s_uia = ld_s * z * s
-                sentiment_loss += ld_s * log(1 / (1 + exp(-pred)))
-                for i in range(n_user_factors):
-                    for j in range(n_item_factors):
-                        for k in range(n_aspect_factors):
-                            del_g1[i, j, k] -= del_s_uia * U[u_idx, i] * I[i_idx, j] * A[a_idx, k]
-                            del_u[u_idx, i] -= del_s_uia * G1[i, j, k] * I[i_idx, j] * A[a_idx, k]
-                            del_i[i_idx, j] -= del_s_uia * G1[i, j, k] * U[u_idx, i] * A[a_idx, k]
-                            del_a[a_idx, k] -= del_s_uia * G1[i, j, k] * U[u_idx, i] * I[i_idx, j]
 
 
             for _ in prange(num_bpr_samples, schedule='guided'):
@@ -765,7 +750,7 @@ class Companion(Recommender):
                 z = (1.0 / (1.0 + exp(pred)))
                 if z < .5:
                    correct_uia += 1
-                del_bpr_uia = ld_r * z * s
+                del_bpr_uia = ld_p * z * s
 
                 bpr_loss_uia += log(1 / (1 + exp(-pred)))
                 for k in range(n_aspect_factors):
@@ -802,7 +787,7 @@ class Companion(Recommender):
                 z = (1.0 / (1.0 + exp(pred)))
                 if z < .5:
                    correct_uia_i += 1
-                del_bpr_uia_i = ld_r * z * s
+                del_bpr_uia_i = ld_a * z * s
 
                 bpr_loss_uia_i += log(1 / (1 + exp(-pred)))
                 for j in range(n_item_factors):
@@ -841,7 +826,7 @@ class Companion(Recommender):
                 z = (1.0 / (1.0 + exp(pred)))
                 if z < .5:
                    correct_uiaop += 1
-                del_bpr_uiaop = ld_r * z * s
+                del_bpr_uiaop = ld_y * z * s
 
                 bpr_loss_uiaop += log(1 / (1 + exp(-pred)))
                 for k in range(n_opinion_factors):
@@ -886,7 +871,7 @@ class Companion(Recommender):
                 z = (1.0 / (1.0 + exp(pred)))
                 if z < .5:
                    correct_uiaon += 1
-                del_bpr_uiaon = ld_r * z * s
+                del_bpr_uiaon = ld_z * z * s
 
                 bpr_loss_uiaon += log(1 / (1 + exp(-pred)))
                 for k in range(n_opinion_factors):
@@ -982,7 +967,7 @@ class Companion(Recommender):
                     if O[i, j] < 0:
                         O[i, j] = 0
 
-        return correct, skipped, sentiment_correct, sentiment_skipped, loss, bpr_loss, sentiment_loss
+        return correct, skipped, loss, bpr_loss
 
     def score(self, u_idx, i_idx=None):
         """Predict the scores/ratings of a user for an item.
