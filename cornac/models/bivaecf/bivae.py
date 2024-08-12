@@ -198,7 +198,7 @@ def learn(
         i_count = 0
         for i_ids in train_set.item_iter(batch_size, shuffle=False):
             i_batch = tx[i_ids, :]
-            i_batch = i_batch.A
+            i_batch = i_batch.todense().A
             i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
@@ -228,7 +228,7 @@ def learn(
         u_count = 0
         for u_ids in train_set.user_iter(batch_size, shuffle=False):
             u_batch = x[u_ids, :]
-            u_batch = u_batch.A
+            u_batch = u_batch.todense().A
             u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
@@ -259,7 +259,7 @@ def learn(
     # infer mu_beta
     for i_ids in train_set.item_iter(batch_size, shuffle=False):
         i_batch = tx[i_ids, :]
-        i_batch = i_batch.A
+        i_batch = i_batch.todense().A
         i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
         beta, _, i_mu, _ = bivae(i_batch, user=False, theta=bivae.theta)
@@ -268,7 +268,7 @@ def learn(
     # infer mu_theta
     for u_ids in train_set.user_iter(batch_size, shuffle=False):
         u_batch = x[u_ids, :]
-        u_batch = u_batch.A
+        u_batch = u_batch.todense().A
         u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
         theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta)
