@@ -48,6 +48,8 @@
 
 [cdr_example.py](cdr_example.py) - Collaborative Deep Ranking (CDR) with CiteULike dataset.
 
+[companion_example.py](companion_example.py) - Comparative Aspects and Opinions Ranking for Recommendation Explanations (Companion) with Amazon Toy and Games dataset.
+
 [conv_mf_example.py](conv_mf_example.py) - Convolutional Matrix Factorization (ConvMF) with MovieLens dataset.
 
 [ctr_example_citeulike.py](ctr_example_citeulike.py) - Collaborative Topic Regression (CTR) with CiteULike dataset.
@@ -65,8 +67,6 @@
 [lrppm_example.py](lrppm_example.py) - Learn to Rank user Preferences based on Phrase-level sentiment analysis across Multiple categories (LRPPM) with Amazon Toy and Games dataset.
 
 [mter_example.py](mter_example.py) - Multi-Task Explainable Recommendation (MTER) with Amazon Toy and Games dataset.
-
-[companion_example.py](companion_example.py) - Comparative Aspects and Opinions Ranking for Recommendation Explanations (Companion) with Amazon Toy and Games dataset.
 
 ### Image
 

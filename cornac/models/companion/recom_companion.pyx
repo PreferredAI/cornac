@@ -125,8 +125,10 @@ class Companion(Recommender):
 
     References
     ----------
-    Trung-Hoang Le and Hady W. Lauw. 2024 \
-    Learning to Rank Aspects and Opinions for Comparative Explanations.
+    Trung-Hoang Le and Hady W. Lauw. 2024. \
+    Learning to Rank Aspects and Opinions for Comparative Explanations. \
+    Machine Learning (Special Issue for ACML 2024). \
+    https://lthoang.com/assets/publications/mlj24.pdf
     """
     def __init__(
         self,
@@ -137,7 +139,6 @@ class Companion(Recommender):
         n_aspect_factors=8,
         n_opinion_factors=8,
         n_bpr_samples=1000,
-        n_sentiment_samples=1000,
         n_aspect_ranking_samples=1000,
         n_opinion_ranking_samples=1000,
         n_element_samples=50,
@@ -170,7 +171,6 @@ class Companion(Recommender):
         self.n_aspect_factors = n_aspect_factors
         self.n_opinion_factors = n_opinion_factors
         self.n_bpr_samples = n_bpr_samples
-        self.n_sentiment_samples = n_sentiment_samples
         self.n_aspect_ranking_samples = n_aspect_ranking_samples
         self.n_opinion_ranking_samples = n_opinion_ranking_samples
         self.n_element_samples = n_element_samples
