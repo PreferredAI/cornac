@@ -41,7 +41,7 @@ except ImportError:
     escape_dependency_version = lambda x: '"{}"'.format(x) if "<" in x or "=" in x or ">" in x else x
     exit(
         "We need some dependencies to build Cornac.\n"
-        + "Run: pip3 install Cython {}".format(" ".join([x for x in INSTALL_REQUIRES]))
+        + "Run: pip3 install Cython {}".format(" ".join([escape_dependency_version(x) for x in INSTALL_REQUIRES]))
     )
 
 
