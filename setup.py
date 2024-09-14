@@ -30,14 +30,18 @@ import glob
 import shutil
 from setuptools import Extension, Command, setup, find_packages
 
+
+INSTALL_REQUIRES = ["numpy<2.0.0", "scipy<=1.13.1", "tqdm", "powerlaw"]
+
 try:
     from Cython.Distutils import build_ext
     import numpy as np
     import scipy
 except ImportError:
+    escape_dependency_version = lambda x: '"{}"'.format(x) if "<" in x or "=" in x or ">" in x else x
     exit(
         "We need some dependencies to build Cornac.\n"
-        + "Run: pip3 install Cython numpy scipy"
+        + "Run: pip3 install Cython {}".format(" ".join([escape_dependency_version(x) for x in INSTALL_REQUIRES]))
     )
 
 
@@ -351,7 +355,7 @@ setup(
         "recommendation",
     ],
     ext_modules=extensions,
-    install_requires=["numpy<2.0.0", "scipy<=1.13.1", "tqdm", "powerlaw"],
+    install_requires=INSTALL_REQUIRES,
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov", "Flask"]},
     cmdclass=cmdclass,
     packages=find_packages(),
