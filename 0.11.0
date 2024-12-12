@@ -1,0 +1,36 @@
+Collecting torch
+  Downloading torch-2.5.1-cp312-cp312-win_amd64.whl.metadata (28 kB)
+Collecting torchvision
+  Downloading torchvision-0.20.1-cp312-cp312-win_amd64.whl.metadata (6.2 kB)
+Collecting filelock (from torch)
+  Downloading filelock-3.16.1-py3-none-any.whl.metadata (2.9 kB)
+Requirement already satisfied: typing-extensions>=4.8.0 in c:\python312\lib\site-packages\setuptools\_vendor (from torch) (4.12.2)
+Collecting networkx (from torch)
+  Downloading networkx-3.4.2-py3-none-any.whl.metadata (6.3 kB)
+Collecting jinja2 (from torch)
+  Downloading jinja2-3.1.4-py3-none-any.whl.metadata (2.6 kB)
+Collecting fsspec (from torch)
+  Downloading fsspec-2024.10.0-py3-none-any.whl.metadata (11 kB)
+Requirement already satisfied: setuptools in c:\python312\lib\site-packages (from torch) (75.3.0)
+Collecting sympy==1.13.1 (from torch)
+  Downloading sympy-1.13.1-py3-none-any.whl.metadata (12 kB)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in c:\python312\lib\site-packages (from sympy==1.13.1->torch) (1.3.0)
+Requirement already satisfied: numpy in c:\python312\lib\site-packages (from torchvision) (1.26.4)
+Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in c:\python312\lib\site-packages (from torchvision) (10.2.0)
+Collecting MarkupSafe>=2.0 (from jinja2->torch)
+  Downloading MarkupSafe-3.0.2-cp312-cp312-win_amd64.whl.metadata (4.1 kB)
+Downloading torch-2.5.1-cp312-cp312-win_amd64.whl (203.0 MB)
+   -------------------------------------- 203.0/203.0 MB 652.6 kB/s eta 0:00:00
+Downloading sympy-1.13.1-py3-none-any.whl (6.2 MB)
+   ---------------------------------------- 6.2/6.2 MB 781.5 kB/s eta 0:00:00
+Downloading torchvision-0.20.1-cp312-cp312-win_amd64.whl (1.6 MB)
+   ---------------------------------------- 1.6/1.6 MB 937.3 kB/s eta 0:00:00
+Downloading filelock-3.16.1-py3-none-any.whl (16 kB)
+Downloading fsspec-2024.10.0-py3-none-any.whl (179 kB)
+   ---------------------------------------- 179.6/179.6 kB 2.7 MB/s eta 0:00:00
+Downloading jinja2-3.1.4-py3-none-any.whl (133 kB)
+   ---------------------------------------- 133.3/133.3 kB 2.0 MB/s eta 0:00:00
+Downloading networkx-3.4.2-py3-none-any.whl (1.7 MB)
+   ---------------------------------------- 1.7/1.7 MB 1.8 MB/s eta 0:00:00
+Downloading MarkupSafe-3.0.2-cp312-cp312-win_amd64.whl (15 kB)
+Installing collected packages: sympy, networkx, MarkupSafe, fsspec, filelock, jinja2, torch, torchvision
