@@ -4,7 +4,7 @@ import numpy as np
 import cornac
 from cornac.models import GlobalLocalKernel
 from cornac.eval_methods import RatioSplit
-from cornac.metrics import MAE, RMSE
+from cornac.metrics import MAE, RMSE, Precision, Recall, NDCG, AUC, MAP
 
 # Function to find the next available log file name
 def get_next_log_file(base_name="experiment_log", ext=".txt"):
@@ -29,7 +29,7 @@ def log_results(log_file, test_results, model_instance):
 ml_100k = cornac.datasets.movielens.load_feedback()
 
 # Take only a subset of the data, e.g., first 5000 interactions for quicker tests
-ml_100k = ml_100k[:5000]
+# ml_100k = ml_100k[:500]
 
 # Split the data
 rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
@@ -53,11 +53,11 @@ my_model = GlobalLocalKernel(
     max_epoch_f=100,
     lr_p=0.1,
     lr_f=0.01, 
-    verbose=True
+    verbose=False
 )
 
 # Define some basic metrics
-metrics = [MAE(), RMSE()]
+metrics = [MAE(), RMSE(), Precision(k=10), Recall(k=10), NDCG(k=10), AUC(), MAP()]
 
 # Redirect Cornac output to capture experiment results
 from io import StringIO

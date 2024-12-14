@@ -12,7 +12,8 @@ from ..recommender import Recommender
 from tqdm import tqdm
 
 
-
+# Configure logging
+# logging.basicConfig(level=logging.INFO, format="%(message)s")
 # ===========================
 # Define your model layers
 # ===========================
@@ -333,7 +334,6 @@ class GlobalLocalKernel(Recommender):
             # Initialize the progress bar for the group
             with tqdm(total=end_epoch - start_epoch, desc=f"Epochs {start_epoch + 1}-{end_epoch}  (Fine-Tuning)", leave=True) as pbar:
                 for epoch in range(start_epoch, end_epoch):
-
                     # Define the closure function
                     def closure():
                         optimizer.zero_grad()
@@ -382,64 +382,110 @@ class GlobalLocalKernel(Recommender):
         self.model = complete_model
         return self
 
-    def score(self, user_id, item_id=None, batch_size=10):
+
+    def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item or batch of items.
 
         Parameters
         ----------
-        user_id: int
+        user_idx: int, required
             The index of the user for whom to perform score prediction.
-        item_id: int or list of int, optional
+        item_idx: int, optional
             The index (or indices) of the item(s) for which to perform score prediction.
             If None, scores for all items will be returned.
-        batch_size: int, optional, default: 10
-            Number of items to process in a batch for tqdm progress bar.
 
         Returns
         -------
-        res: A scalar, Numpy array, or dictionary
-            If `item_id` is None, returns an array of scores for all items for the user.
-            If `item_id` is a single integer, returns a scalar score for that item.
-            If `item_id` is a list of integers, returns a dictionary of scores.
+        res: A scalar or Numpy array
+            A scalar for a specific item, or a Numpy array of scores for all items.
         """
         if self.model is None:
             raise RuntimeError("You must train the model before calling score()!")
 
         with torch.no_grad():
+            # Perform model predictions (full prediction matrix)
             input_mat = torch.tensor(self.train_r_local, dtype=torch.double, device=self.device)
             x_global = torch.tensor(self._train_r, dtype=torch.double, device=self.device)
+            pred, _ = self.model(x_global, input_mat)
+            pred = pred.cpu().numpy()  # Convert to NumPy array
 
-            if item_id is None:
-                # Predict scores for all items for the specified user
-                n_items = input_mat.shape[0]
-                preds = np.zeros((n_items,), dtype=np.float32)
+        if item_idx is None:
+            # Return scores for all items for the specified user
+            return pred[:, user_idx]  # NumPy array of scores
 
-                with tqdm(total=n_items, desc=f"Scoring all items for user {user_id}", leave=True) as pbar:
-                    for i in range(n_items):
-                        pred, _ = self.model(x_global, input_mat)
-                        preds[i] = pred[i, user_id].item()
-                        pbar.update(1)
+        elif isinstance(item_idx, list):
+            # Return scores for a list of items
+            return np.array([pred[i, user_idx] for i in item_idx])  # NumPy array
 
-                return preds
-
-            elif isinstance(item_id, list):
-                # Predict scores for a list of items
-                preds = {}
-                with tqdm(total=len(item_id), desc=f"Scoring items for user {user_id}", leave=True) as pbar:
-                    for i in item_id:
-                        pred, _ = self.model(x_global, input_mat)
-                        preds[i] = pred[i, user_id].item()
-                        pbar.update(1)
-
-                return preds
-
-            else:
-                # print(f"Debug: item_id is a single value: {item_id}. Scoring for user {user_id}.")
-                # Predict score for a single item
-                pred, _ = self.model(x_global, input_mat)
-                return pred[item_id, user_id].item()
+        else:
+            # Return score for a single item (scalar)
+            return pred[item_idx, user_idx]
 
 
-    def rate(self, user_id, item_id):
-        # Optionally override if needed, or rely on default Recommender.rate()
-        return super().rate(user_id, item_id)
+
+
+
+    # def get_vector_measure(self):
+    #     from cornac.utils import MEASURE_DOT
+    #     return MEASURE_DOT
+
+
+    # def get_user_vectors(self):
+    #     # Assuming self.U stores the user embeddings
+    #     return self.U.cpu().detach().numpy()
+
+
+    # def get_item_vectors(self):
+    #     # Assuming self.V stores the item embeddings
+    #     return self.V.cpu().detach().numpy()
+
+
+    # def rank(self, user_idx, item_indices=None, k=None):
+    #     """
+    #     Rank items for a given user based on predicted scores.
+
+    #     Parameters
+    #     ----------
+    #     user_idx : int
+    #         The index of the user for whom to rank items.
+
+    #     item_indices : array-like, optional, default: None
+    #         Indices of items to be ranked. If None, rank all items.
+
+    #     k : int, optional, default: None
+    #         Number of top items to return. If None, return all ranked items.
+
+    #     Returns
+    #     -------
+    #     item_rank : np.ndarray
+    #         Indices of items ranked in descending order of predicted scores.
+
+    #     item_scores : np.ndarray
+    #         Predicted scores for the ranked items.
+    #     """
+    #     with torch.no_grad():
+    #         # Get user embeddings (row from self.U)
+    #         user_embedding = self.U[user_idx].cpu().numpy()
+            
+    #         # Compute scores for all items or a subset
+    #         if item_indices is None:
+    #             item_embeddings = self.V.cpu().numpy()  # All item embeddings
+    #         else:
+    #             item_embeddings = self.V[item_indices].cpu().numpy()  # Subset of items
+
+    #         # Compute scores (dot product or similarity)
+    #         scores = np.dot(item_embeddings, user_embedding)
+
+    #         # Get the ranked indices
+    #         ranked_indices = np.argsort(-scores)  # Descending order
+    #         if k is not None:
+    #             ranked_indices = ranked_indices[:k]
+
+    #         # Get the corresponding scores for ranked items
+    #         ranked_scores = scores[ranked_indices]
+
+    #         # Map back to original item indices if item_indices is provided
+    #         if item_indices is not None:
+    #             ranked_indices = np.array(item_indices)[ranked_indices]
+
+    #         return ranked_indices, ranked_scores
