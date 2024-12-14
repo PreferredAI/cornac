@@ -1,0 +1,83 @@
+
+========================================
+Experiment conducted on: 2024-12-14 22:22:56.926776
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: False
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: 1656
+uid_map: None
+iid_map: None
+max_rating: 4.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 500
+max_epoch_f: 500
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.01
+device: cuda
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[4.074561  3.7919703 4.1602736 ... 3.5502026 4.9746857 3.943836 ]
+ [4.0745606 3.79197   4.1602736 ... 3.5502021 4.9746857 3.9438357]
+ [3.7859447 3.7108083 4.024741  ... 3.356383  4.9746857 3.8038127]
+ ...
+ [3.1270785 3.4874184 3.683483  ... 3.1386068 4.9746857 3.4953837]
+ [3.1272159 3.4874575 3.6835485 ... 3.1387024 4.9746857 3.4954498]
+ [3.1272159 3.4874575 3.6835485 ... 3.1387024 4.9746857 3.4954498]]
+_train_r: [[4. 0. 0. ... 0. 0. 0.]
+ [0. 5. 0. ... 0. 0. 0.]
+ [0. 0. 5. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 0. 1. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+
+TEST:
+...
+                  |    MAE |   RMSE |    AUC |    MAP | NDCG@10 | Precision@10 | Recall@10 | Train (s) | Test (s)
+----------------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + --------- + --------
+GlobalLocalKernel | 0.8051 | 0.9771 | 0.5428 | 0.0232 |  0.0261 |       0.0254 |    0.0169 |   30.8466 | 191.1777
+MF                | 0.7430 | 0.8998 | 0.7445 | 0.0548 |  0.0761 |       0.0675 |    0.0463 |    0.0290 |   0.7707
+PMF               | 0.7534 | 0.9138 | 0.7744 | 0.0671 |  0.0969 |       0.0813 |    0.0639 |    1.4337 |   1.1157
+BPR               | 2.0143 | 2.2267 | 0.8695 | 0.1042 |  0.1500 |       0.1110 |    0.1195 |    1.2896 |   0.7294
+
+
+========================================

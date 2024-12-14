@@ -206,7 +206,7 @@ class GlobalLocalKernel(Recommender):
         self.verbose = verbose
 
         # Device
-        if torch.cuda.is_available() and (self.device != 'cpu'):
+        if torch.cuda.is_available():
             self.device = torch.device("cuda")
         else:
             self.device = torch.device("cpu")

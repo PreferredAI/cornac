@@ -5,6 +5,7 @@ import cornac
 from cornac.models import GlobalLocalKernel
 from cornac.eval_methods import RatioSplit
 from cornac.metrics import MAE, RMSE, Precision, Recall, NDCG, AUC, MAP
+from cornac.models import MF, PMF, BPR
 
 # Function to find the next available log file name
 def get_next_log_file(base_name="experiment_log", ext=".txt"):
@@ -49,12 +50,16 @@ my_model = GlobalLocalKernel(
     # Example hyperparameters
     n_hid=10, 
     n_dim=2, 
-    max_epoch_p=30, 
-    max_epoch_f=100,
+    max_epoch_p=500, 
+    max_epoch_f=500,
     lr_p=0.1,
     lr_f=0.01, 
     verbose=False
 )
+
+mf = MF(k=10, max_iter=25, learning_rate=0.01, lambda_reg=0.02, use_bias=True, seed=123)
+pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123)
+bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 
 # Define some basic metrics
 metrics = [MAE(), RMSE(), Precision(k=10), Recall(k=10), NDCG(k=10), AUC(), MAP()]
@@ -68,7 +73,7 @@ log_file = get_next_log_file()
 sys.stdout = StringIO()  # Redirect stdout to capture results
 
 # Run the experiment on the smaller subset
-cornac.Experiment(eval_method=rs, models=[my_model], metrics=metrics, user_based=True).run()
+cornac.Experiment(eval_method=rs, models=[my_model, mf, pmf, bpr], metrics=metrics, user_based=True).run()
 
 # Retrieve experiment results
 experiment_results = sys.stdout.getvalue()
