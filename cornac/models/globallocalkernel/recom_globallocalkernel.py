@@ -3,8 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import time
+import sys
+import logging
+
 
 from ..recommender import Recommender
+
+from tqdm import tqdm
+
+
 
 # ===========================
 # Define your model layers
@@ -26,9 +33,14 @@ class KernelLayer(nn.Module):
         self.lambda_s = lambda_s
         self.lambda_2 = lambda_2
 
-        nn.init.xavier_uniform_(self.W, gain=torch.nn.init.calculate_gain("relu"))
-        nn.init.xavier_uniform_(self.u, gain=torch.nn.init.calculate_gain("relu"))
-        nn.init.xavier_uniform_(self.v, gain=torch.nn.init.calculate_gain("relu"))
+        # nn.init.xavier_uniform_(self.W, gain=torch.nn.init.calculate_gain("sigmoid"))
+        # nn.init.xavier_uniform_(self.u, gain=torch.nn.init.calculate_gain("sigmoid"))
+        # nn.init.xavier_uniform_(self.v, gain=torch.nn.init.calculate_gain("sigmoid"))
+
+        nn.init.kaiming_uniform_(self.W,nonlinearity = "sigmoid")
+        nn.init.kaiming_uniform_(self.u, nonlinearity = "sigmoid")
+        nn.init.kaiming_uniform_(self.v,nonlinearity = "sigmoid")
+
         nn.init.zeros_(self.b)
         self.activation = activation
 
@@ -149,20 +161,27 @@ class GlobalLocalKernel(Recommender):
 
     def __init__(
         self, 
-        n_hid=10,       # size of hidden layers
+        n_hid=1,       # size of hidden layers
         n_dim=2,         # inner AE embedding size
         n_layers=2,      # number of hidden layers
+
+
+        # lambda_s=0.0001,  # regularization of sparsity of the final matrix
+        # lambda_2=0.0001,    # regularization of number of parameters
+
         lambda_s=0.006,  # regularization of sparsity of the final matrix
-        lambda_2=20.,    # regularization of number of parameters
+        lambda_2=0.001,    # regularization of number of parameters
+
         gk_size=3,       # width=height of kernel for convolution
         dot_scale=1,     # dot product weight for global kernel
-        max_epoch_p=2, # max number of epochs for pretraining
-        max_epoch_f=2, # max number of epochs for finetuning
-        tol_p=1e-2,      # min threshold for difference between consecutive values of train rmse for pretraining
-        tol_f=1e-2,      # min threshold for difference for finetuning
-        patience_p=1,    # early stopping patience for pretraining
-        patience_f=1,   # early stopping patience for finetuning
-        lr=0.001, 
+        max_epoch_p=10, # max number of epochs for pretraining
+        max_epoch_f=10, # max number of epochs for finetuning
+        tol_p=1e-4,      # min threshold for difference between consecutive values of train rmse for pretraining
+        tol_f=1e-5,      # min threshold for difference for finetuning
+        patience_p=10,    # early stopping patience for pretraining
+        patience_f=10,   # early stopping patience for finetuning
+        lr_p=0.01,
+        lr_f=0.001, 
         verbose=False, 
         name="GlobalLocalKernel", 
         trainable=True
@@ -181,7 +200,8 @@ class GlobalLocalKernel(Recommender):
         self.tol_f = tol_f
         self.patience_p = patience_p
         self.patience_f = patience_f
-        self.lr = lr
+        self.lr_p = lr_p
+        self.lr_f = lr_f
         self.verbose = verbose
 
         # Device
@@ -206,7 +226,7 @@ class GlobalLocalKernel(Recommender):
         # complete_model = CompleteNet(kernel_net, n_u, n_m, self.n_hid, self.n_dim, self.n_layers, self.lambda_s, self.lambda_2, self.gk_size, self.dot_scale).double().to(self.device)
 
         self.min_rating = 1.0
-        self.max_rating = 5.0
+        self.max_rating = 4.0
 
         # Extract user-item-rating tuples
         train_users, train_items, train_ratings = train_set.uir_tuple
@@ -239,162 +259,186 @@ class GlobalLocalKernel(Recommender):
 
 
         # Pre-Training (KernelNet only)
-        optimizer = torch.optim.AdamW(complete_model.local_kernel_net.parameters(), lr=self.lr)
+        optimizer = torch.optim.AdamW(complete_model.local_kernel_net.parameters(), lr=self.lr_p)
         best_rmse = np.inf
         last_rmse = np.inf
         counter = 0
 
         tic = time.time()
+        
+        #Pre-training process with tqdm for every group of 10 epochs
+        for group in range(0, self.max_epoch_p, 10):  # Split epochs into groups of 10
+            start_epoch = group
+            end_epoch = min(group + 10, self.max_epoch_p)  # Handle the last group
 
-        for epoch in range(self.max_epoch_p):
-            # def closure():
-            #     optimizer.zero_grad()
-            #     x = torch.tensor(train_r, dtype=torch.double, device=self.device)
-            #     m = torch.tensor(train_mask, dtype=torch.double, device=self.device)
-            #     complete_model.local_kernel_net.train()
-            #     pred, reg = complete_model.local_kernel_net(x)
-            #     loss = Loss().to(self.device)(pred, reg, m, x)
-            #     loss.backward()
-            #     return loss
+            # Initialize the progress bar for the group
+            with tqdm(total=end_epoch - start_epoch, desc=f"Epochs {start_epoch + 1}-{end_epoch} (Pre-Training)", leave=True) as pbar:
+                for epoch in range(start_epoch, end_epoch):
 
+                    # Define the closure function
+                    def closure():
+                        optimizer.zero_grad()
+                        x = torch.tensor(train_r, dtype=torch.double, device=self.device)
+                        m = torch.tensor(train_mask, dtype=torch.double, device=self.device)
+                        complete_model.local_kernel_net.train()
+                        pred, reg = complete_model.local_kernel_net(x)
+                        loss = Loss().to(self.device)(pred, reg, m, x)
+                        loss.backward()
+                        return loss
 
-            def closure():
-                optimizer.zero_grad()
-                # Use train_r instead of train_r
-                x = torch.tensor(train_r, dtype=torch.double, device=self.device)
-                m = torch.tensor(train_mask, dtype=torch.double, device=self.device)
-                complete_model.local_kernel_net.train()
-                pred, reg = complete_model.local_kernel_net(x)
-                loss = Loss().to(self.device)(pred, reg, m, x)
-                loss.backward()
-                return loss
+                    optimizer.step(closure)
 
+                    complete_model.local_kernel_net.eval()
+                    with torch.no_grad():
+                        x = torch.tensor(train_r, dtype=torch.double, device=self.device)
+                        pred, _ = kernel_net(x)
 
-            optimizer.step(closure)
+                    pre = pred.float().cpu().numpy()
 
-            complete_model.local_kernel_net.eval()
-            with torch.no_grad():
-                # print('complete model train_r :' , train_r)
-                x = torch.tensor(train_r, dtype=torch.double, device=self.device)
-                pred, _ = kernel_net(x)
-            pre = pred.float().cpu().numpy()
-            # Compute training RMSE
-            train_rmse = np.sqrt(((train_mask * (np.clip(pre, 1., 5.) - train_r))**2).sum() / train_mask.sum())
+                    # Compute training RMSE
+                    train_rmse = np.sqrt(((train_mask * (np.clip(pre, 1., 5.) - train_r))**2).sum() / train_mask.sum())
 
-            if last_rmse - train_rmse < self.tol_p:
-                counter += 1
-            else:
-                counter = 0
-            last_rmse = train_rmse
+                    # Update the current progress bar
+                    pbar.set_postfix({"Train RMSE": f"{train_rmse:.4f}"})
+                    pbar.update(1)
 
-            if counter >= self.patience_p:
-                if self.verbose:
-                    print("Early stopping pre-training at epoch:", epoch+1)
-                break
+                    # Check for early stopping
+                    if last_rmse - train_rmse < self.tol_p:
+                        counter += 1
+                    else:
+                        counter = 0
+                    last_rmse = train_rmse
 
-            if self.verbose and epoch % 10 == 0:
-                print(f"Pre-Training Epoch {epoch+1}/{self.max_epoch_p}, Train RMSE: {train_rmse:.4f}")
+                    if counter >= self.patience_p:
+                        tqdm.write(f"Early stopping pre-training at epoch: {epoch + 1}")
+                        break
+
+                    # Log at the current epoch
+                    if self.verbose:
+                        logging.info(f"Pre-Training Epoch {epoch + 1}/{self.max_epoch_p}, Train RMSE: {train_rmse:.4f}")
 
         # After pre-training
         self.train_r_local = np.clip(pre, 1., 5.)
 
         # Fine-Tuning
-        optimizer = torch.optim.AdamW(complete_model.parameters(), lr=self.lr)
+        optimizer = torch.optim.AdamW(complete_model.parameters(), lr=self.lr_f)
         last_rmse = np.inf
         counter = 0
+        
+        for group in range(0, self.max_epoch_f, 10):  # Split epochs into groups of 10
+            start_epoch = group
+            end_epoch = min(group + 10, self.max_epoch_f)  # Handle the last group
+            
 
-        for epoch in range(self.max_epoch_f):
-            def closure():
-                optimizer.zero_grad()
-                x = torch.tensor(train_r, dtype=torch.double, device=self.device)
-                x_local = torch.tensor(self.train_r_local, dtype=torch.double, device=self.device)
-                m = torch.tensor(train_mask, dtype=torch.double, device=self.device)
-                complete_model.train()
-                pred, reg = complete_model(x, x_local)
-                loss = Loss().to(self.device)(pred, reg, m, x)
-                loss.backward()
-                return loss
+            # Initialize the progress bar for the group
+            with tqdm(total=end_epoch - start_epoch, desc=f"Epochs {start_epoch + 1}-{end_epoch}  (Fine-Tuning)", leave=True) as pbar:
+                for epoch in range(start_epoch, end_epoch):
 
-            optimizer.step(closure)
+                    # Define the closure function
+                    def closure():
+                        optimizer.zero_grad()
+                        x = torch.tensor(train_r, dtype=torch.double, device=self.device)
+                        x_local = torch.tensor(self.train_r_local, dtype=torch.double, device=self.device)
+                        m = torch.tensor(train_mask, dtype=torch.double, device=self.device)
+                        complete_model.train()
+                        pred, reg = complete_model(x, x_local)
+                        loss = Loss().to(self.device)(pred, reg, m, x)
+                        loss.backward()
+                        return loss
 
-            complete_model.eval()
-            with torch.no_grad():
-                x = torch.tensor(train_r, dtype=torch.double, device=self.device)
-                x_local = torch.tensor(self.train_r_local, dtype=torch.double, device=self.device)
-                pred, _ = complete_model(x, x_local)
-            pre = pred.float().cpu().numpy()
+                    optimizer.step(closure)
 
-            # Compute training RMSE
-            train_rmse = np.sqrt(((train_mask * (np.clip(pre, 1., 5.) - train_r))**2).sum() / train_mask.sum())
+                    complete_model.eval()
+                    with torch.no_grad():
+                        x = torch.tensor(train_r, dtype=torch.double, device=self.device)
+                        x_local = torch.tensor(self.train_r_local, dtype=torch.double, device=self.device)
+                        pred, _ = complete_model(x, x_local)
 
-            if last_rmse - train_rmse < self.tol_f:
-                counter += 1
-            else:
-                counter = 0
-            last_rmse = train_rmse
+                    pre = pred.float().cpu().numpy()
 
-            if counter >= self.patience_f:
-                if self.verbose:
-                    print("Early stopping fine-tuning at epoch:", epoch+1)
-                break
+                    # Compute training RMSE
+                    train_rmse = np.sqrt(((train_mask * (np.clip(pre, 1., 5.) - train_r))**2).sum() / train_mask.sum())
 
-            if self.verbose and epoch % 10 == 0:
-                print(f"Fine-Tuning Epoch {epoch+1}/{self.max_epoch_f}, Train RMSE: {train_rmse:.4f}")
+                    # Update the current progress bar
+                    pbar.set_postfix({"Train RMSE": f"{train_rmse:.4f}"})
+                    pbar.update(1)
+
+                    # Check for early stopping
+                    if last_rmse - train_rmse < self.tol_f:
+                        counter += 1
+                    else:
+                        counter = 0
+                    last_rmse = train_rmse
+
+                    if counter >= self.patience_f:
+                        tqdm.write(f"Early stopping fine-tuning at epoch: {epoch + 1}")
+                        break
+
+                    # Log at the current epoch
+                    if self.verbose:
+                        logging.info(f"Fine-Tuning Epoch {epoch + 1}/{self.max_epoch_f}, Train RMSE: {train_rmse:.4f}")
 
         # Store the trained model
         self.model = complete_model
         return self
 
-    def score(self, user_id, item_id=None):
-        """Predict the scores/ratings of a user for an item.
+    def score(self, user_id, item_id=None, batch_size=10):
+        """Predict the scores/ratings of a user for an item or batch of items.
 
         Parameters
         ----------
-        user_id: int, required
+        user_id: int
             The index of the user for whom to perform score prediction.
-
-        item_id: int, optional, default: None
-            The index of the item for which to perform score prediction.
+        item_id: int or list of int, optional
+            The index (or indices) of the item(s) for which to perform score prediction.
             If None, scores for all items will be returned.
+        batch_size: int, optional, default: 10
+            Number of items to process in a batch for tqdm progress bar.
 
         Returns
         -------
-        res : A scalar or a Numpy array
+        res: A scalar, Numpy array, or dictionary
+            If `item_id` is None, returns an array of scores for all items for the user.
+            If `item_id` is a single integer, returns a scalar score for that item.
+            If `item_id` is a list of integers, returns a dictionary of scores.
         """
         if self.model is None:
             raise RuntimeError("You must train the model before calling score()!")
 
-        # Inference: provide predictions for given user_id, item_id
-        # We'll assume we've stored training rating matrix in `fit` if needed.
-        # For simplicity, assume `train_r_local` and `model` are available.
-
-        # Note: For large datasets, keep user and item embeddings precomputed.
         with torch.no_grad():
-            # We can re-use self.train_r_local as input
-            # If user_id given, we create a vector with only that user
-            # We'll do a full prediction for all users/items and slice.
-            # In a production scenario, you'd probably have a more efficient inference method.
-
-            # self.model expects full matrix input:
-            # Construct a matrix with shape (num_users, num_items), with zeros if needed
-            # For scoring, you can either store the training data or create a neutral input
-            # Here we just re-use training data as input context.
             input_mat = torch.tensor(self.train_r_local, dtype=torch.double, device=self.device)
-            # We must pass also the original train_r for global kernel step:
-            # If we have it stored somewhere, we should keep it. Here we assume we have them:
-            # Ideally, you might store self.train_r in self.fit for scoring:
-            # For demonstration, let's assume we stored train_r in self._train_r
             x_global = torch.tensor(self._train_r, dtype=torch.double, device=self.device)
-            # Compute predictions
-            pred, _ = self.model(x_global, input_mat)
-            pred = pred.float().cpu().numpy()
 
-        if item_id is None:
-            # return predictions for all items for this user
-            return pred[:, user_id]
-        else:
-            # return prediction for this single item
-            return pred[item_id , user_id]
+            if item_id is None:
+                # Predict scores for all items for the specified user
+                n_items = input_mat.shape[0]
+                preds = np.zeros((n_items,), dtype=np.float32)
+
+                with tqdm(total=n_items, desc=f"Scoring all items for user {user_id}", leave=True) as pbar:
+                    for i in range(n_items):
+                        pred, _ = self.model(x_global, input_mat)
+                        preds[i] = pred[i, user_id].item()
+                        pbar.update(1)
+
+                return preds
+
+            elif isinstance(item_id, list):
+                # Predict scores for a list of items
+                preds = {}
+                with tqdm(total=len(item_id), desc=f"Scoring items for user {user_id}", leave=True) as pbar:
+                    for i in item_id:
+                        pred, _ = self.model(x_global, input_mat)
+                        preds[i] = pred[i, user_id].item()
+                        pbar.update(1)
+
+                return preds
+
+            else:
+                # print(f"Debug: item_id is a single value: {item_id}. Scoring for user {user_id}.")
+                # Predict score for a single item
+                pred, _ = self.model(x_global, input_mat)
+                return pred[item_id, user_id].item()
+
 
     def rate(self, user_id, item_id):
         # Optionally override if needed, or rely on default Recommender.rate()

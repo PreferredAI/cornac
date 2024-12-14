@@ -1,0 +1,102 @@
+
+========================================
+Experiment conducted on: 2024-12-14 14:55:57.837021
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: True
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: None
+uid_map: None
+iid_map: None
+max_rating: 5.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 11
+max_epoch_f: 10
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.1
+device: cpu
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[1.7203797 2.8145874 2.2060485 ... 4.3920593 4.6278296 2.7033842]
+ [1.7242785 2.8223462 2.2117891 ... 4.4059434 4.641674  2.7076774]
+ [1.723621  2.8460186 2.2296033 ... 4.462454  4.6887846 2.743203 ]
+ ...
+ [1.7203797 2.8145874 2.2060485 ... 4.3920593 4.6278296 2.7033842]
+ [1.7203797 2.8145874 2.2060485 ... 4.3920593 4.6278296 2.7033842]
+ [1.7203797 2.8145874 2.2060485 ... 4.3920593 4.6278296 2.7033842]]
+_train_r: [[3. 0. 0. ... 0. 0. 0.]
+ [0. 4. 0. ... 0. 0. 0.]
+ [0. 4. 0. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+Pre-Training Epoch 1/11, Train RMSE: 2.7954
+Pre-Training Epoch 2/11, Train RMSE: 2.7954
+Pre-Training Epoch 3/11, Train RMSE: 2.7316
+Pre-Training Epoch 4/11, Train RMSE: 2.2343
+Pre-Training Epoch 5/11, Train RMSE: 1.6676
+Pre-Training Epoch 6/11, Train RMSE: 1.2048
+Pre-Training Epoch 7/11, Train RMSE: 1.1020
+Pre-Training Epoch 8/11, Train RMSE: 1.2023
+Pre-Training Epoch 9/11, Train RMSE: 1.1318
+Pre-Training Epoch 10/11, Train RMSE: 1.0433
+Pre-Training Epoch 11/11, Train RMSE: 1.2329
+Fine-Tuning Epoch 1/10, Train RMSE: 1.3594
+Fine-Tuning Epoch 2/10, Train RMSE: 1.0937
+Fine-Tuning Epoch 3/10, Train RMSE: 1.1745
+Fine-Tuning Epoch 4/10, Train RMSE: 1.3269
+Fine-Tuning Epoch 5/10, Train RMSE: 1.2636
+Fine-Tuning Epoch 6/10, Train RMSE: 1.1358
+Fine-Tuning Epoch 7/10, Train RMSE: 1.0532
+Fine-Tuning Epoch 8/10, Train RMSE: 1.0284
+Fine-Tuning Epoch 9/10, Train RMSE: 1.0206
+Fine-Tuning Epoch 10/10, Train RMSE: 1.0165
+helllooooooooooooow
+
+TEST:
+...
+                  |    MAE |   RMSE | Train (s) | Test (s)
+----------------- + ------ + ------ + --------- + --------
+GlobalLocalKernel | 0.8802 | 0.9862 |    2.0033 |   9.6254
+
+
+========================================

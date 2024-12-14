@@ -1,0 +1,142 @@
+
+========================================
+Experiment conducted on: 2024-12-14 16:13:14.098611
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: True
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: None
+uid_map: None
+iid_map: None
+max_rating: 4.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 30
+max_epoch_f: 100
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.01
+device: cpu
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[4.8594646 3.5144248 4.8247657 ... 2.0829008 3.073163  4.326948 ]
+ [4.8594646 3.5144248 4.8247657 ... 2.0829008 3.073163  4.326948 ]
+ [4.8594646 3.5144248 4.8247657 ... 2.0829008 3.073163  4.326948 ]
+ ...
+ [4.8594646 3.5144248 4.8247657 ... 2.0829008 3.073163  4.326948 ]
+ [4.8594646 3.5144248 4.8247657 ... 2.0829008 3.073163  4.326948 ]
+ [4.8594646 3.5144248 4.8247657 ... 2.0829008 3.073163  4.326948 ]]
+_train_r: [[5. 0. 0. ... 0. 0. 0.]
+ [0. 4. 0. ... 0. 0. 0.]
+ [0. 0. 5. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 5. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 0. 1. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 1. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+Score method called for user_id=32, item_id=210
+Predicting score for user 32 and item 210
+Score method called for user_id=81, item_id=20
+Predicting score for user 81 and item 20
+Score method called for user_id=175, item_id=128
+Predicting score for user 175 and item 128
+Score method called for user_id=83, item_id=78
+Predicting score for user 83 and item 78
+Score method called for user_id=154, item_id=120
+Predicting score for user 154 and item 120
+Score method called for user_id=130, item_id=48
+Predicting score for user 130 and item 48
+Score method called for user_id=62, item_id=24
+Predicting score for user 62 and item 24
+Score method called for user_id=81, item_id=5
+Predicting score for user 81 and item 5
+Score method called for user_id=110, item_id=266
+Predicting score for user 110 and item 266
+Score method called for user_id=157, item_id=235
+Predicting score for user 157 and item 235
+Score method called for user_id=128, item_id=25
+Predicting score for user 128 and item 25
+Score method called for user_id=151, item_id=233
+Predicting score for user 151 and item 233
+Score method called for user_id=75, item_id=14
+Predicting score for user 75 and item 14
+Score method called for user_id=78, item_id=209
+Predicting score for user 78 and item 209
+Score method called for user_id=15, item_id=4
+Predicting score for user 15 and item 4
+Score method called for user_id=45, item_id=27
+Predicting score for user 45 and item 27
+Score method called for user_id=35, item_id=181
+Predicting score for user 35 and item 181
+Score method called for user_id=68, item_id=51
+Predicting score for user 68 and item 51
+Score method called for user_id=58, item_id=85
+Predicting score for user 58 and item 85
+Score method called for user_id=95, item_id=263
+Predicting score for user 95 and item 263
+Score method called for user_id=149, item_id=102
+Predicting score for user 149 and item 102
+Score method called for user_id=138, item_id=156
+Predicting score for user 138 and item 156
+Score method called for user_id=146, item_id=53
+Predicting score for user 146 and item 53
+Score method called for user_id=21, item_id=34
+Predicting score for user 21 and item 34
+Score method called for user_id=135, item_id=147
+Predicting score for user 135 and item 147
+Score method called for user_id=70, item_id=185
+Predicting score for user 70 and item 185
+Score method called for user_id=36, item_id=99
+Predicting score for user 36 and item 99
+Score method called for user_id=105, item_id=296
+Predicting score for user 105 and item 296
+Score method called for user_id=70, item_id=183
+Predicting score for user 70 and item 183
+Score method called for user_id=169, item_id=289
+Predicting score for user 169 and item 289
+Score method called for user_id=26, item_id=94
+Predicting score for user 26 and item 94
+
+TEST:
+...
+                  |    MAE |   RMSE | Train (s) | Test (s)
+----------------- + ------ + ------ + --------- + --------
+GlobalLocalKernel | 1.0328 | 1.0391 |    3.3769 |   0.0951
+
+
+========================================

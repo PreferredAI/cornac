@@ -1,0 +1,427 @@
+
+========================================
+Experiment conducted on: 2024-12-14 15:07:01.134181
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: True
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: None
+uid_map: None
+iid_map: None
+max_rating: 4.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 1000
+max_epoch_f: 100
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.01
+device: cpu
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[4.9492555 3.5544999 4.9286814 ... 1.9946717 3.4936435 4.872684 ]
+ [4.9492555 3.5544999 4.9286814 ... 1.9946717 3.4936435 4.872684 ]
+ [4.9492555 3.5544999 4.9286814 ... 1.9946717 3.4936435 4.872684 ]
+ ...
+ [4.9492555 3.5544999 4.9286814 ... 1.9946717 3.4936435 4.872684 ]
+ [4.9492555 3.5544999 4.9286814 ... 1.9946717 3.4936435 4.872684 ]
+ [4.9492555 3.5544999 4.9286814 ... 1.9946717 3.4936435 4.872684 ]]
+_train_r: [[5. 0. 0. ... 0. 0. 0.]
+ [0. 4. 0. ... 0. 0. 0.]
+ [0. 0. 5. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 5. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 0. 1. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 1. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+Pre-Training Epoch 1/1000, Train RMSE: 2.7996
+Pre-Training Epoch 2/1000, Train RMSE: 2.7996
+Pre-Training Epoch 3/1000, Train RMSE: 2.7988
+Pre-Training Epoch 4/1000, Train RMSE: 2.5971
+Pre-Training Epoch 5/1000, Train RMSE: 2.1581
+Pre-Training Epoch 6/1000, Train RMSE: 1.6675
+Pre-Training Epoch 7/1000, Train RMSE: 1.2457
+Pre-Training Epoch 8/1000, Train RMSE: 1.0472
+Pre-Training Epoch 9/1000, Train RMSE: 1.0313
+Pre-Training Epoch 10/1000, Train RMSE: 0.9660
+Pre-Training Epoch 11/1000, Train RMSE: 0.8494
+Pre-Training Epoch 12/1000, Train RMSE: 0.8960
+Pre-Training Epoch 13/1000, Train RMSE: 1.0640
+Pre-Training Epoch 14/1000, Train RMSE: 1.0938
+Pre-Training Epoch 15/1000, Train RMSE: 1.0054
+Pre-Training Epoch 16/1000, Train RMSE: 0.9029
+Pre-Training Epoch 17/1000, Train RMSE: 0.8539
+Pre-Training Epoch 18/1000, Train RMSE: 0.8467
+Pre-Training Epoch 19/1000, Train RMSE: 0.8399
+Pre-Training Epoch 20/1000, Train RMSE: 0.8346
+Pre-Training Epoch 21/1000, Train RMSE: 0.8454
+Pre-Training Epoch 22/1000, Train RMSE: 0.8776
+Pre-Training Epoch 23/1000, Train RMSE: 0.9034
+Pre-Training Epoch 24/1000, Train RMSE: 0.9067
+Pre-Training Epoch 25/1000, Train RMSE: 0.8730
+Pre-Training Epoch 26/1000, Train RMSE: 0.8277
+Pre-Training Epoch 27/1000, Train RMSE: 0.7908
+Pre-Training Epoch 28/1000, Train RMSE: 0.7770
+Pre-Training Epoch 29/1000, Train RMSE: 0.7745
+Pre-Training Epoch 30/1000, Train RMSE: 0.7743
+Pre-Training Epoch 31/1000, Train RMSE: 0.7785
+Pre-Training Epoch 32/1000, Train RMSE: 0.7881
+Pre-Training Epoch 33/1000, Train RMSE: 0.7980
+Pre-Training Epoch 34/1000, Train RMSE: 0.8041
+Pre-Training Epoch 35/1000, Train RMSE: 0.8028
+Pre-Training Epoch 36/1000, Train RMSE: 0.8002
+Pre-Training Epoch 37/1000, Train RMSE: 0.7936
+Pre-Training Epoch 38/1000, Train RMSE: 0.7882
+Pre-Training Epoch 39/1000, Train RMSE: 0.7870
+Pre-Training Epoch 40/1000, Train RMSE: 0.7887
+Pre-Training Epoch 41/1000, Train RMSE: 0.7900
+Pre-Training Epoch 42/1000, Train RMSE: 0.7905
+Pre-Training Epoch 43/1000, Train RMSE: 0.7927
+Pre-Training Epoch 44/1000, Train RMSE: 0.8055
+Pre-Training Epoch 45/1000, Train RMSE: 0.8079
+Pre-Training Epoch 46/1000, Train RMSE: 0.7972
+Pre-Training Epoch 47/1000, Train RMSE: 0.7876
+Pre-Training Epoch 48/1000, Train RMSE: 0.7749
+Pre-Training Epoch 49/1000, Train RMSE: 0.7685
+Pre-Training Epoch 50/1000, Train RMSE: 0.7685
+Pre-Training Epoch 51/1000, Train RMSE: 0.7775
+Pre-Training Epoch 52/1000, Train RMSE: 0.7869
+Pre-Training Epoch 53/1000, Train RMSE: 0.7977
+Pre-Training Epoch 54/1000, Train RMSE: 0.7936
+Pre-Training Epoch 55/1000, Train RMSE: 0.7838
+Pre-Training Epoch 56/1000, Train RMSE: 0.7742
+Pre-Training Epoch 57/1000, Train RMSE: 0.7701
+Pre-Training Epoch 58/1000, Train RMSE: 0.7733
+Pre-Training Epoch 59/1000, Train RMSE: 0.7819
+Pre-Training Epoch 60/1000, Train RMSE: 0.7911
+Pre-Training Epoch 61/1000, Train RMSE: 0.7839
+Pre-Training Epoch 62/1000, Train RMSE: 0.7722
+Pre-Training Epoch 63/1000, Train RMSE: 0.7674
+Pre-Training Epoch 64/1000, Train RMSE: 0.7672
+Pre-Training Epoch 65/1000, Train RMSE: 0.7705
+Pre-Training Epoch 66/1000, Train RMSE: 0.7851
+Pre-Training Epoch 67/1000, Train RMSE: 0.7952
+Pre-Training Epoch 68/1000, Train RMSE: 0.7874
+Pre-Training Epoch 69/1000, Train RMSE: 0.7653
+Pre-Training Epoch 70/1000, Train RMSE: 0.7589
+Pre-Training Epoch 71/1000, Train RMSE: 0.7582
+Pre-Training Epoch 72/1000, Train RMSE: 0.7610
+Pre-Training Epoch 73/1000, Train RMSE: 0.7680
+Pre-Training Epoch 74/1000, Train RMSE: 0.7772
+Pre-Training Epoch 75/1000, Train RMSE: 0.7783
+Pre-Training Epoch 76/1000, Train RMSE: 0.7690
+Pre-Training Epoch 77/1000, Train RMSE: 0.7610
+Pre-Training Epoch 78/1000, Train RMSE: 0.7541
+Pre-Training Epoch 79/1000, Train RMSE: 0.7529
+Pre-Training Epoch 80/1000, Train RMSE: 0.7573
+Pre-Training Epoch 81/1000, Train RMSE: 0.7661
+Pre-Training Epoch 82/1000, Train RMSE: 0.7652
+Pre-Training Epoch 83/1000, Train RMSE: 0.7599
+Pre-Training Epoch 84/1000, Train RMSE: 0.7534
+Pre-Training Epoch 85/1000, Train RMSE: 0.7505
+Pre-Training Epoch 86/1000, Train RMSE: 0.7535
+Pre-Training Epoch 87/1000, Train RMSE: 0.7639
+Pre-Training Epoch 88/1000, Train RMSE: 0.7813
+Pre-Training Epoch 89/1000, Train RMSE: 0.7856
+Pre-Training Epoch 90/1000, Train RMSE: 0.7672
+Pre-Training Epoch 91/1000, Train RMSE: 0.7542
+Pre-Training Epoch 92/1000, Train RMSE: 0.7497
+Pre-Training Epoch 93/1000, Train RMSE: 0.7493
+Pre-Training Epoch 94/1000, Train RMSE: 0.7536
+Pre-Training Epoch 95/1000, Train RMSE: 0.7656
+Pre-Training Epoch 96/1000, Train RMSE: 0.7737
+Pre-Training Epoch 97/1000, Train RMSE: 0.7726
+Pre-Training Epoch 98/1000, Train RMSE: 0.7582
+Pre-Training Epoch 99/1000, Train RMSE: 0.7521
+Pre-Training Epoch 100/1000, Train RMSE: 0.7516
+Pre-Training Epoch 101/1000, Train RMSE: 0.7558
+Pre-Training Epoch 102/1000, Train RMSE: 0.7650
+Pre-Training Epoch 103/1000, Train RMSE: 0.7747
+Pre-Training Epoch 104/1000, Train RMSE: 0.7705
+Pre-Training Epoch 105/1000, Train RMSE: 0.7580
+Pre-Training Epoch 106/1000, Train RMSE: 0.7505
+Pre-Training Epoch 107/1000, Train RMSE: 0.7481
+Pre-Training Epoch 108/1000, Train RMSE: 0.7475
+Pre-Training Epoch 109/1000, Train RMSE: 0.7513
+Pre-Training Epoch 110/1000, Train RMSE: 0.7629
+Pre-Training Epoch 111/1000, Train RMSE: 0.7728
+Pre-Training Epoch 112/1000, Train RMSE: 0.7668
+Pre-Training Epoch 113/1000, Train RMSE: 0.7589
+Pre-Training Epoch 114/1000, Train RMSE: 0.7528
+Pre-Training Epoch 115/1000, Train RMSE: 0.7507
+Pre-Training Epoch 116/1000, Train RMSE: 0.7512
+Pre-Training Epoch 117/1000, Train RMSE: 0.7517
+Pre-Training Epoch 118/1000, Train RMSE: 0.7527
+Pre-Training Epoch 119/1000, Train RMSE: 0.7559
+Pre-Training Epoch 120/1000, Train RMSE: 0.7543
+Pre-Training Epoch 121/1000, Train RMSE: 0.7523
+Pre-Training Epoch 122/1000, Train RMSE: 0.7499
+Pre-Training Epoch 123/1000, Train RMSE: 0.7477
+Pre-Training Epoch 124/1000, Train RMSE: 0.7468
+Pre-Training Epoch 125/1000, Train RMSE: 0.7473
+Pre-Training Epoch 126/1000, Train RMSE: 0.7483
+Pre-Training Epoch 127/1000, Train RMSE: 0.7513
+Pre-Training Epoch 128/1000, Train RMSE: 0.7556
+Pre-Training Epoch 129/1000, Train RMSE: 0.7553
+Pre-Training Epoch 130/1000, Train RMSE: 0.7533
+Pre-Training Epoch 131/1000, Train RMSE: 0.7490
+Pre-Training Epoch 132/1000, Train RMSE: 0.7466
+Pre-Training Epoch 133/1000, Train RMSE: 0.7455
+Pre-Training Epoch 134/1000, Train RMSE: 0.7465
+Pre-Training Epoch 135/1000, Train RMSE: 0.7484
+Pre-Training Epoch 136/1000, Train RMSE: 0.7517
+Pre-Training Epoch 137/1000, Train RMSE: 0.7526
+Pre-Training Epoch 138/1000, Train RMSE: 0.7503
+Pre-Training Epoch 139/1000, Train RMSE: 0.7469
+Pre-Training Epoch 140/1000, Train RMSE: 0.7450
+Pre-Training Epoch 141/1000, Train RMSE: 0.7454
+Pre-Training Epoch 142/1000, Train RMSE: 0.7479
+Pre-Training Epoch 143/1000, Train RMSE: 0.7482
+Pre-Training Epoch 144/1000, Train RMSE: 0.7468
+Pre-Training Epoch 145/1000, Train RMSE: 0.7449
+Pre-Training Epoch 146/1000, Train RMSE: 0.7446
+Pre-Training Epoch 147/1000, Train RMSE: 0.7463
+Pre-Training Epoch 148/1000, Train RMSE: 0.7499
+Pre-Training Epoch 149/1000, Train RMSE: 0.7514
+Pre-Training Epoch 150/1000, Train RMSE: 0.7499
+Pre-Training Epoch 151/1000, Train RMSE: 0.7468
+Pre-Training Epoch 152/1000, Train RMSE: 0.7447
+Pre-Training Epoch 153/1000, Train RMSE: 0.7438
+Pre-Training Epoch 154/1000, Train RMSE: 0.7435
+Pre-Training Epoch 155/1000, Train RMSE: 0.7442
+Pre-Training Epoch 156/1000, Train RMSE: 0.7466
+Pre-Training Epoch 157/1000, Train RMSE: 0.7469
+Pre-Training Epoch 158/1000, Train RMSE: 0.7462
+Pre-Training Epoch 159/1000, Train RMSE: 0.7479
+Pre-Training Epoch 160/1000, Train RMSE: 0.7467
+Pre-Training Epoch 161/1000, Train RMSE: 0.7449
+Pre-Training Epoch 162/1000, Train RMSE: 0.7434
+Pre-Training Epoch 163/1000, Train RMSE: 0.7424
+Pre-Training Epoch 164/1000, Train RMSE: 0.7422
+Pre-Training Epoch 165/1000, Train RMSE: 0.7426
+Pre-Training Epoch 166/1000, Train RMSE: 0.7443
+Pre-Training Epoch 167/1000, Train RMSE: 0.7444
+Pre-Training Epoch 168/1000, Train RMSE: 0.7441
+Pre-Training Epoch 169/1000, Train RMSE: 0.7438
+Pre-Training Epoch 170/1000, Train RMSE: 0.7424
+Pre-Training Epoch 171/1000, Train RMSE: 0.7412
+Pre-Training Epoch 172/1000, Train RMSE: 0.7403
+Pre-Training Epoch 173/1000, Train RMSE: 0.7403
+Pre-Training Epoch 174/1000, Train RMSE: 0.7412
+Pre-Training Epoch 175/1000, Train RMSE: 0.7424
+Pre-Training Epoch 176/1000, Train RMSE: 0.7432
+Pre-Training Epoch 177/1000, Train RMSE: 0.7429
+Pre-Training Epoch 178/1000, Train RMSE: 0.7421
+Pre-Training Epoch 179/1000, Train RMSE: 0.7419
+Pre-Training Epoch 180/1000, Train RMSE: 0.7419
+Pre-Training Epoch 181/1000, Train RMSE: 0.7426
+Pre-Training Epoch 182/1000, Train RMSE: 0.7428
+Pre-Training Epoch 183/1000, Train RMSE: 0.7425
+Pre-Training Epoch 184/1000, Train RMSE: 0.7425
+Pre-Training Epoch 185/1000, Train RMSE: 0.7430
+Pre-Training Epoch 186/1000, Train RMSE: 0.7433
+Pre-Training Epoch 187/1000, Train RMSE: 0.7427
+Pre-Training Epoch 188/1000, Train RMSE: 0.7415
+Pre-Training Epoch 189/1000, Train RMSE: 0.7407
+Pre-Training Epoch 190/1000, Train RMSE: 0.7401
+Pre-Training Epoch 191/1000, Train RMSE: 0.7400
+Pre-Training Epoch 192/1000, Train RMSE: 0.7403
+Pre-Training Epoch 193/1000, Train RMSE: 0.7407
+Pre-Training Epoch 194/1000, Train RMSE: 0.7406
+Pre-Training Epoch 195/1000, Train RMSE: 0.7402
+Pre-Training Epoch 196/1000, Train RMSE: 0.7396
+Pre-Training Epoch 197/1000, Train RMSE: 0.7394
+Pre-Training Epoch 198/1000, Train RMSE: 0.7396
+Pre-Training Epoch 199/1000, Train RMSE: 0.7395
+Pre-Training Epoch 200/1000, Train RMSE: 0.7396
+Pre-Training Epoch 201/1000, Train RMSE: 0.7396
+Pre-Training Epoch 202/1000, Train RMSE: 0.7392
+Pre-Training Epoch 203/1000, Train RMSE: 0.7390
+Pre-Training Epoch 204/1000, Train RMSE: 0.7387
+Pre-Training Epoch 205/1000, Train RMSE: 0.7385
+Pre-Training Epoch 206/1000, Train RMSE: 0.7388
+Pre-Training Epoch 207/1000, Train RMSE: 0.7392
+Pre-Training Epoch 208/1000, Train RMSE: 0.7401
+Pre-Training Epoch 209/1000, Train RMSE: 0.7403
+Pre-Training Epoch 210/1000, Train RMSE: 0.7407
+Pre-Training Epoch 211/1000, Train RMSE: 0.7408
+Pre-Training Epoch 212/1000, Train RMSE: 0.7400
+Pre-Training Epoch 213/1000, Train RMSE: 0.7392
+Pre-Training Epoch 214/1000, Train RMSE: 0.7387
+Pre-Training Epoch 215/1000, Train RMSE: 0.7385
+Pre-Training Epoch 216/1000, Train RMSE: 0.7386
+Pre-Training Epoch 217/1000, Train RMSE: 0.7390
+Pre-Training Epoch 218/1000, Train RMSE: 0.7400
+Pre-Training Epoch 219/1000, Train RMSE: 0.7408
+Pre-Training Epoch 220/1000, Train RMSE: 0.7411
+Pre-Training Epoch 221/1000, Train RMSE: 0.7409
+Pre-Training Epoch 222/1000, Train RMSE: 0.7397
+Pre-Training Epoch 223/1000, Train RMSE: 0.7388
+Pre-Training Epoch 224/1000, Train RMSE: 0.7382
+Pre-Training Epoch 225/1000, Train RMSE: 0.7379
+Pre-Training Epoch 226/1000, Train RMSE: 0.7377
+Pre-Training Epoch 227/1000, Train RMSE: 0.7377
+Pre-Training Epoch 228/1000, Train RMSE: 0.7378
+Pre-Training Epoch 229/1000, Train RMSE: 0.7382
+Pre-Training Epoch 230/1000, Train RMSE: 0.7385
+Pre-Training Epoch 231/1000, Train RMSE: 0.7387
+Pre-Training Epoch 232/1000, Train RMSE: 0.7387
+Pre-Training Epoch 233/1000, Train RMSE: 0.7384
+Pre-Training Epoch 234/1000, Train RMSE: 0.7382
+Pre-Training Epoch 235/1000, Train RMSE: 0.7379
+Pre-Training Epoch 236/1000, Train RMSE: 0.7377
+Pre-Training Epoch 237/1000, Train RMSE: 0.7378
+Pre-Training Epoch 238/1000, Train RMSE: 0.7378
+Pre-Training Epoch 239/1000, Train RMSE: 0.7380
+Pre-Training Epoch 240/1000, Train RMSE: 0.7383
+Pre-Training Epoch 241/1000, Train RMSE: 0.7381
+Pre-Training Epoch 242/1000, Train RMSE: 0.7380
+Pre-Training Epoch 243/1000, Train RMSE: 0.7377
+Pre-Training Epoch 244/1000, Train RMSE: 0.7377
+Pre-Training Epoch 245/1000, Train RMSE: 0.7378
+Pre-Training Epoch 246/1000, Train RMSE: 0.7381
+Pre-Training Epoch 247/1000, Train RMSE: 0.7381
+Pre-Training Epoch 248/1000, Train RMSE: 0.7381
+Pre-Training Epoch 249/1000, Train RMSE: 0.7381
+Pre-Training Epoch 250/1000, Train RMSE: 0.7378
+Pre-Training Epoch 251/1000, Train RMSE: 0.7376
+Pre-Training Epoch 252/1000, Train RMSE: 0.7375
+Pre-Training Epoch 253/1000, Train RMSE: 0.7377
+Pre-Training Epoch 254/1000, Train RMSE: 0.7377
+Pre-Training Epoch 255/1000, Train RMSE: 0.7378
+Pre-Training Epoch 256/1000, Train RMSE: 0.7378
+Pre-Training Epoch 257/1000, Train RMSE: 0.7375
+Pre-Training Epoch 258/1000, Train RMSE: 0.7371
+Pre-Training Epoch 259/1000, Train RMSE: 0.7368
+Pre-Training Epoch 260/1000, Train RMSE: 0.7367
+Pre-Training Epoch 261/1000, Train RMSE: 0.7369
+Pre-Training Epoch 262/1000, Train RMSE: 0.7371
+Pre-Training Epoch 263/1000, Train RMSE: 0.7372
+Pre-Training Epoch 264/1000, Train RMSE: 0.7371
+Pre-Training Epoch 265/1000, Train RMSE: 0.7371
+Pre-Training Epoch 266/1000, Train RMSE: 0.7371
+Pre-Training Epoch 267/1000, Train RMSE: 0.7372
+Pre-Training Epoch 268/1000, Train RMSE: 0.7373
+Early stopping pre-training at epoch: 269
+Fine-Tuning Epoch 1/100, Train RMSE: 0.7368
+Fine-Tuning Epoch 2/100, Train RMSE: 0.7367
+Fine-Tuning Epoch 3/100, Train RMSE: 0.7368
+Fine-Tuning Epoch 4/100, Train RMSE: 0.7368
+Fine-Tuning Epoch 5/100, Train RMSE: 0.7368
+Fine-Tuning Epoch 6/100, Train RMSE: 0.7368
+Fine-Tuning Epoch 7/100, Train RMSE: 0.7367
+Fine-Tuning Epoch 8/100, Train RMSE: 0.7366
+Fine-Tuning Epoch 9/100, Train RMSE: 0.7367
+Fine-Tuning Epoch 10/100, Train RMSE: 0.7368
+Fine-Tuning Epoch 11/100, Train RMSE: 0.7369
+Fine-Tuning Epoch 12/100, Train RMSE: 0.7368
+Fine-Tuning Epoch 13/100, Train RMSE: 0.7367
+Fine-Tuning Epoch 14/100, Train RMSE: 0.7366
+Fine-Tuning Epoch 15/100, Train RMSE: 0.7365
+Fine-Tuning Epoch 16/100, Train RMSE: 0.7365
+Fine-Tuning Epoch 17/100, Train RMSE: 0.7364
+Fine-Tuning Epoch 18/100, Train RMSE: 0.7365
+Fine-Tuning Epoch 19/100, Train RMSE: 0.7365
+Fine-Tuning Epoch 20/100, Train RMSE: 0.7365
+Fine-Tuning Epoch 21/100, Train RMSE: 0.7365
+Fine-Tuning Epoch 22/100, Train RMSE: 0.7366
+Fine-Tuning Epoch 23/100, Train RMSE: 0.7365
+Fine-Tuning Epoch 24/100, Train RMSE: 0.7364
+Fine-Tuning Epoch 25/100, Train RMSE: 0.7363
+Fine-Tuning Epoch 26/100, Train RMSE: 0.7362
+Fine-Tuning Epoch 27/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 28/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 29/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 30/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 31/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 32/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 33/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 34/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 35/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 36/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 37/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 38/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 39/100, Train RMSE: 0.7360
+Fine-Tuning Epoch 40/100, Train RMSE: 0.7361
+Fine-Tuning Epoch 41/100, Train RMSE: 0.7360
+Fine-Tuning Epoch 42/100, Train RMSE: 0.7360
+Fine-Tuning Epoch 43/100, Train RMSE: 0.7360
+Fine-Tuning Epoch 44/100, Train RMSE: 0.7360
+Fine-Tuning Epoch 45/100, Train RMSE: 0.7360
+Fine-Tuning Epoch 46/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 47/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 48/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 49/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 50/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 51/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 52/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 53/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 54/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 55/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 56/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 57/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 58/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 59/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 60/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 61/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 62/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 63/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 64/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 65/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 66/100, Train RMSE: 0.7359
+Fine-Tuning Epoch 67/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 68/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 69/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 70/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 71/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 72/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 73/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 74/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 75/100, Train RMSE: 0.7358
+Fine-Tuning Epoch 76/100, Train RMSE: 0.7358
+Early stopping fine-tuning at epoch: 77
+helllooooooooooooow
+
+TEST:
+...
+                  |    MAE |   RMSE | Train (s) | Test (s)
+----------------- + ------ + ------ + --------- + --------
+GlobalLocalKernel | 1.0171 | 1.0282 |    3.9581 |   0.1591
+
+
+========================================

@@ -1,0 +1,80 @@
+
+========================================
+Experiment conducted on: 2024-12-14 16:06:32.139048
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: True
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: None
+uid_map: None
+iid_map: None
+max_rating: 4.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 30
+max_epoch_f: 100
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.01
+device: cpu
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[3.990643  3.3860412 4.376368  ... 1.8664002 3.0656142 4.234053 ]
+ [3.990643  3.3860412 4.376368  ... 1.8664002 3.0656142 4.234053 ]
+ [3.990643  3.3860412 4.376368  ... 1.8664002 3.0656142 4.234053 ]
+ ...
+ [3.990643  3.3860412 4.376368  ... 1.8664002 3.0656142 4.234053 ]
+ [3.990643  3.3860412 4.376368  ... 1.8664002 3.0656142 4.234053 ]
+ [3.990643  3.3860412 4.376368  ... 1.8664002 3.0656142 4.234053 ]]
+_train_r: [[5. 0. 0. ... 0. 0. 0.]
+ [0. 4. 0. ... 0. 0. 0.]
+ [0. 0. 5. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 5. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 0. 1. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 1. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+
+TEST:
+...
+                  |    MAE |   RMSE | Train (s) | Test (s)
+----------------- + ------ + ------ + --------- + --------
+GlobalLocalKernel | 1.0351 | 1.0457 |    2.7236 |   0.0970
+
+
+========================================
