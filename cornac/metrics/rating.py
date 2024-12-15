@@ -110,7 +110,7 @@ class MSE(RatingMetric):
         -------
         mse: A scalar.
             Mean Squared Error.
-
+    
         """
         mse = np.average((gt_ratings - pd_ratings) ** 2, axis=0, weights=weights)
         return mse
