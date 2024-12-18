@@ -342,7 +342,7 @@ cmdclass = {
 
 setup(
     name="cornac",
-    version="2.2.2",
+    version="2.3.0",
     description="A Comparative Framework for Multimodal Recommender Systems",
     long_description=long_description,
     long_description_content_type="text/markdown",
