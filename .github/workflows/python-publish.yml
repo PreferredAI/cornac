@@ -78,7 +78,7 @@ jobs:
     - name: Publish wheels to GitHub artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: wheels-${{ matrix.runs-on }}
+        name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
         path: ./dist/*.whl
 
   publish-pypi:
