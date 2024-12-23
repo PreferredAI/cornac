@@ -76,11 +76,10 @@ jobs:
       run: for f in dist/*.whl; do mv "$f" "$(echo "$f" | sed s/linux/manylinux1/)"; done
 
     - name: Publish wheels to GitHub artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-${{ matrix.runs-on }}
         path: ./dist/*.whl
-
 
   publish-pypi:
     needs: [build-wheels]
