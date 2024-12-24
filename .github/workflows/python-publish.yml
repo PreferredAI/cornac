@@ -23,13 +23,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-13, macos-14]
+        os: [windows-latest, ubuntu-latest, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     - uses: actions/checkout@v4
     
     - name: Setup Python ${{ matrix.python-version }}
-      if: ${{ (matrix.os != 'macos-14') || ((matrix.os == 'macos-14') && (matrix.python-version != '3.9')) }}
+      if: ${{ ((matrix.os == 'macos-latest') && (matrix.python-version != '3.9')) }}
       uses: actions/setup-python@v5
       id: pysetup
       with:
@@ -37,7 +37,7 @@ jobs:
         cache: 'pip'
 
     - name: Setup Python 3.9 - macos-arm
-      if: ${{ (matrix.os == 'macos-14') && (matrix.python-version == '3.9') }}
+      if: ${{ (matrix.os == 'macos-latest') && (matrix.python-version == '3.9') }}
       run: |
         brew update
         brew install python@${{ matrix.python-version }}
@@ -118,7 +118,7 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
-        packages_dir: ./dist/
-        verify_metadata: false
-        skip_existing: true
+        packages-dir: ./dist/
+        verify-metadata: false
+        skip-existing: true
         verbose: true
