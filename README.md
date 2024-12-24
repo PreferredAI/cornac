@@ -15,21 +15,22 @@
 [Paper](http://www.jmlr.org/papers/volume21/19-805/19-805.pdf) |
 [Preferred.AI](https://preferred.ai/)
 
+[![Conda Azure Pipelines](https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/cornac-feedstock?branchName=main)](https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=6683&branchName=main)
 [![.github/workflows/python-package.yml](https://github.com/PreferredAI/cornac/actions/workflows/python-package.yml/badge.svg)](https://github.com/PreferredAI/cornac/actions/workflows/python-package.yml)
-[![CircleCI](https://img.shields.io/circleci/project/github/PreferredAI/cornac/master.svg?logo=circleci)](https://circleci.com/gh/PreferredAI/cornac)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/0yq4td1xg4kkhdwu?svg=true)](https://ci.appveyor.com/project/tqtg/cornac)
-[![Codecov](https://img.shields.io/codecov/c/github/PreferredAI/cornac/master.svg?logo=codecov)](https://codecov.io/gh/PreferredAI/cornac)
+[![CircleCI](https://img.shields.io/circleci/project/github/PreferredAI/cornac/master.svg?logo=circleci&label=circleci)](https://circleci.com/gh/PreferredAI/cornac)
 [![Docs](https://img.shields.io/readthedocs/cornac/latest.svg)](https://cornac.readthedocs.io/en/stable)
+[![Codecov](https://img.shields.io/codecov/c/github/PreferredAI/cornac/master.svg?logo=codecov)](https://codecov.io/gh/PreferredAI/cornac)
 <br />
 [![Release](https://img.shields.io/github/release-pre/PreferredAI/cornac.svg)](https://github.com/PreferredAI/cornac/releases)
 [![PyPI](https://img.shields.io/pypi/v/cornac.svg)](https://pypi.org/project/cornac/)
-[![Conda](https://img.shields.io/conda/vn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
-[![Conda Recipe](https://img.shields.io/badge/recipe-cornac-green.svg)](https://github.com/conda-forge/cornac-feedstock)
-[![Downloads](https://static.pepy.tech/personalized-badge/cornac?period=month&units=international_system&left_color=grey&right_color=orange&left_text=downloads/month)](https://pepy.tech/project/cornac)
+[![Conda Forge](https://img.shields.io/conda/vn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
+[![Conda Recipe](https://img.shields.io/badge/recipe-cornac-green.svg?color=orange&label=conda-recipe)](https://github.com/conda-forge/cornac-feedstock)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/cornac)
+![Pepy Total Downloads](https://img.shields.io/pepy/dt/cornac?label=total-downloads)
 <br />
 [![Python](https://img.shields.io/pypi/pyversions/cornac.svg)](https://cornac.preferred.ai/)
 [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/cornac.svg)](https://anaconda.org/conda-forge/cornac)
-[![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
+![GitHub License](https://img.shields.io/github/license/PreferredAI/cornac?color=yellow)
 
 
 ## Installation
