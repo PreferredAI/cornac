@@ -161,7 +161,6 @@ class CompleteOrthogonalDecomposition {
     applyZAdjointOnTheLeftInPlace(Z);
     return Z.adjoint();
   }
-
   /** \returns a reference to the matrix where the complete orthogonal
    * decomposition is stored
    */

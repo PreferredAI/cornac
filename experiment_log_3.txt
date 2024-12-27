@@ -1,0 +1,92 @@
+
+========================================
+Experiment conducted on: 2024-12-15 14:35:04.892244
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: False
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: 1656
+uid_map: None
+iid_map: None
+max_rating: 4.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 500
+max_epoch_f: 1000
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.01
+device: cuda
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[4.13143   3.8251498 4.2022805 ... 3.46096   4.9777036 3.8819532]
+ [4.1326137 3.825405  4.202767  ... 3.4611    4.9777055 3.8823788]
+ [3.8330228 3.6725302 4.1033254 ... 3.3236573 4.9774    3.8047073]
+ ...
+ [3.1168575 3.5055826 3.8102179 ... 3.2242472 4.9762387 3.5493011]
+ [3.1168575 3.5055826 3.8102179 ... 3.2242472 4.9762387 3.5493011]
+ [3.1168575 3.5055826 3.8102179 ... 3.2242472 4.9762387 3.5493011]]
+_train_r: [[4. 0. 0. ... 0. 0. 0.]
+ [0. 5. 0. ... 0. 0. 0.]
+ [0. 0. 5. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 0. 1. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+Early stopping fine-tuning at epoch: 237
+Early stopping fine-tuning at epoch: 241
+Early stopping fine-tuning at epoch: 251
+Early stopping fine-tuning at epoch: 261
+Early stopping fine-tuning at epoch: 271
+Early stopping fine-tuning at epoch: 281
+Early stopping fine-tuning at epoch: 420
+Early stopping fine-tuning at epoch: 421
+Early stopping fine-tuning at epoch: 900
+
+TEST:
+...
+                  |    MAE |   RMSE |    AUC |    MAP | NDCG@10 | Precision@10 | Recall@10 | Train (s) | Test (s)
+----------------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + --------- + --------
+GlobalLocalKernel | 0.8029 | 0.9731 | 0.4371 | 0.0158 |  0.0168 |       0.0137 |    0.0110 |   55.5029 | 232.3715
+MF                | 0.7430 | 0.8998 | 0.7445 | 0.0548 |  0.0761 |       0.0675 |    0.0463 |    0.0302 |   0.8123
+PMF               | 0.7534 | 0.9138 | 0.7744 | 0.0671 |  0.0969 |       0.0813 |    0.0639 |    1.4669 |   1.2117
+BPR               | 2.0143 | 2.2267 | 0.8695 | 0.1042 |  0.1500 |       0.1110 |    0.1195 |    1.3102 |   0.7666
+
+
+========================================

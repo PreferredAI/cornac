@@ -1,0 +1,86 @@
+
+========================================
+Experiment conducted on: 2024-12-14 22:16:07.572951
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: False
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: 1656
+uid_map: None
+iid_map: None
+max_rating: 4.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 500
+max_epoch_f: 500
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.01
+device: cuda
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[4.18834   3.834389  4.190889  ... 3.719673  4.9786563 4.025386 ]
+ [4.1866603 3.833935  4.1901083 ... 3.7193959 4.9786563 4.0248137]
+ [3.643859  3.643947  3.9684842 ... 3.4783204 4.9786563 3.7472897]
+ ...
+ [3.0270095 3.4925659 3.7013142 ... 3.32962   4.9786563 3.496717 ]
+ [3.030718  3.493905  3.7029653 ... 3.3311675 4.9786563 3.4985132]
+ [3.030718  3.493905  3.7029653 ... 3.3311675 4.9786563 3.4985132]]
+_train_r: [[4. 0. 0. ... 0. 0. 0.]
+ [0. 5. 0. ... 0. 0. 0.]
+ [0. 0. 5. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 0. 1. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+Early stopping fine-tuning at epoch: 380
+Early stopping fine-tuning at epoch: 381
+Early stopping fine-tuning at epoch: 391
+Early stopping fine-tuning at epoch: 401
+Early stopping fine-tuning at epoch: 411
+Early stopping fine-tuning at epoch: 432
+
+TEST:
+...
+                  |    MAE |   RMSE |    AUC |    MAP | NDCG@10 | Precision@10 | Recall@10 | Train (s) | Test (s)
+----------------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + --------- + --------
+GlobalLocalKernel | 0.8034 | 0.9727 | 0.5107 | 0.0189 |  0.0217 |       0.0192 |    0.0133 |   28.9218 | 190.2286
+
+
+========================================
