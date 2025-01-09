@@ -29,7 +29,7 @@ import sys
 import glob
 import shutil
 from setuptools import Extension, Command, setup, find_packages
-from setuptools.command.build_ext import build_ext
+from Cython.Distutils import build_ext
 import numpy as np
 
 
