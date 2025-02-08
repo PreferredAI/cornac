@@ -1,0 +1,81 @@
+
+========================================
+Experiment conducted on: 2024-12-14 21:04:28.481690
+
+Hyperparameters:
+name: GlobalLocalKernel
+trainable: True
+verbose: False
+is_fitted: False
+ignored_attrs: ['train_set', 'val_set', 'test_set']
+num_users: None
+num_items: 1656
+uid_map: None
+iid_map: None
+max_rating: 4.0
+min_rating: 1.0
+global_mean: None
+_Recommender__user_ids: None
+_Recommender__item_ids: None
+n_hid: 10
+n_dim: 2
+n_layers: 2
+lambda_s: 0.006
+lambda_2: 0.001
+gk_size: 3
+dot_scale: 1
+max_epoch_p: 30
+max_epoch_f: 100
+tol_p: 0.0001
+tol_f: 1e-05
+patience_p: 10
+patience_f: 10
+lr_p: 0.1
+lr_f: 0.01
+device: cpu
+model: CompleteNet(
+  (local_kernel_net): KernelNet(
+    (layers): ModuleList(
+      (0-1): 2 x KernelLayer(
+        (activation): Sigmoid()
+      )
+      (2): KernelLayer(
+        (activation): Identity()
+      )
+    )
+    (dropout): Dropout(p=0.33, inplace=False)
+  )
+)
+train_r_local: [[3.4896953 3.300755  4.0347724 ... 3.2298357 4.5382867 3.3844583]
+ [3.683822  3.484483  4.2810183 ... 3.384981  4.898886  3.6059442]
+ [3.5933316 3.3985095 4.1668615 ... 3.3124022 4.7337956 3.5070415]
+ ...
+ [3.546636  3.3489509 4.1108484 ... 3.2751315 4.650442  3.4729054]
+ [3.5501003 3.3515632 4.1113515 ... 3.276139  4.656549  3.4755447]
+ [3.5533752 3.3547118 4.115988  ... 3.2788885 4.6626425 3.479602 ]]
+_train_r: [[4. 0. 0. ... 0. 0. 0.]
+ [0. 5. 0. ... 0. 0. 0.]
+ [0. 0. 5. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+_train_mask: [[1. 0. 0. ... 0. 0. 0.]
+ [0. 1. 0. ... 0. 0. 0.]
+ [0. 0. 1. ... 0. 0. 0.]
+ ...
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]
+ [0. 0. 0. ... 0. 0. 0.]]
+
+Test Results:
+helllooooooooooooow
+
+TEST:
+...
+                  |    MAE |   RMSE |    AUC |    MAP | NDCG@10 | Precision@10 | Recall@10 | Train (s) | Test (s)
+----------------- + ------ + ------ + ------ + ------ + ------- + ------------ + --------- + --------- + --------
+GlobalLocalKernel | 0.8233 | 0.9861 | 0.6304 | 0.0210 |  0.0238 |       0.0214 |    0.0144 |   20.5121 | 841.4456
+
+
+========================================

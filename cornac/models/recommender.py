@@ -21,7 +21,7 @@ import warnings
 from datetime import datetime
 from glob import glob
 import json
-
+import logging
 import numpy as np
 
 from ..exception import ScoreException
@@ -328,6 +328,7 @@ class Recommender:
         if val_set is not None:
             val_set.reset()
 
+
         # get some useful information for prediction
         self.num_users = train_set.num_users
         self.num_items = train_set.num_items
@@ -496,20 +497,33 @@ class Recommender:
             `item_scores` contains scores of items corresponding to index in `item_indices` input.
 
         """
-        # obtain item scores from the model
+
+        # logging.info(f"Calling `score` for user {user_idx} with `item_indices={item_indices}`")
         try:
             known_item_scores = self.score(user_idx, **kwargs)
+            
         except ScoreException:
             known_item_scores = np.ones(self.total_items) * self.default_score()
 
-        # check if the returned scores also cover unknown items
-        # if not, all unknown items will be given the MIN score
+        # logging.info(f"`known_item_scores` returned by `score`: {type(known_item_scores)}")
+
+        if self.num_items is None:
+            self.num_items = len(known_item_scores)  # Fallback if undefined
+            # logging.warning("`self.num_items` was None. Setting it to the length of `known_item_scores`.")
+
+
+        # Check if the returned scores cover unknown items
         if len(known_item_scores) == self.total_items:
+            # logging.info("num_items : " + str(self.num_items))
+
             all_item_scores = known_item_scores
         else:
             all_item_scores = np.ones(self.total_items) * np.min(known_item_scores)
+            # logging.info("num_items : " + str(self.num_items))
             all_item_scores[: self.num_items] = known_item_scores
 
+        # logging.info(f"`all_item_scores`: {all_item_scores}")
+        
         # rank items based on their scores
         item_indices = (
             np.arange(self.num_items)
