@@ -123,7 +123,7 @@ class EASE(Recommender, ANNMixin):
         if item_idx is None:
             return self.U[user_idx, :].dot(self.B)
 
-        return self.B[item_idx, :].dot(self.U[user_idx, :])
+        return self.U[user_idx, :].dot(self.B[:, item_idx])
 
     def get_vector_measure(self):
         """Getting a valid choice of vector measurement in ANNMixin._measures.
