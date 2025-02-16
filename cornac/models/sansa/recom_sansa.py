@@ -1,16 +1,6 @@
 import numpy as np
 import scipy.sparse as sp
 
-from sansa.core import (
-    FactorizationMethod,
-    GramianFactorizer,
-    CHOLMODGramianFactorizerConfig,
-    ICFGramianFactorizerConfig,
-    UnitLowerTriangleInverter,
-    UMRUnitLowerTriangleInverterConfig,
-)
-from sansa.utils import get_squared_norms_along_compressed_axis, inplace_scale_along_compressed_axis, inplace_scale_along_uncompressed_axis
-
 from ..recommender import Recommender
 from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
@@ -108,29 +98,16 @@ class SANSA(Recommender, ANNMixin):
         self.l2 = l2
         self.weight_matrix_density = weight_matrix_density
         self.compute_gramian = compute_gramian
+        self.factorizer_class = factorizer_class
+        self.factorizer_shift_step = factorizer_shift_step
+        self.factorizer_shift_multiplier = factorizer_shift_multiplier
+        self.inverter_scans = inverter_scans
+        self.inverter_finetune_steps = inverter_finetune_steps
         self.use_absolute_value_scores = use_absolute_value_scores
         self.verbose = verbose
         self.seed = seed
-        self.X = X
-        if self.X is not None:
-            self.X = self.X.astype(np.float32)
+        self.X = X.astype(np.float32) if X is not None and X.dtype != np.float32 else X
         self.weights = (W1, W2)
-
-        if factorizer_class == "CHOLMOD":
-            self.factorizer_config = CHOLMODGramianFactorizerConfig()
-        else:
-            self.factorizer_config = ICFGramianFactorizerConfig(
-                factorization_shift_step=factorizer_shift_step,  # initial diagonal shift if incomplete factorization fails
-                factorization_shift_multiplier=factorizer_shift_multiplier,  # multiplier for the shift for subsequent attempts
-            )
-        self.factorizer = GramianFactorizer.from_config(self.factorizer_config)
-        self.factorization_method = self.factorizer_config.factorization_method
-
-        self.inverter_config = UMRUnitLowerTriangleInverterConfig(
-            scans=inverter_scans,  # number of scans through all columns of the matrix
-            finetune_steps=inverter_finetune_steps,  # number of finetuning steps, targeting worst columns
-        )
-        self.inverter = UnitLowerTriangleInverter.from_config(self.inverter_config)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -149,15 +126,55 @@ class SANSA(Recommender, ANNMixin):
         """
         Recommender.fit(self, train_set, val_set)
 
+        from sansa.core import (
+            FactorizationMethod,
+            GramianFactorizer,
+            CHOLMODGramianFactorizerConfig,
+            ICFGramianFactorizerConfig,
+            UnitLowerTriangleInverter,
+            UMRUnitLowerTriangleInverterConfig,
+        )
+        from sansa.utils import get_squared_norms_along_compressed_axis, inplace_scale_along_compressed_axis, inplace_scale_along_uncompressed_axis
+
         # User-item interaction matrix (sp.csr_matrix)
         self.X = train_set.matrix.astype(np.float32)
+
+        if self.factorizer_class == "CHOLMOD":
+            self.factorizer_config = CHOLMODGramianFactorizerConfig()
+        else:
+            self.factorizer_config = ICFGramianFactorizerConfig(
+                factorization_shift_step=self.factorizer_shift_step,  # initial diagonal shift if incomplete factorization fails
+                factorization_shift_multiplier=self.factorizer_shift_multiplier,  # multiplier for the shift for subsequent attempts
+            )
+        self.factorizer = GramianFactorizer.from_config(self.factorizer_config)
+        self.factorization_method = self.factorizer_config.factorization_method
+
+        self.inverter_config = UMRUnitLowerTriangleInverterConfig(
+            scans=self.inverter_scans,  # number of scans through all columns of the matrix
+            finetune_steps=self.inverter_finetune_steps,  # number of finetuning steps, targeting worst columns
+        )
+        self.inverter = UnitLowerTriangleInverter.from_config(self.inverter_config)
 
         # create a working copy of user_item_matrix
         X = self.X.copy()
 
         if self.factorization_method == FactorizationMethod.ICF:
             # scale matrix X
-            _apply_icf_scaling(X, self.compute_gramian)
+            if self.compute_gramian:
+                # Inplace scale columns of X by square roots of column norms of X^TX.
+                da = np.sqrt(np.sqrt(get_squared_norms_along_compressed_axis(X.T @ X)))
+                # Divide columns of X by the computed square roots of row norms of X^TX
+                da[da == 0] = 1  # ignore zero elements
+                inplace_scale_along_uncompressed_axis(X, 1 / da)  # CSR column scaling
+                del da
+            else:
+                # Inplace scale rows and columns of X by square roots of row norms of X.
+                da = np.sqrt(np.sqrt(get_squared_norms_along_compressed_axis(X)))
+                # Divide rows and columns of X by the computed square roots of row norms of X
+                da[da == 0] = 1  # ignore zero elements
+                inplace_scale_along_uncompressed_axis(X, 1 / da)  # CSR column scaling
+                inplace_scale_along_compressed_axis(X, 1 / da)  # CSR row scaling
+                del da
 
         # Compute LDL^T decomposition of
         # - P(X^TX + self.l2 * I)P^T if compute_gramian=True
@@ -270,21 +287,3 @@ class SANSA(Recommender, ANNMixin):
             Matrix of item vectors for all items available in the model.
         """
         return self.self.weights[1]
-
-
-def _apply_icf_scaling(X: sp.csr_matrix, compute_gramian: bool) -> None:
-    if compute_gramian:
-        # Inplace scale columns of X by square roots of column norms of X^TX.
-        da = np.sqrt(np.sqrt(get_squared_norms_along_compressed_axis(X.T @ X)))
-        # Divide columns of X by the computed square roots of row norms of X^TX
-        da[da == 0] = 1  # ignore zero elements
-        inplace_scale_along_uncompressed_axis(X, 1 / da)  # CSR column scaling
-        del da
-    else:
-        # Inplace scale rows and columns of X by square roots of row norms of X.
-        da = np.sqrt(np.sqrt(get_squared_norms_along_compressed_axis(X)))
-        # Divide rows and columns of X by the computed square roots of row norms of X
-        da[da == 0] = 1  # ignore zero elements
-        inplace_scale_along_uncompressed_axis(X, 1 / da)  # CSR column scaling
-        inplace_scale_along_compressed_axis(X, 1 / da)  # CSR row scaling
-        del da
