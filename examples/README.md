@@ -104,6 +104,10 @@
 
 [recvae_example.py](recvae_example.py) - New Variational Autoencoder for Top-N Recommendations with Implicit Feedback (RecVAE).
 
+[sansa_movielens.py](sansa_movielens.py) - Scalable Approximate NonSymmetric Autoencoder (SANSA) with MovieLens 1M dataset.
+
+[sansa_tradesy.py](sansa_movielens.py) - Scalable Approximate NonSymmetric Autoencoder (SANSA) with Tradesy dataset.
+
 [skm_movielens.py](skm_movielens.py) - SKMeans vs BPR on MovieLens data.
 
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
