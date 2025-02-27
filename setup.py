@@ -29,20 +29,8 @@ import sys
 import glob
 import shutil
 from setuptools import Extension, Command, setup, find_packages
-
-
-INSTALL_REQUIRES = ["numpy<2.0.0", "scipy<=1.13.1", "tqdm", "powerlaw"]
-
-try:
-    from Cython.Distutils import build_ext
-    import numpy as np
-    import scipy
-except ImportError:
-    escape_dependency_version = lambda x: '"{}"'.format(x) if "<" in x or "=" in x or ">" in x else x
-    exit(
-        "We need some dependencies to build Cornac.\n"
-        + "Run: pip3 install Cython {}".format(" ".join([escape_dependency_version(x) for x in INSTALL_REQUIRES]))
-    )
+from Cython.Distutils import build_ext
+import numpy as np
 
 
 with open("README.md", "r") as fh:
@@ -341,37 +329,8 @@ cmdclass = {
 }
 
 setup(
-    name="cornac",
-    version="2.3.0",
-    description="A Comparative Framework for Multimodal Recommender Systems",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://cornac.preferred.ai",
-    keywords=[
-        "recommender system",
-        "collaborative filtering",
-        "multimodal",
-        "preference learning",
-        "recommendation",
-    ],
     ext_modules=extensions,
-    install_requires=INSTALL_REQUIRES,
     extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov", "Flask"]},
     cmdclass=cmdclass,
     packages=find_packages(),
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Science/Research",
-        "Intended Audience :: Education",
-        "Intended Audience :: Developers",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13",
-        "License :: OSI Approved :: Apache Software License",
-        "Topic :: Software Development",
-        "Topic :: Scientific/Engineering",
-    ],
 )
