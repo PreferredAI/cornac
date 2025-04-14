@@ -89,7 +89,7 @@ class VAE(nn.Module):
         ll_choices = {
             "mult": x * torch.log(x_ + EPS),
             "bern": x * torch.log(x_ + EPS) + (1 - x) * torch.log(1 - x_ + EPS),
-            "gaus": -(x - x_) ** 2,
+            "gaus": -((x - x_) ** 2),
             "pois": x * torch.log(x_ + EPS) - x_,
         }
 
@@ -129,7 +129,7 @@ def learn(
         ):
             u_batch = train_set.matrix[u_ids, :]
             u_batch.data = np.ones(len(u_batch.data))  # Binarize data
-            u_batch = u_batch.A
+            u_batch = u_batch.toarray()
             u_batch = torch.tensor(u_batch, dtype=torch.float32, device=device)
 
             # Reconstructed batch

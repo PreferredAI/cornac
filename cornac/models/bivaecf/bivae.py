@@ -20,7 +20,6 @@ import torch
 import torch.nn as nn
 from tqdm.auto import trange
 
-
 EPS = 1e-10
 
 ACT = {
@@ -136,7 +135,7 @@ class BiVAE(nn.Module):
         # Likelihood
         ll_choices = {
             "bern": x * torch.log(x_ + EPS) + (1 - x) * torch.log(1 - x_ + EPS),
-            "gaus": -(x - x_) ** 2,
+            "gaus": -((x - x_) ** 2),
             "pois": x * torch.log(x_ + EPS) - x_,
         }
 
@@ -198,7 +197,7 @@ def learn(
         i_count = 0
         for i_ids in train_set.item_iter(batch_size, shuffle=False):
             i_batch = tx[i_ids, :]
-            i_batch = i_batch.A
+            i_batch = i_batch.toarray()
             i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
@@ -228,7 +227,7 @@ def learn(
         u_count = 0
         for u_ids in train_set.user_iter(batch_size, shuffle=False):
             u_batch = x[u_ids, :]
-            u_batch = u_batch.A
+            u_batch = u_batch.toarray()
             u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
             # Reconstructed batch
@@ -259,7 +258,7 @@ def learn(
     # infer mu_beta
     for i_ids in train_set.item_iter(batch_size, shuffle=False):
         i_batch = tx[i_ids, :]
-        i_batch = i_batch.A
+        i_batch = i_batch.toarray()
         i_batch = torch.tensor(i_batch, dtype=dtype, device=device)
 
         beta, _, i_mu, _ = bivae(i_batch, user=False, theta=bivae.theta)
@@ -268,7 +267,7 @@ def learn(
     # infer mu_theta
     for u_ids in train_set.user_iter(batch_size, shuffle=False):
         u_batch = x[u_ids, :]
-        u_batch = u_batch.A
+        u_batch = u_batch.toarray()
         u_batch = torch.tensor(u_batch, dtype=dtype, device=device)
 
         theta, _, u_mu, _ = bivae(u_batch, user=True, beta=bivae.beta)

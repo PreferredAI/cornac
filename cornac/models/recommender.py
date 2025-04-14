@@ -173,7 +173,7 @@ class Recommender:
         return self.__item_ids
 
     def reset_info(self):
-        self.best_value = -np.Inf
+        self.best_value = float("-inf")
         self.best_epoch = 0
         self.current_epoch = 0
         self.stopped_epoch = 0

@@ -144,7 +144,7 @@ class PMF(Recommender, ANNMixin):
                 res = pmf.pmf_linear(
                     uid,
                     iid,
-                    rat,
+                    rat.astype(np.float32),
                     k=self.k,
                     n_users=self.num_users,
                     n_items=self.num_items,
@@ -161,7 +161,7 @@ class PMF(Recommender, ANNMixin):
                 res = pmf.pmf_non_linear(
                     uid,
                     iid,
-                    rat,
+                    rat.astype(np.float32),
                     k=self.k,
                     n_users=self.num_users,
                     n_items=self.num_items,

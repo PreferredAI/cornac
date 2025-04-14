@@ -219,12 +219,12 @@ class CVAECF(Recommender):
         if item_idx is None:
             y_u = self.r_mat[user_idx].copy()
             y_u.data = np.ones(len(y_u.data))
-            y_u = torch.tensor(y_u.A, dtype=torch.float32, device=self.device)
+            y_u = torch.tensor(y_u.toarray(), dtype=torch.float32, device=self.device)
             z_u, _ = self.cvae.encode_qz(y_u)
 
             x_u = self.u_adj_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            x_u = torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
+            x_u = torch.tensor(x_u.toarray(), dtype=torch.float32, device=self.device)
             h_u, _ = self.cvae.encode_qhx(x_u)
 
             known_item_scores = self.cvae.decode(z_u, h_u).data.cpu().numpy().flatten()
@@ -232,12 +232,12 @@ class CVAECF(Recommender):
         else:
             y_u = self.r_mat[user_idx].copy()
             y_u.data = np.ones(len(y_u.data))
-            y_u = torch.tensor(y_u.A, dtype=torch.float32, device=self.device)
+            y_u = torch.tensor(y_u.toarray(), dtype=torch.float32, device=self.device)
             z_u, _ = self.cvae.encode_qz(y_u)
 
             x_u = self.u_adj_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            x_u = torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
+            x_u = torch.tensor(x_u.toarray(), dtype=torch.float32, device=self.device)
             h_u, _ = self.cvae.encode_qhx(x_u)
 
             user_pred = (

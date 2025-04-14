@@ -379,7 +379,7 @@ class PCRL_:
 
         for epoch in range(self.n_epoch):
             for idx in train_set.item_iter(self.batch_size, shuffle=False):
-                batch_C = self.aux_data[idx].A
+                batch_C = self.aux_data[idx].toarray()
                 EE = self.sess.run(E_, feed_dict={C: batch_C})
                 z_c = self.sess.run(X_g, feed_dict={C: batch_C, E: EE})
                 feed_dict = {

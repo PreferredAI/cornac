@@ -139,7 +139,7 @@ class CVAE(nn.Module):
         ll_choices = {
             "mult": x * torch.log(x_ + EPS),
             "bern": x * torch.log(x_ + EPS) + (1 - x) * torch.log(1 - x_ + EPS),
-            "gaus": -(x - x_) ** 2,
+            "gaus": -((x - x_) ** 2),
             "pois": x * torch.log(x_ + EPS) - x_,
         }
 
@@ -160,29 +160,34 @@ class CVAE(nn.Module):
         std_ph = torch.exp(0.5 * logvar_ph)
 
         # KL(q(h|x)||p(h|x))
-        kld_hx = -0.5 * (1 + 2.0 * torch.log(std_qhx) - (mu_qhx - mu_ph).pow(2) - std_qhx.pow(
-            2))  # assuming std_ph is 1 for now
+        kld_hx = -0.5 * (
+            1 + 2.0 * torch.log(std_qhx) - (mu_qhx - mu_ph).pow(2) - std_qhx.pow(2)
+        )  # assuming std_ph is 1 for now
         kld_hx = torch.sum(kld_hx, dim=1)
 
         # KL(q(h|x)||q(h|y))
-        kld_hy = -0.5 * (1 + 2.0 * torch.log(std_qhx) - 2.0 * torch.log(std_qhy) - (
-                    (mu_qhx - mu_qhy).pow(2) + std_qhx.pow(2)) / std_qhy.pow(2))  # assuming std_ph is 1 for now
+        kld_hy = -0.5 * (
+            1
+            + 2.0 * torch.log(std_qhx)
+            - 2.0 * torch.log(std_qhy)
+            - ((mu_qhx - mu_qhy).pow(2) + std_qhx.pow(2)) / std_qhy.pow(2)
+        )  # assuming std_ph is 1 for now
         kld_hy = torch.sum(kld_hy, dim=1)
 
         return torch.mean(beta * kld_z + alpha_1 * kld_hx + alpha_2 * kld_hy - ll)
 
 
 def learn(
-        cvae,
-        train_set,
-        n_epochs,
-        batch_size,
-        learn_rate,
-        beta,
-        alpha_1,
-        alpha_2,
-        verbose,
-        device=torch.device("cpu"),
+    cvae,
+    train_set,
+    n_epochs,
+    batch_size,
+    learn_rate,
+    beta,
+    alpha_1,
+    alpha_2,
+    verbose,
+    device=torch.device("cpu"),
 ):
     optimizer = torch.optim.Adam(params=cvae.parameters(), lr=learn_rate)
 
@@ -197,11 +202,11 @@ def learn(
         ):
             y_batch = y[u_ids, :]
             y_batch.data = np.ones(len(y_batch.data))  # Binarize data
-            y_batch = y_batch.A
+            y_batch = y_batch.toarray()
             y_batch = torch.tensor(y_batch, dtype=torch.float32, device=device)
 
             x_batch = x[u_ids, :]
-            x_batch = x_batch.A
+            x_batch = x_batch.toarray()
             x_batch = torch.tensor(x_batch, dtype=torch.float32, device=device)
 
             # Reconstructed batch
