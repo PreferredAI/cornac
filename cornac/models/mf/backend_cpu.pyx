@@ -19,7 +19,6 @@ import multiprocessing
 
 cimport cython
 from cython.parallel import prange
-from cython cimport floating, integral
 from libcpp cimport bool
 from libc.math cimport abs
 
@@ -30,10 +29,10 @@ from tqdm.auto import trange
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def fit_sgd(integral[:] rid, integral[:] cid, floating[:] val,
-            floating[:, :] U, floating[:, :] V, 
-            floating[:] Bu, floating[:] Bi,
-            floating lr, floating reg, floating mu,
+def fit_sgd(long[:] rid, long[:] cid, float[:] val,
+            float[:, :] U, float[:, :] V, 
+            float[:] Bu, float[:] Bi,
+            float lr, float reg, float mu,
             int max_iter, int num_threads,
             bool use_bias, bool early_stop, bool verbose):
     """Fit the model parameters (U, V, Bu, Bi) with SGD"""
@@ -41,13 +40,13 @@ def fit_sgd(integral[:] rid, integral[:] cid, floating[:] val,
         long num_ratings = val.shape[0]
         int num_factors = U.shape[1]
 
-        floating loss = 0
-        floating last_loss = 0
-        floating r, r_pred, error, u_f, i_f, delta_loss
-        integral u, i, f, j
+        float loss = 0
+        float last_loss = 0
+        float r, r_pred, error, u_f, i_f, delta_loss
+        int u, i, f, j
 
-        floating * user
-        floating * item
+        float * user
+        float * item
 
     progress = trange(max_iter, disable=not verbose)
     for epoch in progress:
