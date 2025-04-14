@@ -98,7 +98,7 @@ def clip(values, lower_bound, upper_bound):
 def intersects(x, y, assume_unique=False):
     """Return the intersection of given two arrays
     """
-    mask = np.in1d(x, y, assume_unique=assume_unique)
+    mask = np.isin(x, y, assume_unique=assume_unique)
     x_intersects_y = x[mask]
 
     return x_intersects_y
@@ -107,7 +107,7 @@ def intersects(x, y, assume_unique=False):
 def excepts(x, y, assume_unique=False):
     """Removing elements in array y from array x
     """
-    mask = np.in1d(x, y, assume_unique=assume_unique, invert=True)
+    mask = np.isin(x, y, assume_unique=assume_unique, invert=True)
     x_excepts_y = x[mask]
 
     return x_excepts_y

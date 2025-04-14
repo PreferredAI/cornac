@@ -91,7 +91,7 @@ class NDCG(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        ranked_scores = np.in1d(truncated_pd_rank, gt_pos).astype(int)
+        ranked_scores = np.isin(truncated_pd_rank, gt_pos).astype(int)
         gain = 2**ranked_scores - 1
         discounts = np.log2(np.arange(len(ranked_scores)) + 2)
 
@@ -162,7 +162,7 @@ class NCRR(RankingMetric):
             truncated_pd_rank = pd_rank
 
         # Compute CRR
-        rec_rank = np.where(np.in1d(truncated_pd_rank, gt_pos))[0]
+        rec_rank = np.where(np.isin(truncated_pd_rank, gt_pos))[0]
         if len(rec_rank) == 0:
             return 0.0
         rec_rank = rec_rank + 1  # +1 because indices starts from 0 in python
@@ -210,7 +210,7 @@ class MRR(RankingMetric):
             Mean Reciprocal Rank score.
 
         """
-        matched_items = np.nonzero(np.in1d(pd_rank, gt_pos))[0]
+        matched_items = np.nonzero(np.isin(pd_rank, gt_pos))[0]
 
         if len(matched_items) == 0:
             raise ValueError(
@@ -267,7 +267,7 @@ class MeasureAtK(RankingMetric):
         else:
             truncated_pd_rank = pd_rank
 
-        tp = np.sum(np.in1d(truncated_pd_rank, gt_pos))
+        tp = np.sum(np.isin(truncated_pd_rank, gt_pos))
         tp_fn = len(gt_pos)
         tp_fp = self.k if self.k > 0 else len(truncated_pd_rank)
 
@@ -470,11 +470,11 @@ class AUC(RankingMetric):
 
         """
 
-        gt_pos_mask = np.in1d(item_indices, gt_pos)
+        gt_pos_mask = np.isin(item_indices, gt_pos)
         gt_neg_mask = (
             np.logical_not(gt_pos_mask)
             if gt_neg is None
-            else np.in1d(item_indices, gt_neg)
+            else np.isin(item_indices, gt_neg)
         )
 
         pos_scores = pd_scores[gt_pos_mask]
@@ -519,7 +519,7 @@ class MAP(RankingMetric):
             AP score.
 
         """
-        relevant = np.in1d(item_indices, gt_pos)
+        relevant = np.isin(item_indices, gt_pos)
         rank = rankdata(-pd_scores, "max")[relevant]
         L = rankdata(-pd_scores[relevant], "max")
         ans = (L / rank).mean()
