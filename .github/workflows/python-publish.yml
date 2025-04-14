@@ -12,6 +12,9 @@ on:
   release:
     types: [published]
 
+env:
+  LIMIT_NUMPY_VERSION: 2.0.0
+
 jobs:
   build-wheels:
     name: Building on ${{ matrix.os }}
@@ -55,7 +58,7 @@ jobs:
       run: python${{ matrix.python-version }} -m pip install wheel setuptools pip --upgrade
 
     - name: Install numpy, scipy
-      run: pip install numpy scipy
+      run: pip install "numpy>${{ env.LIMIT_NUMPY_VERSION }}" scipy
     
     - name: Install other dependencies
       run: |
