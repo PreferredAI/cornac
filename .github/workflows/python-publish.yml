@@ -12,9 +12,6 @@ on:
   release:
     types: [published]
 
-env:
-  LIMIT_SCIPY_VERSION: 1.13.1
-
 jobs:
   build-wheels:
     name: Building on ${{ matrix.os }}
@@ -58,7 +55,7 @@ jobs:
       run: python${{ matrix.python-version }} -m pip install wheel setuptools pip --upgrade
 
     - name: Install numpy, scipy
-      run: pip install numpy "scipy<=${{ env.LIMIT_SCIPY_VERSION }}"
+      run: pip install numpy scipy
     
     - name: Install other dependencies
       run: |
