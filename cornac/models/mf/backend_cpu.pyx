@@ -27,9 +27,12 @@ cimport numpy as np
 from tqdm.auto import trange
 
 
+ctypedef np.int64_t INT64_t
+
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def fit_sgd(long[:] rid, long[:] cid, float[:] val,
+def fit_sgd(INT64_t[:] rid, INT64_t[:] cid, float[:] val,
             float[:, :] U, float[:, :] V, 
             float[:] Bu, float[:] Bi,
             float lr, float reg, float mu,
@@ -37,7 +40,7 @@ def fit_sgd(long[:] rid, long[:] cid, float[:] val,
             bool use_bias, bool early_stop, bool verbose):
     """Fit the model parameters (U, V, Bu, Bi) with SGD"""
     cdef:
-        long num_ratings = val.shape[0]
+        INT64_t num_ratings = val.shape[0]
         int num_factors = U.shape[1]
 
         float loss = 0
