@@ -37,6 +37,8 @@ from ...utils.common import scale
 from ...utils.init_utils import zeros, uniform
 
 
+DTYPE = np.float32
+
 cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
     cdef int get_thread_num()
 
@@ -119,7 +121,7 @@ class BPR(Recommender, ANNMixin):
         seed=None
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
-        self.k = k
+        self.k = int(k)
         self.max_iter = max_iter
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
@@ -144,10 +146,10 @@ class BPR(Recommender, ANNMixin):
         n_users, n_items = self.total_users, self.total_items
 
         if self.u_factors is None:
-            self.u_factors = (uniform((n_users, self.k), random_state=self.rng) - 0.5) / self.k
+            self.u_factors = (uniform((n_users, self.k), random_state=self.rng, dtype=DTYPE) - 0.5) / self.k
         if self.i_factors is None:
-            self.i_factors = (uniform((n_items, self.k), random_state=self.rng) - 0.5) / self.k
-        self.i_biases = zeros(n_items) if self.i_biases is None or self.use_bias is False else self.i_biases
+            self.i_factors = (uniform((n_items, self.k), random_state=self.rng, dtype=DTYPE) - 0.5) / self.k
+        self.i_biases = zeros(n_items, dtype=DTYPE) if self.i_biases is None or self.use_bias is False else self.i_biases
 
     def _prepare_data(self, train_set):
         X = train_set.matrix # csr_matrix
