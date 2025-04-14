@@ -270,7 +270,7 @@ class Beacon(NextBasketRecommender):
 
     def _normalize(self, adj_matrix: csr_matrix):
         """Symmetrically normalize adjacency matrix."""
-        row_sum = adj_matrix.sum(1).A.squeeze()
+        row_sum = adj_matrix.sum(1).toarray().squeeze()
         d_inv_sqrt = np.power(
             row_sum,
             -0.5,

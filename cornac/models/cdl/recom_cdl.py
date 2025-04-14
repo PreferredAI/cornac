@@ -243,7 +243,7 @@ class CDL(Recommender, ANNMixin):
                     feed_dict = {
                         model.text_mask: corruption_mask[batch_ids, :],
                         model.text_input: text_feature[batch_ids],
-                        model.ratings: batch_R.A,
+                        model.ratings: batch_R.toarray(),
                         model.C: batch_C,
                         model.item_ids: batch_ids,
                     }

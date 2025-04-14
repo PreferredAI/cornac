@@ -16,11 +16,10 @@
 import numpy as np
 from tqdm.auto import trange
 
-from ..recommender import Recommender
-from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
 from ...utils import get_rng
 from ...utils.init_utils import xavier_uniform
+from ..recommender import MEASURE_DOT, Recommender
 
 
 class CVAE(Recommender):
@@ -175,8 +174,9 @@ class CVAE(Recommender):
         )  # normalization
 
         # VAE initialization
-        from .cvae import Model
         import tensorflow.compat.v1 as tf
+
+        from .cvae import Model
 
         tf.disable_eager_execution()
 
@@ -216,7 +216,7 @@ class CVAE(Recommender):
 
                 feed_dict = {
                     model.x: document[batch_ids],
-                    model.ratings: batch_R.A,
+                    model.ratings: batch_R.toarray(),
                     model.C: batch_C,
                     model.item_ids: batch_ids,
                 }
