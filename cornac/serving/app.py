@@ -119,7 +119,7 @@ app = create_app()
 
 @app.route("/recommend", methods=["GET"])
 def recommend():
-    global model, train_set
+    global model, train_set # noqa: F824
 
     if model is None:
         return "Model is not yet loaded. Please try again later.", 400
@@ -187,7 +187,7 @@ def add_feedback():
 
 @app.route("/evaluate", methods=["POST"])
 def evaluate():
-    global model, train_set, metric_classnames
+    global model, train_set, metric_classnames # noqa: F824
 
     if model is None:
         return "Model is not yet loaded. Please try again later.", 400
@@ -241,7 +241,7 @@ def validate_query(query):
 
 
 def process_evaluation(test_set, query, exclude_unknowns):
-    global model, train_set
+    global model, train_set # noqa: F824
     
     rating_threshold = query.get("rating_threshold", 1.0)
     user_based = (
