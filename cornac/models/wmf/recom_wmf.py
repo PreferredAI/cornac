@@ -66,7 +66,7 @@ class WMF(Recommender, ANNMixin):
 
         U: ndarray, shape (n_users,k)
             The user latent factors, optional initialization via init_params.
-            
+
         V: ndarray, shape (n_items,k)
             The item latent factors, optional initialization via init_params.
 
@@ -191,7 +191,7 @@ class WMF(Recommender, ANNMixin):
                     batch_C = np.ones(batch_R.shape) * self.b
                     batch_C[batch_R.nonzero()] = self.a
                     feed_dict = {
-                        model.ratings: batch_R.A,
+                        model.ratings: batch_R.toarray(),
                         model.C: batch_C,
                         model.item_ids: batch_ids,
                     }

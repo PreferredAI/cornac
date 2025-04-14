@@ -98,7 +98,7 @@ def clip(values, lower_bound, upper_bound):
 def intersects(x, y, assume_unique=False):
     """Return the intersection of given two arrays
     """
-    mask = np.in1d(x, y, assume_unique=assume_unique)
+    mask = np.isin(x, y, assume_unique=assume_unique)
     x_intersects_y = x[mask]
 
     return x_intersects_y
@@ -107,7 +107,7 @@ def intersects(x, y, assume_unique=False):
 def excepts(x, y, assume_unique=False):
     """Removing elements in array y from array x
     """
-    mask = np.in1d(x, y, assume_unique=assume_unique, invert=True)
+    mask = np.isin(x, y, assume_unique=assume_unique, invert=True)
     x_excepts_y = x[mask]
 
     return x_excepts_y
@@ -145,7 +145,7 @@ def validate_format(input_format, valid_formats):
     """Check the input format is in list of valid formats
     :raise ValueError if not supported
     """
-    if not input_format in valid_formats:
+    if input_format not in valid_formats:
         raise ValueError('{} data format is not in valid formats ({})'.format(input_format, valid_formats))
 
     return input_format
@@ -195,7 +195,7 @@ def normalize(X, norm='l2', axis=1, copy=True):
         set to False to perform inplace row normalization and avoid a
         copy (if the input is already a numpy array or a scipy.sparse
         CSR matrix and if axis is 1).
-        
+
     Reference
     ---------
     https://github.com/scikit-learn/scikit-learn/blob/1495f69242646d239d89a5713982946b8ffcf9d9/sklearn/preprocessing/data.py#L1553
@@ -221,7 +221,7 @@ def normalize(X, norm='l2', axis=1, copy=True):
         elif norm == 'l2':
             inplace_csr_row_normalize_l2(X_out)
         elif norm == 'max':
-            norms = X_out.max(axis=1).A
+            norms = X_out.max(axis=1).toarray()
             norms_elementwise = norms.repeat(np.diff(X_out.indptr))
             mask = norms_elementwise != 0
             X_out.data[mask] /= norms_elementwise[mask]

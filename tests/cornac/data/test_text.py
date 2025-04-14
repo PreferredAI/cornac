@@ -148,12 +148,12 @@ class TestCountVectorizer(unittest.TestCase):
         vectorizer = CountVectorizer(max_doc_freq=2, min_doc_freq=1, max_features=1)
         vectorizer.fit(self.docs)
         sequences, X = vectorizer.transform(self.docs)
-        npt.assert_array_equal(X.A, np.asarray([[0], [2], [0]]))
+        npt.assert_array_equal(X.toarray(), np.asarray([[0], [2], [0]]))
 
         vectorizer.binary = True
         _, X1 = vectorizer.fit_transform(self.docs)
         _, X2 = vectorizer.transform(self.docs)
-        npt.assert_array_equal(X1.A, X2.A)
+        npt.assert_array_equal(X1.toarray(), X2.toarray())
 
     def test_with_special_tokens(self):
         vectorizer = CountVectorizer(max_doc_freq=2, min_doc_freq=1, max_features=1)
@@ -163,7 +163,7 @@ class TestCountVectorizer(unittest.TestCase):
         vectorizer.vocab = new_vocab
 
         sequences, X = vectorizer.transform(self.docs)
-        npt.assert_array_equal(X.A, np.asarray([[0], [2], [0]]))
+        npt.assert_array_equal(X.toarray(), np.asarray([[0], [2], [0]]))
 
 
 class TestTfidfVectorizer(unittest.TestCase):
@@ -201,7 +201,7 @@ class TestTfidfVectorizer(unittest.TestCase):
         self.assertEqual(idf[tok2idx['this'], tok2idx['this']], 1)
         self.assertEqual(idf[tok2idx['a'], tok2idx['a']], np.log(3 / 2) + 1)
 
-        X = vectorizer.transform(self.docs).A
+        X = vectorizer.transform(self.docs).toarray()
         npt.assert_array_equal(X[:, tok2idx['this']],
                                np.asarray([1., 1.]))
         npt.assert_array_equal(X[:, tok2idx['a']],
@@ -211,7 +211,7 @@ class TestTfidfVectorizer(unittest.TestCase):
         vectorizer.sublinear_tf = True
         X1 = vectorizer.fit_transform(self.docs)
         X2 = vectorizer.transform(self.docs)
-        npt.assert_array_equal(X1.A, X2.A)
+        npt.assert_array_equal(X1.toarray(), X2.toarray())
 
 
 class TestTextModality(unittest.TestCase):
@@ -267,7 +267,7 @@ class TestTextModality(unittest.TestCase):
     def test_count_matrix(self):
         (a, b, c, d, e, f) = self.token_ids
         shift = len(SPECIAL_TOKENS)
-        expected_counts = np.zeros_like(self.modality.count_matrix.A)
+        expected_counts = np.zeros_like(self.modality.count_matrix.toarray())
         expected_counts[0, a - shift] = 1
         expected_counts[0, b - shift] = 1
         expected_counts[0, c - shift] = 1
@@ -278,7 +278,7 @@ class TestTextModality(unittest.TestCase):
         expected_counts[2, c - shift] = 2
         expected_counts[2, e - shift] = 1
         expected_counts[2, f - shift] = 1
-        npt.assert_array_equal(self.modality.count_matrix.A, expected_counts)
+        npt.assert_array_equal(self.modality.count_matrix.toarray(), expected_counts)
 
     def test_batch_bow(self):
         (a, b, c, d, e, f) = self.token_ids
@@ -298,10 +298,10 @@ class TestTextModality(unittest.TestCase):
 
         batch_bows = self.modality.batch_bow([0, 2], binary=True, keep_sparse=True)
         self.assertEqual((2, 6), batch_bows.shape)
-        expected_bows = np.zeros_like(batch_bows.A)
+        expected_bows = np.zeros_like(batch_bows.toarray())
         expected_bows[0, np.asarray([a, b, c]) - shift] = 1
         expected_bows[1, np.asarray([b, c, e, f]) - shift] = 1
-        npt.assert_array_equal(batch_bows.A, expected_bows)
+        npt.assert_array_equal(batch_bows.toarray(), expected_bows)
 
         self.modality.count_matrix = None
         try:

@@ -29,7 +29,7 @@ def _df_simplex(gamma, v, lambda_v, x):
 
 
 def _is_on_simplex(v, s):
-    if v.sum() < s + 1e-10 and np.alltrue(v > 0):
+    if v.sum() < s + 1e-10 and np.all(v > 0):
         return True
     return False
 

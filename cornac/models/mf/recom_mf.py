@@ -26,6 +26,9 @@ from ...utils import get_rng
 from ...utils.init_utils import normal, zeros
 
 
+DTYPE = np.float32
+
+
 class MF(Recommender, ANNMixin):
     """Matrix Factorization.
 
@@ -137,20 +140,20 @@ class MF(Recommender, ANNMixin):
 
         if self.u_factors is None:
             self.u_factors = normal(
-                [self.num_users, self.k], std=0.01, random_state=rng
+                [self.num_users, self.k], std=0.01, random_state=rng, dtype=DTYPE
             )
         if self.i_factors is None:
             self.i_factors = normal(
-                [self.num_items, self.k], std=0.01, random_state=rng
+                [self.num_items, self.k], std=0.01, random_state=rng, dtype=DTYPE
             )
 
         self.u_biases = (
-            zeros(self.num_users) if self.u_biases is None else self.u_biases
+            zeros(self.num_users, dtype=DTYPE) if self.u_biases is None else self.u_biases
         )
         self.i_biases = (
-            zeros(self.num_items) if self.i_biases is None else self.i_biases
+            zeros(self.num_items, dtype=DTYPE) if self.i_biases is None else self.i_biases
         )
-        self.global_mean = self.global_mean if self.use_bias else 0.0
+        self.global_mean = np.dtype(DTYPE).type(self.global_mean if self.use_bias else 0.0)
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -190,7 +193,7 @@ class MF(Recommender, ANNMixin):
         backend_cpu.fit_sgd(
             rid,
             cid,
-            val.astype(np.float32),
+            val.astype(DTYPE),
             self.u_factors,
             self.i_factors,
             self.u_biases,

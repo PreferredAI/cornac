@@ -109,33 +109,33 @@ class TestCommon(unittest.TestCase):
         indices = np.array([0, 2, 2, 0, 1, 2])
         data = np.array([1., 2., 3., 4., 5., 6.], dtype=np.float64)
         X = sp.csr_matrix((data, indices, indptr), shape=(3, 3))
-        XA = X.A
+        XA = X.toarray()
 
         # normalizing rows (axis=1)
         X_l1 = XA / (np.abs(XA).sum(1).reshape(-1, 1))
         X_l2 = XA / (np.sqrt((XA ** 2).sum(1)).reshape(-1, 1))
         X_max = XA / (np.max(XA, axis=1).reshape(-1, 1))
         # sparse input
-        npt.assert_array_equal(X_l1, normalize(X, 'l1', axis=1, copy=True).A)
-        npt.assert_array_equal(X_l2, normalize(X, 'l2', axis=1, copy=True).A)
-        npt.assert_array_equal(X_max, normalize(X, 'max', axis=1, copy=True).A)
+        npt.assert_array_equal(X_l1, normalize(X, "l1", axis=1, copy=True).toarray())
+        npt.assert_array_equal(X_l2, normalize(X, "l2", axis=1, copy=True).toarray())
+        npt.assert_array_equal(X_max, normalize(X, "max", axis=1, copy=True).toarray())
         # dense input
-        npt.assert_array_equal(X_l1, normalize(XA, 'l1', axis=1, copy=True))
-        npt.assert_array_equal(X_l2, normalize(XA, 'l2', axis=1, copy=True))
-        npt.assert_array_equal(X_max, normalize(XA, 'max', axis=1, copy=True))
+        npt.assert_array_equal(X_l1, normalize(XA, "l1", axis=1, copy=True))
+        npt.assert_array_equal(X_l2, normalize(XA, "l2", axis=1, copy=True))
+        npt.assert_array_equal(X_max, normalize(XA, "max", axis=1, copy=True))
 
         # normalizing columns (axis=0)
         X_l1 = XA / (np.abs(XA).sum(0).reshape(1, -1))
         X_l2 = XA / (np.sqrt((XA ** 2).sum(0)).reshape(1, -1))
         X_max = XA / (np.max(XA, axis=0).reshape(1, -1))
         # sparse input
-        npt.assert_array_equal(X_l1, normalize(X, 'l1', axis=0, copy=True).A)
-        npt.assert_array_equal(X_l2, normalize(X, 'l2', axis=0, copy=True).A)
-        npt.assert_array_equal(X_max, normalize(X, 'max', axis=0, copy=True).A)
+        npt.assert_array_equal(X_l1, normalize(X, "l1", axis=0, copy=True).toarray())
+        npt.assert_array_equal(X_l2, normalize(X, "l2", axis=0, copy=True).toarray())
+        npt.assert_array_equal(X_max, normalize(X, "max", axis=0, copy=True).toarray())
         # dense input
-        npt.assert_array_equal(X_l1, normalize(XA, 'l1', axis=0, copy=True))
-        npt.assert_array_equal(X_l2, normalize(XA, 'l2', axis=0, copy=True))
-        npt.assert_array_equal(X_max, normalize(XA, 'max', axis=0, copy=True))
+        npt.assert_array_equal(X_l1, normalize(XA, "l1", axis=0, copy=True))
+        npt.assert_array_equal(X_l2, normalize(XA, "l2", axis=0, copy=True))
+        npt.assert_array_equal(X_max, normalize(XA, "max", axis=0, copy=True))
 
         # check valid norm type
         try:

@@ -38,7 +38,7 @@ class VAECF(Recommender):
     likelihood: str, default: 'mult'
         Name of the likelihood function used for modeling the observations.
         Supported choices:
-        
+
         mult: Multinomial likelihood
         bern: Bernoulli likelihood
         gaus: Gaussian likelihood
@@ -193,16 +193,10 @@ class VAECF(Recommender):
         if item_idx is None:
             x_u = self.r_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            z_u, _ = self.vae.encode(
-                torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
-            )
+            z_u, _ = self.vae.encode(torch.tensor(x_u.toarray(), dtype=torch.float32, device=self.device))
             return self.vae.decode(z_u).data.cpu().numpy().flatten()
         else:
             x_u = self.r_mat[user_idx].copy()
             x_u.data = np.ones(len(x_u.data))
-            z_u, _ = self.vae.encode(
-                torch.tensor(x_u.A, dtype=torch.float32, device=self.device)
-            )
-            return (
-                self.vae.decode(z_u).data.cpu().numpy().flatten()[item_idx]
-            )  # Fix me I am not efficient
+            z_u, _ = self.vae.encode(torch.tensor(x_u.toarray(), dtype=torch.float32, device=self.device))
+            return self.vae.decode(z_u).data.cpu().numpy().flatten()[item_idx]  # Fix me I am not efficient

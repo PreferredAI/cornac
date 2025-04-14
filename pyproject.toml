@@ -3,8 +3,8 @@ requires = [
     "setuptools>=42",
     "wheel",
     "Cython>=0.29.21",
-    "numpy<2.0.0",
-    "scipy<=1.13.1",
+    "numpy>2.0.0",
+    "scipy",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -14,8 +14,8 @@ version = "2.3.0"
 description = "A Comparative Framework for Multimodal Recommender Systems"
 readme = "README.md"
 dependencies = [
-    "numpy<2.0.0",
-    "scipy<=1.13.1",
+    "numpy>2.0.0",
+    "scipy",
     "tqdm",
     "powerlaw"
 ]
