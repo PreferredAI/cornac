@@ -19,7 +19,6 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     env:
-      LIMIT_NUMPY_VERSION: 2.0.0
       LIMIT_SCIPY_VERSION: 1.13.1
     steps:
     - name: Get number of CPU cores
@@ -63,7 +62,7 @@ jobs:
 
     - name: Install other dependencies
       run: |
-        python${{ matrix.python-version }} -m pip install Cython pytest pytest-cov flake8 "numpy<${{ env.LIMIT_NUMPY_VERSION }}" "scipy<=${{ env.LIMIT_SCIPY_VERSION }}"
+        python${{ matrix.python-version }} -m pip install Cython pytest pytest-cov flake8 numpy "scipy<=${{ env.LIMIT_SCIPY_VERSION }}"
         python${{ matrix.python-version }} setup.py build_ext -j${{ steps.cpu-cores.outputs.count }}
         python${{ matrix.python-version }} -m pip install -e .[tests]
 
