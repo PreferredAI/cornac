@@ -198,8 +198,6 @@ class MF(Recommender, ANNMixin):
             self.i_factors,
             self.u_biases,
             self.i_biases,
-            self.num_users,
-            self.num_items,
             self.learning_rate,
             self.lambda_reg,
             self.global_mean,
