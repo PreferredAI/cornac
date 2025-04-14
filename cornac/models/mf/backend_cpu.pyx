@@ -41,12 +41,15 @@ def fit_sgd(INT64_t[:] rid, INT64_t[:] cid, float[:] val,
     """Fit the model parameters (U, V, Bu, Bi) with SGD"""
     cdef:
         INT64_t num_ratings = val.shape[0]
+        INT64_t u, i, j
+
         int num_factors = U.shape[1]
+        int f
 
         float loss = 0
         float last_loss = 0
         float r, r_pred, error, u_f, i_f, delta_loss
-        int u, i, f, j
+        
 
         float * user
         float * item
