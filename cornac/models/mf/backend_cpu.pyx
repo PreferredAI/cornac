@@ -33,14 +33,14 @@ from tqdm.auto import trange
 def fit_sgd(integral[:] rid, integral[:] cid, floating[:] val,
             floating[:, :] U, floating[:, :] V, 
             floating[:] Bu, floating[:] Bi,
-            long num_users, long num_items,
+            integral num_users, integral num_items,
             floating lr, floating reg, floating mu,
             int max_iter, int num_threads,
             bool use_bias, bool early_stop, bool verbose):
     """Fit the model parameters (U, V, Bu, Bi) with SGD"""
     cdef:
-        long num_ratings = val.shape[0]
-        int num_factors = U.shape[1]
+        integral num_ratings = val.shape[0]
+        integral num_factors = U.shape[1]
 
         floating loss = 0
         floating last_loss = 0
