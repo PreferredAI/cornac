@@ -54,7 +54,7 @@ jobs:
         python${{ matrix.python-version }} -c "import sys; print(sys.version)"
         pip --version
 
-    - name: Display GCC versions
+    - name: Display GLIBCXX versions
       if: matrix.os == 'ubuntu-22.04'
       run: | 
         ls /lib/x86_64-linux-gnu/libstdc*

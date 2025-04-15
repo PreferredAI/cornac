@@ -53,6 +53,12 @@ jobs:
       run: | 
         python${{ matrix.python-version }} -c "import sys; print(sys.version)"
         pip --version
+    
+    - name: Display GLIBCXX versions
+      if: matrix.os == 'ubuntu-22.04'
+      run: | 
+        ls /lib/x86_64-linux-gnu/libstdc*
+        strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
 
     - name: Upgrade pip wheel setuptools
       run: python${{ matrix.python-version }} -m pip install wheel setuptools pip --upgrade
@@ -99,6 +105,11 @@ jobs:
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
+
+    - name: Display GLIBCXX versions
+      run: | 
+        ls /lib/x86_64-linux-gnu/libstdc*
+        strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
 
     - name: Install numpy, scipy
       run: |
