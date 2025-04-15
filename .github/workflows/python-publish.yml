@@ -100,9 +100,9 @@ jobs:
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
 
-    - name: Install numpy
+    - name: Install numpy, scipy
       run: |
-        python -m pip install "numpy<${{ env.LIMIT_NUMPY_VERSION }}" "scipy<=${{ env.LIMIT_SCIPY_VERSION }}"
+        python -m pip install "numpy<${{ env.LIMIT_NUMPY_VERSION }}" scipy
         python -c "import numpy; print(numpy.__version__)"
 
     - name: Install other dependencies
