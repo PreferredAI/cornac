@@ -102,7 +102,7 @@ jobs:
 
     - name: Install numpy, scipy
       run: |
-        python -m pip install "numpy<${{ env.LIMIT_NUMPY_VERSION }}" scipy
+        python -m pip install "numpy>${{ env.LIMIT_NUMPY_VERSION }}" scipy
         python -c "import numpy; print(numpy.__version__)"
 
     - name: Install other dependencies
