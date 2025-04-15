@@ -17,7 +17,7 @@
 """
 Release instruction:
     - Check that tests run correctly with all CI tools.
-    - Change __version__ in setup.py, cornac/__init__.py, docs/source/conf.py.
+    - Change __version__ in pyproject.toml, cornac/__init__.py, docs/source/conf.py.
     - Commit and release a version on GitHub, Actions will be triggered to build and upload to PyPI.
     - Update conda-forge feedstock with new version and SHA256 hash of the new .tar.gz archive on PyPI (optional), the conda-forge bot will detect a new version and create PR after a while.
     - Check on https://anaconda.org/conda-forge/cornac that new version is available for all platforms.
