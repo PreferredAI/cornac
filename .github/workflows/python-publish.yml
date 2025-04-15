@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-22.04, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     - uses: actions/checkout@v4
@@ -53,6 +53,12 @@ jobs:
       run: | 
         python${{ matrix.python-version }} -c "import sys; print(sys.version)"
         pip --version
+    
+    - name: Display GLIBCXX versions
+      if: matrix.os == 'ubuntu-22.04'
+      run: | 
+        ls /lib/x86_64-linux-gnu/libstdc*
+        strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
 
     - name: Upgrade pip wheel setuptools
       run: python${{ matrix.python-version }} -m pip install wheel setuptools pip --upgrade
@@ -71,7 +77,7 @@ jobs:
       run: python${{ matrix.python-version }} setup.py bdist_wheel
         
     - name: Rename Linux wheels to supported platform of PyPI
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       run: for f in dist/*.whl; do mv "$f" "$(echo "$f" | sed s/linux/manylinux1/)"; done
 
     - name: Publish wheels to GitHub artifacts
@@ -82,7 +88,7 @@ jobs:
 
   publish-pypi:
     needs: [build-wheels]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
           
@@ -99,6 +105,11 @@ jobs:
 
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
+
+    - name: Display GLIBCXX versions
+      run: | 
+        ls /lib/x86_64-linux-gnu/libstdc*
+        strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
 
     - name: Install numpy, scipy
       run: |
