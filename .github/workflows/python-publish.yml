@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-22.04, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     - uses: actions/checkout@v4
@@ -71,7 +71,7 @@ jobs:
       run: python${{ matrix.python-version }} setup.py bdist_wheel
         
     - name: Rename Linux wheels to supported platform of PyPI
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       run: for f in dist/*.whl; do mv "$f" "$(echo "$f" | sed s/linux/manylinux1/)"; done
 
     - name: Publish wheels to GitHub artifacts
@@ -82,7 +82,7 @@ jobs:
 
   publish-pypi:
     needs: [build-wheels]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
           

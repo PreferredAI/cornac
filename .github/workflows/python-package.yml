@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-22.04, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     env:
       LIMIT_NUMPY_VERSION: 2.0.0
@@ -54,15 +54,20 @@ jobs:
         python${{ matrix.python-version }} -c "import sys; print(sys.version)"
         pip --version
 
+    - name: Display GCC versions
+      if: matrix.os == 'ubuntu-22.04'
+      run: | 
+        ls /lib/x86_64-linux-gnu/libstdc*
+        strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX        
+
     - name: Upgrade pip wheel setuptools
       run: python${{ matrix.python-version }} -m pip install wheel setuptools pip --upgrade
   
     - name: Install other dependencies
-      run: python${{ matrix.python-version }} -m pip install Cython pytest pytest-cov flake8
+      run: python${{ matrix.python-version }} -m pip install Cython pytest pytest-cov flake8 "numpy>${{ env.LIMIT_NUMPY_VERSION }}" scipy
 
-    - name: Install other dependencies
+    - name: Build extensions and install test dependencies
       run: |
-        python${{ matrix.python-version }} -m pip install Cython pytest pytest-cov flake8 "numpy>${{ env.LIMIT_NUMPY_VERSION }}" scipy
         python${{ matrix.python-version }} setup.py build_ext -j${{ steps.cpu-cores.outputs.count }}
         python${{ matrix.python-version }} -m pip install -e .[tests]
 
