@@ -116,60 +116,45 @@ class MLP(NCFBase):
     ########################
     ## TensorFlow backend ##
     ########################
-    def _build_graph_tf(self):
-        import tensorflow.compat.v1 as tf
-        from .backend_tf import mlp, loss_fn, train_fn
-
-        self.graph = tf.Graph()
-        with self.graph.as_default():
-            tf.set_random_seed(self.seed)
-
-            self.user_id = tf.placeholder(shape=[None], dtype=tf.int32, name="user_id")
-            self.item_id = tf.placeholder(shape=[None], dtype=tf.int32, name="item_id")
-            self.labels = tf.placeholder(
-                shape=[None, 1], dtype=tf.float32, name="labels"
-            )
-
-            self.interaction = mlp(
-                uid=self.user_id,
-                iid=self.item_id,
-                num_users=self.num_users,
-                num_items=self.num_items,
-                layers=self.layers,
-                reg_layers=[self.reg] * len(self.layers),
-                act_fn=self.act_fn,
-                seed=self.seed,
-            )
-            logits = tf.layers.dense(
-                self.interaction,
-                units=1,
-                name="logits",
-                kernel_initializer=tf.initializers.lecun_uniform(self.seed),
-            )
-            self.prediction = tf.nn.sigmoid(logits)
-
-            self.loss = loss_fn(labels=self.labels, logits=logits)
-            self.train_op = train_fn(
-                self.loss, learning_rate=self.lr, learner=self.learner
-            )
-
-            self.initializer = tf.global_variables_initializer()
-            self.saver = tf.train.Saver()
-
-        self._sess_init_tf()
-
-    def _score_tf(self, user_idx, item_idx):
-        if item_idx is None:
-            feed_dict = {
-                self.user_id: np.ones(self.num_items) * user_idx,
-                self.item_id: np.arange(self.num_items),
-            }
-        else:
-            feed_dict = {
-                self.user_id: [user_idx],
-                self.item_id: [item_idx],
-            }
-        return self.sess.run(self.prediction, feed_dict=feed_dict)
+    def _build_model_tf(self):
+        import tensorflow as tf
+        from .backend_tf import MLPLayer
+        
+        # Define inputs
+        user_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="user_input")
+        item_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="item_input")
+        
+        # MLP layer
+        mlp_layer = MLPLayer(
+            num_users=self.num_users,
+            num_items=self.num_items,
+            layers=self.layers,
+            reg_layers=[self.reg] * len(self.layers),
+            act_fn=self.act_fn,
+            seed=self.seed,
+            name="mlp_layer"
+        )
+        
+        # Get MLP vector
+        mlp_vector = mlp_layer([user_input, item_input])
+        
+        # Output layer
+        logits = tf.keras.layers.Dense(
+            1,
+            kernel_initializer=tf.keras.initializers.LecunUniform(seed=self.seed),
+            name="logits"
+        )(mlp_vector)
+        
+        prediction = tf.keras.layers.Activation('sigmoid', name="prediction")(logits)
+        
+        # Create model
+        model = tf.keras.Model(
+            inputs=[user_input, item_input],
+            outputs=prediction,
+            name="MLP"
+        )
+        
+        return model
 
     #####################
     ## PyTorch backend ##

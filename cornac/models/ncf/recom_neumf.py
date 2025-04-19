@@ -157,121 +157,102 @@ class NeuMF(NCFBase):
     ########################
     ## TensorFlow backend ##
     ########################
-    def _build_graph_tf(self):
-        import tensorflow.compat.v1 as tf
-        from .backend_tf import gmf, mlp, loss_fn, train_fn
-
-        self.graph = tf.Graph()
-        with self.graph.as_default():
-            tf.set_random_seed(self.seed)
-
-            self.gmf_user_id = tf.placeholder(
-                shape=[None], dtype=tf.int32, name="gmf_user_id"
-            )
-            self.mlp_user_id = tf.placeholder(
-                shape=[None], dtype=tf.int32, name="mlp_user_id"
-            )
-            self.item_id = tf.placeholder(shape=[None], dtype=tf.int32, name="item_id")
-            self.labels = tf.placeholder(
-                shape=[None, 1], dtype=tf.float32, name="labels"
-            )
-
-            gmf_feat = gmf(
-                uid=self.gmf_user_id,
-                iid=self.item_id,
-                num_users=self.num_users,
-                num_items=self.num_items,
-                emb_size=self.num_factors,
-                reg_user=self.reg,
-                reg_item=self.reg,
-                seed=self.seed,
-            )
-            mlp_feat = mlp(
-                uid=self.mlp_user_id,
-                iid=self.item_id,
-                num_users=self.num_users,
-                num_items=self.num_items,
-                layers=self.layers,
-                reg_layers=[self.reg] * len(self.layers),
-                act_fn=self.act_fn,
-                seed=self.seed,
-            )
-
-            self.interaction = tf.concat([gmf_feat, mlp_feat], axis=-1)
-            logits = tf.layers.dense(
-                self.interaction,
-                units=1,
-                name="logits",
-                kernel_initializer=tf.initializers.lecun_uniform(self.seed),
-            )
-            self.prediction = tf.nn.sigmoid(logits)
-
-            self.loss = loss_fn(labels=self.labels, logits=logits)
-            self.train_op = train_fn(
-                self.loss, learning_rate=self.lr, learner=self.learner
-            )
-
-            self.initializer = tf.global_variables_initializer()
-            self.saver = tf.train.Saver()
-
-        self._sess_init_tf()
-
+    def _build_model_tf(self):
+        import tensorflow as tf
+        from .backend_tf import GMFLayer, MLPLayer
+        
+        # Define inputs
+        user_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="user_input")
+        item_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="item_input")
+        
+        # GMF layer
+        gmf_layer = GMFLayer(
+            num_users=self.num_users,
+            num_items=self.num_items,
+            emb_size=self.num_factors,
+            reg_user=self.reg,
+            reg_item=self.reg,
+            seed=self.seed,
+            name="gmf_layer"
+        )
+        
+        # MLP layer
+        mlp_layer = MLPLayer(
+            num_users=self.num_users,
+            num_items=self.num_items,
+            layers=self.layers,
+            reg_layers=[self.reg] * len(self.layers),
+            act_fn=self.act_fn,
+            seed=self.seed,
+            name="mlp_layer"
+        )
+        
+        # Get embeddings and element-wise product
+        gmf_vector = gmf_layer([user_input, item_input])
+        mlp_vector = mlp_layer([user_input, item_input])
+        
+        # Concatenate GMF and MLP vectors
+        concat_vector = tf.keras.layers.Concatenate(axis=-1)([gmf_vector, mlp_vector])
+        
+        # Output layer
+        logits = tf.keras.layers.Dense(
+            1,
+            kernel_initializer=tf.keras.initializers.LecunUniform(seed=self.seed),
+            name="logits"
+        )(concat_vector)
+        
+        prediction = tf.keras.layers.Activation('sigmoid', name="prediction")(logits)
+        
+        # Create model
+        model = tf.keras.Model(
+            inputs=[user_input, item_input],
+            outputs=prediction,
+            name="NeuMF"
+        )
+        
+        # Handle pretrained models
         if self.pretrained:
-            gmf_kernel = self.pretrained_gmf.sess.run(
-                self.pretrained_gmf.sess.graph.get_tensor_by_name("logits/kernel:0")
+            # Get GMF and MLP models
+            gmf_model = self.pretrained_gmf.model
+            mlp_model = self.pretrained_mlp.model
+            
+            # Copy GMF embeddings
+            model.get_layer('gmf_layer').user_embedding.set_weights(
+                gmf_model.get_layer('gmf_layer').user_embedding.get_weights()
             )
-            gmf_bias = self.pretrained_gmf.sess.run(
-                self.pretrained_gmf.sess.graph.get_tensor_by_name("logits/bias:0")
+            model.get_layer('gmf_layer').item_embedding.set_weights(
+                gmf_model.get_layer('gmf_layer').item_embedding.get_weights()
             )
-            mlp_kernel = self.pretrained_mlp.sess.run(
-                self.pretrained_mlp.sess.graph.get_tensor_by_name("logits/kernel:0")
+            
+            # Copy MLP embeddings and layers
+            model.get_layer('mlp_layer').user_embedding.set_weights(
+                mlp_model.get_layer('mlp_layer').user_embedding.get_weights()
             )
-            mlp_bias = self.pretrained_mlp.sess.run(
-                self.pretrained_mlp.sess.graph.get_tensor_by_name("logits/bias:0")
+            model.get_layer('mlp_layer').item_embedding.set_weights(
+                mlp_model.get_layer('mlp_layer').item_embedding.get_weights()
             )
-            logits_kernel = np.concatenate(
-                [self.alpha * gmf_kernel, (1 - self.alpha) * mlp_kernel]
-            )
-            logits_bias = self.alpha * gmf_bias + (1 - self.alpha) * mlp_bias
-
-            for v in self.graph.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-                if v.name.startswith("GMF"):
-                    sess = self.pretrained_gmf.sess
-                    self.sess.run(
-                        tf.assign(v, sess.run(sess.graph.get_tensor_by_name(v.name)))
-                    )
-                elif v.name.startswith("MLP"):
-                    sess = self.pretrained_mlp.sess
-                    self.sess.run(
-                        tf.assign(v, sess.run(sess.graph.get_tensor_by_name(v.name)))
-                    )
-                elif v.name.startswith("logits/kernel"):
-                    self.sess.run(tf.assign(v, logits_kernel))
-                elif v.name.startswith("logits/bias"):
-                    self.sess.run(tf.assign(v, logits_bias))
-
-    def _get_feed_dict(self, batch_users, batch_items, batch_ratings):
-        return {
-            self.gmf_user_id: batch_users,
-            self.mlp_user_id: batch_users,
-            self.item_id: batch_items,
-            self.labels: batch_ratings.reshape(-1, 1),
-        }
-
-    def _score_tf(self, user_idx, item_idx):
-        if item_idx is None:
-            feed_dict = {
-                self.gmf_user_id: [user_idx],
-                self.mlp_user_id: np.ones(self.num_items) * user_idx,
-                self.item_id: np.arange(self.num_items),
-            }
-        else:
-            feed_dict = {
-                self.gmf_user_id: [user_idx],
-                self.mlp_user_id: [user_idx],
-                self.item_id: [item_idx],
-            }
-        return self.sess.run(self.prediction, feed_dict=feed_dict)
+            
+            # Copy dense layers in MLP
+            for i, layer in enumerate(model.get_layer('mlp_layer').dense_layers):
+                layer.set_weights(mlp_model.get_layer('mlp_layer').dense_layers[i].get_weights())
+            
+            # Combine weights for output layer
+            gmf_logits_weights = gmf_model.get_layer('logits').get_weights()
+            mlp_logits_weights = mlp_model.get_layer('logits').get_weights()
+            
+            # Combine kernel weights
+            combined_kernel = np.concatenate([
+                self.alpha * gmf_logits_weights[0],
+                (1.0 - self.alpha) * mlp_logits_weights[0]
+            ], axis=0)
+            
+            # Combine bias weights
+            combined_bias = self.alpha * gmf_logits_weights[1] + (1.0 - self.alpha) * mlp_logits_weights[1]
+            
+            # Set combined weights to output layer
+            model.get_layer('logits').set_weights([combined_kernel, combined_bias])
+        
+        return model
 
     #####################
     ## PyTorch backend ##

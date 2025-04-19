@@ -111,55 +111,45 @@ class GMF(NCFBase):
     ########################
     ## TensorFlow backend ##
     ########################
-    def _build_graph_tf(self):
-        import tensorflow.compat.v1 as tf
-        from .backend_tf import gmf, loss_fn, train_fn
-
-        self.graph = tf.Graph()
-        with self.graph.as_default():
-            tf.set_random_seed(self.seed)
-
-            self.user_id = tf.placeholder(shape=[None], dtype=tf.int32, name="user_id")
-            self.item_id = tf.placeholder(shape=[None], dtype=tf.int32, name="item_id")
-            self.labels = tf.placeholder(
-                shape=[None, 1], dtype=tf.float32, name="labels"
-            )
-
-            self.interaction = gmf(
-                uid=self.user_id,
-                iid=self.item_id,
-                num_users=self.num_users,
-                num_items=self.num_items,
-                emb_size=self.num_factors,
-                reg_user=self.reg,
-                reg_item=self.reg,
-                seed=self.seed,
-            )
-
-            logits = tf.layers.dense(
-                self.interaction,
-                units=1,
-                name="logits",
-                kernel_initializer=tf.initializers.lecun_uniform(self.seed),
-            )
-            self.prediction = tf.nn.sigmoid(logits)
-
-            self.loss = loss_fn(labels=self.labels, logits=logits)
-            self.train_op = train_fn(
-                self.loss, learning_rate=self.lr, learner=self.learner
-            )
-
-            self.initializer = tf.global_variables_initializer()
-            self.saver = tf.train.Saver()
-
-        self._sess_init_tf()
-
-    def _score_tf(self, user_idx, item_idx):
-        feed_dict = {
-            self.user_id: [user_idx],
-            self.item_id: np.arange(self.num_items) if item_idx is None else [item_idx],
-        }
-        return self.sess.run(self.prediction, feed_dict=feed_dict)
+    def _build_model_tf(self):
+        import tensorflow as tf
+        from .backend_tf import GMFLayer
+        
+        # Define inputs
+        user_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="user_input")
+        item_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="item_input")
+        
+        # GMF layer
+        gmf_layer = GMFLayer(
+            num_users=self.num_users,
+            num_items=self.num_items,
+            emb_size=self.num_factors,
+            reg_user=self.reg,
+            reg_item=self.reg,
+            seed=self.seed,
+            name="gmf_layer"
+        )
+        
+        # Get embeddings and element-wise product
+        gmf_vector = gmf_layer([user_input, item_input])
+        
+        # Output layer
+        logits = tf.keras.layers.Dense(
+            1,
+            kernel_initializer=tf.keras.initializers.LecunUniform(seed=self.seed),
+            name="logits"
+        )(gmf_vector)
+        
+        prediction = tf.keras.layers.Activation('sigmoid', name="prediction")(logits)
+        
+        # Create model with both logits and prediction outputs
+        model = tf.keras.Model(
+            inputs=[user_input, item_input],
+            outputs=prediction,
+            name="GMF"
+        )
+        
+        return model
 
     #####################
     ## PyTorch backend ##
