@@ -141,28 +141,34 @@ class NCFBase(Recommender):
     ########################
     ## TensorFlow backend ##
     ########################
-    def _build_graph_tf(self):
+    def _build_model_tf(self):
         raise NotImplementedError()
 
-    def _sess_init_tf(self):
-        import tensorflow.compat.v1 as tf
-
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(graph=self.graph, config=config)
-        self.sess.run(self.initializer)
-
-    def _get_feed_dict(self, batch_users, batch_items, batch_ratings):
-        return {
-            self.user_id: batch_users,
-            self.item_id: batch_items,
-            self.labels: batch_ratings.reshape(-1, 1),
-        }
-
     def _fit_tf(self, train_set, val_set):
-        if not hasattr(self, "graph"):
-            self._build_graph_tf()
-
+        import tensorflow as tf
+        
+        # Set random seed for reproducibility
+        if self.seed is not None:
+            tf.random.set_seed(self.seed)
+            np.random.seed(self.seed)
+        
+        # Configure GPU memory growth to avoid OOM errors
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+            except RuntimeError as e:
+                print(e)
+        
+        # Build the model
+        self.model = self._build_model_tf()
+        
+        # Get optimizer
+        from .backend_tf import get_optimizer
+        optimizer = get_optimizer(learning_rate=self.lr, learner=self.learner)
+        
+        # Training loop
         loop = trange(self.num_epochs, disable=not self.verbose)
         for _ in loop:
             count = 0
@@ -172,17 +178,33 @@ class NCFBase(Recommender):
                     self.batch_size, shuffle=True, binary=True, num_zeros=self.num_neg
                 )
             ):
-                _, _loss = self.sess.run(
-                    [self.train_op, self.loss],
-                    feed_dict=self._get_feed_dict(
-                        batch_users, batch_items, batch_ratings
-                    ),
-                )
+                batch_ratings = batch_ratings.reshape(-1, 1, 1)
+                
+                # Convert to tensors
+                batch_users = tf.convert_to_tensor(batch_users, dtype=tf.int32)
+                batch_items = tf.convert_to_tensor(batch_items, dtype=tf.int32)
+                batch_ratings = tf.convert_to_tensor(batch_ratings, dtype=tf.float32)
+                
+                # Training step
+                with tf.GradientTape() as tape:
+                    predictions = self.model([batch_users, batch_items], training=True)
+                    cross_entropy = tf.keras.losses.binary_crossentropy(
+                        y_true=batch_ratings,
+                        y_pred=predictions,
+                        from_logits=False  # predictions are already probabilities
+                    )
+                    cross_entropy = tf.reduce_mean(cross_entropy)
+                    loss_value = cross_entropy + tf.reduce_sum(self.model.losses)
+                    
+                # Apply gradients
+                grads = tape.gradient(loss_value, self.model.trainable_variables)
+                optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+                
                 count += len(batch_users)
-                sum_loss += len(batch_users) * _loss
+                sum_loss += len(batch_users) * loss_value.numpy()
                 if i % 10 == 0:
                     loop.set_postfix(loss=(sum_loss / count))
-
+            
             if self.early_stopping is not None and self.early_stop(
                 train_set, val_set, **self.early_stopping
             ):
@@ -190,7 +212,24 @@ class NCFBase(Recommender):
         loop.close()
 
     def _score_tf(self, user_idx, item_idx):
-        raise NotImplementedError()
+        """Score function for TensorFlow models."""
+        import tensorflow as tf
+        
+        if item_idx is None:
+            # Score all items for a given user
+            user_tensor = tf.convert_to_tensor([user_idx], dtype=tf.int32)
+            item_tensor = tf.convert_to_tensor(np.arange(self.num_items), dtype=tf.int32)
+            
+            # Broadcast user_idx to match the shape of item_tensor
+            user_tensor = tf.broadcast_to(user_tensor, shape=item_tensor.shape)
+        else:
+            # Score a specific item for a given user
+            user_tensor = tf.convert_to_tensor([user_idx], dtype=tf.int32)
+            item_tensor = tf.convert_to_tensor([item_idx], dtype=tf.int32)
+        
+        # Get predictions
+        predictions = self.model([user_tensor, item_tensor], training=False)
+        return predictions.numpy().squeeze()
 
     #####################
     ## PyTorch backend ##
@@ -271,7 +310,9 @@ class NCFBase(Recommender):
         model_file = Recommender.save(self, save_dir)
 
         if self.backend == "tensorflow":
-            self.saver.save(self.sess, model_file.replace(".pkl", ".cpt"))
+            # Save the TensorFlow model
+            if hasattr(self, "model"):
+                self.model.save_weights(model_file.replace(".pkl", ".h5"))
         elif self.backend == "pytorch":
             # TODO: implement model saving for PyTorch
             raise NotImplementedError()
@@ -301,8 +342,10 @@ class NCFBase(Recommender):
             model.pretrained = False
 
         if model.backend == "tensorflow":
-            model._build_graph()
-            model.saver.restore(model.sess, model.load_from.replace(".pkl", ".cpt"))
+            # Build the model
+            model.model = model._build_model_tf()
+            # Load weights
+            model.model.load_weights(model.load_from.replace(".pkl", ".h5"))
         elif model.backend == "pytorch":
             # TODO: implement model loading for PyTorch
             raise NotImplementedError()
