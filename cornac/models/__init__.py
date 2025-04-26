@@ -85,3 +85,4 @@ from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
 from .wmf import WMF
+from .globallocalkernel import GlobalLocalKernel
