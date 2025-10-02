@@ -249,11 +249,11 @@ class GlobalUniformItemSampler(_BaseNegativeSampler):
 
 
 def stem_fn(x):
-    from gensim.parsing import stem_text
-
+    from nltk.stem import PorterStemmer
+    stemmer = PorterStemmer()
     # Remove special characters and numbers. Multiple dashes, single quotes, and equal signs, and similar special chars.
-    return stem_text(re.sub(r'--+.*|-+$|\+\+|\'.+|=+.*$|-\d.*', '', x))
-
+    cleaned = re.sub(r'--+.*|-+$|\+\+|\'.+|=+.*$|-\d.*', '', x)
+    return stemmer.stem(cleaned.lower())
 
 def stem(sentiment):
     ao_preprocess_fn = stem_fn

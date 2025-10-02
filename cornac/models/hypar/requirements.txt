@@ -1,9 +1,12 @@
 # Links for torch and dgl
 -f https://download.pytorch.org/whl/torch_stable.html
+-f https://data.dgl.ai/wheels/torch-2.3/repo.html
 
-pandas==1.4.*
-gensim==4.2.0
+pandas==2.2.3
+scikit-learn>=1.0.0
+nltk>=3.6
 sentence-transformers==2.2.2
-dgl==1.0.*
-torch==1.*
+dgl==2.4.0
+torch==2.3.*
 filelock==3.8.2
+huggingface_hub>=0.10.0,<0.16.0
