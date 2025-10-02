@@ -946,6 +946,8 @@ class Model(nn.Module):
 
         # Node preference embedding
         if self.preference_module == 'lightgcn':
+            # Move ui_graph to the same device as the model to avoid device mismatch
+            ui_graph = ui_graph.to(device)
             u, i, _ = self.lightgcn(ui_graph)
             x = {'user': u, 'item': i}
         else:

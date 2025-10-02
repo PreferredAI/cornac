@@ -411,97 +411,52 @@ class HypAR(Recommender):
 
     def _ao_embeddings(self, train_set):
         """
-        Learn aspect and opinion embeddings using word2vec.
+        Learn aspect and opinion embeddings using sentence-transformers.
         Parameters
         ----------
         train_set: dataset
             Dataset to use for learning embeddings.
         Returns
         -------
-            Aspect and opinion embeddings, and word2vec model.
+            Aspect and opinion embeddings, and the sentence-transformers model.
         """
         from .dgl_utils import generate_mappings, stem_fn
-        from gensim.models import Word2Vec
-        from gensim.parsing import remove_stopwords, preprocess_string, stem_text
         from nltk.tokenize import word_tokenize
         from tqdm import tqdm
         import numpy as np
+        from sentence_transformers import SentenceTransformer
 
         sentiment = train_set.sentiment
-
-        # Define preprocess functions for text, aspects and opinions.
         preprocess_fn = stem_fn
 
-        # Process corpus, getting all sentences and words.
-        corpus = []
-        for review in tqdm(train_set.review_text.corpus, desc='Processing text', disable=not self.verbose):
-            for sentence in review.split('.'):
-                words = word_tokenize(sentence.replace(' n\'t ', 'n ').replace('/', ' '))
-                corpus.append(' '.join(preprocess_fn(word) for word in words))
-
-        # Process words to match with aos extraction methodology used in SEER.
+        # Prepare aspect and opinion terms
         a_old_new_map = {a: preprocess_fn(a) for a in sentiment.aspect_id_map}
         o_old_new_map = {o: preprocess_fn(o) for o in sentiment.opinion_id_map}
-
-        # Generate mappings for aspect and opinion ids.
         _, _, _, _, _, _, a2a, o2o = generate_mappings(train_set.sentiment, 'a', get_ao_mappings=True)
 
-        # Define a progressbar for training word2vec as no information is displayed without.
-        class CallbackProgressBar:
-            def __init__(self, verbose):
-                self.verbose = verbose
-                self.progress = None
+        # Load sentence-transformers model (use a small, fast model by default)
+        model = SentenceTransformer('all-MiniLM-L6-v2')
+        embedding_dim = model.get_sentence_embedding_dimension()
 
-            def on_train_begin(self, method):
-                if self.progress is None:
-                    self.progress = tqdm(desc='Training Word2Vec', total=method.epochs, disable=not self.verbose)
-
-            def on_train_end(self, method):
-                pass
-
-            def on_epoch_begin(self, method):
-                pass
-
-            def on_epoch_end(self, method):
-                self.progress.update(1)
-
-        # Split words on space and get all unique words
-        wc = [s.split(' ') for s in corpus]
-        all_words = set(s for se in wc for s in se)
-
-        # Assert all aspects and opinions in dataset are in corpus. If not, print missing words.
-        # New datasets may require more preprocessing.
-        assert all([a in all_words for a in a_old_new_map.values()]), [a for a in a_old_new_map.values() if
-                                                                       a not in all_words]
-        assert all([o in all_words for o in o_old_new_map.values()]), [o for o in o_old_new_map.values() if
-                                                                       o not in all_words]
-
-        # Train word2vec model using callbacks for progressbar.
-        l = CallbackProgressBar(self.verbose)
-        embedding_dim = 100
-        w2v_model = Word2Vec(wc, vector_size=embedding_dim, min_count=1, window=5, callbacks=[l], epochs=100)
-
-        # Keyvector model
-        kv = w2v_model.wv
+        # Encode all unique aspect and opinion terms
+        aspect_terms = [a_old_new_map[a] for a in sentiment.aspect_id_map]
+        opinion_terms = [o_old_new_map[o] for o in sentiment.opinion_id_map]
+        aspect_vecs = model.encode(aspect_terms, show_progress_bar=self.verbose)
+        opinion_vecs = model.encode(opinion_terms, show_progress_bar=self.verbose)
 
         # Initialize embeddings
         a_embeddings = np.zeros((len(set(a2a.values())), embedding_dim))
         o_embeddings = np.zeros((len(set(o2o.values())), embedding_dim))
 
-        # Define function for assigning embeddings to correct aspect.
-        def get_info(old_new_pairs, mapping, embedding):
-            for old, new in old_new_pairs:
-                nid = mapping(old)
-                vector = np.array(kv.get_vector(new))
-                embedding[nid] = vector
+        # Assign embeddings to correct aspect and opinion
+        for idx, a in enumerate(sentiment.aspect_id_map):
+            nid = a2a[sentiment.aspect_id_map[a]]
+            a_embeddings[nid] = aspect_vecs[idx]
+        for idx, o in enumerate(sentiment.opinion_id_map):
+            nid = o2o[sentiment.opinion_id_map[o]]
+            o_embeddings[nid] = opinion_vecs[idx]
 
-            return embedding
-
-        # Assign embeddings to correct aspect and opinion.
-        a_embeddings = get_info(a_old_new_map.items(), lambda x: a2a[sentiment.aspect_id_map[x]], a_embeddings)
-        o_embeddings = get_info(o_old_new_map.items(), lambda x: o2o[sentiment.opinion_id_map[x]], o_embeddings)
-
-        return a_embeddings, o_embeddings, kv
+        return a_embeddings, o_embeddings, model
 
     def _normalize_embedding(self, embedding):
         """
@@ -550,8 +505,10 @@ class HypAR(Recommender):
         return torch.tensor(a_embeddings), torch.tensor(o_embeddings)
 
     def fit(self, train_set: Dataset, val_set=None):
+        import os
         import torch
         from .lightgcn import construct_graph
+        os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
         # Initialize self variables
         super().fit(train_set, val_set)

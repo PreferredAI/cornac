@@ -1,0 +1,14 @@
+# Links for torch and dgl
+
+-f https://data.dgl.ai/wheels/torch-2.3/cu118/repo.html
+
+pandas==2.2.3
+scikit-learn>=1.0.0
+nltk>=3.6
+sentence-transformers==2.2.2
+dgl==2.4.0+cu118
+filelock==3.8.2
+huggingface_hub>=0.10.0,<0.16.0
+
+--index-url https://download.pytorch.org/whl/cu118
+torch==2.3.*
