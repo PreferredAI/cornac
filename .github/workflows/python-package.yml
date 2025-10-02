@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-latest]
+        os: [windows-latest, ubuntu-22.04, macos-14]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     env:
       LIMIT_NUMPY_VERSION: 2.0.0
