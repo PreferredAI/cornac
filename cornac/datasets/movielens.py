@@ -77,7 +77,7 @@ def load_feedback(fmt="UIR", variant="100K", reader=None):
     data: array-like
         Data in the form of a list of tuples depending on the given data format.
     """
-
+    
     fmt = validate_format(fmt, VALID_DATA_FORMATS)
 
     ml = ML_DATASETS.get(variant.upper(), None)

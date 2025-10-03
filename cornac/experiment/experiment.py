@@ -157,7 +157,7 @@ class Experiment:
         if self.val_result is not None:
             output += "\nVALIDATION:\n...\n{}".format(self.val_result)
         output += "\nTEST:\n...\n{}".format(self.result)
-
+        # print('helllooooooooooooow')
         print(output)
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
