@@ -22,8 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-14]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        os: [windows-latest, ubuntu-22.04, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
     - uses: actions/checkout@v4
     
@@ -34,14 +34,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-
-    - name: Setup Python 3.9 - macos-arm
-      if: ${{ (matrix.os == 'macos-latest') && (matrix.python-version == '3.9') }}
-      run: |
-        brew update
-        brew install python@${{ matrix.python-version }}
-        curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-        python${{ matrix.python-version }} get-pip.py
 
     - name: Create Python alias for Windows 
       if: matrix.os == 'windows-latest'
