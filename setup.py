@@ -28,6 +28,7 @@ import os
 import sys
 import glob
 import shutil
+import platform, re
 from setuptools import Extension, Command, setup, find_packages
 from Cython.Distutils import build_ext
 import numpy as np
@@ -39,59 +40,87 @@ with open("README.md", "r") as fh:
 
 USE_OPENMP = True
 
+def homebrew_prefix():
+    # Prefer explicit env, then sane defaults for Intel vs Apple silicon
+    return os.environ.get(
+        "HOMEBREW_PREFIX",
+        "/opt/homebrew" if platform.machine() == "arm64" else "/usr/local"
+    )
 
-def extract_gcc_binaries():
-    """Try to find GCC on OSX for OpenMP support."""
+def extract_gcc_binary():
+    # Return full path to latest g++-NN from Homebrew or MacPorts
     patterns = [
-        "/opt/local/bin/g++-mp-[0-9].[0-9]",
-        "/opt/local/bin/g++-mp-[0-9]",
-        "/usr/local/bin/g++-[0-9].[0-9]",
-        "/usr/local/bin/g++-[0-9]",
+        f"{homebrew_prefix()}/bin/g++-[0-9]*",      # Homebrew (both /usr/local and /opt/homebrew)
+        "/usr/local/bin/g++-[0-9]*",                # Legacy Intel HB
+        "/opt/local/bin/g++-mp-[0-9]*",             # MacPorts
     ]
-    if sys.platform.startswith("darwin"):
-        gcc_binaries = []
-        for pattern in patterns:
-            gcc_binaries += glob.glob(pattern)
-        gcc_binaries.sort()
-        if gcc_binaries:
-            _, gcc = os.path.split(gcc_binaries[-1])
-            return gcc
-        else:
-            return None
-    else:
+    cands = []
+    for p in patterns:
+        cands.extend(glob.glob(p))
+    if not cands:
         return None
-
+    cands.sort()
+    return cands[-1]  # newest version string-wise
 
 if sys.platform.startswith("win"):
-    # compile args from
-    # https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx
     compile_args = ["/O2", "/openmp"]
     link_args = []
 else:
-    gcc = extract_gcc_binaries()
-
-    compile_args = [
-        "-Wno-unused-function",
-        "-Wno-maybe-uninitialized",
-        "-O3",
-        "-ffast-math",
-    ]
+    compile_args = ["-Wno-unused-function", "-Wno-maybe-uninitialized", "-O3", "-ffast-math"]
     link_args = []
 
     if sys.platform.startswith("darwin"):
-        if gcc is not None:
-            os.environ["CC"] = gcc
-            os.environ["CXX"] = gcc
-        else:
-            if not os.path.exists("/usr/bin/g++"):
-                print(
-                    "No GCC available. Install gcc from Homebrew using brew install gcc."
-                )
-            USE_OPENMP = False
+        gcc_path = extract_gcc_binary()
 
-    if USE_OPENMP:
-        compile_args.append("-fopenmp")
-        link_args.append("-fopenmp")
+        # Choose a valid deployment target
+        if platform.machine() == "arm64":
+            mac_min = "11.0"  # arm64 cannot target < 11.0
+        else:
+            mac_min = "10.13"  # bump from 10.7; keep reasonably old but supported
+
+        if gcc_path is not None:
+            # Use Homebrew/MacPorts GCC for OpenMP (libgomp)
+            os.environ["CC"] = gcc_path
+            os.environ["CXX"] = gcc_path
+
+            # rpath to GCC’s libgomp dir
+            prefix = os.path.dirname(os.path.dirname(gcc_path))  # .../bin -> prefix
+            # For Homebrew GCC the libs live under <prefix>/opt/gcc/lib/gcc/<MAJOR>
+            # Try to extract MAJOR from the binary name (g++-14, g++-13, etc.)
+            m = re.search(r'(\d+)(?:\.\d+)?$', os.path.basename(gcc_path))
+            gcc_major = m.group(1) if m else ""
+            hb_opt_gcc = f"{homebrew_prefix()}/opt/gcc/lib/gcc/{gcc_major}"
+            mp_libgcc = "/opt/local/lib/gcc{}".format(gcc_major) if prefix.startswith("/opt/local") else None
+
+            if os.path.isdir(hb_opt_gcc):
+                link_args.append(f"-Wl,-rpath,{hb_opt_gcc}")
+            elif mp_libgcc and os.path.isdir(mp_libgcc):
+                link_args.append(f"-Wl,-rpath,{mp_libgcc}")
+
+            compile_args.append("-fopenmp")
+            link_args.append("-fopenmp")
+            # Deployment target is still needed for ABI consistency
+            compile_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
+            link_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
+        else:
+            # No GCC found → default to Apple clang. Either disable OpenMP or use libomp if present.
+            USE_OPENMP = False
+            compile_args.extend(["-O2", "-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
+            link_args.extend(["-O2", "-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
+
+            # Optional: enable OpenMP with clang + libomp if installed
+            hb = homebrew_prefix()
+            omp_inc = f"{hb}/opt/libomp/include"
+            omp_lib = f"{hb}/opt/libomp/lib"
+            if os.path.exists(os.path.join(omp_inc, "omp.h")) and os.path.isdir(omp_lib):
+                # clang needs -Xpreprocessor -fopenmp and links against -lomp
+                compile_args += ["-Xpreprocessor", "-fopenmp", f"-I{omp_inc}"]
+                link_args += [f"-L{omp_lib}", "-lomp"]
+                USE_OPENMP = True
+
+    # Common C++ standard
+    compile_args.append("-std=c++11")
+    link_args.append("-std=c++11")
 
 
 extensions = [
