@@ -76,3 +76,8 @@ jobs:
     - name: Test with pytest
       run: |
         python${{ matrix.python-version }} -m pytest --cov=cornac
+
+    - name: Test running first_example.py
+      run: |
+        cp examples/first_example.py first_example.py
+        python${{ matrix.python-version }} first_example.py
