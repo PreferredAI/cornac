@@ -144,37 +144,27 @@ extensions = [
             "cornac/utils/external/eigen/unsupported/Eigen/",
         ],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.nmf.recom_nmf",
         sources=["cornac/models/nmf/recom_nmf.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.pmf.pmf",
         sources=["cornac/models/pmf/cython/pmf.pyx"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.mcf.mcf",
         sources=["cornac/models/mcf/cython/mcf.pyx"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.sorec.sorec",
         sources=["cornac/models/sorec/cython/sorec.pyx"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         "cornac.models.hpf.hpf",
@@ -188,8 +178,6 @@ extensions = [
             "cornac/utils/external/eigen/unsupported/Eigen/",
         ],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.mf.backend_cpu",
@@ -212,16 +200,12 @@ extensions = [
         sources=["cornac/models/efm/recom_efm.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_obj",
         sources=["cornac/models/comparer/recom_comparer_obj.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.bpr.recom_bpr",
@@ -300,8 +284,6 @@ extensions = [
         sources=["cornac/utils/fast_dict.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.utils.fast_dot",
@@ -315,8 +297,6 @@ extensions = [
         sources=["cornac/utils/fast_sparse_funcs.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
 ]
 
