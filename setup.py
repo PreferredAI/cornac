@@ -138,7 +138,6 @@ else:
     USE_OPENMP = True
 
 
-
 extensions = [
     Extension(
         name="cornac.models.c2pf.c2pf",
@@ -192,12 +191,16 @@ extensions = [
         sources=["cornac/models/mf/backend_cpu.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.baseline_only.recom_bo",
         sources=["cornac/models/baseline_only/recom_bo.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.efm.recom_efm",
@@ -216,54 +219,72 @@ extensions = [
         sources=["cornac/models/bpr/recom_bpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.bpr.recom_wbpr",
         sources=["cornac/models/bpr/recom_wbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.sbpr.recom_sbpr",
         sources=["cornac/models/sbpr/recom_sbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.lrppm.recom_lrppm",
         sources=["cornac/models/lrppm/recom_lrppm.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.mter.recom_mter",
         sources=["cornac/models/mter/recom_mter.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.companion.recom_companion",
         sources=["cornac/models/companion/recom_companion.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_sub",
         sources=["cornac/models/comparer/recom_comparer_sub.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.mmmf.recom_mmmf",
         sources=["cornac/models/mmmf/recom_mmmf.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.knn.similarity",
         sources=["cornac/models/knn/similarity.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.utils.fast_dict",
@@ -275,6 +296,8 @@ extensions = [
         name="cornac.utils.fast_dot",
         sources=["cornac/utils/fast_dot.pyx"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.utils.fast_sparse_funcs",
@@ -296,15 +319,10 @@ if sys.platform.startswith("linux"):  # Linux supported only
                 "cornac/models/fm/libfm/libfm/src/",
             ],
             language="c++",
+            extra_compile_args=compile_args,
+            extra_link_args=link_args,
         )
     ]
-
-
-# Ensure all C++ extensions get the same flags (keeps the build consistent)
-for ext in extensions:
-    if getattr(ext, "language", None) == "c++":
-        ext.extra_compile_args = (getattr(ext, "extra_compile_args", []) or []) + compile_args
-        ext.extra_link_args = (getattr(ext, "extra_link_args", []) or []) + link_args
 
 
 class CleanCommand(Command):
