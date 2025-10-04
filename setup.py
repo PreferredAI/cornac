@@ -26,9 +26,8 @@ Release instruction:
 
 import os
 import sys
-import glob
 import shutil
-import platform, re
+import platform
 from setuptools import Extension, Command, setup, find_packages
 from Cython.Distutils import build_ext
 import numpy as np
@@ -38,97 +37,106 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-USE_OPENMP = True
+USE_OPENMP = False  # we'll turn it on only if we find a working libomp
 
-def homebrew_prefix():
-    # Prefer explicit env, then sane defaults for Intel vs Apple silicon
-    return os.environ.get(
-        "HOMEBREW_PREFIX",
-        "/opt/homebrew" if platform.machine() == "arm64" else "/usr/local"
-    )
+def candidates_from_env():
+    # Let users/CI point to a custom libomp
+    incs = []
+    libs = []
+    omp_dir = os.environ.get("OMP_DIR")
+    if omp_dir:
+        incs += [os.path.join(omp_dir, "include")]
+        libs += [os.path.join(omp_dir, "lib")]
+    inc_env = os.environ.get("OMP_INCLUDE")
+    lib_env = os.environ.get("OMP_LIB")
+    if inc_env: incs.append(inc_env)
+    if lib_env: libs.append(lib_env)
+    # Conda environments
+    conda = os.environ.get("CONDA_PREFIX")
+    if conda:
+        incs += [os.path.join(conda, "include")]
+        libs += [os.path.join(conda, "lib")]
+    # Homebrew (Apple silicon and Intel) and MacPorts (optional, don’t require them)
+    incs += ["/opt/homebrew/opt/libomp/include", "/usr/local/opt/libomp/include", "/opt/local/include"]
+    libs += ["/opt/homebrew/opt/libomp/lib",     "/usr/local/opt/libomp/lib",     "/opt/local/lib"]
+    # Common fallbacks
+    incs += ["/usr/local/include", "/usr/include"]
+    libs += ["/usr/local/lib", "/usr/lib"]
+    # De-dup while keeping order
+    def uniq(xs):
+        seen=set(); out=[]
+        for x in xs:
+            if x and x not in seen:
+                out.append(x); seen.add(x)
+        return out
+    return uniq(incs), uniq(libs)
 
-def extract_gcc_binary():
-    # Return full path to latest g++-NN from Homebrew or MacPorts
-    patterns = [
-        f"{homebrew_prefix()}/bin/g++-[0-9]*",      # Homebrew (both /usr/local and /opt/homebrew)
-        "/usr/local/bin/g++-[0-9]*",                # Legacy Intel HB
-        "/opt/local/bin/g++-mp-[0-9]*",             # MacPorts
-    ]
-    cands = []
-    for p in patterns:
-        cands.extend(glob.glob(p))
-    if not cands:
-        return None
-    cands.sort()
-    return cands[-1]  # newest version string-wise
+def find_libomp():
+    incs, libs = candidates_from_env()
+    inc_dir = next((d for d in incs if os.path.exists(os.path.join(d, "omp.h"))), None)
+    # Prefer a real libomp over stubs
+    lib_names = ["libomp.dylib", "libomp.a"]
+    lib_dir = None
+    for d in libs:
+        if any(os.path.exists(os.path.join(d, n)) for n in lib_names):
+            lib_dir = d
+            break
+    return inc_dir, lib_dir
+
+compile_args = []
+link_args = []
 
 if sys.platform.startswith("win"):
     compile_args = ["/O2", "/openmp"]
     link_args = []
-else:
-    compile_args = [
-        "-Wno-unused-function", 
-        "-Wno-maybe-uninitialized",
-        "-O3", 
-        "-ffast-math"
+elif sys.platform.startswith("darwin"):
+    # Always use Clang on macOS
+    os.environ.setdefault("CC", "clang")
+    os.environ.setdefault("CXX", "clang++")
+
+    # Force single-arch arm64 on Apple silicon unless caller overrides
+    if platform.machine() == "arm64" and not os.environ.get("ARCHFLAGS"):
+        os.environ["ARCHFLAGS"] = "-arch arm64"
+
+    mac_min = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "12.0")
+
+    # Base flags good for Clang/libc++
+    compile_args += [
+        "-O3", "-ffast-math",
+        "-Wno-unused-function",
+        "-std=c++11",
+        "-stdlib=libc++",
+        f"-mmacosx-version-min={mac_min}",
     ]
-    link_args = []
+    link_args += [
+        "-std=c++11",
+        "-stdlib=libc++",
+        f"-mmacosx-version-min={mac_min}",
+    ]
 
-    if sys.platform.startswith("darwin"):
-        gcc_path = extract_gcc_binary()
+    # Optional OpenMP (only if a usable libomp is present)
+    if os.environ.get("CORNAC_DISABLE_OPENMP") != "1":
+        inc_dir, lib_dir = find_libomp()
+        if inc_dir and lib_dir:
+            compile_args += ["-Xpreprocessor", "-fopenmp", f"-I{inc_dir}"]
+            link_args += [f"-L{lib_dir}", "-lomp", f"-Wl,-rpath,{lib_dir}"]
+            USE_OPENMP = True
+        elif os.environ.get("CORNAC_FORCE_OPENMP") == "1":
+            raise RuntimeError(
+                "CORNAC_FORCE_OPENMP=1 but libomp was not found; set OMP_INCLUDE/OMP_LIB or OMP_DIR."
+            )
+else:
+    # Linux/Unix: prefer OpenMP via compiler default (GCC/Clang + libgomp)
+    compile_args += [
+        "-O3", "-ffast-math",
+        "-Wno-unused-function",
+        "-Wno-maybe-uninitialized",
+        "-std=c++11",
+        "-fopenmp",
+    ]
+    link_args += ["-std=c++11", "-fopenmp"]
+    USE_OPENMP = True
 
-        # Choose a valid deployment target
-        if platform.machine() == "arm64":
-            mac_min = "11.0"  # arm64 cannot target < 11.0
-        else:
-            mac_min = "10.13"  # bump from 10.7; keep reasonably old but supported
-
-        compile_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"]) 
-        link_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
-
-        if gcc_path is not None:
-            # Use Homebrew/MacPorts GCC for OpenMP (libgomp)
-            os.environ["CC"] = gcc_path
-            os.environ["CXX"] = gcc_path
-
-            # rpath to GCC’s libgomp dir
-            prefix = os.path.dirname(os.path.dirname(gcc_path))  # .../bin -> prefix
-            # For Homebrew GCC the libs live under <prefix>/opt/gcc/lib/gcc/<MAJOR>
-            # Try to extract MAJOR from the binary name (g++-14, g++-13, etc.)
-            m = re.search(r'(\d+)(?:\.\d+)?$', os.path.basename(gcc_path))
-            gcc_major = m.group(1) if m else ""
-            hb_opt_gcc = f"{homebrew_prefix()}/opt/gcc/lib/gcc/{gcc_major}"
-            mp_libgcc = "/opt/local/lib/gcc{}".format(gcc_major) if prefix.startswith("/opt/local") else None
-
-            if os.path.isdir(hb_opt_gcc):
-                link_args.append(f"-Wl,-rpath,{hb_opt_gcc}")
-            elif mp_libgcc and os.path.isdir(mp_libgcc):
-                link_args.append(f"-Wl,-rpath,{mp_libgcc}")
-
-            compile_args.append("-fopenmp")
-            link_args.append("-fopenmp")
-            # Deployment target is still needed for ABI consistency
-            compile_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
-            link_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
-        else:
-            # No GCC found → default to Apple clang. Either disable OpenMP or use libomp if present.
-            USE_OPENMP = False
-            compile_args.extend(["-O2", "-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
-            link_args.extend(["-O2", "-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
-
-            # Optional: enable OpenMP with clang + libomp if installed
-            hb = homebrew_prefix()
-            omp_inc = f"{hb}/opt/libomp/include"
-            omp_lib = f"{hb}/opt/libomp/lib"
-            if os.path.exists(os.path.join(omp_inc, "omp.h")) and os.path.isdir(omp_lib):
-                # clang needs -Xpreprocessor -fopenmp and links against -lomp
-                compile_args += ["-Xpreprocessor", "-fopenmp", f"-I{omp_inc}"]
-                link_args += [f"-L{omp_lib}", "-lomp"]
-                USE_OPENMP = True
-
-    # Common C++ standard
-    compile_args.append("-std=c++11")
-    link_args.append("-std=c++11")
 
 
 extensions = [
@@ -184,16 +192,12 @@ extensions = [
         sources=["cornac/models/mf/backend_cpu.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.baseline_only.recom_bo",
         sources=["cornac/models/baseline_only/recom_bo.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.efm.recom_efm",
@@ -212,72 +216,54 @@ extensions = [
         sources=["cornac/models/bpr/recom_bpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.bpr.recom_wbpr",
         sources=["cornac/models/bpr/recom_wbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.sbpr.recom_sbpr",
         sources=["cornac/models/sbpr/recom_sbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.lrppm.recom_lrppm",
         sources=["cornac/models/lrppm/recom_lrppm.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.mter.recom_mter",
         sources=["cornac/models/mter/recom_mter.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.companion.recom_companion",
         sources=["cornac/models/companion/recom_companion.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_sub",
         sources=["cornac/models/comparer/recom_comparer_sub.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.mmmf.recom_mmmf",
         sources=["cornac/models/mmmf/recom_mmmf.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.knn.similarity",
         sources=["cornac/models/knn/similarity.pyx"],
         include_dirs=[np.get_include()],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.utils.fast_dict",
@@ -289,8 +275,6 @@ extensions = [
         name="cornac.utils.fast_dot",
         sources=["cornac/utils/fast_dot.pyx"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.utils.fast_sparse_funcs",
@@ -312,10 +296,15 @@ if sys.platform.startswith("linux"):  # Linux supported only
                 "cornac/models/fm/libfm/libfm/src/",
             ],
             language="c++",
-            extra_compile_args=compile_args,
-            extra_link_args=link_args,
         )
     ]
+
+
+# Ensure all C++ extensions get the same flags (keeps the build consistent)
+for ext in extensions:
+    if getattr(ext, "language", None) == "c++":
+        ext.extra_compile_args = (getattr(ext, "extra_compile_args", []) or []) + compile_args
+        ext.extra_link_args = (getattr(ext, "extra_link_args", []) or []) + link_args
 
 
 class CleanCommand(Command):
