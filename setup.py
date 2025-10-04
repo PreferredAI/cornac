@@ -249,6 +249,8 @@ extensions = [
         sources=["cornac/models/companion/recom_companion.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_sub",
