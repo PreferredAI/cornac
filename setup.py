@@ -78,6 +78,9 @@ else:
         else:
             mac_min = "10.13"  # bump from 10.7; keep reasonably old but supported
 
+        compile_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"]) 
+        link_args.extend(["-stdlib=libc++", f"-mmacosx-version-min={mac_min}"])
+
         if gcc_path is not None:
             # Use Homebrew/MacPorts GCC for OpenMP (libgomp)
             os.environ["CC"] = gcc_path
@@ -136,6 +139,8 @@ extensions = [
             "cornac/utils/external/eigen/unsupported/Eigen/",
         ],
         language="c++",
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.nmf.recom_nmf",
@@ -244,8 +249,6 @@ extensions = [
         sources=["cornac/models/companion/recom_companion.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],
         language="c++",
-        extra_compile_args=compile_args,
-        extra_link_args=link_args,
     ),
     Extension(
         name="cornac.models.comparer.recom_comparer_sub",
