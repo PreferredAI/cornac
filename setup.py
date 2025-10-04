@@ -68,40 +68,35 @@ if sys.platform.startswith("win"):
     compile_args = ["/O2", "/openmp"]
     link_args = []
 else:
-    gcc = extract_gcc_binaries()
-    if gcc is not None:
-        rpath = "/usr/local/opt/gcc/lib/gcc/" + gcc[-1] + "/"
-        link_args = ["-Wl,-rpath," + rpath]
-    else:
-        link_args = []
+    # gcc = extract_gcc_binaries()
+    # if gcc is not None:
+    #     rpath = "/usr/local/opt/gcc/lib/gcc/" + gcc[-1] + "/"
+    #     link_args = ["-Wl,-rpath," + rpath]
+    # else:
+    #     link_args = []
 
     compile_args = [
         "-Wno-unused-function",
         "-Wno-maybe-uninitialized",
         "-O3",
         "-ffast-math",
+        "-fopenmp",
     ]
 
-    if sys.platform.startswith("darwin"):
-        if gcc is not None:
-            os.environ["CC"] = gcc
-            os.environ["CXX"] = gcc
-        else:
-            if not os.path.exists("/usr/bin/g++"):
-                print(
-                    "No GCC available. Install gcc from Homebrew using brew install gcc."
-                )
-            USE_OPENMP = False
-            # required arguments for default gcc of OSX
-            compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-            link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
+    # if sys.platform.startswith("darwin"):
+    #     if gcc is not None:
+    #         os.environ["CC"] = gcc
+    #         os.environ["CXX"] = gcc
+    #     else:
+    #         if not os.path.exists("/usr/bin/g++"):
+    #             print(
+    #                 "No GCC available. Install gcc from Homebrew using brew install gcc."
+    #             )
+    #         USE_OPENMP = False
 
-    if USE_OPENMP:
-        compile_args.append("-fopenmp")
-        link_args.append("-fopenmp")
-
-    compile_args.append("-std=c++11")
-    link_args.append("-std=c++11")
+    # if USE_OPENMP:
+    #     compile_args.append("-fopenmp")
+    #     link_args.append("-fopenmp")
 
 
 extensions = [
