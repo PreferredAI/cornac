@@ -16,8 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-14]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        os: [windows-latest, ubuntu-22.04, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     env:
       LIMIT_NUMPY_VERSION: 2.0.0
     steps:
@@ -34,7 +34,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-
+        
     - name: Setup Python 3.9 - macos-arm
       if: ${{ (matrix.os == 'macos-latest') && (matrix.python-version == '3.9') }}
       run: |
@@ -84,3 +84,8 @@ jobs:
     - name: Test with pytest
       run: |
         python${{ matrix.python-version }} -m pytest --cov=cornac
+
+    - name: Test running first_example.py
+      run: |
+        cp examples/first_example.py first_example.py
+        python${{ matrix.python-version }} first_example.py

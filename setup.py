@@ -26,8 +26,8 @@ Release instruction:
 
 import os
 import sys
-import glob
 import shutil
+import platform
 from setuptools import Extension, Command, setup, find_packages
 from Cython.Distutils import build_ext
 import numpy as np
@@ -37,71 +37,105 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-USE_OPENMP = True
+USE_OPENMP = False  # we'll turn it on only if we find a working libomp
 
+def candidates_from_env():
+    # Let users/CI point to a custom libomp
+    incs = []
+    libs = []
+    omp_dir = os.environ.get("OMP_DIR")
+    if omp_dir:
+        incs += [os.path.join(omp_dir, "include")]
+        libs += [os.path.join(omp_dir, "lib")]
+    inc_env = os.environ.get("OMP_INCLUDE")
+    lib_env = os.environ.get("OMP_LIB")
+    if inc_env: incs.append(inc_env)
+    if lib_env: libs.append(lib_env)
+    # Conda environments
+    conda = os.environ.get("CONDA_PREFIX")
+    if conda:
+        incs += [os.path.join(conda, "include")]
+        libs += [os.path.join(conda, "lib")]
+    # Homebrew (Apple silicon and Intel) and MacPorts (optional, don’t require them)
+    incs += ["/opt/homebrew/opt/libomp/include", "/usr/local/opt/libomp/include", "/opt/local/include"]
+    libs += ["/opt/homebrew/opt/libomp/lib",     "/usr/local/opt/libomp/lib",     "/opt/local/lib"]
+    # Common fallbacks
+    incs += ["/usr/local/include", "/usr/include"]
+    libs += ["/usr/local/lib", "/usr/lib"]
+    # De-dup while keeping order
+    def uniq(xs):
+        seen=set(); out=[]
+        for x in xs:
+            if x and x not in seen:
+                out.append(x); seen.add(x)
+        return out
+    return uniq(incs), uniq(libs)
 
-def extract_gcc_binaries():
-    """Try to find GCC on OSX for OpenMP support."""
-    patterns = [
-        "/opt/local/bin/g++-mp-[0-9].[0-9]",
-        "/opt/local/bin/g++-mp-[0-9]",
-        "/usr/local/bin/g++-[0-9].[0-9]",
-        "/usr/local/bin/g++-[0-9]",
-    ]
-    if sys.platform.startswith("darwin"):
-        gcc_binaries = []
-        for pattern in patterns:
-            gcc_binaries += glob.glob(pattern)
-        gcc_binaries.sort()
-        if gcc_binaries:
-            _, gcc = os.path.split(gcc_binaries[-1])
-            return gcc
-        else:
-            return None
-    else:
-        return None
+def find_libomp():
+    incs, libs = candidates_from_env()
+    inc_dir = next((d for d in incs if os.path.exists(os.path.join(d, "omp.h"))), None)
+    # Prefer a real libomp over stubs
+    lib_names = ["libomp.dylib", "libomp.a"]
+    lib_dir = None
+    for d in libs:
+        if any(os.path.exists(os.path.join(d, n)) for n in lib_names):
+            lib_dir = d
+            break
+    return inc_dir, lib_dir
 
+compile_args = []
+link_args = []
 
 if sys.platform.startswith("win"):
-    # compile args from
-    # https://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx
     compile_args = ["/O2", "/openmp"]
     link_args = []
-else:
-    gcc = extract_gcc_binaries()
-    if gcc is not None:
-        rpath = "/usr/local/opt/gcc/lib/gcc/" + gcc[-1] + "/"
-        link_args = ["-Wl,-rpath," + rpath]
-    else:
-        link_args = []
+elif sys.platform.startswith("darwin"):
+    # Always use Clang on macOS
+    os.environ.setdefault("CC", "clang")
+    os.environ.setdefault("CXX", "clang++")
 
-    compile_args = [
+    # Force single-arch arm64 on Apple silicon unless caller overrides
+    if platform.machine() == "arm64" and not os.environ.get("ARCHFLAGS"):
+        os.environ["ARCHFLAGS"] = "-arch arm64"
+
+    mac_min = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "12.0")
+
+    # Base flags good for Clang/libc++
+    compile_args += [
+        "-O3", "-ffast-math",
         "-Wno-unused-function",
-        "-Wno-maybe-uninitialized",
-        "-O3",
-        "-ffast-math",
+        "-std=c++11",
+        "-stdlib=libc++",
+        f"-mmacosx-version-min={mac_min}",
+    ]
+    link_args += [
+        "-std=c++11",
+        "-stdlib=libc++",
+        f"-mmacosx-version-min={mac_min}",
     ]
 
-    if sys.platform.startswith("darwin"):
-        if gcc is not None:
-            os.environ["CC"] = gcc
-            os.environ["CXX"] = gcc
-        else:
-            if not os.path.exists("/usr/bin/g++"):
-                print(
-                    "No GCC available. Install gcc from Homebrew using brew install gcc."
-                )
-            USE_OPENMP = False
-            # required arguments for default gcc of OSX
-            compile_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-            link_args.extend(["-O2", "-stdlib=libc++", "-mmacosx-version-min=10.7"])
-
-    if USE_OPENMP:
-        compile_args.append("-fopenmp")
-        link_args.append("-fopenmp")
-
-    compile_args.append("-std=c++11")
-    link_args.append("-std=c++11")
+    # Optional OpenMP (only if a usable libomp is present)
+    if os.environ.get("CORNAC_DISABLE_OPENMP") != "1":
+        inc_dir, lib_dir = find_libomp()
+        if inc_dir and lib_dir:
+            compile_args += ["-Xpreprocessor", "-fopenmp", f"-I{inc_dir}"]
+            link_args += [f"-L{lib_dir}", "-lomp", f"-Wl,-rpath,{lib_dir}"]
+            USE_OPENMP = True
+        elif os.environ.get("CORNAC_FORCE_OPENMP") == "1":
+            raise RuntimeError(
+                "CORNAC_FORCE_OPENMP=1 but libomp was not found; set OMP_INCLUDE/OMP_LIB or OMP_DIR."
+            )
+else:
+    # Linux/Unix: prefer OpenMP via compiler default (GCC/Clang + libgomp)
+    compile_args += [
+        "-O3", "-ffast-math",
+        "-Wno-unused-function",
+        "-Wno-maybe-uninitialized",
+        "-std=c++11",
+        "-fopenmp",
+    ]
+    link_args += ["-std=c++11", "-fopenmp"]
+    USE_OPENMP = True
 
 
 extensions = [
