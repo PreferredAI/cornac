@@ -135,7 +135,7 @@ class WBPR(BPR):
                                                  user_ids, X.indices, X.indices, X.indptr,
                                                  self.u_factors, self.i_factors, self.i_biases)
                 progress.set_postfix({
-                    "correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped)),
+                    "correct": "%.2f%%" % (100.0 * correct / (len(user_ids) - skipped + 1e-8)),
                     "skipped": "%.2f%%" % (100.0 * skipped / len(user_ids))
                 })
         if self.verbose:
