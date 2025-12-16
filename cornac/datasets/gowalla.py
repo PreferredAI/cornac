@@ -13,9 +13,7 @@
 # limitations under the License.
 # ============================================================================
 """
-This data is built based on the Ta Feng Grocery Dataset that contains 
-a Chinese grocery store transaction data from November 2000 to February 2001.
-Accessed at https://www.kaggle.com/datasets/chiranjivdas09/ta-feng-grocery-dataset
+Source: https://snap.stanford.edu/data/loc-gowalla.html
 """
 
 from ..utils import cache
@@ -38,10 +36,9 @@ def load_checkins(fmt="USITJson", reader: Reader = None) -> List:
         Location information is stored in `json` format
     """
     fpath = cache(
-        url="https://static.preferred.ai/datasets/gowalla/check-ins.zip",
+        url="https://static.preferred.ai/cornac/datasets/gowalla/check-ins.zip",
         unzip=True,
         relative_path="gowalla/check-ins.txt",
     )
     reader = Reader() if reader is None else reader
     return reader.read(fpath, fmt=fmt, sep="\t")
-

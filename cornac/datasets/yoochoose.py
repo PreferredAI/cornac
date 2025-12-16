@@ -13,9 +13,7 @@
 # limitations under the License.
 # ============================================================================
 """
-This data is built based on the Ta Feng Grocery Dataset that contains 
-a Chinese grocery store transaction data from November 2000 to February 2001.
-Accessed at https://www.kaggle.com/datasets/chiranjivdas09/ta-feng-grocery-dataset
+Yoochoose Dataset is originally from the RecSys Challenge 2015.
 """
 
 from typing import List
@@ -39,7 +37,7 @@ def load_buy(fmt="SITJson", reader: Reader = None) -> List:
         Location information is stored in `json` format
     """
     fpath = cache(
-        url="https://static.preferred.ai/datasets/yoochoose/buy.zip",
+        url="https://static.preferred.ai/cornac/datasets/yoochoose/buy.zip",
         unzip=True,
         relative_path="yoochoose/buy.txt",
     )
@@ -62,7 +60,7 @@ def load_click(fmt="SITJson", reader: Reader = None) -> List:
         Location information is stored in `json` format
     """
     fpath = cache(
-        url="https://static.preferred.ai/datasets/yoochoose/click.zip",
+        url="https://static.preferred.ai/cornac/datasets/yoochoose/click.zip",
         unzip=True,
         relative_path="yoochoose/click.txt",
     )
@@ -85,7 +83,7 @@ def load_test(fmt="SITJson", reader: Reader = None) -> List:
         Location information is stored in `json` format
     """
     fpath = cache(
-        url="https://static.preferred.ai/datasets/yoochoose/test.zip",
+        url="https://static.preferred.ai/cornac/datasets/yoochoose/test.zip",
         unzip=True,
         relative_path="yoochoose/test.txt",
     )
