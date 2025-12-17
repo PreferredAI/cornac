@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 """
-This data is built based on the Ta Feng Grocery Dataset that contains 
+This data is built based on the Ta Feng Grocery Dataset that contains
 a Chinese grocery store transaction data from November 2000 to February 2001.
 Accessed at https://www.kaggle.com/datasets/chiranjivdas09/ta-feng-grocery-dataset
 """
@@ -37,7 +37,7 @@ def load_basket(fmt="UBITJson", reader: Reader = None) -> List:
         Data in the form of a list of tuples (user, basket, item, timestamp, json).
     """
     fpath = cache(
-        url="https://static.preferred.ai/hieudo/basket.zip",
+        url="https://static.preferred.ai/cornac/datasets/tafeng/basket.zip",
         unzip=True,
         relative_path="tafeng/basket.txt",
     )
