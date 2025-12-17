@@ -43,8 +43,11 @@ def load_feedback(reader: Reader = None) -> List:
         Data in the form of a list of tuples (user, item, rating).
 
     """
-    fpath = cache(url='http://www.trustlet.org/datasets/downloaded_epinions/ratings_data.txt.bz2',
-                  unzip=True, relative_path='ratings_data.txt', cache_dir=_get_cache_dir())
+    fpath = cache(
+        url="https://static.preferred.ai/cornac/datasets/epinions/ratings_data.zip",
+        unzip=True,
+        relative_path="epinions/ratings_data.txt",
+    )
     reader = Reader() if reader is None else reader
     return reader.read(fpath, sep=' ')
 
@@ -63,7 +66,10 @@ def load_trust(reader: Reader = None) -> List:
         Data in the form of a list of tuples (source_user, target_item, trust_value).
 
     """
-    fpath = cache(url='http://www.trustlet.org/datasets/downloaded_epinions/trust_data.txt.bz2',
-                  unzip=True, relative_path='trust_data.txt', cache_dir=_get_cache_dir())
+    fpath = cache(
+        url="https://static.preferred.ai/cornac/datasets/epinions/trust_data.zip",
+        unzip=True,
+        relative_path="epinions/trust_data.txt",
+    )
     reader = Reader() if reader is None else reader
     return reader.read(fpath, sep=' ')
