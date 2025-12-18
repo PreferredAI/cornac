@@ -2,10 +2,10 @@
 
 For easy experimentation, Cornac offers access to a number of popular recommendation benchmark datasets. These are listed below along with their basic characteristics, followed by a usage example. In addition to preference feedback, some of these datasets come with item and/or user auxiliary information, which are grouped into three main categories:
 - **Text** refers to textual information associated with items or users. The usual format of this data is `(item_id, text)`, or `(user_id, text)`. Concrete examples of such information are item textual descriptions, product reviews, movie plots, and user reviews, just to name a few.
-- **Graph**, for items, corresponds to a network where nodes (or vertices) are items, and links (or edges) represent relations among items. This information is typically represented by an adjacency matrix in the sparse triplet format: `(item_id, item_id, weight)`, or simply `(item_id, item_id)` in the case of unweighted edges. Relations between users (e.g., social network) are represented similarly.    
+- **Graph**, for items, corresponds to a network where nodes (or vertices) are items, and links (or edges) represent relations among items. This information is typically represented by an adjacency matrix in the sparse triplet format: `(item_id, item_id, weight)`, or simply `(item_id, item_id)` in the case of unweighted edges. Relations between users (e.g., social network) are represented similarly.
 - **Image** consists of visual information paired with either users or items. The common format for this type of auxiliary data is `(object_id, ndarray)`, where `object_id` could be one of `user_id` or `item_id`, the `ndarray` may contain the raw images (pixel intensities), or some visual feature vectors extracted from the images, e.g., using deep neural nets. For instance, the Amazon clothing dataset includes product CNN visual features.
 
-**How to cite.** If you are using one of the datasets listed below in your research, please follow the citation guidelines by the authors (the "source" link below) of each respective dataset.  
+**How to cite.** If you are using one of the datasets listed below in your research, please follow the citation guidelines by the authors (the "source" link below) of each respective dataset.
 <table>
   <tr>
     <th rowspan="2">Dataset</th>
@@ -191,7 +191,7 @@ trust = filmtrust.load_trust()
 
 The ranting values are in the range `[0.5,4]`, and the trust network is undirected. Here are samples from our dataset,
 ```
-Samples from ratings: [('1', '1', 2.0), ('1', '2', 4.0), ('1', '3', 3.5)] 
+Samples from ratings: [('1', '1', 2.0), ('1', '2', 4.0), ('1', '3', 3.5)]
 Samples from trust: [('2', '966', 1.0), ('2', '104', 1.0), ('5', '1509', 1.0)]
 ```
 Our dataset is now ready to use for model training and evaluation. A concrete example is [sorec_filmtrust](../../examples/sorec_filmtrust.py), which illustrates how to perform an experiment with the [SoRec](../models/sorec/) model on FilmTrust. More details regarding the other datasets are available in the [documentation](https://cornac.readthedocs.io/en/latest/datasets.html).
@@ -219,5 +219,52 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <td align="right">86,403</td>
     <td align="right">817,741</td>
     <td align="center">price, quantity</td>
+  </tr>
+</table>
+
+---
+
+## Next-Item Datasets
+
+<table>
+  <tr>
+    <th>Dataset</th>
+    <th>Users</th>
+    <th>#Items</th>
+    <th>#Sessions</th>
+    <th>#Interactions</th>
+    <th>Extra Info.</th>
+  </tr>
+  <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.gowalla">Gowalla</a><br>(<a href="https://snap.stanford.edu/data/loc-gowalla.html">source</a>)</td>
+    <td align="center">107,092</td>
+    <td align="right">1,280,969</td>
+    <td align="right">2,710,119</td>
+    <td align="right">6,442,892</td>
+    <td align="center">Check-ins location (longitude, latitude)</td>
+  </tr>
+  <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.yoochoose">YooChoose (buy)</a><br>(<a href="https://2015.recsyschallenge.com/">source</a>)</td>
+    <td align="center">N/A</td>
+    <td align="right">19,949</td>
+    <td align="right">509,696</td>
+    <td align="right">1,150,753</td>
+    <td align="center">N/A</td>
+  </tr>
+  <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.yoochoose">YooChoose (click)</a></td>
+    <td align="center">N/A</td>
+    <td align="right">52,739</td>
+    <td align="right">9,249,729</td>
+    <td align="right">33,003,944</td>
+    <td align="center">N/A</td>
+  </tr>
+  <tr>
+    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.yoochoose">YooChoose (test)</a></td>
+    <td align="center">N/A</td>
+    <td align="right">42,155</td>
+    <td align="right">2,312,432</td>
+    <td align="right">8,251,791</td>
+    <td align="center">N/A</td>
   </tr>
 </table>
