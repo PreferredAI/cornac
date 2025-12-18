@@ -15,8 +15,8 @@
 
 import numpy as np
 
-from .recom_ncf_base import NCFBase
 from ...exception import ScoreException
+from .recom_ncf_base import NCFBase
 
 
 class NeuMF(NCFBase):
@@ -59,13 +59,13 @@ class NeuMF(NCFBase):
 
     backend: str, optional, default: 'tensorflow'
         Backend used for model training: tensorflow, pytorch
-        
+
     early_stopping: {min_delta: float, patience: int}, optional, default: None
-        If `None`, no early stopping. Meaning of the arguments: 
-        
+        If `None`, no early stopping. Meaning of the arguments:
+
         - `min_delta`: the minimum increase in monitored value on validation set to be considered as improvement, \
            i.e. an increment of less than min_delta will count as no improvement.
-        
+
         - `patience`: number of epochs with no improvement after which training should be stopped.
 
     name: string, optional, default: 'NeuMF'
@@ -159,12 +159,13 @@ class NeuMF(NCFBase):
     ########################
     def _build_model_tf(self):
         import tensorflow as tf
+
         from .backend_tf import GMFLayer, MLPLayer
-        
+
         # Define inputs
         user_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="user_input")
         item_input = tf.keras.layers.Input(shape=(1,), dtype=tf.int32, name="item_input")
-        
+
         # GMF layer
         gmf_layer = GMFLayer(
             num_users=self.num_users,
@@ -175,7 +176,7 @@ class NeuMF(NCFBase):
             seed=self.seed,
             name="gmf_layer"
         )
-        
+
         # MLP layer
         mlp_layer = MLPLayer(
             num_users=self.num_users,
@@ -186,36 +187,36 @@ class NeuMF(NCFBase):
             seed=self.seed,
             name="mlp_layer"
         )
-        
+
         # Get embeddings and element-wise product
         gmf_vector = gmf_layer([user_input, item_input])
         mlp_vector = mlp_layer([user_input, item_input])
-        
+
         # Concatenate GMF and MLP vectors
         concat_vector = tf.keras.layers.Concatenate(axis=-1)([gmf_vector, mlp_vector])
-        
+
         # Output layer
         logits = tf.keras.layers.Dense(
             1,
             kernel_initializer=tf.keras.initializers.LecunUniform(seed=self.seed),
             name="logits"
         )(concat_vector)
-        
+
         prediction = tf.keras.layers.Activation('sigmoid', name="prediction")(logits)
-        
+
         # Create model
         model = tf.keras.Model(
             inputs=[user_input, item_input],
             outputs=prediction,
             name="NeuMF"
         )
-        
+
         # Handle pretrained models
         if self.pretrained:
             # Get GMF and MLP models
             gmf_model = self.pretrained_gmf.model
             mlp_model = self.pretrained_mlp.model
-            
+
             # Copy GMF embeddings
             model.get_layer('gmf_layer').user_embedding.set_weights(
                 gmf_model.get_layer('gmf_layer').user_embedding.get_weights()
@@ -223,7 +224,7 @@ class NeuMF(NCFBase):
             model.get_layer('gmf_layer').item_embedding.set_weights(
                 gmf_model.get_layer('gmf_layer').item_embedding.get_weights()
             )
-            
+
             # Copy MLP embeddings and layers
             model.get_layer('mlp_layer').user_embedding.set_weights(
                 mlp_model.get_layer('mlp_layer').user_embedding.get_weights()
@@ -231,27 +232,27 @@ class NeuMF(NCFBase):
             model.get_layer('mlp_layer').item_embedding.set_weights(
                 mlp_model.get_layer('mlp_layer').item_embedding.get_weights()
             )
-            
+
             # Copy dense layers in MLP
             for i, layer in enumerate(model.get_layer('mlp_layer').dense_layers):
                 layer.set_weights(mlp_model.get_layer('mlp_layer').dense_layers[i].get_weights())
-            
+
             # Combine weights for output layer
             gmf_logits_weights = gmf_model.get_layer('logits').get_weights()
             mlp_logits_weights = mlp_model.get_layer('logits').get_weights()
-            
+
             # Combine kernel weights
             combined_kernel = np.concatenate([
                 self.alpha * gmf_logits_weights[0],
                 (1.0 - self.alpha) * mlp_logits_weights[0]
             ], axis=0)
-            
+
             # Combine bias weights
             combined_bias = self.alpha * gmf_logits_weights[1] + (1.0 - self.alpha) * mlp_logits_weights[1]
-            
+
             # Set combined weights to output layer
             model.get_layer('logits').set_weights([combined_kernel, combined_bias])
-        
+
         return model
 
     #####################
@@ -264,6 +265,7 @@ class NeuMF(NCFBase):
             num_users=self.num_users,
             num_items=self.num_items,
             layers=self.layers,
+            num_factors=self.num_factors,
             act_fn=self.act_fn,
         )
         if self.pretrained:

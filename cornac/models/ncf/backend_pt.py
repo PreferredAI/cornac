@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 optimizer_dict = {
     "sgd": torch.optim.SGD,
     "adam": torch.optim.Adam,
@@ -16,7 +15,7 @@ activation_functions = {
     "selu": nn.SELU(),
     "relu": nn.ReLU(),
     "relu6": nn.ReLU6(),
-    "leakyrelu": nn.LeakyReLU(),
+    "leaky_relu": nn.LeakyReLU(),
 }
 
 
