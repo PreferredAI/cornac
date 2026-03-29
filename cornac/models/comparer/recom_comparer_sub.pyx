@@ -769,7 +769,7 @@ class ComparERSub(MTER):
                 np.repeat(range(self.num_items), n_top_aspects).reshape(
                     self.num_items, n_top_aspects
                 ),
-                ts3[:, :-1].argsort(axis=1)[::-1][:, :n_top_aspects],
+                ts3[:, :-1].argsort(axis=1)[:, ::-1][:, :n_top_aspects],
             ]
             known_item_scores = (
                 self.alpha * top_aspect_scores.mean(axis=1) + (1 - self.alpha) * ts3[:, -1]
