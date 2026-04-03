@@ -331,7 +331,7 @@ class LRPPM(Recommender):
                     "loss": "%.2f" % (loss / self.n_samples),
                     "ranking_loss": "%.2f" % (ranking_loss / (self.n_ranking_samples - skipped)),
                     "r_loss": "%.2f" % (r_loss / (self.n_ranking_samples - skipped)),
-                    "correct": "%.2f%%" % (100.0 * correct / (self.n_ranking_samples - skipped)),
+                    "correct": "%.2f%%" % (100.0 * correct / (self.n_ranking_samples - skipped + 1e-8)),
                     "skipped": "%.2f%%" % (100.0 * skipped / self.n_ranking_samples)
                 })
                 if (
