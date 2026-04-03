@@ -472,7 +472,7 @@ class ComparERSub(MTER):
                 progress.set_postfix({
                     "loss": "%.2f" % (loss / 3 / self.n_element_samples),
                     "bpr_loss": "%.2f" % (bpr_loss / self.n_bpr_samples),
-                    "correct": "%.2f%%" % (100.0 * correct / (self.n_bpr_samples - skipped)),
+                    "correct": "%.2f%%" % (100.0 * correct / (self.n_bpr_samples - skipped + 1e-8)),
                     "skipped": "%.2f%%" % (100.0 * skipped / self.n_bpr_samples)
                 })
 
