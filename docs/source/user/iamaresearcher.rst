@@ -770,7 +770,7 @@ run the following command:
 
 .. code-block:: bash
 
-    python setup.py build_ext —inplace
+    python setup.py build_ext --inplace
 
 This will generate C++ files from Cython files, compile the C++ files, and place the compiled binary files in the necessary folders.
 
