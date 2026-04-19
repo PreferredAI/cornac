@@ -27,6 +27,7 @@ from .beacon import Beacon
 from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR
+from .bpr import VEBPR
 from .causalrec import CausalRec
 from .c2pf import C2PF
 from .cdl import CDL
