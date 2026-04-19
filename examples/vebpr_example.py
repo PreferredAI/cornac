@@ -5,6 +5,7 @@
 # standard BPR here. For real performance gains, use sparse E-commerce datasets with true view logs.
 
 import cornac
+from cornac.data.multi_behavior import PurchaseViewDataset
 from cornac.datasets import movielens
 from cornac.eval_methods import RatioSplit
 from cornac.models import BPR, VEBPR
@@ -23,8 +24,6 @@ for user, item, rating in ml_100k:
     else:
         view_data.append((user, item, 1.0))
 
-
-
 eval_method = RatioSplit(
     data=purchase_data,
     test_size=0.2,
@@ -33,23 +32,12 @@ eval_method = RatioSplit(
     exclude_unknowns=True,
     verbose=True
 )
-train_set = eval_method.train_set
 
-
-row_indices = []
-col_indices = []
-
-for raw_u, raw_i, _ in view_data:
-    if raw_u in train_set.uid_map and raw_i in train_set.iid_map:
-        inner_u = train_set.uid_map[raw_u]
-        inner_i = train_set.iid_map[raw_i]
-        row_indices.append(inner_u)
-        col_indices.append(inner_i)
-
-V_matrix = sp.csr_matrix(
-    (np.ones(len(row_indices)), (row_indices, col_indices)),
-    shape=(train_set.num_users, train_set.num_items)
+multi_behavior_train_set = PurchaseViewDataset.build_from_raw(
+    base_dataset = eval_method.train_set,
+    raw_view_data = view_data
 )
+eval_method.train_set = multi_behavior_train_set
 
 bpr_baseline = BPR(
     name="BPR",
@@ -67,7 +55,6 @@ vebpr_model = VEBPR(
     learning_rate=0.01,
     lambda_reg=0.01,
     alpha=0.5,
-    view_matrix=V_matrix,
     seed=123
 )
 

@@ -79,7 +79,6 @@
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
 
 ## Unimodal Algorithms
-[vebpr_example.py](vebpr_example.py) - Example to run ViewEnhanced BPR with MovieLens 100K dataset
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
 
@@ -114,6 +113,8 @@
 [svd_example.py](svd_example.py) - Singular Value Decomposition (SVD) with MovieLens dataset.
 
 [vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
+
+[vebpr_example.py](vebpr_example.py) - Example to run ViewEnhanced BPR with MovieLens 100K dataset
 
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
 

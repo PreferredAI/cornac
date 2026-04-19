@@ -31,7 +31,7 @@ cimport numpy as np
 import scipy.sparse as sp
 from tqdm.auto import trange
 
-from .recom_bpr cimport uniform_int_distribution, mt19937
+from .recom_bpr cimport uniform_int_distribution, mt19937, has_non_zero, RNGVector
 from ..recommender import Recommender
 from ..recommender import ANNMixin, MEASURE_DOT
 from ...exception import ScoreException
@@ -46,21 +46,6 @@ cdef extern from "recom_bpr.h" namespace "recom_bpr" nogil:
     cdef int get_thread_num()
 
 @cython.boundscheck(False)
-cdef bool has_non_zero(integral[:] indptr, integral[:] indices,
-                       integral rowid, integral colid) noexcept nogil:
-    return binary_search(&indices[indptr[rowid]], &indices[indptr[rowid + 1]], colid)
-
-cdef class RNGVector(object):
-    cdef vector[mt19937] rng
-    cdef vector[uniform_int_distribution[long]] dist
-    def __init__(self, int num_threads, long rows, int seed):
-        rng = get_rng(seed)
-        for i in range(num_threads):
-            self.rng.push_back(mt19937(rng.randint(2 ** 31)))
-            self.dist.push_back(uniform_int_distribution[long](0, rows))
-    cdef inline long generate(self, int thread_id) noexcept nogil:
-        return self.dist[thread_id](self.rng[thread_id])
-
 
 class VEBPR(Recommender, ANNMixin):
     """View-Enhanced Bayesian Personalized Ranking.
@@ -129,7 +114,6 @@ class VEBPR(Recommender, ANNMixin):
             init_params=None,
             seed=None,
             alpha=0.5,
-            view_matrix=None
     ):
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.k = int(k)
@@ -137,7 +121,6 @@ class VEBPR(Recommender, ANNMixin):
         self.learning_rate = learning_rate
         self.lambda_reg = lambda_reg
         self.alpha = float(alpha)
-        self.view_matrix = view_matrix
         self.seed = seed
         self.rng = get_rng(seed)
 
@@ -164,7 +147,7 @@ class VEBPR(Recommender, ANNMixin):
         X = train_set.matrix # csr_matrix
         # this basically calculates the 'row' attribute of a COO matrix
         # without requiring us to get the whole COO matrix
-        V = self.view_matrix
+        V = getattr(train_set, 'view_matrix', None)
         # convert view matrix to CSR format
         if V is None:
             raise ValueError('VEBPR requires `view_matrix` to be provided')
@@ -199,6 +182,11 @@ class VEBPR(Recommender, ANNMixin):
         self : object
         """
         Recommender.fit(self, train_set, val_set)
+
+        if not hasattr(train_set, 'view_matrix'):
+            raise ValueError("VEBPR requires a PurchaseViewDataset that contains a 'view_matrix' attribute.")
+
+        self.view_matrix =  train_set.view_matrix
         self._init()
 
         if not self.trainable:
