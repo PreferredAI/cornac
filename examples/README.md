@@ -79,6 +79,7 @@
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
 
 ## Unimodal Algorithms
+[vebpr_example.py](vebpr_example.py) - Example to run ViewEnhanced BPR with MovieLens 100K dataset
 
 [biased_mf.py](biased_mf.py) - Matrix Factorization (MF) with biases.
 
