@@ -114,6 +114,8 @@
 
 [vaecf_citeulike.py](vaecf_citeulike.py) - Variational Autoencoder for Collaborative Filtering (VAECF) with CiteULike dataset.
 
+[vebpr_example.py](vebpr_example.py) - Example to run ViewEnhanced BPR with MovieLens 100K dataset
+
 [wmf_example.py](wmf_example.py) - Weighted Matrix Factorization with CiteULike dataset.
 
 ----

@@ -231,6 +231,14 @@ extensions = [
         extra_link_args=link_args,
     ),
     Extension(
+            name="cornac.models.bpr.recom_vebpr",
+            sources=["cornac/models/bpr/recom_vebpr.pyx"],
+            include_dirs=[np.get_include(), "cornac/utils/external"],
+            language="c++",
+            extra_compile_args=compile_args,
+            extra_link_args=link_args,
+    ),
+    Extension(
         name="cornac.models.sbpr.recom_sbpr",
         sources=["cornac/models/sbpr/recom_sbpr.pyx"],
         include_dirs=[np.get_include(), "cornac/utils/external"],

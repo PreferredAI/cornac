@@ -14,4 +14,5 @@
 # ============================================================================
 
 from .recom_bpr import BPR
+from .recom_vebpr import VEBPR
 from .recom_wbpr import WBPR

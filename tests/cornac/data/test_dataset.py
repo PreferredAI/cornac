@@ -18,7 +18,13 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 
-from cornac.data import BasketDataset, Dataset, SequentialDataset, Reader
+from cornac.data import (
+    BasketDataset,
+    Dataset,
+    PurchaseViewDataset,
+    SequentialDataset,
+    Reader,
+)
 
 
 class TestDataset(unittest.TestCase):
@@ -288,6 +294,82 @@ class TestSequentialDataset(unittest.TestCase):
             set(train_set.item_ids),
             set(["1", "2", "3", "4", "5", "6", "7", "8", "9"]),
         )
+
+class TestPurchaseViewDataset(unittest.TestCase):
+    def test_build_extends_id_space(self):
+        # User "u2" and item "i3" appear only in the view stream; they must
+        # end up in the shared id maps rather than being silently dropped.
+        purchase_data = [("u1", "i1", 1.0), ("u1", "i2", 1.0)]
+        view_data = [("u2", "i3", 1.0), ("u1", "i2", 1.0)]
+
+        dataset = PurchaseViewDataset.build(purchase_data, view_data)
+
+        self.assertIn("u2", dataset.uid_map)
+        self.assertIn("i3", dataset.iid_map)
+        self.assertEqual(dataset.num_users, 2)
+        self.assertEqual(dataset.num_items, 3)
+
+    def test_view_matrix_invariants(self):
+        purchase_data = [("u1", "i1", 1.0), ("u2", "i2", 1.0)]
+        view_data = [("u1", "i2", 1.0), ("u2", "i1", 1.0)]
+
+        dataset = PurchaseViewDataset.build(purchase_data, view_data)
+
+        self.assertEqual(dataset.view_matrix.format, "csr")
+        self.assertTrue(dataset.view_matrix.has_sorted_indices)
+        self.assertEqual(
+            dataset.view_matrix.shape, (dataset.num_users, dataset.num_items)
+        )
+
+    def test_is_compatible_with_dataset_api(self):
+        # A PurchaseViewDataset should be indistinguishable from a plain
+        # Dataset when only the primary (purchase) feedback is consumed —
+        # this is what lets vanilla BPR train on it unchanged.
+        purchase_data = [("u1", "i1", 1.0), ("u2", "i2", 1.0)]
+        view_data = [("u1", "i2", 1.0)]
+
+        pv = PurchaseViewDataset.build(purchase_data, view_data)
+        plain = Dataset.from_uir(purchase_data)
+
+        self.assertIsInstance(pv, Dataset)
+        self.assertEqual(pv.num_users, plain.num_users)
+        self.assertEqual(pv.num_items, plain.num_items)
+        self.assertEqual(pv.matrix.nnz, plain.matrix.nnz)
+        npt.assert_array_equal(pv.uir_tuple[0], plain.uir_tuple[0])
+        npt.assert_array_equal(pv.uir_tuple[1], plain.uir_tuple[1])
+        npt.assert_array_equal(pv.uir_tuple[2], plain.uir_tuple[2])
+
+    def test_view_excludes_purchase_overlap(self):
+        # Paper defines v as "viewed but not purchased"; view entries that
+        # collide with purchase entries must be dropped so the sampler can
+        # never draw v == i.
+        purchase_data = [("u1", "i1", 1.0), ("u1", "i2", 1.0)]
+        view_data = [("u1", "i1", 1.0), ("u1", "i3", 1.0)]  # i1 overlaps
+
+        dataset = PurchaseViewDataset.build(purchase_data, view_data)
+
+        u1 = dataset.uid_map["u1"]
+        i1 = dataset.iid_map["i1"]
+        i3 = dataset.iid_map["i3"]
+        self.assertEqual(dataset.view_matrix[u1, i1], 0.0)
+        self.assertNotEqual(dataset.view_matrix[u1, i3], 0.0)
+
+    def test_attach_view_drops_unknown_entries(self):
+        # attach_view aligns to an existing purchase dataset's ID space:
+        # view rows referencing users/items not in that space are filtered out.
+        purchase = Dataset.from_uir([("u1", "i1", 1.0), ("u2", "i2", 1.0)])
+        view_data = [
+            ("u1", "i2", 1.0),       # both known — kept
+            ("u_unknown", "i1", 1.0),  # unknown user — dropped
+            ("u2", "i_unknown", 1.0),  # unknown item — dropped
+        ]
+
+        dataset = PurchaseViewDataset.attach_view(purchase, view_data)
+
+        self.assertEqual(dataset.num_users, purchase.num_users)
+        self.assertEqual(dataset.num_items, purchase.num_items)
+        self.assertEqual(dataset.view_matrix.nnz, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

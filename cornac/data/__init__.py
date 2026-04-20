@@ -23,6 +23,7 @@ from .reader import Reader
 from .dataset import Dataset
 from .dataset import BasketDataset
 from .dataset import SequentialDataset
+from .dataset import PurchaseViewDataset
 
 __all__ = [
     "FeatureModality",
@@ -33,6 +34,7 @@ __all__ = [
     "SentimentModality",
     "BasketDataset",
     "SequentialDataset",
+    "PurchaseViewDataset",
     "Dataset",
     "Reader",
 ]
