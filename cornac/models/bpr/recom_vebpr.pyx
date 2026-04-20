@@ -28,12 +28,12 @@ from libcpp.vector cimport vector
 
 import numpy as np
 cimport numpy as np
-import scipy.sparse as sp
 from tqdm.auto import trange
 
 from .recom_bpr cimport uniform_int_distribution, mt19937, has_non_zero, RNGVector
 from ..recommender import Recommender
 from ..recommender import ANNMixin, MEASURE_DOT
+from ...data import PurchaseViewDataset
 from ...exception import ScoreException
 from ...utils import get_rng
 from ...utils import fast_dot
@@ -72,10 +72,6 @@ class VEBPR(Recommender, ANNMixin):
     alpha: float, optional, default: 0.5
         The weight parameter controlling the relative strength between the two semantics
         of the view signal (negative compared to purchase, positive compared to unobserved).
-
-    view_matrix: scipy.sparse matrix, required
-        A user-item sparse matrix representing the view/click interactions.
-        Must have the same shape as the training matrix.
 
     num_threads: int, optional, default: 0
         Number of parallel threads for training. If num_threads=0, all CPU cores will be utilized.
@@ -144,26 +140,12 @@ class VEBPR(Recommender, ANNMixin):
             self.i_factor = (uniform((n_items, self.k), random_state=self.rng, dtype=DTYPE) - 0.5) / self.k
 
     def _prepare_data(self, train_set):
-        X = train_set.matrix # csr_matrix
-        # this basically calculates the 'row' attribute of a COO matrix
-        # without requiring us to get the whole COO matrix
-        V = getattr(train_set, 'view_matrix', None)
-        # convert view matrix to CSR format
-        if V is None:
-            raise ValueError('VEBPR requires `view_matrix` to be provided')
-        if not sp.isspmatrix(V):
-            V = sp.csr_matrix(V)
-        elif not sp.isspmatrix_csr(V):
-            V = V.tocsr()
-        # sort indices to ensure binary_search works correctly in c++
-        V.sort_indices()
-        # ensure purchase and view matrices share the same user-item shape
-        if X.shape != V.shape:
-            raise ValueError('`view_matrix` must have the same shape as train_set.matrix.')
-
+        # X (purchase CSR) and V (view CSR, sorted indices, shape-matched)
+        # invariants are guaranteed by PurchaseViewDataset.
+        X = train_set.matrix
+        V = train_set.view_matrix
         purchase_count = np.ediff1d(X.indptr).astype(np.int32)
         purchase_user_ids = np.repeat(np.arange(train_set.num_users), purchase_count).astype(X.indices.dtype)
-
         return X, V, purchase_count, purchase_user_ids
 
     def fit(self, train_set, val_set=None):
@@ -171,8 +153,11 @@ class VEBPR(Recommender, ANNMixin):
 
         Parameters
         ----------
-        train_set: :obj:`cornac.data.Dataset`, required
-            User-Item preference data as well as additional modalities.
+        train_set: :obj:`cornac.data.PurchaseViewDataset`, required
+            Multi-behavior dataset carrying both purchase (primary) and view
+            (secondary) feedback. Construct via
+            ``PurchaseViewDataset.build(purchase_data, view_data)`` or
+            ``PurchaseViewDataset.attach_view(dataset, view_data)``.
 
         val_set: :obj:`cornac.data.Dataset`, optional, default: None
             User-Item preference data for model selection and early stopping (not strictly used).
@@ -183,10 +168,14 @@ class VEBPR(Recommender, ANNMixin):
         """
         Recommender.fit(self, train_set, val_set)
 
-        if not hasattr(train_set, 'view_matrix'):
-            raise ValueError("VEBPR requires a PurchaseViewDataset that contains a 'view_matrix' attribute.")
+        if not isinstance(train_set, PurchaseViewDataset):
+            raise ValueError(
+                "VEBPR requires a PurchaseViewDataset. Build one with "
+                "PurchaseViewDataset.build(purchase_data, view_data) or "
+                "PurchaseViewDataset.attach_view(dataset, view_data)."
+            )
 
-        self.view_matrix =  train_set.view_matrix
+        self.view_matrix = train_set.view_matrix
         self._init()
 
         if not self.trainable:

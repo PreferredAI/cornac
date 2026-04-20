@@ -1381,3 +1381,119 @@ class SequentialDataset(Dataset):
             batch_mapped_ids = [[self.sessions[sid] for sid in self.user_session_data[uid]] for uid in user_indices]
             batch_session_items = [[[self.uir_tuple[1][i] for i in ids] for ids in u_batch_mapped_ids] for u_batch_mapped_ids in batch_mapped_ids]
             yield user_indices, batch_sids, batch_mapped_ids, batch_session_items
+
+
+class PurchaseViewDataset(Dataset):
+    """Dataset carrying a secondary 'view' feedback matrix alongside the
+    primary (purchase) ``uir_tuple``. Designed for multi-behavior models like
+    VEBPR (View-Enhanced BPR, TKDE 2019) that learn from purchase and view
+    signals jointly.
+
+    Any model that only reads ``uir_tuple`` / ``matrix`` (e.g. plain BPR)
+    works unchanged on this subclass; models that want the view signal read
+    ``train_set.view_matrix``.
+
+    Constructing a ``PurchaseViewDataset`` goes through one of two classmethods:
+
+    - :meth:`build` — build from two raw UIR streams sharing one ID space.
+      Users/items appearing in either stream are retained.
+    - :meth:`attach_view` — attach a view stream to an already-built purchase
+      ``Dataset`` (typical when the purchase dataset comes from a splitter).
+      Unknown users/items in the view stream are dropped.
+
+    The direct constructor is for internal use — it takes an already-aligned
+    view ``csr_matrix`` and trusts that its ID space matches ``dataset``.
+    """
+
+    def __init__(self, dataset, view_matrix):
+        super().__init__(
+            num_users=dataset.num_users,
+            num_items=dataset.num_items,
+            uid_map=dataset.uid_map,
+            iid_map=dataset.iid_map,
+            uir_tuple=dataset.uir_tuple,
+            timestamps=getattr(dataset, "timestamps", None),
+            seed=getattr(dataset, "seed", None),
+        )
+        view_matrix.sort_indices()
+        self.view_matrix = view_matrix
+
+    @classmethod
+    def build(cls, purchase_data, view_data, seed=None):
+        """Build from two raw UIR streams sharing one ID space.
+
+        Users/items appearing in either ``purchase_data`` or ``view_data``
+        are added to the shared ``uid_map`` / ``iid_map``, so view-only
+        users/items are retained rather than silently dropped.
+
+        Parameters
+        ----------
+        purchase_data: array-like, shape: [n_purchases, 3]
+            Primary feedback in the form of (user, item, rating) triplets.
+
+        view_data: array-like, shape: [n_views, 3]
+            Secondary feedback in the form of (user, item, rating) triplets.
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.PurchaseViewDataset>`
+            PurchaseViewDataset object with a unified ID space across both
+            feedback streams.
+        """
+        global_uid_map = OrderedDict()
+        global_iid_map = OrderedDict()
+
+        purchase_set = Dataset.build(
+            purchase_data, fmt="UIR",
+            global_uid_map=global_uid_map, global_iid_map=global_iid_map,
+            seed=seed,
+        )
+        view_set = Dataset.build(
+            view_data, fmt="UIR",
+            global_uid_map=global_uid_map, global_iid_map=global_iid_map,
+            seed=seed,
+        )
+
+        full_purchase = Dataset(
+            num_users=len(global_uid_map),
+            num_items=len(global_iid_map),
+            uid_map=global_uid_map,
+            iid_map=global_iid_map,
+            uir_tuple=purchase_set.uir_tuple,
+            seed=seed,
+        )
+        return cls(full_purchase, view_set.matrix)
+
+    @classmethod
+    def attach_view(cls, dataset, view_data):
+        """Attach a raw view stream to an already-built purchase ``Dataset``.
+
+        The view stream is filtered to the purchase dataset's ID space —
+        users/items in ``view_data`` that do not already appear in
+        ``dataset.uid_map`` / ``dataset.iid_map`` are dropped. This is the
+        expected flow when ``dataset`` comes from a splitter (e.g.
+        ``RatioSplit``): the purchase split fixes the ID space, and the
+        auxiliary view stream must align with it.
+
+        Parameters
+        ----------
+        dataset: :obj:`<cornac.data.Dataset>`, required
+            Purchase dataset whose ``uid_map`` / ``iid_map`` define the ID space.
+
+        view_data: array-like, shape: [n_views, 3]
+            Raw view feedback in the form of (user, item, rating) triplets.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.PurchaseViewDataset>`
+        """
+        view_set = Dataset.build(
+            view_data, fmt="UIR",
+            global_uid_map=dataset.uid_map,
+            global_iid_map=dataset.iid_map,
+            exclude_unknowns=True,
+        )
+        return cls(dataset, view_set.matrix)
