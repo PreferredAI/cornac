@@ -1403,6 +1403,9 @@ class PurchaseViewDataset(Dataset):
 
     The direct constructor is for internal use — it takes an already-aligned
     view ``csr_matrix`` and trusts that its ID space matches ``dataset``.
+    View entries that overlap with purchase entries are dropped so the
+    stored ``view_matrix`` always satisfies the paper's "viewed but not
+    purchased" definition.
     """
 
     def __init__(self, dataset, view_matrix):
@@ -1415,6 +1418,11 @@ class PurchaseViewDataset(Dataset):
             timestamps=getattr(dataset, "timestamps", None),
             seed=getattr(dataset, "seed", None),
         )
+        # Drop view entries that also appear as purchases. The paper defines
+        # v as a "viewed but not purchased" item; without this, the sampler
+        # can draw v == i and the three-term ranking loss degenerates.
+        view_matrix = view_matrix - view_matrix.multiply(self.matrix > 0)
+        view_matrix.eliminate_zeros()
         view_matrix.sort_indices()
         self.view_matrix = view_matrix
 

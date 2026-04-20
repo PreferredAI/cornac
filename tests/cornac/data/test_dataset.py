@@ -339,6 +339,21 @@ class TestPurchaseViewDataset(unittest.TestCase):
         npt.assert_array_equal(pv.uir_tuple[1], plain.uir_tuple[1])
         npt.assert_array_equal(pv.uir_tuple[2], plain.uir_tuple[2])
 
+    def test_view_excludes_purchase_overlap(self):
+        # Paper defines v as "viewed but not purchased"; view entries that
+        # collide with purchase entries must be dropped so the sampler can
+        # never draw v == i.
+        purchase_data = [("u1", "i1", 1.0), ("u1", "i2", 1.0)]
+        view_data = [("u1", "i1", 1.0), ("u1", "i3", 1.0)]  # i1 overlaps
+
+        dataset = PurchaseViewDataset.build(purchase_data, view_data)
+
+        u1 = dataset.uid_map["u1"]
+        i1 = dataset.iid_map["i1"]
+        i3 = dataset.iid_map["i3"]
+        self.assertEqual(dataset.view_matrix[u1, i1], 0.0)
+        self.assertNotEqual(dataset.view_matrix[u1, i3], 0.0)
+
     def test_attach_view_drops_unknown_entries(self):
         # attach_view aligns to an existing purchase dataset's ID space:
         # view rows referencing users/items not in that space are filtered out.
