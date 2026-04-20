@@ -222,7 +222,7 @@ class VEBPR(Recommender, ANNMixin):
         cdef:
             long num_samples = len(purchase_user_ids), s, i_index, v_index, j_index, correct = 0, skipped = 0
             integral f, u_id, i_id, v_id, j_id, thread_id
-            integral num_purchase, num_view
+            integral num_view
             floating delta_ij, delta_iv, delta_vj, x_uij, x_uiv, x_uvj
             floating u_old, i_old, v_old, j_old
             floating alpha = self.alpha
@@ -240,11 +240,37 @@ class VEBPR(Recommender, ANNMixin):
                 i_index = rng_pos.generate(thread_id) % num_samples
                 u_id = purchase_user_ids[i_index]
                 i_id = purchase_item_ids[i_index]
-                num_purchase = purchase_count[u_id]
                 num_view = view_count[u_id]
 
-                if num_purchase == 0 or num_view == 0:
-                    skipped += 1
+                if num_view == 0:
+                    # No view data for this user — fall back to BPR
+                    # (purchase > negative only) so their factors still
+                    # receive gradient from the purchase signal.
+                    j_index = rng_neg.generate(thread_id)
+                    j_id = neg_item_ids[j_index]
+                    if has_non_zero(purchase_indptr, purchase_item_ids, u_id, j_id):
+                        skipped += 1
+                        continue
+                    user = &U[u_id, 0]
+                    item_i = &V[i_id, 0]
+                    item_j = &V[j_id, 0]
+                    x_uij = 0.0
+                    for f in range(factor):
+                        x_uij = x_uij + user[f] * (item_i[f] - item_j[f])
+                    if x_uij > 50.0:
+                        x_uij = 50.0
+                    elif x_uij < -50.0:
+                        x_uij = -50.0
+                    delta_ij = 1.0 / (1.0 + exp(x_uij))
+                    if delta_ij < 0.5:
+                        correct += 1
+                    for f in range(factor):
+                        u_old = user[f]
+                        i_old = item_i[f]
+                        j_old = item_j[f]
+                        user[f] -= lr * (-delta_ij * (i_old - j_old) + reg * u_old)
+                        item_i[f] -= lr * (-delta_ij * u_old + reg * i_old)
+                        item_j[f] -= lr * (delta_ij * u_old + reg * j_old)
                     continue
 
                 v_index = view_indptr[u_id] + (rng_view.generate(thread_id) % num_view)
