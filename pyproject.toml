@@ -19,7 +19,7 @@ dependencies = [
     "tqdm",
     "powerlaw"
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 keywords = [
     "recommender system",
@@ -34,11 +34,11 @@ classifiers = [
     "Intended Audience :: Education",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: Apache Software License",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
