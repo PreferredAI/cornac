@@ -28,28 +28,28 @@ VALID_DATA_FORMATS = ["UIR", "UIRT"]
 MovieLens = namedtuple("MovieLens", ["url", "unzip", "path", "sep", "skip"])
 ML_DATASETS = {
     "100K": MovieLens(
-        "http://files.grouplens.org/datasets/movielens/ml-100k/u.data",
+        "https://static.preferred.ai/cornac/datasets/movielens/ml-100k/u.data",
         False,
         "ml-100k/u.data",
         "\t",
         0,
     ),
     "1M": MovieLens(
-        "http://files.grouplens.org/datasets/movielens/ml-1m.zip",
+        "https://static.preferred.ai/cornac/datasets/movielens/ml-1m.zip",
         True,
         "ml-1m/ratings.dat",
         "::",
         0,
     ),
     "10M": MovieLens(
-        "http://files.grouplens.org/datasets/movielens/ml-10m.zip",
+        "https://static.preferred.ai/cornac/datasets/movielens/ml-10m.zip",
         True,
         "ml-10M100K/ratings.dat",
         "::",
         0,
     ),
     "20M": MovieLens(
-        "http://files.grouplens.org/datasets/movielens/ml-20m.zip",
+        "https://static.preferred.ai/cornac/datasets/movielens/ml-20m.zip",
         True,
         "ml-20m/ratings.csv",
         ",",
