@@ -1,0 +1,212 @@
+# Copyright 2026 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+
+import numpy as np
+from tqdm.auto import trange
+
+from ...utils import get_rng
+from ..recommender import SequentialRecommender
+from ..seq_utils import session_seq_iter, user_seq_iter
+
+SUPPORTED_LOSSES = (
+    "bpr",
+    "bce",
+    "ce",
+    "bpr-max",
+    "softmax",
+    "cross-entropy",
+    "xe_softmax",
+    "top1",
+)
+
+
+class FPMC(SequentialRecommender):
+    """Factorizing Personalized Markov Chains for next-basket recommendation.
+
+    Operates on (user, last_item) → next_item triples. The training data
+    iterator is the same one used by transformer/seq models, but with
+    ``max_len=1`` so each example contributes a single (last_item, target)
+    pair. In ``session-based`` mode the last-item only comes from the
+    current session; in ``session-aware`` mode it may come from any prior
+    session of the user (i.e. the prior interaction in user-chronological
+    order regardless of session boundaries).
+
+    Parameters
+    ----------
+    name: string, default: 'FPMC'
+
+    embedding_dim: int, optional, default: 100
+        Latent factor dimension.
+
+    mode: str, optional, default: 'session-aware'
+
+    loss: str, optional, default: 'bpr'
+
+    batch_size, learning_rate, n_sample, sample_alpha, n_epochs:
+        Standard training hyperparameters.
+
+    bpreg, elu_param: only used when ``loss="bpr-max"``.
+
+    momentum: float, optional, default: 0.0
+        Momentum for the IndexedAdagradM optimizer.
+
+    References
+    ----------
+    Rendle, S., Freudenthaler, C., & Schmidt-Thieme, L. (2010).
+    Factorizing personalized Markov chains for next-basket recommendation. WWW.
+    """
+
+    def __init__(
+        self,
+        name="FPMC",
+        embedding_dim=100,
+        mode="session-aware",
+        loss="bpr",
+        batch_size=512,
+        learning_rate=0.05,
+        momentum=0.0,
+        n_sample=2048,
+        sample_alpha=0.5,
+        n_epochs=10,
+        bpreg=1.0,
+        elu_param=0.5,
+        device="cpu",
+        trainable=True,
+        verbose=False,
+        seed=None,
+    ):
+        super().__init__(name, mode=mode, trainable=trainable, verbose=verbose)
+        if loss not in SUPPORTED_LOSSES:
+            raise ValueError(
+                f"loss='{loss}' not supported; choose from {SUPPORTED_LOSSES}"
+            )
+        self.embedding_dim = embedding_dim
+        self.loss = loss
+        self.batch_size = batch_size
+        self.learning_rate = learning_rate
+        self.momentum = momentum
+        self.n_sample = n_sample
+        self.sample_alpha = sample_alpha
+        self.n_epochs = n_epochs
+        self.bpreg = bpreg
+        self.elu_param = elu_param
+        self.device = device
+        self.seed = seed
+        self.rng = get_rng(seed)
+
+    def _build_data_iter(self, pad_index):
+        # FPMC only uses the immediately previous item, so set max_len = 1.
+        kwargs = dict(
+            train_set=self.train_set,
+            pad_index=pad_index,
+            batch_size=self.batch_size,
+            max_len=1,
+            n_sample=self.n_sample,
+            sample_alpha=self.sample_alpha,
+            rng=self.rng,
+            shuffle=True,
+        )
+        if self.mode == "session-aware":
+            return user_seq_iter(**kwargs)
+        return session_seq_iter(**kwargs)
+
+    def fit(self, train_set, val_set=None):
+        super().fit(train_set, val_set)
+        if not self.trainable:
+            return self
+
+        import torch
+
+        from .fpmc import FPMC_Model
+        from ..seq_utils.losses import get_loss_function
+        from ..seq_utils.optim import IndexedAdagradM
+
+        torch.manual_seed(self.seed if self.seed is not None else 0)
+
+        self.pad_idx = self.total_items
+        self.model = FPMC_Model(
+            user_num=self.total_users,
+            item_num=self.total_items,
+            factor_num=self.embedding_dim,
+            pad_idx=self.pad_idx,
+            device=self.device,
+        ).to(self.device)
+
+        loss_fn = get_loss_function(self.loss)
+        loss_kwargs = dict(
+            bpreg=self.bpreg, elu_param=self.elu_param, n_sample=self.n_sample
+        )
+
+        opt = IndexedAdagradM(
+            self.model.parameters(), lr=self.learning_rate, momentum=self.momentum
+        )
+
+        progress_bar = trange(1, self.n_epochs + 1, disable=not self.verbose)
+        for _ in progress_bar:
+            self.model.train()
+            total_loss = 0.0
+            cnt = 0
+            for inc, (in_uids, hist_iids, out_iids) in enumerate(
+                self._build_data_iter(self.pad_idx)
+            ):
+                if len(hist_iids) < 2:
+                    continue
+                in_uids_t = torch.tensor(
+                    in_uids, dtype=torch.long, device=self.device, requires_grad=False
+                )
+                # FPMC uses just the most recent item (hist_iids shape (B, 1))
+                last_iid_t = torch.tensor(
+                    hist_iids[:, -1],
+                    dtype=torch.long,
+                    device=self.device,
+                    requires_grad=False,
+                )
+                out_iids_t = torch.tensor(
+                    out_iids, dtype=torch.long, device=self.device, requires_grad=False
+                )
+
+                self.model.zero_grad()
+                item_scores = self.model(in_uids_t, last_iid_t, out_iids_t)
+
+                L = loss_fn(
+                    item_scores,
+                    out_iids=out_iids_t,
+                    batch_size=len(in_uids),
+                    **loss_kwargs,
+                )
+                L.backward()
+                opt.step()
+
+                total_loss += L.cpu().detach().numpy() * len(in_uids)
+                cnt += len(in_uids)
+                if inc % 10 == 0 and cnt > 0:
+                    progress_bar.set_postfix(loss=(total_loss / cnt))
+        return self
+
+    def score(self, user_idx, history_items, **kwargs):
+        import torch
+
+        flat = self._flatten_history(history_items)
+        if len(flat) == 0:
+            return np.ones(self.total_items, dtype="float")
+        last = int(flat[-1])
+        # Cap user index to known users (cold-start fallback to padding row)
+        u_idx = user_idx if 0 <= user_idx < self.total_users else self.total_users
+        self.model.eval()
+        with torch.no_grad():
+            u_t = torch.tensor([u_idx], dtype=torch.long, device=self.device)
+            i_t = torch.tensor([last], dtype=torch.long, device=self.device)
+            cdds = torch.arange(self.total_items, dtype=torch.long, device=self.device)
+            return self.model.predict(u_t, i_t, cdds)

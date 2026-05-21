@@ -16,6 +16,7 @@
 from .recommender import Recommender
 from .recommender import NextBasketRecommender
 from .recommender import NextItemRecommender
+from .recommender import SequentialRecommender
 
 from .amr import AMR
 from .ann import AnnoyANN
@@ -24,6 +25,7 @@ from .ann import HNSWLibANN
 from .ann import ScaNNANN
 from .baseline_only import BaselineOnly
 from .beacon import Beacon
+from .bert4rec import BERT4Rec
 from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR
@@ -45,9 +47,11 @@ from .dnntsp import DNNTSP
 from .ease import EASE
 from .efm import EFM
 from .fm import FM
+from .fpmc import FPMC
 from .gcmc import GCMC
 from .global_avg import GlobalAvg
 from .gp_top import GPTop
+from .gpt2rec import GPT2Rec
 from .gru4rec import GRU4Rec
 from .hft import HFT
 from .hpf import HPF
@@ -74,6 +78,7 @@ from .pcrl import PCRL
 from .pmf import PMF
 from .recvae import RecVAE
 from .sansa import SANSA
+from .sasrec import SASRec
 from .sbpr import SBPR
 from .skm import SKMeans
 from .sorec import SoRec

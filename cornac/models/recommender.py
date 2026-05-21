@@ -764,3 +764,75 @@ class NextItemRecommender(Recommender):
 
         """
         raise NotImplementedError("The algorithm is not able to make score prediction!")
+
+
+SUPPORTED_MODES = ("session-based", "session-aware")
+
+
+class SequentialRecommender(NextItemRecommender):
+    """Generic class for a sequential next-item recommender model.
+
+    Sequential recommenders consume a user's interaction history (either a
+    flat list of item ids or a list of session item lists) and operate in one
+    of two modes:
+
+    - ``"session-based"``: only the most recent session is used as context;
+      the hidden state / history window resets at session boundaries.
+    - ``"session-aware"``: the user's chronological cross-session item
+      sequence is used as context.
+
+    Subclasses should set the desired default in their own ``__init__`` and
+    forward ``mode`` to ``super().__init__``.
+
+    Parameters
+    ----------
+    name: str, required
+        Name of the recommender model.
+
+    mode: str, optional, default: 'session-based'
+        One of ``'session-based'`` or ``'session-aware'``.
+
+    trainable: boolean, optional, default: True
+        When False, the model is not trainable.
+
+    verbose: boolean, optional, default: False
+        When True, running logs are displayed.
+    """
+
+    def __init__(self, name, mode="session-based", trainable=True, verbose=False):
+        if mode not in SUPPORTED_MODES:
+            raise ValueError(
+                f"mode='{mode}' not supported; choose from {SUPPORTED_MODES}"
+            )
+        super().__init__(name=name, trainable=trainable, verbose=verbose)
+        self.mode = mode
+
+    def _flatten_history(self, history_items):
+        """Coerce ``history_items`` into a flat list of item ids.
+
+        Accepts both:
+
+        - ``[i0, i1, i2, ...]`` (flat list, as produced by
+          :class:`cornac.eval_methods.NextItemEvaluation`).
+        - ``[[i0, i1], [i2, i3], ...]`` (list of session item lists, as
+          produced by the session-aware ``NextSessionEvaluation`` flow).
+
+        For ``mode == "session-based"`` the list of sessions is collapsed to
+        just the items of the *last non-empty* session. For
+        ``mode == "session-aware"`` all sessions are concatenated
+        chronologically.
+        """
+        if history_items is None or len(history_items) == 0:
+            return []
+        first = history_items[0]
+        if hasattr(first, "__iter__") and not isinstance(first, (str, bytes)):
+            if self.mode == "session-based":
+                for sess in reversed(history_items):
+                    if len(sess) > 0:
+                        return list(sess)
+                return []
+            flat = []
+            for sess in history_items:
+                flat.extend(list(sess))
+            return flat
+        return list(history_items)
