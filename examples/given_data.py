@@ -24,10 +24,10 @@ from cornac.utils import cache
 # Download MovieLens 100K provided train and test sets
 reader = Reader()
 train_data = reader.read(
-    cache(url="http://files.grouplens.org/datasets/movielens/ml-100k/u1.base")
+    cache(url="https://static.preferred.ai/cornac/datasets/movielens/ml-100k/u1.base")
 )
 test_data = reader.read(
-    cache(url="http://files.grouplens.org/datasets/movielens/ml-100k/u1.test")
+    cache(url="https://static.preferred.ai/cornac/datasets/movielens/ml-100k/u1.test")
 )
 
 # Instantiate a Base evaluation method using the provided train and test sets
