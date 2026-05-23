@@ -268,3 +268,14 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <td align="center">N/A</td>
   </tr>
 </table>
+
+---
+
+## Session-aware Datasets
+Session-aware recommendation extends next-item (session-based) recommendation by associating sessions with identified users. While next-item datasets rely on session-level sequences (e.g., `SIT` format), session-aware datasets incorporate user identities (e.g., `USIT` format), allowing models to capture both long-term user preferences across multiple sessions and short-term session-level dynamics.
+
+| Dataset                           | #Users | #Items | #Sessions | #Interactions | #Sessions per User | #Interactions per Item | #Interactions per Session | Density |
+| :-------------------------------- | -----: | -----: | --------: | ------------: | -----------------: | ---------------------: | ------------------------: | ------: |
+| [Diginetica](./diginetica.py)     |    571 |  6,008 |     2,670 |        12,146 |               4.68 |                   2.02 |                      4.55 |  0.354% |
+| [RetailRocket](./retailrocket.py) |  4,249 | 36,658 |    24,732 |       230,817 |               5.82 |                   6.30 |                      9.33 |  0.148% |
+| [Cosmetics](./cosmetics.py)       | 17,268 | 42,367 |   172,242 |     2,533,262 |               9.97 |                  59.79 |                     14.71 |  0.346% |
