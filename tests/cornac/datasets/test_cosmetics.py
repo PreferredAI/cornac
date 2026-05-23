@@ -1,4 +1,4 @@
-# Copyright 2018 The Cornac Authors. All Rights Reserved.
+# Copyright 2026 The Cornac Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +13,26 @@
 # limitations under the License.
 # ============================================================================
 
-from . import amazon_clothing
-from . import amazon_digital_music
-from . import amazon_office
-from . import amazon_toy
-from . import citeulike
-from . import cosmetics
-from . import diginetica
-from . import epinions
-from . import filmtrust
-from . import gowalla
-from . import movielens
-from . import netflix
-from . import retailrocket
-from . import tafeng
-from . import tradesy
-from . import yoochoose
+import random
+import time
+import unittest
+
+from cornac.datasets import cosmetics
+
+
+class TestCosmetics(unittest.TestCase):
+
+    def test_load_train_val_test(self):
+        random.seed(time.time())
+        if random.random() > 0.8:
+            train = cosmetics.load_train()
+            val = cosmetics.load_val()
+            test = cosmetics.load_test()
+
+            self.assertEqual(len(train), 2069928)
+            self.assertEqual(len(val), 2302227)
+            self.assertEqual(len(test), 2300963)
+
+
+if __name__ == "__main__":
+    unittest.main()
