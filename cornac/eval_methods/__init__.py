@@ -19,6 +19,7 @@ from .base_method import ranking_eval
 from .base_method import BaseMethod
 from .ratio_split import RatioSplit
 from .stratified_split import StratifiedSplit
+from .timestamp_split import TimestampSplit
 from .cross_validation import CrossValidation
 from .next_basket_evaluation import NextBasketEvaluation
 from .next_item_evaluation import NextItemEvaluation
@@ -28,6 +29,7 @@ __all__ = [
     "BaseMethod",
     "RatioSplit",
     "StratifiedSplit",
+    "TimestampSplit",
     "CrossValidation",
     "NextBasketEvaluation",
     "NextItemEvaluation",
