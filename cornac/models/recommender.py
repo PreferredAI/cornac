@@ -760,9 +760,13 @@ class SequentialRecommender(Recommender):
     INPUT_FORMAT = "flat"
 
     def __init__(self, name, mode="session-based", trainable=True, verbose=False):
+        mode = {"sbr": "session-based", "sar": "session-aware"}.get(
+            mode.lower() if isinstance(mode, str) else mode, mode
+        )
         if mode not in SUPPORTED_MODES:
             raise ValueError(
-                f"mode='{mode}' not supported; choose from {SUPPORTED_MODES}"
+                f"mode='{mode}' not supported; choose from {SUPPORTED_MODES} "
+                f"(aliases 'sbr'/'sar' also accepted, case-insensitive)"
             )
         if self.INPUT_FORMAT not in SUPPORTED_INPUT_FORMATS:
             raise ValueError(

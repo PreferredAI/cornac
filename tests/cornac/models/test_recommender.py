@@ -93,6 +93,14 @@ class TestSequentialRecommender(unittest.TestCase):
         npt.assert_array_equal(result[0][5:6], [5])
         npt.assert_array_equal(np.sort(result[0][6:9]), [6, 7, 8])  # identical scores, sorting may affect the ordering
 
+    def test_mode_aliases(self):
+        for alias in ("sbr", "SBR", "Sbr", "session-based"):
+            self.assertEqual(SequentialRecommender("t", mode=alias).mode, "session-based")
+        for alias in ("sar", "SAR", "Sar", "session-aware"):
+            self.assertEqual(SequentialRecommender("t", mode=alias).mode, "session-aware")
+        with self.assertRaises(ValueError):
+            SequentialRecommender("t", mode="bogus")
+
 
 if __name__ == "__main__":
     unittest.main()
