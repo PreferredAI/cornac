@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Sequential recommendation on Diginetica with GRU4Rec / SASRec / BERT4Rec / GPT2Rec.
+"""Sequential recommendation on Diginetica with FPMC / GRU4Rec / SASRec / BERT4Rec / GPT2Rec.
 
 Each model is trained twice:
 
@@ -33,7 +33,7 @@ from cornac.data import Reader
 from cornac.datasets import diginetica
 from cornac.eval_methods import SequentialEvaluation
 from cornac.metrics import AUC, MRR, NDCG, Recall
-from cornac.models import BERT4Rec, GPT2Rec, GRU4Rec, SASRec
+from cornac.models import FPMC, BERT4Rec, GPT2Rec, GRU4Rec, SASRec
 
 N_EPOCHS = 10
 DEVICE = "cuda"  # set to "cpu" if no GPU is available
@@ -70,6 +70,18 @@ shared = dict(
 models = []
 for setting in ("sbr", "sar"):
     models += [
+        FPMC(
+            name=f"FPMC-{setting}",
+            embedding_dim=shared["embedding_dim"],
+            loss="bpr",
+            mode=setting,
+            batch_size=shared["batch_size"],
+            n_sample=shared["n_sample"],
+            n_epochs=N_EPOCHS,
+            device=DEVICE,
+            verbose=True,
+            seed=SEED,
+        ),
         GRU4Rec(
             name=f"GRU4Rec-{setting}",
             layers=[64],
