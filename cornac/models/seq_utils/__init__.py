@@ -50,7 +50,12 @@ Unified output contract
   ``session_seq_iter``       ``(in_uids, hist_iids, out_iids)`` — sequence
                                models, session-based.
   ``user_seq_iter``          ``(in_uids, hist_iids, out_iids)`` — sequence
-                               models, session-aware.
+                               models, session-aware (flat history, skips
+                               cross-session target tuples).
+  ``user_hier_seq_iter``     ``(uid, prior_sessions, current_prefix, target)``
+                               — per-row hierarchical iterator for future
+                               session-aware models (HGRU4Rec, SHAN). No
+                               current consumer.
   =========================  =================================================
 """
 
@@ -59,6 +64,7 @@ from .iterators import (
     user_io_iter,
     session_seq_iter,
     user_seq_iter,
+    user_hier_seq_iter,
 )
 
 __all__ = [
@@ -66,4 +72,5 @@ __all__ = [
     "user_io_iter",
     "session_seq_iter",
     "user_seq_iter",
+    "user_hier_seq_iter",
 ]

@@ -146,9 +146,15 @@ def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=
 def _user_chrono_sequences(train_set):
     """Build per-user chronological item sequences across sessions.
 
-    Returns a list of (user_idx, item_sequence) tuples. The order within a
-    user follows session order (by first-timestamp in session, if available)
-    and then in-session interaction order.
+    Returns a list of ``(user_idx, item_sequence, session_starts)`` tuples.
+    The order within a user follows session order (by first-timestamp in
+    session, if available) and then in-session interaction order.
+
+    ``session_starts`` is a sorted list of indices into ``item_sequence``
+    marking the first item of each session. The first entry is always 0.
+    For example, sessions ``[[a,b,c],[d,e,f]]`` produce
+    ``items=[a,b,c,d,e,f]`` and ``session_starts=[0, 3]``. Targets at these
+    indices (except 0) are cross-session boundary predictions.
     """
     uir_tuple = train_set.uir_tuple
     sessions = train_set.sessions
@@ -162,10 +168,12 @@ def _user_chrono_sequences(train_set):
         else:
             order = list(sids)
         items = []
+        session_starts = []
         for sid in order:
+            session_starts.append(len(items))
             items.extend(int(i) for i in uir_tuple[1][sessions[sid]])
         if len(items) > 1:
-            sequences.append((int(uid), items))
+            sequences.append((int(uid), items, session_starts))
     return sequences
 
 
@@ -176,6 +184,13 @@ def user_io_iter(train_set, n_sample=0, sample_alpha=0, rng=None, batch_size=1, 
     item sequences (concatenated across sessions) instead of single sessions.
     The hidden state is therefore reset at *user* boundaries rather than
     *session* boundaries.
+
+    Note
+    ----
+    Unlike :func:`user_seq_iter`, this iterator does NOT mask cross-session
+    target transitions. Per-row loss masking would require changes to every
+    loss function in :mod:`losses`; for now GRU4Rec session-aware training
+    accepts the cross-session targets as a small amount of label noise.
     """
     rng = rng if rng is not None else get_rng(None)
     sequences = _user_chrono_sequences(train_set)
@@ -196,7 +211,7 @@ def user_io_iter(train_set, n_sample=0, sample_alpha=0, rng=None, batch_size=1, 
         nonlocal end_mask
         while end_mask.sum() > 0:
             try:
-                uid, seq = next(pool_iter)
+                uid, seq, _session_starts = next(pool_iter)
             except StopIteration:
                 return False
             if len(seq) <= 1:
@@ -338,12 +353,19 @@ def user_seq_iter(
     sample_alpha=0.5,
     rng=None,
     shuffle=True,
+    skip_cross_session_targets=True,
 ):
     """Session-aware sequence iterator for transformer/seq models.
 
     Iterates over users; for each user constructs the chronological
     cross-session item sequence and yields per-step ``(uid, hist[max_len],
     target)`` triples. The history therefore spans across sessions.
+
+    When ``skip_cross_session_targets`` is True (default), training tuples
+    whose target is the first item of a new session are dropped so the loss
+    is not penalized for predicting items across session boundaries. The
+    cross-session items are still available as *history* in subsequent
+    within-session steps.
     """
     rng = rng if rng is not None else get_rng(None)
     sequences = _user_chrono_sequences(train_set)
@@ -354,10 +376,15 @@ def user_seq_iter(
         item_indices, item_dist = _build_neg_sampler(uir_tuple, sample_alpha)
 
     buffer_uids, buffer_hist, buffer_target = [], [], []
-    for uid, items in sequences:
+    for uid, items, session_starts in sequences:
         if len(items) < 2:
             continue
+        boundary_targets = (
+            set(session_starts[1:]) if skip_cross_session_targets else set()
+        )
         for t in range(1, len(items)):
+            if t in boundary_targets:
+                continue
             hist = items[:t][-max_len:]
             hist = [pad_index] * (max_len - len(hist)) + list(hist)
             buffer_uids.append(uid)
@@ -388,3 +415,66 @@ def user_seq_iter(
             np.array(buffer_hist, dtype="int"),
             out_iids,
         )
+
+
+def user_hier_seq_iter(
+    train_set,
+    rng=None,
+    shuffle=True,
+):
+    """Session-aware *hierarchical* iterator for future HGRU/SHAN-style models.
+
+    For every within-session step ``t`` of session ``S_k`` (k >= 0, t >= 1)
+    yields one row:
+
+        ``(uid, prior_sessions, current_prefix, target)``
+
+    where:
+
+    - ``uid`` (int): user id.
+    - ``prior_sessions`` (``list[list[int]]``): the user's earlier sessions
+      (``S_0, ..., S_{k-1}``) in chronological order, each as a list of item
+      ids. Empty list for the user's first session.
+    - ``current_prefix`` (``list[int]``): ``S_k[:t]`` — the in-progress
+      session up to (but not including) the target step.
+    - ``target`` (int): ``S_k[t]`` — the held-out next item.
+
+    Padding and batching are intentionally left to the consuming model so
+    each architecture can pick its own ``max_history_sessions`` /
+    ``max_session_len`` budgets.
+
+    This iterator has no consumer in the current codebase; it exists to
+    complete the dispatch contract for ``mode="session-aware"`` +
+    ``INPUT_FORMAT="hierarchical"`` so that adding HGRU4Rec/SHAN later does
+    not require touching the base class.
+    """
+    rng = rng if rng is not None else get_rng(None)
+    uir_tuple = train_set.uir_tuple
+    sessions = train_set.sessions
+    user_sessions = train_set.user_session_data
+    timestamps = train_set.timestamps
+
+    user_ids = list(user_sessions.keys())
+    if shuffle:
+        rng.shuffle(user_ids)
+
+    for uid in user_ids:
+        sids = user_sessions[uid]
+        if timestamps is not None:
+            order = sorted(sids, key=lambda sid: timestamps[sessions[sid][0]])
+        else:
+            order = list(sids)
+        per_session_items = [
+            [int(i) for i in uir_tuple[1][sessions[sid]]] for sid in order
+        ]
+        prior = []
+        for sess_items in per_session_items:
+            if len(sess_items) >= 2:
+                for t in range(1, len(sess_items)):
+                    yield (
+                        int(uid),
+                        [list(s) for s in prior],
+                        list(sess_items[:t]),
+                        int(sess_items[t]),
+                    )
+            prior.append(sess_items)

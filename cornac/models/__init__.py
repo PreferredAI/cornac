@@ -15,7 +15,6 @@
 
 from .recommender import Recommender
 from .recommender import NextBasketRecommender
-from .recommender import NextItemRecommender
 from .recommender import SequentialRecommender
 
 from .amr import AMR

@@ -17,7 +17,7 @@
 import cornac
 from cornac.data import Reader
 from cornac.datasets import yoochoose
-from cornac.eval_methods import NextItemEvaluation
+from cornac.eval_methods import SequentialEvaluation
 from cornac.metrics import MRR, NDCG, Recall
 from cornac.models import GRU4Rec, SPop
 
@@ -29,7 +29,7 @@ item_set = set([tup[1] for tup in buy_data])
 test_data = yoochoose.load_test(reader=Reader(min_sequence_size=2, item_set=item_set))
 print("test data loaded")
 
-next_item_eval = NextItemEvaluation.from_splits(
+eval_method = SequentialEvaluation.from_splits(
     train_data=buy_data,
     test_data=test_data[:10000],  # illustration purpose only, subset of test data for faster experiment
     exclude_unknowns=True,
@@ -63,7 +63,7 @@ metrics = [
 ]
 
 cornac.Experiment(
-    eval_method=next_item_eval,
+    eval_method=eval_method,
     models=models,
     metrics=metrics,
 ).run()

@@ -16,9 +16,10 @@
 import unittest
 
 import numpy as np
+import numpy.testing as npt
 
-from cornac.data import BasketDataset, Dataset, SequentialDataset, Reader
-from cornac.models import MF, GPTop, SPop, NextBasketRecommender, NextItemRecommender
+from cornac.data import BasketDataset, Dataset, Reader, SequentialDataset
+from cornac.models import MF, GPTop, NextBasketRecommender, SequentialRecommender, SPop
 
 
 class TestRecommender(unittest.TestCase):
@@ -71,26 +72,26 @@ class TestNextBasketRecommender(unittest.TestCase):
         model.rank(0, history_baskets=[[]])
 
 
-class TestNextItemRecommender(unittest.TestCase):
+class TestSequentialRecommender(unittest.TestCase):
     def setUp(self):
         self.data = Reader().read("./tests/sequence.txt", fmt="USIT", sep=" ")
 
     def test_init(self):
-        model = NextItemRecommender("test")
+        model = SequentialRecommender("test")
         self.assertTrue(model.name == "test")
 
     def test_fit(self):
         dataset = SequentialDataset.from_usit(self.data)
-        model = NextItemRecommender("")
+        model = SequentialRecommender("")
         model.fit(dataset)
         model = SPop()
         model.fit(dataset)
         model.score(0, [])
         result = model.rank(0, history_items=[])
-        self.assertTrue((result[0][0:3] == [3, 2, 4]).all())
-        self.assertTrue((np.sort(result[0][3:5]) == [0, 1]).all()) # identical scores, sorting may affect the ordering
-        self.assertTrue((result[0][5:6] == [5]).all())
-        self.assertTrue((np.sort(result[0][6:9]) == [6, 7, 8]).all()) # identical scores, sorting may affect the ordering
+        npt.assert_array_equal(result[0][0:3], [3, 2, 4])
+        npt.assert_array_equal(np.sort(result[0][3:5]), [0, 1])  # identical scores, sorting may affect the ordering
+        npt.assert_array_equal(result[0][5:6], [5])
+        npt.assert_array_equal(np.sort(result[0][6:9]), [6, 7, 8])  # identical scores, sorting may affect the ordering
 
 
 if __name__ == "__main__":

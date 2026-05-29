@@ -709,80 +709,38 @@ class NextBasketRecommender(Recommender):
         raise NotImplementedError("The algorithm is not able to make score prediction!")
 
 
-class NextItemRecommender(Recommender):
-    """Generic class for a next item recommender model. All next item recommendation models should inherit from this class.
-
-    Parameters
-    ----------------
-    name: str, required
-        Name of the recommender model.
-
-    trainable: boolean, optional, default: True
-        When False, the model is not trainable.
-
-    verbose: boolean, optional, default: False
-        When True, running logs are displayed.
-
-    Attributes
-    ----------
-    num_users: int
-        Number of users in training data.
-
-    num_items: int
-        Number of items in training data.
-
-    total_users: int
-        Number of users in training, validation, and test data.
-        In other words, this includes unknown/unseen users.
-
-    total_items: int
-        Number of items in training, validation, and test data.
-        In other words, this includes unknown/unseen items.
-
-    uid_map: int
-        Global mapping of user ID-index.
-
-    iid_map: int
-        Global mapping of item ID-index.
-    """
-
-    def __init__(self, name, trainable=True, verbose=False):
-        super().__init__(name=name, trainable=trainable, verbose=verbose)
-
-    def score(self, user_idx, history_items, **kwargs):
-        """Predict the scores for all items based on input history items
-
-        Parameters
-        ----------
-        history_items: list of lists
-            The list of history items in sequential manner for next-item prediction.
-
-        Returns
-        -------
-        res : a Numpy array
-            Relative scores of all known items
-
-        """
-        raise NotImplementedError("The algorithm is not able to make score prediction!")
-
-
 SUPPORTED_MODES = ("session-based", "session-aware")
+SUPPORTED_INPUT_FORMATS = ("flat", "hierarchical")
 
 
-class SequentialRecommender(NextItemRecommender):
+class SequentialRecommender(Recommender):
     """Generic class for a sequential next-item recommender model.
 
-    Sequential recommenders consume a user's interaction history (either a
-    flat list of item ids or a list of session item lists) and operate in one
-    of two modes:
+    Sequential recommenders are characterised by two orthogonal properties:
 
-    - ``"session-based"``: only the most recent session is used as context;
-      the hidden state / history window resets at session boundaries.
-    - ``"session-aware"``: the user's chronological cross-session item
-      sequence is used as context.
+    1. **The user's choice of evaluation/training mode** (``self.mode``):
 
-    Subclasses should set the desired default in their own ``__init__`` and
-    forward ``mode`` to ``super().__init__``.
+       - ``"session-based"``: only the most recent session is used as
+         context; the hidden state / history window resets at session
+         boundaries.
+       - ``"session-aware"``: the user's chronological cross-session item
+         sequence is used as context.
+
+    2. **The model's input format** (class attribute ``INPUT_FORMAT``):
+
+       - ``"flat"``: the model consumes a flat sequence of item ids
+         (GRU4Rec, SASRec, BERT4Rec, GPT2Rec, FPMC).
+       - ``"hierarchical"``: the model consumes a nested ``(prior_sessions,
+         current_prefix, target)`` structure (HGRU4Rec, SHAN — none in the
+         current codebase but the dispatch is ready).
+
+    The base class wires ``mode`` + ``INPUT_FORMAT`` to the right iterator
+    via :meth:`_build_data_iter`. Subclasses normally don't need to override
+    that method; they just set ``INPUT_FORMAT`` and pick up the right
+    iterator automatically.
+
+    Subclasses should set their default ``mode`` in their own ``__init__``
+    and forward ``mode`` to ``super().__init__``.
 
     Parameters
     ----------
@@ -799,23 +757,46 @@ class SequentialRecommender(NextItemRecommender):
         When True, running logs are displayed.
     """
 
+    INPUT_FORMAT = "flat"
+
     def __init__(self, name, mode="session-based", trainable=True, verbose=False):
         if mode not in SUPPORTED_MODES:
             raise ValueError(
                 f"mode='{mode}' not supported; choose from {SUPPORTED_MODES}"
             )
+        if self.INPUT_FORMAT not in SUPPORTED_INPUT_FORMATS:
+            raise ValueError(
+                f"{type(self).__name__}.INPUT_FORMAT='{self.INPUT_FORMAT}' "
+                f"not supported; choose from {SUPPORTED_INPUT_FORMATS}"
+            )
         super().__init__(name=name, trainable=trainable, verbose=verbose)
         self.mode = mode
+
+    def fit(self, train_set, val_set=None):
+        """Validate data/mode compatibility before subclass training.
+
+        ``mode="session-aware"`` requires per-user identity (USIT-like
+        formats). Pure SIT datasets collapse every row to a single
+        anonymous user, which makes session-aware iteration meaningless.
+        We catch this early with a clear error rather than producing a
+        silently broken iterator.
+        """
+        if self.mode == "session-aware" and getattr(train_set, "num_users", 0) <= 1:
+            raise ValueError(
+                f"{type(self).__name__}: mode='session-aware' requires a "
+                f"dataset with user identity (e.g. fmt='USIT'); "
+                f"train_set.num_users={getattr(train_set, 'num_users', 'N/A')}."
+            )
+        return super().fit(train_set, val_set)
 
     def _flatten_history(self, history_items):
         """Coerce ``history_items`` into a flat list of item ids.
 
         Accepts both:
 
-        - ``[i0, i1, i2, ...]`` (flat list, as produced by
-          :class:`cornac.eval_methods.NextItemEvaluation`).
+        - ``[i0, i1, i2, ...]`` (flat list of item ids).
         - ``[[i0, i1], [i2, i3], ...]`` (list of session item lists, as
-          produced by the session-aware ``NextSessionEvaluation`` flow).
+          produced by :class:`cornac.eval_methods.SequentialEvaluation`).
 
         For ``mode == "session-based"`` the list of sessions is collapsed to
         just the items of the *last non-empty* session. For
@@ -836,3 +817,58 @@ class SequentialRecommender(NextItemRecommender):
                 flat.extend(list(sess))
             return flat
         return list(history_items)
+
+    def _val_score(self, val_set, metric="recall", k=20, mode="last"):
+        """Compute a session-aware ranking metric on ``val_set`` for
+        best-on-val selection during training.
+
+        Iterates val_set via the same logic as
+        :func:`cornac.eval_methods.sequential_evaluation.ranking_eval`
+        so the val score matches the eventual test protocol.
+
+        Parameters
+        ----------
+        metric : str
+            One of ``"recall"``, ``"ndcg"``, ``"auc"``, ``"mrr"``
+            (case-insensitive). ``k`` is ignored for ``auc`` and ``mrr``.
+
+        Returns ``None`` if ``val_set`` is ``None``.
+        """
+        if val_set is None:
+            return None
+        from ..eval_methods.sequential_evaluation import ranking_eval
+        from ..metrics import AUC, MRR, NDCG, Recall
+
+        name = metric.lower()
+        if name == "recall":
+            m = Recall(k=k)
+        elif name == "ndcg":
+            m = NDCG(k=k)
+        elif name == "auc":
+            m = AUC()
+        elif name == "mrr":
+            m = MRR()
+        else:
+            raise ValueError(
+                f"val_metric='{metric}' not supported; "
+                f"choose from recall/ndcg/auc/mrr"
+            )
+
+        inner = getattr(self, "model", None)
+        was_training = bool(getattr(inner, "training", False))
+        if inner is not None and hasattr(inner, "eval"):
+            inner.eval()
+        try:
+            avg, _ = ranking_eval(
+                model=self,
+                metrics=[m],
+                train_set=self.train_set,
+                test_set=val_set,
+                mode=mode,
+                exclude_unknowns=True,
+                verbose=False,
+            )
+        finally:
+            if inner is not None and was_training and hasattr(inner, "train"):
+                inner.train()
+        return float(avg[0]) if avg else 0.0

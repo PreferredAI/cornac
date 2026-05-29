@@ -22,7 +22,7 @@ from .stratified_split import StratifiedSplit
 from .timestamp_split import TimestampSplit
 from .cross_validation import CrossValidation
 from .next_basket_evaluation import NextBasketEvaluation
-from .next_item_evaluation import NextItemEvaluation
+from .sequential_evaluation import SequentialEvaluation
 from .propensity_stratified_evaluation import PropensityStratifiedEvaluation
 
 __all__ = [
@@ -32,6 +32,6 @@ __all__ = [
     "TimestampSplit",
     "CrossValidation",
     "NextBasketEvaluation",
-    "NextItemEvaluation",
+    "SequentialEvaluation",
     "PropensityStratifiedEvaluation",
 ]

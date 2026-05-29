@@ -17,10 +17,10 @@ from collections import Counter
 
 import numpy as np
 
-from ..recommender import NextItemRecommender
+from ..recommender import SequentialRecommender
 
 
-class SPop(NextItemRecommender):
+class SPop(SequentialRecommender):
     """Recommend most popular items of the current session.
 
     Parameters
@@ -28,8 +28,15 @@ class SPop(NextItemRecommender):
     name: string, default: 'SPop'
         The name of the recommender model.
 
+    mode: str, optional, default: 'session-based'
+        One of 'session-based' or 'session-aware'. SPop's popularity logic
+        is the same in both; the only difference is how
+        :meth:`_flatten_history` collapses the nested ``history_items``
+        coming from :class:`cornac.eval_methods.SequentialEvaluation`.
+
     use_session_popularity: boolean, optional, default: True
-        When False, no item frequency from history items in current session are being used.
+        When False, no item frequency from history items in current session
+        are used; only the global training popularity is returned.
 
     References
     ----------
@@ -37,8 +44,8 @@ class SPop(NextItemRecommender):
     Session-based Recommendations with Recurrent Neural Networks, ICLR 2016
     """
 
-    def __init__(self, name="SPop", use_session_popularity=True):
-        super().__init__(name=name, trainable=False)
+    def __init__(self, name="SPop", mode="session-based", use_session_popularity=True):
+        super().__init__(name=name, mode=mode, trainable=False)
         self.use_session_popularity = use_session_popularity
         self.item_freq = Counter()
 
@@ -53,7 +60,8 @@ class SPop(NextItemRecommender):
         for iid, freq in self.item_freq.items():
             item_scores[iid] = freq / max_item_freq
         if self.use_session_popularity:
-            s_item_freq = Counter([iid for iid in history_items])
+            flat_history = self._flatten_history(history_items)
+            s_item_freq = Counter(flat_history)
             for iid, cnt in s_item_freq.most_common():
                 item_scores[iid] += cnt
         return item_scores

@@ -1,4 +1,4 @@
-# Copyright 2023 The Cornac Authors. All Rights Reserved.
+# Copyright 2026 The Cornac Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,173 +22,138 @@ from tqdm.auto import tqdm
 
 from ..data import SequentialDataset
 from ..experiment.result import Result
-from ..models import NextItemRecommender
+from ..models import SequentialRecommender
 from . import BaseMethod
 
-EVALUATION_MODES = frozenset([
-    "last",
-    "next",
-])
+EVALUATION_MODES = frozenset(["any", "first", "last"])
+
 
 def ranking_eval(
     model,
     metrics,
     train_set,
     test_set,
-    user_based=False,
+    user_based=True,
     exclude_unknowns=True,
-    mode="last",
+    mode="any",
     verbose=False,
 ):
-    """Evaluate model on provided ranking metrics.
+    """Session-aware ranking evaluation.
 
-    Parameters
-    ----------
-    model: :obj:`cornac.models.NextItemRecommender`, required
-        NextItemRecommender model to be evaluated.
+    Iterates the ``test_set`` by user (``usi_iter``) so that a model sees a
+    user's *prior* sessions as history when scoring the held-out session.
+    The session list passed as ``history_items`` is nested
+    (``list[list[int]]``), and is consumed by
+    :meth:`cornac.models.SequentialRecommender._flatten_history` according
+    to the model's ``mode``.
 
-    metrics: :obj:`iterable`, required
-        List of rating metrics :obj:`cornac.metrics.RankingMetric`.
-
-    train_set: :obj:`cornac.data.SequentialDataset`, required
-        SequentialDataset to be used for model training. This will be used to exclude
-        observations already appeared during training.
-
-    test_set: :obj:`cornac.data.SequentialDataset`, required
-        SequentialDataset to be used for evaluation.
-
-    exclude_unknowns: bool, optional, default: True
-        Ignore unknown users and items during evaluation.
-
-    verbose: bool, optional, default: False
-        Output evaluation progress.
-
-    Returns
-    -------
-    res: (List, List)
-        Tuple of two lists:
-         - average result for each of the metrics
-         - average result per user for each of the metrics
-
+    Modes
+    -----
+    - ``"any"``:   all items in the last session are positives.
+    - ``"first"``: only the first item of the last session is the positive.
+    - ``"last"``:  only the last item of the last session is the positive;
+                   the rest of that session is appended to ``history_items``.
     """
-
     if len(metrics) == 0:
         return [], []
 
     avg_results = []
-    session_results = [defaultdict(list) for _ in enumerate(metrics)]
     user_results = [defaultdict(list) for _ in enumerate(metrics)]
 
     user_sessions = defaultdict(list)
-    session_ids = []
-    for [sid], [mapped_ids], [session_items] in tqdm(
-        test_set.si_iter(batch_size=1, shuffle=False),
-        total=len(test_set.sessions),
+    for [user_idx], [sids], [mapped_ids], [session_items] in tqdm(
+        test_set.usi_iter(batch_size=1, shuffle=False),
+        total=test_set.num_users,
         desc="Ranking",
         disable=not verbose,
         miniters=100,
     ):
-        if len(session_items) < 2:  # exclude all session with size smaller than 2
+        if len(session_items) == 0 or len(session_items[-1]) == 0:
             continue
-        user_idx = test_set.uir_tuple[0][mapped_ids[0]]
-        if user_based:
-            user_sessions[user_idx].append(sid)
-        session_ids.append(sid)
+        user_sessions[user_idx].append(sids[-1])
 
-        start_pos = 1 if mode == "next" else len(session_items) - 1
-        for test_pos in range(start_pos, len(session_items), 1):
-            test_pos_items = session_items[test_pos]
+        if mode == "any":
+            test_pos_items = session_items[-1]
+        elif mode == "first":
+            test_pos_items = session_items[-1][0:1]
+        else:  # "last"
+            test_pos_items = session_items[-1][-1:]
 
-            # binary mask for ground-truth positive items
-            u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
-            u_gt_pos_mask[test_pos_items] = 1
+        # ground-truth masks over the test_set item space
+        u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
+        u_gt_pos_mask[test_pos_items] = 1
 
-            # binary mask for ground-truth negative items, removing all positive items
-            u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
-            u_gt_neg_mask[test_pos_items] = 0
+        u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
+        u_gt_neg_mask[test_pos_items] = 0
 
-            # filter items being considered for evaluation
-            if exclude_unknowns:
-                u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
-                u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
+        if exclude_unknowns:
+            u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
+            u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
 
-            u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
-            u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
-            item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
+        u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
+        u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
+        item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
 
-            item_rank, item_scores = model.rank(
-                user_idx,
-                item_indices,
-                history_items=session_items[:test_pos],
-                history_mapped_ids=mapped_ids[:test_pos],
-                sessions=test_set.sessions,
-                session_indices=test_set.session_indices,
-                extra_data=test_set.extra_data,
-            )
-
-            for i, mt in enumerate(metrics):
-                mt_score = mt.compute(
-                    gt_pos=u_gt_pos_items,
-                    gt_neg=u_gt_neg_items,
-                    pd_rank=item_rank,
-                    pd_scores=item_scores,
-                    item_indices=item_indices,
-                )
-                if user_based:
-                    user_results[i][user_idx].append(mt_score)
-                else:
-                    session_results[i][sid].append(mt_score)
-
-    # avg results of ranking metrics
-    for i, mt in enumerate(metrics):
-        if user_based:
-            user_ids = list(user_sessions.keys())
-            user_avg_results = [np.mean(user_results[i][user_idx]) for user_idx in user_ids]
-            avg_results.append(np.mean(user_avg_results))
+        if mode == "last":
+            history_items = list(session_items[:-1]) + [session_items[-1][:-1]]
         else:
-            session_result = [score for sid in session_ids for score in session_results[i][sid]]
-            avg_results.append(np.mean(session_result))
+            history_items = list(session_items[:-1])
+
+        item_rank, item_scores = model.rank(
+            user_idx,
+            item_indices,
+            history_items=history_items,
+            history_mapped_ids=mapped_ids[:-1],
+            sessions=test_set.sessions,
+            session_indices=test_set.session_indices,
+            extra_data=test_set.extra_data,
+            mode=mode,
+        )
+
+        for i, mt in enumerate(metrics):
+            mt_score = mt.compute(
+                gt_pos=u_gt_pos_items,
+                gt_neg=u_gt_neg_items,
+                pd_rank=item_rank,
+                pd_scores=item_scores,
+                item_indices=item_indices,
+            )
+            user_results[i][user_idx].append(mt_score)
+
+    # average across users (user-based)
+    for i in range(len(metrics)):
+        user_ids = list(user_sessions.keys())
+        if len(user_ids) == 0:
+            avg_results.append(0.0)
+            continue
+        per_user = [np.mean(user_results[i][uid]) for uid in user_ids]
+        avg_results.append(np.mean(per_user))
+
     return avg_results, user_results
 
 
-class NextItemEvaluation(BaseMethod):
-    """Next Item Recommendation Evaluation method
+class SequentialEvaluation(BaseMethod):
+    """Next Session Recommendation Evaluation method.
+
+    Iterates the test set by user and feeds the model the user's prior
+    sessions as history when ranking items in the held-out last session.
 
     Parameters
     ----------
-    data: list, required
-        Raw preference data in the tuple format [(user_id, sessions)].
+    data: list, optional
+        Raw preference data in tuple format. Format defined by ``fmt``.
 
-    test_size: float, optional, default: 0.2
-        The proportion of the test set, \
-        if > 1 then it is treated as the size of the test set.
-
-    val_size: float, optional, default: 0.0
-        The proportion of the validation set, \
-        if > 1 then it is treated as the size of the validation set.
-
-    fmt: str, default: 'SIT'
-        Format of the input data. Currently, we are supporting:
-
-        'SIT': Session, Item, Timestamp
-        'USIT': User, Session, Item, Timestamp
-        'SITJson': Session, Item, Timestamp, Json
-        'USITJson': User, Session, Item, Timestamp, Json
-
-    seed: int, optional, default: None
-        Random seed for reproducibility.
-
-    mode: str, optional, default: 'last'
-        Evaluation mode is either 'next' or 'last'.
-        If 'last', only evaluate the last item.
-        If 'next', evaluate every next item in the sequence,
-
-    exclude_unknowns: bool, optional, default: True
-        If `True`, unknown items will be ignored during model evaluation.
-
-    verbose: bool, optional, default: False
-        Output running log.
-
+    test_size: float, default: 0.2
+    val_size: float, default: 0.0
+    fmt: str, default: 'USIT'
+        One of 'SIT', 'USIT', 'SITJson', 'USITJson'. User information is
+        required for ``mode="session-aware"`` on the model side; pure SIT
+        formats only support session-based models.
+    seed: int, optional
+    mode: str, default: 'any'
+        One of 'any', 'first', 'last'.
+    exclude_unknowns: bool, default: True
+    verbose: bool, default: False
     """
 
     def __init__(
@@ -196,9 +161,9 @@ class NextItemEvaluation(BaseMethod):
         data=None,
         test_size=0.2,
         val_size=0.0,
-        fmt="SIT",
+        fmt="USIT",
         seed=None,
-        mode="last",
+        mode="any",
         exclude_unknowns=True,
         verbose=False,
         **kwargs,
@@ -215,10 +180,10 @@ class NextItemEvaluation(BaseMethod):
             mode=mode,
             **kwargs,
         )
-        
+
         if mode not in EVALUATION_MODES:
             raise ValueError(f"{mode} is not supported. ({EVALUATION_MODES})")
-            
+
         self.mode = mode
         self.global_sid_map = kwargs.get("global_sid_map", OrderedDict())
 
@@ -263,6 +228,7 @@ class NextItemEvaluation(BaseMethod):
                 fmt=self.fmt,
                 global_uid_map=self.global_uid_map,
                 global_iid_map=self.global_iid_map,
+                global_sid_map=self.global_sid_map,
                 seed=self.seed,
                 exclude_unknowns=self.exclude_unknowns,
             )
@@ -288,9 +254,9 @@ class NextItemEvaluation(BaseMethod):
         test_set,
         exclude_unknowns,
         ranking_metrics,
-        user_based=False,
+        user_based=True,
         verbose=False,
-        mode="last",
+        mode="any",
         **kwargs,
     ):
         metric_avg_results = OrderedDict()
@@ -314,29 +280,8 @@ class NextItemEvaluation(BaseMethod):
         return Result(model.name, metric_avg_results, metric_user_results)
 
     def evaluate(self, model, metrics, user_based, show_validation=True):
-        """Evaluate given models according to given metrics. Supposed to be called by Experiment.
-
-        Parameters
-        ----------
-        model: :obj:`cornac.models.NextItemRecommender`
-            NextItemRecommender model to be evaluated.
-
-        metrics: :obj:`iterable`
-            List of metrics.
-
-        user_based: bool, required
-            Evaluation strategy for the rating metrics. Whether results
-            are averaging based on number of users or number of ratings.
-
-        show_validation: bool, optional, default: True
-            Whether to show the results on validation set (if exists).
-
-        Returns
-        -------
-        res: :obj:`cornac.experiment.Result`
-        """
-        if not isinstance(model, NextItemRecommender):
-            raise ValueError("model must be a NextItemRecommender but '%s' is provided" % type(model))
+        if not isinstance(model, SequentialRecommender):
+            raise ValueError("model must be a SequentialRecommender but '%s' is provided" % type(model))
 
         if self.train_set is None:
             raise ValueError("train_set is required but None!")
@@ -345,9 +290,6 @@ class NextItemEvaluation(BaseMethod):
 
         self._reset()
 
-        ###########
-        # FITTING #
-        ###########
         if self.verbose:
             print("\n[{}] Training started!".format(model.name))
 
@@ -355,15 +297,15 @@ class NextItemEvaluation(BaseMethod):
         model.fit(self.train_set, self.val_set)
         train_time = time.time() - start
 
-        ##############
-        # EVALUATION #
-        ##############
         if self.verbose:
             print("\n[{}] Evaluation started!".format(model.name))
 
         rating_metrics, ranking_metrics = self.organize_metrics(metrics)
         if len(rating_metrics) > 0:
-            warnings.warn("NextItemEvaluation only supports ranking metrics. The given rating metrics {} will be ignored!".format([mt.name for mt in rating_metrics]))
+            warnings.warn(
+                "SequentialEvaluation only supports ranking metrics. "
+                "The given rating metrics {} will be ignored!".format([mt.name for mt in rating_metrics])
+            )
 
         start = time.time()
         model.transform(self.test_set)
@@ -408,51 +350,12 @@ class NextItemEvaluation(BaseMethod):
         train_data,
         test_data,
         val_data=None,
-        fmt="SIT",
+        fmt="USIT",
         exclude_unknowns=False,
         seed=None,
         verbose=False,
         **kwargs,
     ):
-        """Constructing evaluation method given data.
-
-        Parameters
-        ----------
-        train_data: array-like
-            Training data
-
-        test_data: array-like
-            Test data
-
-        val_data: array-like, optional, default: None
-            Validation data
-
-        fmt: str, default: 'SIT'
-            Format of the input data. Currently, we are supporting:
-
-            'SIT': Session, Item, Timestamp
-            'USIT': User, Session, Item, Timestamp
-            'SITJson': Session, Item, Timestamp, Json
-            'USITJson': User, Session, Item, Timestamp, Json
-
-        rating_threshold: float, default: 1.0
-            Threshold to decide positive or negative preferences.
-
-        exclude_unknowns: bool, default: False
-            Whether to exclude unknown users/items in evaluation.
-
-        seed: int, optional, default: None
-            Random seed for reproduce the splitting.
-
-        verbose: bool, default: False
-            The verbosity flag.
-
-        Returns
-        -------
-        method: :obj:`<cornac.eval_methods.NextItemEvaluation>`
-            Evaluation method object.
-
-        """
         method = cls(
             fmt=fmt,
             exclude_unknowns=exclude_unknowns,

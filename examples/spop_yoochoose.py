@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example of a next-item recommendation model based on item popularity"""
+"""Example of a session-based recommendation model based on item popularity"""
 
 import cornac
 from cornac.datasets import yoochoose
-from cornac.eval_methods import NextItemEvaluation
+from cornac.eval_methods import SequentialEvaluation
 from cornac.metrics import MRR, NDCG, Recall
 from cornac.models import SPop
 
@@ -25,7 +25,7 @@ print("buy data loaded")
 test_data = yoochoose.load_test()
 print("test data loaded")
 
-next_item_eval = NextItemEvaluation.from_splits(
+eval_method = SequentialEvaluation.from_splits(
     train_data=buy_data,
     test_data=test_data[:10000],  # illustration purpose only, subset of test data for faster experiment
     verbose=True,
@@ -46,7 +46,7 @@ metrics = [
 ]
 
 cornac.Experiment(
-    eval_method=next_item_eval,
+    eval_method=eval_method,
     models=models,
     metrics=metrics,
 ).run()
