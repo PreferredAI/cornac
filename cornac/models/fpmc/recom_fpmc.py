@@ -62,6 +62,17 @@ class FPMC(SequentialRecommender):
     momentum: float, optional, default: 0.0
         Momentum for the IndexedAdagradM optimizer.
 
+    model_selection: str, optional, default: 'last'
+        One of 'last' or 'best'. When 'best', the model with the highest
+        validation score (evaluated every ``val_eval_every`` epochs) is
+        restored at the end of ``fit``.
+
+    val_eval_every: int, optional, default: 5
+    val_k: int, optional, default: 20
+    val_metric: str, optional, default: 'recall'
+        Cutoff and metric used for best-on-val selection. See
+        :meth:`SequentialRecommender._val_score`.
+
     References
     ----------
     Rendle, S., Freudenthaler, C., & Schmidt-Thieme, L. (2010).
@@ -86,6 +97,10 @@ class FPMC(SequentialRecommender):
         trainable=True,
         verbose=False,
         seed=None,
+        model_selection="last",
+        val_eval_every=5,
+        val_k=20,
+        val_metric="recall",
     ):
         super().__init__(name, mode=mode, trainable=trainable, verbose=verbose)
         if loss not in SUPPORTED_LOSSES:
@@ -105,6 +120,14 @@ class FPMC(SequentialRecommender):
         self.device = device
         self.seed = seed
         self.rng = get_rng(seed)
+        if model_selection not in ("last", "best"):
+            raise ValueError(
+                f"model_selection='{model_selection}' not supported; choose 'last' or 'best'"
+            )
+        self.model_selection = model_selection
+        self.val_eval_every = val_eval_every
+        self.val_k = val_k
+        self.val_metric = val_metric
 
     def _build_data_iter(self, pad_index):
         # FPMC only uses the immediately previous item, so set max_len = 1.
@@ -153,8 +176,10 @@ class FPMC(SequentialRecommender):
             self.model.parameters(), lr=self.learning_rate, momentum=self.momentum
         )
 
+        best_val = -float("inf")
+        best_state = None
         progress_bar = trange(1, self.n_epochs + 1, disable=not self.verbose)
-        for _ in progress_bar:
+        for epoch_id in progress_bar:
             self.model.train()
             total_loss = 0.0
             cnt = 0
@@ -193,6 +218,29 @@ class FPMC(SequentialRecommender):
                 cnt += len(in_uids)
                 if inc % 10 == 0 and cnt > 0:
                     progress_bar.set_postfix(loss=(total_loss / cnt))
+
+            if (
+                self.model_selection == "best"
+                and val_set is not None
+                and epoch_id % self.val_eval_every == 0
+            ):
+                val_score = self._val_score(
+                    val_set, metric=self.val_metric, k=self.val_k
+                )
+                if val_score is not None and val_score > best_val:
+                    best_val = val_score
+                    best_state = {
+                        n: p.detach().clone() for n, p in self.model.state_dict().items()
+                    }
+                if self.verbose:
+                    progress_bar.set_postfix(
+                        loss=(total_loss / max(cnt, 1)),
+                        val_recall=val_score,
+                        best=best_val,
+                    )
+
+        if self.model_selection == "best" and best_state is not None:
+            self.model.load_state_dict(best_state)
         return self
 
     def score(self, user_idx, history_items, **kwargs):
