@@ -208,7 +208,6 @@ def user_io_iter(train_set, n_sample=0, sample_alpha=0, rng=None, batch_size=1, 
     pool_iter = iter(sequences)
 
     def _refill():
-        nonlocal end_mask
         while end_mask.sum() > 0:
             try:
                 uid, seq, _session_starts = next(pool_iter)
