@@ -120,11 +120,17 @@
 
 ----
 
-## Next-Item Algorithms
+## Sequential Recommendations
+
+### Session-Based With Yoochoose Dataset
 
 [spop_yoochoose.py](spop_yoochoose.py) - Next-item recommendation based on item popularity.
 
 [gru4rec_yoochoose.py](gru4rec_yoochoose.py) - Example of Session-based Recommendations with Recurrent Neural Networks (GRU4Rec).
+
+### Session-Based & Session-Aware With Diginetica Dataset
+
+[sequential_diginetica.py](sequential_diginetica.py) - Session-based and session-aware recommendations with FPMC, BERT4Rec, GPT2Rec, GRU4Rec, SASRec models.
 
 ----
 
