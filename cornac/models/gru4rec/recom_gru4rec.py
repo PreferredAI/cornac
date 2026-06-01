@@ -21,7 +21,7 @@ from tqdm.auto import trange
 from cornac.models.recommender import NextItemRecommender
 
 from ...utils import get_rng
-from ..seq_utils import io_iter
+from ..seq_utils import io_iter, val_score
 
 SUPPORTED_LOSSES = (
     "cross-entropy",
@@ -94,6 +94,17 @@ class GRU4Rec(NextItemRecommender):
     device: str, optional, default: 'cpu'
         Set to 'cuda' for GPU support.
 
+    model_selection: str, optional, default: 'last'
+        One of 'last' or 'best'. When 'best', the model with the highest
+        validation score (evaluated every ``val_eval_every`` epochs) is
+        restored at the end of ``fit``.
+
+    val_eval_every: int, optional, default: 5
+    val_k: int, optional, default: 20
+    val_metric: str, optional, default: 'recall'
+        Cutoff and metric used for best-on-val selection. See
+        :func:`cornac.models.seq_utils.val_score`.
+
     trainable: bool, optional, default: True
         When False, the model will not be re-trained.
 
@@ -129,6 +140,10 @@ class GRU4Rec(NextItemRecommender):
         elu_param=0.5,
         logq=0.0,
         device="cpu",
+        model_selection="last",
+        val_eval_every=5,
+        val_k=20,
+        val_metric="recall",
         trainable=True,
         verbose=False,
         seed=None,
@@ -136,6 +151,10 @@ class GRU4Rec(NextItemRecommender):
         super().__init__(name, trainable=trainable, verbose=verbose)
         if loss not in SUPPORTED_LOSSES:
             raise ValueError(f"loss='{loss}' not supported; choose from {SUPPORTED_LOSSES}")
+        if model_selection not in ("last", "best"):
+            raise ValueError(
+                f"model_selection='{model_selection}' not supported; choose 'last' or 'best'"
+            )
         self.layers = layers
         self.loss = loss
         self.batch_size = batch_size
@@ -152,6 +171,10 @@ class GRU4Rec(NextItemRecommender):
         self.elu_param = elu_param
         self.logq = logq
         self.device = device
+        self.model_selection = model_selection
+        self.val_eval_every = val_eval_every
+        self.val_k = val_k
+        self.val_metric = val_metric
         self.seed = seed
         self.rng = get_rng(seed)
 
@@ -206,8 +229,11 @@ class GRU4Rec(NextItemRecommender):
 
         opt = IndexedAdagradM(self.model.parameters(), self.learning_rate, self.momentum)
 
+        best_val = -float("inf")
+        best_state = None
         progress_bar = trange(1, self.n_epochs + 1, disable=not self.verbose)
-        for _ in progress_bar:
+        for epoch_id in progress_bar:
+            self.model.train()
             H = [
                 torch.zeros(
                     (self.batch_size, self.layers[i]),
@@ -247,6 +273,24 @@ class GRU4Rec(NextItemRecommender):
                 cnt += len(in_iids)
                 if inc % 10 == 0 and cnt > 0:
                     progress_bar.set_postfix(loss=(total_loss / cnt))
+
+            if (
+                self.model_selection == "best"
+                and val_set is not None
+                and epoch_id % self.val_eval_every == 0
+            ):
+                score = val_score(
+                    self, self.train_set, val_set, metric=self.val_metric, k=self.val_k
+                )
+                if score is not None and score > best_val:
+                    best_val = score
+                    best_state = {
+                        n: p.detach().clone()
+                        for n, p in self.model.state_dict().items()
+                    }
+
+        if self.model_selection == "best" and best_state is not None:
+            self.model.load_state_dict(best_state)
         return self
 
     def score(self, user_idx, history_items, **kwargs):
