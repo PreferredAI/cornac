@@ -217,7 +217,7 @@ class HRDR(Recommender, ANNMixin):
             bar_format="{l_bar}{bar:10}{r_bar}{bar:-10b}",
         )
         for i_epoch, _ in enumerate(loop):
-            train_loss.reset_states()
+            train_loss.reset_state()
             for i, (batch_users, batch_items, batch_ratings) in enumerate(
                 train_set.uir_iter(self.batch_size, shuffle=True)
             ):
