@@ -25,8 +25,8 @@
   =========================  =================================================
   Iterator                   Yielded tuple
   =========================  =================================================
-  ``io_iter``                ``(in_uids, in_iids, out_iids, start_mask,
-                               valid_id)`` -- per-item RNN, session-based.
+  ``io_iter``                ``(in_iids, out_iids, start_mask, valid_id)``
+                               -- per-item RNN, session-based.
   ``session_seq_iter``       ``(in_uids, hist_iids, out_iids)`` -- sequence
                                models, session-based.
   =========================  =================================================

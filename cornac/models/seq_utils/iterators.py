@@ -35,11 +35,9 @@ def _build_neg_sampler(uir_tuple, sample_alpha):
 def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=1, shuffle=False):
     """Session-based per-item iterator (parallel sessions).
 
-    Yields per training step a 5-tuple
-    ``(in_uids, in_iids, out_iids, start_mask, valid_id)`` where:
+    Yields per training step a 4-tuple
+    ``(in_iids, out_iids, start_mask, valid_id)`` where:
 
-    - ``in_uids``: user id owning each parallel slot's current session.
-        Shape ``(B',)``.
     - ``in_iids``: current input item id in each slot. Shape ``(B',)``.
     - ``out_iids``: target item ids (followed by ``n_sample`` shared
         negatives). Shape ``(B' + N,)``.
@@ -51,10 +49,6 @@ def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=
 
     ``B'`` equals ``batch_size`` for the main loop and shrinks during the
     drain phase as sessions are exhausted.
-
-    ``in_uids`` is provided so user-conditioned models (e.g. FPMC) can train
-    in session-based mode too; models that don't use it can simply discard
-    it.
     """
     rng = rng if rng is not None else get_rng(None)
     start_mask = np.zeros(batch_size, dtype="int")
@@ -63,14 +57,9 @@ def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=
     output_iids = None
     l_pool = []  # pending sessions (list of mapped-id lists)
     c_pool = [None for _ in range(batch_size)]
-    u_pool = np.zeros(batch_size, dtype="int")
     sizes = np.zeros(batch_size, dtype="int")
     if n_sample > 0:
         item_indices, item_dist = _build_neg_sampler(uir_tuple, sample_alpha)
-
-    def _user_of(mapped_ids):
-        # Any row in the session shares the same user id.
-        return int(uir_tuple[0][mapped_ids[0]])
 
     for _, batch_mapped_ids in s_iter(batch_size, shuffle):
         l_pool += batch_mapped_ids
@@ -86,7 +75,6 @@ def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=
                     negatives = rng.choice(item_indices, size=n_sample, replace=True, p=item_dist)
                     output_iids = np.concatenate([output_iids, negatives])
                 yield (
-                    u_pool.copy(),
                     input_iids,
                     output_iids,
                     start_mask.copy(),
@@ -100,7 +88,6 @@ def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=
                     end_mask[idx] = 0
                     start_mask[idx] = 1
                     c_pool[idx] = next_seq
-                    u_pool[idx] = _user_of(next_seq)
                     sizes[idx] = len(c_pool[idx])
 
     valid_id = np.ones(batch_size, dtype="int")
@@ -123,11 +110,10 @@ def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=
         end_mask = end_mask[keep_mask]
         sizes = sizes[keep_mask]
         c_pool = [_ for _, valid in zip(c_pool, valid_id) if valid > 0]
-        u_pool = u_pool[keep_mask]
         if n_sample > 0:
             negatives = rng.choice(item_indices, size=n_sample, replace=True, p=item_dist)
             output_iids = np.concatenate([output_iids, negatives])
-        yield u_pool.copy(), input_iids, output_iids, start_mask.copy(), np.nonzero(valid_id)[0]
+        yield input_iids, output_iids, start_mask.copy(), np.nonzero(valid_id)[0]
         valid_id = np.ones(len(input_iids), dtype="int")
         if end_mask.sum() == len(input_iids):
             break
