@@ -126,6 +126,8 @@
 
 [gru4rec_yoochoose.py](gru4rec_yoochoose.py) - Example of Session-based Recommendations with Recurrent Neural Networks (GRU4Rec).
 
+[fpmc_diginetica.py](fpmc_diginetica.py) - Example of Factorizing Personalized Markov Chains (FPMC) with Diginetica dataset.
+
 ----
 
 ## Next-Basket Algorithms

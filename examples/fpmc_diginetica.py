@@ -21,8 +21,6 @@ from cornac.metrics import MRR, NDCG, Recall
 from cornac.models import FPMC
 
 train_data = diginetica.load_train()
-# load_val/load_test default to mode="session-based": each user's single
-# held-out session, so the model is never scored on transitions it trained on.
 val_data = diginetica.load_val()
 test_data = diginetica.load_test()
 print("data loaded")
