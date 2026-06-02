@@ -33,7 +33,6 @@ class GPT2RecModel(nn.Module):
         n_heads=1,
         dropout=0.1,
         pad_idx=-1,
-        tie_weights=False,
         init_std=0.02,
         device="cpu",
     ):
@@ -45,7 +44,6 @@ class GPT2RecModel(nn.Module):
         self.maxlen = maxlen
         self.dev = device
         self.init_std = init_std
-        self.tie_weights = tie_weights
 
         config = GPT2Config(
             vocab_size=item_num + 1,
