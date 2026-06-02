@@ -1,93 +1,30 @@
-from collections import Counter
+# Copyright 2026 The Cornac Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
 
 import numpy as np
 import torch
 from torch import nn
 from torch.autograd import Variable
-from torch.optim import Optimizer
 
-from cornac.utils.common import get_rng
+from ..seq_utils.iterators import io_iter
+from ..seq_utils.optim import IndexedAdagradM
 
 
-def init_parameter_matrix(
-    tensor: torch.Tensor, dim0_scale: int = 1, dim1_scale: int = 1
-):
-    sigma = np.sqrt(
-        6.0 / float(tensor.size(0) / dim0_scale + tensor.size(1) / dim1_scale)
-    )
+def init_parameter_matrix(tensor: torch.Tensor, dim0_scale: int = 1, dim1_scale: int = 1):
+    sigma = np.sqrt(6.0 / float(tensor.size(0) / dim0_scale + tensor.size(1) / dim1_scale))
     return nn.init._no_grad_uniform_(tensor, -sigma, sigma)
-
-
-class IndexedAdagradM(Optimizer):
-    def __init__(self, params, lr=0.05, momentum=0.0, eps=1e-6):
-        if lr <= 0.0:
-            raise ValueError("Invalid learning rate: {}".format(lr))
-        if momentum < 0.0:
-            raise ValueError("Invalid momentum value: {}".format(momentum))
-        if eps <= 0.0:
-            raise ValueError("Invalid epsilon value: {}".format(eps))
-
-        defaults = dict(lr=lr, momentum=momentum, eps=eps)
-        super(IndexedAdagradM, self).__init__(params, defaults)
-
-        for group in self.param_groups:
-            for p in group["params"]:
-                state = self.state[p]
-                state["acc"] = torch.full_like(
-                    p, 0, memory_format=torch.preserve_format
-                )
-                if momentum > 0:
-                    state["mom"] = torch.full_like(
-                        p, 0, memory_format=torch.preserve_format
-                    )
-
-    def share_memory(self):
-        for group in self.param_groups:
-            for p in group["params"]:
-                state = self.state[p]
-                state["acc"].share_memory_()
-                if group["momentum"] > 0:
-                    state["mom"].share_memory_()
-
-    @torch.no_grad()
-    def step(self, closure=None):
-        loss = None
-        if closure is not None:
-            with torch.enable_grad():
-                loss = closure()
-        for group in self.param_groups:
-            for p in group["params"]:
-                if p.grad is None:
-                    continue
-                grad = p.grad
-                state = self.state[p]
-                clr = group["lr"]
-                momentum = group["momentum"]
-                if grad.is_sparse:
-                    grad = grad.coalesce()
-                    grad_indices = grad._indices()[0]
-                    grad_values = grad._values()
-                    accs = state["acc"][grad_indices] + grad_values.pow(2)
-                    state["acc"].index_copy_(0, grad_indices, accs)
-                    accs.add_(group["eps"]).sqrt_().mul_(-1 / clr)
-                    if momentum > 0:
-                        moma = state["mom"][grad_indices]
-                        moma.mul_(momentum).add_(grad_values / accs)
-                        state["mom"].index_copy_(0, grad_indices, moma)
-                        p.index_add_(0, grad_indices, moma)
-                    else:
-                        p.index_add_(0, grad_indices, grad_values / accs)
-                else:
-                    state["acc"].add_(grad.pow(2))
-                    accs = state["acc"].add(group["eps"])
-                    accs.sqrt_()
-                    if momentum > 0:
-                        mom = state["mom"]
-                        mom.mul_(momentum).addcdiv_(grad, accs, value=-clr)
-                        p.add_(mom)
-                    else:
-                        p.addcdiv_(grad, accs, value=-clr)
-        return loss
 
 
 class GRUEmbedding(nn.Module):
@@ -118,6 +55,21 @@ class GRUEmbedding(nn.Module):
 
 
 class GRU4RecModel(nn.Module):
+    """GRU4Rec PyTorch architecture.
+
+    The model computes a hidden state from the latest item id (and previous
+    hidden state) and scores all candidate items via either:
+
+    - ``constrained_embedding=True``: tied input/output item embeddings.
+    - ``embedding > 0``: separate input embedding of given size.
+    - otherwise: a custom :class:`GRUEmbedding` directly producing the hidden.
+
+    The model returns a ``(B, B+N)`` score matrix where columns 0..B-1 are
+    the in-batch positives and columns B..B+N-1 are shared sampled negatives.
+    Padding row ``n_items`` is included so it is safe to pass ``n_items`` as
+    a fake input id for cold-start fallback at score-time.
+    """
+
     def __init__(
         self,
         n_items,
@@ -146,12 +98,11 @@ class GRU4RecModel(nn.Module):
         self.elu_param = elu_param
         self.bpreg = bpreg
         self.loss = loss
-        self.set_loss_function(self.loss)
         self.start = 0
         if constrained_embedding:
             n_input = layers[-1]
         elif embedding:
-            self.E = nn.Embedding(n_items, embedding, sparse=True)
+            self.E = nn.Embedding(n_items + 1, embedding, sparse=True, padding_idx=n_items)
             n_input = embedding
         else:
             self.GE = GRUEmbedding(n_items, layers[0])
@@ -165,8 +116,8 @@ class GRU4RecModel(nn.Module):
             self.D.append(nn.Dropout(dropout_p_hidden))
         self.G = nn.ModuleList(self.G)
         self.D = nn.ModuleList(self.D)
-        self.Wy = nn.Embedding(n_items, layers[-1], sparse=True)
-        self.By = nn.Embedding(n_items, 1, sparse=True)
+        self.Wy = nn.Embedding(n_items + 1, layers[-1], sparse=True, padding_idx=n_items)
+        self.By = nn.Embedding(n_items + 1, 1, sparse=True, padding_idx=n_items)
         self.reset_parameters()
 
     @torch.no_grad()
@@ -182,73 +133,30 @@ class GRU4RecModel(nn.Module):
             nn.init.zeros_(self.G[i].bias_hh)
         init_parameter_matrix(self.Wy.weight)
         nn.init.zeros_(self.By.weight)
-
-    def set_loss_function(self, loss):
-        if loss == "cross-entropy":
-            self.loss_function = self.xe_loss_with_softmax
-        elif loss == "bpr-max":
-            self.loss_function = self.bpr_max_loss_with_elu
-        elif loss == "top1":
-            self.loss_function = self.top1
-        else:
-            raise NotImplementedError
-
-    def xe_loss_with_softmax(self, O, Y, M):
-        if self.logq > 0:
-            O = O - self.logq * torch.log(
-                torch.cat([self.P0[Y[:M]], self.P0[Y[M:]] ** self.sample_alpha])
-            )
-        X = torch.exp(O - O.max(dim=1, keepdim=True)[0])
-        X = X / X.sum(dim=1, keepdim=True)
-        return -torch.sum(torch.log(torch.diag(X) + 1e-24))
-
-    def softmax_neg(self, X):
-        hm = 1.0 - torch.eye(*X.shape, out=torch.empty_like(X))
-        X = X * hm
-        e_x = torch.exp(X - X.max(dim=1, keepdim=True)[0]) * hm
-        return e_x / e_x.sum(dim=1, keepdim=True)
-
-    def bpr_max_loss_with_elu(self, O, Y, M):
-        if self.elu_param > 0:
-            O = nn.functional.elu(O, self.elu_param)
-        softmax_scores = self.softmax_neg(O)
-        target_scores = torch.diag(O)
-        target_scores = target_scores.reshape(target_scores.shape[0], -1)
-        return torch.sum(
-            (
-                -torch.log(
-                    torch.sum(torch.sigmoid(target_scores - O) * softmax_scores, dim=1)
-                    + 1e-24
-                )
-                + self.bpreg * torch.sum((O**2) * softmax_scores, dim=1)
-            )
-        )
-
-    def top1(self, O, Y, M):
-        target_scores = torch.diag(O)
-        target_scores = target_scores.reshape(target_scores.shape[0], -1)
-        return torch.sum(
-            (
-                torch.mean(
-                    torch.sigmoid(O - target_scores) + torch.sigmoid(O**2), axis=1
-                )
-                - torch.sigmoid(target_scores**2) / (M + self.n_sample)
-            )
-        )
+        if self.Wy.padding_idx is not None:
+            self.Wy.weight.data[self.Wy.padding_idx].zero_()
+        if self.By.padding_idx is not None:
+            self.By.weight.data[self.By.padding_idx].zero_()
 
     def _init_numpy_weights(self, shape):
-        sigma = np.sqrt(6.0 / (shape[0] + shape[1]))
-        m = np.random.rand(*shape).astype("float32") * 2 * sigma - sigma
+        sigma = float(np.sqrt(6.0 / (shape[0] + shape[1])))
+        m = (np.random.rand(*shape) * 2 * sigma - sigma).astype("float32")
         return m
 
     @torch.no_grad()
     def _reset_weights_to_compatibility_mode(self):
+        """Reset weights using numpy RNG with seed 42 for reproducibility.
+
+        Note: when ``constrained_embedding=False`` and ``embedding > 0`` the
+        ``E`` embedding includes a padding row (``n_items``), and ``Wy``/``By``
+        also include padding rows. We only set the first ``n_items`` rows.
+        """
         np.random.seed(42)
         if self.constrained_embedding:
             n_input = self.layers[-1]
         elif self.embedding:
             n_input = self.embedding
-            self.E.weight.set_(
+            self.E.weight.data[: self.n_items].copy_(
                 torch.tensor(
                     self._init_numpy_weights((self.n_items, n_input)),
                     device=self.E.weight.device,
@@ -256,56 +164,58 @@ class GRU4RecModel(nn.Module):
             )
         else:
             n_input = self.n_items
-            m = []
-            m.append(self._init_numpy_weights((n_input, self.layers[0])))
-            m.append(self._init_numpy_weights((n_input, self.layers[0])))
-            m.append(self._init_numpy_weights((n_input, self.layers[0])))
-            self.GE.Wx0.weight.set_(
-                torch.tensor(np.hstack(m), device=self.GE.Wx0.weight.device)
-            )
-            m2 = []
-            m2.append(self._init_numpy_weights((self.layers[0], self.layers[0])))
-            m2.append(self._init_numpy_weights((self.layers[0], self.layers[0])))
-            self.GE.Wrz0.set_(torch.tensor(np.hstack(m2), device=self.GE.Wrz0.device))
+            m = [
+                self._init_numpy_weights((n_input, self.layers[0])),
+                self._init_numpy_weights((n_input, self.layers[0])),
+                self._init_numpy_weights((n_input, self.layers[0])),
+            ]
+            self.GE.Wx0.weight.set_(torch.tensor(np.hstack(m), dtype=torch.float32, device=self.GE.Wx0.weight.device))
+            m2 = [
+                self._init_numpy_weights((self.layers[0], self.layers[0])),
+                self._init_numpy_weights((self.layers[0], self.layers[0])),
+            ]
+            self.GE.Wrz0.set_(torch.tensor(np.hstack(m2), dtype=torch.float32, device=self.GE.Wrz0.device))
             self.GE.Wh0.set_(
                 torch.tensor(
                     self._init_numpy_weights((self.layers[0], self.layers[0])),
+                    dtype=torch.float32,
                     device=self.GE.Wh0.device,
                 )
             )
-            self.GE.Bh0.set_(
-                torch.zeros((self.layers[0] * 3,), device=self.GE.Bh0.device)
-            )
+            self.GE.Bh0.set_(torch.zeros((self.layers[0] * 3,), device=self.GE.Bh0.device))
         for i in range(self.start, len(self.layers)):
-            m = []
-            m.append(self._init_numpy_weights((n_input, self.layers[i])))
-            m.append(self._init_numpy_weights((n_input, self.layers[i])))
-            m.append(self._init_numpy_weights((n_input, self.layers[i])))
-            self.G[i].weight_ih.set_(
-                torch.tensor(np.vstack(m), device=self.G[i].weight_ih.device)
-            )
-            m2 = []
-            m2.append(self._init_numpy_weights((self.layers[i], self.layers[i])))
-            m2.append(self._init_numpy_weights((self.layers[i], self.layers[i])))
-            m2.append(self._init_numpy_weights((self.layers[i], self.layers[i])))
+            m = [
+                self._init_numpy_weights((n_input, self.layers[i])),
+                self._init_numpy_weights((n_input, self.layers[i])),
+                self._init_numpy_weights((n_input, self.layers[i])),
+            ]
+            self.G[i].weight_ih.set_(torch.tensor(np.vstack(m), dtype=torch.float32, device=self.G[i].weight_ih.device))
+            m2 = [
+                self._init_numpy_weights((self.layers[i], self.layers[i])),
+                self._init_numpy_weights((self.layers[i], self.layers[i])),
+                self._init_numpy_weights((self.layers[i], self.layers[i])),
+            ]
             self.G[i].weight_hh.set_(
-                torch.tensor(np.vstack(m2), device=self.G[i].weight_hh.device)
+                torch.tensor(
+                    np.vstack(m2),
+                    dtype=torch.float32,
+                    device=self.G[i].weight_hh.device,
+                )
             )
-            self.G[i].bias_hh.set_(
-                torch.zeros((self.layers[i] * 3,), device=self.G[i].bias_hh.device)
-            )
-            self.G[i].bias_ih.set_(
-                torch.zeros((self.layers[i] * 3,), device=self.G[i].bias_ih.device)
-            )
-        self.Wy.weight.set_(
+            self.G[i].bias_hh.set_(torch.zeros((self.layers[i] * 3,), device=self.G[i].bias_hh.device))
+            self.G[i].bias_ih.set_(torch.zeros((self.layers[i] * 3,), device=self.G[i].bias_ih.device))
+        self.Wy.weight.data[: self.n_items].copy_(
             torch.tensor(
                 self._init_numpy_weights((self.n_items, self.layers[-1])),
+                dtype=torch.float32,
                 device=self.Wy.weight.device,
             )
         )
-        self.By.weight.set_(
-            torch.zeros((self.n_items, 1), device=self.By.weight.device)
-        )
+        self.By.weight.data[: self.n_items].copy_(torch.zeros((self.n_items, 1), device=self.By.weight.device))
+        if self.Wy.padding_idx is not None:
+            self.Wy.weight.data[self.Wy.padding_idx].zero_()
+        if self.By.padding_idx is not None:
+            self.By.weight.data[self.By.padding_idx].zero_()
 
     def embed_constrained(self, X, Y=None):
         if Y is not None:
@@ -359,8 +269,8 @@ class GRU4RecModel(nn.Module):
         return X
 
     def score_items(self, X, O, B):
-        O = torch.mm(X, O.T) + B.T
-        return O
+        out = torch.mm(X, O.T) + B.T
+        return out
 
     def forward(self, X, H, Y, training=False):
         E, O, B = self.embed(X, H, Y)
@@ -373,126 +283,18 @@ class GRU4RecModel(nn.Module):
         return R
 
 
-def io_iter(
-    s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=1, shuffle=False
-):
-    """Paralellize mini-batch of input-output items. Create an iterator over data yielding batch of input item indices, batch of output item indices,
-    batch of start masking, batch of end masking, and batch of valid ids (relative positions of current sequences in the last batch).
-
-    Parameters
-    ----------
-    batch_size: int, optional, default = 1
-
-    shuffle: bool, optional, default: False
-        If `True`, orders of triplets will be randomized. If `False`, default orders kept.
-
-    Returns
-    -------
-    iterator : batch of input item indices, batch of output item indices, batch of starting sequence mask, batch of ending sequence mask, batch of valid ids
-
-    """
-    rng = rng if rng is not None else get_rng(None)
-    start_mask = np.zeros(batch_size, dtype="int")
-    end_mask = np.ones(batch_size, dtype="int")
-    input_iids = None
-    output_iids = None
-    l_pool = []
-    c_pool = [None for _ in range(batch_size)]
-    sizes = np.zeros(batch_size, dtype="int")
-    if n_sample > 0:
-        item_count = Counter(uir_tuple[1])
-        item_indices = np.array(
-            [iid for iid, _ in item_count.most_common()], dtype="int"
-        )
-        item_dist = (
-            np.array([cnt for _, cnt in item_count.most_common()], dtype="float")
-            ** sample_alpha
-        )
-        item_dist = item_dist / item_dist.sum()
-    for _, batch_mapped_ids in s_iter(batch_size, shuffle):
-        l_pool += batch_mapped_ids
-        while len(l_pool) > 0:
-            if end_mask.sum() == 0:
-                input_iids = uir_tuple[1][
-                    [mapped_ids[-sizes[idx]] for idx, mapped_ids in enumerate(c_pool)]
-                ]
-                output_iids = uir_tuple[1][
-                    [
-                        mapped_ids[-sizes[idx] + 1]
-                        for idx, mapped_ids in enumerate(c_pool)
-                    ]
-                ]
-                sizes -= 1
-                for idx, size in enumerate(sizes):
-                    if size == 1:
-                        end_mask[idx] = 1
-                if n_sample > 0:
-                    negative_samples = rng.choice(
-                        item_indices, size=n_sample, replace=True, p=item_dist
-                    )
-                    output_iids = np.concatenate([output_iids, negative_samples])
-                yield input_iids, output_iids, start_mask, np.arange(
-                    batch_size, dtype="int"
-                )
-                start_mask.fill(0)  # reset start masking
-            while end_mask.sum() > 0 and len(l_pool) > 0:
-                next_seq = l_pool.pop()
-                if len(next_seq) > 1:
-                    idx = np.nonzero(end_mask)[0][0]
-                    end_mask[idx] = 0
-                    start_mask[idx] = 1
-                    c_pool[idx] = next_seq
-                    sizes[idx] = len(c_pool[idx])
-
-    valid_id = np.ones(batch_size, dtype="int")
-    while True:
-        for idx, size in enumerate(sizes):
-            if size == 1:
-                end_mask[idx] = 1
-                valid_id[idx] = 0
-        input_iids = uir_tuple[1][
-            [
-                mapped_ids[-sizes[idx]]
-                for idx, mapped_ids in enumerate(c_pool)
-                if sizes[idx] > 1
-            ]
-        ]
-        output_iids = uir_tuple[1][
-            [
-                mapped_ids[-sizes[idx] + 1]
-                for idx, mapped_ids in enumerate(c_pool)
-                if sizes[idx] > 1
-            ]
-        ]
-        sizes -= 1
-        for idx, size in enumerate(sizes):
-            if size == 1:
-                end_mask[idx] = 1
-        start_mask = start_mask[np.nonzero(valid_id)[0]]
-        end_mask = end_mask[np.nonzero(valid_id)[0]]
-        sizes = sizes[np.nonzero(valid_id)[0]]
-        c_pool = [_ for _, valid in zip(c_pool, valid_id) if valid > 0]
-        if n_sample > 0:
-            negative_samples = rng.choice(
-                item_indices, size=n_sample, replace=True, p=item_dist
-            )
-            output_iids = np.concatenate([output_iids, negative_samples])
-        yield input_iids, output_iids, start_mask, np.nonzero(valid_id)[0]
-        valid_id = np.ones(len(input_iids), dtype="int")
-        if end_mask.sum() == len(input_iids):
-            break
-        start_mask.fill(0)  # reset start masking
-
-
 def score(model, layers, device, history_items):
+    """Score all items given a flat ``history_items`` list of integers.
+
+    Returns a numpy array of length ``n_items`` (or ``n_items + 1`` if the
+    output embedding includes a padding row; in that case the caller is
+    responsible for trimming).
+    """
     model.eval()
     H = []
     for i in range(len(layers)):
-        H.append(
-            torch.zeros(
-                (1, layers[i]), dtype=torch.float32, requires_grad=False, device=device
-            )
-        )
+        H.append(torch.zeros((1, layers[i]), dtype=torch.float32, requires_grad=False, device=device))
+    O = None
     for iid in history_items:
         O = model.forward(
             torch.tensor([iid], requires_grad=False, device=device),
@@ -500,4 +302,6 @@ def score(model, layers, device, history_items):
             None,
             training=False,
         )
+    if O is None:
+        return None
     return O.squeeze().cpu().detach().numpy()
