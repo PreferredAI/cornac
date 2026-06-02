@@ -71,15 +71,11 @@ class SASRecModel(nn.Module):
         self.init_std = init_std
 
         # +1 row for the padding entry at pad_idx
-        self.item_emb = nn.Embedding(
-            self.item_num + 1, embedding_dim, padding_idx=self.pad_idx
-        )
+        self.item_emb = nn.Embedding(self.item_num + 1, embedding_dim, padding_idx=self.pad_idx)
         if use_pos_emb:
             self.pos_emb = nn.Embedding(maxlen + 1, embedding_dim)
         if use_biases:
-            self.item_biases = nn.Embedding(
-                self.item_num + 1, 1, padding_idx=self.pad_idx
-            )
+            self.item_biases = nn.Embedding(self.item_num + 1, 1, padding_idx=self.pad_idx)
         self.emb_dropout = nn.Dropout(p=dropout)
 
         self.attention_layernorms = nn.ModuleList()
@@ -90,9 +86,7 @@ class SASRecModel(nn.Module):
 
         for _ in range(n_layers):
             self.attention_layernorms.append(nn.LayerNorm(embedding_dim, eps=1e-8))
-            self.attention_layers.append(
-                nn.MultiheadAttention(embedding_dim, n_heads, dropout)
-            )
+            self.attention_layers.append(nn.MultiheadAttention(embedding_dim, n_heads, dropout))
             self.forward_layernorms.append(nn.LayerNorm(embedding_dim, eps=1e-8))
             self.forward_layers.append(PointWiseFeedForward(embedding_dim, dropout))
 
@@ -124,32 +118,29 @@ class SASRecModel(nn.Module):
         seqs = seqs * (self.item_emb.embedding_dim**0.5)
         positions = np.tile(np.arange(hist_iids.shape[1]), [hist_iids.shape[0], 1])
         if hasattr(self, "pos_emb"):
-            seqs = seqs + self.pos_emb(
-                torch.tensor(positions, dtype=torch.long, device=seqs.device)
-            )
+            seqs = seqs + self.pos_emb(torch.tensor(positions, dtype=torch.long, device=seqs.device))
         seqs = self.emb_dropout(seqs)
 
-        timeline_mask = (hist_iids == self.pad_idx).to(
-            dtype=seqs.dtype, device=seqs.device
-        )
-        seqs = seqs * (1.0 - timeline_mask).unsqueeze(-1)
+        pad_mask = hist_iids == self.pad_idx  # (B, T)
+        seqs = seqs.masked_fill(pad_mask.unsqueeze(-1), 0.0)
 
-        tl = seqs.shape[1]
-        attention_mask = ~torch.tril(
-            torch.ones((tl, tl), dtype=torch.bool, device=seqs.device)
-        )
+        B, tl, _ = seqs.shape
+        future = torch.triu(torch.ones(tl, tl, dtype=torch.bool, device=seqs.device), diagonal=1)
+        block = future.unsqueeze(0) | pad_mask.unsqueeze(1)  # (B, T, T)
+        block = block & ~torch.eye(tl, dtype=torch.bool, device=seqs.device)
+        attn_mask = torch.zeros(B, tl, tl, dtype=seqs.dtype, device=seqs.device).masked_fill(block, float("-inf"))
+        n_heads = self.attention_layers[0].num_heads
+        attn_mask = attn_mask.repeat_interleave(n_heads, dim=0)  # (B*n_heads, T, T)
 
         for i in range(len(self.attention_layers)):
             seqs_t = torch.transpose(seqs, 0, 1)
             Q = self.attention_layernorms[i](seqs_t)
-            mha_out, _ = self.attention_layers[i](
-                Q, seqs_t, seqs_t, attn_mask=attention_mask
-            )
+            mha_out, _ = self.attention_layers[i](Q, seqs_t, seqs_t, attn_mask=attn_mask)
             seqs_t = Q + mha_out
             seqs = torch.transpose(seqs_t, 0, 1)
             seqs = self.forward_layernorms[i](seqs)
             seqs = self.forward_layers[i](seqs)
-            seqs = seqs * (1.0 - timeline_mask).unsqueeze(-1)
+            seqs = seqs.masked_fill(pad_mask.unsqueeze(-1), 0.0)
 
         log_feats = self.last_layernorm(seqs)
         return log_feats[:, -1, :]
@@ -172,15 +163,11 @@ class SASRecModel(nn.Module):
         if item_indices is None:
             item_indices = torch.arange(self.item_num, device=self.dev)
         else:
-            item_indices = torch.as_tensor(
-                item_indices, dtype=torch.long, device=self.dev
-            )
+            item_indices = torch.as_tensor(item_indices, dtype=torch.long, device=self.dev)
         if not isinstance(log_seqs, torch.Tensor):
             log_seqs = torch.as_tensor(log_seqs, dtype=torch.long, device=self.dev)
         hidden = self._encode(log_seqs)
         item_emb = self.item_emb(item_indices)
-        biases = (
-            self.item_biases(item_indices) if hasattr(self, "item_biases") else None
-        )
+        biases = self.item_biases(item_indices) if hasattr(self, "item_biases") else None
         scores = self._score_items(hidden, item_emb, biases)
         return scores.squeeze().detach().cpu().numpy()
