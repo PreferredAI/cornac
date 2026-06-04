@@ -128,6 +128,8 @@
 
 [fpmc_diginetica.py](fpmc_diginetica.py) - Example of Factorizing Personalized Markov Chains (FPMC) with Diginetica dataset.
 
+[transformer_rec_diginetica.py](transformer_rec_diginetica.py) - Example of Transformer-based Recommendation models (SASRec, BERT4Rec, GPT2Rec) with Diginetica dataset.
+
 ----
 
 ## Next-Basket Algorithms
