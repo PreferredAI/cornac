@@ -13,11 +13,13 @@
 # limitations under the License.
 # ============================================================================
 
+import os
+import random
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, initializers, Input
-from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import pad_sequences
 
 from ...utils import get_rng
 from ...utils.init_utils import uniform
@@ -56,7 +58,7 @@ def get_data(batch_ids, train_set, max_text_length, by='user', max_num_review=No
     review_group = train_set.review_text.user_review if by == 'user' else train_set.review_text.item_review
     for idx in batch_ids:
         ids, review_ids = [], []
-        for inc, (jdx, review_idx) in enumerate(review_group[idx].items()):
+        for inc, (jdx, review_idx) in enumerate(review_group.get(idx, {}).items()):
             if max_num_review is not None and inc == max_num_review:
                 break
             ids.append(jdx)
@@ -76,9 +78,9 @@ class AddGlobalBias(keras.layers.Layer):
     def __init__(self, init_value=0.0, name="global_bias"):
         super(AddGlobalBias, self).__init__(name=name)
         self.init_value = init_value
-      
+
     def build(self, input_shape):
-        self.global_bias = self.add_weight(shape=1,
+        self.global_bias = self.add_weight(shape=(1,),
                                initializer=tf.keras.initializers.Constant(self.init_value),
                                trainable=True, name="add_weight")
 
@@ -138,7 +140,6 @@ class Model(keras.Model):
                 self.item_bias(i_item_id)
             ])
         )
-        # import pdb; pdb.set_trace()
         return r
 
 class NARREModel:
@@ -159,7 +160,10 @@ class NARREModel:
         self.verbose = verbose
         if seed is not None:
             self.rng = get_rng(seed)
+            os.environ['PYTHONHASHSEED']=str(seed)
             tf.random.set_seed(seed)
+            np.random.seed(seed)
+            random.seed(seed)
 
         embedding_matrix = uniform(shape=(self.n_vocab, self.embedding_size), low=-0.5, high=0.5, random_state=self.rng)
         embedding_matrix[:4, :] = np.zeros((4, self.embedding_size))
