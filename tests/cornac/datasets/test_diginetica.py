@@ -26,12 +26,17 @@ class TestDiginetica(unittest.TestCase):
         random.seed(time.time())
         if random.random() > 0.8:
             train = diginetica.load_train()
+            # default mode is 'session-based': each user's single held-out session
             val = diginetica.load_val()
             test = diginetica.load_test()
 
             self.assertEqual(len(train), 7273)
-            self.assertEqual(len(val), 9733)
-            self.assertEqual(len(test), 9686)
+            self.assertEqual(len(val), 2460)
+            self.assertEqual(len(test), 2413)
+
+            # 'session-aware' returns the full cumulative file (held-out + history)
+            self.assertEqual(len(diginetica.load_val(mode="session-aware")), 9733)
+            self.assertEqual(len(diginetica.load_test(mode="session-aware")), 9686)
 
 
 if __name__ == "__main__":

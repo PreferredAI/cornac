@@ -33,8 +33,10 @@
 """
 
 from .iterators import io_iter, session_seq_iter
+from .selection import val_score
 
 __all__ = [
     "io_iter",
     "session_seq_iter",
+    "val_score",
 ]

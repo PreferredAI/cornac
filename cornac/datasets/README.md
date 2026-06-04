@@ -279,3 +279,5 @@ Session-aware recommendation extends next-item (session-based) recommendation by
 | [Diginetica](./diginetica.py)     |    571 |  6,008 |     2,670 |        12,146 |               4.68 |                   2.02 |                      4.55 |  0.354% |
 | [RetailRocket](./retailrocket.py) |  4,249 | 36,658 |    24,732 |       230,817 |               5.82 |                   6.30 |                      9.33 |  0.148% |
 | [Cosmetics](./cosmetics.py)       | 17,268 | 42,367 |   172,242 |     2,533,262 |               9.97 |                  59.79 |                     14.71 |  0.346% |
+
+For session-based (next-item) evaluation, [Diginetica](./diginetica.py)'s `load_val()` and `load_test()` default to `mode="session-based"`, returning each user's single held-out session (`val_sbr`/`test_sbr`) with no training transitions repeated — the clean evaluation set used by session-based models such as [FPMC](../models/fpmc/) and [GRU4Rec](../models/gru4rec/). Pass `mode="session-aware"` to load the cumulative files (`val`/`test`) instead, where each user's prior sessions precede their held-out one for cross-session models.

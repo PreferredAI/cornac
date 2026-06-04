@@ -45,6 +45,7 @@ from .dnntsp import DNNTSP
 from .ease import EASE
 from .efm import EFM
 from .fm import FM
+from .fpmc import FPMC
 from .gcmc import GCMC
 from .global_avg import GlobalAvg
 from .gp_top import GPTop
