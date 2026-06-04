@@ -1,8 +1,10 @@
+import os
+import random
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, initializers
-from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import pad_sequences
 
 from ...utils import get_rng
 from ...utils.init_utils import uniform
@@ -18,7 +20,7 @@ def get_data(batch_ids, train_set, max_text_length, by="user", max_num_review=32
     )
     for idx in batch_ids:
         review_ids = []
-        for inc, (jdx, review_idx) in enumerate(review_group[idx].items()):
+        for inc, (jdx, review_idx) in enumerate(review_group.get(idx, {}).items()):
             if max_num_review is not None and inc == max_num_review:
                 break
             review_ids.append(review_idx)
@@ -163,7 +165,10 @@ class HRDRModel:
         self.verbose = verbose
         if seed is not None:
             self.rng = get_rng(seed)
+            os.environ['PYTHONHASHSEED']=str(seed)
             tf.random.set_seed(seed)
+            np.random.seed(seed)
+            random.seed(seed)
 
         embedding_matrix = uniform(shape=(self.n_vocab, self.embedding_size), low=-0.5, high=0.5, random_state=self.rng)
         embedding_matrix[:4, :] = np.zeros((4, self.embedding_size))
