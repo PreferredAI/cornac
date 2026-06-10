@@ -19,12 +19,21 @@ import numpy as np
 import numpy.testing as npt
 
 from cornac.data import Reader
-from cornac.models import MF, BPR
-from cornac.metrics import RMSE, AUC
-from cornac.eval_methods import RatioSplit
+from cornac.models import MF, BPR, SPop
+from cornac.metrics import RMSE, AUC, HitRatio
+from cornac.eval_methods import RatioSplit, NextItemEvaluation
 from cornac.hyperopt import Discrete, Continuous
 from cornac.hyperopt import GridSearch, RandomSearch
 from cornac import Experiment
+
+
+class SeededSPop(SPop):
+    def __init__(self, name="SPop", use_session_popularity=True, seed=123):
+        super().__init__(
+            name=name,
+            use_session_popularity=use_session_popularity,
+        )
+        self.seed = seed
 
 
 class TestCommon(unittest.TestCase):
@@ -69,6 +78,67 @@ class TestCommon(unittest.TestCase):
             metrics=[metric],
             user_based=False,
         ).run()
+
+    def test_random_search_next_item_recommender(self):
+        data = Reader().read("./tests/sequence.txt", fmt="USIT", sep=" ")
+        eval_method = NextItemEvaluation.from_splits(
+            train_data=data[:35],
+            val_data=data[35:50],
+            test_data=data[50:],
+            fmt="USIT",
+            exclude_unknowns=False,
+            mode="next",
+        )
+        metric = HitRatio(k=5)
+        rs_spop = RandomSearch(
+            model=SeededSPop(),
+            space=[Discrete("use_session_popularity", [False, True])],
+            metric=metric,
+            eval_method=eval_method,
+            n_trails=2,
+        )
+
+        test_result, _ = eval_method.evaluate(
+            model=rs_spop,
+            metrics=[metric],
+            user_based=False,
+            show_validation=False,
+        )
+
+        self.assertIsNotNone(rs_spop.best_model)
+        self.assertEqual(rs_spop.best_params, {"use_session_popularity": False})
+        self.assertAlmostEqual(rs_spop.best_score, 11 / 12)
+        self.assertTrue(np.isfinite(test_result.metric_avg_results["HitRatio@5"]))
+
+    def test_grid_search_next_item_recommender(self):
+        data = Reader().read("./tests/sequence.txt", fmt="USIT", sep=" ")
+        eval_method = NextItemEvaluation.from_splits(
+            train_data=data[:35],
+            val_data=data[35:50],
+            test_data=data[50:],
+            fmt="USIT",
+            exclude_unknowns=False,
+            mode="next",
+        )
+        metric = HitRatio(k=5)
+        gs_spop = GridSearch(
+            model=SPop(),
+            space=[Discrete("use_session_popularity", [False, True])],
+            metric=metric,
+            eval_method=eval_method,
+        )
+
+        test_result, _ = eval_method.evaluate(
+            model=gs_spop,
+            metrics=[metric],
+            user_based=False,
+            show_validation=False,
+        )
+
+        self.assertIsNotNone(gs_spop.best_model)
+        self.assertEqual(gs_spop.best_params, {"use_session_popularity": False})
+        self.assertAlmostEqual(gs_spop.best_score, 11 / 12)
+        self.assertTrue(np.isfinite(test_result.metric_avg_results["HitRatio@5"]))
 
 
 if __name__ == "__main__":

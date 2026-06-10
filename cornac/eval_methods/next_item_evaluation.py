@@ -335,7 +335,10 @@ class NextItemEvaluation(BaseMethod):
         -------
         res: :obj:`cornac.experiment.Result`
         """
-        if not isinstance(model, NextItemRecommender):
+        base_model = getattr(model, "model", None)
+        if not isinstance(model, NextItemRecommender) and not isinstance(
+            base_model, NextItemRecommender
+        ):
             raise ValueError("model must be a NextItemRecommender but '%s' is provided" % type(model))
 
         if self.train_set is None:

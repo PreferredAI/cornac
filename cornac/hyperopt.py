@@ -17,9 +17,10 @@
 import numpy as np
 from itertools import product
 
-from .models import Recommender
+from .models import Recommender, NextItemRecommender
 from .metrics import RatingMetric, RankingMetric
 from .eval_methods import rating_eval, ranking_eval
+from .eval_methods.next_item_evaluation import ranking_eval as next_item_ranking_eval
 from .utils import get_rng
 
 
@@ -147,6 +148,16 @@ class BaseSearch(Recommender):
 
             if isinstance(self.metric, RatingMetric):
                 score = rating_eval(model, [self.metric], val_set)[0][0]
+            elif isinstance(model, NextItemRecommender):
+                score = next_item_ranking_eval(
+                    model,
+                    [self.metric],
+                    train_set,
+                    val_set,
+                    exclude_unknowns=self.eval_method.exclude_unknowns,
+                    mode=self.eval_method.mode,
+                    verbose=False,
+                )[0][0]
             else:
                 score = ranking_eval(
                     model,
@@ -171,9 +182,17 @@ class BaseSearch(Recommender):
 
         return self
 
-    def score(self, user_idx, item_idx=None):
+    def transform(self, test_set):
+        """Delegate test-set transformation to the best searched model."""
+        return self.best_model.transform(test_set)
+
+    def score(self, user_idx, *args, **kwargs):
         """Scoring using the best searched model"""
-        return self.best_model.score(user_idx, item_idx)
+        return self.best_model.score(user_idx, *args, **kwargs)
+
+    def rank(self, user_idx, item_indices=None, k=-1, **kwargs):
+        """Ranking using the best searched model"""
+        return self.best_model.rank(user_idx, item_indices, k, **kwargs)
 
 
 class GridSearch(BaseSearch):
