@@ -81,8 +81,10 @@ class TestCommon(unittest.TestCase):
             mode="next",
         )
         metric = HitRatio(k=5)
+        spop = SPop()
+        spop.seed = 123  # for reproducible RandomSearch sampling
         rs_spop = RandomSearch(
-            model=SPop(),
+            model=spop,
             space=[Discrete("use_session_popularity", [False, True])],
             metric=metric,
             eval_method=eval_method,
