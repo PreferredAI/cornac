@@ -282,7 +282,7 @@ class RandomSearch(BaseSearch):
         """Generate searching points"""
         param_set = []
         keys = [d.name for d in self.space]
-        rng = get_rng(self.model.seed)
+        rng = get_rng(getattr(self.model, "seed", None))
         while len(param_set) < self.n_trails:
             params = [d._sample(rng) for d in self.space]
             param_set.append(dict(zip(keys, params)))

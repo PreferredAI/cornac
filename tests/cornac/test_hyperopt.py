@@ -27,15 +27,6 @@ from cornac.hyperopt import GridSearch, RandomSearch
 from cornac import Experiment
 
 
-class SeededSPop(SPop):
-    def __init__(self, name="SPop", use_session_popularity=True, seed=123):
-        super().__init__(
-            name=name,
-            use_session_popularity=use_session_popularity,
-        )
-        self.seed = seed
-
-
 class TestCommon(unittest.TestCase):
     
     def setUp(self):
@@ -91,7 +82,7 @@ class TestCommon(unittest.TestCase):
         )
         metric = HitRatio(k=5)
         rs_spop = RandomSearch(
-            model=SeededSPop(),
+            model=SPop(),
             space=[Discrete("use_session_popularity", [False, True])],
             metric=metric,
             eval_method=eval_method,
