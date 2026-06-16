@@ -372,7 +372,7 @@ cmdclass = {
 
 setup(
     ext_modules=extensions,
-    extras_require={"tests": ["pytest", "pytest-pep8", "pytest-xdist", "pytest-cov", "Flask"]},
+    extras_require={"tests": ["pytest", "pytest-xdist", "pytest-cov", "Flask"]},
     cmdclass=cmdclass,
     packages=find_packages(),
 )

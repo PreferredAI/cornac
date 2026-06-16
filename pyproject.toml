@@ -50,7 +50,6 @@ Homepage = "https://cornac.preferred.ai"
 [project.optional-dependencies]
 tests = [
     "pytest",
-    "pytest-pep8",
     "pytest-xdist",
     "pytest-cov",
     "Flask",
