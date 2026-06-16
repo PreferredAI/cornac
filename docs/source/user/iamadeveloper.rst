@@ -111,6 +111,10 @@ this, we can use the `cornac.hyperopt` module to perform the searches.
 As shown in the above code, we have defined two methods for hyper-parameter search,
 ``GridSearch`` and ``RandomSearch``.
 
+The same search classes support next-item recommenders when paired with
+``NextItemEvaluation``. In both cases, the evaluation method must include a
+validation split, which is used to select the best parameter settings.
+
 +------------------------------------------+---------------------------------------------+
 | Grid Search                              | Random Search                               |
 +==========================================+=============================================+
