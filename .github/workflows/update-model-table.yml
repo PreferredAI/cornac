@@ -1,0 +1,39 @@
+name: update-model-table
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'README.md'
+      - 'docs/generate_model_js.py'
+  release:
+    types: [published]
+
+jobs:
+  update-model-table:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Run model table generation script
+        working-directory: docs
+        run: python generate_model_js.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/source/_static/models/data.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: auto-update model table [skip ci]"
+            git push
+          fi
