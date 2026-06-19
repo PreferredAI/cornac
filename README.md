@@ -110,10 +110,9 @@ bpr.save("save_dir", save_trainset=True)
 ```
 After that, the model can be deployed easily by running Cornac serving app as follows:
 ```bash
-$ FLASK_APP='cornac.serving.app' \
-  MODEL_PATH='save_dir/BPR' \
+$ MODEL_PATH='save_dir/BPR' \
   MODEL_CLASS='cornac.models.BPR' \
-  flask run --host localhost --port 8080
+  flask --app cornac.serving.app run --host localhost --port 8080
 
 # Running on http://localhost:8080
 ```
