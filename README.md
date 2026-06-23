@@ -58,7 +58,7 @@ Additional dependencies required by models are listed [here](README.md#Models).
 
 Some algorithm implementations use `OpenMP` to support multi-threading. For Mac OS users, in order to run those algorithms efficiently, you might need to install `gcc` from Homebrew to have an OpenMP compiler:
 ```bash
-brew install gcc | brew link gcc
+brew install gcc && brew link gcc
 ```
 
 ## Getting started: your first Cornac experiment
