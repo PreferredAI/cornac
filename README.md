@@ -112,7 +112,7 @@ After that, the model can be deployed easily by running Cornac serving app as fo
 ```bash
 $ MODEL_PATH='save_dir/BPR' \
   MODEL_CLASS='cornac.models.BPR' \
-  flask --app cornac.serving.app run --host localhost --port 8080
+  flask --app cornac.serving.app run --host localhost --port 8080  # requires Flask>=2.2 (older Flask: FLASK_APP='cornac.serving.app' flask run ...)
 
 # Running on http://localhost:8080
 ```
