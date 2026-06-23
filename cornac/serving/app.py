@@ -91,8 +91,8 @@ def _load_model(instance_path):
         "Model loaded"
         if train_set is None
         else """
-        Model and train set loaded. Remove seen items by adding 
-        remove_seen=true' query param to the recommend endpoint.
+        Model and train set loaded. Remove seen items by adding
+        'remove_seen=true' query param to the recommend endpoint.
         """
     )
 
