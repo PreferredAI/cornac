@@ -9,6 +9,10 @@ on:
   release:
     types: [published]
 
+concurrency:
+  group: update-model-table
+  cancel-in-progress: true
+
 jobs:
   update-model-table:
     runs-on: ubuntu-latest
