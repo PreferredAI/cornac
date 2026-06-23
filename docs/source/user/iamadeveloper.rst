@@ -506,10 +506,9 @@ command:
 
 .. code-block:: bash
     
-    FLASK_APP='cornac.serving.app' \
     MODEL_PATH='save_dir/BPR' \
     MODEL_CLASS='cornac.models.BPR' \
-    flask run --host localhost --port 8080
+    flask --app cornac.serving.app run --host localhost --port 8080  # requires Flask>=2.2
 
 This will serve an API for the BPR model saved in the directory ``save_dir/BPR``.
 The API will be launched at `localhost:8080` and following output will be shown:
