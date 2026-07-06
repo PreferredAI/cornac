@@ -18,7 +18,65 @@ An :class:`Objective` turns left-padded whole sessions into inputs, loss
 positions, and targets; runs the model; and returns a scalar loss computed
 by one of the shared :mod:`cornac.models.seq_utils` loss functions against a
 ``(M, M + N)`` score matrix.
+
+Shared helpers used by several objectives live here too:
+:func:`bernoulli_mask` (MLM / PLM / RTD position selection) and
+:func:`build_out_iids` (positives + sampled negatives concatenation).
 """
+
+import numpy as np
+import torch
+
+
+def bernoulli_mask(non_pad, mask_prob, rng):
+    """Bernoulli position selection with the T4R MLM safeguards.
+
+    Draws i.i.d. Bernoulli(``mask_prob``) over the non-pad positions, then
+    guarantees per row at least one selected position and, when the row has
+    more than one non-pad item, at least one visible (unselected) item.
+
+    Parameters
+    ----------
+    non_pad : numpy.ndarray of bool, shape (B, T)
+        True where the position holds a real item.
+    mask_prob : float
+        Per-position selection probability.
+    rng : numpy.random.RandomState
+
+    Returns
+    -------
+    numpy.ndarray of bool, shape (B, T)
+        True at the selected positions.
+    """
+    B, T = non_pad.shape
+    mask_labels = (rng.random((B, T)) < mask_prob) & non_pad
+    for b in range(B):
+        valid = np.where(non_pad[b])[0]
+        if len(valid) == 0:
+            continue
+        if not mask_labels[b].any():
+            mask_labels[b, rng.choice(valid)] = True
+        # If every non-pad item is selected, unselect one to keep context.
+        if len(valid) > 1 and mask_labels[b].sum() == len(valid):
+            masked = np.where(mask_labels[b])[0]
+            mask_labels[b, rng.choice(masked)] = False
+    return mask_labels
+
+
+def build_out_iids(target_flat, sample_negatives, loss_kwargs, device):
+    """Concatenate positives with sampled negatives.
+
+    The negative count is read from ``loss_kwargs['n_sample']`` (mirroring
+    the family's ``loss_kwargs = dict(..., n_sample=...)`` convention);
+    absent or zero yields in-batch negatives only.
+    """
+    n_sample = loss_kwargs.get("n_sample", 0)
+    if sample_negatives is None or not n_sample:
+        return target_flat
+    negatives = torch.as_tensor(
+        sample_negatives(n_sample), dtype=torch.long, device=device
+    )
+    return torch.cat([target_flat, negatives])
 
 
 class Objective:

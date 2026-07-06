@@ -16,8 +16,7 @@
 import numpy as np
 import torch
 
-from .base import Objective
-from .clm import _build_out_iids
+from .base import Objective, bernoulli_mask, build_out_iids
 
 
 class MLMObjective(Objective):
@@ -25,7 +24,9 @@ class MLMObjective(Objective):
 
     Random non-pad positions are replaced by ``mask_idx`` and the model must
     recover the original items. Masking always replaces with the mask token
-    (no 80/10/10 split). Requires a bidirectional backbone.
+    (no 80/10/10 split) and follows the shared :func:`bernoulli_mask`
+    safeguards (at least one masked and, where possible, at least one
+    visible item per row). Requires a bidirectional backbone.
     """
 
     VALID_ATTENTION = ("bidirectional",)
@@ -38,18 +39,10 @@ class MLMObjective(Objective):
     def compute_loss(self, model, seqs, sample_negatives, loss_fn, loss_kwargs):
         seqs_t = torch.as_tensor(seqs, dtype=torch.long, device=model.dev)
         seqs_np = np.asarray(seqs)
-        B, T = seqs_np.shape
 
-        # Sample mask positions among NON-pad positions; force >= 1 per row.
-        mask_matrix = np.zeros((B, T), dtype=bool)
-        for b in range(B):
-            positions = np.nonzero(seqs_np[b] != self.pad_idx)[0]
-            if len(positions) == 0:
-                continue
-            chosen = positions[self.rng.rand(len(positions)) < self.mask_prob]
-            if len(chosen) == 0:
-                chosen = self.rng.choice(positions, size=1)
-            mask_matrix[b, chosen] = True
+        mask_matrix = bernoulli_mask(
+            seqs_np != self.pad_idx, self.mask_prob, self.rng
+        )
 
         mask_t = torch.as_tensor(mask_matrix, device=model.dev)
         inputs = seqs_t.clone()
@@ -59,7 +52,7 @@ class MLMObjective(Objective):
         hidden_flat = hidden[mask_t]  # (M, D)
         target_flat = seqs_t[mask_t]  # (M,)
 
-        out_iids = _build_out_iids(
+        out_iids = build_out_iids(
             target_flat, sample_negatives, loss_kwargs, model.dev
         )
         scores = model.score_positions(hidden_flat, out_iids)

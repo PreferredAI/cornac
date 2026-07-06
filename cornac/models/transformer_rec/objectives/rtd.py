@@ -13,13 +13,11 @@
 # limitations under the License.
 # ============================================================================
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .base import Objective
-from .clm import _build_out_iids
+from .base import Objective, bernoulli_mask, build_out_iids
 
 
 class RTDObjective(Objective):
@@ -105,25 +103,10 @@ class RTDObjective(Objective):
     def parameters(self):
         return list(self.disc_head.parameters())
 
-    def _mlm_mask(self, non_pad):
-        """Bernoulli MLM masking with T4R's at-least-one / not-all safeguards."""
-        B, T = non_pad.shape
-        mask_labels = (self.rng.random((B, T)) < self.mask_prob) & non_pad
-        for b in range(B):
-            valid = np.where(non_pad[b])[0]
-            if len(valid) == 0:
-                continue
-            if not mask_labels[b].any():
-                mask_labels[b, self.rng.choice(valid)] = True
-            if len(valid) > 1 and mask_labels[b].sum() == len(valid):
-                masked = np.where(mask_labels[b])[0]
-                mask_labels[b, self.rng.choice(masked)] = False
-        return mask_labels
-
     def compute_loss(self, model, seqs, sample_negatives, loss_fn, loss_kwargs):
         device = model.dev
         non_pad = seqs != self.pad_idx
-        mask_labels = self._mlm_mask(non_pad)
+        mask_labels = bernoulli_mask(non_pad, self.mask_prob, self.rng)
 
         seqs_t = torch.as_tensor(seqs, dtype=torch.long, device=device)
         non_pad_t = torch.as_tensor(non_pad, device=device)
@@ -136,7 +119,7 @@ class RTDObjective(Objective):
         mlm_hidden = hidden[mask_t]  # (M, D)
         targets = seqs_t[mask_t]  # (M,)
 
-        out_iids = _build_out_iids(targets, sample_negatives, loss_kwargs, device)
+        out_iids = build_out_iids(targets, sample_negatives, loss_kwargs, device)
         mlm_scores = model.score_positions(mlm_hidden, out_iids)  # (M, M+N)
         mlm_loss = loss_fn(
             mlm_scores, out_iids=out_iids, batch_size=targets.shape[0], **loss_kwargs

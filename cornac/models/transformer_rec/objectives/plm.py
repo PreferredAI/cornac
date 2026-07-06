@@ -16,7 +16,7 @@
 import numpy as np
 import torch
 
-from .base import Objective
+from .base import Objective, bernoulli_mask, build_out_iids
 
 
 class PLMObjective(Objective):
@@ -73,31 +73,11 @@ class PLMObjective(Objective):
         super().__init__(pad_idx, mask_idx, rng)
         self.mask_prob = mask_prob
 
-    def _select_targets(self, non_pad):
-        """Bernoulli target selection over non-pad positions.
-
-        Guarantees at least one target and at least one visible (non-target)
-        item per row, following the T4R MLM safeguards.
-        """
-        B, T = non_pad.shape
-        mask_labels = (self.rng.random((B, T)) < self.mask_prob) & non_pad
-        for b in range(B):
-            valid = np.where(non_pad[b])[0]
-            if len(valid) == 0:
-                continue
-            if not mask_labels[b].any():
-                mask_labels[b, self.rng.choice(valid)] = True
-            # If every non-pad item is a target, unmask one to keep context.
-            if len(valid) > 1 and mask_labels[b].sum() == len(valid):
-                masked = np.where(mask_labels[b])[0]
-                mask_labels[b, self.rng.choice(masked)] = False
-        return mask_labels
-
     def compute_loss(self, model, seqs, sample_negatives, loss_fn, loss_kwargs):
         device = model.dev
         B, T = seqs.shape
         non_pad = seqs != self.pad_idx
-        mask_labels = self._select_targets(non_pad)
+        mask_labels = bernoulli_mask(non_pad, self.mask_prob, self.rng)
 
         # Random factorization-order attention mask (T4R recipe).
         perm_mask = np.zeros((B, T, T), dtype=np.float32)
@@ -135,14 +115,7 @@ class PLMObjective(Objective):
         ]  # (M,)
         M = targets.shape[0]
 
-        out_iids = targets
-        n_neg = loss_kwargs.get("n_sample", 0) or 0
-        if sample_negatives is not None and n_neg > 0:
-            negs = torch.as_tensor(
-                sample_negatives(n_neg), dtype=torch.long, device=device
-            )
-            out_iids = torch.cat([targets, negs])
-
+        out_iids = build_out_iids(targets, sample_negatives, loss_kwargs, device)
         scores = model.score_positions(hidden, out_iids)  # (M, M+N)
         return loss_fn(scores, out_iids=out_iids, batch_size=M, **loss_kwargs)
 

@@ -15,7 +15,7 @@
 
 import torch
 
-from .base import Objective
+from .base import Objective, build_out_iids
 
 
 class CLMObjective(Objective):
@@ -47,7 +47,7 @@ class CLMObjective(Objective):
         hidden_flat = hidden[valid]  # (M, D)
         target_flat = targets[valid]  # (M,)
 
-        out_iids = _build_out_iids(
+        out_iids = build_out_iids(
             target_flat, sample_negatives, loss_kwargs, model.dev
         )
         scores = model.score_positions(hidden_flat, out_iids)
@@ -77,19 +77,3 @@ class CLMObjective(Objective):
             batch_size=hist_iids.size(0),
             **loss_kwargs,
         )
-
-
-def _build_out_iids(target_flat, sample_negatives, loss_kwargs, device):
-    """Concatenate positives with sampled negatives.
-
-    The negative count is read from ``loss_kwargs['n_sample']`` (mirroring
-    the family's ``loss_kwargs = dict(..., n_sample=...)`` convention);
-    absent or zero yields in-batch negatives only.
-    """
-    n_sample = loss_kwargs.get("n_sample", 0)
-    if sample_negatives is None or not n_sample:
-        return target_flat
-    negatives = torch.as_tensor(
-        sample_negatives(n_sample), dtype=torch.long, device=device
-    )
-    return torch.cat([target_flat, negatives])
