@@ -50,7 +50,6 @@ from .fpmc import FPMC
 from .gcmc import GCMC
 from .global_avg import GlobalAvg
 from .gp_top import GPTop
-from .gpt2rec import GPT2Rec
 from .gru4rec import GRU4Rec
 from .hft import HFT
 from .hpf import HPF
@@ -84,6 +83,7 @@ from .sorec import SoRec
 from .spop import SPop
 from .svd import SVD
 from .tifuknn import TIFUKNN
+from .transformer_rec import TransformerRec
 from .trirank import TriRank
 from .upcf import UPCF
 from .vaecf import VAECF

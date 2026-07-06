@@ -29,14 +29,18 @@
                                -- per-item RNN, session-based.
   ``session_seq_iter``       ``(in_uids, hist_iids, out_iids)`` -- sequence
                                models, session-based.
+  ``padded_session_iter``    ``(uids, padded_seqs)`` -- whole-session
+                               transformer models.
   =========================  =================================================
 """
 
-from .iterators import io_iter, session_seq_iter
+from .iterators import build_neg_sampler, io_iter, padded_session_iter, session_seq_iter
 from .selection import val_score
 
 __all__ = [
     "io_iter",
     "session_seq_iter",
+    "padded_session_iter",
+    "build_neg_sampler",
     "val_score",
 ]

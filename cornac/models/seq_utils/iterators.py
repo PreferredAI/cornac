@@ -23,8 +23,24 @@ import numpy as np
 from ...utils.common import get_rng
 
 
-def _build_neg_sampler(uir_tuple, sample_alpha):
-    """Precompute popularity-based sampling distribution over items."""
+def build_neg_sampler(uir_tuple, sample_alpha):
+    """Precompute a popularity-based sampling distribution over items.
+
+    Parameters
+    ----------
+    uir_tuple : tuple
+        ``(user_ids, item_ids, ratings)`` arrays; only ``item_ids`` is used.
+    sample_alpha : float
+        Popularity smoothing exponent. ``0`` gives a uniform distribution
+        (over observed items) and ``1`` gives raw popularity weighting.
+
+    Returns
+    -------
+    item_indices : numpy.ndarray, shape (num_items,), dtype int
+        Item ids ordered from most to least popular.
+    item_dist : numpy.ndarray, shape (num_items,), dtype float
+        Sampling probabilities aligned with ``item_indices`` (sums to 1).
+    """
     item_count = Counter(uir_tuple[1])
     item_indices = np.array([iid for iid, _ in item_count.most_common()], dtype="int")
     item_dist = np.array([cnt for _, cnt in item_count.most_common()], dtype="float") ** sample_alpha
@@ -59,7 +75,7 @@ def io_iter(s_iter, uir_tuple, n_sample=0, sample_alpha=0, rng=None, batch_size=
     c_pool = [None for _ in range(batch_size)]
     sizes = np.zeros(batch_size, dtype="int")
     if n_sample > 0:
-        item_indices, item_dist = _build_neg_sampler(uir_tuple, sample_alpha)
+        item_indices, item_dist = build_neg_sampler(uir_tuple, sample_alpha)
 
     for _, batch_mapped_ids in s_iter(batch_size, shuffle):
         l_pool += batch_mapped_ids
@@ -144,7 +160,7 @@ def session_seq_iter(
     if shuffle:
         rng.shuffle(sids)
     if n_sample > 0:
-        item_indices, item_dist = _build_neg_sampler(uir_tuple, sample_alpha)
+        item_indices, item_dist = build_neg_sampler(uir_tuple, sample_alpha)
 
     buffer_uids, buffer_hist, buffer_target = [], [], []
     for sid in sids:
@@ -183,4 +199,79 @@ def session_seq_iter(
             np.array(buffer_uids, dtype="int"),
             np.array(buffer_hist, dtype="int"),
             out_iids,
+        )
+
+
+def padded_session_iter(
+    train_set,
+    pad_index,
+    batch_size=64,
+    max_len=20,
+    rng=None,
+    shuffle=True,
+):
+    """Whole-session iterator for transformer next-item models.
+
+    Iterates over sessions, yielding each session as ONE left-padded row
+    (no prefix breakdown, no target split, no negative sampling). Training
+    objectives (CLM/MLM/PLM/RTD) derive their own targets from the raw
+    padded sessions downstream.
+
+    For a session ``[i0, i1, ..., iT]`` the row keeps the last ``max_len``
+    items (the head is truncated when longer) and is left-padded with
+    ``pad_index`` to exactly ``max_len``. Sessions with fewer than 2 items
+    are skipped.
+
+    Parameters
+    ----------
+    train_set : :class:`~cornac.data.SequentialDataset`
+        Must expose ``uir_tuple`` and ``sessions``.
+    pad_index : int
+        Padding token used to left-pad short sessions.
+    batch_size : int, default 64
+        Number of sessions per yielded batch.
+    max_len : int, default 20
+        Fixed sequence length of every row (truncate head / left-pad).
+    rng : numpy.random.RandomState, optional
+        Random state used to shuffle session order. Defaults to a fresh one.
+    shuffle : bool, default True
+        Whether to shuffle the session order each epoch.
+
+    Yields
+    ------
+    uids : numpy.ndarray, shape (B,), dtype int
+        User id of each session in the batch.
+    padded_seqs : numpy.ndarray, shape (B, max_len), dtype int
+        Left-padded, head-truncated item-id sequences. ``B == batch_size``
+        for full batches; the final partial batch is yielded whenever it is
+        non-empty (``B >= 1``).
+    """
+    rng = rng if rng is not None else get_rng(None)
+    uir_tuple = train_set.uir_tuple
+    sessions = train_set.sessions
+    sids = list(sessions.keys())
+    if shuffle:
+        rng.shuffle(sids)
+
+    buffer_uids, buffer_seqs = [], []
+    for sid in sids:
+        mapped_ids = sessions[sid]
+        items = list(uir_tuple[1][mapped_ids])
+        if len(items) < 2:
+            continue
+        uid = int(uir_tuple[0][mapped_ids[0]])
+        seq = items[-max_len:]
+        seq = [pad_index] * (max_len - len(seq)) + list(seq)
+        buffer_uids.append(uid)
+        buffer_seqs.append(seq)
+        if len(buffer_uids) == batch_size:
+            yield (
+                np.array(buffer_uids, dtype="int"),
+                np.array(buffer_seqs, dtype="int"),
+            )
+            buffer_uids, buffer_seqs = [], []
+    if len(buffer_uids) >= 1:
+        yield (
+            np.array(buffer_uids, dtype="int"),
+            np.array(buffer_seqs, dtype="int"),
         )

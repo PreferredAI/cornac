@@ -12,5 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
+"""TransformerRec: a unified HuggingFace-backbone next-item recommender.
 
-from .recom_gpt2rec import GPT2Rec
+Supports interchangeable transformer backbones
+Supported models: ``bert``/``gpt2``/``xlnet``/``electra``
+Supported training objectives: ``CLM``/``MLM``/``PLM``/``RTD`` over a single shared item-embedding scoring head.
+"""
+
+from .recom_transformer_rec import TransformerRec

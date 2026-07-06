@@ -14,17 +14,19 @@
 # ============================================================================
 """Transformer-based next-item recommenders on Diginetica.
 
-SASRec, BERT4Rec, and GPT2Rec share one scoring head (encode the current
-session, take the last-position hidden state, dot-product against item
-embeddings) and differ only in the sequence encoder:
+TransformerRec is one model with two axes of configuration: a HuggingFace
+backbone (bert/gpt2/xlnet/electra) and a language-modeling objective
+(clm/mlm/plm/rtd). This example compares:
 
-- SASRec   : its own causal self-attention stack (torch only)
-- BERT4Rec : a HuggingFace BERT encoder
-- GPT2Rec  : a HuggingFace GPT-2 decoder
+- SASRec                          : causal self-attention baseline (torch only)
+- TransformerRec gpt2+clm (all)   : causal LM, loss at every position
+- TransformerRec gpt2+clm (last)  : legacy prefix breakdown, loss at last
+                                    position only (the old GPT2Rec behavior)
+- TransformerRec bert+mlm         : BERT4Rec-style Cloze training
 
-BERT4Rec and GPT2Rec require the ``transformers`` package (see each model's
-requirements.txt). All three use the next-item-at-last-position objective, not
-the canonical MLM/CLM losses in Transformers4Rec paper.
+TransformerRec requires the ``transformers`` package (see the model's
+requirements.txt). The clm-all vs clm-last pair isolates the effect of the
+training setting under identical architecture and hyperparameters.
 """
 
 import torch
@@ -33,7 +35,7 @@ import cornac
 from cornac.datasets import diginetica
 from cornac.eval_methods import NextItemEvaluation
 from cornac.metrics import MRR, NDCG, Recall
-from cornac.models import BERT4Rec, GPT2Rec, GRU4Rec, SASRec
+from cornac.models import SASRec, TransformerRec
 
 DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
 print(f"using device: {DEVICE}")
@@ -52,7 +54,7 @@ next_item_eval = NextItemEvaluation.from_splits(
     fmt="USIT",
 )
 
-transformer = dict(
+shared = dict(
     embedding_dim=64,
     loss="cross-entropy",
     n_sample=512,
@@ -71,26 +73,30 @@ transformer = dict(
 )
 
 models = [
-    GRU4Rec(
-        layers=[100],
-        loss="cross-entropy",
-        dropout_p_hidden=0.3,
-        sample_alpha=0.75,
-        n_sample=512,
-        batch_size=64,
-        learning_rate=0.1,
-        n_epochs=50,
-        model_selection="best",
-        val_eval_every=5,
-        val_metric="recall",
-        val_k=20,
-        device=DEVICE,
-        verbose=True,
-        seed=123,
+    SASRec(learning_rate=0.01, **shared),
+    TransformerRec(
+        name="TransformerRec-gpt2-clm-all",
+        backbone="gpt2",
+        objective="clm",
+        loss_at="all",
+        learning_rate=0.001,
+        **shared,
     ),
-    SASRec(learning_rate=0.01, **transformer),
-    BERT4Rec(learning_rate=0.01, **transformer),
-    GPT2Rec(learning_rate=0.001, **transformer),
+    TransformerRec(
+        name="TransformerRec-gpt2-clm-last",
+        backbone="gpt2",
+        objective="clm",
+        loss_at="last",
+        learning_rate=0.001,
+        **shared,
+    ),
+    TransformerRec(
+        name="TransformerRec-bert-mlm",
+        backbone="bert",
+        objective="mlm",
+        learning_rate=0.01,
+        **shared,
+    ),
 ]
 
 metrics = [
