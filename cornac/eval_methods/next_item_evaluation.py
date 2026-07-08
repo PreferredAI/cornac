@@ -23,6 +23,7 @@ from tqdm.auto import tqdm
 from ..data import SequentialDataset
 from ..experiment.result import Result
 from ..models import NextItemRecommender
+from ..utils import validate_format
 from . import BaseMethod
 
 EVALUATION_MODES = frozenset([
@@ -188,6 +189,19 @@ class NextItemEvaluation(BaseMethod):
 
     verbose: bool, optional, default: False
         Output running log.
+
+    Notes
+    -----
+    **Data splitting.** Ratio-based splitting (inherited from
+    :obj:`BaseMethod`) and per-user leave-last-out both leak future
+    information into training: a random split trains on interactions that
+    postdate the test items, while leave-last-out places each user's held-out
+    item at a different absolute time, so training on one user includes other
+    users' later interactions (popularity drift then distorts results). The
+    recommended protocol is a single global temporal cutoff; use
+    :meth:`from_timestamps` for a leakage-free, session-level split.
+    Per-user leave-last-out remains available via :meth:`leave_last_out`
+    for comparability with published results.
 
     """
 
@@ -468,4 +482,291 @@ class NextItemEvaluation(BaseMethod):
             train_data=train_data,
             test_data=test_data,
             val_data=val_data,
+        )
+
+    @classmethod
+    def from_timestamps(
+        cls,
+        data,
+        test_timestamp,
+        val_timestamp=None,
+        fmt="USIT",
+        exclude_unknowns=True,
+        mode="last",
+        seed=None,
+        verbose=False,
+        **kwargs,
+    ):
+        """Constructing evaluation method by a global temporal split.
+
+        Sessions are split by a single global time horizon so that no
+        training session is evaluated against future information shared across
+        users. This is the leakage-free protocol recommended by the
+        offline-evaluation literature (see Notes).
+
+        Parameters
+        ----------
+        data: list, required
+            Raw preference data in the tuple format given by `fmt`.
+
+        test_timestamp: float, required
+            Absolute timestamp (same unit as the timestamps in `data`) marking
+            the start of the test period. Sessions whose last event is at or
+            after this timestamp form the test set.
+
+        val_timestamp: float, optional, default: None
+            Absolute timestamp marking the start of the validation period. If
+            None, no validation set is created and the training set absorbs
+            everything before `test_timestamp`. Must be strictly smaller than
+            `test_timestamp`.
+
+        fmt: str, default: 'USIT'
+            Format of the input data. Currently, we are supporting:
+
+            'SIT': Session, Item, Timestamp
+            'USIT': User, Session, Item, Timestamp
+            'SITJson': Session, Item, Timestamp, Json
+            'USITJson': User, Session, Item, Timestamp, Json
+
+        exclude_unknowns: bool, optional, default: True
+            Whether to exclude unknown users/items in evaluation.
+
+        mode: str, optional, default: 'last'
+            Evaluation mode is either 'next' or 'last'.
+            If 'last', only evaluate the last item.
+            If 'next', evaluate every next item in the sequence.
+
+        seed: int, optional, default: None
+            Random seed for reproducibility.
+
+        verbose: bool, optional, default: False
+            The verbosity flag.
+
+        Returns
+        -------
+        method: :obj:`<cornac.eval_methods.NextItemEvaluation>`
+            Evaluation method object.
+
+        Notes
+        -----
+        Sessions are atomic: each session is assigned to exactly one split by
+        the timestamp of its **last event** ``last_ts = max(t of session)``:
+
+        - train: ``last_ts < val_timestamp``
+        - val:   ``val_timestamp <= last_ts < test_timestamp``
+        - test:  ``last_ts >= test_timestamp``
+
+        ``>=`` goes to the later split (same convention as
+        :obj:`cornac.eval_methods.TimestampSplit`). With
+        ``val_timestamp=None``, train is ``last_ts < test_timestamp``.
+
+        Assigning whole sessions by last event keeps sessions intact (an
+        interaction-level cutoff would truncate straddling sessions), bounding
+        residual leakage by session length (Hidasi & Czapp, RecSys 2023).
+        Rows keep their original relative order within each partition, as
+        required by :obj:`cornac.data.SequentialDataset.build`.
+
+        References
+        ----------
+        Meng et al. (2020). Exploring Data Splitting Strategies for the
+        Evaluation of Recommendation Models. RecSys 2020.
+
+        Ji et al. (2023). A Critical Study on Data Leakage in Recommender
+        System Offline Evaluation. ACM TOIS 2023.
+
+        Hidasi & Czapp (2023). Widespread Flaws in Offline Evaluation of
+        Recommender Systems. RecSys 2023.
+
+        """
+        fmt = validate_format(fmt, ["SIT", "USIT", "SITJson", "USITJson"])
+
+        if val_timestamp is not None and val_timestamp >= test_timestamp:
+            raise ValueError(
+                "val_timestamp ({}) must be strictly smaller than "
+                "test_timestamp ({}).".format(val_timestamp, test_timestamp)
+            )
+
+        sid_pos = 1 if fmt in ["USIT", "USITJson"] else 0
+        ts_pos = 3 if fmt in ["USIT", "USITJson"] else 2
+
+        # Pass 1: last event timestamp per session.
+        last_ts = {}
+        for tup in data:
+            sid = tup[sid_pos]
+            t = float(tup[ts_pos])
+            if sid not in last_ts or t > last_ts[sid]:
+                last_ts[sid] = t
+
+        # Pass 2: route tuples, preserving original relative order.
+        train_data, val_data, test_data = [], [], []
+        for tup in data:
+            ts = last_ts[tup[sid_pos]]
+            if ts >= test_timestamp:
+                test_data.append(tup)
+            elif val_timestamp is not None and ts >= val_timestamp:
+                val_data.append(tup)
+            else:
+                train_data.append(tup)
+
+        if len(train_data) == 0:
+            raise ValueError(
+                "Empty train partition: no session ends before the cutoff "
+                "({}).".format(test_timestamp if val_timestamp is None else val_timestamp)
+            )
+        if len(test_data) == 0:
+            raise ValueError(
+                "Empty test partition: no session ends at or after "
+                "test_timestamp ({}).".format(test_timestamp)
+            )
+        if val_timestamp is not None and len(val_data) == 0:
+            warnings.warn(
+                "Empty validation partition: no session ends in "
+                "[{}, {}). Proceeding with no validation set.".format(
+                    val_timestamp, test_timestamp
+                )
+            )
+            val_data = None
+
+        if verbose:
+            def _n_sessions(part):
+                return len({tup[sid_pos] for tup in part}) if part else 0
+
+            print("---")
+            print("Global temporal split:")
+            print(
+                "Train: {} sessions, {} interactions".format(
+                    _n_sessions(train_data), len(train_data)
+                )
+            )
+            print(
+                "Val: {} sessions, {} interactions".format(
+                    _n_sessions(val_data), len(val_data) if val_data else 0
+                )
+            )
+            print(
+                "Test: {} sessions, {} interactions".format(
+                    _n_sessions(test_data), len(test_data)
+                )
+            )
+
+        return cls.from_splits(
+            train_data=train_data,
+            test_data=test_data,
+            val_data=val_data,
+            fmt=fmt,
+            exclude_unknowns=exclude_unknowns,
+            seed=seed,
+            verbose=verbose,
+            mode=mode,
+            **kwargs,
+        )
+
+    @classmethod
+    def leave_last_out(
+        cls,
+        data,
+        fmt="UIRT",
+        exclude_unknowns=True,
+        mode="last",
+        seed=None,
+        verbose=False,
+        **kwargs,
+    ):
+        """Constructing evaluation method by per-user leave-last-out.
+
+        Each user's interactions are sorted chronologically and treated as one
+        session (session id = user id). The last item is held out for testing
+        and the second-to-last for validation — the common protocol in the
+        sequential recommendation literature (SASRec, BERT4Rec, ...).
+
+        Parameters
+        ----------
+        data: list, required
+            Raw preference data in the quadruplet format
+            [(user_id, item_id, rating, timestamp)]. Ratings are ignored
+            (implicit next-item feedback).
+
+        fmt: str, default: 'UIRT'
+            Format of the input data. Only 'UIRT' is supported.
+
+        exclude_unknowns: bool, optional, default: True
+            Whether to exclude unknown users/items in evaluation.
+
+        mode: str, optional, default: 'last'
+            Evaluation mode is either 'next' or 'last'.
+            If 'last', only evaluate the last item.
+            If 'next', evaluate every next item in the sequence.
+
+        seed: int, optional, default: None
+            Random seed for reproducibility.
+
+        verbose: bool, optional, default: False
+            The verbosity flag.
+
+        Returns
+        -------
+        method: :obj:`<cornac.eval_methods.NextItemEvaluation>`
+            Evaluation method object.
+
+        Notes
+        -----
+        Per user (chronological, stable sort — tied timestamps keep input
+        order), with cumulative sequences:
+
+        - train: ``seq[:-2]``
+        - val:   ``seq[:-1]`` (target = second-to-last item)
+        - test:  ``seq`` (target = last item)
+
+        Users with fewer than 3 interactions are dropped from all splits.
+
+        This protocol leaks future information across users: each held-out
+        item sits at a different absolute time, so training includes other
+        users' later interactions (Ji et al., A Critical Study on Data
+        Leakage in Recommender System Offline Evaluation, ACM TOIS 2023).
+        It is provided for comparability with published results; prefer
+        :meth:`from_timestamps` for a leakage-free protocol.
+
+        """
+        fmt = validate_format(fmt, ["UIRT"])
+
+        by_user = OrderedDict()
+        for u, i, _, t in data:
+            by_user.setdefault(u, []).append((float(t), i, t))
+
+        train_data, val_data, test_data = [], [], []
+        n_skipped = 0
+        for u, events in by_user.items():
+            if len(events) < 3:
+                n_skipped += 1
+                continue
+            events.sort(key=lambda x: x[0])
+            seq = [(u, u, i, t) for _, i, t in events]
+            train_data.extend(seq[:-2])
+            val_data.extend(seq[:-1])
+            test_data.extend(seq)
+
+        if len(train_data) == 0:
+            raise ValueError(
+                "Empty train set: no user has at least 3 interactions."
+            )
+
+        if verbose:
+            print("---")
+            print("Leave-last-out split (user = session):")
+            print(
+                "{} users kept, {} users with < 3 interactions dropped".format(
+                    len(by_user) - n_skipped, n_skipped
+                )
+            )
+
+        return cls.from_splits(
+            train_data=train_data,
+            test_data=test_data,
+            val_data=val_data,
+            fmt="USIT",
+            exclude_unknowns=exclude_unknowns,
+            seed=seed,
+            verbose=verbose,
+            mode=mode,
+            **kwargs,
         )
