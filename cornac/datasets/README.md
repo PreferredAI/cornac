@@ -281,3 +281,25 @@ Session-aware recommendation extends next-item (session-based) recommendation by
 | [Cosmetics](./cosmetics.py)       | 17,268 | 42,367 |   172,242 |     2,533,262 |               9.97 |                  59.79 |                     14.71 |  0.346% |
 
 For session-based (next-item) evaluation, [Diginetica](./diginetica.py)'s `load_val()` and `load_test()` default to `mode="session-based"`, returning each user's single held-out session (`val_sbr`/`test_sbr`) with no training transitions repeated — the clean evaluation set used by session-based models such as [FPMC](../models/fpmc/) and [GRU4Rec](../models/gru4rec/). Pass `mode="session-aware"` to load the cumulative files (`val`/`test`) instead, where each user's prior sessions precede their held-out one for cross-session models.
+
+---
+
+## Semantic-ID Datasets
+### Amazon Product Review
+[Amazon Product Review](./amazon_review.py) 5-core
+
+Each user's reviews form one chronologically-ordered sequence. Interactions are loaded via `amazon_review.load_feedback(category=...)` in `UIRT` format (user, item, rating, timestamp). No preprocessing is needed and the data is kept as-is for comparability with published results (with `leave-last-out` split).
+
+| Dataset                  | #Users | #Items | #Interactions | Type      |
+| :----------------------- | -----: | -----: | ------------: | :-------- |
+| Amazon Beauty (`beauty`) | 22,363 | 12,101 |       198,502 | INT [1,5] |
+| Amazon Sports (`sports`) | 35,598 | 18,357 |       296,337 | INT [1,5] |
+| Amazon Toys (`toys`)     | 19,412 | 11,924 |       167,597 | INT [1,5] |
+
+```Python
+from cornac.datasets import amazon_review
+from cornac.eval_methods import NextItemEvaluation
+
+data = amazon_review.load_feedback(category="beauty")  # UIRT tuples, chronological per user
+eval_method = NextItemEvaluation.leave_last_out(data, fmt="UIRT")
+```
