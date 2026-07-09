@@ -16,11 +16,10 @@
 import unittest
 import warnings
 
-from cornac.eval_methods import NextItemEvaluation
 from cornac.data import Reader
-from cornac.models import SPop
+from cornac.eval_methods import NextItemEvaluation
 from cornac.metrics import HitRatio, Recall
-
+from cornac.models import SPop
 
 def _split_sids(dataset):
     """Raw session ids actually present in a built split."""
@@ -132,6 +131,40 @@ class TestFromTimestamps(unittest.TestCase):
                 self.usit, test_timestamp=1000, val_timestamp=None, fmt="USIT",
             )
 
+    def test_empty_train_raises(self):
+        # test_timestamp below every session's last event -> nothing left for
+        # train (all sessions land in test).
+        with self.assertRaises(ValueError):
+            NextItemEvaluation.from_timestamps(
+                self.usit,
+                test_timestamp=5,
+                val_timestamp=None,
+                fmt="USIT",
+            )
+
+    def test_empty_val_warns(self):
+        # No session ends in [55, 65): train={s1,s2,s3}, test={s4,s5,s6}, val
+        # empty -> warn and fall back to no validation set.
+        with self.assertWarns(UserWarning):
+            m = NextItemEvaluation.from_timestamps(
+                self.usit,
+                test_timestamp=65,
+                val_timestamp=55,
+                fmt="USIT",
+            )
+        self.assertIsNone(m.val_set)
+
+    def test_verbose(self):
+        # Exercise the verbose split-summary branch.
+        m = NextItemEvaluation.from_timestamps(
+            self.usit,
+            test_timestamp=100,
+            val_timestamp=50,
+            fmt="USIT",
+            verbose=True,
+        )
+        self.assertEqual(m.test_set.num_sessions, 2)
+
     def test_sit_format(self):
         # SIT: (session, item, timestamp) -- no user column.
         sit = [
@@ -232,6 +265,11 @@ class TestLeaveLastOut(unittest.TestCase):
     def test_mode_passthrough(self):
         m = NextItemEvaluation.leave_last_out(self.uirt, mode="next")
         self.assertEqual(m.mode, "next")
+
+    def test_verbose(self):
+        # Exercise the verbose split-summary branch.
+        m = NextItemEvaluation.leave_last_out(self.uirt, verbose=True)
+        self.assertEqual(_split_sids(m.test_set), {"u1", "u2"})
 
 
 if __name__ == "__main__":
