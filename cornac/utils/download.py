@@ -14,7 +14,7 @@
 # ============================================================================
 
 import os
-import shutil
+import sys
 import zipfile
 import tarfile
 from urllib import request
@@ -47,9 +47,38 @@ def _urlretrieve(url, fpath):
         request.urlretrieve(url, fpath, reporthook=report)
 
 
-def _extract_archive(file_path, extract_path="."):
-    """Extracts an archive.
+def _safe_extract(archive, extract_path, extracted):
+    """Extract archive members one at a time, allowing only regular files and directories.
+    Blocks traversal paths, symlinks, hardlinks, FIFOs, and device files.
+    Appends each successfully written path to `extracted` for scoped cleanup on failure.
     """
+    extract_path = os.path.realpath(extract_path)
+    members = archive.getmembers() if hasattr(archive, "getmembers") else archive.infolist()
+    for member in members:
+        member_name = member.name if hasattr(member, "name") else member.filename
+        # Whitelist: allow only regular files and directories — blocks symlinks, hardlinks,
+        # FIFOs, character devices, block devices, and any other special TAR types
+        if hasattr(member, "isreg") and not (member.isreg() or member.isdir()):
+            raise ValueError(f"Blocked special member type in archive: {member_name}")
+        target = os.path.realpath(os.path.join(extract_path, member_name))
+        # Skip the root directory entry — extracting it can apply tar-owned permissions
+        if target == extract_path:
+            continue
+        if not target.startswith(extract_path + os.sep):
+            raise ValueError(f"Blocked path traversal attempt in archive: {member_name}")
+        # Record the target before writing so a partially-written file (failed mid-extract)
+        # is still cleaned up. Extract one member at a time so each write is validated
+        # against the live filesystem. Use filter="data" on Python 3.12+ as a defence-in-depth
+        # layer (safer than fully_trusted).
+        extracted.append(target)
+        if isinstance(archive, tarfile.TarFile) and sys.version_info >= (3, 12):
+            archive.extract(member, extract_path, filter="data")
+        else:
+            archive.extract(member, extract_path)
+
+
+def _extract_archive(file_path, extract_path="."):
+    """Extracts an archive."""
     for archive_type in ["zip", "tar"]:
         if archive_type == "zip":
             open_fn = zipfile.ZipFile
@@ -60,14 +89,21 @@ def _extract_archive(file_path, extract_path="."):
 
         if is_match_fn(file_path):
             with open_fn(file_path) as archive:
+                extracted = []
                 try:
-                    archive.extractall(extract_path)
-                except (tarfile.TarError, RuntimeError, KeyboardInterrupt):
-                    if os.path.exists(extract_path):
-                        if os.path.isfile(extract_path):
-                            os.remove(extract_path)
-                        else:
-                            shutil.rmtree(extract_path)
+                    _safe_extract(archive, extract_path, extracted)
+                except BaseException:
+                    # Any failure (corrupt archive, blocked member, interrupt, decompression
+                    # error, etc.) triggers cleanup, then the original exception is re-raised.
+                    # Remove only files written during this extraction — never wipe the full cache
+                    for path in reversed(extracted):
+                        try:
+                            if os.path.isfile(path) or os.path.islink(path):
+                                os.remove(path)
+                            elif os.path.isdir(path) and not os.listdir(path):
+                                os.rmdir(path)
+                        except OSError:
+                            pass
                     raise
 
 
