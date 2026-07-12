@@ -60,6 +60,87 @@ class TestAmazonReview(unittest.TestCase):
             self.assertGreater(len(data), 0)
             self.assertEqual(len(data[0]), 4)  # (user, item, rating, timestamp)
 
+    def test_item_text(self):
+        meta = {
+            "asin": "iA",
+            "title": "  Long   Wig ",
+            "price": 11.83,
+            "brand": "Generic",
+            "categories": [["Beauty", "Hair Care"], ["Beauty", "Wigs"]],
+        }
+        self.assertEqual(
+            amazon_review._item_text(meta),
+            "Title: Long Wig. Price: 11.83. Brand: Generic. "
+            "Categories: Beauty, Hair Care, Wigs",
+        )
+        # missing fields are skipped, not rendered empty
+        self.assertEqual(amazon_review._item_text({"title": "X"}), "Title: X")
+
+    def test_item_text_with_description(self):
+        meta = {
+            "asin": "iA",
+            "title": "Wig",
+            "description": "  A   long  soft   wig. ",
+        }
+        # description is appended last and whitespace-normalized
+        self.assertEqual(
+            amazon_review._item_text(meta, include_description=True),
+            "Title: Wig. Description: A long soft wig.",
+        )
+        # missing/empty description is skipped
+        self.assertEqual(
+            amazon_review._item_text({"title": "Wig"}, include_description=True),
+            "Title: Wig",
+        )
+        self.assertEqual(
+            amazon_review._item_text({"title": "Wig", "description": ""}, include_description=True),
+            "Title: Wig",
+        )
+        # include_description=False is unchanged even when description present
+        self.assertEqual(amazon_review._item_text(meta), "Title: Wig")
+
+    def test_preprocess_meta_covers_all_review_items(self):
+        # Metadata lines are Python dict literals (single quotes), only items
+        # in the reviews file are kept, and items without metadata get "".
+        with tempfile.TemporaryDirectory() as d:
+            reviews_csv = os.path.join(d, "reviews.csv")
+            with open(reviews_csv, "w") as f:
+                f.write("u1,iA,5.0,100\nu1,iB,4.0,200\nu2,iA,3.0,150\n")
+
+            meta_gz = os.path.join(d, "meta.json.gz")
+            with gzip.open(meta_gz, "wt", encoding="utf-8") as f:
+                f.write("{'asin': 'iA', 'title': 'Item A', 'price': 9.99}\n")
+                f.write("{'asin': 'iZ', 'title': 'Not reviewed'}\n")
+
+            out_path = os.path.join(d, "text.csv")
+            amazon_review._preprocess_meta(meta_gz, reviews_csv, out_path)
+
+            with open(out_path) as f:
+                rows = [ln.rstrip("\n").split(",", 1) for ln in f]
+
+        self.assertEqual(rows[0], ["iA", "Title: Item A. Price: 9.99"])
+        self.assertEqual(rows[1], ["iB", ""])  # covered, but no metadata
+        self.assertEqual(len(rows), 2)  # iZ excluded
+
+    def test_preprocess_meta_include_description(self):
+        # include_description plumbs through to the emitted text.
+        with tempfile.TemporaryDirectory() as d:
+            reviews_csv = os.path.join(d, "reviews.csv")
+            with open(reviews_csv, "w") as f:
+                f.write("u1,iA,5.0,100\n")
+
+            meta_gz = os.path.join(d, "meta.json.gz")
+            with gzip.open(meta_gz, "wt", encoding="utf-8") as f:
+                f.write("{'asin': 'iA', 'title': 'Item A', 'description': 'Nice item'}\n")
+
+            out_path = os.path.join(d, "text.csv")
+            amazon_review._preprocess_meta(meta_gz, reviews_csv, out_path, include_description=True)
+
+            with open(out_path) as f:
+                rows = [ln.rstrip("\n").split(",", 1) for ln in f]
+
+        self.assertEqual(rows[0], ["iA", "Title: Item A. Description: Nice item"])
+
 
 if __name__ == "__main__":
     unittest.main()

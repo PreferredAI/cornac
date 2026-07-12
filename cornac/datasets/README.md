@@ -296,10 +296,17 @@ Each user's reviews form one chronologically-ordered sequence. Interactions are 
 | Amazon Sports (`sports`) | 35,598 | 18,357 |       296,337 | INT [1,5] |
 | Amazon Toys (`toys`)     | 19,412 | 11,924 |       167,597 | INT [1,5] |
 
+Item content text (title, price, brand, categories -- the features embedded with Sentence-T5 in the TIGER paper) is available via `amazon_review.load_text(category=...)`, built from the public product metadata and covering exactly the 5-core items. Passing `include_description=True` appends each item's product description to its text (cached separately); Paischer et al. (arXiv:2412.08604) found this beneficial for the Toys dataset, while attribute-only text works better for Beauty/Sports.
+
 ```Python
+from cornac.data import FeatureModality
 from cornac.datasets import amazon_review
 from cornac.eval_methods import NextItemEvaluation
 
 data = amazon_review.load_feedback(category="beauty")  # UIRT tuples, chronological per user
-eval_method = NextItemEvaluation.leave_last_out(data, fmt="UIRT")
+texts, item_ids = amazon_review.load_text(category="beauty")  # item content text, aligned ids
+features = ...  # embed texts, e.g. SentenceTransformer("sentence-t5-base").encode(texts)
+eval_method = NextItemEvaluation.leave_last_out(
+    data, fmt="UIRT", item_feature=FeatureModality(features=features, ids=item_ids)
+)
 ```
