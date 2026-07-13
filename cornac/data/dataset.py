@@ -1203,6 +1203,20 @@ class SequentialDataset(Dataset):
         extra_pos = ts_pos + 1
         extra_data = [data[i][extra_pos] for i in valid_idx] if fmt in ["SITJson", "USITJson"] else None
 
+        if timestamps is not None and len(timestamps) > 1:
+            order = np.argsort(session_indices, kind="stable")
+            s = session_indices[order]
+            t = timestamps[order]
+            decreasing = (t[1:] < t[:-1]) & (s[1:] == s[:-1])
+            if decreasing.any():
+                n_bad = int(decreasing.sum())
+                warnings.warn(
+                    f"{n_bad} interaction(s) are not in chronological order within "
+                    "their session. Sequential models treat input row order as the "
+                    "ground-truth sequence; sort your data by (session, timestamp) "
+                    "before building the dataset."
+                )
+
         dataset = cls(
             num_users=len(global_uid_map),
             num_sessions=len(set(session_indices)),

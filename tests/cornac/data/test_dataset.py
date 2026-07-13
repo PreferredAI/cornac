@@ -14,6 +14,7 @@
 # ============================================================================
 
 import unittest
+import warnings
 
 import numpy as np
 import numpy.testing as npt
@@ -294,6 +295,62 @@ class TestSequentialDataset(unittest.TestCase):
             set(train_set.item_ids),
             set(["1", "2", "3", "4", "5", "6", "7", "8", "9"]),
         )
+
+
+class TestSequentialDatasetSortOrder(unittest.TestCase):
+    def _assert_no_warning(self, data):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            SequentialDataset.from_sit(data)
+
+    def test_shuffled_within_session_warns(self):
+        data = [("s1", "a", 3), ("s1", "b", 1), ("s1", "c", 2)]
+        with self.assertWarns(UserWarning):
+            SequentialDataset.from_sit(data)
+
+    def test_per_session_sorted_no_warning(self):
+        data = [
+            ("s1", "a", 1),
+            ("s1", "b", 2),
+            ("s2", "c", 1),
+            ("s2", "d", 2),
+        ]
+        self._assert_no_warning(data)
+
+    def test_interleaved_sessions_sorted_no_warning(self):
+        # Rows of session A and B alternate; each session is internally sorted.
+        data = [
+            ("A", "x", 1),
+            ("B", "p", 1),
+            ("A", "y", 2),
+            ("B", "q", 2),
+        ]
+        self._assert_no_warning(data)
+
+    def test_noncontiguous_cross_block_disorder_warns(self):
+        # Session A appears in two blocks; the later A block is earlier in time.
+        data = [
+            ("A", "x", 5),
+            ("A", "y", 6),
+            ("B", "p", 1),
+            ("A", "z", 2),
+        ]
+        with self.assertWarns(UserWarning):
+            SequentialDataset.from_sit(data)
+
+    def test_tied_timestamps_no_warning(self):
+        data = [("A", "x", 1), ("A", "y", 1), ("A", "z", 1)]
+        self._assert_no_warning(data)
+
+    def test_single_row_no_warning(self):
+        self._assert_no_warning([("A", "x", 1)])
+
+    def test_empty_data_no_sort_warning(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            with self.assertRaises(ValueError):
+                SequentialDataset.from_sit([])
+
 
 class TestPurchaseViewDataset(unittest.TestCase):
     def test_build_extends_id_space(self):
