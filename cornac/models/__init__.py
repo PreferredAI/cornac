@@ -83,6 +83,7 @@ from .sorec import SoRec
 from .spop import SPop
 from .svd import SVD
 from .tifuknn import TIFUKNN
+from .tiger import TIGER
 from .transformer_rec import TransformerRec
 from .trirank import TriRank
 from .upcf import UPCF

@@ -130,6 +130,8 @@
 
 [transformer_rec_diginetica.py](transformer_rec_diginetica.py) - Example of Transformer-based Recommendation models (SASRec, TransformerRec with CLM/MLM objectives) with Diginetica dataset.
 
+[tiger_example.py](tiger_example.py) - Generative retrieval with semantic IDs (TIGER) on Amazon Beauty with Sentence-T5 item content embeddings, reproducing the paper's leave-last-out protocol.
+
 ----
 
 ## Next-Basket Algorithms
