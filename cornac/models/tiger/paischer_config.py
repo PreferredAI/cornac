@@ -65,3 +65,24 @@ PAISCHER_CONFIG = dict(
     val_eval_every=5,
     val_sample=2000,
 )
+
+# Sports_and_Outdoors: lr 1e-4 (their patience also rises 15 -> 30),
+# batch 256, beam 10. Their 200k-step cap at batch 256 (~880 steps/epoch on
+# 5-core Sports) is never reached under early stopping; n_epochs=100 kept.
+PAISCHER_SPORTS_CONFIG = dict(
+    PAISCHER_CONFIG,
+    learning_rate=1e-4,
+    batch_size=256,
+    n_beams=10,
+)
+
+# Toys_and_Games: wider transformer (d_model 196, d_ff 1536), half the
+# budget (100k-step cap ~= n_epochs=50 at batch 64, 5k warmup), beam 10.
+PAISCHER_TOYS_CONFIG = dict(
+    PAISCHER_CONFIG,
+    d_model=196,
+    d_ff=1536,
+    n_epochs=50,
+    warmup_steps=5000,
+    n_beams=10,
+)

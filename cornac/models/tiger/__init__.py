@@ -15,4 +15,6 @@
 
 from .grid_config import GRID_CONFIG
 from .paischer_config import PAISCHER_CONFIG
+from .paischer_config import PAISCHER_SPORTS_CONFIG
+from .paischer_config import PAISCHER_TOYS_CONFIG
 from .recom_tiger import TIGER
