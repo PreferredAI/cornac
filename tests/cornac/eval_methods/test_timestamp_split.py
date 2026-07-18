@@ -84,6 +84,92 @@ class TestTimestampSplit(unittest.TestCase):
         with self.assertRaises(ValueError):
             TimestampSplit(self.data, val_timestamp=10, test_timestamp=100)
 
+    def test_ratio_split(self):
+        # 36 rows with unique timestamps 0..35 -> ratios are exact
+        eval_method = TimestampSplit(
+            self.data,
+            test_size=1 / 3,
+            val_size=1 / 3,
+            exclude_unknowns=False,
+            verbose=True,
+        )
+        # cutoffs computed from the requested proportions
+        self.assertEqual(eval_method.val_timestamp, 12)
+        self.assertEqual(eval_method.test_timestamp, 24)
+        self.assertEqual(eval_method.train_set.num_ratings, 12)
+        self.assertEqual(eval_method.val_set.num_ratings, 12)
+        self.assertEqual(eval_method.test_set.num_ratings, 12)
+
+    def test_ratio_no_val(self):
+        eval_method = TimestampSplit(
+            self.data,
+            test_size=0.25,
+            exclude_unknowns=False,
+            verbose=True,
+        )
+        self.assertEqual(eval_method.test_timestamp, 27)
+        self.assertEqual(eval_method.val_timestamp, eval_method.test_timestamp)
+        self.assertEqual(eval_method.train_set.num_ratings, 27)
+        self.assertIsNone(eval_method.val_set)
+        self.assertEqual(eval_method.test_set.num_ratings, 9)
+
+    def test_ratio_size_as_count(self):
+        # test_size > 1 is treated as an absolute number of interactions
+        eval_method = TimestampSplit(
+            self.data,
+            test_size=6,
+            exclude_unknowns=False,
+        )
+        self.assertEqual(eval_method.test_set.num_ratings, 6)
+        self.assertEqual(eval_method.train_set.num_ratings, 30)
+
+    def test_ratio_ties_kept_together(self):
+        # Tied timestamps must stay on one side (no temporal leakage), so the
+        # realized test proportion is approximate.
+        data = [
+            ("u{}".format(idx), "i{}".format(idx), 1, ts)
+            for idx, ts in enumerate([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+        ]
+        eval_method = TimestampSplit(
+            data,
+            test_size=0.2,  # asks for ~2 rows, but all ts==1 rows go to test
+            exclude_unknowns=False,
+        )
+        self.assertEqual(eval_method.test_timestamp, 1)
+        self.assertEqual(eval_method.test_set.num_ratings, 5)
+        self.assertEqual(eval_method.train_set.num_ratings, 5)
+
+    def test_missing_all_split_args(self):
+        with self.assertRaises(ValueError):
+            TimestampSplit(self.data)
+
+    def test_mixed_args_raise(self):
+        with self.assertRaises(ValueError):
+            TimestampSplit(
+                self.data, val_timestamp=12, test_timestamp=24, test_size=0.2
+            )
+        with self.assertRaises(ValueError):
+            TimestampSplit(self.data, val_timestamp=12, test_size=0.2)
+
+    def test_ratio_collapsed_val_warns(self):
+        # ties at the boundary swallow the requested validation window
+        data = [
+            ("u{}".format(idx), "i{}".format(idx), 1, ts)
+            for idx, ts in enumerate([0, 0, 1, 1, 1])
+        ]
+        with self.assertWarns(UserWarning):
+            eval_method = TimestampSplit(
+                data, test_size=0.4, val_size=0.2, exclude_unknowns=False
+            )
+        self.assertIsNone(eval_method.val_set)
+        self.assertEqual(eval_method.test_set.num_ratings, 3)
+
+    def test_ratio_tied_train_boundary(self):
+        # all timestamps identical -> train would be empty
+        data = [("u{}".format(idx), "i{}".format(idx), 1, 5) for idx in range(10)]
+        with self.assertRaisesRegex(ValueError, "tied"):
+            TimestampSplit(data, test_size=0.2, exclude_unknowns=False)
+
 
 if __name__ == "__main__":
     unittest.main()

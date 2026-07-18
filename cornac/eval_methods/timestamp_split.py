@@ -13,14 +13,24 @@
 # limitations under the License.
 # ============================================================================
 
+import warnings
+
 from .base_method import BaseMethod
+from .ratio_split import RatioSplit
 from ..utils.common import safe_indexing
 
 
 class TimestampSplit(BaseMethod):
-    """Splitting data into training, validation, and test sets by absolute timestamp cutoffs.
+    """Splitting data into training, validation, and test sets chronologically by timestamp.
 
-    Given two timestamps `val_timestamp` and `test_timestamp`, interactions are partitioned as:
+    The split point can be given in two mutually-exclusive ways:
+
+    1. **Absolute cutoffs** — provide `val_timestamp` and `test_timestamp` directly.
+    2. **Ratios** — provide `test_size` (and optionally `val_size`), and the cutoff
+       timestamps are computed automatically so that (approximately) that proportion of
+       interactions falls into each set.
+
+    In both cases interactions are partitioned as:
 
         train: timestamp < val_timestamp
         validation: val_timestamp <= timestamp < test_timestamp
@@ -31,13 +41,28 @@ class TimestampSplit(BaseMethod):
     data: array-like, required
         Raw preference data in the quadruplet format [(user_id, item_id, rating_value, timestamp)].
 
-    val_timestamp: int or float, required
+    val_timestamp: int or float, optional, default: None
         Cutoff between training and validation sets. Interactions with timestamp strictly
-        less than this value go into the training set.
+        less than this value go into the training set. Provide together with `test_timestamp`
+        to split by absolute cutoffs; leave as `None` to split by ratio instead.
 
-    test_timestamp: int or float, required
+    test_timestamp: int or float, optional, default: None
         Cutoff between validation and test sets. Interactions with timestamp greater than
         or equal to this value go into the test set. Must be greater than `val_timestamp`.
+        Provide together with `val_timestamp` to split by absolute cutoffs; leave as `None`
+        to split by ratio instead.
+
+    test_size: float, optional, default: None
+        The proportion of the (chronologically latest) test set, counted by number of
+        interactions. If >= 1 it is treated as an absolute number of interactions. Used
+        only when `val_timestamp`/`test_timestamp` are not given. Because the split keeps
+        all interactions sharing a boundary timestamp on the same side (to avoid temporal
+        leakage), the realized proportion is approximate when timestamps are tied.
+
+    val_size: float, optional, default: None
+        The proportion of the validation set (the interactions immediately preceding the
+        test set), counted by number of interactions. If >= 1 it is treated as an absolute
+        number of interactions. Only used together with `test_size`.
 
     fmt: str, optional, default: 'UIRT'
         Format of the input data. Must be 'UIRT' since timestamps are required.
@@ -60,8 +85,10 @@ class TimestampSplit(BaseMethod):
     def __init__(
         self,
         data,
-        val_timestamp,
-        test_timestamp,
+        val_timestamp=None,
+        test_timestamp=None,
+        test_size=None,
+        val_size=None,
         fmt="UIRT",
         rating_threshold=1.0,
         seed=None,
@@ -84,22 +111,76 @@ class TimestampSplit(BaseMethod):
                 'Input data must be in "UIRT" format for splitting by timestamp.'
             )
 
-        if val_timestamp is None or test_timestamp is None:
+        if (val_timestamp is not None or test_timestamp is not None) and (
+            test_size is not None or val_size is not None
+        ):
             raise ValueError(
-                "Both val_timestamp and test_timestamp are required."
+                "Provide either val_timestamp/test_timestamp or test_size/val_size, "
+                "not a mix of both."
             )
 
-        if val_timestamp >= test_timestamp:
-            raise ValueError(
-                "val_timestamp ({}) must be strictly less than test_timestamp ({}).".format(
-                    val_timestamp, test_timestamp
+        if val_timestamp is not None and test_timestamp is not None:
+            # Absolute-cutoff mode.
+            if val_timestamp >= test_timestamp:
+                raise ValueError(
+                    "val_timestamp ({}) must be strictly less than test_timestamp ({}).".format(
+                        val_timestamp, test_timestamp
+                    )
                 )
+            self.val_timestamp = val_timestamp
+            self.test_timestamp = test_timestamp
+        elif test_size is not None:
+            # Ratio mode: derive cutoffs from the requested proportions.
+            self.val_timestamp, self.test_timestamp = self._cutoffs_from_ratio(
+                test_size=test_size, val_size=val_size
             )
-
-        self.val_timestamp = val_timestamp
-        self.test_timestamp = test_timestamp
+        else:
+            raise ValueError(
+                "Provide either both val_timestamp and test_timestamp, or test_size "
+                "(optionally with val_size) to split by ratio."
+            )
 
         self._split()
+
+    def _cutoffs_from_ratio(self, test_size, val_size):
+        """Convert requested proportions into (val_timestamp, test_timestamp) cutoffs.
+
+        Ratios are interpreted by interaction count: the chronologically latest
+        ``test_size`` fraction of interactions forms the test set, and the fraction
+        immediately before it forms the validation set. Returns cutoff timestamps to be
+        consumed by :meth:`_split`; ties are handled there via `<`/`>=` thresholds.
+        """
+        data_size = len(self.data)
+        train_count, val_count, test_count = RatioSplit.validate_size(
+            val_size=val_size, test_size=test_size, data_size=data_size
+        )
+
+        if test_count == 0:
+            raise ValueError(
+                "test_size={} yields an empty test set.".format(test_size)
+            )
+
+        sorted_ts = sorted(row[3] for row in self.data)
+
+        # Interactions from index (train_count + val_count) onward go to test.
+        test_timestamp = sorted_ts[train_count + val_count]
+        # Validation starts at index train_count; with no validation set the window is
+        # empty (val_timestamp == test_timestamp).
+        val_timestamp = sorted_ts[train_count] if val_count > 0 else test_timestamp
+
+        if val_timestamp == sorted_ts[0]:
+            raise ValueError(
+                "Training set is empty: the earliest timestamps are tied across the "
+                "requested train boundary. Use a smaller test_size/val_size or split "
+                "by absolute cutoffs instead."
+            )
+        if val_count > 0 and val_timestamp == test_timestamp:
+            warnings.warn(
+                "Validation window collapsed due to tied timestamps at the requested "
+                "boundary; val_set will be None."
+            )
+
+        return val_timestamp, test_timestamp
 
     def _split(self):
         train_idx = []

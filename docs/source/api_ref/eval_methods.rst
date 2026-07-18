@@ -27,3 +27,8 @@ Stratified Split
 ----------------
 .. automodule:: cornac.eval_methods.stratified_split
    :members:
+
+Timestamp Split
+---------------
+.. automodule:: cornac.eval_methods.timestamp_split
+   :members:
