@@ -91,6 +91,10 @@ class SASRec(NextItemRecommender):
     use_pos_emb: bool, optional, default: True
         Whether to add learned positional embeddings.
 
+    use_biases: bool, optional, default: False
+        Whether to add a learned per-item scalar bias to the scores. Set to
+        False for the canonical SASRec (no per-item bias term).
+
     model_selection: str, optional, default: 'last'
         One of 'last' or 'best'. When 'best', the model with the highest
         validation score (evaluated every ``val_eval_every`` epochs) is
@@ -136,6 +140,7 @@ class SASRec(NextItemRecommender):
         elu_param=0.5,
         device="cpu",
         use_pos_emb=True,
+        use_biases=False,
         trainable=True,
         verbose=False,
         seed=None,
@@ -169,6 +174,7 @@ class SASRec(NextItemRecommender):
         self.elu_param = elu_param
         self.device = device
         self.use_pos_emb = use_pos_emb
+        self.use_biases = use_biases
         self.seed = seed
         self.rng = get_rng(seed)
         self.model_selection = model_selection
@@ -183,8 +189,8 @@ class SASRec(NextItemRecommender):
 
         import torch
 
-        from .sasrec import SASRecModel
         from ..seq_utils.losses import get_loss_function
+        from .sasrec import SASRecModel
 
         torch.manual_seed(self.seed if self.seed is not None else 0)
 
@@ -196,6 +202,7 @@ class SASRec(NextItemRecommender):
             n_layers=self.num_blocks,
             n_heads=self.num_heads,
             use_pos_emb=self.use_pos_emb,
+            use_biases=self.use_biases,
             dropout=self.dropout,
             pad_idx=self.pad_idx,
             device=self.device,
