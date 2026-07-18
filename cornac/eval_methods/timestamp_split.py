@@ -13,6 +13,8 @@
 # limitations under the License.
 # ============================================================================
 
+import warnings
+
 from .base_method import BaseMethod
 from .ratio_split import RatioSplit
 from ..utils.common import safe_indexing
@@ -52,14 +54,14 @@ class TimestampSplit(BaseMethod):
 
     test_size: float, optional, default: None
         The proportion of the (chronologically latest) test set, counted by number of
-        interactions. If > 1 it is treated as an absolute number of interactions. Used
+        interactions. If >= 1 it is treated as an absolute number of interactions. Used
         only when `val_timestamp`/`test_timestamp` are not given. Because the split keeps
         all interactions sharing a boundary timestamp on the same side (to avoid temporal
         leakage), the realized proportion is approximate when timestamps are tied.
 
     val_size: float, optional, default: None
         The proportion of the validation set (the interactions immediately preceding the
-        test set), counted by number of interactions. If > 1 it is treated as an absolute
+        test set), counted by number of interactions. If >= 1 it is treated as an absolute
         number of interactions. Only used together with `test_size`.
 
     fmt: str, optional, default: 'UIRT'
@@ -107,6 +109,14 @@ class TimestampSplit(BaseMethod):
         if fmt != "UIRT" or len(self.data[0]) != 4:
             raise ValueError(
                 'Input data must be in "UIRT" format for splitting by timestamp.'
+            )
+
+        if (val_timestamp is not None or test_timestamp is not None) and (
+            test_size is not None or val_size is not None
+        ):
+            raise ValueError(
+                "Provide either val_timestamp/test_timestamp or test_size/val_size, "
+                "not a mix of both."
             )
 
         if val_timestamp is not None and test_timestamp is not None:
@@ -157,6 +167,18 @@ class TimestampSplit(BaseMethod):
         # Validation starts at index train_count; with no validation set the window is
         # empty (val_timestamp == test_timestamp).
         val_timestamp = sorted_ts[train_count] if val_count > 0 else test_timestamp
+
+        if val_timestamp == sorted_ts[0]:
+            raise ValueError(
+                "Training set is empty: the earliest timestamps are tied across the "
+                "requested train boundary. Use a smaller test_size/val_size or split "
+                "by absolute cutoffs instead."
+            )
+        if val_count > 0 and val_timestamp == test_timestamp:
+            warnings.warn(
+                "Validation window collapsed due to tied timestamps at the requested "
+                "boundary; val_set will be None."
+            )
 
         return val_timestamp, test_timestamp
 

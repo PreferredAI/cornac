@@ -143,6 +143,33 @@ class TestTimestampSplit(unittest.TestCase):
         with self.assertRaises(ValueError):
             TimestampSplit(self.data)
 
+    def test_mixed_args_raise(self):
+        with self.assertRaises(ValueError):
+            TimestampSplit(
+                self.data, val_timestamp=12, test_timestamp=24, test_size=0.2
+            )
+        with self.assertRaises(ValueError):
+            TimestampSplit(self.data, val_timestamp=12, test_size=0.2)
+
+    def test_ratio_collapsed_val_warns(self):
+        # ties at the boundary swallow the requested validation window
+        data = [
+            ("u{}".format(idx), "i{}".format(idx), 1, ts)
+            for idx, ts in enumerate([0, 0, 1, 1, 1])
+        ]
+        with self.assertWarns(UserWarning):
+            eval_method = TimestampSplit(
+                data, test_size=0.4, val_size=0.2, exclude_unknowns=False
+            )
+        self.assertIsNone(eval_method.val_set)
+        self.assertEqual(eval_method.test_set.num_ratings, 3)
+
+    def test_ratio_tied_train_boundary(self):
+        # all timestamps identical -> train would be empty
+        data = [("u{}".format(idx), "i{}".format(idx), 1, 5) for idx in range(10)]
+        with self.assertRaisesRegex(ValueError, "tied"):
+            TimestampSplit(data, test_size=0.2, exclude_unknowns=False)
+
 
 if __name__ == "__main__":
     unittest.main()
