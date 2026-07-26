@@ -16,6 +16,11 @@ Comparative Aspects and Opinions Ranking for Recommendation Explanations (Compan
 .. automodule:: cornac.models.companion.recom_companion
    :members:
 
+Learnable Item Tokenization for Generative Recommendation (LETTER)
+------------------------------------------------------------------
+.. automodule:: cornac.models.letter.recom_letter
+   :members:
+
 Generating Long Semantic IDs in Parallel for Recommendation (RPG)
 -----------------------------------------------------------------
 .. automodule:: cornac.models.rpg.recom_rpg

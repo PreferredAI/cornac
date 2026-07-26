@@ -554,7 +554,7 @@ class TIGER(NextItemRecommender):
 
         # keep pickles portable across GPU/CPU boxes; moved back in score()
         self.model.to("cpu").eval()
-        if self.tokenizer == "rqvae":
+        if self.tokenizer == "rqvae" and hasattr(self, "rqvae"):
             self.rqvae.to("cpu").eval()
         return self
 

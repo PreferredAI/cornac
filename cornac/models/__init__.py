@@ -58,6 +58,7 @@ from .hypar import HypAR
 from .ibpr import IBPR
 from .knn import ItemKNN
 from .knn import UserKNN
+from .letter import LETTER
 from .lightgcn import LightGCN
 from .lrppm import LRPPM
 from .mcf import MCF

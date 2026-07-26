@@ -1,0 +1,3 @@
+torch>=1.12.0
+transformers>=4.30.0
+k-means-constrained>=0.7.3
