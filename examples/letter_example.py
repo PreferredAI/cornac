@@ -27,9 +27,10 @@ Two things are precomputed and passed in:
         from sentence_transformers import SentenceTransformer
         content = SentenceTransformer("sentence-t5-base").encode(titles)
 
-  * item COLLABORATIVE embeddings -> ``LETTER(cf_embeddings=...)``, typically
-    the item embeddings of a trained CF model (SASRec in the paper). Rows are
-    aligned to the global item indices (same order as the content features).
+  * item COLLABORATIVE embeddings -> ``LETTER(cf_embeddings=...,
+    cf_embedding_ids=...)``, typically the item embeddings of a trained CF
+    model (SASRec in the paper). Raw IDs are supplied so LETTER can align the
+    rows to Cornac's global item indices.
 
 Diginetica ships without item text/CF vectors in Cornac, so this example uses
 random vectors as stand-ins -- replace both with real embeddings for
@@ -76,6 +77,7 @@ next_item_eval = NextItemEvaluation.from_splits(
 models = [
     LETTER(  # lightweight example budget; use LETTER_BEAUTY_CONFIG to reproduce
         cf_embeddings=cf_embeddings,
+        cf_embedding_ids=item_ids,
         cf_weight=0.02,
         diversity_weight=1e-3,
         rqvae_num_levels=4,

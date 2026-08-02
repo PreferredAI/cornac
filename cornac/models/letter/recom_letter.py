@@ -29,8 +29,8 @@ class LETTER(TIGER):
     LETTER trains a four-level RQ-VAE tokenizer with collaborative and
     code-assignment-diversity regularization, then trains the released
     LETTER-TIGER generator over the resulting semantic IDs. The official
-    collaborative features are 32-dimensional SASRec item embeddings; their
-    rows must follow Cornac's global item-index order.
+    collaborative features are 32-dimensional SASRec item embeddings. Their
+    raw item IDs are used to align the rows with Cornac's global item indices.
 
     This class accepts TIGER's public parameters plus the LETTER-specific
     arguments below. :data:`~cornac.models.letter.LETTER_BEAUTY_CONFIG`
@@ -41,6 +41,10 @@ class LETTER(TIGER):
     cf_embeddings: array-like or None
         Collaborative item embeddings of shape ``(n_items, rqvae_latent_dim)``.
         Required when ``cf_weight`` is non-zero.
+    cf_embedding_ids: array-like or None
+        Raw item IDs corresponding to the rows of ``cf_embeddings``. Required
+        whenever ``cf_embeddings`` is provided. Rows are aligned to Cornac's
+        global item indices during fitting.
     cf_weight: float, default: 0.02
         Collaborative loss weight (alpha).
     diversity_weight: float, default: 0.001
@@ -84,6 +88,7 @@ class LETTER(TIGER):
         self,
         name="LETTER",
         cf_embeddings=None,
+        cf_embedding_ids=None,
         cf_weight=0.02,
         diversity_weight=0.001,
         n_clusters=10,
@@ -121,6 +126,23 @@ class LETTER(TIGER):
             if cf_embeddings is None
             else np.asarray(cf_embeddings, dtype="float32")
         )
+        self.cf_embedding_ids = (
+            None if cf_embedding_ids is None else list(cf_embedding_ids)
+        )
+        if (self.cf_embeddings is None) != (self.cf_embedding_ids is None):
+            raise ValueError(
+                "cf_embeddings and cf_embedding_ids must be provided together"
+            )
+        if self.cf_embeddings is not None:
+            if self.cf_embeddings.ndim != 2:
+                raise ValueError("cf_embeddings must be a 2-dimensional array")
+            if len(self.cf_embedding_ids) != self.cf_embeddings.shape[0]:
+                raise ValueError(
+                    f"cf_embedding_ids has {len(self.cf_embedding_ids)} entries "
+                    f"but cf_embeddings has {self.cf_embeddings.shape[0]} rows"
+                )
+            if len(set(self.cf_embedding_ids)) != len(self.cf_embedding_ids):
+                raise ValueError("cf_embedding_ids must not contain duplicates")
         self.cf_weight = cf_weight
         self.diversity_weight = diversity_weight
         self.n_clusters = n_clusters
@@ -142,29 +164,39 @@ class LETTER(TIGER):
             else np.asarray(precomputed_semantic_ids, dtype="int64")
         )
 
+    def _get_cf_embeddings(self):
+        if self.cf_weight and self.cf_embeddings is None:
+            raise ValueError("LETTER requires cf_embeddings when cf_weight is non-zero")
+        if self.cf_embeddings is None:
+            return None
+        if self.cf_embeddings.shape[1] != self.rqvae_latent_dim:
+            raise ValueError(
+                "official LETTER uses same-dimensional collaborative and "
+                f"tokenizer representations; expected {self.rqvae_latent_dim}, "
+                f"got {self.cf_embeddings.shape[1]}"
+            )
+
+        row_by_id = {raw_id: row for row, raw_id in enumerate(self.cf_embedding_ids)}
+        missing = [raw_id for raw_id in self.iid_map if raw_id not in row_by_id]
+        if missing:
+            raise ValueError(
+                f"cf_embedding_ids is missing {len(missing)} item(s) known to Cornac"
+            )
+
+        aligned = np.empty((self.total_items, self.rqvae_latent_dim), dtype="float32")
+        for raw_id, item_idx in self.iid_map.items():
+            aligned[item_idx] = self.cf_embeddings[row_by_id[raw_id]]
+        return aligned
+
     def _fit_rqvae(self, torch, feats_t):
         from .letter import LETTERRQVAE
 
-        if self.cf_weight and self.cf_embeddings is None:
-            raise ValueError(
-                "LETTER requires cf_embeddings when cf_weight is non-zero"
-            )
-        cf_t = None
-        if self.cf_embeddings is not None:
-            if self.cf_embeddings.shape[0] < self.total_items:
-                raise ValueError(
-                    f"cf_embeddings has {self.cf_embeddings.shape[0]} rows but "
-                    f"{self.total_items} items are known"
-                )
-            if self.cf_embeddings.shape[1] != self.rqvae_latent_dim:
-                raise ValueError(
-                    "official LETTER uses same-dimensional collaborative and "
-                    f"tokenizer representations; expected {self.rqvae_latent_dim}, "
-                    f"got {self.cf_embeddings.shape[1]}"
-                )
-            cf_t = torch.as_tensor(
-                self.cf_embeddings[: self.total_items], device=self.device_
-            )
+        cf_embeddings = self._get_cf_embeddings()
+        cf_t = (
+            None
+            if cf_embeddings is None
+            else torch.as_tensor(cf_embeddings, device=self.device_)
+        )
 
         seed = self.seed if self.seed is not None else 0
         random.seed(seed)
@@ -177,8 +209,7 @@ class LETTER(TIGER):
             codebook_size=self.rqvae_codebook_size,
             commitment_weight=self.rqvae_beta,
             n_clusters=self.n_clusters,
-            sk_epsilons=[0.0] * (self.rqvae_num_levels - 1)
-            + [self.rqvae_sk_epsilon],
+            sk_epsilons=[0.0] * (self.rqvae_num_levels - 1) + [self.rqvae_sk_epsilon],
             sk_iters=self.rqvae_sk_iters,
             kmeans_n_jobs=self.rqvae_kmeans_jobs,
         ).to(self.device_)
@@ -238,15 +269,13 @@ class LETTER(TIGER):
             expected = (self.total_items, self.rqvae_num_levels)
             if codes.shape != expected:
                 raise ValueError(
-                    f"precomputed_semantic_ids has shape {codes.shape}; "
-                    f"expected {expected}"
+                    f"precomputed_semantic_ids has shape {codes.shape}; expected {expected}"
                 )
             if codes.size and (
                 codes.min() < 0 or codes.max() >= self.rqvae_codebook_size
             ):
                 raise ValueError(
-                    "precomputed_semantic_ids values must be in "
-                    f"[0, {self.rqvae_codebook_size})"
+                    f"precomputed_semantic_ids values must be in [0, {self.rqvae_codebook_size})"
                 )
             unique = np.unique(codes, axis=0)
             self.sid_collisions_before = len(codes) - len(unique)
@@ -272,9 +301,7 @@ class LETTER(TIGER):
         resolved = self.rqvae.resolve_collisions(
             feats_t, codes, max_iters=self.collision_resolve_iters
         )
-        self.sid_collisions_after = len(resolved) - len(
-            torch.unique(resolved, dim=0)
-        )
+        self.sid_collisions_after = len(resolved) - len(torch.unique(resolved, dim=0))
         self.sid_code_utilization = [
             int(resolved[:, level].unique().numel())
             for level in range(self.rqvae_num_levels)
@@ -307,8 +334,7 @@ class LETTER(TIGER):
         if self.verbose:
             collisions = sum(len(items) - 1 for items in sid_to_items.values())
             print(
-                f"LETTER semantic IDs: {len(codes)} items, "
-                f"{collisions} unresolved collisions"
+                f"LETTER semantic IDs: {len(codes)} items, {collisions} unresolved collisions"
             )
 
     def _training_rows(self):
@@ -412,9 +438,7 @@ class LETTER(TIGER):
         def lr_lambda(step):
             if step < warmup_updates:
                 return step / max(1, warmup_updates)
-            progress = (step - warmup_updates) / max(
-                1, total_updates - warmup_updates
-            )
+            progress = (step - warmup_updates) / max(1, total_updates - warmup_updates)
             return 0.5 * (1.0 + math.cos(math.pi * min(1.0, progress)))
 
         scheduler = (

@@ -13,7 +13,10 @@ pip install -r cornac/models/letter/requirements.txt
 LETTER needs two aligned feature matrices covering every item known to the train, validation, and test splits:
 
 - item content embeddings, supplied through `FeatureModality`; and
-- 32-dimensional collaborative item embeddings, supplied through `cf_embeddings` (the paper uses SASRec item embeddings).
+- 32-dimensional collaborative item embeddings and their raw item IDs,
+  supplied through `cf_embeddings` and `cf_embedding_ids` (the paper uses
+  SASRec item embeddings). LETTER remaps these rows to Cornac's global item
+  indices during fitting.
 
 ## Usage
 
@@ -35,6 +38,7 @@ model = LETTER(
     **{
         **LETTER_BEAUTY_CONFIG,
         "cf_embeddings": sasrec_item_embeddings_32d,
+        "cf_embedding_ids": sasrec_item_ids,
         "device": "auto",
         "seed": 42,
     }
