@@ -23,6 +23,21 @@ from tqdm.auto import trange
 from ..tiger.recom_tiger import TIGER
 
 
+def _generator_optimizer_groups(model, weight_decay):
+    """Match Hugging Face Trainer's AdamW decay groups for the T5 generator."""
+    decay = []
+    no_decay = []
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            continue
+        target = no_decay if "bias" in name or "layer_norm" in name else decay
+        target.append(parameter)
+    return [
+        {"params": decay, "weight_decay": weight_decay},
+        {"params": no_decay, "weight_decay": 0.0},
+    ]
+
+
 class LETTER(TIGER):
     """LETTER: LEarnable Tokenizer for generaTivE Recommendation.
 
@@ -418,9 +433,8 @@ class LETTER(TIGER):
         self.enc_token_table = self.model.semantic_tokens(code_table).cpu().numpy()
 
         optimizer = torch.optim.AdamW(
-            self.model.parameters(),
+            _generator_optimizer_groups(self.model, self.weight_decay),
             lr=self.learning_rate,
-            weight_decay=self.weight_decay,
         )
         rows = self._training_rows()
         if not rows:
