@@ -70,16 +70,6 @@ Recall is abbreviated as R and NDCG as N.
 
 The Cornac generator with the authors' assignments is within `0.0002` to `0.0004` of every paper metric. The released-code rerun is also below the published row. The lower end-to-end result uses Sentence-T5 content embeddings and locally trained SASRec embeddings because the authors' tokenizer inputs are unavailable.
 
-### Implementation validation
-
-The tokenizer was compared directly with the released implementation using the same item-aligned input matrices. Initial code assignments and collision handling matched exactly, and the first matched optimization step produced identical IDs and losses with a maximum post-step parameter difference of `1.86e-9`.
-
-Run the focused LETTER tests with:
-
-```bash
-python -m pytest tests/cornac/models/letter/test_letter.py -q
-```
-
 ### Reproduction limitation
 
 The released repository provides the final Beauty Semantic-ID table, but not the trained tokenizer checkpoint, content embeddings, or SASRec checkpoint used to produce it. Exact reproduction of the paper's learned Semantic IDs therefore requires those missing artifacts; the Sentence-T5 result above is a runnable replacement rather than an exact reconstruction of the paper's tokenizer inputs.
