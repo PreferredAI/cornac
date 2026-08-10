@@ -136,6 +136,8 @@
 
 [rpg_example.py](rpg_example.py) - Parallel generation of long unordered semantic IDs (RPG): OPQ tokenizer + multi-token prediction + graph-guided decoding, with Diginetica dataset.
 
+[diffgrm_example.py](diffgrm_example.py) - Masked-diffusion generation of PSE semantic IDs (DiffGRM) on Amazon Sports with Sentence-T5 item content embeddings, OCN training, and CPD decoding.
+
 ----
 
 ## Next-Basket Algorithms

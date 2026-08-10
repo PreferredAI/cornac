@@ -11,6 +11,11 @@ Recommender (Generic Class)
 .. automodule:: cornac.models.recommender
    :members:
 
+Diffusion-based Generative Recommendation Model (DiffGRM)
+---------------------------------------------------------
+.. automodule:: cornac.models.diffgrm.recom_diffgrm
+   :members:
+
 Comparative Aspects and Opinions Ranking for Recommendation Explanations (Companion)
 -------------------------------------------------------------------------
 .. automodule:: cornac.models.companion.recom_companion
