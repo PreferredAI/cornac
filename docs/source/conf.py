@@ -11,15 +11,23 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import subprocess
 import sys
+from datetime import datetime, timezone
 
 sys.path.append(os.path.abspath("../.."))
+
+# Dynamically generate data.js for model table documentation
+_docs_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_script_path = os.path.join(_docs_dir, "generate_model_js.py")
+if os.path.exists(_script_path):
+    subprocess.run([sys.executable, _script_path], cwd=_docs_dir, check=True)
 
 
 # -- Project information -----------------------------------------------------
 
 project = "Cornac"
-copyright = "2023, Preferred.AI"
+copyright = f"2018-{datetime.now(timezone.utc).year}, Preferred.AI"
 author = "Preferred.AI"
 
 # The short X.Y version
@@ -91,7 +99,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/preferredAI/cornac",
+            "url": "https://github.com/PreferredAI/cornac",
             "icon": "fa-brands fa-github",
         },
     ],
