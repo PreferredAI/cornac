@@ -114,10 +114,6 @@ class DMRL(Recommender):
         self.num_neg = num_neg
         self.num_factors = num_factors
         self.log_metrics = log_metrics
-        if log_metrics:
-            from torch.utils.tensorboard import SummaryWriter
-
-            self.tb_writer = SummaryWriter("temp/tb_data/run_1")
 
         if self.num_factors == 1:
             # deactivate disentangled portion of loss if theres only 1 factor
@@ -261,9 +257,13 @@ class DMRL(Recommender):
             decay_c=1e-3, num_factors=self.num_factors, num_neg=self.num_neg
         )
 
-        # add hyperparams to tensorboard
         if self.log_metrics:
-            self.tb_writer.add_hparams(
+            from torch.utils.tensorboard import SummaryWriter
+
+            # kept local: a writer attribute would break Recommender.save/deepcopy
+            tb_writer = SummaryWriter("temp/tb_data/run_1")
+            # add hyperparams to tensorboard
+            tb_writer.add_hparams(
                 {
                     "learning_rate": self.learning_rate,
                     "decay_c": self.decay_c,
@@ -379,38 +379,38 @@ class DMRL(Recommender):
 
                     if self.log_metrics:
                         # tb_x = epoch * len(dataloader) + i + 1
-                        self.tb_writer.add_scalar("Loss/train", last_loss, j)
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar("Loss/train", last_loss, j)
+                        tb_writer.add_scalar(
                             "Loss/val", running_loss_val / devider, j
                         )
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar(
                             "Gradient Norm/train", np.mean(self.model.grad_norms), j
                         )
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar(
                             "Param Norm/train", np.mean(self.model.param_norms), j
                         )
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar(
                             "User-Item based rating", np.mean(self.model.ui_ratings), j
                         )
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar(
                             "User-Text based rating", np.mean(self.model.ut_ratings), j
                         )
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar(
                             "User-Itm Attention", np.mean(self.model.ui_attention), j
                         )
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar(
                             "User-Text Attention", np.mean(self.model.ut_attention), j
                         )
                         for name, param in self.model.named_parameters():
-                            self.tb_writer.add_scalar(
+                            tb_writer.add_scalar(
                                 name + "/grad_norm",
                                 np.mean(self.model.grad_dict[name]),
                                 j,
                             )
-                            self.tb_writer.add_histogram(
+                            tb_writer.add_histogram(
                                 name + "/grad", param.grad, global_step=epoch
                             )
-                        self.tb_writer.add_scalar(
+                        tb_writer.add_scalar(
                             "Learning rate", optimizer.param_groups[0]["lr"], j
                         )
                         self.model.reset_grad_metrics()
@@ -426,6 +426,8 @@ class DMRL(Recommender):
             print(f"Epoch: {epoch} is done")
             # scheduler.step()
         print("Finished training!")
+        if self.log_metrics:
+            tb_writer.close()
         # self.eval_train_set_performance() # evaluate the model on the training set after training if necessary
 
     def eval_train_set_performance(self) -> Tuple[float, float]:
