@@ -18,7 +18,7 @@ import random
 import numpy as np
 import torch
 
-"""Firstly, we define a helper function to generate\sample training ordinal triplets:
+"""Firstly, we define a helper function to generate\\sample training ordinal triplets:
    Step 1:  
    given rated item i, randomly choose item j and check whether rating of j is lower than i, 
    if not randomly sample another item. 
