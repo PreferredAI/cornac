@@ -132,7 +132,7 @@ def rm_numeric(t: str) -> str:
 
 def rm_punctuation(t: str) -> str:
     """
-    Remove "!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~" from t.
+    Remove "!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" from t.
     """
     return t.translate(str.maketrans('', '', string.punctuation))
 
