@@ -480,23 +480,25 @@ def cpd_decode_batch(
         catalog_set = {
             tuple(row) for row in np.asarray(catalog_codes).tolist()
         }
-    batch_codes, batch_scores, batch_diagnostics, batch_raw = [], [], [], []
+    batch_codes, batch_scores, batch_diagnostics = [], [], []
+    if return_raw:
+        batch_raw = []
     for row in range(batch_size):
         complete = {}
-        raw_codes = []
-        raw_scores = []
-        raw_validity = []
+        if return_raw:
+            raw_codes = []
+            raw_scores = []
+            raw_validity = []
         for codes, score in zip(
             beams[row].cpu().tolist(), beam_scores[row].cpu().tolist()
         ):
             key = tuple(codes)
             is_complete = -1 not in key and np.isfinite(score)
-            is_valid = is_complete and (
-                catalog_set is None or key in catalog_set
-            )
-            raw_codes.append(key)
-            raw_scores.append(float(score))
-            raw_validity.append(bool(is_valid))
+            if return_raw:
+                raw_codes.append(key)
+                raw_scores.append(float(score))
+                raw_validity.append(bool(is_complete and (
+                    catalog_set is None or key in catalog_set)))
             if not is_complete:
                 continue
             complete[key] = max(complete.get(key, -float("inf")), score)
@@ -517,13 +519,14 @@ def cpd_decode_batch(
                 "duplicate_paths": len(beams[row]) - len(complete),
             }
         )
-        batch_raw.append(
-            {
-                "address_sids": raw_codes,
-                "scores": raw_scores,
-                "catalog_validity": raw_validity,
-            }
-        )
+        if return_raw:
+            batch_raw.append(
+                {
+                    "address_sids": raw_codes,
+                    "scores": raw_scores,
+                    "catalog_validity": raw_validity,
+                }
+            )
 
     if return_diagnostics and return_raw:
         return batch_codes, batch_scores, batch_diagnostics, batch_raw

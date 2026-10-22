@@ -232,6 +232,7 @@ def test_evaluation_uses_training_only_and_separates_validation():
     assert validation.semantic_id_evaluation["protocol"]["resolvers"]["popularity"] == expected
     assert len(model.calls) == 4
     assert len(validation.semantic_id_trace.records) == 1
+    assert validation.metric_avg_results["Time (s)"] >= 0
 
 
 @pytest.mark.parametrize("exclude", [False, True])
@@ -319,6 +320,26 @@ def test_restricted_catalog_keeps_excluded_address_as_empty_slot():
                    records[0].prediction.catalog_validity):
         with pytest.raises(ValueError):
             values.setflags(write=True)
+
+
+def test_restricted_catalog_rejects_incorrect_native_validity():
+    train, test = data()
+
+    class MalformedSID(FakeSID):
+        def fit(self, train_set, val_set=None):
+            super().fit(train_set, val_set)
+            self.catalog_ = catalog(((0,), (1,), (2,), (3,), (4,)))
+            return self
+
+        def predict_semantic_ids(self, history_items, **context):
+            # Address 4 belongs to the native catalog, but not the admitted one.
+            # Its incorrect flag must fail before admission can hide the error.
+            return SemanticIDPrediction([[4], [0]], [1., 0.], [False, True])
+
+    evaluation = SemanticIDEvaluation.from_splits(
+        train, test, fmt="USIT", exclude_unknowns=True)
+    with pytest.raises(ValueError, match="catalog_validity"):
+        evaluation.evaluate(MalformedSID(), [Recall(2)], show_validation=False)
 
 
 def test_wrong_target_codes_rejected_and_same_user_queries_are_distinct():

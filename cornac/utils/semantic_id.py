@@ -108,8 +108,6 @@ class SemanticIDCatalog:
     address_sids: np.ndarray
     tokenizer_codebook_cardinalities: tuple
     address_codebook_cardinalities: tuple
-    mapping_policy: str = "preserve_all"
-    metadata: Mapping = field(default_factory=dict)
     _address_to_items: Mapping = field(init=False, repr=False, compare=False)
     _item_to_row: Mapping = field(init=False, repr=False, compare=False)
     _stable_hash: str = field(init=False, repr=False, compare=False)
@@ -149,10 +147,6 @@ class SemanticIDCatalog:
         )
         _validate_sid_range(tokenizer_sids, tokenizer_cardinalities, "tokenizer_sids")
         _validate_sid_range(address_sids, address_cardinalities, "address_sids")
-        if not isinstance(self.mapping_policy, str) or not self.mapping_policy:
-            raise ValueError("mapping_policy must be a non-empty string")
-        metadata = _freeze_native(self.metadata)
-
         address_to_items = {}
         item_to_row = {}
         for row, (item_index, address) in enumerate(zip(item_indices, address_sids)):
@@ -175,7 +169,6 @@ class SemanticIDCatalog:
         object.__setattr__(
             self, "address_codebook_cardinalities", address_cardinalities
         )
-        object.__setattr__(self, "metadata", metadata)
         object.__setattr__(self, "_address_to_items", address_to_items)
         object.__setattr__(self, "_item_to_row", MappingProxyType(item_to_row))
         object.__setattr__(self, "_stable_hash", self._compute_hash())
@@ -195,8 +188,6 @@ class SemanticIDCatalog:
                 self.address_sids,
                 self.tokenizer_codebook_cardinalities,
                 self.address_codebook_cardinalities,
-                self.mapping_policy,
-                _thaw_native(self.metadata),
             ),
         )
 
@@ -207,7 +198,7 @@ class SemanticIDCatalog:
 
     @property
     def stable_hash(self):
-        """Stable SHA-256 identity of the arrays and catalog policy."""
+        """Stable SHA-256 identity of the arrays and codebook cardinalities."""
         return self._stable_hash
 
     def tokenizer_sid_for_item(self, item_index):
@@ -232,8 +223,6 @@ class SemanticIDCatalog:
         payload = {
             "tokenizer_codebook_cardinalities": (self.tokenizer_codebook_cardinalities),
             "address_codebook_cardinalities": self.address_codebook_cardinalities,
-            "mapping_policy": self.mapping_policy,
-            "metadata": _thaw_native(self.metadata),
         }
         digest.update(
             json.dumps(
@@ -303,20 +292,11 @@ def prediction_from_catalog_scores(catalog, item_scores, decoder_diagnostics=Non
         score = float(scores[item_index])
         address_scores[address] = max(address_scores.get(address, -np.inf), score)
     ranked = sorted(address_scores.items(), key=lambda pair: (-pair[1], pair[0]))
-    diagnostics = dict(decoder_diagnostics or {})
-    diagnostics.update(
-        {
-            "scored_catalog_items": len(catalog.item_indices),
-            "unique_complete_sids": len(ranked),
-            "duplicate_catalog_addresses": len(catalog.item_indices) - len(ranked),
-            "invalid_sids": 0,
-        }
-    )
     return SemanticIDPrediction(
         address_sids=np.asarray([address for address, _ in ranked], dtype="int64"),
         scores=np.asarray([score for _, score in ranked], dtype="float64"),
         catalog_validity=np.ones(len(ranked), dtype="bool"),
-        decoder_diagnostics=diagnostics,
+        decoder_diagnostics=decoder_diagnostics or {},
     )
 
 
@@ -351,8 +331,6 @@ class SemanticIDTraceRecord:
                     not isinstance(value, (int, np.integer)) or value < 0):
                 raise ValueError(f"{name} must be a nonnegative integer")
             object.__setattr__(self, name, int(value))
-        if self.query_index < 0 or self.target_item_index < 0:
-            raise ValueError("query_index and target_item_index must be non-negative")
         if not 0 <= self.history_start_position <= self.history_end_position:
             raise ValueError("history positions must define a non-negative interval")
         if self.history_end_position != self.evaluation_position:

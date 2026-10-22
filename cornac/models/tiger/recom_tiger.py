@@ -612,7 +612,6 @@ class TIGER(SemanticIDRecommender):
             self.semantic_id_catalog_ = SemanticIDCatalog(
                 np.arange(len(self.sid_table)), self.sid_table[:, :-1], self.sid_table,
                 tuple(self.level_sizes[:-1]), tuple(self.level_sizes),
-                mapping_policy="disambiguation_suffix",
             )
         return self.semantic_id_catalog_
 

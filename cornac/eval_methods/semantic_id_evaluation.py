@@ -158,7 +158,8 @@ def collect_semantic_id_trace(model, dataset, *, mode="last", n_candidates=20,
     if mode not in ("last", "next"):
         raise ValueError("mode must be last or next")
     _cutoffs((n_candidates,))
-    catalog = model.semantic_id_catalog() if catalog is None else catalog
+    native_catalog = model.semantic_id_catalog()
+    catalog = native_catalog if catalog is None else catalog
     records = []
     for [session], [mapped], [items] in dataset.si_iter(batch_size=1, shuffle=False):
         if len(items) < 2:
@@ -174,13 +175,11 @@ def collect_semantic_id_trace(model, dataset, *, mode="last", n_candidates=20,
                 history_items=list(items[:position]), user_index=user,
                 query_index=query, session_index=int(session),
                 evaluation_position=position, n_candidates=n_candidates)
+            validate_prediction(native_catalog, prediction)
             # Candidate filtering changes admission, never rank positions.
             validity = np.asarray([tuple(row) in catalog.address_to_items
                                    for row in prediction.address_sids])
             if not np.array_equal(validity, prediction.catalog_validity):
-                # Verify original model validity before applying an explicit
-                # restricted universe; otherwise a malformed adapter is hidden.
-                validate_prediction(model.semantic_id_catalog(), prediction)
                 prediction = SemanticIDPrediction(prediction.address_sids,
                     prediction.scores, validity, prediction.decoder_diagnostics)
             try:
@@ -232,9 +231,7 @@ class SemanticIDEvaluation(NextItemEvaluation):
                 catalog = SemanticIDCatalog(native.item_indices[mask],
                     native.tokenizer_sids[mask], native.address_sids[mask],
                     native.tokenizer_codebook_cardinalities,
-                    native.address_codebook_cardinalities,
-                    metadata={"source_catalog_hash": native.stable_hash,
-                              "admission": "training_items"})
+                    native.address_codebook_cardinalities)
         cutoffs = tuple(dict.fromkeys(int(metric.k) for metric in metrics))
         trace = collect_semantic_id_trace(model, dataset, mode=self.mode,
             n_candidates=max(cutoffs), catalog=catalog,
@@ -243,16 +240,23 @@ class SemanticIDEvaluation(NextItemEvaluation):
         replay = evaluate_semantic_id_trace(catalog, trace, cutoffs, resolvers)
         averages, per_user = OrderedDict(), OrderedDict()
         users = np.asarray([r.user_index for r in trace.records])
+        user_queries = {int(user): np.flatnonzero(users == user)
+                        for user in np.unique(users)}
+        cutoff_columns = {cutoff: column for column, cutoff in enumerate(cutoffs)}
         for view, rows in replay["per_query"].items():
             for metric in metrics:
                 field = "recall" if isinstance(metric, Recall) else "ndcg"
-                values = rows[field][:, cutoffs.index(metric.k)]
+                values = rows[field][:, cutoff_columns[metric.k]]
                 name = f"{view}/{metric.name}"
-                grouped = {int(user): values[users == user].tolist() for user in np.unique(users)}
+                grouped = {user: values[indices].tolist()
+                           for user, indices in user_queries.items()}
                 per_user[name] = grouped
-                averages[name] = (float(np.mean([np.mean(v) for v in grouped.values()]))
-                                  if user_based and grouped else
-                                  float(values.mean()) if len(values) else 0.)
+                if not len(values):
+                    averages[name] = 0.
+                elif user_based:
+                    averages[name] = float(np.mean([np.mean(v) for v in grouped.values()]))
+                else:
+                    averages[name] = float(values.mean())
         result = Result(model.name, averages, per_user)
         result.semantic_id_trace = trace
         result.semantic_id_evaluation = replay
@@ -287,6 +291,8 @@ class SemanticIDEvaluation(NextItemEvaluation):
         result.metric_avg_results["Test (s)"] = time.time() - started
         validation = None
         if show_validation and self.val_set is not None:
+            started = time.time()
             model.transform(self.val_set)
             validation = self._evaluate_split(model, self.val_set, metrics, resolvers, user_based)
+            validation.metric_avg_results["Time (s)"] = time.time() - started
         return result, validation
