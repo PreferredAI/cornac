@@ -25,6 +25,16 @@ from .next_basket_evaluation import NextBasketEvaluation
 from .next_item_evaluation import NextItemEvaluation
 from .propensity_stratified_evaluation import PropensityStratifiedEvaluation
 
+from .semantic_id_evaluation import SemanticIDEvaluation, collect_semantic_id_trace
+from .sid_evaluation import evaluate_semantic_id_trace
+from .sid_resolvers import (
+    SemanticIDResolver,
+    TrainingPopularity,
+    HistoryCosine,
+    CustomScorer,
+    resolve_semantic_ids,
+)
+
 __all__ = [
     "BaseMethod",
     "RatioSplit",
@@ -34,4 +44,12 @@ __all__ = [
     "NextBasketEvaluation",
     "NextItemEvaluation",
     "PropensityStratifiedEvaluation",
+    "SemanticIDEvaluation",
+    "collect_semantic_id_trace",
+    "evaluate_semantic_id_trace",
+    "SemanticIDResolver",
+    "TrainingPopularity",
+    "HistoryCosine",
+    "CustomScorer",
+    "resolve_semantic_ids",
 ]

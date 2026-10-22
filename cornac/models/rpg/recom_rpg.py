@@ -18,7 +18,12 @@ import math
 import numpy as np
 from tqdm.auto import trange
 
-from cornac.models.recommender import NextItemRecommender
+from ..recommender import SemanticIDRecommender
+from ..semantic_id import (
+    SemanticIDCatalog,
+    SemanticIDPrediction,
+    prediction_from_catalog_scores,
+)
 
 from ...utils import get_rng
 
@@ -98,7 +103,7 @@ def _rpg_session_iter(
         )
 
 
-class RPG(NextItemRecommender):
+class RPG(SemanticIDRecommender):
     """RPG: Generating Long Semantic IDs in Parallel for Recommendation.
 
     RPG is the architectural counterpoint to TIGER. Instead of short *ordered*
@@ -602,6 +607,7 @@ class RPG(NextItemRecommender):
             self.model.load_state_dict(best_state)
 
     def fit(self, train_set, val_set=None):
+        self.__dict__.pop("semantic_id_catalog_", None)
         super().fit(train_set, val_set)
         if not self.trainable:
             return self
@@ -646,7 +652,7 @@ class RPG(NextItemRecommender):
         if next(self.model.parameters()).device.type != torch.device(self.device_).type:
             self.model.to(self.device_)
 
-    def score(self, user_idx, history_items, **kwargs):
+    def _predict_history(self, history_items, n_candidates=None, return_raw=False):
         import torch
 
         from .rpg import graph_decode
@@ -663,9 +669,13 @@ class RPG(NextItemRecommender):
             logits = self.model.next_item_logits(input_ids, attn_mask)[0]  # (M, K)
 
         if self.scoring == "exact":
-            return (
-                self._exact_item_scores(logits)[0].cpu().numpy().astype("float")
-            )
+            scores = self._exact_item_scores(logits)[0].cpu().numpy().astype("float")
+            if return_raw:
+                return prediction_from_catalog_scores(
+                    self.semantic_id_catalog(), scores,
+                    {"scoring": "exact", "address_score_aggregation": "max_member"},
+                )
+            return scores
 
         # graph-guided beam decoding over the final propagated beam
         flat = logits.reshape(-1).cpu().numpy()
@@ -673,10 +683,42 @@ class RPG(NextItemRecommender):
             flat,
             self.adjacency,
             self.item_tokens,
-            self.n_beams,
+            max(self.n_beams, n_candidates or 0),
             self.propagation_steps,
             self.graph_rng,
         )
+        if return_raw:
+            return SemanticIDPrediction(
+                self.sid_table[candidates], candidate_scores,
+                np.ones(len(candidates), dtype=bool),
+                {"scoring": "graph", "beam_size": max(self.n_beams, n_candidates or 0)},
+            )
         scores = np.full(self.total_items, -1e10, dtype="float")
         scores[candidates] = candidate_scores
         return scores
+
+    def semantic_id_catalog(self):
+        """Export un-offset OPQ codes with complete collision buckets."""
+        if not hasattr(self, "sid_table"):
+            raise ValueError("RPG must be fitted before exporting its SID catalog")
+        cardinalities = (self.codebook_size,) * self.n_codebook
+        if not hasattr(self, "semantic_id_catalog_"):
+            self.semantic_id_catalog_ = SemanticIDCatalog(
+                np.arange(len(self.sid_table)), self.sid_table, self.sid_table,
+                cardinalities, cardinalities,
+            )
+        return self.semantic_id_catalog_
+
+    def predict_semantic_ids(self, history_items, **context):
+        """Retain final graph candidate order, using the native mutable RNG."""
+        if len(history_items) == 0:
+            return SemanticIDPrediction(
+                np.empty((0, self.semantic_id_catalog().address_sids.shape[1]), dtype="int64"),
+                [], [], {"empty_history": True},
+            )
+        return self._predict_history(
+            history_items, context.get("n_candidates"), return_raw=True
+        )
+
+    def score(self, user_idx, history_items, **kwargs):
+        return self._predict_history(history_items)

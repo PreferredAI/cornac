@@ -122,6 +122,8 @@
 
 ## Next-Item Algorithms
 
+[semantic_id_evaluation_example.py](semantic_id_evaluation_example.py) - Synthetic example of shared SID, CCE and explicit item-resolver evaluation through Experiment.
+
 [spop_yoochoose.py](spop_yoochoose.py) - Next-item recommendation based on item popularity.
 
 [gru4rec_yoochoose.py](gru4rec_yoochoose.py) - Example of Session-based Recommendations with Recurrent Neural Networks (GRU4Rec).

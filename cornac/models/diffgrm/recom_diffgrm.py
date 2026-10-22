@@ -20,7 +20,11 @@ import time
 import numpy as np
 from tqdm.auto import trange
 
-from cornac.models.recommender import NextItemRecommender
+from ..recommender import SemanticIDRecommender
+from ..semantic_id import (
+    SemanticIDCatalog,
+    SemanticIDPrediction,
+)
 
 from ...utils import get_rng
 
@@ -82,7 +86,7 @@ def _diffgrm_session_iter(
         )
 
 
-class DiffGRM(NextItemRecommender):
+class DiffGRM(SemanticIDRecommender):
     """DiffGRM: Diffusion-based Generative Recommendation Model.
 
     DiffGRM combines parallel OPQ semantic IDs (PSE), on-policy
@@ -618,6 +622,7 @@ class DiffGRM(NextItemRecommender):
             self.model.load_state_dict(best_state)
 
     def fit(self, train_set, val_set=None):
+        self.__dict__.pop("semantic_id_catalog_", None)
         super().fit(train_set, val_set)
         if not self.trainable:
             return self
@@ -688,12 +693,12 @@ class DiffGRM(NextItemRecommender):
         if next(self.model.parameters()).device != requested:
             self.model.to(requested)
 
-    def _score_history(self, history_items):
+    def _score_history(self, history_items, n_candidates=None, return_raw=False):
         import torch
 
         from .diffgrm import cpd_decode
 
-        if not history_items:
+        if len(history_items) == 0:
             return np.ones(self.total_items, dtype="float")
         self._ensure_device(torch)
         history = list(history_items)[-self.max_len :]
@@ -709,11 +714,11 @@ class DiffGRM(NextItemRecommender):
         decode_start = time.perf_counter()
         with torch.no_grad():
             memory, padding_mask = self.model.encode_history(inputs, masks)
-            codes, path_scores, diagnostics = cpd_decode(
+            decoded = cpd_decode(
                 self.model,
                 memory,
                 padding_mask,
-                beam_size=self.beam_size,
+                beam_size=max(self.beam_size, n_candidates or 0),
                 catalog_codes=self.sid_table,
                 valid_code_set=self.sid_to_items_,
                 constrained=self.scoring == "catalog",
@@ -722,9 +727,19 @@ class DiffGRM(NextItemRecommender):
                 else None,
                 greedy_final=self.scoring == "released",
                 return_diagnostics=True,
+                return_raw=return_raw,
             )
+        codes, path_scores, diagnostics = decoded[:3]
         self.last_decode_time_ = time.perf_counter() - decode_start
         self.last_decode_diagnostics_ = diagnostics
+        if return_raw:
+            raw = decoded[3]
+            return SemanticIDPrediction(
+                np.asarray(raw["address_sids"], dtype="int64").reshape(-1, self.n_digit),
+                raw["scores"], raw["catalog_validity"],
+                dict(diagnostics, scoring=self.scoring,
+                     beam_size=max(self.beam_size, n_candidates or 0)),
+            )
         return self._decoded_item_scores(codes, path_scores)
 
     def _decoded_item_scores(self, codes, path_scores):
@@ -740,3 +755,26 @@ class DiffGRM(NextItemRecommender):
 
     def score(self, user_idx, history_items, **kwargs):
         return self._score_history(history_items)
+
+    def semantic_id_catalog(self):
+        """Export all complete IDs independently of native collision policy."""
+        if not hasattr(self, "sid_table"):
+            raise ValueError("DiffGRM must be fitted before exporting its SID catalog")
+        cardinalities = (self.codebook_size,) * self.n_digit
+        if not hasattr(self, "semantic_id_catalog_"):
+            self.semantic_id_catalog_ = SemanticIDCatalog(
+                np.arange(len(self.sid_table)), self.sid_table, self.sid_table,
+                cardinalities, cardinalities,
+            )
+        return self.semantic_id_catalog_
+
+    def predict_semantic_ids(self, history_items, **context):
+        """Return final CPD paths before validity filtering or deduplication."""
+        if len(history_items) == 0:
+            return SemanticIDPrediction(
+                np.empty((0, self.semantic_id_catalog().address_sids.shape[1]), dtype="int64"),
+                [], [], {"empty_history": True},
+            )
+        return self._score_history(
+            history_items, context.get("n_candidates"), return_raw=True
+        )

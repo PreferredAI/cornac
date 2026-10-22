@@ -764,3 +764,21 @@ class NextItemRecommender(Recommender):
 
         """
         raise NotImplementedError("The algorithm is not able to make score prediction!")
+
+
+class SemanticIDRecommender(NextItemRecommender):
+    """Optional interface for recommenders that generate Semantic IDs."""
+
+    def semantic_id_catalog(self):
+        """Return the fitted :class:`~cornac.models.semantic_id.SemanticIDCatalog`."""
+        raise NotImplementedError
+
+    def predict_semantic_ids(self, history_items, **context):
+        """Return raw predictions before resolution, preserving decoder order.
+
+        ``context`` may contain ``user_index``, ``query_index``, session/history
+        positions, and ``n_candidates`` (a requested minimum output budget).
+        Adapters should honor the budget where supported and may return fewer
+        candidates when decoding terminates. Never fill from ungenerated items.
+        """
+        raise NotImplementedError

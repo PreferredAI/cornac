@@ -333,3 +333,11 @@ Weighted Matrix Factorization (WMF)
 -----------------------------------
 .. automodule:: cornac.models.wmf.recom_wmf
    :members:
+
+Semantic ID Model Contracts
+--------------------------
+.. autoclass:: cornac.models.recommender.SemanticIDRecommender
+   :members:
+
+.. automodule:: cornac.models.semantic_id
+   :members:

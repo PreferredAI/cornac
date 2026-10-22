@@ -16,6 +16,7 @@
 from .recommender import Recommender
 from .recommender import NextBasketRecommender
 from .recommender import NextItemRecommender
+from .recommender import SemanticIDRecommender
 
 from .amr import AMR
 from .ann import AnnoyANN
@@ -94,3 +95,10 @@ from .vaecf import VAECF
 from .vbpr import VBPR
 from .vmf import VMF
 from .wmf import WMF
+
+from .semantic_id import (
+    SemanticIDCatalog,
+    SemanticIDPrediction,
+    SemanticIDTrace,
+    SemanticIDTraceRecord,
+)
