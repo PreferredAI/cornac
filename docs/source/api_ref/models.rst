@@ -338,6 +338,3 @@ Semantic ID Model Contracts
 --------------------------
 .. autoclass:: cornac.models.recommender.SemanticIDRecommender
    :members:
-
-.. automodule:: cornac.models.semantic_id
-   :members:

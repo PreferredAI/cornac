@@ -21,7 +21,7 @@ import numpy as np
 from tqdm.auto import trange
 
 from ..recommender import SemanticIDRecommender
-from ..semantic_id import (
+from ...utils.semantic_id import (
     SemanticIDCatalog,
     SemanticIDPrediction,
 )

@@ -770,7 +770,7 @@ class SemanticIDRecommender(NextItemRecommender):
     """Optional interface for recommenders that generate Semantic IDs."""
 
     def semantic_id_catalog(self):
-        """Return the fitted :class:`~cornac.models.semantic_id.SemanticIDCatalog`."""
+        """Return the fitted :class:`~cornac.utils.semantic_id.SemanticIDCatalog`."""
         raise NotImplementedError
 
     def predict_semantic_ids(self, history_items, **context):

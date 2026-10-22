@@ -13,13 +13,18 @@
 # limitations under the License.
 # ============================================================================
 
-"""Backend-free, synthetic demonstration of shared Semantic ID evaluation."""
+"""Backend-free next-item evaluation from raw Semantic ID predictions.
+
+Use NextItemEvaluation for ordinary item-ranking models. This SID-only example
+compares SID matching, CCE's expected item credit and explicit item selection.
+"""
 import numpy as np
 
 import cornac
 from cornac.eval_methods import SemanticIDEvaluation
 from cornac.metrics import Recall, NDCG
-from cornac.models import SemanticIDCatalog, SemanticIDPrediction, SemanticIDRecommender
+from cornac.models import SemanticIDRecommender
+from cornac.utils.semantic_id import SemanticIDCatalog, SemanticIDPrediction
 
 
 class FrozenSIDExample(SemanticIDRecommender):

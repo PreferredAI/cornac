@@ -21,7 +21,7 @@ import numpy as np
 from tqdm.auto import trange
 
 from ..tiger.recom_tiger import TIGER
-from ..semantic_id import SemanticIDCatalog, prediction_from_catalog_scores
+from ...utils.semantic_id import SemanticIDCatalog, prediction_from_catalog_scores
 
 
 def _generator_optimizer_groups(model, weight_decay):

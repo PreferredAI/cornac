@@ -22,12 +22,20 @@ import numpy as np
 import pytest
 
 from cornac import Experiment
-from cornac.eval_methods import (SemanticIDEvaluation, evaluate_semantic_id_trace,
-    TrainingPopularity, HistoryCosine, CustomScorer, resolve_semantic_ids)
+from cornac.eval_methods import SemanticIDEvaluation, evaluate_semantic_id_trace
 from cornac.metrics import Recall, NDCG, HitRatio
-from cornac.models import (SemanticIDCatalog, SemanticIDPrediction,
-    SemanticIDRecommender, SemanticIDTrace, SemanticIDTraceRecord)
-from cornac.models.semantic_id import prediction_from_catalog_scores
+from cornac.models import SemanticIDRecommender
+from cornac.utils.semantic_id import (
+    TrainingPopularity,
+    HistoryCosine,
+    CustomScorer,
+    resolve_semantic_ids,
+    SemanticIDCatalog,
+    SemanticIDPrediction,
+    SemanticIDTrace,
+    SemanticIDTraceRecord,
+    prediction_from_catalog_scores,
+)
 
 
 def catalog(codes=((0,), (0,), (1,), (1,), (2,))):
@@ -249,7 +257,7 @@ def test_unsupported_metric_fails_before_fit():
 
 
 def test_lazy_imports():
-    subprocess.run([sys.executable, "-c", "import sys; from cornac.eval_methods import SemanticIDEvaluation; from cornac.models import SemanticIDRecommender; assert 'torch' not in sys.modules; assert 'transformers' not in sys.modules"], check=True)
+    subprocess.run([sys.executable, "-c", "import sys; from cornac.eval_methods import SemanticIDEvaluation; from cornac.models import SemanticIDRecommender; from cornac.utils.semantic_id import SemanticIDCatalog, TrainingPopularity, HistoryCosine, resolve_semantic_ids; assert 'torch' not in sys.modules; assert 'transformers' not in sys.modules"], check=True)
 
 
 def test_trace_pickle_keeps_identity_and_readonly_predictions():
@@ -328,3 +336,12 @@ def test_wrong_target_codes_rejected_and_same_user_queries_are_distinct():
         SemanticIDTrace(cat.stable_hash, records), (1,), {"custom": resolver})
     assert seen == [(0, 0), (1, 0)]
     assert result["per_query"]["Item[custom]"]["recall"].tolist() == [[1.], [0.]]
+
+
+def test_non_semantic_id_model_fails_before_fit():
+    from cornac.models.recommender import NextItemRecommender
+
+    train, test = data()
+    evaluation = SemanticIDEvaluation.from_splits(train, test, fmt="USIT")
+    with pytest.raises(ValueError, match="SemanticIDRecommender"):
+        evaluation.evaluate(NextItemRecommender("native"), [Recall(2)])

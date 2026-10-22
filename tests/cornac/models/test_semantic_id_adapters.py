@@ -22,7 +22,7 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("transformers")
 
 from cornac.models import TIGER
-from cornac.models.semantic_id import prediction_from_catalog_scores
+from cornac.utils.semantic_id import prediction_from_catalog_scores
 
 
 def tiny_tiger(model_class=TIGER):
