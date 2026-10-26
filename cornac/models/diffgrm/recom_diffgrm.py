@@ -20,11 +20,7 @@ import time
 import numpy as np
 from tqdm.auto import trange
 
-from ..recommender import SemanticIDRecommender
-from ...utils.semantic_id import (
-    SemanticIDCatalog,
-    SemanticIDPrediction,
-)
+from ..recommender import NextItemRecommender, SemanticIDMixin
 
 from ...utils import get_rng
 
@@ -86,7 +82,7 @@ def _diffgrm_session_iter(
         )
 
 
-class DiffGRM(SemanticIDRecommender):
+class DiffGRM(NextItemRecommender, SemanticIDMixin):
     """DiffGRM: Diffusion-based Generative Recommendation Model.
 
     DiffGRM combines parallel OPQ semantic IDs (PSE), on-policy
@@ -622,7 +618,6 @@ class DiffGRM(SemanticIDRecommender):
             self.model.load_state_dict(best_state)
 
     def fit(self, train_set, val_set=None):
-        self.__dict__.pop("semantic_id_catalog_", None)
         super().fit(train_set, val_set)
         if not self.trainable:
             return self
@@ -693,13 +688,16 @@ class DiffGRM(SemanticIDRecommender):
         if next(self.model.parameters()).device != requested:
             self.model.to(requested)
 
-    def _score_history(self, history_items, n_candidates=None, return_raw=False):
+    def _score_history(self, history_items, return_semantic_ids=False):
         import torch
 
         from .diffgrm import cpd_decode
 
         if len(history_items) == 0:
-            return np.ones(self.total_items, dtype="float")
+            scores = np.ones(self.total_items, dtype="float")
+            if return_semantic_ids:
+                return scores, np.empty((0, self.n_digit), dtype="int64")
+            return scores
         self._ensure_device(torch)
         history = list(history_items)[-self.max_len :]
         input_iids = np.full((1, self.max_len), self.pad_idx, dtype="int64")
@@ -718,7 +716,7 @@ class DiffGRM(SemanticIDRecommender):
                 self.model,
                 memory,
                 padding_mask,
-                beam_size=max(self.beam_size, n_candidates or 0),
+                beam_size=self.beam_size,
                 catalog_codes=self.sid_table,
                 valid_code_set=self.sid_to_items_,
                 constrained=self.scoring == "catalog",
@@ -727,20 +725,16 @@ class DiffGRM(SemanticIDRecommender):
                 else None,
                 greedy_final=self.scoring == "released",
                 return_diagnostics=True,
-                return_raw=return_raw,
+                return_raw=return_semantic_ids,
             )
         codes, path_scores, diagnostics = decoded[:3]
         self.last_decode_time_ = time.perf_counter() - decode_start
         self.last_decode_diagnostics_ = diagnostics
-        if return_raw:
-            raw = decoded[3]
-            return SemanticIDPrediction(
-                np.asarray(raw["address_sids"], dtype="int64").reshape(-1, self.n_digit),
-                raw["scores"], raw["catalog_validity"],
-                dict(diagnostics, scoring=self.scoring,
-                     beam_size=max(self.beam_size, n_candidates or 0)),
-            )
-        return self._decoded_item_scores(codes, path_scores)
+        scores = self._decoded_item_scores(codes, path_scores)
+        if return_semantic_ids:
+            semantic_ids = np.asarray(decoded[3]["address_sids"], dtype="int64").reshape(-1, self.n_digit)
+            return scores, semantic_ids
+        return scores
 
     def _decoded_item_scores(self, codes, path_scores):
         scores = np.full(self.total_items, -1e10, dtype="float")
@@ -757,24 +751,10 @@ class DiffGRM(SemanticIDRecommender):
         return self._score_history(history_items)
 
     def semantic_id_catalog(self):
-        """Export all complete IDs independently of native collision policy."""
+        """Return complete IDs independently of native collision policy."""
         if not hasattr(self, "sid_table"):
             raise ValueError("DiffGRM must be fitted before exporting its SID catalog")
-        cardinalities = (self.codebook_size,) * self.n_digit
-        if not hasattr(self, "semantic_id_catalog_"):
-            self.semantic_id_catalog_ = SemanticIDCatalog(
-                np.arange(len(self.sid_table)), self.sid_table, self.sid_table,
-                cardinalities, cardinalities,
-            )
-        return self.semantic_id_catalog_
+        return self.sid_table
 
-    def predict_semantic_ids(self, history_items, **context):
-        """Return final CPD paths before validity filtering or deduplication."""
-        if len(history_items) == 0:
-            return SemanticIDPrediction(
-                np.empty((0, self.semantic_id_catalog().address_sids.shape[1]), dtype="int64"),
-                [], [], {"empty_history": True},
-            )
-        return self._score_history(
-            history_items, context.get("n_candidates"), return_raw=True
-        )
+    def _score_with_semantic_ids(self, user_idx, history_items, **kwargs):
+        return self._score_history(history_items, return_semantic_ids=True)

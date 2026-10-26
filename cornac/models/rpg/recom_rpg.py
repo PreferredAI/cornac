@@ -18,12 +18,7 @@ import math
 import numpy as np
 from tqdm.auto import trange
 
-from ..recommender import SemanticIDRecommender
-from ...utils.semantic_id import (
-    SemanticIDCatalog,
-    SemanticIDPrediction,
-    prediction_from_catalog_scores,
-)
+from ..recommender import NextItemRecommender, SemanticIDMixin
 
 from ...utils import get_rng
 
@@ -103,7 +98,7 @@ def _rpg_session_iter(
         )
 
 
-class RPG(SemanticIDRecommender):
+class RPG(NextItemRecommender, SemanticIDMixin):
     """RPG: Generating Long Semantic IDs in Parallel for Recommendation.
 
     RPG is the architectural counterpoint to TIGER. Instead of short *ordered*
@@ -607,7 +602,6 @@ class RPG(SemanticIDRecommender):
             self.model.load_state_dict(best_state)
 
     def fit(self, train_set, val_set=None):
-        self.__dict__.pop("semantic_id_catalog_", None)
         super().fit(train_set, val_set)
         if not self.trainable:
             return self
@@ -652,13 +646,16 @@ class RPG(SemanticIDRecommender):
         if next(self.model.parameters()).device.type != torch.device(self.device_).type:
             self.model.to(self.device_)
 
-    def _predict_history(self, history_items, n_candidates=None, return_raw=False):
+    def _predict_history(self, history_items, return_semantic_ids=False):
         import torch
 
         from .rpg import graph_decode
 
         if len(history_items) == 0:
-            return np.ones(self.total_items, dtype="float")
+            scores = np.ones(self.total_items, dtype="float")
+            if return_semantic_ids:
+                return scores, np.empty((0, self.sid_table.shape[1]), dtype="int64")
+            return scores
         self._ensure_device(torch)
         hist = list(history_items)[-self.max_len :]
         hist = [self.pad_idx] * (self.max_len - len(hist)) + hist
@@ -670,11 +667,8 @@ class RPG(SemanticIDRecommender):
 
         if self.scoring == "exact":
             scores = self._exact_item_scores(logits)[0].cpu().numpy().astype("float")
-            if return_raw:
-                return prediction_from_catalog_scores(
-                    self.semantic_id_catalog(), scores,
-                    {"scoring": "exact", "address_score_aggregation": "max_member"},
-                )
+            if return_semantic_ids:
+                return scores, self._semantic_ids_from_scores(scores)
             return scores
 
         # graph-guided beam decoding over the final propagated beam
@@ -683,42 +677,24 @@ class RPG(SemanticIDRecommender):
             flat,
             self.adjacency,
             self.item_tokens,
-            max(self.n_beams, n_candidates or 0),
+            self.n_beams,
             self.propagation_steps,
             self.graph_rng,
         )
-        if return_raw:
-            return SemanticIDPrediction(
-                self.sid_table[candidates], candidate_scores,
-                np.ones(len(candidates), dtype=bool),
-                {"scoring": "graph", "beam_size": max(self.n_beams, n_candidates or 0)},
-            )
         scores = np.full(self.total_items, -1e10, dtype="float")
         scores[candidates] = candidate_scores
+        if return_semantic_ids:
+            return scores, self.sid_table[candidates]
         return scores
 
     def semantic_id_catalog(self):
-        """Export un-offset OPQ codes with complete collision buckets."""
+        """Return complete, un-offset OPQ codes aligned to item indices."""
         if not hasattr(self, "sid_table"):
             raise ValueError("RPG must be fitted before exporting its SID catalog")
-        cardinalities = (self.codebook_size,) * self.n_codebook
-        if not hasattr(self, "semantic_id_catalog_"):
-            self.semantic_id_catalog_ = SemanticIDCatalog(
-                np.arange(len(self.sid_table)), self.sid_table, self.sid_table,
-                cardinalities, cardinalities,
-            )
-        return self.semantic_id_catalog_
+        return self.sid_table
 
-    def predict_semantic_ids(self, history_items, **context):
-        """Retain final graph candidate order, using the native mutable RNG."""
-        if len(history_items) == 0:
-            return SemanticIDPrediction(
-                np.empty((0, self.semantic_id_catalog().address_sids.shape[1]), dtype="int64"),
-                [], [], {"empty_history": True},
-            )
-        return self._predict_history(
-            history_items, context.get("n_candidates"), return_raw=True
-        )
+    def _score_with_semantic_ids(self, user_idx, history_items, **kwargs):
+        return self._predict_history(history_items, return_semantic_ids=True)
 
     def score(self, user_idx, history_items, **kwargs):
         return self._predict_history(history_items)

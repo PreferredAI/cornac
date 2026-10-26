@@ -19,12 +19,7 @@ from collections import defaultdict
 import numpy as np
 from tqdm.auto import trange
 
-from ..recommender import SemanticIDRecommender
-from ...utils.semantic_id import (
-    SemanticIDCatalog,
-    SemanticIDPrediction,
-    prediction_from_catalog_scores,
-)
+from ..recommender import NextItemRecommender, SemanticIDMixin
 
 from ...utils import get_rng
 from ..seq_utils import session_seq_iter
@@ -34,7 +29,7 @@ SUPPORTED_TOKENIZERS = ("rqvae", "rkmeans")
 SUPPORTED_LR_SCHEDULES = ("constant", "cosine")
 
 
-class TIGER(SemanticIDRecommender):
+class TIGER(NextItemRecommender, SemanticIDMixin):
     """TIGER: Recommender Systems with Generative Retrieval.
 
     Two-stage generative retrieval with semantic IDs: (1) an RQ-VAE quantizes
@@ -366,7 +361,6 @@ class TIGER(SemanticIDRecommender):
         ).astype("int64")
 
     def _build_semantic_ids(self, codes):
-        self.__dict__.pop("semantic_id_catalog_", None)
         # extra level disambiguating items that share the same code tuple
         counters = defaultdict(int)
         dedup = np.zeros(len(codes), dtype="int64")
@@ -537,7 +531,6 @@ class TIGER(SemanticIDRecommender):
         return float(np.mean(results)) if results else 0.0
 
     def fit(self, train_set, val_set=None):
-        self.__dict__.pop("semantic_id_catalog_", None)
         super().fit(train_set, val_set)
         if not self.trainable:
             return self
@@ -571,7 +564,7 @@ class TIGER(SemanticIDRecommender):
         if next(self.model.parameters()).device.type != torch.device(self.device_).type:
             self.model.to(self.device_)
 
-    def _predict_history(self, history_items, n_candidates=None, return_raw=False):
+    def _predict_history(self, history_items, return_semantic_ids=False):
         import torch
 
         self._ensure_device(torch)
@@ -586,53 +579,33 @@ class TIGER(SemanticIDRecommender):
         self.model.eval()
         with torch.no_grad():
             if self.scoring == "beam":
-                beams, logps = self.model.generate_beam(enc_tokens_t, enc_mask_t, max(self.n_beams, n_candidates or 0), self.prefix_children)
-                if return_raw:
-                    return self._beam_prediction(beams, logps, n_candidates)
+                beams, logps = self.model.generate_beam(enc_tokens_t, enc_mask_t, self.n_beams, self.prefix_children)
                 scores = np.full(self.total_items, -1e10, dtype="float")
                 for sid, lp in zip(beams, logps):
-                    scores[self.sid_to_item[sid]] = lp
+                    if sid in self.sid_to_item:
+                        scores[self.sid_to_item[sid]] = lp
             else:  # "exact"
                 sid_table_t = torch.tensor(self.sid_table, dtype=torch.long, device=self.device_)
                 scores = self.model.score_all_items(
                     enc_tokens_t, enc_mask_t, sid_table_t, self.scoring_batch_size
                 ).astype("float")
-        if return_raw:
-            return prediction_from_catalog_scores(
-                self.semantic_id_catalog(), scores,
-                {"scoring": "exact", "address_score_aggregation": "max_member"},
-            )
+        if return_semantic_ids:
+            semantic_ids = (np.asarray(beams, dtype="int64").reshape(-1, self.sid_table.shape[1])
+                            if self.scoring == "beam" else self._semantic_ids_from_scores(scores))
+            return scores, semantic_ids
         return scores
 
     def semantic_id_catalog(self):
-        """Export tokenizer prefixes and complete, suffix-bearing addresses."""
+        """Return complete, suffix-bearing IDs aligned to item indices."""
         if not hasattr(self, "sid_table"):
             raise ValueError("TIGER must be fitted before exporting its SID catalog")
-        if not hasattr(self, "semantic_id_catalog_"):
-            self.semantic_id_catalog_ = SemanticIDCatalog(
-                np.arange(len(self.sid_table)), self.sid_table[:, :-1], self.sid_table,
-                tuple(self.level_sizes[:-1]), tuple(self.level_sizes),
-            )
-        return self.semantic_id_catalog_
+        return self.sid_table
 
-    def _beam_prediction(self, beams, scores, n_candidates):
-        catalog = self.semantic_id_catalog()
-        addresses = np.asarray(beams, dtype="int64").reshape(
-            -1, catalog.address_sids.shape[1]
-        )
-        return SemanticIDPrediction(
-            addresses, scores,
-            [tuple(address) in catalog.address_to_items for address in addresses],
-            {"scoring": "beam", "beam_size": max(self.n_beams, n_candidates or 0)},
-        )
-
-    def predict_semantic_ids(self, history_items, **context):
-        """Decode once before item conversion, retaining invalid/duplicate slots."""
+    def _score_with_semantic_ids(self, user_idx, history_items, **kwargs):
         if len(history_items) == 0:
-            return self._beam_prediction([], [], context.get("n_candidates"))
-        return self._predict_history(
-            history_items, context.get("n_candidates"), return_raw=True
-        )
+            return np.ones(self.total_items, dtype="float"), np.empty(
+                (0, self.semantic_id_catalog().shape[1]), dtype="int64")
+        return self._predict_history(history_items, return_semantic_ids=True)
 
     def score(self, user_idx, history_items, **kwargs):
         if len(history_items) == 0:

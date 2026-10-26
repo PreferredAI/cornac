@@ -187,10 +187,11 @@ class ExperimentResult(list):
     """
 
     def __str__(self):
-        headers = list(self[0].metric_avg_results.keys())
+        headers = list(dict.fromkeys(m for r in self for m in r.metric_avg_results))
         data, index = [], []
         for r in self:
-            data.append([NUM_FMT.format(r.metric_avg_results[m]) for m in headers])
+            data.append([NUM_FMT.format(r.metric_avg_results[m]) if m in r.metric_avg_results
+                         else "N/A" for m in headers])
             index.append(r.model_name)
         return _table_format(data, headers, index, h_bars=[1])
 

@@ -33,95 +33,82 @@ Timestamp Split
 .. automodule:: cornac.eval_methods.timestamp_split
    :members:
 
+Next Item Evaluation
+--------------------
+.. automodule:: cornac.eval_methods.next_item_evaluation
+   :members:
+
 Recommendation Evaluation with Semantic IDs
 ------------------------------------------
 
-``SemanticIDEvaluation`` subclasses ``NextItemEvaluation`` and evaluates next-item
-recommendation performance, rather than the intrinsic quality of Semantic IDs.
-Use it when a generated ID can map to several items: SID matching alone cannot
-identify which member was recommended. ``NextItemEvaluation`` instead evaluates
-the item rankings returned by ``model.rank()``.
+Use ``NextItemEvaluation`` for both ordinary next-item models (such as SASRec)
+and Semantic ID models (TIGER, LETTER, RPG and DiffGRM), including a mixed
+``Experiment``. Its optional ``semantic_id_metrics`` switch defaults to False.
+Set it to True in Semantic ID experiment setup to enable the extra views.
+Ordinary item metric names and model-specific item resolution are preserved.
+With the switch enabled, for each requested finite-K ``Recall`` or ``NDCG``,
+SID models additionally report ``SID-Recall@K``, ``SID-NDCG@K``, ``CCE-Recall@K`` and ``CCE-NDCG@K``.
+Other metrics, including AUC, MAP, MRR and unbounded cutoffs, still run their
+ordinary item evaluation without additional views. Non-SID models have no SID
+or CCE values; mixed result tables show ``N/A`` for those entries.
 
-``SemanticIDEvaluation`` evaluates TIGER, LETTER, RPG and DiffGRM through the same
-raw Semantic ID predictions. It reports SID accuracy, analytical
-Collision-Corrected Evaluation (CCE), and exact-item accuracy under explicit
-resolvers. Supported metrics are ``Recall(k)`` and ``NDCG(k)`` with positive
-integer cutoffs; result names include ``SID/Recall@10``, ``CCE/NDCG@10`` and
-``Item[popularity]/Recall@10``. ``user_based=True`` averages queries per user
-before averaging users.
+SID metrics match the target's complete generated ID, including any
+item-disambiguating suffix. Invalid IDs, IDs absent from the admitted candidate
+catalog, and repeated IDs after their first occurrence are removed before
+ranking. Candidate filtering respects ``exclude_unknowns`` and also restricts
+each collision bucket's size. No ungenerated fallback candidates are introduced.
 
-CCE expands each complete ID into its full item bucket and averages over uniform
-member permutations. Earlier buckets consume their full widths. Invalid and
-duplicate addresses preserve empty rank slots. A resolver selects one item per
-bucket while preserving address order. Complete IDs include any disambiguating
-suffix; injective catalogs give identical views under the same slot rules.
+Collision-Corrected Evaluation (CCE) expands surviving IDs in their original
+order into their full admitted item buckets. Earlier buckets consume their full
+widths. Items within a bucket have uniformly random order. CCE Recall is the
+fraction of target-bucket positions inside K, and CCE NDCG averages the log
+discount over those positions, divided by the full target-bucket size.
+
+For example, suppose items a and b share the first predicted ID, c has the
+second ID, and b is the target. A model that ranks a first has ordinary
+Recall@1 of 0, SID-Recall@1 of 1 and CCE-Recall@1 of 0.5. CCE-Recall@2 is 1
+because both positions of the target bucket fit. This is expected item credit,
+not the accuracy of a concrete item resolver. A catalog whose complete IDs are
+all unique yields identical SID and CCE metrics. TIGER's suffix-bearing IDs
+have this property even when their tokenizer prefixes collide.
 
 CCE follows Qian Zhang, Lech Szymanski, Haibo Zhang and Jeremiah D. Deng,
 `Faithful Evaluation of Semantic-ID Tokenizers for Generative Recommendation
-<https://arxiv.org/abs/2605.25330v2>`_ (CIKM 2026). The explicit resolvers below
-are selectable item-ranking policies, distinct from CCE's expectation.
+<https://arxiv.org/abs/2605.25330v2>`_ (CIKM 2026). Ordinary item metrics remain
+the direct measure of the model's concrete recommendations; CCE evaluates the
+uniform within-bucket assumption.
 
-This evaluator requires ``SemanticIDRecommender`` and supports SID models only.
-For ordinary next-item models such as SASRec, use ``NextItemEvaluation`` in a
-separate experiment with identical train/validation/test splits and cutoffs.
-Mixed SID and ordinary models in one ``Experiment`` are not supported.
+All three views share one model inference per query. Configured decoding budgets
+are preserved. Short outputs are evaluated as returned, and one warning per
+split reports the number of queries with fewer valid distinct IDs than the
+largest requested SID/CCE cutoff. Increase the model's beam setting explicitly
+if a larger candidate budget is desired. With ``semantic_id_metrics=False``,
+only ordinary item metrics are reported; SID models issue a warning.
+``mode='last'``/``mode='next'`` and per-query/per-user aggregation apply to every
+view in the same way.
 
-Popularity uses training events only. Supplying ``item_features`` adds history
-cosine: normalize item vectors, sum each user's training-event vectors (including
-repeats), normalize that profile and score bucket members by cosine. Features
-must align with global Cornac item indices. Ties, including zero profiles, choose
-the smallest item index. Pass fitted resolvers through ``resolvers`` or implement
-``SemanticIDResolver.score(query_index, user_index, candidate_items)``; custom
-state must also use training-only information. Import these utilities from
-``cornac.utils.semantic_id``; ``resolve_semantic_ids`` exposes the same operation
-for inference. For example::
+For example::
 
-    import numpy as np
-    from cornac.utils.semantic_id import (
-        SemanticIDCatalog, SemanticIDPrediction, TrainingPopularity,
-        resolve_semantic_ids,
-    )
+    evaluation = NextItemEvaluation.from_splits(
+        train, test, fmt="USIT", item_feature=features,
+        semantic_id_metrics=True)
+    Experiment(evaluation, [TIGER(device="cpu"), SASRec()],
+               [Recall(10), NDCG(10)]).run()
 
-    codes = np.array([[0], [0], [1]])
-    catalog = SemanticIDCatalog(np.arange(3), codes, codes, (2,), (2,))
-    prediction = SemanticIDPrediction(
-        np.array([[0], [1]]), np.array([1., .5]), np.array([True, True]))
-    resolver = TrainingPopularity([1, 1, 0, 2], num_items=3)
-    resolve_semantic_ids(catalog, prediction, resolver)  # (1, 2)
+See ``examples/semantic_id_evaluation_example.py`` for a backend-free mixed-model
+example with a fixed SID generator.
 
-Items 0 and 1 share the first ID. Popularity chooses item 1 from that bucket,
-then item 2 from the next, preserving generated ID order. If item 1 is the
-target, SID Recall@1 is 1, CCE Recall@1 is 0.5 and popularity-resolved Recall@1
-is 1. CCE Recall@2 is 1 because both members of the first bucket fit. Other
-resolvers can choose differently while using the same predictions.
+Adapter authors implement ``SemanticIDMixin`` alongside ``NextItemRecommender``.
+``semantic_id_catalog()`` returns a two-dimensional integer array with one row
+per global item, storing complete generated IDs. ``rank_with_semantic_ids`` has
+the same inputs as ``rank`` and returns ordinary item ranks, item scores aligned
+to the candidate indices, and a two-dimensional integer array of raw ranked SID
+rows. Its full SID output is independent of item-ranking ``k``. The model keeps
+its decoding and concrete SID-to-item policy. The mixin provides shared ranking
+from ``_score_with_semantic_ids(user_idx, history_items, **kwargs)``, which returns
+full item scores and SID rows from the same inference. Empty SID output has
+shape ``(0, SID_length)``. No persistent prediction cache is required.
 
-For an existing Semantic ID model and item-feature modality::
-
-    evaluation = SemanticIDEvaluation.from_splits(
-        train, test, fmt="USIT", item_feature=features)
-    Experiment(evaluation, [TIGER(device="cpu")], [Recall(10), NDCG(10)]).run()
-
-See ``examples/semantic_id_evaluation_example.py`` for a standalone CPU example.
-``Result.semantic_id_trace`` holds the predictions, and
-``Result.semantic_id_evaluation`` holds per-query arrays and protocol metadata.
-
-Adapter authors subclass ``cornac.models.recommender.SemanticIDRecommender`` and
-implement ``semantic_id_catalog()`` and ``predict_semantic_ids(history_items,
-**context)``. Use the shared types in ``cornac.utils.semantic_id``. Export
-complete addresses separately from tokenizer prefixes and
-preserve raw decoder order, invalid slots and duplicates before item conversion.
-The evaluator requests ``n_candidates=max(k)``; honor it where supported and keep
-shorter output without fillers. ``prediction_from_catalog_scores`` supports exact
-scoring by maximum member score per address, with lexicographic address ties.
-The contract covers fixed-width integer addresses, a frozen catalog and one
-next-item target per query.
-
-The evaluation module combines trace collection, offline trace evaluation via
-``evaluate_semantic_id_trace`` and the ``SemanticIDEvaluation`` experiment
-integration. Utilities below provide catalogs, predictions and item resolution.
-
-.. automodule:: cornac.eval_methods.semantic_id_evaluation
-   :members:
-
-.. automodule:: cornac.utils.semantic_id
-   :members:
+For exhaustive scoring, the built-in adapters order SID groups by their maximum
+member score, with lexicographic ID ties. Beam adapters expose only generated
+rows, preserving decoder order before evaluator filtering and compaction.

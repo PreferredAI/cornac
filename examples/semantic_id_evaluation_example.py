@@ -13,49 +13,49 @@
 # limitations under the License.
 # ============================================================================
 
-"""Backend-free next-item evaluation from raw Semantic ID predictions.
-
-Use NextItemEvaluation for ordinary item-ranking models. This SID-only example
-compares SID matching, CCE's expected item credit and explicit item selection.
-"""
+"""Backend-free ordinary item, SID and CCE evaluation in one Experiment."""
 import numpy as np
 
 import cornac
-from cornac.eval_methods import SemanticIDEvaluation
+from cornac.eval_methods import NextItemEvaluation
 from cornac.metrics import Recall, NDCG
-from cornac.models import SemanticIDRecommender
-from cornac.utils.semantic_id import SemanticIDCatalog, SemanticIDPrediction
+from cornac.models import NextItemRecommender, SemanticIDMixin, SPop
 
 
-class FrozenSIDExample(SemanticIDRecommender):
-    """A fixed generator for demonstrating the interface, not a trained model."""
+class FrozenSIDExample(NextItemRecommender, SemanticIDMixin):
+    """A fixed generator demonstrating collisions, not a trained model."""
 
     def __init__(self):
         super().__init__("FrozenSIDExample")
 
     def fit(self, train_set, val_set=None):
         super().fit(train_set, val_set)
-        codes = np.arange(self.total_items).reshape(-1, 1) // 2
-        cardinalities = (int(codes.max()) + 1,)
-        self.catalog = SemanticIDCatalog(np.arange(self.total_items), codes,
-                                         codes, cardinalities, cardinalities)
+        self.codes = np.arange(self.total_items).reshape(-1, 1) // 2
         return self
 
     def semantic_id_catalog(self):
-        return self.catalog
+        return self.codes
 
-    def predict_semantic_ids(self, history_items, **context):
-        addresses = np.asarray(sorted(self.catalog.address_to_items), dtype="int64")
-        return SemanticIDPrediction(addresses, np.zeros(len(addresses)),
-                                    np.ones(len(addresses), dtype=bool))
+    def _score_with_semantic_ids(self, user_idx, history_items, **kwargs):
+        # a and b share SID 0; this concrete item policy ranks a first.
+        scores = -np.arange(self.total_items, dtype="float64")
+        predicted = np.unique(self.codes, axis=0)
+        return scores, predicted
+
+    def score(self, user_idx, history_items, **kwargs):
+        return self._score_with_semantic_ids(user_idx, history_items, **kwargs)[0]
 
 
 if __name__ == "__main__":
-    train = [("u", "train", "a", 0), ("u", "train", "b", 1),
-             ("u", "train", "c", 2)]
+    train = [("u", "train", "a", 0), ("u", "train", "b", 1), ("u", "train", "c", 2)]
     test = [("u", "test", "a", 3), ("u", "test", "b", 4)]
-    evaluation = SemanticIDEvaluation.from_splits(
-        train, test, fmt="USIT", item_features=np.eye(3),
-        feature_source="synthetic identity vectors")
-    cornac.Experiment(evaluation, [FrozenSIDExample()], [Recall(2), NDCG(2)],
-                      show_validation=False).run()
+    evaluation = NextItemEvaluation.from_splits(
+        train, test, fmt="USIT", semantic_id_metrics=True
+    )
+    cornac.Experiment(
+        evaluation,
+        [FrozenSIDExample(), SPop()],
+        [Recall(1), NDCG(1)],
+        show_validation=False,
+        save_dir="/tmp/cornac-semantic-id-example",
+    ).run()

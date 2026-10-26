@@ -502,6 +502,10 @@ class Recommender:
         except ScoreException:
             known_item_scores = np.ones(self.total_items) * self.default_score()
 
+        return self._rank_from_scores(known_item_scores, item_indices, k)
+
+    def _rank_from_scores(self, known_item_scores, item_indices=None, k=-1):
+        """Apply the standard item ranking to already computed scores."""
         # check if the returned scores also cover unknown items
         # if not, all unknown items will be given the MIN score
         if len(known_item_scores) == self.total_items:
@@ -766,19 +770,44 @@ class NextItemRecommender(Recommender):
         raise NotImplementedError("The algorithm is not able to make score prediction!")
 
 
-class SemanticIDRecommender(NextItemRecommender):
-    """Optional interface for recommenders that generate Semantic IDs."""
+class SemanticIDMixin:
+    """Optional Semantic ID capability for next-item recommenders.
+
+    Complete IDs include any item-disambiguating suffix. The combined ranking
+    exposes ordinary item predictions and generated IDs from the same inference;
+    it never reconstructs beam candidates from item-score filler values.
+    """
 
     def semantic_id_catalog(self):
-        """Return the fitted :class:`~cornac.utils.semantic_id.SemanticIDCatalog`."""
+        """Return an integer array ``(total_items, SID_length)`` aligned to items."""
         raise NotImplementedError
 
-    def predict_semantic_ids(self, history_items, **context):
-        """Return raw predictions before resolution, preserving decoder order.
+    def _score_with_semantic_ids(self, user_idx, history_items, **kwargs):
+        """Return full item scores and ranked complete IDs from one inference."""
+        raise NotImplementedError
 
-        ``context`` may contain ``user_index``, ``query_index``, session/history
-        positions, and ``n_candidates`` (a requested minimum output budget).
-        Adapters should honor the budget where supported and may return fewer
-        candidates when decoding terminates. Never fill from ungenerated items.
+    def rank_with_semantic_ids(self, user_idx, item_indices=None, k=-1, **kwargs):
+        """Return item ranks, aligned item scores and raw ranked Semantic IDs.
+
+        Item ranking has the same contract as :meth:`Recommender.rank`.
+        The third array has integer shape ``(n_predictions, SID_length)`` and
+        preserves the full generated list, including invalid/repeated rows,
+        independently of item-ranking ``k``. It is not retained on the model.
+        History and other context are passed in ``kwargs`` as with ``rank``.
         """
-        raise NotImplementedError
+        try:
+            scores, semantic_ids = self._score_with_semantic_ids(user_idx, **kwargs)
+        except ScoreException:
+            scores = np.ones(self.total_items) * self.default_score()
+            semantic_ids = np.empty((0, self.semantic_id_catalog().shape[1]), dtype="int64")
+        item_rank, item_scores = self._rank_from_scores(scores, item_indices, k)
+        return item_rank, item_scores, semantic_ids
+
+    def _semantic_ids_from_scores(self, scores):
+        """Rank exhaustive SID scores by maximum member, then lexicographic ID."""
+        catalog = self.semantic_id_catalog()
+        group_scores = {}
+        for sid, score in zip(map(tuple, catalog), scores):
+            group_scores[sid] = max(group_scores.get(sid, -np.inf), score)
+        ranked = sorted(group_scores, key=lambda sid: (-group_scores[sid], sid))
+        return np.asarray(ranked, dtype="int64").reshape(-1, catalog.shape[1])

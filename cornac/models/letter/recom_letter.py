@@ -21,7 +21,6 @@ import numpy as np
 from tqdm.auto import trange
 
 from ..tiger.recom_tiger import TIGER
-from ...utils.semantic_id import SemanticIDCatalog, prediction_from_catalog_scores
 
 
 def _generator_optimizer_groups(model, weight_decay):
@@ -326,7 +325,6 @@ class LETTER(TIGER):
 
     def _build_semantic_ids(self, codes):
         """Build the official fixed-length IDs without TIGER's dedup level."""
-        self.__dict__.pop("semantic_id_catalog_", None)
         self.sid_table = np.asarray(codes, dtype="int64")
         self.level_sizes = [self.rqvae_codebook_size] * self.rqvae_num_levels
         children = [defaultdict(set) for _ in self.level_sizes]
@@ -523,7 +521,7 @@ class LETTER(TIGER):
         if best_state is not None:
             self.model.load_state_dict(best_state)
 
-    def _predict_history(self, history_items, n_candidates=None, return_raw=False):
+    def _predict_history(self, history_items, return_semantic_ids=False):
         import torch
 
         self._ensure_device(torch)
@@ -534,13 +532,12 @@ class LETTER(TIGER):
         with torch.no_grad():
             if self.scoring == "beam":
                 beams, log_probs = self.model.generate_beam(
-                    enc_tokens, enc_mask, max(self.n_beams, n_candidates or 0), self.prefix_children
+                    enc_tokens, enc_mask, self.n_beams, self.prefix_children
                 )
-                if return_raw:
-                    return self._beam_prediction(beams, log_probs, n_candidates)
                 scores = np.full(self.total_items, -1e10, dtype="float")
                 for sid, log_prob in zip(beams, log_probs):
-                    scores[self.sid_to_item[sid]] = log_prob
+                    if sid in self.sid_to_item:
+                        scores[self.sid_to_item[sid]] = log_prob
             else:
                 sid_table = torch.as_tensor(
                     self.sid_table, dtype=torch.long, device=self.device_
@@ -548,20 +545,14 @@ class LETTER(TIGER):
                 scores = self.model.score_all_items(
                     enc_tokens, enc_mask, sid_table, self.scoring_batch_size
                 ).astype("float")
-        if return_raw:
-            return prediction_from_catalog_scores(
-                self.semantic_id_catalog(), scores,
-                {"scoring": "exact", "address_score_aggregation": "max_member"},
-            )
+        if return_semantic_ids:
+            semantic_ids = (np.asarray(beams, dtype="int64").reshape(-1, self.sid_table.shape[1])
+                            if self.scoring == "beam" else self._semantic_ids_from_scores(scores))
+            return scores, semantic_ids
         return scores
 
     def semantic_id_catalog(self):
-        """Export LETTER's suffix-free IDs, preserving collision buckets."""
+        """Return suffix-free IDs aligned to item indices."""
         if not hasattr(self, "sid_table"):
             raise ValueError("LETTER must be fitted before exporting its SID catalog")
-        if not hasattr(self, "semantic_id_catalog_"):
-            self.semantic_id_catalog_ = SemanticIDCatalog(
-                np.arange(len(self.sid_table)), self.sid_table, self.sid_table,
-                tuple(self.level_sizes), tuple(self.level_sizes),
-            )
-        return self.semantic_id_catalog_
+        return self.sid_table

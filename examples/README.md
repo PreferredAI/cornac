@@ -122,7 +122,7 @@
 
 ## Next-Item Algorithms
 
-[semantic_id_evaluation_example.py](semantic_id_evaluation_example.py) - Synthetic example of shared SID, CCE and explicit item-resolver evaluation through Experiment.
+[semantic_id_evaluation_example.py](semantic_id_evaluation_example.py) - Backend-free mixed-model NextItemEvaluation example with ordinary item, SID and CCE metrics.
 
 [spop_yoochoose.py](spop_yoochoose.py) - Next-item recommendation based on item popularity.
 

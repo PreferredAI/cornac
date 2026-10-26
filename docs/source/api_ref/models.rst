@@ -336,5 +336,5 @@ Weighted Matrix Factorization (WMF)
 
 Semantic ID Model Contracts
 --------------------------
-.. autoclass:: cornac.models.recommender.SemanticIDRecommender
+.. autoclass:: cornac.models.recommender.SemanticIDMixin
    :members:
