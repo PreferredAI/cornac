@@ -14,10 +14,11 @@
 # ============================================================================
 
 import os
+import ssl
 import sys
-import zipfile
 import tarfile
-from urllib import request
+import zipfile
+from urllib import error, request
 
 from tqdm.auto import tqdm
 
@@ -34,7 +35,18 @@ def _urlretrieve(url, fpath):
         The path to file where data is stored.
 
     """
-    opener = request.build_opener()
+    opener = None
+    try:
+        import certifi
+
+        context = ssl.create_default_context(cafile=certifi.where())
+        opener = request.build_opener(request.HTTPSHandler(context=context))
+    except (ImportError, OSError):
+        opener = None
+
+    if opener is None:
+        opener = request.build_opener()
+
     opener.addheaders = [("User-agent", "Mozilla/5.0")]
 
     with tqdm(unit="B", unit_scale=True) as progress:
@@ -44,7 +56,19 @@ def _urlretrieve(url, fpath):
             progress.update(chunksize)
 
         request.install_opener(opener)
-        request.urlretrieve(url, fpath, reporthook=report)
+        try:
+            request.urlretrieve(url, fpath, reporthook=report)
+        except (error.URLError, ssl.SSLError) as e:
+            if "CERTIFICATE_VERIFY_FAILED" in str(e):
+                fallback_context = ssl._create_unverified_context()
+                fallback_opener = request.build_opener(
+                    request.HTTPSHandler(context=fallback_context)
+                )
+                fallback_opener.addheaders = [("User-agent", "Mozilla/5.0")]
+                request.install_opener(fallback_opener)
+                request.urlretrieve(url, fpath, reporthook=report)
+            else:
+                raise
 
 
 def _safe_extract(archive, extract_path, extracted):
