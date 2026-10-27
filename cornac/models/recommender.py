@@ -522,7 +522,7 @@ class Recommender:
         )
         item_scores = all_item_scores[item_indices]
 
-        if k != -1:  # O(n + k log k), faster for small k which is usually the case
+        if 0 < k < len(item_scores):  # O(n + k log k) for small cutoffs
             partitioned_idx = np.argpartition(item_scores, -k)
             top_k_idx = partitioned_idx[-k:]
             sorted_top_k_idx = top_k_idx[np.argsort(item_scores[top_k_idx])]

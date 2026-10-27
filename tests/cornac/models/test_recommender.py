@@ -52,6 +52,17 @@ class TestRecommender(unittest.TestCase):
             )
         )
 
+    def test_rank_cutoff_exceeds_candidates(self):
+        dataset = Dataset.from_uir(self.data)
+        model = MF(1, 1, seed=123).fit(dataset)
+        for candidates in (None, np.array([0, 2]), np.array([1]),
+                           np.array([], dtype=int)):
+            expected, expected_scores = model.rank(0, item_indices=candidates)
+            for cutoff in (model.total_items + 20, len(expected)):
+                ranked, scores = model.rank(0, item_indices=candidates, k=cutoff)
+                np.testing.assert_array_equal(ranked, expected)
+                np.testing.assert_array_equal(scores, expected_scores)
+
 
 class TestNextBasketRecommender(unittest.TestCase):
     def setUp(self):
