@@ -53,6 +53,12 @@ jobs:
 
     - name: Upgrade pip wheel setuptools
       run: python${{ matrix.python-version }} -m pip install wheel setuptools pip --upgrade
+
+    - name: Setup SSL certificates for macOS
+      if: matrix.os == 'macos-latest'
+      run: |
+        python${{ matrix.python-version }} -m pip install certifi
+        echo "SSL_CERT_FILE=$(python${{ matrix.python-version }} -m certifi)" >> $GITHUB_ENV
   
     - name: Install other dependencies
       run: python${{ matrix.python-version }} -m pip install Cython pytest pytest-cov flake8 "numpy>${{ env.LIMIT_NUMPY_VERSION }}" scipy
