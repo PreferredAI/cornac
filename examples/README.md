@@ -122,8 +122,6 @@
 
 ## Next-Item Algorithms
 
-[semantic_id_evaluation_example.py](semantic_id_evaluation_example.py) - Backend-free mixed-model NextItemEvaluation example with ordinary item, SID and CCE metrics.
-
 [spop_yoochoose.py](spop_yoochoose.py) - Next-item recommendation based on item popularity.
 
 [gru4rec_yoochoose.py](gru4rec_yoochoose.py) - Example of Session-based Recommendations with Recurrent Neural Networks (GRU4Rec).

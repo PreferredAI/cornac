@@ -95,9 +95,6 @@ For example::
     Experiment(evaluation, [TIGER(device="cpu"), SASRec()],
                [Recall(10), NDCG(10)]).run()
 
-See ``examples/semantic_id_evaluation_example.py`` for a backend-free mixed-model
-example with a fixed SID generator.
-
 Adapter authors implement ``SemanticIDMixin`` alongside ``NextItemRecommender``.
 ``semantic_id_catalog()`` returns a two-dimensional integer array with one row
 per global item, storing complete generated IDs. ``rank_with_semantic_ids`` has

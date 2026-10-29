@@ -153,5 +153,4 @@ and repeated predicted IDs are compacted. Other requested metrics keep ordinary
 item evaluation. Configured beam sizes remain unchanged; short candidate lists
 warn. Set `semantic_id_metrics=False` for ordinary item metrics only.
 
-See the [evaluation documentation](../../../docs/source/api_ref/eval_methods.rst)
-and [mixed-model example](../../../examples/semantic_id_evaluation_example.py).
+See the [evaluation documentation](../../../docs/source/api_ref/eval_methods.rst).
