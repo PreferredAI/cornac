@@ -57,6 +57,7 @@ if DEVICE == "cuda":
 next_item_eval = NextItemEvaluation.leave_last_out(
     data=data,
     exclude_unknowns=True,
+    semantic_id_metrics=True,
     verbose=True,
     item_feature=FeatureModality(features=features, ids=item_ids),
 )

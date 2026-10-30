@@ -22,7 +22,8 @@ from tqdm.auto import tqdm
 
 from ..data import SequentialDataset
 from ..experiment.result import Result
-from ..models import NextItemRecommender
+from ..models import NextItemRecommender, SemanticIDMixin
+from ..metrics import Recall, NDCG
 from ..utils import validate_format
 from . import BaseMethod
 
@@ -30,6 +31,51 @@ EVALUATION_MODES = frozenset([
     "last",
     "next",
 ])
+
+
+def _semantic_metrics(model, metrics, enabled):
+    if not enabled or not isinstance(model, SemanticIDMixin):
+        return []
+    return [mt for mt in metrics if type(mt) in (Recall, NDCG)
+            and isinstance(mt.k, (int, np.integer)) and mt.k > 0]
+
+
+def _semantic_metric_scores(predictions, target_sid, group_sizes, metrics):
+    """SID matching and uniform expected item credit after compaction."""
+    seen = set()
+    sid_rank = None
+    expanded_before = 0
+    target_before = 0
+    for row in predictions:
+        sid = tuple(row)
+        if sid not in group_sizes or sid in seen:
+            continue
+        if sid == target_sid:
+            sid_rank = len(seen)
+            target_before = expanded_before
+        seen.add(sid)
+        expanded_before += group_sizes[sid]
+
+    values = []
+    size = group_sizes[target_sid]
+    for view in ("SID", "CCE"):
+        for metric in metrics:
+            if sid_rank is None:
+                value = 0.0
+            elif view == "SID":
+                value = float(sid_rank < metric.k)
+                if type(metric) is NDCG:
+                    value /= np.log2(sid_rank + 2)
+            else:
+                included = min(size, max(0, metric.k - target_before))
+                if type(metric) is Recall:
+                    value = included / size
+                else:
+                    positions = target_before + np.arange(included) + 2
+                    value = float(np.sum(1.0 / np.log2(positions)) / size)
+            values.append(value)
+    return values, len(seen)
+
 
 def ranking_eval(
     model,
@@ -40,6 +86,7 @@ def ranking_eval(
     exclude_unknowns=True,
     mode="last",
     verbose=False,
+    semantic_id_metrics=False,
 ):
     """Evaluate model on provided ranking metrics.
 
@@ -64,6 +111,12 @@ def ranking_eval(
     verbose: bool, optional, default: False
         Output evaluation progress.
 
+    semantic_id_metrics: bool, optional, default: False
+        Set True to add SID and CCE views for finite-K Recall/NDCG on
+        SemanticIDMixin models.
+        Returned lists contain ordinary metrics first, then supported SID metrics,
+        then supported CCE metrics, in the requested metric order within each view.
+
     Returns
     -------
     res: (List, List)
@@ -76,9 +129,24 @@ def ranking_eval(
     if len(metrics) == 0:
         return [], []
 
+    semantic_metrics = _semantic_metrics(model, metrics, semantic_id_metrics)
+    if isinstance(model, SemanticIDMixin) and not semantic_id_metrics:
+        warnings.warn("Semantic ID metrics are disabled; reporting ordinary item metrics only.")
+    result_count = len(metrics) + 2 * len(semantic_metrics)
     avg_results = []
-    session_results = [defaultdict(list) for _ in enumerate(metrics)]
-    user_results = [defaultdict(list) for _ in enumerate(metrics)]
+    session_results = [defaultdict(list) for _ in range(result_count)]
+    user_results = [defaultdict(list) for _ in range(result_count)]
+    short_queries = 0
+    if semantic_metrics:
+        catalog = np.asarray(model.semantic_id_catalog())
+        if (catalog.ndim != 2 or catalog.shape[0] != model.total_items or
+                catalog.shape[1] == 0 or not np.issubdtype(catalog.dtype, np.integer)):
+            raise ValueError("semantic_id_catalog must be an integer array (total_items, SID_length)")
+        candidate_count = train_set.num_items if exclude_unknowns else test_set.num_items
+        group_sizes = defaultdict(int)
+        for row in catalog[:candidate_count]:
+            group_sizes[tuple(row)] += 1
+        max_cutoff = max(mt.k for mt in semantic_metrics)
 
     user_sessions = defaultdict(list)
     session_ids = []
@@ -117,7 +185,8 @@ def ranking_eval(
             u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
             item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
 
-            item_rank, item_scores = model.rank(
+            rank = model.rank_with_semantic_ids if semantic_metrics else model.rank
+            predictions = rank(
                 user_idx,
                 item_indices,
                 history_items=session_items[:test_pos],
@@ -127,21 +196,43 @@ def ranking_eval(
                 extra_data=test_set.extra_data,
             )
 
-            for i, mt in enumerate(metrics):
-                mt_score = mt.compute(
+            item_rank, item_scores = predictions[:2]
+            scores = []
+            for mt in metrics:
+                scores.append(mt.compute(
                     gt_pos=u_gt_pos_items,
                     gt_neg=u_gt_neg_items,
                     pd_rank=item_rank,
                     pd_scores=item_scores,
                     item_indices=item_indices,
-                )
+                ))
+            if semantic_metrics:
+                semantic_ids = np.asarray(predictions[2])
+                if (semantic_ids.ndim != 2 or semantic_ids.shape[1] != catalog.shape[1] or
+                        not np.issubdtype(semantic_ids.dtype, np.integer)):
+                    raise ValueError("predicted Semantic IDs must be an integer array (n_predictions, SID_length)")
+                if len(u_gt_pos_items):
+                    extra_scores, distinct_count = _semantic_metric_scores(
+                        semantic_ids, tuple(catalog[test_pos_items]), group_sizes, semantic_metrics)
+                else:
+                    extra_scores = [0.0] * (2 * len(semantic_metrics))
+                    distinct_count = len({tuple(row) for row in semantic_ids if tuple(row) in group_sizes})
+                scores.extend(extra_scores)
+                short_queries += distinct_count < max_cutoff
+            for i, mt_score in enumerate(scores):
                 if user_based:
                     user_results[i][user_idx].append(mt_score)
                 else:
                     session_results[i][sid].append(mt_score)
 
+    if short_queries:
+        warnings.warn(
+            f"{short_queries} evaluation queries returned fewer than {max_cutoff} "
+            "valid distinct Semantic IDs; SID/CCE metrics use the available predictions "
+            "without increasing the decoding budget.")
+
     # avg results of ranking metrics
-    for i, mt in enumerate(metrics):
+    for i in range(result_count):
         if user_based:
             user_ids = list(user_sessions.keys())
             user_avg_results = [np.mean(user_results[i][user_idx]) for user_idx in user_ids]
@@ -190,8 +281,26 @@ class NextItemEvaluation(BaseMethod):
     verbose: bool, optional, default: False
         Output running log.
 
+    semantic_id_metrics: bool, optional, default: False
+        Set True for models implementing :class:`cornac.models.SemanticIDMixin`
+        to report ``SID-Recall@K``, ``SID-NDCG@K``, ``CCE-Recall@K`` and
+        ``CCE-NDCG@K`` for requested finite-K Recall/NDCG metrics. Ordinary item
+        metrics retain their existing names and model resolution policy. Other
+        metrics and non-SID models still run their ordinary item evaluation.
+        False reports ordinary item metrics only and warns for SID models.
+
     Notes
     -----
+    **Semantic IDs.** Full IDs include disambiguating suffixes. Invalid and
+    repeated predictions are removed before computing compact SID ranks. CCE
+    expands each surviving ID to its admitted item bucket and averages item
+    Recall/NDCG under uniform order within each bucket. Thus CCE is expected
+    item performance, while ordinary metrics evaluate the model's actual item
+    ranking. Candidate filtering also restricts bucket sizes. Predictions are
+    obtained once per query for all views; configured decoding budgets stay
+    unchanged, with one warning per split when distinct valid IDs fall below
+    the largest supported cutoff. No ungenerated candidates are added.
+
     **Item content.** Modalities (e.g.,
     ``item_feature=FeatureModality(features=..., ids=...)``) can be passed as
     keyword arguments to the constructor or any of the class-method builders
@@ -223,8 +332,10 @@ class NextItemEvaluation(BaseMethod):
         mode="last",
         exclude_unknowns=True,
         verbose=False,
+        semantic_id_metrics=False,
         **kwargs,
     ):
+        self.semantic_id_metrics = semantic_id_metrics
         super().__init__(
             data=data,
             data_size=0 if data is None else len(data),
@@ -314,6 +425,7 @@ class NextItemEvaluation(BaseMethod):
         user_based=False,
         verbose=False,
         mode="last",
+        semantic_id_metrics=False,
         **kwargs,
     ):
         metric_avg_results = OrderedDict()
@@ -328,11 +440,15 @@ class NextItemEvaluation(BaseMethod):
             exclude_unknowns=exclude_unknowns,
             mode=mode,
             verbose=verbose,
+            semantic_id_metrics=semantic_id_metrics,
         )
 
-        for i, mt in enumerate(ranking_metrics):
-            metric_avg_results[mt.name] = avg_results[i]
-            metric_user_results[mt.name] = user_results[i]
+        names = [mt.name for mt in ranking_metrics]
+        semantic_metrics = _semantic_metrics(model, ranking_metrics, semantic_id_metrics)
+        names.extend(f"{view}-{mt.name}" for view in ("SID", "CCE") for mt in semantic_metrics)
+        for i, name in enumerate(names):
+            metric_avg_results[name] = avg_results[i]
+            metric_user_results[name] = user_results[i]
 
         return Result(model.name, metric_avg_results, metric_user_results)
 
@@ -403,6 +519,7 @@ class NextItemEvaluation(BaseMethod):
             user_based=user_based,
             mode=self.mode,
             verbose=self.verbose,
+            semantic_id_metrics=self.semantic_id_metrics,
         )
         test_time = time.time() - start
         test_result.metric_avg_results["Train (s)"] = train_time
@@ -422,6 +539,7 @@ class NextItemEvaluation(BaseMethod):
                 user_based=user_based,
                 mode=self.mode,
                 verbose=self.verbose,
+                semantic_id_metrics=self.semantic_id_metrics,
             )
             val_time = time.time() - start
             val_result.metric_avg_results["Time (s)"] = val_time

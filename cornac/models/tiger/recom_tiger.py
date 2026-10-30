@@ -19,7 +19,7 @@ from collections import defaultdict
 import numpy as np
 from tqdm.auto import trange
 
-from cornac.models.recommender import NextItemRecommender
+from ..recommender import NextItemRecommender, SemanticIDMixin
 
 from ...utils import get_rng
 from ..seq_utils import session_seq_iter
@@ -29,7 +29,7 @@ SUPPORTED_TOKENIZERS = ("rqvae", "rkmeans")
 SUPPORTED_LR_SCHEDULES = ("constant", "cosine")
 
 
-class TIGER(NextItemRecommender):
+class TIGER(NextItemRecommender, SemanticIDMixin):
     """TIGER: Recommender Systems with Generative Retrieval.
 
     Two-stage generative retrieval with semantic IDs: (1) an RQ-VAE quantizes
@@ -564,11 +564,9 @@ class TIGER(NextItemRecommender):
         if next(self.model.parameters()).device.type != torch.device(self.device_).type:
             self.model.to(self.device_)
 
-    def score(self, user_idx, history_items, **kwargs):
+    def _predict_history(self, history_items, return_semantic_ids=False):
         import torch
 
-        if len(history_items) == 0:
-            return np.ones(self.total_items, dtype="float")
         self._ensure_device(torch)
         hist = list(history_items)[-self.max_len :]
         hist = [self.pad_idx] * (self.max_len - len(hist)) + hist
@@ -584,10 +582,32 @@ class TIGER(NextItemRecommender):
                 beams, logps = self.model.generate_beam(enc_tokens_t, enc_mask_t, self.n_beams, self.prefix_children)
                 scores = np.full(self.total_items, -1e10, dtype="float")
                 for sid, lp in zip(beams, logps):
-                    scores[self.sid_to_item[sid]] = lp
+                    if sid in self.sid_to_item:
+                        scores[self.sid_to_item[sid]] = lp
             else:  # "exact"
                 sid_table_t = torch.tensor(self.sid_table, dtype=torch.long, device=self.device_)
                 scores = self.model.score_all_items(
                     enc_tokens_t, enc_mask_t, sid_table_t, self.scoring_batch_size
                 ).astype("float")
+        if return_semantic_ids:
+            semantic_ids = (np.asarray(beams, dtype="int64").reshape(-1, self.sid_table.shape[1])
+                            if self.scoring == "beam" else self._semantic_ids_from_scores(scores))
+            return scores, semantic_ids
         return scores
+
+    def semantic_id_catalog(self):
+        """Return complete, suffix-bearing IDs aligned to item indices."""
+        if not hasattr(self, "sid_table"):
+            raise ValueError("TIGER must be fitted before exporting its SID catalog")
+        return self.sid_table
+
+    def _score_with_semantic_ids(self, user_idx, history_items, **kwargs):
+        if len(history_items) == 0:
+            return np.ones(self.total_items, dtype="float"), np.empty(
+                (0, self.semantic_id_catalog().shape[1]), dtype="int64")
+        return self._predict_history(history_items, return_semantic_ids=True)
+
+    def score(self, user_idx, history_items, **kwargs):
+        if len(history_items) == 0:
+            return np.ones(self.total_items, dtype="float")
+        return self._predict_history(history_items)

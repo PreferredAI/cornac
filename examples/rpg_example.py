@@ -59,6 +59,7 @@ next_item_eval = NextItemEvaluation.from_splits(
     val_data=val_data,
     test_data=test_data,
     exclude_unknowns=True,
+    semantic_id_metrics=True,
     verbose=True,
     fmt="USIT",
     item_feature=FeatureModality(features=features, ids=item_ids),

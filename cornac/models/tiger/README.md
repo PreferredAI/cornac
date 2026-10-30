@@ -13,6 +13,7 @@ from cornac.models import TIGER
 from cornac.models.tiger import GRID_CONFIG, PAISCHER_CONFIG
 
 eval_method = NextItemEvaluation.from_splits(
+    semantic_id_metrics=True,
     train_data=train, test_data=test, val_data=val, mode="last",
     item_feature=FeatureModality(features=item_embeddings, ids=item_ids),
 )
@@ -79,3 +80,19 @@ SASRec tuned over loss {`ce`, `bce`, `bpr`, `bpr-max`} × emb {64, 128} × lr {5
 - `TIGER` likely uses `Sentence-T5-XXL` embeddings, but improvements over ST5-base are minimal (sometimes even decrease). OpenAI's `text-embedding-3-large` (provided by [`RPG`](https://github.com/facebookresearch/RPG_KDD2025)) is also available, but it doesn't guarantee performance improvement.
 - `beauty` and `sports` are somewhat reproducible, but `toys` is ***not***, likely due to ambiguity in the item text used (possibly `descriptions` only).
 - Well-tuned `SASRec` and `BERT4Rec` (within cornac) still outperform `TIGER`: tuned SASRec on beauty wins every metric except a marginal R@20 edge for `TIGER` + openai embedding, at a fraction of the cost (pure ID-based recommendation).
+
+
+### Semantic ID evaluation
+
+Set `NextItemEvaluation(..., semantic_id_metrics=True)` to report ordinary
+item metrics plus `SID-Recall@K`, `SID-NDCG@K`, `CCE-Recall@K` and `CCE-NDCG@K` for
+requested finite-K Recall/NDCG metrics. All views share one inference; CCE averages
+item credit over uniform order within each admitted collision bucket. Invalid
+and repeated predicted IDs are compacted. Other requested metrics keep ordinary
+item evaluation. Configured beam sizes remain unchanged; short candidate lists
+warn. Set `semantic_id_metrics=False` for ordinary item metrics only.
+
+See the [evaluation documentation](../../../docs/source/api_ref/eval_methods.rst).
+
+TIGER uses complete IDs including the disambiguating suffix, so its SID and CCE
+metrics coincide even when tokenizer prefixes collide.

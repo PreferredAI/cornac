@@ -35,6 +35,7 @@ from cornac.models import RPG
 from cornac.models.rpg import RPG_BEAUTY_CONFIG
 
 eval_method = NextItemEvaluation.from_splits(
+    semantic_id_metrics=True,
     train_data=train,
     val_data=val,
     test_data=test,
@@ -140,3 +141,16 @@ within 3.1% and 8.3% of the paper's R@5, respectively; Toys is 3.5% higher.
 - Graph decoding is approximate and stochastic because its initial beam is
   sampled. Set `seed` for repeatability, or use exact scoring when deterministic
   full-catalog ranks are required.
+
+
+### Semantic ID evaluation
+
+Set `NextItemEvaluation(..., semantic_id_metrics=True)` to report ordinary
+item metrics plus `SID-Recall@K`, `SID-NDCG@K`, `CCE-Recall@K` and `CCE-NDCG@K` for
+requested finite-K Recall/NDCG metrics. All views share one inference; CCE averages
+item credit over uniform order within each admitted collision bucket. Invalid
+and repeated predicted IDs are compacted. Other requested metrics keep ordinary
+item evaluation. Configured beam sizes remain unchanged; short candidate lists
+warn. Set `semantic_id_metrics=False` for ordinary item metrics only.
+
+See the [evaluation documentation](../../../docs/source/api_ref/eval_methods.rst).

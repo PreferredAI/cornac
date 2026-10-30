@@ -16,6 +16,7 @@
 from .recommender import Recommender
 from .recommender import NextBasketRecommender
 from .recommender import NextItemRecommender
+from .recommender import SemanticIDMixin
 
 from .amr import AMR
 from .ann import AnnoyANN

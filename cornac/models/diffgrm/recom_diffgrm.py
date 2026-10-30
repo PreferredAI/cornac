@@ -20,7 +20,7 @@ import time
 import numpy as np
 from tqdm.auto import trange
 
-from cornac.models.recommender import NextItemRecommender
+from ..recommender import NextItemRecommender, SemanticIDMixin
 
 from ...utils import get_rng
 
@@ -82,7 +82,7 @@ def _diffgrm_session_iter(
         )
 
 
-class DiffGRM(NextItemRecommender):
+class DiffGRM(NextItemRecommender, SemanticIDMixin):
     """DiffGRM: Diffusion-based Generative Recommendation Model.
 
     DiffGRM combines parallel OPQ semantic IDs (PSE), on-policy
@@ -688,13 +688,16 @@ class DiffGRM(NextItemRecommender):
         if next(self.model.parameters()).device != requested:
             self.model.to(requested)
 
-    def _score_history(self, history_items):
+    def _score_history(self, history_items, return_semantic_ids=False):
         import torch
 
         from .diffgrm import cpd_decode
 
-        if not history_items:
-            return np.ones(self.total_items, dtype="float")
+        if len(history_items) == 0:
+            scores = np.ones(self.total_items, dtype="float")
+            if return_semantic_ids:
+                return scores, np.empty((0, self.n_digit), dtype="int64")
+            return scores
         self._ensure_device(torch)
         history = list(history_items)[-self.max_len :]
         input_iids = np.full((1, self.max_len), self.pad_idx, dtype="int64")
@@ -709,7 +712,7 @@ class DiffGRM(NextItemRecommender):
         decode_start = time.perf_counter()
         with torch.no_grad():
             memory, padding_mask = self.model.encode_history(inputs, masks)
-            codes, path_scores, diagnostics = cpd_decode(
+            decoded = cpd_decode(
                 self.model,
                 memory,
                 padding_mask,
@@ -722,10 +725,16 @@ class DiffGRM(NextItemRecommender):
                 else None,
                 greedy_final=self.scoring == "released",
                 return_diagnostics=True,
+                return_raw=return_semantic_ids,
             )
+        codes, path_scores, diagnostics = decoded[:3]
         self.last_decode_time_ = time.perf_counter() - decode_start
         self.last_decode_diagnostics_ = diagnostics
-        return self._decoded_item_scores(codes, path_scores)
+        scores = self._decoded_item_scores(codes, path_scores)
+        if return_semantic_ids:
+            semantic_ids = np.asarray(decoded[3]["address_sids"], dtype="int64").reshape(-1, self.n_digit)
+            return scores, semantic_ids
+        return scores
 
     def _decoded_item_scores(self, codes, path_scores):
         scores = np.full(self.total_items, -1e10, dtype="float")
@@ -740,3 +749,12 @@ class DiffGRM(NextItemRecommender):
 
     def score(self, user_idx, history_items, **kwargs):
         return self._score_history(history_items)
+
+    def semantic_id_catalog(self):
+        """Return complete IDs independently of native collision policy."""
+        if not hasattr(self, "sid_table"):
+            raise ValueError("DiffGRM must be fitted before exporting its SID catalog")
+        return self.sid_table
+
+    def _score_with_semantic_ids(self, user_idx, history_items, **kwargs):
+        return self._score_history(history_items, return_semantic_ids=True)

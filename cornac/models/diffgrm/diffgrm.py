@@ -360,12 +360,15 @@ def cpd_decode_batch(
     digit_order=None,
     greedy_final=False,
     return_diagnostics=False,
+    return_raw=False,
 ):
     """Batched confidence-prioritized decoding over digit/code assignments.
 
     At every step, every still-masked digit competes globally. ``constrained``
     additionally removes partial assignments that cannot lead to a catalog
     semantic ID. Complete duplicate IDs are collapsed by maximum path score.
+    When ``return_raw`` is true, the additional result retains every final
+    beam path, including invalid and duplicate addresses, before that collapse.
     """
     device = memory.device
     batch_size = memory.size(0)
@@ -478,13 +481,25 @@ def cpd_decode_batch(
             tuple(row) for row in np.asarray(catalog_codes).tolist()
         }
     batch_codes, batch_scores, batch_diagnostics = [], [], []
+    if return_raw:
+        batch_raw = []
     for row in range(batch_size):
         complete = {}
+        if return_raw:
+            raw_codes = []
+            raw_scores = []
+            raw_validity = []
         for codes, score in zip(
             beams[row].cpu().tolist(), beam_scores[row].cpu().tolist()
         ):
             key = tuple(codes)
-            if -1 in key or not np.isfinite(score):
+            is_complete = -1 not in key and np.isfinite(score)
+            if return_raw:
+                raw_codes.append(key)
+                raw_scores.append(float(score))
+                raw_validity.append(bool(is_complete and (
+                    catalog_set is None or key in catalog_set)))
+            if not is_complete:
                 continue
             complete[key] = max(complete.get(key, -float("inf")), score)
         best = {
@@ -504,9 +519,21 @@ def cpd_decode_batch(
                 "duplicate_paths": len(beams[row]) - len(complete),
             }
         )
+        if return_raw:
+            batch_raw.append(
+                {
+                    "address_sids": raw_codes,
+                    "scores": raw_scores,
+                    "catalog_validity": raw_validity,
+                }
+            )
 
+    if return_diagnostics and return_raw:
+        return batch_codes, batch_scores, batch_diagnostics, batch_raw
     if return_diagnostics:
         return batch_codes, batch_scores, batch_diagnostics
+    if return_raw:
+        return batch_codes, batch_scores, batch_raw
     return batch_codes, batch_scores
 
 
@@ -522,6 +549,7 @@ def cpd_decode(
     digit_order=None,
     greedy_final=False,
     return_diagnostics=False,
+    return_raw=False,
 ):
     """Single-history wrapper around :func:`cpd_decode_batch`."""
     if memory.size(0) != 1:
@@ -537,9 +565,16 @@ def cpd_decode(
         digit_order=digit_order,
         greedy_final=greedy_final,
         return_diagnostics=return_diagnostics,
+        return_raw=return_raw,
     )
+    if return_diagnostics and return_raw:
+        codes, scores, diagnostics, raw = result
+        return codes[0], scores[0], diagnostics[0], raw[0]
     if return_diagnostics:
         codes, scores, diagnostics = result
         return codes[0], scores[0], diagnostics[0]
+    if return_raw:
+        codes, scores, raw = result
+        return codes[0], scores[0], raw[0]
     codes, scores = result
     return codes[0], scores[0]

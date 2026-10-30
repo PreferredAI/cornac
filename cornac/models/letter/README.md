@@ -27,6 +27,7 @@ from cornac.models import LETTER
 from cornac.models.letter import LETTER_BEAUTY_CONFIG
 
 eval_method = NextItemEvaluation.from_splits(
+    semantic_id_metrics=True,
     train_data=train,
     val_data=val,
     test_data=test,
@@ -94,3 +95,16 @@ The authors' Beauty index contains 12,101 items but only 12,088 unique Semantic 
 ### Reproduction limitation
 
 The released repository provides the final Beauty Semantic-ID table, but not the trained tokenizer checkpoint, content embeddings, or SASRec checkpoint used to produce it. Exact reproduction of the paper's learned Semantic IDs therefore requires those missing artifacts; the end-to-end result above is a runnable substitute rather than an exact reconstruction of the paper's tokenizer inputs.
+
+
+### Semantic ID evaluation
+
+Set `NextItemEvaluation(..., semantic_id_metrics=True)` to report ordinary
+item metrics plus `SID-Recall@K`, `SID-NDCG@K`, `CCE-Recall@K` and `CCE-NDCG@K` for
+requested finite-K Recall/NDCG metrics. All views share one inference; CCE averages
+item credit over uniform order within each admitted collision bucket. Invalid
+and repeated predicted IDs are compacted. Other requested metrics keep ordinary
+item evaluation. Configured beam sizes remain unchanged; short candidate lists
+warn. Set `semantic_id_metrics=False` for ordinary item metrics only.
+
+See the [evaluation documentation](../../../docs/source/api_ref/eval_methods.rst).

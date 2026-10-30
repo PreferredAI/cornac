@@ -521,11 +521,9 @@ class LETTER(TIGER):
         if best_state is not None:
             self.model.load_state_dict(best_state)
 
-    def score(self, user_idx, history_items, **kwargs):
+    def _predict_history(self, history_items, return_semantic_ids=False):
         import torch
 
-        if len(history_items) == 0:
-            return np.ones(self.total_items, dtype="float")
         self._ensure_device(torch)
         enc_tokens, enc_mask = self._encoder_batch(
             torch, [list(history_items)[-self.max_len :]]
@@ -538,7 +536,8 @@ class LETTER(TIGER):
                 )
                 scores = np.full(self.total_items, -1e10, dtype="float")
                 for sid, log_prob in zip(beams, log_probs):
-                    scores[self.sid_to_item[sid]] = log_prob
+                    if sid in self.sid_to_item:
+                        scores[self.sid_to_item[sid]] = log_prob
             else:
                 sid_table = torch.as_tensor(
                     self.sid_table, dtype=torch.long, device=self.device_
@@ -546,4 +545,14 @@ class LETTER(TIGER):
                 scores = self.model.score_all_items(
                     enc_tokens, enc_mask, sid_table, self.scoring_batch_size
                 ).astype("float")
+        if return_semantic_ids:
+            semantic_ids = (np.asarray(beams, dtype="int64").reshape(-1, self.sid_table.shape[1])
+                            if self.scoring == "beam" else self._semantic_ids_from_scores(scores))
+            return scores, semantic_ids
         return scores
+
+    def semantic_id_catalog(self):
+        """Return suffix-free IDs aligned to item indices."""
+        if not hasattr(self, "sid_table"):
+            raise ValueError("LETTER must be fitted before exporting its SID catalog")
+        return self.sid_table
