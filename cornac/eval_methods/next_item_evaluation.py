@@ -148,64 +148,81 @@ def ranking_eval(
             group_sizes[tuple(row)] += 1
         max_cutoff = max(mt.k for mt in semantic_metrics)
 
+    num_items = test_set.num_items
+    num_candidates = min(train_set.num_items, num_items) if exclude_unknowns else num_items
+    # ground-truth positives and negatives together always cover every candidate item
+    item_indices = np.arange(num_candidates, dtype=np.intp)
+    no_items = np.empty(0, dtype=np.intp)
+    user_indices, item_ids = test_set.uir_tuple[:2]
+    # test items are plain integer indices, so each query has a single positive item
+    single_items = isinstance(item_ids, np.ndarray) and item_ids.dtype.kind in "iu"
+
+    def ground_truth(test_pos_items):
+        if single_items and 0 <= test_pos_items < num_items:
+            if test_pos_items >= num_candidates:
+                return no_items.copy(), item_indices.copy()
+            return (item_indices[test_pos_items:test_pos_items + 1],
+                    np.concatenate((item_indices[:test_pos_items], item_indices[test_pos_items + 1:])))
+        # general case (e.g. several positives): build binary masks
+        u_gt_pos_mask = np.zeros(num_items, dtype="int")
+        u_gt_pos_mask[test_pos_items] = 1
+        u_gt_neg_mask = np.ones(num_items, dtype="int")
+        u_gt_neg_mask[test_pos_items] = 0
+        return (np.nonzero(u_gt_pos_mask[:num_candidates])[0],
+                np.nonzero(u_gt_neg_mask[:num_candidates])[0])
+
+    rank = model.rank_with_semantic_ids if semantic_metrics else model.rank
+    results = user_results if user_based else session_results
+    sessions = test_set.sessions
+    session_indices = test_set.session_indices
+    extra_data = test_set.extra_data
+    next_mode = mode == "next"
+
     user_sessions = defaultdict(list)
     session_ids = []
-    for [sid], [mapped_ids], [session_items] in tqdm(
-        test_set.si_iter(batch_size=1, shuffle=False),
-        total=len(test_set.sessions),
+    # iterate sessions in their stored order, as test_set.si_iter(batch_size=1) does
+    for sid, mapped_ids in tqdm(
+        zip(np.array(list(sessions.keys())), sessions.values()),
+        total=len(sessions),
         desc="Ranking",
         disable=not verbose,
         miniters=100,
     ):
-        if len(session_items) < 2:  # exclude all session with size smaller than 2
+        if len(mapped_ids) < 2:  # exclude all session with size smaller than 2
             continue
-        user_idx = test_set.uir_tuple[0][mapped_ids[0]]
+        session_items = [item_ids[i] for i in mapped_ids]
+        user_idx = user_indices[mapped_ids[0]]
         if user_based:
             user_sessions[user_idx].append(sid)
         session_ids.append(sid)
+        key = user_idx if user_based else sid
 
-        start_pos = 1 if mode == "next" else len(session_items) - 1
+        start_pos = 1 if next_mode else len(session_items) - 1
         for test_pos in range(start_pos, len(session_items), 1):
             test_pos_items = session_items[test_pos]
+            u_gt_pos_items, u_gt_neg_items = ground_truth(test_pos_items)
 
-            # binary mask for ground-truth positive items
-            u_gt_pos_mask = np.zeros(test_set.num_items, dtype="int")
-            u_gt_pos_mask[test_pos_items] = 1
-
-            # binary mask for ground-truth negative items, removing all positive items
-            u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
-            u_gt_neg_mask[test_pos_items] = 0
-
-            # filter items being considered for evaluation
-            if exclude_unknowns:
-                u_gt_pos_mask = u_gt_pos_mask[: train_set.num_items]
-                u_gt_neg_mask = u_gt_neg_mask[: train_set.num_items]
-
-            u_gt_pos_items = np.nonzero(u_gt_pos_mask)[0]
-            u_gt_neg_items = np.nonzero(u_gt_neg_mask)[0]
-            item_indices = np.nonzero(u_gt_pos_mask + u_gt_neg_mask)[0]
-
-            rank = model.rank_with_semantic_ids if semantic_metrics else model.rank
             predictions = rank(
                 user_idx,
                 item_indices,
                 history_items=session_items[:test_pos],
                 history_mapped_ids=mapped_ids[:test_pos],
-                sessions=test_set.sessions,
-                session_indices=test_set.session_indices,
-                extra_data=test_set.extra_data,
+                sessions=sessions,
+                session_indices=session_indices,
+                extra_data=extra_data,
             )
 
             item_rank, item_scores = predictions[:2]
-            scores = []
-            for mt in metrics:
-                scores.append(mt.compute(
+            scores = [
+                mt.compute(
                     gt_pos=u_gt_pos_items,
                     gt_neg=u_gt_neg_items,
                     pd_rank=item_rank,
                     pd_scores=item_scores,
                     item_indices=item_indices,
-                ))
+                )
+                for mt in metrics
+            ]
             if semantic_metrics:
                 semantic_ids = np.asarray(predictions[2])
                 if (semantic_ids.ndim != 2 or semantic_ids.shape[1] != catalog.shape[1] or
@@ -219,11 +236,8 @@ def ranking_eval(
                     distinct_count = len({tuple(row) for row in semantic_ids if tuple(row) in group_sizes})
                 scores.extend(extra_scores)
                 short_queries += distinct_count < max_cutoff
-            for i, mt_score in enumerate(scores):
-                if user_based:
-                    user_results[i][user_idx].append(mt_score)
-                else:
-                    session_results[i][sid].append(mt_score)
+            for result, mt_score in zip(results, scores):
+                result[key].append(mt_score)
 
     if short_queries:
         warnings.warn(
@@ -232,13 +246,14 @@ def ranking_eval(
             "without increasing the decoding budget.")
 
     # avg results of ranking metrics
+    user_ids = list(user_sessions.keys())
     for i in range(result_count):
         if user_based:
-            user_ids = list(user_sessions.keys())
             user_avg_results = [np.mean(user_results[i][user_idx]) for user_idx in user_ids]
             avg_results.append(np.mean(user_avg_results))
         else:
-            session_result = [score for sid in session_ids for score in session_results[i][sid]]
+            # every evaluated session has scores, stored in session_ids order
+            session_result = [score for scores in session_results[i].values() for score in scores]
             avg_results.append(np.mean(session_result))
     return avg_results, user_results
 
