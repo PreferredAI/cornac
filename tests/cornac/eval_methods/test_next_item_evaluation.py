@@ -20,6 +20,7 @@ import numpy as np
 
 from cornac.data import FeatureModality, Reader
 from cornac.eval_methods import NextItemEvaluation
+from cornac.eval_methods.next_item_evaluation import ranking_eval
 from cornac.metrics import HitRatio, Recall
 from cornac.models import SPop
 
@@ -70,6 +71,30 @@ class TestNextItemEvaluation(unittest.TestCase):
         )
         self.assertEqual(result[0].metric_avg_results.get('HitRatio@5'), 3/4)
         self.assertEqual(result[0].metric_avg_results.get('Recall@5'), 3/4)
+
+    def test_ranking_eval_ground_truth_paths(self):
+        # "d" is unknown to the training data, so exclude_unknowns drops it from the candidates
+        train_data = [("u1", "s1", "a", 1), ("u1", "s1", "b", 2), ("u2", "s2", "b", 3), ("u2", "s2", "c", 4)]
+        test_data = [("u1", "s3", "a", 5), ("u1", "s3", "d", 6), ("u2", "s4", "c", 7), ("u2", "s4", "b", 8)]
+        next_item_eval = NextItemEvaluation.from_splits(
+            train_data=train_data, test_data=test_data, fmt="USIT", exclude_unknowns=False
+        )
+        train_set, test_set = next_item_eval.train_set, next_item_eval.test_set
+        self.assertLess(train_set.num_items, test_set.num_items)
+        model = SPop()
+        model.fit(train_set)
+        metrics = [HitRatio(k=2), Recall(k=2)]
+        for exclude_unknowns in (True, False):
+            expected = ranking_eval(model, metrics, train_set, test_set, exclude_unknowns=exclude_unknowns)
+            # a list of item ids skips the single-item path and uses the binary masks
+            u_indices, i_indices, r_values = test_set.uir_tuple
+            test_set.uir_tuple = (u_indices, list(i_indices), r_values)
+            try:
+                actual = ranking_eval(model, metrics, train_set, test_set, exclude_unknowns=exclude_unknowns)
+            finally:
+                test_set.uir_tuple = (u_indices, i_indices, r_values)
+            # NaN Recall comes from the session whose only test item is unknown
+            np.testing.assert_array_equal(expected[0], actual[0])
 
 class TestFromTimestamps(unittest.TestCase):
     def setUp(self):
