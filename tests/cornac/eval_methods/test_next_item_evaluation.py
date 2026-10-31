@@ -84,17 +84,21 @@ class TestNextItemEvaluation(unittest.TestCase):
         model = SPop()
         model.fit(train_set)
         metrics = [HitRatio(k=2), Recall(k=2)]
+        # SPop scores: train popularity a=0.5, b=1, c=0.5, d=0, plus 1 for each history item.
+        # s3: history [a], target d -> a=1.5, b=1, c=0.5, d=0, so d is not in the top 2.
+        # s4: history [c], target b -> c=1.5, b=1, a=0.5, d=0, so b is in the top 2.
+        # With exclude_unknowns, s3 has no positive item: HitRatio is 0 and Recall is 0/0 = NaN.
+        expected = {True: [0.5, np.nan], False: [0.5, 0.5]}
+        u_indices, i_indices, r_values = test_set.uir_tuple
         for exclude_unknowns in (True, False):
-            expected = ranking_eval(model, metrics, train_set, test_set, exclude_unknowns=exclude_unknowns)
             # a list of item ids skips the single-item path and uses the binary masks
-            u_indices, i_indices, r_values = test_set.uir_tuple
-            test_set.uir_tuple = (u_indices, list(i_indices), r_values)
-            try:
-                actual = ranking_eval(model, metrics, train_set, test_set, exclude_unknowns=exclude_unknowns)
-            finally:
-                test_set.uir_tuple = (u_indices, i_indices, r_values)
-            # NaN Recall comes from the session whose only test item is unknown
-            np.testing.assert_array_equal(expected[0], actual[0])
+            for item_ids in (i_indices, list(i_indices)):
+                test_set.uir_tuple = (u_indices, item_ids, r_values)
+                try:
+                    actual = ranking_eval(model, metrics, train_set, test_set, exclude_unknowns=exclude_unknowns)
+                finally:
+                    test_set.uir_tuple = (u_indices, i_indices, r_values)
+                np.testing.assert_array_equal(actual[0], expected[exclude_unknowns])
 
 class TestFromTimestamps(unittest.TestCase):
     def setUp(self):
