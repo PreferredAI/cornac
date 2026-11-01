@@ -136,6 +136,8 @@
 
 [rpg_example.py](rpg_example.py) - Parallel generation of long unordered semantic IDs (RPG): OPQ tokenizer + multi-token prediction + graph-guided decoding, with Diginetica dataset.
 
+[diger_example.py](diger_example.py) - Train DIGER with T5 generation and frequency-gated residual quantization on Amazon Beauty through FeatureModality, using validation-selected ST5/OpenAI presets.
+
 [diffgrm_example.py](diffgrm_example.py) - Masked-diffusion generation of PSE semantic IDs (DiffGRM) on Amazon Sports with Sentence-T5 item content embeddings, OCN training, and CPD decoding.
 
 ----
