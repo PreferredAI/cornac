@@ -20,6 +20,7 @@ import numpy as np
 
 from cornac.data import FeatureModality, Reader
 from cornac.eval_methods import NextItemEvaluation
+from cornac.eval_methods.next_item_evaluation import ranking_eval
 from cornac.metrics import HitRatio, Recall
 from cornac.models import SPop
 
@@ -70,6 +71,34 @@ class TestNextItemEvaluation(unittest.TestCase):
         )
         self.assertEqual(result[0].metric_avg_results.get('HitRatio@5'), 3/4)
         self.assertEqual(result[0].metric_avg_results.get('Recall@5'), 3/4)
+
+    def test_ranking_eval_ground_truth_paths(self):
+        # "d" is unknown to the training data, so exclude_unknowns drops it from the candidates
+        train_data = [("u1", "s1", "a", 1), ("u1", "s1", "b", 2), ("u2", "s2", "b", 3), ("u2", "s2", "c", 4)]
+        test_data = [("u1", "s3", "a", 5), ("u1", "s3", "d", 6), ("u2", "s4", "c", 7), ("u2", "s4", "b", 8)]
+        next_item_eval = NextItemEvaluation.from_splits(
+            train_data=train_data, test_data=test_data, fmt="USIT", exclude_unknowns=False
+        )
+        train_set, test_set = next_item_eval.train_set, next_item_eval.test_set
+        self.assertLess(train_set.num_items, test_set.num_items)
+        model = SPop()
+        model.fit(train_set)
+        metrics = [HitRatio(k=2), Recall(k=2)]
+        # SPop scores: train popularity a=0.5, b=1, c=0.5, d=0, plus 1 for each history item.
+        # s3: history [a], target d -> a=1.5, b=1, c=0.5, d=0, so d is not in the top 2.
+        # s4: history [c], target b -> c=1.5, b=1, a=0.5, d=0, so b is in the top 2.
+        # With exclude_unknowns, s3 has no positive item: HitRatio is 0 and Recall is 0/0 = NaN.
+        expected = {True: [0.5, np.nan], False: [0.5, 0.5]}
+        u_indices, i_indices, r_values = test_set.uir_tuple
+        for exclude_unknowns in (True, False):
+            # a list of item ids skips the single-item path and uses the binary masks
+            for item_ids in (i_indices, list(i_indices)):
+                test_set.uir_tuple = (u_indices, item_ids, r_values)
+                try:
+                    actual = ranking_eval(model, metrics, train_set, test_set, exclude_unknowns=exclude_unknowns)
+                finally:
+                    test_set.uir_tuple = (u_indices, i_indices, r_values)
+                np.testing.assert_array_equal(actual[0], expected[exclude_unknowns])
 
 class TestFromTimestamps(unittest.TestCase):
     def setUp(self):
