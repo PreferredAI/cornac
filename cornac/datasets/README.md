@@ -310,3 +310,88 @@ eval_method = NextItemEvaluation.leave_last_out(
     data, fmt="UIRT", item_feature=FeatureModality(features=features, ids=item_ids)
 )
 ```
+
+## Catalog bundle datasets
+
+`cornac.datasets.bundle` loads the author-hosted, CrossCBR-processed Youshu,
+NetEase and iFashion datasets, plus the separate AttList Spotify release.
+These are existing-bundle recommendation data:
+user–bundle feedback, independent user–item feedback and bundle–item membership.
+IDs are strings; `load_ids()` preserves the author's numeric catalog order and
+includes unobserved entities. iFashion is the processed POG subset, rather than
+an additional independent POG dataset.
+
+| Variant | Users | Bundles | Constituent items | UB train / validation / test | UI edges | BI memberships |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| Youshu | 8,039 | 4,771 | 32,770 | 34,416 / 5,189 / 9,746 | 138,515 | 176,667 |
+| NetEase | 18,528 | 22,864 | 123,628 | 217,864 / 27,857 / 56,555 | 1,128,065 | 1,778,838 |
+| iFashion | 53,897 | 27,694 | 42,563 | 1,213,676 / 149,007 / 317,025 | 2,290,645 | 106,916 |
+| Spotify (AttList) | 10,183 | 7,787 | 49,434 | 72,978 / 9,202 / 9,074 | unavailable | 555,851 |
+
+```python
+from cornac.datasets import bundle
+from cornac.eval_methods import BundleEvaluation
+
+options = dict(variant="Youshu", cache_dir="/tmp/cornac-bundle-data")
+method = BundleEvaluation.from_splits(
+    train_data=bundle.load_feedback(split="train", **options),
+    val_data=bundle.load_feedback(split="validation", **options),
+    test_data=bundle.load_feedback(split="test", **options),
+    user_item_data=bundle.load_user_item(**options),
+    bundle_item_data=bundle.load_bundle_item(**options),
+    test_mask="train", exclude_unknowns=True,
+    **bundle.load_ids(**options),
+)
+```
+
+Use explicit catalogs for reference-protocol comparisons. Without them, the
+backward-compatible observed-user policy drops 5,047 UI-only Youshu users and
+69,484 independent item edges; 33 declared users have no observations. The
+explicit catalog keeps all 138,515 UI edges and the exact token-truncation order.
+`test_mask="train"` matches the CrossCBR/MultiCBR exclusion protocol; Cornac's
+default also masks validation positives at test time. Model selection still uses
+validation data in either mode.
+
+The pinned [author archive](https://github.com/mysbupt/CrossCBR/blob/bbe80dfb1bbe878d72389185edefc655c8b5db45/dataset.tgz)
+is downloaded anonymously and cached on demand. SHA256:
+`95dcb76dec19ba41601adaa03e290b67ca5b7a9b5d36ff4b07b5553ffa0b1be2`.
+No declared data license accompanies the archive; public availability is not a
+claim of an open license. Attribute the data to the original providers and
+[CrossCBR (Ma et al., KDD2022)](https://doi.org/10.1145/3534678.3539229).
+The pinned archive contains 49,351 Youshu UB edges versus 51,377 in the published
+table, and 302,276 NetEase UB edges versus 302,303. Loaders preserve the archive
+rather than modifying its splits to match a table. Spotify MPD is not included:
+it does not supply this personalized UB/UI protocol and has separate access
+restrictions.
+
+`variant="Spotify"` loads the different user-list ranking dataset released with
+[AttList (He et al., CIKM2019)](https://arxiv.org/abs/1912.13023), from the
+[author repository pinned at 9771fbfe](https://github.com/heyunh2015/AttList/tree/9771fbfe67aa097f81d5a006f61431bbd5c3774e/AttList_cikm2019/data/spotify).
+Its splits are preserved. Repeated tracks within playlists are deduplicated as
+binary membership (562,983 raw entries become 555,851 pairs). Track IDs start at
+1; `load_ids()` preserves the raw string IDs in numeric order and omits padding
+item 0. Only the outer user IDs from `userList_spotify.txt` define the user
+catalog; its list contents are never used as features. Files are downloaded
+individually under `datasets/AttList/Spotify` in the selected cache root.
+The release has no declared data license; this loader uses author hosting and
+does not redistribute the files or claim an open-data license.
+
+Spotify provides no independent user-item observations. `load_user_item()`
+therefore raises `ValueError`; CrossCBR, MultiCBR and BundleGT require those
+observations. Do not infer UI from held-out lists. UB-only baselines such as BPR
+work through the existing bundle evaluation interface:
+
+```python
+from cornac.models import BPR
+
+options = dict(variant="Spotify", cache_dir="/tmp/cornac-bundle-data")
+method = BundleEvaluation.from_splits(
+    train_data=bundle.load_feedback(split="train", **options),
+    val_data=bundle.load_feedback(split="validation", **options),
+    test_data=bundle.load_feedback(split="test", **options),
+    bundle_item_data=bundle.load_bundle_item(**options),
+    **bundle.load_ids(**options),
+)
+model = BPR(k=32, max_iter=20, seed=2026)
+model.fit(method.train_set)
+```

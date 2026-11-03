@@ -1519,3 +1519,178 @@ class PurchaseViewDataset(Dataset):
             exclude_unknowns=True,
         )
         return cls(dataset, view_set.matrix)
+
+
+class BundleDataset(Dataset):
+    """Catalog bundle feedback with a separate constituent item ID space.
+
+    Construct with :meth:`build`. Inherited item fields and interaction matrices
+    describe bundle targets. ``bundle_item_matrix`` is a binary B x I CSR matrix;
+    ``user_item_matrix`` is an optional U x I CSR matrix of independently observed
+    feedback. Constituent IDs are stored in ``constituent_iid_map``.
+    """
+
+    def __init__(self, dataset, bundle_item_matrix, constituent_iid_map,
+                 user_item_matrix=None):
+        super().__init__(
+            num_users=dataset.num_users, num_items=dataset.num_items,
+            uid_map=dataset.uid_map, iid_map=dataset.iid_map,
+            uir_tuple=dataset.uir_tuple, timestamps=dataset.timestamps,
+            seed=dataset.seed,
+        )
+        self.bundle_item_matrix = bundle_item_matrix
+        self.constituent_iid_map = constituent_iid_map
+        self.user_item_matrix = user_item_matrix
+
+    @property
+    def num_bundles(self):
+        return self.num_items
+
+    @property
+    def bid_map(self):
+        return self.iid_map
+
+    @property
+    def bundle_ids(self):
+        return self.item_ids
+
+    @property
+    def num_constituent_items(self):
+        return len(self.constituent_iid_map)
+
+    @staticmethod
+    def ordered_map(ids, label):
+        """Map a declared catalog in its supplied order, rejecting duplicate IDs."""
+        mapping = OrderedDict()
+        for value in ids:
+            if value in mapping:
+                raise ValueError("duplicate ID in {}".format(label))
+            mapping[value] = len(mapping)
+        return mapping
+
+    @classmethod
+    def build(cls, data, bundle_item_data, user_item_data=None, fmt="UIR",
+              global_uid_map=None, global_iid_map=None, seed=None,
+              exclude_unknowns=False, user_ids=None, bundle_ids=None,
+              constituent_item_ids=None):
+        """Build from user-bundle UIR/UIRT observations and catalog membership.
+
+        Parameters
+        ----------
+        data: array-like
+            (user, bundle, rating), optionally followed by a timestamp.
+        bundle_item_data: array-like
+            Required (bundle, constituent item) pairs defining the known catalog.
+            All catalog bundles are candidates, even without observed feedback.
+            Duplicate membership edges are collapsed to one binary edge.
+        user_item_data: array-like, optional
+            Independent (user, constituent item, rating) training observations.
+            Users absent from the retained user-bundle data are ignored. Duplicate
+            observations retain their first value, like ordinary Dataset feedback.
+            None means unavailable; an empty stream gives a zero CSR matrix.
+        fmt: str, default: 'UIR'
+            User-bundle observation format: UIR or UIRT.
+        global_uid_map, global_iid_map: OrderedDict, optional
+            Shared user and bundle mappings. Bundle IDs must belong to the catalog.
+        seed: int, optional
+            Random seed for feedback sampling.
+        exclude_unknowns: bool, default: False
+            Filter users absent from global_uid_map. Catalog bundles are known.
+
+        user_ids, bundle_ids, constituent_item_ids: ordered sequences, optional
+            Explicit catalogs fixing numeric ID mappings, including unobserved
+            entities. Declared users retain all independent item feedback even
+            without training bundle observations. Unknown declared-catalog IDs
+            and duplicate catalog IDs are rejected. Defaults retain observed-user
+            filtering and encounter-order mappings.
+
+        User-item signals are never inferred from user-bundle observations.
+        """
+        memberships = list(bundle_item_data)
+        if not memberships:
+            raise ValueError("bundle_item_data must define a nonempty catalog")
+        catalog = OrderedDict((bid, None) for bid, _ in memberships)
+        bundle_map = OrderedDict() if global_iid_map is None else global_iid_map
+        if bundle_ids is not None:
+            declared = cls.ordered_map(bundle_ids, "bundle_ids")
+            if set(declared) != set(catalog):
+                raise ValueError("declared bundle catalog must match membership bundles")
+            if bundle_map and bundle_map != declared:
+                raise ValueError("global bundle mapping differs from declared catalog")
+            bundle_map.update(declared)
+        user_map = global_uid_map
+        if user_ids is not None:
+            declared_users = cls.ordered_map(user_ids, "user_ids")
+            if user_map and user_map != declared_users:
+                raise ValueError("global user mapping differs from declared catalog")
+            user_map = declared_users if user_map is None else user_map
+            user_map.update(declared_users)
+        item_map = (None if constituent_item_ids is None else
+                    cls.ordered_map(constituent_item_ids, "constituent_item_ids"))
+        if any(bid not in catalog for bid in bundle_map):
+            raise ValueError("bundle mapping contains IDs absent from the catalog")
+        for bid in catalog:
+            bundle_map.setdefault(bid, len(bundle_map))
+        data = list(data)
+        if any(row[1] not in catalog for row in data):
+            raise ValueError("user-bundle observations contain bundles absent from the catalog")
+        if user_ids is not None and any(row[0] not in user_map for row in data):
+            raise ValueError("user-bundle observation contains an undeclared user")
+        dataset = Dataset.build(
+            data, fmt=fmt, global_uid_map=user_map,
+            global_iid_map=bundle_map, seed=seed,
+            exclude_unknowns=exclude_unknowns,
+        )
+        if user_item_data is not None:
+            user_item_data = list(user_item_data)
+            if user_ids is not None:
+                if any(row[0] not in user_map for row in user_item_data):
+                    raise ValueError("user-item observation contains an undeclared user")
+            else:
+                users = set(dataset.uir_tuple[0])
+                user_item_data = [row for row in user_item_data
+                                  if dataset.uid_map.get(row[0]) in users]
+        return cls.from_dataset(dataset, memberships, user_item_data, item_map)
+
+    @classmethod
+    def from_dataset(cls, dataset, bundle_item_data, user_item_data=None,
+                     constituent_iid_map=None):
+        """Attach catalog membership and independent feedback to an aligned split.
+
+        The supplied dataset fixes user and bundle dimensions. All its bundle IDs
+        must have catalog membership. An optional shared constituent mapping fixes
+        constituent column indices across training, validation and test splits.
+        """
+        memberships = list(bundle_item_data)
+        catalog = set(bid for bid, _ in memberships)
+        if any(bid not in catalog for bid in dataset.iid_map):
+            raise ValueError("bundle mapping contains IDs absent from the catalog")
+        item_map = OrderedDict() if constituent_iid_map is None else constituent_iid_map
+        edges = set()
+        for bid, iid in memberships:
+            if bid in dataset.iid_map:
+                if constituent_iid_map is not None and iid not in item_map:
+                    raise ValueError("constituent item absent from the shared mapping")
+                item_map.setdefault(iid, len(item_map))
+                edges.add((dataset.iid_map[bid], item_map[iid]))
+        feedback = OrderedDict()
+        if user_item_data is not None:
+            for uid, iid, rating in user_item_data:
+                if uid in dataset.uid_map and dataset.uid_map[uid] < dataset.num_users:
+                    if constituent_iid_map is not None and iid not in item_map:
+                        raise ValueError("constituent item absent from the shared mapping")
+                    item_map.setdefault(iid, len(item_map))
+                    feedback.setdefault((dataset.uid_map[uid], item_map[iid]), float(rating))
+        rows, cols = zip(*edges) if edges else ([], [])
+        membership = csr_matrix(
+            (np.ones(len(edges)), (rows, cols)),
+            shape=(dataset.num_items, len(item_map)),
+        )
+        side = None
+        if user_item_data is not None:
+            rows, cols = zip(*feedback) if feedback else ([], [])
+            side = csr_matrix(
+                (list(feedback.values()), (rows, cols)),
+                shape=(dataset.num_users, len(item_map)),
+            )
+        return cls(dataset, membership, item_map, side)

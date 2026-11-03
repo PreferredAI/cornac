@@ -109,3 +109,15 @@ shape ``(0, SID_length)``. No persistent prediction cache is required.
 For exhaustive scoring, the built-in adapters order SID groups by their maximum
 member score, with lexicographic ID ties. Beam adapters expose only generated
 rows, preserving decoder order before evaluator filtering and compaction.
+
+Bundle Evaluation
+-----------------
+.. automodule:: cornac.eval_methods.bundle_evaluation
+   :members:
+
+Catalog bundle recommendation ranks persistent bundle IDs. Constituent items
+have a separate mapping and membership matrix; optional user-item feedback must
+be supplied independently from training-time observations. This differs from
+next-basket prediction, whose targets are items in a future basket and whose
+inputs include basket history. ``BundleEvaluation`` reuses ordinary ranking
+metrics and accepts standard user-target baselines such as BPR.

@@ -14,6 +14,7 @@
 # ============================================================================
 
 from .recommender import Recommender
+from .recommender import BundleRecommender
 from .recommender import NextBasketRecommender
 from .recommender import NextItemRecommender
 from .recommender import SemanticIDMixin

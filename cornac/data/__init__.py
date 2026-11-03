@@ -20,6 +20,7 @@ from .image import ImageModality
 from .graph import GraphModality
 from .sentiment import SentimentModality
 from .reader import Reader
+from .dataset import BundleDataset
 from .dataset import Dataset
 from .dataset import BasketDataset
 from .dataset import SequentialDataset
@@ -36,5 +37,6 @@ __all__ = [
     "SequentialDataset",
     "PurchaseViewDataset",
     "Dataset",
+    "BundleDataset",
     "Reader",
 ]

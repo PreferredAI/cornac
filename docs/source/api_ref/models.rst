@@ -343,3 +343,8 @@ DIGER
 -----
 .. automodule:: cornac.models.diger.recom_diger
    :members:
+
+Bundle Recommender Interface
+----------------------------
+.. autoclass:: cornac.models.BundleRecommender
+   :members:

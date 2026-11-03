@@ -153,3 +153,8 @@
 [tifuknn_tafeng.py](tifuknn_tafeng.py) - Example of Temporal-Item-Frequency-based User-KNN (TIFUKNN).
 
 [upcf_tafeng.py](upcf_tafeng.py) - Example of Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF).
+
+- [Catalog bundle recommendation](bundle_recommendation_example.py): use
+  BundleEvaluation and existing BPR to rank bundles with separate catalog
+  membership and optional independent item feedback. Bundle construction remains
+  future work.
