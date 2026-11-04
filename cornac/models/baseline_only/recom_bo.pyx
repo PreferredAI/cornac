@@ -124,7 +124,9 @@ class BaselineOnly(Recommender):
             self._init()
 
             (rid, cid, val) = train_set.uir_tuple
-            self._fit_sgd(rid, cid, val.astype(np.float32), self.u_biases, self.i_biases)
+            self._fit_sgd(
+                rid.astype(np.int32), cid.astype(np.int32), val.astype(np.float32), self.u_biases, self.i_biases
+            )
 
         return self
 
