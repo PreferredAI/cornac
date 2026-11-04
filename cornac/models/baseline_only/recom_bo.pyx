@@ -89,8 +89,11 @@ class BaselineOnly(Recommender):
 
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
-        self.u_biases = self.init_params.get('Bu', None)
-        self.i_biases = self.init_params.get('Bi', None)
+        # Training updates biases in place, so work on copies to keep init_params intact.
+        self.u_biases, self.i_biases = (
+            None if self.init_params.get(name) is None else np.array(self.init_params[name])
+            for name in ('Bu', 'Bi')
+        )
         self.global_mean = 0.0
 
     def _init(self):

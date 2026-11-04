@@ -125,10 +125,11 @@ class NMF(Recommender, ANNMixin):
 
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
-        self.u_factors = self.init_params.get('U', None)
-        self.i_factors = self.init_params.get('V', None)
-        self.u_biases = self.init_params.get('Bu', None)
-        self.i_biases = self.init_params.get('Bi', None)
+        # Training updates factors in place, so work on copies to keep init_params intact.
+        self.u_factors, self.i_factors, self.u_biases, self.i_biases = (
+            None if self.init_params.get(name) is None else np.array(self.init_params[name])
+            for name in ('U', 'V', 'Bu', 'Bi')
+        )
         self.global_mean = self.init_params.get('mu', None)
 
     def _init(self):
