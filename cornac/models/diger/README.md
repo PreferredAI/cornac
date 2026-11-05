@@ -95,13 +95,32 @@ TIGER uses history length 20 and constrained beam 50; RPG uses history length
 and evaluation populations have not been established. These are reference
 results rather than a controlled comparison.
 
-For each DIGER feature setting, all six learning-rate candidates were evaluated,
-and the configuration with the highest validation NDCG@10 was selected. This
-limited search did not exhaustively explore model, tokenizer or decoding
-settings.
-
 The retained DIGER features, initializers and checkpoints are not distributed
 with the package; the presets alone do not reproduce this evaluation.
+
+### Tuning
+
+For each feature setting, the presets were selected by validation NDCG@10 from
+six learning-rate candidates (LR 2.5e-4/5e-4/1e-3 × ID LR 1e-5/3e-5, history
+210, one seed). A wider search then trained 12 further configurations per
+feature setting through this wrapper for 120 epochs with seed 2025 (history
+20/50 × LR 3e-4/5e-4 × ID LR 1e-5/3e-5/1e-4), plus a wrapper retrain of the
+preset. Candidates were screened on a fixed 2,000-query validation subset, and
+the best two per setting were rescored on the full validation set (22,363
+queries). Only the OpenAI leader beat both seed-2025 preset references there, so
+it was retrained with seeds 2026 and 2027.
+
+| Features | Recipe | Run | Validation Recall@10 | Validation NDCG@10 | Test Recall@10 | Test NDCG@10 |
+| --- | --- | --- | --- | --- | --- | --- |
+| OpenAI | Preset: history 210, LR 5e-4, ID LR 3e-5 | Best seed (2026) | 0.0961 | 0.0538 | 0.0676 | 0.0363 |
+| OpenAI | Preset: history 210, LR 5e-4, ID LR 3e-5 | Mean ± SD, 3 seeds | 0.0968 ± 0.0006 | 0.0533 ± 0.0004 | 0.0692 ± 0.0017 | 0.0370 ± 0.0007 |
+| OpenAI | Search: history 20, LR 3e-4, ID LR 1e-4 | Best seed (2025) | 0.0977 | 0.0539 | 0.0685 | 0.0361 |
+| OpenAI | Search: history 20, LR 3e-4, ID LR 1e-4 | Mean ± SD, 3 seeds | 0.0965 ± 0.0016 | 0.0525 ± 0.0014 | 0.0690 ± 0.0009 | 0.0366 ± 0.0006 |
+| ST5 | Preset: history 210, LR 5e-4, ID LR 3e-5 | Best seed (2025) | 0.0890 | 0.0492 | 0.0622 | 0.0341 |
+| ST5 | Preset: history 210, LR 5e-4, ID LR 3e-5 | Mean ± SD, 3 seeds | 0.0874 ± 0.0014 | 0.0481 ± 0.0010 | 0.0630 ± 0.0012 | 0.0344 ± 0.0003 |
+| ST5 | Search: history 50, LR 5e-4, ID LR 1e-5 | Single seed (2025) | 0.0873 | 0.0482 | 0.0617 | 0.0331 |
+
+The best seed here refers to the one with the highest validation NDCG@10.
 
 ## Semantic ID evaluation
 
