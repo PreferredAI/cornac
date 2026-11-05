@@ -102,8 +102,12 @@ class PMF(Recommender, ANNMixin):
 
         # Init params if provided
         self.init_params = {} if init_params is None else init_params
-        self.U = self.init_params.get("U", None)  # matrix of user factors
-        self.V = self.init_params.get("V", None)  # matrix of item factors
+        # Training updates factors in place, so work on copies to keep init_params intact.
+        # U is the matrix of user factors and V is the matrix of item factors.
+        self.U, self.V = (
+            None if self.init_params.get(name) is None else np.array(self.init_params[name])
+            for name in ("U", "V")
+        )
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
