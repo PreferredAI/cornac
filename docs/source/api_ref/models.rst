@@ -338,3 +338,8 @@ Semantic ID Model Contracts
 --------------------------
 .. autoclass:: cornac.models.recommender.SemanticIDMixin
    :members:
+
+DIGER
+-----
+.. automodule:: cornac.models.diger.recom_diger
+   :members:

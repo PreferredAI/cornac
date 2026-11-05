@@ -43,6 +43,7 @@ from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
 from .dmrl import DMRL
+from .diger import DIGER
 from .diffgrm import DiffGRM
 from .dnntsp import DNNTSP
 from .ease import EASE
