@@ -57,6 +57,6 @@ Tradesy
 
 
 Catalog Bundle Datasets
-----------------------
+-----------------------
 .. automodule:: cornac.datasets.bundle
    :members:

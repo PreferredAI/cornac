@@ -849,3 +849,34 @@ class BundleRecommender(Recommender):
         self.constituent_iid_map = train_set.constituent_iid_map
         self.num_constituent_items = train_set.num_constituent_items
         return self
+
+
+class BundleConstructionRecommender(Recommender):
+    """Base model for ranking or constructing constituent items of bundle instances.
+
+    One interface serves completion (given items) and construction (no given
+    items). ``user_idx`` is a bundle-instance index; its given items are
+    ``train_set.bundle_items(user_idx)`` and its user is
+    ``train_set.owner_indices[user_idx]`` (-1 without a user). Subclasses implement
+    ``score(user_idx, item_idx=None)`` over constituent items. Training requires a
+    :class:`cornac.data.BundleConstructionDataset`.
+    """
+
+    def fit(self, train_set, val_set=None):
+        from ..data import BundleConstructionDataset
+
+        if not isinstance(train_set, BundleConstructionDataset):
+            raise ValueError("train_set must be a BundleConstructionDataset")
+        if val_set is not None and not isinstance(val_set, BundleConstructionDataset):
+            raise ValueError("val_set must be a BundleConstructionDataset")
+        return super().fit(train_set, val_set)
+
+    def construct(self, user_idx, input_items, size, **kwargs):
+        """Return at most ``size`` distinct item indices, none in ``input_items``.
+
+        The default takes the top ``size`` items of :meth:`rank` over the items
+        not in ``input_items``; ``kwargs`` are passed to :meth:`rank`.
+        """
+        candidates = np.ones(self.num_items, dtype=bool)
+        candidates[np.asarray(input_items, dtype="int")] = False
+        return self.rank(user_idx, np.flatnonzero(candidates), k=size, **kwargs)[0][:size]

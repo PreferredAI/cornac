@@ -15,12 +15,15 @@
 
 import unittest
 import warnings
+from collections import OrderedDict
 
 import numpy as np
 import numpy.testing as npt
 
 from cornac.data import (
     BasketDataset,
+    BundleConstructionDataset,
+    BundleDataset,
     Dataset,
     PurchaseViewDataset,
     SequentialDataset,
@@ -426,6 +429,186 @@ class TestPurchaseViewDataset(unittest.TestCase):
         self.assertEqual(dataset.num_users, purchase.num_users)
         self.assertEqual(dataset.num_items, purchase.num_items)
         self.assertEqual(dataset.view_matrix.nnz, 1)
+
+
+BUNDLE_CATALOG = [("b1", "b1"), ("b1", "i2"), ("b2", "i2"), ("b3", "i3")]
+BUNDLE_TRAIN = [("u1", "b1", 1), ("u2", "b2", 1)]
+CATALOG_UB = [("0", "0", 1), ("1", "1", 1)]
+CATALOG_BI = [("0", "0"), ("1", "1"), ("2", "0")]
+CATALOG_UI = [("0", "0", 1), ("1", "1", 1), ("2", "2", 1)]
+CATALOG_IDS = dict(
+    user_ids=["0", "1", "2", "3"],
+    bundle_ids=["0", "1", "2"],
+    constituent_item_ids=["0", "1", "2", "3"],
+)
+
+
+class TestBundleDataset(unittest.TestCase):
+    def test_catalog_and_separate_ids(self):
+        data = BundleDataset.build(BUNDLE_TRAIN, BUNDLE_CATALOG + [BUNDLE_CATALOG[0]])
+        self.assertEqual(data.matrix.shape, (2, 3))
+        self.assertEqual(data.bundle_item_matrix.shape, (3, 3))
+        self.assertEqual(data.bundle_item_matrix.nnz, 4)
+        self.assertIs(data.bid_map, data.iid_map)
+        self.assertIsNot(data.bid_map, data.constituent_iid_map)
+        self.assertEqual(data.bundle_ids, ["b1", "b2", "b3"])
+        self.assertEqual(data.num_constituent_items, 3)
+        self.assertEqual(data.num_bundles, data.num_items)
+        self.assertNotIn("i2", data.bid_map)
+        self.assertNotIn("b2", data.constituent_iid_map)
+        self.assertIsNone(data.user_item_matrix)
+        npt.assert_array_equal(
+            data.bundle_item_matrix.toarray(), [[1, 1, 0], [0, 1, 0], [0, 0, 1]]
+        )
+
+    def test_independent_side_feedback(self):
+        side = [("u1", "i4", 2), ("u1", "i4", 3), ("other", "ignored", 1)]
+        data = BundleDataset.build(iter(BUNDLE_TRAIN), iter(BUNDLE_CATALOG), iter(side))
+        self.assertEqual(data.user_item_matrix.shape, (2, 4))
+        self.assertEqual(data.bundle_item_matrix.shape, (3, 4))
+        self.assertEqual(data.user_item_matrix[0, data.constituent_iid_map["i4"]], 2)
+        self.assertNotIn("ignored", data.constituent_iid_map)
+        self.assertEqual(data.user_item_matrix.nnz, 1)
+
+    def test_empty_side(self):
+        for side in ([], [("other", "ignored", 1)]):
+            data = BundleDataset.build(BUNDLE_TRAIN, BUNDLE_CATALOG, side)
+            self.assertEqual(data.user_item_matrix.shape, (2, 3))
+            self.assertEqual(data.user_item_matrix.nnz, 0)
+
+    def test_invalid_catalog(self):
+        with self.assertRaisesRegex(ValueError, "nonempty catalog"):
+            BundleDataset.build(BUNDLE_TRAIN, [])
+        with self.assertRaisesRegex(ValueError, "absent from the catalog"):
+            BundleDataset.build(BUNDLE_TRAIN + [("u1", "missing", 1)], BUNDLE_CATALOG)
+
+    def test_shared_constituent_mapping_is_fixed(self):
+        data = BundleDataset.build(BUNDLE_TRAIN, BUNDLE_CATALOG)
+        before = dict(data.constituent_iid_map)
+        with self.assertRaisesRegex(ValueError, "shared mapping"):
+            BundleDataset.from_dataset(
+                data,
+                BUNDLE_CATALOG,
+                [("u1", "new_item", 1)],
+                constituent_iid_map=data.constituent_iid_map,
+            )
+        self.assertEqual(dict(data.constituent_iid_map), before)
+        self.assertEqual(data.bundle_item_matrix.shape, (3, 3))
+
+    def test_timestamp_and_duplicate_feedback(self):
+        with self.assertWarns(UserWarning):
+            data = BundleDataset.build(
+                [("u1", "b1", 1, 10), ("u1", "b1", 2, 20)],
+                BUNDLE_CATALOG,
+                fmt="UIRT",
+            )
+        npt.assert_array_equal(data.timestamps, [10])
+        self.assertEqual(data.num_ratings, 1)
+
+    def test_explicit_catalog_keeps_ui_only_users_and_unused_ids(self):
+        data = BundleDataset.build(CATALOG_UB, CATALOG_BI, CATALOG_UI, **CATALOG_IDS)
+        self.assertEqual(data.num_users, 4)
+        self.assertEqual(data.user_item_matrix.nnz, 3)
+        self.assertEqual(data.user_item_matrix.shape, (4, 4))
+        self.assertEqual(data.bundle_item_matrix.shape, (3, 4))
+        self.assertEqual(data.uid_map["3"], 3)
+        self.assertEqual(data.constituent_iid_map["3"], 3)
+        self.assertEqual(
+            BundleDataset.build(
+                CATALOG_UB, CATALOG_BI, CATALOG_UI
+            ).user_item_matrix.nnz,
+            2,
+        )
+
+    def test_supplied_catalog_order_controls_indices(self):
+        ids = {key: list(reversed(values)) for key, values in CATALOG_IDS.items()}
+        data = BundleDataset.build(CATALOG_UB, CATALOG_BI, CATALOG_UI, **ids)
+        self.assertEqual(data.uid_map["0"], 3)
+        self.assertEqual(data.bid_map["0"], 2)
+        self.assertEqual(data.constituent_iid_map["0"], 3)
+        self.assertEqual(data.matrix[3, 2], 1)
+        self.assertEqual(data.bundle_item_matrix[2, 3], 1)
+
+    def test_invalid_catalogs(self):
+        for updates in (
+            dict(user_ids=["0", "0"]),
+            dict(user_ids=["0"]),
+            dict(bundle_ids=["0", "1"]),
+            dict(bundle_ids=["0", "1", "2", "3"]),
+            dict(constituent_item_ids=["0"]),
+        ):
+            ids = dict(CATALOG_IDS, **updates)
+            with self.assertRaises(ValueError):
+                BundleDataset.build(CATALOG_UB, CATALOG_BI, CATALOG_UI, **ids)
+        with self.assertRaisesRegex(ValueError, "undeclared user"):
+            BundleDataset.build(
+                CATALOG_UB, CATALOG_BI, CATALOG_UI + [("bad", "0", 1)], **CATALOG_IDS
+            )
+
+
+class TestBundleConstructionDataset(unittest.TestCase):
+    def test_bi_and_bit(self):
+        data = BundleConstructionDataset.build(
+            [("b1", "i1"), ("b1", "i2"), ("b2", "i2")]
+        )
+        self.assertEqual((data.num_bundles, data.num_items, data.num_owners), (2, 2, 0))
+        self.assertIs(data.bid_map, data.uid_map)
+        self.assertEqual(data.bundle_ids, ["b1", "b2"])
+        npt.assert_array_equal(data.owner_indices, [-1, -1])
+        npt.assert_array_equal(data.matrix.toarray(), [[1, 1], [0, 1]])
+        self.assertIsNone(data.timestamps)
+        self.assertIsNone(data.user_bundle_matrix)
+        self.assertIsNone(data.user_item_matrix)
+        self.assertEqual(len(data.partial_bundles), 0)
+        timed = BundleConstructionDataset.build(
+            [("b1", "i1", 5), ("b1", "i2", 3)], fmt="BIT"
+        )
+        npt.assert_array_equal(timed.timestamps, [5, 3])
+        npt.assert_array_equal(timed.bundle_items(0), [1, 0])
+
+    def test_ubi_and_ubit_owners(self):
+        owners = OrderedDict([("u0", 0)])
+        data = BundleConstructionDataset.build(
+            [("u2", "b1", "i1"), ("u1", "b2", "i1"), ("u2", "b3", "i2")],
+            fmt="UBI",
+            global_owner_map=owners,
+        )
+        self.assertIs(data.owner_map, owners)
+        self.assertEqual(list(owners), ["u0", "u2", "u1"])
+        npt.assert_array_equal(data.owner_indices, [1, 2, 1])
+        self.assertEqual(data.num_owners, 3)
+        timed = BundleConstructionDataset.build(
+            [("u1", "b1", "i1", 2), ("u1", "b1", "i2", 1)], fmt="UBIT"
+        )
+        npt.assert_array_equal(timed.owner_indices, [0])
+        npt.assert_array_equal(timed.bundle_items(0), [1, 0])
+        for fmt, rows in (
+            ("UBI", [("u1", "b1", "i1"), ("u2", "b1", "i2")]),
+            ("UBIT", [("u1", "b1", "i1", 1), ("u2", "b1", "i2", 2)]),
+        ):
+            with self.assertRaisesRegex(ValueError, "conflicting owners"):
+                BundleConstructionDataset.build(rows, fmt=fmt)
+        with self.assertRaises(ValueError):
+            BundleConstructionDataset.build([("b1", "i1", 1.0)], fmt="UIR")
+
+    def test_bundle_items_order(self):
+        data = BundleConstructionDataset.build(
+            [("b2", "i1"), ("b1", "i3"), ("b1", "i1"), ("b1", "i2")],
+            global_uid_map=OrderedDict([("empty", 0)]),
+        )
+        npt.assert_array_equal(
+            data.bundle_items(data.bid_map["b1"]), [1, 0, 2]
+        )  # row order
+        npt.assert_array_equal(data.bundle_items(data.bid_map["b2"]), [0])
+        self.assertEqual(len(data.bundle_items(0)), 0)
+        with self.assertWarns(UserWarning):  # duplicate (b1, i1) is removed
+            timed = BundleConstructionDataset.build(
+                [("b1", "i1", 2), ("b1", "i2", 1), ("b1", "i3", 2), ("b1", "i1", 0)],
+                fmt="BIT",
+            )
+        npt.assert_array_equal(
+            timed.bundle_items(0), [1, 0, 2]
+        )  # stable timestamp order
 
 
 if __name__ == "__main__":

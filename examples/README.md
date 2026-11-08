@@ -154,7 +154,6 @@
 
 [upcf_tafeng.py](upcf_tafeng.py) - Example of Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF).
 
-- [Catalog bundle recommendation](bundle_recommendation_example.py): use
-  BundleEvaluation and existing BPR to rank bundles with separate catalog
-  membership and optional independent item feedback. Bundle construction remains
-  future work.
+## Bundle Algorithms
+
+[bundle_pop_youshu.py](bundle_pop_youshu.py) - Example of bundle popularity baselines (BundlePop) for bundle recommendation, completion and construction.

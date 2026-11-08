@@ -121,3 +121,14 @@ be supplied independently from training-time observations. This differs from
 next-basket prediction, whose targets are items in a future basket and whose
 inputs include basket history. ``BundleEvaluation`` reuses ordinary ranking
 metrics and accepts standard user-target baselines such as BPR.
+
+``BundleConstructionEvaluation`` serves bundle completion (some items of a
+held-out bundle are given) and construction from scratch (no given items,
+conditioned on a user) with one interface. It splits by bundle, never by row.
+The given items of each held-out bundle become training rows of its queries and
+the remaining items are targets, so ordinary ranking metrics exclude exactly the
+given items, and item recommenders such as MostPop and ItemKNN are valid
+completion baselines. With ``set_metrics=True`` it also reports ``Set-F1`` and
+``Set-Jaccard`` between the targets T and |T| constructed items, taken from
+``construct`` for a :class:`cornac.models.BundleConstructionRecommender` and
+from the top |T| ranked items otherwise.

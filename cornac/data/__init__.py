@@ -21,6 +21,7 @@ from .graph import GraphModality
 from .sentiment import SentimentModality
 from .reader import Reader
 from .dataset import BundleDataset
+from .dataset import BundleConstructionDataset
 from .dataset import Dataset
 from .dataset import BasketDataset
 from .dataset import SequentialDataset
@@ -38,5 +39,6 @@ __all__ = [
     "PurchaseViewDataset",
     "Dataset",
     "BundleDataset",
+    "BundleConstructionDataset",
     "Reader",
 ]

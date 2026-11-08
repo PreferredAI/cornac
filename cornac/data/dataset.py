@@ -1524,18 +1524,34 @@ class PurchaseViewDataset(Dataset):
 class BundleDataset(Dataset):
     """Catalog bundle feedback with a separate constituent item ID space.
 
-    Construct with :meth:`build`. Inherited item fields and interaction matrices
-    describe bundle targets. ``bundle_item_matrix`` is a binary B x I CSR matrix;
-    ``user_item_matrix`` is an optional U x I CSR matrix of independently observed
-    feedback. Constituent IDs are stored in ``constituent_iid_map``.
+    Construct with :meth:`build`. Inherited user and item fields describe
+    user-bundle feedback, with bundles on the item axis.
+
+    Parameters
+    ----------
+    dataset: :obj:`cornac.data.Dataset`, required
+        User-bundle feedback whose items are bundles.
+
+    bundle_item_matrix: :obj:`scipy.sparse.csr_matrix`, required
+        Binary bundle x constituent item membership.
+
+    constituent_iid_map: :obj:`OrderedDict`, required
+        Mapping from constituent item IDs to column indices.
+
+    user_item_matrix: :obj:`scipy.sparse.csr_matrix`, optional, default: None
+        User x constituent item matrix of independently observed feedback.
     """
 
-    def __init__(self, dataset, bundle_item_matrix, constituent_iid_map,
-                 user_item_matrix=None):
+    def __init__(
+        self, dataset, bundle_item_matrix, constituent_iid_map, user_item_matrix=None
+    ):
         super().__init__(
-            num_users=dataset.num_users, num_items=dataset.num_items,
-            uid_map=dataset.uid_map, iid_map=dataset.iid_map,
-            uir_tuple=dataset.uir_tuple, timestamps=dataset.timestamps,
+            num_users=dataset.num_users,
+            num_items=dataset.num_items,
+            uid_map=dataset.uid_map,
+            iid_map=dataset.iid_map,
+            uir_tuple=dataset.uir_tuple,
+            timestamps=dataset.timestamps,
             seed=dataset.seed,
         )
         self.bundle_item_matrix = bundle_item_matrix
@@ -1569,10 +1585,20 @@ class BundleDataset(Dataset):
         return mapping
 
     @classmethod
-    def build(cls, data, bundle_item_data, user_item_data=None, fmt="UIR",
-              global_uid_map=None, global_iid_map=None, seed=None,
-              exclude_unknowns=False, user_ids=None, bundle_ids=None,
-              constituent_item_ids=None):
+    def build(
+        cls,
+        data,
+        bundle_item_data,
+        user_item_data=None,
+        fmt="UIR",
+        global_uid_map=None,
+        global_iid_map=None,
+        seed=None,
+        exclude_unknowns=False,
+        user_ids=None,
+        bundle_ids=None,
+        constituent_item_ids=None,
+    ):
         """Build from user-bundle UIR/UIRT observations and catalog membership.
 
         Parameters
@@ -1614,7 +1640,9 @@ class BundleDataset(Dataset):
         if bundle_ids is not None:
             declared = cls.ordered_map(bundle_ids, "bundle_ids")
             if set(declared) != set(catalog):
-                raise ValueError("declared bundle catalog must match membership bundles")
+                raise ValueError(
+                    "declared bundle catalog must match membership bundles"
+                )
             if bundle_map and bundle_map != declared:
                 raise ValueError("global bundle mapping differs from declared catalog")
             bundle_map.update(declared)
@@ -1625,36 +1653,50 @@ class BundleDataset(Dataset):
                 raise ValueError("global user mapping differs from declared catalog")
             user_map = declared_users if user_map is None else user_map
             user_map.update(declared_users)
-        item_map = (None if constituent_item_ids is None else
-                    cls.ordered_map(constituent_item_ids, "constituent_item_ids"))
+        item_map = (
+            None
+            if constituent_item_ids is None
+            else cls.ordered_map(constituent_item_ids, "constituent_item_ids")
+        )
         if any(bid not in catalog for bid in bundle_map):
             raise ValueError("bundle mapping contains IDs absent from the catalog")
         for bid in catalog:
             bundle_map.setdefault(bid, len(bundle_map))
         data = list(data)
         if any(row[1] not in catalog for row in data):
-            raise ValueError("user-bundle observations contain bundles absent from the catalog")
+            raise ValueError(
+                "user-bundle observations contain bundles absent from the catalog"
+            )
         if user_ids is not None and any(row[0] not in user_map for row in data):
             raise ValueError("user-bundle observation contains an undeclared user")
         dataset = Dataset.build(
-            data, fmt=fmt, global_uid_map=user_map,
-            global_iid_map=bundle_map, seed=seed,
+            data,
+            fmt=fmt,
+            global_uid_map=user_map,
+            global_iid_map=bundle_map,
+            seed=seed,
             exclude_unknowns=exclude_unknowns,
         )
         if user_item_data is not None:
             user_item_data = list(user_item_data)
             if user_ids is not None:
                 if any(row[0] not in user_map for row in user_item_data):
-                    raise ValueError("user-item observation contains an undeclared user")
+                    raise ValueError(
+                        "user-item observation contains an undeclared user"
+                    )
             else:
                 users = set(dataset.uir_tuple[0])
-                user_item_data = [row for row in user_item_data
-                                  if dataset.uid_map.get(row[0]) in users]
+                user_item_data = [
+                    row
+                    for row in user_item_data
+                    if dataset.uid_map.get(row[0]) in users
+                ]
         return cls.from_dataset(dataset, memberships, user_item_data, item_map)
 
     @classmethod
-    def from_dataset(cls, dataset, bundle_item_data, user_item_data=None,
-                     constituent_iid_map=None):
+    def from_dataset(
+        cls, dataset, bundle_item_data, user_item_data=None, constituent_iid_map=None
+    ):
         """Attach catalog membership and independent feedback to an aligned split.
 
         The supplied dataset fixes user and bundle dimensions. All its bundle IDs
@@ -1678,9 +1720,13 @@ class BundleDataset(Dataset):
             for uid, iid, rating in user_item_data:
                 if uid in dataset.uid_map and dataset.uid_map[uid] < dataset.num_users:
                     if constituent_iid_map is not None and iid not in item_map:
-                        raise ValueError("constituent item absent from the shared mapping")
+                        raise ValueError(
+                            "constituent item absent from the shared mapping"
+                        )
                     item_map.setdefault(iid, len(item_map))
-                    feedback.setdefault((dataset.uid_map[uid], item_map[iid]), float(rating))
+                    feedback.setdefault(
+                        (dataset.uid_map[uid], item_map[iid]), float(rating)
+                    )
         rows, cols = zip(*edges) if edges else ([], [])
         membership = csr_matrix(
             (np.ones(len(edges)), (rows, cols)),
@@ -1694,3 +1740,146 @@ class BundleDataset(Dataset):
                 shape=(dataset.num_users, len(item_map)),
             )
         return cls(dataset, membership, item_map, side)
+
+
+class BundleConstructionDataset(Dataset):
+    """Bundle instances (Dataset user axis) x constituent items (item axis).
+
+    An instance is a training bundle or an evaluation query of
+    :class:`cornac.eval_methods.BundleConstructionEvaluation`. Construct with
+    :meth:`build` or through that evaluation method.
+
+    Parameters
+    ----------
+    dataset: :obj:`cornac.data.Dataset`, required
+        Instance x item observations.
+
+    owner_map: :obj:`OrderedDict`, required
+        Mapping from user IDs to indices, a namespace separate from instances.
+
+    owner_indices: numpy.array, required
+        User index of each instance, -1 without a user.
+
+    user_bundle_matrix: :obj:`scipy.sparse.csr_matrix`, optional, default: None
+        num_owners x num_bundles links to full training bundles only.
+
+    user_item_matrix: :obj:`scipy.sparse.csr_matrix`, optional, default: None
+        num_owners x num_items training-time user-item feedback.
+
+    partial_bundles: numpy.array, optional, default: None
+        Evaluation instances whose rows in this split are given items only
+        (possibly none); empty on validation and test sets.
+    """
+
+    def __init__(
+        self,
+        dataset,
+        owner_map,
+        owner_indices,
+        user_bundle_matrix=None,
+        user_item_matrix=None,
+        partial_bundles=None,
+    ):
+        super().__init__(
+            num_users=dataset.num_users,
+            num_items=dataset.num_items,
+            uid_map=dataset.uid_map,
+            iid_map=dataset.iid_map,
+            uir_tuple=dataset.uir_tuple,
+            timestamps=dataset.timestamps,
+            seed=dataset.seed,
+        )
+        self.owner_map = owner_map
+        self.owner_indices = np.asarray(owner_indices, dtype="int")
+        self.user_bundle_matrix = user_bundle_matrix
+        self.user_item_matrix = user_item_matrix
+        self.partial_bundles = np.asarray(
+            [] if partial_bundles is None else partial_bundles, dtype="int"
+        )
+        self.__bundle_rows = None
+
+    @property
+    def num_bundles(self):
+        return self.num_users
+
+    @property
+    def bid_map(self):
+        return self.uid_map
+
+    @property
+    def bundle_ids(self):
+        return self.user_ids
+
+    @property
+    def num_owners(self):
+        return len(self.owner_map)
+
+    def bundle_items(self, bundle_idx):
+        """Item indices of one instance, in stable timestamp order if available,
+        otherwise in row order."""
+        if self.__bundle_rows is None:
+            bundles = self.uir_tuple[0]
+            order = np.lexsort(
+                (bundles,) if self.timestamps is None else (self.timestamps, bundles)
+            )
+            bounds = np.searchsorted(bundles[order], np.arange(self.num_users + 1))
+            self.__bundle_rows = (order, bounds)
+        order, bounds = self.__bundle_rows
+        return self.uir_tuple[1][order[bounds[bundle_idx] : bounds[bundle_idx + 1]]]
+
+    @classmethod
+    def build(
+        cls,
+        data,
+        fmt="BI",
+        global_uid_map=None,
+        global_iid_map=None,
+        global_owner_map=None,
+        seed=None,
+        exclude_unknowns=False,
+    ):
+        """Build from bundle rows.
+
+        Parameters
+        ----------
+        data: array-like
+            Rows (bundle, item) for BI, (bundle, item, timestamp) for BIT,
+            (user, bundle, item) for UBI or (user, bundle, item, timestamp) for UBIT.
+        fmt: str, default: 'BI'
+            One of BI, BIT, UBI and UBIT. U is the bundle's single owner;
+            conflicting owners for one bundle raise ValueError.
+        global_uid_map, global_iid_map, global_owner_map: OrderedDict, optional
+            Shared bundle, item and owner mappings.
+        seed: int, optional
+            Random seed for feedback sampling.
+        exclude_unknowns: bool, default: False
+            Ignore bundles and items absent from the global mappings.
+
+        Rows become (bundle, item, 1.0) observations through :meth:`Dataset.build`,
+        which keeps row order and removes duplicate (bundle, item) rows with a
+        warning. Side relations are left to the evaluation method.
+        """
+        fmt = validate_format(fmt, ["BI", "BIT", "UBI", "UBIT"])
+        owners = OrderedDict()
+        rows = []
+        for row in data:
+            uid, bid, iid, *ts = row if fmt.startswith("U") else (None,) + tuple(row)
+            if fmt.startswith("U") and owners.setdefault(bid, uid) != uid:
+                raise ValueError("bundle {} has conflicting owners".format(bid))
+            rows.append((bid, iid, 1.0, *ts))
+        dataset = Dataset.build(
+            rows,
+            fmt="UIRT" if fmt.endswith("T") else "UIR",
+            global_uid_map=global_uid_map,
+            global_iid_map=global_iid_map,
+            seed=seed,
+            exclude_unknowns=exclude_unknowns,
+        )
+        owner_map = OrderedDict() if global_owner_map is None else global_owner_map
+        owner_indices = np.full(dataset.num_users, -1, dtype="int")
+        for bid, uid in owners.items():
+            if bid in dataset.uid_map:
+                owner_indices[dataset.uid_map[bid]] = owner_map.setdefault(
+                    uid, len(owner_map)
+                )
+        return cls(dataset, owner_map, owner_indices)

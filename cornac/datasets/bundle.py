@@ -1,4 +1,4 @@
-# Copyright 2018 The Cornac Authors. All Rights Reserved.
+# Copyright 2026 The Cornac Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Author-hosted Youshu, NetEase, iFashion and AttList Spotify bundle data.
-
-Sources: https://github.com/mysbupt/CrossCBR (Ma et al., KDD2022).
-Spotify: https://github.com/heyunh2015/AttList (He et al., CIKM2019).
-These public releases have no declared data license; availability does not grant
-an open-data license. iFashion is the processed POG subset used by CrossCBR.
+"""Bundle datasets: Youshu, NetEase and iFashion as released by CrossCBR
+(https://github.com/mysbupt/CrossCBR), and Spotify as released by AttList
+(https://github.com/heyunh2015/AttList). iFashion is the POG subset used by CrossCBR.
 """
 
 from collections import OrderedDict
@@ -27,95 +24,171 @@ from ..data import Reader
 from ..utils import cache
 
 
-ARCHIVE_URL = ("https://raw.githubusercontent.com/mysbupt/CrossCBR/"
-               "bbe80dfb1bbe878d72389185edefc655c8b5db45/dataset.tgz")
-ARCHIVE_SHA256 = "95dcb76dec19ba41601adaa03e290b67ca5b7a9b5d36ff4b07b5553ffa0b1be2"
-SPOTIFY_URL = ("https://raw.githubusercontent.com/heyunh2015/AttList/"
-               "9771fbfe67aa097f81d5a006f61431bbd5c3774e/AttList_cikm2019/data/spotify/")
-_VARIANTS = {"youshu": "Youshu", "netease": "NetEase", "ifashion": "iFashion", "spotify": "Spotify"}
+ARCHIVE_URL = (
+    "https://raw.githubusercontent.com/mysbupt/CrossCBR/"
+    "bbe80dfb1bbe878d72389185edefc655c8b5db45/dataset.tgz"
+)
+SPOTIFY_URL = (
+    "https://raw.githubusercontent.com/heyunh2015/AttList/"
+    "9771fbfe67aa097f81d5a006f61431bbd5c3774e/AttList_cikm2019/data/spotify/"
+)
+VARIANTS = {
+    "youshu": "Youshu",
+    "netease": "NetEase",
+    "ifashion": "iFashion",
+    "spotify": "Spotify",
+}
+SPLITS = {"train": "train", "validation": "tune", "tune": "tune", "test": "test"}
 
 
 def _path(variant, filename, cache_dir=None):
-    canonical = _VARIANTS.get(variant.lower())
-    if canonical is None:
+    name = VARIANTS.get(variant.lower())
+    if name is None:
         raise ValueError("variant must be Youshu, NetEase, iFashion or Spotify")
-    if canonical == "Spotify":
-        return cache(url=SPOTIFY_URL + filename,
-                     relative_path="datasets/AttList/Spotify/" + filename,
-                     cache_dir=cache_dir)
-    return cache(url=ARCHIVE_URL, unzip=True,
-                 relative_path="datasets/{}/{}".format(canonical, filename.format(canonical)),
-                 cache_dir=cache_dir)
+    if name == "Spotify":
+        return cache(
+            url=SPOTIFY_URL + filename,
+            relative_path="datasets/AttList/Spotify/" + filename,
+            cache_dir=cache_dir,
+        )
+    return cache(
+        url=ARCHIVE_URL,
+        unzip=True,
+        relative_path="datasets/{}/{}".format(name, filename.format(name)),
+        cache_dir=cache_dir,
+    )
 
 
 def load_feedback(variant="Youshu", split="train", reader=None, cache_dir=None):
-    """Load author user-bundle splits as (string user, string bundle, 1.0).
+    """Load user-bundle feedback of one of the author splits.
 
-    ``variant`` is case-insensitive Youshu, NetEase, iFashion or Spotify. ``split`` is
-    train, validation (alias tune), or test. An optional Cornac Reader applies
-    ordinary filtering. The pinned author archive is downloaded/cached lazily. ``cache_dir`` optionally
-    selects a cache root instead of Cornac's default directory.
+    Parameters
+    ----------
+    variant: str, default: 'Youshu'
+        One of 'Youshu', 'NetEase', 'iFashion' and 'Spotify' (case-insensitive).
+
+    split: str, default: 'train'
+        One of 'train', 'validation' (or 'tune') and 'test'.
+
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
+
+    cache_dir: str, default: None
+        Cache directory, Cornac's default directory if None.
+
+    Returns
+    -------
+    data: array-like
+        Data in the form of a list of tuples (user, bundle, 1.0).
     """
-    split = {"train": "train", "validation": "tune", "tune": "tune", "test": "test"}.get(split.lower())
+    split = SPLITS.get(split.lower())
     if split is None:
         raise ValueError("split must be train, validation, tune or test")
-    filename = ("{}.txt".format("validation" if split == "tune" else split)
-                if variant.lower() == "spotify" else "user_bundle_{}.txt".format(split))
-    path = _path(variant, filename, cache_dir)
-    fmt = "UIR" if variant.lower() == "spotify" else "UI"
-    return (Reader() if reader is None else reader).read(path, fmt=fmt, sep="\t")
+    if variant.lower() == "spotify":
+        filename = "{}.txt".format("validation" if split == "tune" else split)
+        fmt = "UIR"
+    else:
+        filename = "user_bundle_{}.txt".format(split)
+        fmt = "UI"
+    fpath = _path(variant, filename, cache_dir)
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, fmt=fmt, sep="\t")
 
 
 def load_user_item(variant="Youshu", reader=None, cache_dir=None):
-    """Load independent user-item feedback; Spotify has none and raises ValueError."""
+    """Load user-item feedback. Spotify has none and raises ValueError.
+
+    Parameters
+    ----------
+    variant: str, default: 'Youshu'
+        One of 'Youshu', 'NetEase' and 'iFashion' (case-insensitive).
+
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
+
+    cache_dir: str, default: None
+        Cache directory, Cornac's default directory if None.
+
+    Returns
+    -------
+    data: array-like
+        Data in the form of a list of tuples (user, item, 1.0).
+    """
     if variant.lower() == "spotify":
-        raise ValueError("Spotify has no independent user-item feedback; neural bundle models "
-                         "require independent UI data. UI is not derived from playlists.")
-    path = _path(variant, "user_item.txt", cache_dir)
-    return (Reader() if reader is None else reader).read(path, fmt="UI", sep="\t")
+        raise ValueError("Spotify has no user-item feedback")
+    fpath = _path(variant, "user_item.txt", cache_dir)
+    reader = Reader() if reader is None else reader
+    return reader.read(fpath, fmt="UI", sep="\t")
 
 
 def load_bundle_item(variant="Youshu", reader=None, cache_dir=None):
-    """Load (string bundle, string constituent item) membership pairs."""
+    """Load bundle-item membership.
+
+    Parameters
+    ----------
+    variant: str, default: 'Youshu'
+        One of 'Youshu', 'NetEase', 'iFashion' and 'Spotify' (case-insensitive).
+
+    reader: `obj:cornac.data.Reader`, default: None
+        Reader object used to read the data.
+
+    cache_dir: str, default: None
+        Cache directory, Cornac's default directory if None.
+
+    Returns
+    -------
+    data: array-like
+        Data in the form of a list of tuples (bundle, item).
+    """
+    reader = Reader() if reader is None else reader
     if variant.lower() == "spotify":
-        path = _path(variant, "listItem_spotify.txt", cache_dir)
-        rows = (Reader() if reader is None else reader).read(
-            path, fmt="UI", sep="\t", parser=_spotify_membership)
+        fpath = _path(variant, "listItem_spotify.txt", cache_dir)
+        rows = reader.read(fpath, fmt="UI", sep="\t", parser=_spotify_membership)
         return list(dict.fromkeys((row[0], row[1]) for row in rows))
-    path = _path(variant, "bundle_item.txt", cache_dir)
-    rows = (Reader() if reader is None else reader).read(path, fmt="UI", sep="\t")
-    return [(row[0], row[1]) for row in rows]
+    fpath = _path(variant, "bundle_item.txt", cache_dir)
+    return [(row[0], row[1]) for row in reader.read(fpath, fmt="UI", sep="\t")]
 
 
 def _spotify_membership(tokens, **kwargs):
-    return [(tokens[0], str(item), 1.0) for item in dict.fromkeys(json.loads(tokens[1]))]
+    # Each line is a playlist ID and a JSON list of track IDs, possibly repeated.
+    return [
+        (tokens[0], str(item), 1.0) for item in dict.fromkeys(json.loads(tokens[1]))
+    ]
 
 
 def load_ids(variant="Youshu", cache_dir=None):
-    """Return ordered catalog lists including unobserved IDs from author metadata.
+    """Load the user, bundle and item catalogs, including IDs without feedback.
 
-    The OrderedDict keys are user_ids, bundle_ids and constituent_item_ids,
-    suitable for ``BundleEvaluation.from_splits(..., **load_ids())``. Numeric
-    archive IDs are strings in numeric order (Spotify tracks start at 1). Explicit catalogs preserve
-    UI-only users and reference token-truncation order.
+    Parameters
+    ----------
+    variant: str, default: 'Youshu'
+        One of 'Youshu', 'NetEase', 'iFashion' and 'Spotify' (case-insensitive).
+
+    cache_dir: str, default: None
+        Cache directory, Cornac's default directory if None.
+
+    Returns
+    -------
+    ids: OrderedDict
+        Lists ``user_ids``, ``bundle_ids`` and ``constituent_item_ids`` in numeric
+        order, for ``BundleEvaluation.from_splits(..., **load_ids())``.
     """
+    keys = ("user_ids", "bundle_ids", "constituent_item_ids")
     if variant.lower() == "spotify":
-        path = _path(variant, "userList_spotify.txt", cache_dir)
-        with open(path, encoding="utf-8") as stream:
-            users = {line.split("\t", 1)[0] for line in stream}
-        path = _path(variant, "listItem_spotify.txt", cache_dir)
+        with open(_path(variant, "userList_spotify.txt", cache_dir)) as f:
+            users = {line.split("\t", 1)[0] for line in f}
         bundles, items = set(), set()
-        with open(path, encoding="utf-8") as stream:
-            for line in stream:
-                bundle_id, contents = line.rstrip().split("\t", 1)
+        with open(_path(variant, "listItem_spotify.txt", cache_dir)) as f:
+            for line in f:
+                bundle_id, tracks = line.rstrip().split("\t", 1)
                 bundles.add(bundle_id)
-                items.update(str(item) for item in json.loads(contents))
-        return OrderedDict((key, sorted(ids, key=int)) for key, ids in zip(
-            ("user_ids", "bundle_ids", "constituent_item_ids"), (users, bundles, items)))
-    path = _path(variant, "{}_data_size.txt", cache_dir)
-    with open(path, encoding="utf-8") as stream:
-        counts = [int(value) for value in stream.readline().split()]
+                items.update(str(item) for item in json.loads(tracks))
+        catalogs = (users, bundles, items)
+        return OrderedDict(zip(keys, (sorted(ids, key=int) for ids in catalogs)))
+    with open(_path(variant, "{}_data_size.txt", cache_dir)) as f:
+        counts = [int(value) for value in f.readline().split()]
     if len(counts) != 3 or any(count <= 0 for count in counts):
-        raise ValueError("bundle metadata must contain three positive catalog sizes")
-    return OrderedDict((key, [str(index) for index in range(count)])
-                       for key, count in zip(("user_ids", "bundle_ids", "constituent_item_ids"), counts))
+        raise ValueError(
+            "{}_data_size.txt must hold three positive counts".format(variant)
+        )
+    return OrderedDict(zip(keys, ([str(i) for i in range(n)] for n in counts)))
