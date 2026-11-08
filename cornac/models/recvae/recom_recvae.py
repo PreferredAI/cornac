@@ -190,6 +190,7 @@ class RecVAE(Recommender):
             }
 
             self.recvae_model = VAE(**model_kwargs).to(self.device)
+            self.recvae_model.eval()
 
 
 
@@ -219,6 +220,7 @@ class RecVAE(Recommender):
                     self.run(opts=[optimizer_decoder], n_epochs=self.n_dec_epochs, dropout_rate=0, **learning_kwargs)
 
         
+                self.recvae_model.eval()
                 ndcg_100 = ranking_eval(
                 model=self,
                 metrics=[NDCG(k=100)],
@@ -241,7 +243,7 @@ class RecVAE(Recommender):
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
 
-        Dropout and latent sampling are disabled during scoring.
+        After training, fit() leaves the network in evaluation mode.
 
         Parameters
         ----------
@@ -260,7 +262,6 @@ class RecVAE(Recommender):
         import torch
 
         ratings_in = self.mydata.matrix[user_idx,:]
-        self.recvae_model.eval()
         with torch.no_grad():
             ratings_pred = self.recvae_model(
                 torch.Tensor(ratings_in.toarray()).to(self.device), calculate_loss=False
