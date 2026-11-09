@@ -190,7 +190,7 @@ class RecVAE(Recommender):
             }
 
             self.recvae_model = VAE(**model_kwargs).to(self.device)
-            self.recvae_model.eval()
+            self.recvae_model.train()
 
 
 
@@ -231,6 +231,7 @@ class RecVAE(Recommender):
                 
                 progress_bar.set_postfix(ndcg100 = ndcg_100)
 
+            self.recvae_model.eval()
             if self.verbose:
                 print(f"Learning completed : [{ndcg_100}]")
 
