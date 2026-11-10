@@ -259,6 +259,11 @@ Bayesian Personalized Ranking (BPR)
 .. autoclass:: cornac.models.bpr.recom_bpr.BPR
    :members:
 
+Bundle Popularity (BundlePop)
+-----------------------------
+.. automodule:: cornac.models.bundle_pop.recom_bundle_pop
+   :members:
+
 Factorization Machines (FM)
 ---------------------------
 .. autoclass:: cornac.models.fm.recom_fm.FM
@@ -342,4 +347,14 @@ Semantic ID Model Contracts
 DIGER
 -----
 .. automodule:: cornac.models.diger.recom_diger
+   :members:
+
+Bundle Recommender Interface
+----------------------------
+.. autoclass:: cornac.models.BundleRecommender
+   :members:
+
+Bundle Construction Recommender Interface
+-----------------------------------------
+.. autoclass:: cornac.models.BundleConstructionRecommender
    :members:

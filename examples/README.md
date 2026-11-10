@@ -153,3 +153,7 @@
 [tifuknn_tafeng.py](tifuknn_tafeng.py) - Example of Temporal-Item-Frequency-based User-KNN (TIFUKNN).
 
 [upcf_tafeng.py](upcf_tafeng.py) - Example of Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF).
+
+## Bundle Algorithms
+
+[bundle_pop_youshu.py](bundle_pop_youshu.py) - Example of bundle popularity baselines (BundlePop) for bundle recommendation, completion and construction.

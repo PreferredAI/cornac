@@ -18,6 +18,7 @@ from . import amazon_digital_music
 from . import amazon_office
 from . import amazon_review
 from . import amazon_toy
+from . import bundle
 from . import citeulike
 from . import cosmetics
 from . import diginetica

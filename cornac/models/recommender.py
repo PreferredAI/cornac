@@ -522,7 +522,7 @@ class Recommender:
         )
         item_scores = all_item_scores[item_indices]
 
-        if k != -1:  # O(n + k log k), faster for small k which is usually the case
+        if 0 < k < len(item_scores):  # O(n + k log k) for small cutoffs
             partitioned_idx = np.argpartition(item_scores, -k)
             top_k_idx = partitioned_idx[-k:]
             sorted_top_k_idx = top_k_idx[np.argsort(item_scores[top_k_idx])]
@@ -811,3 +811,72 @@ class SemanticIDMixin:
             group_scores[sid] = max(group_scores.get(sid, -np.inf), score)
         ranked = sorted(group_scores, key=lambda sid: (-group_scores[sid], sid))
         return np.asarray(ranked, dtype="int64").reshape(-1, catalog.shape[1])
+
+
+class BundleRecommender(Recommender):
+    """Base model for ranking existing catalog bundles.
+
+    Subclasses implement ``score(user_idx, item_idx=None)`` with bundle indices
+    as targets. Inherited ranking and recommendation methods return bundle IDs.
+    Training requires a :class:`cornac.data.BundleDataset`. Constituent item IDs
+    have their own mapping and are never recommendation target indices.
+    """
+
+    @property
+    def num_bundles(self):
+        return self.num_items
+
+    @property
+    def total_bundles(self):
+        return self.total_items
+
+    @property
+    def bid_map(self):
+        return self.iid_map
+
+    @property
+    def bundle_ids(self):
+        return self.item_ids
+
+    def fit(self, train_set, val_set=None):
+        from ..data import BundleDataset
+
+        if not isinstance(train_set, BundleDataset):
+            raise ValueError("train_set must be a BundleDataset")
+        if val_set is not None and not isinstance(val_set, BundleDataset):
+            raise ValueError("val_set must be a BundleDataset")
+        super().fit(train_set, val_set)
+        self.constituent_iid_map = train_set.constituent_iid_map
+        self.num_constituent_items = train_set.num_constituent_items
+        return self
+
+
+class BundleConstructionRecommender(Recommender):
+    """Base model for ranking or constructing constituent items of bundle instances.
+
+    One interface serves completion (given items) and construction (no given
+    items). ``user_idx`` is a bundle-instance index; its given items are
+    ``train_set.bundle_items(user_idx)`` and its user is
+    ``train_set.owner_indices[user_idx]`` (-1 without a user). Subclasses implement
+    ``score(user_idx, item_idx=None)`` over constituent items. Training requires a
+    :class:`cornac.data.BundleConstructionDataset`.
+    """
+
+    def fit(self, train_set, val_set=None):
+        from ..data import BundleConstructionDataset
+
+        if not isinstance(train_set, BundleConstructionDataset):
+            raise ValueError("train_set must be a BundleConstructionDataset")
+        if val_set is not None and not isinstance(val_set, BundleConstructionDataset):
+            raise ValueError("val_set must be a BundleConstructionDataset")
+        return super().fit(train_set, val_set)
+
+    def construct(self, user_idx, input_items, size, **kwargs):
+        """Return at most ``size`` distinct item indices, none in ``input_items``.
+
+        The default takes the top ``size`` items of :meth:`rank` over the items
+        not in ``input_items``; ``kwargs`` are passed to :meth:`rank`.
+        """
+        candidates = np.ones(self.num_items, dtype=bool)
+        candidates[np.asarray(input_items, dtype="int")] = False
+        return self.rank(user_idx, np.flatnonzero(candidates), k=size, **kwargs)[0][:size]

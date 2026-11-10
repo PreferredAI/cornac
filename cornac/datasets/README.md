@@ -310,3 +310,100 @@ eval_method = NextItemEvaluation.leave_last_out(
     data, fmt="UIRT", item_feature=FeatureModality(features=features, ids=item_ids)
 )
 ```
+
+## Bundle datasets
+
+`cornac.datasets.bundle` loads Youshu, NetEase and iFashion from the
+[CrossCBR](https://github.com/mysbupt/CrossCBR) release
+([Ma et al., KDD2022](https://doi.org/10.1145/3534678.3539229)) and Spotify from the
+[AttList](https://github.com/heyunh2015/AttList) release
+([He et al., CIKM2019](https://arxiv.org/abs/1912.13023)). Each has user-bundle
+feedback split by the authors into train, validation and test, bundle-item
+membership and, except Spotify, user-item feedback. iFashion is the
+[POG](https://arxiv.org/abs/1905.01866) subset used by CrossCBR. The files are
+downloaded from the author repositories on first use; neither release declares a
+data license.
+
+| Variant | Users | Bundles | Items | UB train / validation / test | UI | BI |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| Youshu | 8,039 | 4,771 | 32,770 | 34,416 / 5,189 / 9,746 | 138,515 | 176,667 |
+| NetEase | 18,528 | 22,864 | 123,628 | 217,864 / 27,857 / 56,555 | 1,128,065 | 1,778,838 |
+| iFashion | 53,897 | 27,694 | 42,563 | 1,213,676 / 149,007 / 317,025 | 2,290,645 | 106,916 |
+| Spotify | 10,183 | 7,787 | 49,434 | 72,978 / 9,202 / 9,074 | - | 555,851 |
+
+IDs are strings. `load_ids()` returns the full user, bundle and item catalogs in
+numeric order, including IDs without feedback, so that the numeric mappings match
+the authors' code.
+
+```python
+from cornac.datasets import bundle
+from cornac.eval_methods import BundleEvaluation
+
+options = dict(variant="Youshu", cache_dir="/tmp/cornac-bundle-data")
+method = BundleEvaluation.from_splits(
+    train_data=bundle.load_feedback(split="train", **options),
+    val_data=bundle.load_feedback(split="validation", **options),
+    test_data=bundle.load_feedback(split="test", **options),
+    user_item_data=bundle.load_user_item(**options),
+    bundle_item_data=bundle.load_bundle_item(**options),
+    test_mask="train", exclude_unknowns=True,
+    **bundle.load_ids(**options),
+)
+```
+
+`test_mask="train"` excludes only training positives at test time, as CrossCBR and
+MultiCBR do; the default also excludes validation positives.
+
+Spotify playlists are the bundles and tracks are the items. Repeated tracks in a
+playlist count once. There is no user-item feedback, so `load_user_item()` raises
+`ValueError`; models that need it (CrossCBR, MultiCBR, BundleGT) cannot run on
+Spotify, while user-bundle models such as BPR can:
+
+```python
+from cornac.models import BPR
+
+options = dict(variant="Spotify", cache_dir="/tmp/cornac-bundle-data")
+method = BundleEvaluation.from_splits(
+    train_data=bundle.load_feedback(split="train", **options),
+    val_data=bundle.load_feedback(split="validation", **options),
+    test_data=bundle.load_feedback(split="test", **options),
+    bundle_item_data=bundle.load_bundle_item(**options),
+    **bundle.load_ids(**options),
+)
+model = BPR(k=32, max_iter=20, seed=2026)
+model.fit(method.train_set)
+```
+
+## Bundle completion and construction
+
+The same loaders serve completion (rank the missing items of a held-out bundle
+given some of its items) and personalized construction (build a bundle for a
+user with no given items) through `BundleConstructionEvaluation`:
+
+```python
+from cornac.eval_methods import BundleConstructionEvaluation
+
+memberships = bundle.load_bundle_item("Youshu")
+items = bundle.load_ids("Youshu")["constituent_item_ids"]
+split = dict(test_size=0.2, val_size=0.1, item_ids=items, seed=123)
+completion = BundleConstructionEvaluation(data=memberships, input_ratio=0.5, **split)
+construction = BundleConstructionEvaluation(
+    data=memberships, input_ratio=0,
+    user_bundle_data=[row for part in ("train", "validation", "test")
+                      for row in bundle.load_feedback("Youshu", part)],
+    user_item_data=bundle.load_user_item("Youshu"), **split,
+)
+```
+
+Bundle size and item sparsity differ a lot between the datasets. The last column
+is the share of completion targets that occur in no training bundle (70/10/20
+split by bundle, half of each held-out bundle given, seed 123); popularity and
+co-occurrence models cannot rank those, so they need item features, passed as
+`item_feature=FeatureModality(...)`.
+
+| Variant | Mean (max) bundle size | Items in one bundle only | Unseen completion targets |
+| --- | ---: | ---: | ---: |
+| Youshu | 37.0 (150) | 45.9% | 8.5% |
+| NetEase | 77.8 (996) | 0.0% | 0.0% |
+| iFashion | 3.9 (5) | 62.4% | 27.0% |
+| Spotify | 71.4 (2,444) | 0.1% | 0.0% |

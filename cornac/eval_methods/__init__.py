@@ -17,6 +17,8 @@ from .base_method import rating_eval
 from .base_method import ranking_eval
 
 from .base_method import BaseMethod
+from .bundle_evaluation import BundleEvaluation
+from .bundle_evaluation import BundleConstructionEvaluation
 from .ratio_split import RatioSplit
 from .stratified_split import StratifiedSplit
 from .timestamp_split import TimestampSplit
@@ -27,6 +29,8 @@ from .propensity_stratified_evaluation import PropensityStratifiedEvaluation
 
 __all__ = [
     "BaseMethod",
+    "BundleEvaluation",
+    "BundleConstructionEvaluation",
     "RatioSplit",
     "StratifiedSplit",
     "TimestampSplit",

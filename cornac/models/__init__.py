@@ -14,6 +14,8 @@
 # ============================================================================
 
 from .recommender import Recommender
+from .recommender import BundleRecommender
+from .recommender import BundleConstructionRecommender
 from .recommender import NextBasketRecommender
 from .recommender import NextItemRecommender
 from .recommender import SemanticIDMixin
@@ -30,6 +32,7 @@ from .bivaecf import BiVAECF
 from .bpr import BPR
 from .bpr import WBPR
 from .bpr import VEBPR
+from .bundle_pop import BundlePop
 from .causalrec import CausalRec
 from .c2pf import C2PF
 from .cdl import CDL
