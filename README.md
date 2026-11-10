@@ -237,7 +237,7 @@ The table below lists the recommendation models/algorithms featured in Cornac. E
 
 ## Contributing
 
-This project welcomes contributions and suggestions. Before contributing, please see our [contribution guidelines](https://cornac.readthedocs.io/en/stable/developer/index.html).
+This project welcomes contributions and suggestions. Before contributing, please read [CONTRIBUTING.md](CONTRIBUTING.md) and our [contribution guidelines](https://cornac.readthedocs.io/en/stable/developer/index.html).
 
 ## Citation
 
