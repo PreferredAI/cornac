@@ -54,3 +54,13 @@ tests = [
     "pytest-cov",
     "Flask",
 ]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# Ruff's default rule set changes between releases, so pin it.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
