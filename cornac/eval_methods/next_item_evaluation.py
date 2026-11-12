@@ -46,7 +46,7 @@ def _semantic_metric_scores(predictions, target_sid, group_sizes, metrics):
     sid_rank = None
     expanded_before = 0
     target_before = 0
-    for row in predictions:
+    for row in predictions.tolist():
         sid = tuple(row)
         if sid not in group_sizes or sid in seen:
             continue
