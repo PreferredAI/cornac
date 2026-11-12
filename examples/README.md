@@ -157,3 +157,9 @@
 ## Bundle Algorithms
 
 [bundle_pop_youshu.py](bundle_pop_youshu.py) - Example of bundle popularity baselines (BundlePop) for bundle recommendation, completion and construction.
+
+[crosscbr_example.py](crosscbr_example.py) - Example of CrossCBR bundle recommendation on Youshu with independent user-item feedback.
+
+[multicbr_example.py](multicbr_example.py) - Example of MultiCBR three-view bundle recommendation on Youshu.
+
+[bundlegt_example.py](bundlegt_example.py) - Example of BundleGT strategy-aware bundle recommendation on Youshu.
