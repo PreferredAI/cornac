@@ -46,25 +46,23 @@ def _semantic_metric_scores(predictions, target_sid, group_sizes, metrics):
     sid_rank = None
     expanded_before = 0
     target_before = 0
-    for sid in map(tuple, predictions.tolist()):
-        if sid in seen:
-            continue
-        sid_size = group_sizes.get(sid)
-        if sid_size is None:
+    for row in predictions.tolist():
+        sid = tuple(row)
+        if sid not in group_sizes or sid in seen:
             continue
         if sid == target_sid:
             sid_rank = len(seen)
             target_before = expanded_before
         seen.add(sid)
-        expanded_before += sid_size
+        expanded_before += group_sizes[sid]
 
     values = []
     size = group_sizes[target_sid]
-    if sid_rank is None:
-        return [0.0] * (2 * len(metrics)), len(seen)
     for view in ("SID", "CCE"):
         for metric in metrics:
-            if view == "SID":
+            if sid_rank is None:
+                value = 0.0
+            elif view == "SID":
                 value = float(sid_rank < metric.k)
                 if type(metric) is NDCG:
                     value /= np.log2(sid_rank + 2)
