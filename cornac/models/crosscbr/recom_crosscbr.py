@@ -186,6 +186,8 @@ class CrossCBR(BundleRecommender):
     def fit(self, train_set, val_set=None):
         if not self.trainable:
             _validate_frozen_fit(self, train_set, val_set)
+            self.train_set = train_set
+            self.val_set = val_set
             return self
         super().fit(train_set, val_set)
         if self.early_stopping is not None and val_set is None:

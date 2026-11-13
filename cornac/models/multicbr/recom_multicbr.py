@@ -143,7 +143,8 @@ class MultiCBR(BundleRecommender):
             raise ValueError(
                 "augmentation magnitudes must be nonnegative; dropout must be below one"
             )
-        if layer_weights is None:
+        automatic_layer_weights = layer_weights is None
+        if automatic_layer_weights:
             layer_weights = (
                 ((0.7, 0.2, 0.1), (0.6, 0.2, 0.2), (0.6, 0.1, 0.3))
                 if num_layers == 2
@@ -170,7 +171,8 @@ class MultiCBR(BundleRecommender):
                 "layer_weights must match layers and each view must sum to one"
             )
         self.view_weights = view_weights
-        self.layer_weights = layer_weights
+        self.layer_weights = None if automatic_layer_weights else layer_weights
+        self._layer_weights = layer_weights
         self.emb_size = emb_size
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
@@ -193,6 +195,8 @@ class MultiCBR(BundleRecommender):
     def fit(self, train_set, val_set=None):
         if not self.trainable:
             _validate_frozen_fit(self, train_set, val_set)
+            self.train_set = train_set
+            self.val_set = val_set
             return self
         super().fit(train_set, val_set)
         if self.early_stopping is not None and val_set is None:
@@ -237,7 +241,7 @@ class MultiCBR(BundleRecommender):
                 self.aug_type,
                 (self.bundle_dropout, self.item_dropout, self.affiliation_dropout),
                 self.view_weights,
-                self.layer_weights,
+                self._layer_weights,
                 rng,
                 device,
             )
