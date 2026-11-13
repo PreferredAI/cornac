@@ -31,9 +31,9 @@ copyright = f"2018-{datetime.now(timezone.utc).year}, Preferred.AI"
 author = "Preferred.AI"
 
 # The short X.Y version
-version = "3.1"
+version = "3.2"
 # The full version, including alpha/beta/rc tags
-release = "3.1.0"
+release = "3.2.0"
 
 
 # -- General configuration ---------------------------------------------------
