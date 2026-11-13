@@ -358,3 +358,18 @@ Bundle Construction Recommender Interface
 -----------------------------------------
 .. autoclass:: cornac.models.BundleConstructionRecommender
    :members:
+
+Cross-view Contrastive Learning for Bundle Recommendation (CrossCBR)
+--------------------------------------------------------------------
+.. automodule:: cornac.models.crosscbr.recom_crosscbr
+   :members:
+
+Multi-view Contrastive Learning for Bundle Recommendation (MultiCBR)
+--------------------------------------------------------------------
+.. automodule:: cornac.models.multicbr.recom_multicbr
+   :members:
+
+Strategy-aware Bundle Graph Transformer (BundleGT)
+--------------------------------------------------
+.. automodule:: cornac.models.bundlegt.recom_bundlegt
+   :members:

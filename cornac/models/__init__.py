@@ -33,6 +33,7 @@ from .bpr import BPR
 from .bpr import WBPR
 from .bpr import VEBPR
 from .bundle_pop import BundlePop
+from .bundlegt import BundleGT
 from .causalrec import CausalRec
 from .c2pf import C2PF
 from .cdl import CDL
@@ -42,6 +43,7 @@ from .companion import Companion
 from .comparer import ComparERObj
 from .comparer import ComparERSub
 from .conv_mf import ConvMF
+from .crosscbr import CrossCBR
 from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
@@ -72,6 +74,7 @@ from .mf import MF
 from .mmmf import MMMF
 from .most_pop import MostPop
 from .mter import MTER
+from .multicbr import MultiCBR
 from .narre import NARRE
 from .ncf import GMF
 from .ncf import MLP
