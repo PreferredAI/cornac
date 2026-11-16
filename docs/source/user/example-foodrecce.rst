@@ -79,6 +79,7 @@ the BPR model, we can then train the recommender system.
 This in turn saves the model which we could reuse for future predictions.
 For the FoodRecce use case, we often retrain the model with new data as new
 restaurants are often added to the database, along with the increase of new users.
+:doc:`/user/serving` explains how saving and loading models works.
 
 .. note::
 
@@ -194,29 +195,7 @@ Now that you have learned how to use Cornac for your own projects and
 applications, you can now start building your own recommendation systems using
 Cornac.
 
-.. topic:: View the Developer Quickstart
-
-  View a quickstart guide on how you can code and implement Cornac onto your
-  application to provide recommendations for your users.
-
-  View :doc:`/user/iamadeveloper`.
-
 .. topic:: View the Models API Reference
 
     You can also view the :doc:`/api_ref/models` documentation for more
     information about the models and its specific parameters.
-
-Others
-------
-
-.. topic:: Are you a data scientist?
-
-  Find out how you can have Cornac as part of your workflow to run your
-  experiments, and use Cornac's many models with just a few lines of code.
-  View :doc:`/user/iamaresearcher`.
-
-.. topic:: For all the awesome people out there
-
-  No matter who you are, you could also consider contributing to Cornac,
-  with our contributors guide.
-  View :doc:`/developer/index`.

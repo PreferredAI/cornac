@@ -40,7 +40,7 @@ item_text_modality = TextModality(corpus=plots, ids=movie_ids,
                                   tokenizer=BaseTokenizer(sep='\t', stop_words='english'),
                                   max_vocab=5000, max_doc_freq=0.5)
 ```
-In addition to the movie plots and ids, we have specified a `cornac.data.text.Tokenizer` to split text, we limited the maximum vocabulary size to 5000, as well as filtered out words occurring in more than 50% of documents (plots in our case) by setting `max_doc_freq = 0.5`. For more options/details on the `TextModality` please refer to the [docs](https://cornac.readthedocs.io/en/latest/data.html#module-cornac.data.text). 
+In addition to the movie plots and ids, we have specified a `cornac.data.text.Tokenizer` to split text, we limited the maximum vocabulary size to 5000, as well as filtered out words occurring in more than 50% of documents (plots in our case) by setting `max_doc_freq = 0.5`. For more options/details on the `TextModality` please refer to the [docs](https://cornac.readthedocs.io/en/latest/api_ref/data.html#module-cornac.data.text). 
  
  
 **Bag-of-Words text representation.** CDL assumes the bag-of-words representation for text information, i.e., in the form of a document-word matrix. The good news is that we don't have to worry about how to generate such representation from our raw texts. The `TextModality` class implements the necessary routines to process and output different representations for text data, e.g., sequence, bag of words, tf-idf. That is, to get our auxiliary data under the desired format, all we need inside the `CDL` [implementation](../cornac/models/cdl/recom_cdl.py) is the following line of code:

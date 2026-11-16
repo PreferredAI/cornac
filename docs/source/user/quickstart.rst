@@ -248,7 +248,7 @@ We set various parameters for the ``Experiment`` object:
 - ``user_based=True`` to evaluate the model on an individual user basis.
   This means that the average performance of each user will be calculated
   and averaged across users to get the final result (users are weighted equally). 
-  This is opposed to evaluating based on all ratings by setting ``user_based=false``.
+  This is opposed to evaluating based on all ratings by setting ``user_based=False``.
 
 
 .. dropdown:: View codes at this point
@@ -306,7 +306,7 @@ What does the output mean?
 After the training process, Cornac tests the trained model by using the test data
 (as split by the ``RatioSplit`` function) to calculate the metrics defined.
 
-Over in the screenshot below, we see the results for the
+Over in the output above, we see the results for the
 ``Precision@10`` (k=10) and ``Recall@10`` (k=10) respectively.
 
 Also, we see the time taken for Cornac to train, and time taken evaluate the test
@@ -393,22 +393,8 @@ our application.
 What's Next?
 ------------
 
-.. topic:: Are you a developer?
-
-  View a quickstart guide on how you can code and implement Cornac onto your
-  application to provide recommendations for your users.
-
-  View :doc:`/user/iamadeveloper`.
-
-.. topic:: Are you a data scientist?
+.. topic:: Explore the tasks and models
 
   Find out how you can have Cornac as part of your workflow to run your
   experiments, and use Cornac's many models with just a few lines of code.
-  View :doc:`/user/iamaresearcher`.
-
-.. topic:: For all the awesome people out there
-
-  No matter who you are, you could also consider contributing to Cornac,
-  with our contributors guide.
-  View :doc:`/developer/index`.
-
+  View :doc:`/user/tasks`.

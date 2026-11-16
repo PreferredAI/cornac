@@ -15,13 +15,15 @@ build, evaluate, and fine-tune recommender systems to meet your needs.
 
    install
    quickstart
-   iamadeveloper
-   iamaresearcher
 
 .. toctree::
    :glob:
    :maxdepth: 2
-   :caption: Additional Guides
+   :caption: Using Cornac
 
    owndata
+   tasks
+   evaluation
+   predict
+   serving
    example-foodrecce
