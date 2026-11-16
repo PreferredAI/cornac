@@ -1,0 +1,4 @@
+torch>=1.12.0
+transformers>=4.30.0
+faiss-cpu>=1.7.0
+scikit-learn>=1.0.0

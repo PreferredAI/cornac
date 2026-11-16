@@ -67,3 +67,10 @@ env
 venv
 .env
 .venv
+
+# Local experiment reports and temporary dependency/test runtimes
+/tmp/
+/output/bundle_rpg/
+
+# Local research papers and notes
+/research/

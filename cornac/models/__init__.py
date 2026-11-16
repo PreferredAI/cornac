@@ -89,6 +89,7 @@ from .pcrl import PCRL
 from .pmf import PMF
 from .recvae import RecVAE
 from .rpg import RPG
+from .bundle_sid import BundleRPG
 from .sansa import SANSA
 from .sasrec import SASRec
 from .sbpr import SBPR
