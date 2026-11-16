@@ -97,4 +97,4 @@ def test_mae(self):
     self.assertEqual(1, mae.compute(np.asarray([0, 1]), np.asarray([1, 0])))
     self.assertEqual(2, mae.compute(np.asarray([0, 1]), np.asarray([2, 3]), np.asarray([1, 3])))
 ``` 
-At this stage we are done and ready to create a pull request.
+At this stage we are done and ready to create a pull request. See [CONTRIBUTING.md](https://github.com/PreferredAI/cornac/blob/master/CONTRIBUTING.md) for how to run the tests and what we check when we review it.

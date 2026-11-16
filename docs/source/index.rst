@@ -87,7 +87,7 @@ Quick Links
 
       +++
 
-      .. button-ref:: user/iamaresearcher
+      .. button-ref:: developer/guidelines
          :color: primary
          :expand:
          :click-parent:

@@ -11,8 +11,10 @@ Whether you are new to open source or an experienced contributor, you can help u
 
 .. toctree::
    :glob:
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contributing
 
-   gettingstarted
    contributing
+   guidelines
+   add_model
+   add_metric

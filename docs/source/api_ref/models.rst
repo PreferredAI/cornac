@@ -333,8 +333,8 @@ Non-negative Matrix Factorization (NMF)
 .. automodule:: cornac.models.nmf.recom_nmf
    :members:
 
-Probabilitic Matrix Factorization (PMF)
----------------------------------------
+Probabilistic Matrix Factorization (PMF)
+----------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
    :members:
 
