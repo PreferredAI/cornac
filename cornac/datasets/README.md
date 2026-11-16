@@ -24,7 +24,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td align="center">Graph</td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.amazon_clothing">Amazon Clothing</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.amazon_clothing">Amazon Clothing</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
     <td align="right">5,377</td>
     <td align="right">3,393</td>
     <td align="right">13,689</td>
@@ -35,7 +35,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.amazon_digital_music">Amazon Digital Music</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.amazon_digital_music">Amazon Digital Music</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
     <td align="right">5,541</td>
     <td align="right">3,568</td>
     <td align="right">64,706</td>
@@ -46,7 +46,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.amazon_office">Amazon Office</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.amazon_office">Amazon Office</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
     <td align="right">3,703</td>
     <td align="right">6,523</td>
     <td align="right">53,282</td>
@@ -57,7 +57,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.amazon_toy">Amazon Toy</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.amazon_toy">Amazon Toy</a><br>(<a href="http://jmcauley.ucsd.edu/data/amazon/">source</a>)</td>
     <td align="right">19,412</td>
     <td align="right">11,924</td>
     <td align="right">167,597</td>
@@ -68,7 +68,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.citeulike">Citeulike</a><br>(<a href="http://www.wanghao.in/CDL.htm">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.citeulike">Citeulike</a><br>(<a href="http://www.wanghao.in/CDL.htm">source</a>)</td>
     <td align="right">5,551</td>
     <td align="right">16,980</td>
     <td align="right">210,537</td>
@@ -79,7 +79,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.epinions">Epinions</a><br>(<a href="http://www.trustlet.org/downloaded_epinions.html">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.epinions">Epinions</a><br>(<a href="http://www.trustlet.org/downloaded_epinions.html">source</a>)</td>
     <td align="right">40,163</td>
     <td align="right">139,738</td>
     <td align="right">664,824</td>
@@ -90,7 +90,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td align="center">&#10004;</td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.filmtrust">FilmTrust</a><br>(<a href="https://www.librec.net/datasets.html">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.filmtrust">FilmTrust</a><br>(<a href="https://www.librec.net/datasets.html">source</a>)</td>
     <td align="right">1,508</td>
     <td align="right">2,071</td>
     <td align="right">35,497</td>
@@ -101,7 +101,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td align="center">&#10004;</td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.movielens">MovieLens 100k</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.movielens">MovieLens 100k</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
     <td align="right">943</td>
     <td align="right">1,682</td>
     <td align="right">100,000</td>
@@ -112,7 +112,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.movielens">MovieLens 1M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.movielens">MovieLens 1M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
     <td align="right">6,040</td>
     <td align="right">3,706</td>
     <td align="right">1,000,209</td>
@@ -123,7 +123,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.movielens">MovieLens 10M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.movielens">MovieLens 10M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
     <td align="right">69,878</td>
     <td align="right">10,677</td>
     <td align="right">10,000,054</td>
@@ -134,7 +134,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.movielens">MovieLens 20M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.movielens">MovieLens 20M</a><br>(<a href="https://grouplens.org/datasets/movielens/">source</a>)</td>
     <td align="right">138,493</td>
     <td align="right">26,744</td>
     <td align="right">20,000,263</td>
@@ -145,7 +145,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.netflix">Netflix Small</a><br>(<a href="https://www.kaggle.com/netflix-inc/netflix-prize-data/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.netflix">Netflix Small</a><br>(<a href="https://www.kaggle.com/netflix-inc/netflix-prize-data/">source</a>)</td>
     <td align="right">10,000</td>
     <td align="right">5,000</td>
     <td align="right">607,803</td>
@@ -156,7 +156,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.netflix">Neflix Original</a><br>(<a href="https://www.kaggle.com/netflix-inc/netflix-prize-data/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.netflix">Netflix Original</a><br>(<a href="https://www.kaggle.com/netflix-inc/netflix-prize-data/">source</a>)</td>
     <td align="right">480,189</td>
     <td align="right">17,770</td>
     <td align="right">100,480,507</td>
@@ -167,7 +167,7 @@ For easy experimentation, Cornac offers access to a number of popular recommenda
     <td></td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.tradesy">Tradesy</a><br>(<a href="http://jmcauley.ucsd.edu/data/tradesy/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.tradesy">Tradesy</a><br>(<a href="http://jmcauley.ucsd.edu/data/tradesy/">source</a>)</td>
     <td align="right">19,243</td>
     <td align="right">165,906</td>
     <td align="right">394,421</td>
@@ -189,12 +189,12 @@ ratings = filmtrust.load_feedback()
 trust = filmtrust.load_trust()
 ```
 
-The ranting values are in the range `[0.5,4]`, and the trust network is undirected. Here are samples from our dataset,
+The rating values are in the range `[0.5,4]`, and the trust network is undirected. Here are samples from our dataset,
 ```
 Samples from ratings: [('1', '1', 2.0), ('1', '2', 4.0), ('1', '3', 3.5)]
 Samples from trust: [('2', '966', 1.0), ('2', '104', 1.0), ('5', '1509', 1.0)]
 ```
-Our dataset is now ready to use for model training and evaluation. A concrete example is [sorec_filmtrust](../../examples/sorec_filmtrust.py), which illustrates how to perform an experiment with the [SoRec](../models/sorec/) model on FilmTrust. More details regarding the other datasets are available in the [documentation](https://cornac.readthedocs.io/en/latest/datasets.html).
+Our dataset is now ready to use for model training and evaluation. A concrete example is [sorec_filmtrust](../../examples/sorec_filmtrust.py), which illustrates how to perform an experiment with the [SoRec](../models/sorec/) model on FilmTrust. More details regarding the other datasets are available in the [documentation](https://cornac.readthedocs.io/en/stable/api_ref/datasets.html).
 
 ---
 
@@ -213,7 +213,7 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <td>#Interactions</td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.tafeng">Ta Feng</a><br>(<a href="https://www.kaggle.com/datasets/chiranjivdas09/ta-feng-grocery-dataset/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.tafeng">Ta Feng</a><br>(<a href="https://www.kaggle.com/datasets/chiranjivdas09/ta-feng-grocery-dataset/">source</a>)</td>
     <td align="right">28,297</td>
     <td align="right">22,542</td>
     <td align="right">86,403</td>
@@ -236,7 +236,7 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <th>Extra Info.</th>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.gowalla">Gowalla</a><br>(<a href="https://snap.stanford.edu/data/loc-gowalla.html">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.gowalla">Gowalla</a><br>(<a href="https://snap.stanford.edu/data/loc-gowalla.html">source</a>)</td>
     <td align="center">107,092</td>
     <td align="right">1,280,969</td>
     <td align="right">2,710,119</td>
@@ -244,7 +244,7 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <td align="center">Check-ins location (longitude, latitude)</td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.yoochoose">YooChoose (buy)</a><br>(<a href="https://2015.recsyschallenge.com/">source</a>)</td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.yoochoose">YooChoose (buy)</a><br>(<a href="https://2015.recsyschallenge.com/">source</a>)</td>
     <td align="center">N/A</td>
     <td align="right">19,949</td>
     <td align="right">509,696</td>
@@ -252,7 +252,7 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <td align="center">N/A</td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.yoochoose">YooChoose (click)</a></td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.yoochoose">YooChoose (click)</a></td>
     <td align="center">N/A</td>
     <td align="right">52,739</td>
     <td align="right">9,249,729</td>
@@ -260,7 +260,7 @@ Our dataset is now ready to use for model training and evaluation. A concrete ex
     <td align="center">N/A</td>
   </tr>
   <tr>
-    <td><a href="https://cornac.readthedocs.io/en/latest/datasets.html#module-cornac.datasets.yoochoose">YooChoose (test)</a></td>
+    <td><a href="https://cornac.readthedocs.io/en/stable/api_ref/datasets.html#module-cornac.datasets.yoochoose">YooChoose (test)</a></td>
     <td align="center">N/A</td>
     <td align="right">42,155</td>
     <td align="right">2,312,432</td>

@@ -5,7 +5,7 @@ Prerequisites
 ^^^^^^^^^^^^^
 
 Before contributing to Cornac, make sure you have the following prerequisites:
-- Python 3.x
+- Python 3.10 or newer
 - Git
 - Virtual Environment (optional but recommended)
 
@@ -23,7 +23,10 @@ Setting Up Your Development Environment
     cd cornac
     python -m venv venv
     source venv/bin/activate  # On Windows, use 'venv\Scripts\activate'
-    pip install -r requirements.txt
+    pip install Cython numpy scipy
+    python setup.py build_ext --inplace
+    pip install -e ".[tests]"
+    pytest
 
 Now you are ready to contribute to Cornac!
 

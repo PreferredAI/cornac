@@ -132,7 +132,7 @@ recommended item for the user, followed by the second item, and so on.
     # Use the fit() function to train the model
     model_pmf.fit(dataset)
 
-    # Get recommendations for user id 10
+    # Get recommendations for user id 4
     user_id = 4
     recommended_items = model_pmf.recommend(user_id)
 
@@ -189,7 +189,8 @@ provided by Cornac to read our CSV file.
     data = Reader().read('data.csv', sep=',')
     print(data)
 
-1. Creating the Dataset Object
+2. Creating the Dataset Object
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Next, we will create a dataset object from the data. The dataset object
 will be used to train the model.
@@ -199,9 +200,10 @@ will be used to train the model.
     from cornac.data import Dataset
 
     # Load the data into a dataset object
-    dataset = Dataset.from_uir(data, sep=',', skip_lines=1)
+    dataset = Dataset.from_uir(data)
 
 3. Create and train model
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We will then create a model object and train it using the dataset object.
 
@@ -216,6 +218,7 @@ We will then create a model object and train it using the dataset object.
     model_pmf.fit(dataset)
 
 4. Getting recommendations
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finally, we will use the model to get item recommendations for the users. The ``recommend()`` 
 function will recommend the top rated items from the model for the user provided.
@@ -225,7 +228,7 @@ For example, we will get all recommendations for user 4.
 .. code-block:: python
 
     # Get recommendations for user id 4
-    user_id = 4
+    user_id = "4"
     recommended_items = model_pmf.recommend(user_id)
 
     # Print the recommended items
@@ -234,7 +237,7 @@ For example, we will get all recommendations for user 4.
 .. code-block:: bash
     :caption: output
 
-    [1, 4, 3, 5, 2]
+    ['1', '4', '3', '5', '2']
 
 The output is a list of item IDs. The first item in the list is the most
 recommended item for the user, followed by the second item, and so on.
@@ -245,19 +248,16 @@ recommended item for the user, followed by the second item, and so on.
     :caption: data_csv.py
     :linenos:
 
-    import csv
     import cornac
     from cornac.models import PMF
-    from cornac.data import Dataset
+    from cornac.data import Dataset, Reader
 
     # Load the data from the CSV file
-    with open('data.csv', 'r') as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        print(data)
+    data = Reader().read('data.csv', sep=',')
+    print(data)
 
     # Load the data into a dataset object
-    dataset = Dataset.from_uir(data, sep=',', skip_lines=1)
+    dataset = Dataset.from_uir(data)
 
     # Instantiate the PMF model
     model_pmf = PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123)
@@ -266,7 +266,7 @@ recommended item for the user, followed by the second item, and so on.
     model_pmf.fit(dataset)
 
     # Get recommendations for user id 4
-    user_id = 4
+    user_id = "4"
     recommended_items = model_pmf.recommend(user_id)
 
     # Print the recommended items

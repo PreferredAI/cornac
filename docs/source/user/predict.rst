@@ -20,7 +20,7 @@ The Prediction
 --------------
 
 We will predict the ratings of a particular user. Let's say we want to
-predict the ratings of the first user in our list (``index 0``).
+predict the ratings of the user with ID ``"10"``.
 
 Followed from our quickstart tutorial, we will use the PMF model to predict
 the ratings of   a user. We will use the same hyperparameters as in the
@@ -43,7 +43,7 @@ into it:
     ml_100k = cornac.datasets.movielens.load_feedback()
 
 Similar to the previous tutorial, we load the MovieLens 100K dataset.
-The ``ml_100k`` variable is a ``cornac.data.Dataset`` object.
+The ``ml_100k`` variable is a list of ``(user, item, rating)`` tuples.
 
 
 2. Model Training
@@ -63,7 +63,7 @@ We then instantiate the PMF model and train it using the ``fit()`` function.
     rs = RatioSplit(ml_100k, test_size=0.2, seed=123, verbose=True)
 
     # Use the fit() function to train the model
-    model_pmf.fit(ml_100k)
+    model_pmf.fit(rs.train_set)
 
 
 3. Prediction
@@ -78,7 +78,7 @@ user. The list is sorted in descending order of the predicted ratings.
 .. code-block:: python
 
     # Get recommendations for user id 10
-    user_id = 10
+    user_id = "10"
     recommended_items = model_pmf.recommend(user_id)
 
     # Print the recommended items

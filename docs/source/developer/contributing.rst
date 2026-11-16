@@ -40,8 +40,8 @@ are working as expected.
 
 .. code-block:: bash
 
-    python3 setup.py clean
-    python3 setup.py install
+    python setup.py build_ext --inplace
+    pip install -e ".[tests]"
 
 
 .. note::
@@ -85,7 +85,7 @@ Once your feature is ready for reviewing, do a pull request for review and mergi
 
 1. Visit your fork on GitHub.
 2. Click the "New Pull Request" button.
-3. Choose the base repository (PreferredAI/cornac) and branch (main) for your pull request.
+3. Choose the base repository (PreferredAI/cornac) and branch (master) for your pull request.
 4. Write a clear and detailed pull request description.
 5. Click "Create Pull Request."
 

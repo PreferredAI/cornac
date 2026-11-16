@@ -3,7 +3,7 @@ Installation
 
 Install Python
 --------------
-Cornac supports most versions of Python 3. If you have not done so, go to the official `Python download page <https://www.python.org/downloads/>`_.
+Cornac supports Python 3.10 or newer. If you have not done so, go to the official `Python download page <https://www.python.org/downloads/>`_.
 
 Install Cornac
 --------------
@@ -47,7 +47,7 @@ Model dependencies
 ------------------
 
 Certain models in Cornac may require additional dependencies.
-The requirements.txt file shows what dependencies are required for each model.\
+The requirements.txt file shows what dependencies are required for each model.
 
 Take the model WMF for example.
 
@@ -80,7 +80,7 @@ To install all dependencies in a provided requirements.txt file, follow these st
 
     .. code-block:: bash
 
-        brew install gcc | brew link gcc
+        brew install gcc && brew link gcc
 
 Verifying Installation
 ----------------------
@@ -94,7 +94,7 @@ by running the following command on your favourite terminal/command prompt:
 You should see the following output:
 
 .. parsed-literal::
-    |version|
+    |release|
 
 Congratulations! Your machine has Cornac and you're now ready to
 create your first experiment!

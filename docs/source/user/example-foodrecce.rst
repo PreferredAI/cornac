@@ -133,7 +133,7 @@ Now, given that our backend receives a load request from a user with id
 
     def get_recommendations(user_id, top_k):
         # Get the top k recommendations for user with id user_id
-        top_k_recs = bpr.recommend(user_id=user_id, top_k=top_k)
+        top_k_recs = bpr.recommend(user_id=user_id, k=top_k)
         return top_k_recs
 
 
