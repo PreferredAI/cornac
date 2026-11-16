@@ -3,6 +3,18 @@ Metrics
 
 .. automodule:: cornac.metrics
 
+++++++++++++
+Base Classes
+++++++++++++
+
+Rating Metric
+-------------
+.. autoclass:: RatingMetric
+
+Ranking Metric
+--------------
+.. autoclass:: RankingMetric
+
 ++++++
 Rating
 ++++++

@@ -33,16 +33,21 @@ Timestamp Split
 .. automodule:: cornac.eval_methods.timestamp_split
    :members:
 
+Next Basket Evaluation
+----------------------
+.. automodule:: cornac.eval_methods.next_basket_evaluation
+   :members:
+
 Next Item Evaluation
 --------------------
 .. automodule:: cornac.eval_methods.next_item_evaluation
    :members:
 
 Recommendation Evaluation with Semantic IDs
-------------------------------------------
+-------------------------------------------
 
 Use ``NextItemEvaluation`` for both ordinary next-item models (such as SASRec)
-and Semantic ID models (TIGER, LETTER, RPG and DiffGRM), including a mixed
+and Semantic ID models (TIGER, LETTER, RPG, DiffGRM and DIGER), including a mixed
 ``Experiment``. Its optional ``semantic_id_metrics`` switch defaults to False.
 Set it to True in Semantic ID experiment setup to enable the extra views.
 Ordinary item metric names and model-specific item resolution are preserved.
@@ -90,7 +95,8 @@ view in the same way.
 For example::
 
     evaluation = NextItemEvaluation.from_splits(
-        train, test, fmt="USIT", item_feature=features,
+        train, test, fmt="USIT",
+        item_feature=FeatureModality(features=features, ids=item_ids),
         semantic_id_metrics=True)
     Experiment(evaluation, [TIGER(device="cpu"), SASRec()],
                [Recall(10), NDCG(10)]).run()
@@ -129,6 +135,6 @@ The given items of each held-out bundle become training rows of its queries and
 the remaining items are targets, so ordinary ranking metrics exclude exactly the
 given items, and item recommenders such as MostPop and ItemKNN are valid
 completion baselines. With ``set_metrics=True`` it also reports ``Set-F1`` and
-``Set-Jaccard`` between the targets T and |T| constructed items, taken from
+``Set-Jaccard`` between the targets T and ``|T|`` constructed items, taken from
 ``construct`` for a :class:`cornac.models.BundleConstructionRecommender` and
-from the top |T| ranked items otherwise.
+from the top ``|T|`` ranked items otherwise.

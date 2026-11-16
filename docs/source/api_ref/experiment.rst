@@ -18,6 +18,11 @@ CVResult
 .. automodule:: cornac.experiment.result
    :members: CVResult
 
+PSTResult
+---------
+.. autoclass:: cornac.experiment.result.PSTResult
+   :members:
+
 ExperimentResult
 ----------------
 .. automodule:: cornac.experiment.result
