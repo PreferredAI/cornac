@@ -2,7 +2,7 @@
 
 This tutorial shows how to add an evaluation measure to Cornac. As with any contribution, we assume that we have already forked the Cornac repository.
 
-Some evaluation measures may have different appellations in the literature. So it is worth it to make sure that the metric of interest is not already available in Cornac, before considering any contribution. Cornac's list of measures is [here](https://cornac.readthedocs.io/en/latest/metrics.html).
+Some evaluation measures may have different appellations in the literature. So it is worth it to make sure that the metric of interest is not already available in Cornac, before considering any contribution. Cornac's list of measures is [here](https://cornac.readthedocs.io/en/stable/api_ref/metrics.html).
 
 ## Adding a metric
 
@@ -21,7 +21,7 @@ It is important to follow the above categorization to avoid confusions. For the 
 
 ### 1. Extending the RatingMetric class
 
-The starting point is to create a class called ``MAE``, which extends the generic class ``RatingMetric`` implemented inside `metric/rating.py`. The minimal structure of our new class is as follows:  
+The starting point is to create a class called ``MAE``, which extends the generic class ``RatingMetric`` implemented inside `cornac/metrics/rating.py`. The minimal structure of our new class is as follows:  
 ```python
 class MAE(RatingMetric):
     """Mean Absolute Error.
@@ -67,16 +67,16 @@ def compute(self, gt_ratings, pd_ratings, weights=None, **kwargs):
     mae = np.average(np.abs(gt_ratings - pd_ratings), axis=0, weights=weights)
     return mae
 ```
-As one may have guessed, the code of the ``MAE`` class should be inside ``metrics/rating.py``.  
+As one may have guessed, the code of the ``MAE`` class should be inside ``cornac/metrics/rating.py``.  
 
 ### 2. Making our metric available to Cornac and its Docs
 
-To make the MAE class accessible in Cornac, we update the ``metrics/__init__.py`` file by adding the following line:
+To make the MAE class accessible in Cornac, we update the ``cornac/metrics/__init__.py`` file by adding the following line:
 ```python
 from .rating import MAE
 ``` 
 
-To further automatically generate the documentation for our measure, we update `cornac/docs/source/metrics.rst` by adding the following code under the _Rating_ section.
+To further automatically generate the documentation for our measure, we update `docs/source/api_ref/metrics.rst` by adding the following code under the _Rating_ section.
 ```
 Mean Absolute Error (MAE)
 --------------------------
@@ -97,4 +97,4 @@ def test_mae(self):
     self.assertEqual(1, mae.compute(np.asarray([0, 1]), np.asarray([1, 0])))
     self.assertEqual(2, mae.compute(np.asarray([0, 1]), np.asarray([2, 3]), np.asarray([1, 3])))
 ``` 
-At this stage we are done and ready to create a pull request.
+At this stage we are done and ready to create a pull request. See [CONTRIBUTING.md](https://github.com/PreferredAI/cornac/blob/master/CONTRIBUTING.md) for how to run the tests and what we check when we review it.

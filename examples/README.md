@@ -18,6 +18,10 @@
 
 [param_search.py](param_search.py) - Hyper-parameter tuning with GridSearch and RandomSearch.
 
+[ann_example.py](ann_example.py) - Example for comparing different ANN searchers (Annoy, Faiss, HNSWLib, ScaNN) with BPR model on Netflix dataset.
+
+[ann_all.ipynb](ann_all.ipynb) - Notebook comparing the indexing time, retrieval time and recall of different ANN searchers (Annoy, Faiss, HNSWLib, ScaNN) with MF model on Netflix dataset, and saving and loading them.
+
 ----
 
 ## Multimodal Algorithms (Using Auxiliary Data)
@@ -62,13 +66,19 @@
 
 [efm_example.py](efm_example.py) - Explicit Factor Model (EFM) with Amazon Toy and Games dataset.
 
-[hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLen 1m dataset.
+[hft_example.py](hft_example.py) - Hidden Factor Topic (HFT) with MovieLens 1M dataset.
+
+[hrdr_example.py](hrdr_example.py) - Hybrid neural recommendation with joint deep representation learning of ratings and reviews (HRDR) with Amazon Digital Music dataset.
 
 [lrppm_example.py](lrppm_example.py) - Learn to Rank user Preferences based on Phrase-level sentiment analysis across Multiple categories (LRPPM) with Amazon Toy and Games dataset.
 
 [mter_example.py](mter_example.py) - Multi-Task Explainable Recommendation (MTER) with Amazon Toy and Games dataset.
 
+[narre_example.py](narre_example.py) - Neural Attention Rating Regression with Review-level Explanations (NARRE) with Amazon Digital Music dataset.
+
 ### Image
+
+[amr_clothing.py](amr_clothing.py) - Adversarial Training Towards Robust Multimedia Recommender System (AMR) with Amazon Clothing dataset.
 
 [causalrec_clothing.py](causalrec_clothing.py) - CausalRec with Clothing dataset.
 
@@ -77,6 +87,8 @@
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
+
+----
 
 ## Unimodal Algorithms
 
@@ -106,7 +118,7 @@
 
 [sansa_movielens.py](sansa_movielens.py) - Scalable Approximate NonSymmetric Autoencoder (SANSA) with MovieLens 1M dataset.
 
-[sansa_tradesy.py](sansa_movielens.py) - Scalable Approximate NonSymmetric Autoencoder (SANSA) with Tradesy dataset.
+[sansa_tradesy.py](sansa_tradesy.py) - Scalable Approximate NonSymmetric Autoencoder (SANSA) with Tradesy dataset.
 
 [skm_movielens.py](skm_movielens.py) - SKMeans vs BPR on MovieLens data.
 
@@ -153,6 +165,8 @@
 [tifuknn_tafeng.py](tifuknn_tafeng.py) - Example of Temporal-Item-Frequency-based User-KNN (TIFUKNN).
 
 [upcf_tafeng.py](upcf_tafeng.py) - Example of Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF).
+
+----
 
 ## Bundle Algorithms
 

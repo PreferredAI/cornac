@@ -9,10 +9,13 @@ Grid Search
 
 Random Search
 --------------------
-.. automodule:: cornac.hyperopt
-   :members: RandomSearch
+.. autoclass:: cornac.hyperopt.RandomSearch
+   :members:
 
 Search Domain
 ---------------
-.. automodule:: cornac.hyperopt
-   :members: Discrete, Continuous
+.. autoclass:: cornac.hyperopt.Discrete
+   :members:
+
+.. autoclass:: cornac.hyperopt.Continuous
+   :members:

@@ -1,13 +1,9 @@
 Quickstart
 ==========
 
-Cornac is a Python library for building and training recommendation models.
-It focuses on making it convenient to work with models leveraging auxiliary
-data (e.g., item descriptive text and image, social network, etc).
-
-Cornac enables fast experiments and straightforward implementations of new
-models. It is highly compatible with existing machine learning libraries
-(e.g., TensorFlow, PyTorch).
+This page walks you through your first Cornac experiment. You train two
+recommendation models on the MovieLens 100K dataset and compare how well they
+recommend movies.
 
 .. topic:: New to Recommender Systems?
 
@@ -108,8 +104,8 @@ The Experiment
     See :doc:`install`.
 
 In this experiment, we will be using the MovieLens 100K dataset to train and
-evaluate a recommender system that can predict how a user would rate a movie
-based on their preferences learned from past ratings.
+evaluate a recommender system that recommends movies to each user based on
+their preferences learned from past ratings.
 
 .. image:: images/flow.jpg
    :width: 800
@@ -245,13 +241,15 @@ We set various parameters for the ``Experiment`` object:
 - ``metrics=metrics`` to use the ``Precision``, and ``Recall``
   metrics that we defined earlier.
 
-- ``user_based=True`` to evaluate the model on an individual user basis.
-  This means that the average performance of each user will be calculated
-  and averaged across users to get the final result (users are weighted equally). 
-  This is opposed to evaluating based on all ratings by setting ``user_based=false``.
+- ``user_based=True`` to average rating metrics, such as RMSE, over users:
+  the error of each user is calculated first, then averaged across users
+  (users are weighted equally). With ``user_based=False``, the error is
+  averaged over all test ratings instead. Ranking metrics such as Precision and Recall are
+  always calculated for each user and averaged across users, so this setting
+  does not change the results here.
 
 
-.. dropdown:: View codes at this point
+.. dropdown:: View code at this point
 
     .. code-block:: python
         :caption: first_experiment.py
@@ -279,10 +277,10 @@ We set various parameters for the ``Experiment`` object:
         # Put it together in an experiment, voilà!
         cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
 
-Run the python codes
-^^^^^^^^^^^^^^^^^^^^
+Run the Python code
+^^^^^^^^^^^^^^^^^^^
 
-Finally, run the python codes you have just written by entering this into your
+Finally, run the Python code you have just written by entering this into your
 favourite command prompt.
 
 .. code-block:: bash
@@ -306,7 +304,7 @@ What does the output mean?
 After the training process, Cornac tests the trained model by using the test data
 (as split by the ``RatioSplit`` function) to calculate the metrics defined.
 
-Over in the screenshot below, we see the results for the
+Over in the output above, we see the results for the
 ``Precision@10`` (k=10) and ``Recall@10`` (k=10) respectively.
 
 Also, we see the time taken for Cornac to train, and time taken evaluate the test
@@ -320,7 +318,7 @@ In many of the times, we may want to consider adding more models so that we can
 compare results accordingly.
 
 Let's add a second model called the Probabilistic Matrix Factorization (PMF) model.
-We add the following codes to our models variable:
+We add the following code to our models variable:
 
 .. code-block:: python
 
@@ -332,7 +330,7 @@ We add the following codes to our models variable:
         PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123),
     ]
 
-.. dropdown:: View codes at this point
+.. dropdown:: View code at this point
 
     .. code-block:: python
         :caption: first_experiment.py
@@ -393,22 +391,5 @@ our application.
 What's Next?
 ------------
 
-.. topic:: Are you a developer?
-
-  View a quickstart guide on how you can code and implement Cornac onto your
-  application to provide recommendations for your users.
-
-  View :doc:`/user/iamadeveloper`.
-
-.. topic:: Are you a data scientist?
-
-  Find out how you can have Cornac as part of your workflow to run your
-  experiments, and use Cornac's many models with just a few lines of code.
-  View :doc:`/user/iamaresearcher`.
-
-.. topic:: For all the awesome people out there
-
-  No matter who you are, you could also consider contributing to Cornac,
-  with our contributors guide.
-  View :doc:`/developer/index`.
-
+:doc:`/user/owndata` shows how to load the other built-in datasets and your own
+data.

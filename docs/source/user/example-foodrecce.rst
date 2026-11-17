@@ -1,6 +1,10 @@
 FoodRecce Example
 =================
 
+This page shows how a restaurant app, FoodRecce, uses Cornac to recommend
+restaurants. It follows the app from the like/dislike feedback it collects to a
+trained BPR model that gives each user a list of restaurants.
+
 .. image:: images/foodrecce1.png
    :width: 200
 
@@ -42,25 +46,27 @@ The data is being loaded from the database. A simple SQL statement
     data = [
         ("uid_001", "restaurant_032", 1),
         ("uid_954", "restaurant_012", 0),
-        ("uid_022", 'resturant_027', 1),
-        ...
+        ("uid_022", "restaurant_027", 1),
+        # ... more feedback rows
     ]
 
-We then convert the data to the dataset format:
+BPR treats every pair in the dataset as a restaurant the user likes, whatever
+its rating, so we keep only the likes and convert them to the dataset format:
 
 .. code-block:: python
 
     from cornac.data import Dataset
 
-    dataset = Dataset.from_uir(data, seed=123)
+    likes = [(user, item, rating) for user, item, rating in data if rating == 1]
+    dataset = Dataset.from_uir(likes, seed=123)
 
 
 How the recommender was built
 -----------------------------
 
 We use the BPR recommender to build the recommendation system for FoodRecce.
-Based on historical data, we are able to rank other unseen restaurants based
-on the user's past preferences.
+Based on historical data, we are able to rank restaurants by the user's past
+preferences.
 
 Assuming that we have already experimented different parameters and values for
 the BPR model, we can then train the recommender system.
@@ -79,6 +85,7 @@ the BPR model, we can then train the recommender system.
 This in turn saves the model which we could reuse for future predictions.
 For the FoodRecce use case, we often retrain the model with new data as new
 restaurants are often added to the database, along with the increase of new users.
+:doc:`/user/serving` explains how saving and loading models works.
 
 .. note::
 
@@ -133,9 +140,10 @@ Now, given that our backend receives a load request from a user with id
 
     def get_recommendations(user_id, top_k):
         # Get the top k recommendations for user with id user_id
-        top_k_recs = bpr.recommend(user_id=user_id, top_k=top_k)
+        top_k_recs = bpr.recommend(user_id=user_id, k=top_k)
         return top_k_recs
 
+    recommendations = get_recommendations(user_id, top_k)
 
 For example, the values returned will be as follows;
 
@@ -168,7 +176,7 @@ Updating the Model
 
 Over the months, many new restaurants and food establishments would have
 been introduced to the public. To keep the app relevant, we would need to
-retrain the model with the new data. With an data source, new restaurants
+retrain the model with the new data. With a data source, new restaurants
 are consistently added into the database, in which we would retrain the
 model to increase coverage of restaurants. Also, we periodically update 
 the model to better capture users' most recent preferences.
@@ -190,33 +198,6 @@ application, and share them with us!
 What's Next?
 ------------
 
-Now that you have learned how to use Cornac for your own projects and
-applications, you can now start building your own recommendation systems using
-Cornac.
-
-.. topic:: View the Developer Quickstart
-
-  View a quickstart guide on how you can code and implement Cornac onto your
-  application to provide recommendations for your users.
-
-  View :doc:`/user/iamadeveloper`.
-
-.. topic:: View the Models API Reference
-
-    You can also view the :doc:`/api_ref/models` documentation for more
-    information about the models and its specific parameters.
-
-Others
-------
-
-.. topic:: Are you a data scientist?
-
-  Find out how you can have Cornac as part of your workflow to run your
-  experiments, and use Cornac's many models with just a few lines of code.
-  View :doc:`/user/iamaresearcher`.
-
-.. topic:: For all the awesome people out there
-
-  No matter who you are, you could also consider contributing to Cornac,
-  with our contributors guide.
-  View :doc:`/developer/index`.
+:doc:`/models/index` lists the models in Cornac, so you can find one that fits
+your application. The :doc:`/api_ref/models` documentation describes each
+model's parameters.

@@ -15,15 +15,20 @@ Result
 
 CVResult
 --------
-.. automodule:: cornac.experiment.result
-   :members: CVResult
+.. autoclass:: cornac.experiment.result.CVResult
+   :members:
+
+PSTResult
+---------
+.. autoclass:: cornac.experiment.result.PSTResult
+   :members:
 
 ExperimentResult
 ----------------
-.. automodule:: cornac.experiment.result
-   :members: ExperimentResult
+.. autoclass:: cornac.experiment.result.ExperimentResult
+   :members:
 
 CVExperimentResult
 ------------------
-.. automodule:: cornac.experiment.result
-   :members: CVExperimentResult
+.. autoclass:: cornac.experiment.result.CVExperimentResult
+   :members:

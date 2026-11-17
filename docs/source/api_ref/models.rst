@@ -10,6 +10,7 @@ Recommender (Generic Class)
 ---------------------------
 .. automodule:: cornac.models.recommender
    :members:
+   :exclude-members: BundleRecommender, BundleConstructionRecommender
 
 Diffusion-based Generative Recommendation Model (DiffGRM)
 ---------------------------------------------------------
@@ -17,7 +18,7 @@ Diffusion-based Generative Recommendation Model (DiffGRM)
    :members:
 
 Comparative Aspects and Opinions Ranking for Recommendation Explanations (Companion)
--------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 .. automodule:: cornac.models.companion.recom_companion
    :members:
 
@@ -64,7 +65,7 @@ Hybrid neural recommendation with joint deep representation learning of ratings 
 .. automodule:: cornac.models.hrdr.recom_hrdr
    :members:
 
-Hypergraphs with Attention on Reviews for Explainable Recommendation
+Hypergraphs with Attention on Reviews for Explainable Recommendation (HypAR)
 --------------------------------------------------------------------------------------------------
 .. automodule:: cornac.models.hypar.recom_hypar
    :members:
@@ -95,7 +96,7 @@ Temporal-Item-Frequency-based User-KNN (TIFUKNN)
    :members:
 
 Correlation-Sensitive Next-Basket Recommendation (Beacon)
----------------------------------------------------
+---------------------------------------------------------
 .. automodule:: cornac.models.beacon.recom_beacon
    :members:
 
@@ -249,14 +250,33 @@ Collaborative Topic Regression (CTR)
 .. automodule:: cornac.models.ctr.recom_ctr
    :members:
 
+Approximate Nearest Neighbor Search
+-----------------------------------
+.. automodule:: cornac.models.ann.recom_ann_annoy
+   :members:
+
+.. automodule:: cornac.models.ann.recom_ann_faiss
+   :members:
+
+.. automodule:: cornac.models.ann.recom_ann_hnswlib
+   :members:
+
+.. automodule:: cornac.models.ann.recom_ann_scann
+   :members:
+
 Baseline Only
 -------------
-.. autoclass:: cornac.models.baseline_only.recom_bo
+.. automodule:: cornac.models.baseline_only.recom_bo
    :members:
 
 Bayesian Personalized Ranking (BPR)
 -----------------------------------
 .. autoclass:: cornac.models.bpr.recom_bpr.BPR
+   :members:
+
+BERT4Rec: Sequential Recommendation with Bidirectional Encoder Representations from Transformer (BERT4Rec)
+----------------------------------------------------------------------------------------------------------
+.. automodule:: cornac.models.bert4rec.recom_bert4rec
    :members:
 
 Bundle Popularity (BundlePop)
@@ -267,11 +287,21 @@ Bundle Popularity (BundlePop)
 Factorization Machines (FM)
 ---------------------------
 .. autoclass:: cornac.models.fm.recom_fm.FM
-   :members
+   :members:
+
+Factorizing Personalized Markov Chains (FPMC)
+---------------------------------------------
+.. automodule:: cornac.models.fpmc.recom_fpmc
+   :members:
 
 Global Average (GlobalAvg)
 --------------------------
 .. automodule:: cornac.models.global_avg.recom_global_avg
+   :members:
+
+Global Personalized Top Frequent (GPTop)
+----------------------------------------
+.. automodule:: cornac.models.gp_top.recom_gp_top
    :members:
 
 Item K-Nearest-Neighbors (ItemKNN)
@@ -304,9 +334,24 @@ Non-negative Matrix Factorization (NMF)
 .. automodule:: cornac.models.nmf.recom_nmf
    :members:
 
-Probabilitic Matrix Factorization (PMF)
----------------------------------------
+Probabilistic Matrix Factorization (PMF)
+----------------------------------------
 .. automodule:: cornac.models.pmf.recom_pmf
+   :members:
+
+Recommender Systems with Generative Retrieval (TIGER)
+-----------------------------------------------------
+.. automodule:: cornac.models.tiger.recom_tiger
+   :members:
+
+Scalable Approximate NonSymmetric Autoencoder (SANSA)
+-----------------------------------------------------
+.. automodule:: cornac.models.sansa.recom_sansa
+   :members:
+
+Self-Attentive Sequential Recommendation (SASRec)
+-------------------------------------------------
+.. automodule:: cornac.models.sasrec.recom_sasrec
    :members:
 
 Session Popular (SPop)
@@ -329,9 +374,19 @@ Social Recommendation using PMF (SoRec)
 .. automodule:: cornac.models.sorec.recom_sorec
    :members:
 
+Transformers4Rec-style Unified Transformer Recommender (TransformerRec)
+-----------------------------------------------------------------------
+.. automodule:: cornac.models.transformer_rec.recom_transformer_rec
+   :members:
+
 User K-Nearest-Neighbors (UserKNN)
 ----------------------------------
 .. autoclass:: cornac.models.knn.recom_knn.UserKNN
+   :members:
+
+View-Enhanced Bayesian Personalized Ranking (VEBPR)
+---------------------------------------------------
+.. autoclass:: cornac.models.bpr.recom_vebpr.VEBPR
    :members:
 
 Weighted Matrix Factorization (WMF)
@@ -340,12 +395,11 @@ Weighted Matrix Factorization (WMF)
    :members:
 
 Semantic ID Model Contracts
---------------------------
-.. autoclass:: cornac.models.recommender.SemanticIDMixin
-   :members:
+---------------------------
+See :class:`~cornac.models.recommender.SemanticIDMixin` under `Recommender (Generic Class)`_.
 
-DIGER
------
+Differentiable Semantic ID for Generative Recommendation (DIGER)
+----------------------------------------------------------------
 .. automodule:: cornac.models.diger.recom_diger
    :members:
 
