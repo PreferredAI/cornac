@@ -57,7 +57,7 @@ rs_mf = RandomSearch(
     ],
     metric=rmse,
     eval_method=ratio_split,
-    n_trails=30,
+    n_trials=30,
 )
 
 # Put everything together into an experiment and run it

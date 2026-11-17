@@ -401,7 +401,7 @@ this, we can use the ``cornac.hyperopt`` module to perform the searches.
         ],
         metric=rec100,
         eval_method=rs,
-        n_trails=20,
+        n_trials=20,
     )
 
 As shown in the above code, we have defined two methods for hyper-parameter search,
@@ -427,7 +427,7 @@ we want to tune:
   of the ``learning_rate``.
 
 - For RandomSearch method, the searched ``learning_rate`` value will be randomized in the
-  range of continuous values between 0.001 and 0.01. We have also set the ``n_trails=20`` meaning
+  range of continuous values between 0.001 and 0.01. We have also set the ``n_trials=20`` meaning
   the application will attempt 20 random combinations of ``learning_rate`` and ``k``.
 
 
@@ -494,7 +494,7 @@ experiments using the ``cornac.Experiment`` class.
             ],
             metric=rec100,
             eval_method=rs,
-            n_trails=20,
+            n_trials=20,
         )
 
         # Define the experiment
@@ -538,7 +538,7 @@ Both searches choose on the validation set, so compare them there. Both found
 (0.6951 and 0.6949). The ``TEST`` table then shows how the chosen settings do
 on data that played no part in the choice.
 
-``n_trails`` sets how many settings ``RandomSearch`` samples from the search
+``n_trials`` sets how many settings ``RandomSearch`` samples from the search
 space (10 by default). Each setting means training the model once more, so more
 trials take longer but give a better chance of finding a good setting.
 
