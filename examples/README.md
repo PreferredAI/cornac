@@ -20,6 +20,8 @@
 
 [ann_example.py](ann_example.py) - Example for comparing different ANN searchers (Annoy, Faiss, HNSWLib, ScaNN) with BPR model on Netflix dataset.
 
+[ann_all.ipynb](ann_all.ipynb) - Notebook comparing the indexing time, retrieval time and recall of different ANN searchers (Annoy, Faiss, HNSWLib, ScaNN) with MF model on Netflix dataset, and saving and loading them.
+
 ----
 
 ## Multimodal Algorithms (Using Auxiliary Data)
@@ -85,6 +87,8 @@
 [vbpr_tradesy.py](vbpr_tradesy.py) - Visual Bayesian Personalized Ranking (VBPR) with Tradesy dataset.
 
 [vmf_clothing.py](vmf_clothing.py) - Visual Matrix Factorization (VMF) with Amazon Clothing dataset.
+
+----
 
 ## Unimodal Algorithms
 
@@ -161,6 +165,8 @@
 [tifuknn_tafeng.py](tifuknn_tafeng.py) - Example of Temporal-Item-Frequency-based User-KNN (TIFUKNN).
 
 [upcf_tafeng.py](upcf_tafeng.py) - Example of Recency Aware Collaborative Filtering for Next Basket Recommendation (UPCF).
+
+----
 
 ## Bundle Algorithms
 

@@ -10,6 +10,7 @@ Recommender (Generic Class)
 ---------------------------
 .. automodule:: cornac.models.recommender
    :members:
+   :exclude-members: BundleRecommender, BundleConstructionRecommender
 
 Diffusion-based Generative Recommendation Model (DiffGRM)
 ---------------------------------------------------------
@@ -64,7 +65,7 @@ Hybrid neural recommendation with joint deep representation learning of ratings 
 .. automodule:: cornac.models.hrdr.recom_hrdr
    :members:
 
-Hypergraphs with Attention on Reviews for Explainable Recommendation
+Hypergraphs with Attention on Reviews for Explainable Recommendation (HypAR)
 --------------------------------------------------------------------------------------------------
 .. automodule:: cornac.models.hypar.recom_hypar
    :members:
@@ -397,8 +398,8 @@ Semantic ID Model Contracts
 ---------------------------
 See :class:`~cornac.models.recommender.SemanticIDMixin` under `Recommender (Generic Class)`_.
 
-DIGER
------
+Differentiable Semantic ID for Generative Recommendation (DIGER)
+----------------------------------------------------------------
 .. automodule:: cornac.models.diger.recom_diger
    :members:
 

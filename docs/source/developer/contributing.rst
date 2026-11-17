@@ -6,12 +6,7 @@ This page walks you through setting up Cornac for development and opening a pull
 Prerequisites
 ^^^^^^^^^^^^^
 
-Before contributing to Cornac, make sure you have the following prerequisites:
-
-- Python 3.10 or newer
-- A C++ compiler, because parts of Cornac are written in Cython
-- Git
-- Virtual Environment (optional but recommended)
+Before contributing to Cornac, make sure you have Git and a GitHub account.
 
 Fork the Repository
 ^^^^^^^^^^^^^^^^^^^
@@ -31,7 +26,7 @@ Setting Up Your Development Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Create a virtual environment, build Cornac and run the tests with the commands
-under "Development Setup" in :doc:`/developer/guidelines`.
+in `Development Setup <guidelines.html#development-setup>`__.
 
 Now you are ready to contribute to Cornac!
 
@@ -45,16 +40,16 @@ Create a new branch for your contribution:
     git checkout -b my-feature-branch
 
 
-Make your Changes
+Make Your Changes
 ^^^^^^^^^^^^^^^^^
 
 Make your code changes, bug fixes, or improvements to Cornac.
 
 
-Testing your Changes
+Testing Your Changes
 ^^^^^^^^^^^^^^^^^^^^
 
-Build Cornac on your environment, followed by testing it on an example to ensure your changes
+Build Cornac on your environment, then run the tests and an example to check that your changes
 are working as expected.
 
 1. If you changed a Cython (``.pyx``) file, build Cornac on your environment again:
@@ -63,10 +58,19 @@ are working as expected.
 
        python setup.py build_ext --inplace
 
-2. Run an example depending on what you are fixing/enhancing on.
+2. Run the tests:
+
+   .. code-block:: bash
+
+       pytest
+
+   See `Tests <guidelines.html#tests>`__ for which tests to add with your change
+   and how to run the dataset tests.
+
+3. Run an example that uses the code you changed.
 
 
-Commit your changes
+Commit Your Changes
 ^^^^^^^^^^^^^^^^^^^
 
 Commit your changes with a descriptive commit message:
@@ -87,10 +91,10 @@ Push your changes to your GitHub fork:
     git push origin my-feature-branch
 
 
-Creating a pull request
+Creating a Pull Request
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Once your feature is ready for reviewing, do a pull request for review and merging.
+Once your feature is ready, open a pull request for review and merging.
 
 1. Visit your fork on GitHub.
 2. Click the "New Pull Request" button.
@@ -98,25 +102,14 @@ Once your feature is ready for reviewing, do a pull request for review and mergi
 4. Write a clear and detailed pull request description.
 5. Click "Create Pull Request."
 
-View this guide for more information on how to do a pull request.
-https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request
-
-
-Your pull request will be reviewed by the Cornac maintainers.
-Please be patient during the review process, and be prepared to address any feedback.
-
-
-
-Development Guidelines
-^^^^^^^^^^^^^^^^^^^^^^
+GitHub's guide to `creating a pull request
+<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`__
+has more details.
 
 :doc:`/developer/guidelines` sums up what we check when we review a pull request.
 
-Documentation
-~~~~~~~~~~~~~
-
-Contributions should include relevant and concise documentation.
-This includes docstrings, comments, and updates to the official documentation when needed.
+Your pull request will be reviewed by the Cornac maintainers.
+Please be patient during the review process, and be prepared to address any feedback.
 
 
 Communication

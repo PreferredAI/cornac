@@ -58,6 +58,7 @@ class PMF(Recommender):
         self : object
         """
         Recommender.fit(self, train_set, val_set)
+        return self
 
     def score(self, user_idx, item_idx=None):
         """Predict the scores/ratings of a user for an item.
@@ -123,11 +124,14 @@ cornac
     |-- ngcf_example.py
 ```
 
-#### Model file structure
+#### Importing optional dependencies
 
-Your model file should have special dependencies imported only in the
-fit/score functions. This is to ensure that Cornac can be imported without
-installing the additional packages.
+Since `import cornac` loads the `recom_<name>.py` file of every model, your
+model file imports the extra packages it needs inside `fit()`, `score()` or
+other methods rather than at the top. This is to ensure that Cornac can be
+imported without installing the additional packages. Backend modules that are
+only imported from inside those methods, such as `ngcf.py` above, can import
+them at the top as usual.
 
 For example, in the code snippet below from the [NGCF](https://github.com/PreferredAI/cornac/blob/master/cornac/models/ngcf/recom_ngcf.py) model, the `fit`
 function imports the `torch` package. This is to ensure that the `torch`
@@ -179,7 +183,7 @@ def fit(self, train_set, val_set=None):
 
 ### 4. Adding documentation
 
-Cornac uses [Sphinx](http://www.sphinx-doc.org/en/master/) to generate documentation. All you need to do is to fulfill the Parameters section inside `recom_pmf.py`. If you are not familiar with Sphinx syntax conventions, you can just take a look at some of the existing Cornac models and follow them.
+Cornac uses [Sphinx](http://www.sphinx-doc.org/en/master/) to generate documentation. All you need to do is to fill in the `Parameters` and `References` sections of the docstrings inside `recom_pmf.py`, which follow the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) style. If you are not familiar with numpydoc, you can just take a look at some of the existing Cornac models and follow them.
 
 Once you have documented the parameters of your recommender, the next step, to integrate your model to the docs, is to update `docs/source/api_ref/models.rst` by adding the following code:
 ```
@@ -200,18 +204,18 @@ Please add an example on how to fit your model to some dataset and report the ob
 In short, contributing a recommender model to Cornac involves,
 
 - Creating new files
-    - [x] ./cornac/models/model_name/\_\_init__.py
-    - [x] ./cornac/models/model_name/recom_model_name.py
-    - [x] ./cornac/models/model_name/requirements.txt (optional)
+    - [ ] ./cornac/models/model_name/\_\_init__.py
+    - [ ] ./cornac/models/model_name/recom_model_name.py
+    - [ ] ./cornac/models/model_name/requirements.txt (optional)
 - Implementing two functions
-     - [x] Recommender.fit()
-     - [x] Recommender.score()
+     - [ ] Recommender.fit()
+     - [ ] Recommender.score()
 - Updating existing files
-     - [x] ./cornac/models/\_\_init__.py
-     - [x] ./docs/source/api_ref/models.rst
-     - [x] ./README.md
+     - [ ] ./cornac/models/\_\_init__.py
+     - [ ] ./docs/source/api_ref/models.rst
+     - [ ] ./README.md
 - Adding an example
-     - [x] ./examples/model_name_example.py, listed in ./examples/README.md
+     - [ ] ./examples/model_name_example.py, listed in ./examples/README.md
      
 As a concrete example, you can take a look at one of the Cornac's model implementations inside `./cornac/models/`, as this may help you save time. For instance, [recom_pmf.py](https://github.com/PreferredAI/cornac/blob/master/cornac/models/pmf/recom_pmf.py) is the complete PMF model, and [pmf_ratio.py](https://github.com/PreferredAI/cornac/blob/master/examples/pmf_ratio.py) runs it on MovieLens 100K.   
     

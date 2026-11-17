@@ -1,9 +1,11 @@
 Making Recommendations
 ======================
 
-In this example, we will use Cornac to predict the ratings of a user. The
-data used in this example is the MovieLens 100K dataset, which is included
-in the Cornac package.
+This page shows you how to train a model and get item recommendations for a
+user, first on the MovieLens 100K dataset, which is included in the Cornac
+package, and then on your own data. It covers models that learn from
+``(user, item, rating)`` data, not next-item or next-basket models, which need
+the user's recent items to recommend and are shown in :doc:`/user/tasks`.
 
 .. note::
 
@@ -19,11 +21,11 @@ Revisit :ref:`movielens-label` if you are unsure on what the dataset is about.
 The Prediction
 --------------
 
-We will predict the ratings of a particular user. Let's say we want to
-predict the ratings of the user with ID ``"10"``.
+We will recommend items to a particular user. Let's say we want
+recommendations for the user with ID ``"10"``.
 
-Followed from our quickstart tutorial, we will use the PMF model to predict
-the ratings of   a user. We will use the same hyperparameters as in the
+Followed from our quickstart tutorial, we will use the PMF model to recommend
+items to this user. We will use the same hyperparameters as in the
 quickstart tutorial.
 
 .. image:: images/flow.jpg
@@ -107,7 +109,7 @@ We can also recommend a specific number of items for the user by adding the ``k=
 
   User 10, Top 5 item recommendations: ['251', '169', '318', '408', '64']
 
-.. dropdown:: View codes at this point
+.. dropdown:: View code at this point
 
   .. code-block:: python
     :caption: first_prediction.py
@@ -115,7 +117,7 @@ We can also recommend a specific number of items for the user by adding the ``k=
       
     import cornac
     from cornac.eval_methods import RatioSplit
-    from cornac.models import PMF, BPR
+    from cornac.models import PMF
 
     # Load a sample dataset (e.g., MovieLens)
     ml_100k = cornac.datasets.movielens.load_feedback()
@@ -206,7 +208,7 @@ could be as follows:
 
     ['I2', 'I1', 'I3', 'I4', 'I5']
 
-.. dropdown:: View codes for this example
+.. dropdown:: View code for this example
 
     .. code-block:: python
 

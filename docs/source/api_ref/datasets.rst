@@ -30,6 +30,11 @@ Amazon Toys and Games
 .. automodule:: cornac.datasets.amazon_toy
    :members:
 
+Catalog Bundle Datasets
+-----------------------
+.. automodule:: cornac.datasets.bundle
+   :members:
+
 CiteULike
 ---------
 .. automodule:: cornac.datasets.citeulike
@@ -88,10 +93,4 @@ Tradesy
 YooChoose
 ---------
 .. automodule:: cornac.datasets.yoochoose
-   :members:
-
-
-Catalog Bundle Datasets
------------------------
-.. automodule:: cornac.datasets.bundle
    :members:

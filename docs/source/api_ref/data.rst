@@ -43,6 +43,9 @@ Text Modality
 .. automodule:: cornac.data.text
    :members:
 
+.. autoclass:: cornac.data.text.ReviewModality
+   :members:
+
 Image Modality
 ---------------------------------
 .. automodule:: cornac.data.image

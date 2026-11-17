@@ -10,7 +10,6 @@ We value and welcome contributions from developers of all experience levels.
 Whether you are new to open source or an experienced contributor, you can help us improve Cornac.
 
 .. toctree::
-   :glob:
    :maxdepth: 1
    :caption: Contributing
 

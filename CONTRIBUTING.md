@@ -4,7 +4,7 @@ Cornac is an open-source project and we welcome contributions of all kinds.
 We welcome pull requests for new features such as models, datasets, metrics
 and anything that could make Cornac a better tool for all.
 
-This page sums up what we check when we review a pull request. The [Contributors Guide](https://cornac.readthedocs.io/en/stable/developer/index.html) walks you through forking the repository and opening a pull request, and the tutorials show how to [add a model](https://github.com/PreferredAI/cornac/blob/master/tutorials/add_model.md) and [add a metric](https://github.com/PreferredAI/cornac/blob/master/tutorials/add_metric.md).
+This page sums up what we check when we review a pull request. The [Contributors Guide](https://cornac.readthedocs.io/en/stable/developer/contributing.html) walks you through forking the repository and opening a pull request, and the tutorials show how to [add a model](https://github.com/PreferredAI/cornac/blob/master/tutorials/add_model.md) and [add a metric](https://github.com/PreferredAI/cornac/blob/master/tutorials/add_metric.md).
 
 ## Development Setup
 
@@ -34,7 +34,7 @@ ruff format path/to/new_file.py
 
 Many existing files are not formatted with Ruff yet, so running `ruff format` on a whole existing file or folder would rewrite code you did not touch. In an existing file, format only the lines you changed, for example lines 120 to 135 with `ruff format --range=120-135 path/to/file.py`, and keep formatting changes out of functional changes, so that reviewers can see what your change does.
 
-Docstrings follow the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) style, with `Parameters` and `Returns` sections, because the API reference is generated from them. New source files start with the Apache-2.0 license header; copy it from an existing file.
+Include concise documentation with your change: docstrings, comments, and updates to the documentation in `docs/source/` when needed. Docstrings follow the [numpydoc](https://numpydoc.readthedocs.io/en/latest/format.html) style, with `Parameters` and `Returns` sections, because the API reference is generated from them. New source files start with the Apache-2.0 license header; copy it from an existing file.
 
 ## Optional Dependencies
 
@@ -55,9 +55,9 @@ A new model lives in its own package, `cornac/models/<name>/`, with an `__init__
 - add an entry to `docs/source/api_ref/models.rst`;
 - add an example script under `examples/` and list it in `examples/README.md`.
 
-A dataset loader is a module in `cornac/datasets/`. Add a test for it in `tests/cornac/datasets/`, an entry in `docs/source/api_ref/datasets.rst`, and a description in `cornac/datasets/README.md`.
+A dataset loader is a module in `cornac/datasets/`, imported in `cornac/datasets/__init__.py`. Add a test for it in `tests/cornac/datasets/`, an entry in `docs/source/api_ref/datasets.rst`, and a description in `cornac/datasets/README.md`.
 
-A metric goes in `cornac/metrics/`, with tests in `tests/cornac/metrics/` and an entry in `docs/source/api_ref/metrics.rst`.
+A metric goes in `cornac/metrics/`, with an import in `cornac/metrics/__init__.py`, tests in `tests/cornac/metrics/` and an entry in `docs/source/api_ref/metrics.rst`.
 
 ## Tests
 

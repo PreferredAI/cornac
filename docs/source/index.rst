@@ -61,7 +61,7 @@ Quick Links
       **Quickstart Guide**
 
       Already got Cornac installed? Start your first experiment by going
-      through this step-by-step guide. This explains the Cornac experiment concept with codes.
+      through this step-by-step guide. This explains the Cornac experiment concept with code.
 
       +++
 
@@ -87,7 +87,7 @@ Quick Links
 
       +++
 
-      .. button-ref:: developer/guidelines
+      .. button-ref:: developer/add_model
          :color: primary
          :expand:
          :click-parent:
@@ -101,7 +101,7 @@ Quick Links
 
       :material-round:`article;5em;sd-text-primary`
 
-      **Contributing into Cornac**
+      **Contributing to Cornac**
 
       We welcome contributions.
       Learn how you can contribute to the broader community, including data scientists
@@ -114,7 +114,7 @@ Quick Links
          :expand:
          :click-parent:
 
-         Contributor's Guide
+         Contributors Guide
 
 .. raw:: html
 

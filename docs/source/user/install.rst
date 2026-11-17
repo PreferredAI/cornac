@@ -1,6 +1,9 @@
 Installation
 ===================
 
+This page shows you how to install Cornac with pip, conda or from source, and
+how to add the extra packages that some models need.
+
 Install Python
 --------------
 Cornac supports Python 3.10 or newer. If you have not done so, go to the official `Python download page <https://www.python.org/downloads/>`_.
@@ -9,7 +12,7 @@ Install Cornac
 --------------
 There are 3 different ways in which you could install cornac.
 Depending on your environment and requirements, choose and run the
-corresponding codes to install Cornac:
+corresponding code to install Cornac:
 
 1. Using ``pip`` (recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,7 +40,8 @@ environments on Windows, macOS, Linux, and other operating systems.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Should you require the latest updates of Cornac from GitHub,
-you could manually build and install using the following codes:
+you could manually build and install using the following code, which needs a
+C/C++ compiler:
 
 .. code-block:: bash
 
@@ -49,38 +53,35 @@ Model dependencies
 Certain models in Cornac may require additional dependencies.
 The requirements.txt file shows what dependencies are required for each model.
 
-Take the model WMF for example.
+Take the model VAECF for example.
 
 .. code-block::
-    :caption: models/wmf/requirements.txt https://github.com/PreferredAI/cornac/blob/master/cornac/models/wmf/requirements.txt
+    :caption: models/vaecf/requirements.txt https://github.com/PreferredAI/cornac/blob/master/cornac/models/vaecf/requirements.txt
 
-    tensorflow==2.12.0
+    torch>=0.4.1
 
 
 In order to utilize this model, this dependency needs to be installed.
-To install all dependencies in a provided requirements.txt file, follow these steps:
-
-1. Using your favourite terminal/command prompt, navigate to the models in which you want to utilize
-
-.. code-block:: bash
-
-    cd cornac/models/wmf
-
-2. Install the dependencies by using this command:
+To install all dependencies in a model's requirements.txt file, give pip the
+file's address on GitHub. You do not need a copy of the source code:
 
 .. code-block:: bash
 
-    pip3 install -r requirements.txt
+    pip3 install -r https://raw.githubusercontent.com/PreferredAI/cornac/master/cornac/models/vaecf/requirements.txt
 
 
-.. admonition:: Note for MacOS users
+.. admonition:: Note for macOS users
 
     Some algorithm implementations use OpenMP to support multi-threading.
-    For MacOS users, in order to run those algorithms efficiently, you might need to install gcc from Homebrew to have an OpenMP compiler:
+    The macOS wheels on PyPI are built without OpenMP, so if you install Cornac
+    with ``pip``, those algorithms run on a single thread. For multi-threading,
+    install ``libomp`` from Homebrew, then install Cornac
+    `from GitHub source <3. From GitHub source - For latest updates_>`__, which
+    turns OpenMP on when it finds ``libomp``:
 
     .. code-block:: bash
 
-        brew install gcc && brew link gcc
+        brew install libomp
 
 Verifying Installation
 ----------------------
@@ -101,6 +102,6 @@ create your first experiment!
 
 
 
-What's next?
+What's Next?
 ------------
-Start creating your first experiment by following the :doc:`quickstart` guide.
+Start creating your first experiment by following the :doc:`/user/quickstart` guide.

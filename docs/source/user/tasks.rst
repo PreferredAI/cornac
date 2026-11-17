@@ -8,20 +8,10 @@ use, and gives an example to start from.
 What can you do with Cornac?
 ----------------------------
 
-Cornac is a recommender systems framework that provides a wide range of
-recommender models, evaluation metrics, and experimental tools.
-It is designed to be flexible and extensible, allowing researchers to
-easily conduct experiments and compare their models with existing ones.
-
-Cornac is written in Python and is built on top of the popular scientific
-computing libraries such as NumPy and SciPy. It is also designed to be compatible
-with the popular deep learning libraries such as PyTorch and TensorFlow.
-
-View the models, datasets, metrics that are currently built into Cornac:
-
-- :doc:`/api_ref/models`
-- :doc:`/api_ref/datasets`
-- :doc:`/api_ref/metrics`
+Cornac has models, datasets and metrics for each of the tasks below. The API
+reference pages for :doc:`models </api_ref/models>`,
+:doc:`datasets </api_ref/datasets>` and :doc:`metrics </api_ref/metrics>` list
+them all.
 
 :doc:`/models/index` lists every model by type, such as Next-Item or
 Next-Basket, and the `model table <https://github.com/PreferredAI/cornac#models>`_
@@ -715,3 +705,9 @@ ID model extends ``NextItemRecommender`` and also implements
 :class:`~cornac.models.recommender.SemanticIDMixin`, which gives the
 evaluation method the generated IDs. :doc:`/developer/add_model` walks you
 through adding a model to Cornac.
+
+What's Next?
+------------
+
+:doc:`/user/evaluation` shows how to split your data, choose metrics, read the
+results and tune hyper-parameters.

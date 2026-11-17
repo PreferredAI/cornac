@@ -162,7 +162,7 @@ model indicated, such as the path returned by ``save()``.
 After you have loaded the model, you can use the ``recommend()`` method to
 obtain recommendations for users.
 
-.. dropdown:: View codes for this example
+.. dropdown:: View code for this example
 
     .. code-block:: python
 
@@ -256,7 +256,7 @@ name (``BPR`` here), or one ``.pkl`` file in it. Give it as an absolute path,
 as above, because the service does not resolve a relative path against the
 folder you start it from. ``MODEL_CLASS`` is the class of the saved model.
 
-The API will be launched at `localhost:8080` and following output will be shown:
+The API will be launched at ``localhost:8080`` and following output will be shown:
 
 .. code-block:: bash
     :caption: Output
@@ -284,7 +284,7 @@ the following parameters:
 
 - ``uid``: The user ID to obtain recommendations for
 - ``k``: The number of recommendations to obtain (all items if left out)
-- ``remove_seen``: Whether to remove seen items during training (``false`` if left out)
+- ``remove_seen``: Whether to remove items the user has in the training set (``false`` if left out)
 
 .. code-block:: bash
 
@@ -492,17 +492,11 @@ the current directory. This folder will be attached to the container, which
 will then be loaded from.
 
 After running the above command, the API service will be launched at
-`localhost:8080`.
+``localhost:8080``.
 
 
 What's Next?
 ------------
 
-Now that you have learned how to use Cornac for your own projects and
-applications, you can now start building your own recommendation systems using
-Cornac.
-
-.. topic:: View the FoodRecce example
-
-    View the :doc:`/user/example-foodrecce` for a step by step development for a
-    restaurant recommendation application.
+The :doc:`/user/example-foodrecce` walks step by step through the development
+of a restaurant recommendation application.

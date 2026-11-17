@@ -57,7 +57,7 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-# Render "- [x]" lists in the Markdown pages included from the repository.
+# Render "- [ ]" checklists in the Markdown pages included from the repository.
 myst_enable_extensions = ["tasklist"]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -6,55 +6,31 @@ fairly, and tune their hyper-parameters. It covers how to split your data,
 which metrics to choose, how to read the results Cornac gives you, and how to
 search for good hyper-parameters.
 
-Conducting experiments
-----------------------
+Comparing models
+----------------
 
-Cornac provides a set of tools to help you conduct experiments. The main tool is
-the :class:`~cornac.experiment.experiment.Experiment` class. As its name would suggest, this is
-where you manage an experiment with a method to split dataset (e.g., by ratio, k-fold
-cross-validation), a set of models to be compared with, and different evaluation metrics.
+An :class:`~cornac.experiment.experiment.Experiment` brings together a method
+to split the data, the models to compare and the evaluation metrics, as in the
+:doc:`/user/quickstart`.
 
-Recap from the :doc:`/user/quickstart` example, the following code snippet shows
-how to create an experiment with the MovieLens 100K dataset, split it into
-training and testing sets, and run the experiment with the BPR recommender model
-and the Precision, Recall evaluation metrics.
+Cornac makes it easy for you to run your model alongside other existing models.
+To do so, simply add your model to the list of models in the experiment. Below,
+``MF`` takes the place of your own model; :doc:`/developer/add_model` shows how
+to write one. Apart from ``MF`` and the RMSE metric, this is the Quickstart
+experiment.
 
 .. code-block:: python
 
     import cornac
     from cornac.eval_methods import RatioSplit
-    from cornac.models import BPR, PMF
-    from cornac.metrics import Precision, Recall
+    from cornac.metrics import RMSE, Precision, Recall
+    from cornac.models import BPR, MF, PMF
 
     # Load a sample dataset (e.g., MovieLens)
     ml_100k = cornac.datasets.movielens.load_feedback()
 
     # Split the data into training and testing sets
     rs = RatioSplit(data=ml_100k, test_size=0.2, rating_threshold=4.0, seed=123)
-
-    # Instantiate a matrix factorization model (e.g., BPR)
-    models = [
-        BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123),
-        PMF(k=10, max_iter=100, learning_rate=0.001, lambda_reg=0.001, seed=123),
-    ]
-
-    # Define metrics to evaluate the models
-    metrics = [Precision(k=10), Recall(k=10)]
-
-    # put it together in an experiment, voilà!
-    cornac.Experiment(eval_method=rs, models=models, metrics=metrics, user_based=True).run()
-
-Analyze results
----------------
-Cornac makes it easy for you to run your model alongside other existing models.
-To do so, simply add your model to the list of models in the experiment. Below,
-``MF`` takes the place of your own model; :doc:`/developer/add_model` shows how
-to write one.
-
-.. code-block:: python
-
-    from cornac.metrics import RMSE
-    from cornac.models import MF
 
     # Add new model to list
     models = [
@@ -240,7 +216,7 @@ Cornac has two kinds of metrics, listed in :doc:`/api_ref/metrics`.
 **Rating metrics** (``MAE``, ``RMSE``, ``MSE``) compare the rating a model
 predicts for each test pair with the actual rating. They only make sense for
 models that predict ratings, such as MF. BPR learns to rank, not to predict
-ratings, which is why its RMSE in `Analyze results`_ is so high even though it
+ratings, which is why its RMSE in `Comparing models`_ is so high even though it
 ranks best.
 
 **Ranking metrics** (``Precision``, ``Recall``, ``NDCG``, ``HitRatio``,
@@ -347,7 +323,7 @@ Each model has a set of hyper-parameters that can be tuned to improve its
 performance. View the :doc:`/api_ref/models` documentations for
 the parameters available for tuning.
 
-For example, some hyper-parameters of the `BPR` model are as follows:
+For example, some hyper-parameters of the ``BPR`` model are as follows:
 
 - ``k`` (int, optional, default: 10)
   – `The dimension of the latent factors.`
@@ -365,8 +341,8 @@ datasets. Therefore, you may want to try different combinations of hyper-paramet
 to find the best combination on your data. Cornac supports hyper-parameter tuning
 to achieve that purpose.
 
-In this example, we will tune the number of factors `k` and the `learning_rate`
-of the `BPR` model.
+In this example, we will tune the number of factors ``k`` and the ``learning_rate``
+of the ``BPR`` model.
 
 Tuning the quickstart example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -374,15 +350,15 @@ Tuning the quickstart example
 Given the below block of code from the :doc:`/user/quickstart` guide,
 with some slight changes:
 
-- We have added the validation set in the `RatioSplit` method
-- We instantiate the `Recall@100` metric used to track model performance
+- We have added the validation set in the ``RatioSplit`` method
+- We instantiate the ``Recall@100`` metric used to track model performance
 
 .. code-block:: python
 
     import cornac
     from cornac.eval_methods import RatioSplit
     from cornac.models import BPR
-    from cornac.metrics import Precision, Recall
+    from cornac.metrics import Recall
 
     # Load a sample dataset (e.g., MovieLens)
     ml_100k = cornac.datasets.movielens.load_feedback()
@@ -391,14 +367,14 @@ with some slight changes:
     rs = RatioSplit(data=ml_100k, test_size=0.1, val_size=0.1, rating_threshold=4.0, seed=123)
 
     # Instantiate Recall@100 for evaluation
-    rec100 = cornac.metrics.Recall(100)
+    rec100 = Recall(k=100)
 
     # Instantiate a matrix factorization model (e.g., BPR)
     bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
 
 
-We would like to optimize the `k` and `learning_rate` hyper-parameters. To do
-this, we can use the `cornac.hyperopt` module to perform the searches.
+We would like to optimize the ``k`` and ``learning_rate`` hyper-parameters. To do
+this, we can use the ``cornac.hyperopt`` module to perform the searches.
 
 .. code-block:: python
 
@@ -429,11 +405,10 @@ this, we can use the `cornac.hyperopt` module to perform the searches.
     )
 
 As shown in the above code, we have defined two methods for hyper-parameter search,
-``GridSearch`` and ``RandomSearch``.
-
-The same search classes support next-item recommenders when paired with
-``NextItemEvaluation``. In both cases, the evaluation method must include a
-validation split, which is used to select the best parameter settings.
+``GridSearch`` and ``RandomSearch``. Both train the model with each setting
+they try, score it on the validation set and keep the best one, so the
+evaluation method needs a validation set, such as ``val_size`` in
+``RatioSplit``. They also work with next-item models and ``NextItemEvaluation``.
 
 +------------------------------------------+---------------------------------------------+
 | Grid Search                              | Random Search                               |
@@ -476,14 +451,14 @@ experiments using the ``cornac.Experiment`` class.
     print(gs_bpr.best_params)
     print(rs_bpr.best_params)
 
-.. dropdown:: View codes for this example
+.. dropdown:: View code for this example
 
     .. code-block:: python
 
         import cornac
         from cornac.eval_methods import RatioSplit
         from cornac.models import BPR
-        from cornac.metrics import Precision, Recall
+        from cornac.metrics import Recall
         from cornac.hyperopt import Discrete, Continuous
         from cornac.hyperopt import GridSearch, RandomSearch
 
@@ -494,7 +469,7 @@ experiments using the ``cornac.Experiment`` class.
         rs = RatioSplit(data=ml_100k, test_size=0.1, val_size=0.1, rating_threshold=4.0, seed=123)
 
         # Instantiate Recall@100 for evaluation
-        rec100 = cornac.metrics.Recall(100)
+        rec100 = Recall(k=100)
 
         # Instantiate a matrix factorization model (e.g., BPR)
         bpr = BPR(k=10, max_iter=200, learning_rate=0.001, lambda_reg=0.01, seed=123)
@@ -557,14 +532,15 @@ The output of the above code could be as follows:
     {'k': 50, 'learning_rate': 0.01}
     {'k': np.int64(50), 'learning_rate': 0.007993039950008024}
 
-As shown in the output, the ``RandomSearch`` method has found the best
-combination of hyper-parameters to be ``k=50`` and ``learning_rate=0.0079``
-with a Recall@100 score of 0.6988.
+Both searches choose on the validation set, so compare them there. Both found
+``k=50``, with a ``learning_rate`` of 0.01 (``GridSearch``) and about 0.008
+(``RandomSearch``), and the two settings score almost the same Recall@100
+(0.6951 and 0.6949). The ``TEST`` table then shows how the chosen settings do
+on data that played no part in the choice.
 
-However, as it contains a continuous hyperparameter, the
-``RandomSearch`` method may technically run forever. That is why we
-have set the ``n_trails`` parameter to 20 to stop at some point. The more we try,
-the higher chances we have of finding the best combination of hyper-parameters.
+``n_trails`` sets how many settings ``RandomSearch`` samples from the search
+space (10 by default). Each setting means training the model once more, so more
+trials take longer but give a better chance of finding a good setting.
 
 Results may vary from dataset to dataset. Try tuning your hyper-parameters
 using different configurations to find the best hyper-parameters for your
@@ -575,19 +551,8 @@ dataset.
   View the Hyperparameter Search guide on Github:
   https://github.com/PreferredAI/cornac/blob/master/tutorials/param_search_vaecf.ipynb
 
-Let us know!
-------------
-We hope you find Cornac useful for your research. Please share with us on how
-you find Cornac useful, and feel free to reach out to us if you have any
-questions or suggestions. If you do use Cornac in your research, we appreciate
-your citation to our papers_.
-
-.. _papers: https://github.com/PreferredAI/cornac#citation
-
 What's Next?
 ------------
 
-.. topic:: If you have already developed your model...
-
-  Why not contribute to Cornac by including your model as part of the package?
-  View :doc:`/developer/add_model`.
+:doc:`/user/predict` shows how to train a model and get recommendations for a
+user.
