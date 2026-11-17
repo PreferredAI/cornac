@@ -53,6 +53,7 @@ tests = [
     "pytest-xdist",
     "pytest-cov",
     "Flask",
+    "optuna",
 ]
 
 [tool.ruff]

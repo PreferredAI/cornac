@@ -409,6 +409,8 @@ As shown in the above code, we have defined two methods for hyper-parameter sear
 they try, score it on the validation set and keep the best one, so the
 evaluation method needs a validation set, such as ``val_size`` in
 ``RatioSplit``. They also work with next-item models and ``NextItemEvaluation``.
+``OptunaSearch`` takes the same arguments and runs the search with
+`Optuna <https://optuna.org>`_ (``pip install optuna``).
 
 +------------------------------------------+---------------------------------------------+
 | Grid Search                              | Random Search                               |
