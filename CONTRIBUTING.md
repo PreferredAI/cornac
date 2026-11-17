@@ -59,6 +59,8 @@ A dataset loader is a module in `cornac/datasets/`, imported in `cornac/datasets
 
 A metric goes in `cornac/metrics/`, with an import in `cornac/metrics/__init__.py`, tests in `tests/cornac/metrics/` and an entry in `docs/source/api_ref/metrics.rst`.
 
+Each pull request runs `python docs/check_listings.py`, which reports any model, dataset loader or example that is missing from these lists. You can run it yourself before you push.
+
 ## Tests
 
 Tests live under `tests/cornac/` and run with `pytest`. Changes to shared code, such as data handling, evaluation methods, metrics, experiments and the model base classes, should come with tests, because many models rely on that code. A new model does not need its own test suite, but it should come with an example script that runs, because the example is how reviewers and users check that the model works.
