@@ -193,7 +193,6 @@ class TestOptunaSearch(unittest.TestCase):
         ).run()
 
         self.assertEqual(len(os_mf.study.trials), 4)
-        self.assertEqual(len(os_mf.study.trials_dataframe()), 4)
         self.assertEqual(os_mf.best_score, os_mf.study.best_value)
         self.assertEqual(os_mf.best_params, os_mf.study.best_params)
 

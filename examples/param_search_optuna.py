@@ -59,5 +59,5 @@ cornac.Experiment(
 
 # Best parameter settings, and the five best trials of the study
 print("Best parameters:", os_mf.best_params)
-trials = os_mf.study.trials_dataframe(attrs=("number", "value", "params", "state"))
-print(trials.nsmallest(5, "value"))
+for trial in sorted(os_mf.study.trials, key=lambda t: t.value)[:5]:
+    print(trial.number, trial.value, trial.params)
