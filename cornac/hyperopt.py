@@ -64,7 +64,7 @@ class Discrete(SearchDomain):
 
     def _sample(self, rng):
         """Sample a value of parameter used for RandomSearch"""
-        return rng.choice(self.values)
+        return self.values[rng.choice(len(self.values))]
 
 
 class Continuous(SearchDomain):
