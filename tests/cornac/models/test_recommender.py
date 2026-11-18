@@ -27,6 +27,7 @@ from cornac.models import (
     BundleRecommender,
     NextBasketRecommender,
     NextItemRecommender,
+    Recommender,
 )
 
 
@@ -60,6 +61,24 @@ class TestRecommender(unittest.TestCase):
                 ]
             )
         )
+
+    def test_on_epoch_end(self):
+        calls = []
+        mf = MF(1, 1, seed=123)
+        mf.callbacks = [lambda model, epoch, logs: calls.append((model, epoch, logs))]
+        mf.on_epoch_end(1, loss=0.5)
+        self.assertEqual(calls, [(mf, 1, {"loss": 0.5})])
+
+    def test_early_stop(self):
+        model = Recommender("model")
+        model.reset_info()
+        values = iter([0.1, 0.2, 0.2, 0.2, 0.3])
+        model.monitor_value = lambda train_set, val_set: next(values)
+        # an equal value is not an improvement
+        stops = [model.early_stop(None, None, patience=2) for _ in range(4)]
+        self.assertEqual(stops, [False, False, False, True])
+        self.assertEqual(model.best_epoch, 2)
+        self.assertEqual(model.stopped_epoch, 4)
 
     def test_rank_cutoff_exceeds_candidates(self):
         dataset = Dataset.from_uir(self.data)

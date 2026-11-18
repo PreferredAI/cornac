@@ -12,52 +12,77 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""Example for hyper-parameter searching with Optuna (requires `pip install optuna`)"""
+"""Example for hyper-parameter searching with Optuna, with pruning of
+unpromising trials (requires `pip install optuna`)
+
+SASRec on 5-core Amazon Beauty reviews with per-user leave-last-out
+splitting. SASRec gives its validation score to `on_epoch_end()` every
+`val_eval_every` epochs, so the pruner can stop a trial before it has trained
+for all epochs.
+"""
+
+import optuna
+import torch
 
 import cornac
-from cornac.datasets import movielens
-from cornac.eval_methods import RatioSplit
-from cornac.hyperopt import Discrete, Continuous
-from cornac.hyperopt import OptunaSearch
+from cornac.datasets import amazon_review
+from cornac.eval_methods import NextItemEvaluation
+from cornac.hyperopt import Discrete, OptunaSearch
+from cornac.metrics import NDCG, Recall
+from cornac.models import SASRec
 
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Load MovieLens 100K ratings
-ml_100k = movielens.load_feedback(variant="100K")
+# Load Amazon Beauty reviews
+data = amazon_review.load_feedback(category="beauty")
 
-# Define an evaluation method to split feedback into train, validation and test sets
-ratio_split = RatioSplit(
-    data=ml_100k, test_size=0.1, val_size=0.1, seed=123, verbose=True
+# For each user, hold out the last item for testing and the one before for validation
+next_item_eval = NextItemEvaluation.leave_last_out(
+    data=data, exclude_unknowns=True, verbose=True
 )
 
-# Instantiate MAE and RMSE for evaluation
-mae = cornac.metrics.MAE()
-rmse = cornac.metrics.RMSE()
+# Define a base SASRec model with fixed hyper-parameters
+sasrec = SASRec(
+    num_blocks=2,
+    num_heads=2,
+    batch_size=128,
+    n_epochs=200,
+    model_selection="best",
+    val_eval_every=5,
+    device=DEVICE,
+    seed=123,
+)
 
-# Define a base MF model with fixed hyper-parameters
-mf = cornac.models.MF(max_iter=20, learning_rate=0.01, early_stop=True, seed=123)
+# Instantiate Recall@10 to score the trials on the validation set
+rec_10 = Recall(k=10)
 
-# Wrap MF model inside OptunaSearch along with the searching space, try 30 times
-os_mf = OptunaSearch(
-    model=mf,
+# Wrap SASRec model inside OptunaSearch along with the searching space, try 30 times.
+# A trial is pruned when its validation score is below the median of the earlier
+# trials at the same epoch, after 5 trials and 20 epochs.
+os_sasrec = OptunaSearch(
+    model=sasrec,
     space=[
-        Discrete("k", [10, 30, 50]),
-        Discrete("use_bias", [True, False]),
-        Continuous("lambda_reg", low=1e-4, high=1e-1, log=True),
+        Discrete("loss", ["bce", "ce", "bpr", "bpr-max", "softmax"]),
+        Discrete("learning_rate", [0.0005, 0.001, 0.005]),
+        Discrete("dropout", [0.2, 0.5]),
+        Discrete("embedding_dim", [64, 128]),
+        Discrete("max_len", [20, 50]),
     ],
-    metric=rmse,
-    eval_method=ratio_split,
+    metric=rec_10,
+    eval_method=next_item_eval,
     n_trials=30,
+    pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=20),
 )
 
 # Put everything together into an experiment and run it
 cornac.Experiment(
-    eval_method=ratio_split,
-    models=[os_mf],
-    metrics=[mae, rmse],
+    eval_method=next_item_eval,
+    models=[os_sasrec],
+    metrics=[Recall(k=10), Recall(k=20), NDCG(k=10), NDCG(k=20)],
     user_based=False,
 ).run()
 
-# Best parameter settings, and the five best trials of the study
-print("Best parameters:", os_mf.best_params)
-for trial in sorted(os_mf.study.trials, key=lambda t: t.value)[:5]:
-    print(trial.number, trial.value, trial.params)
+# Best parameter settings, and how each trial ended
+print("Best parameters:", os_sasrec.best_params)
+for trial in os_sasrec.study.trials:
+    print(trial.number, trial.state.name, trial.value, trial.params)

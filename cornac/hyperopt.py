@@ -326,8 +326,8 @@ class OptunaSearch(BaseSearch):
 
     pruner: :obj:`optuna.pruners.BasePruner`, default: None
         Pruner stopping unpromising trials, `MedianPruner` by default.
-        A trial can be pruned only if the model checks for early stopping
-        on the validation set after each epoch.
+        A trial can be pruned only if the model gives a validation value
+        to `on_epoch_end()` during training.
 
     storage: str or :obj:`optuna.storages.BaseStorage`, default: None
         Where to store the study, e.g. "sqlite:///study.db".
@@ -366,27 +366,24 @@ class OptunaSearch(BaseSearch):
         self.study_name = study_name
 
     def _fit_trial(self, trial, params, train_set, val_set):
-        """Fit a model, reporting its monitored value to the trial after each epoch"""
+        """Fit a model, reporting its validation value to the trial after each epoch"""
         import optuna
 
-        model = self.model.clone(params)
-        monitor_value = model.monitor_value
-        # monitored values are larger-is-better, pruners follow the study direction
+        # validation values are larger-is-better, pruners follow the study direction
         sign = 1 if self.metric.higher_better else -1
 
-        def report(train_set, val_set):
-            value = monitor_value(train_set, val_set)
-            if value is not None:
-                trial.report(sign * value, model.current_epoch)
+        def report(model, epoch, logs):
+            if "val_score" in logs:
+                trial.report(sign * logs["val_score"], epoch)
                 if trial.should_prune():
                     raise optuna.TrialPruned()
-            return value
 
-        model.monitor_value = report
+        model = self.model.clone(params)
+        model.callbacks = [*self.model.callbacks, report]
         try:
             return model.fit(train_set, val_set)
         finally:
-            del model.monitor_value
+            model.callbacks = self.model.callbacks
 
     def fit(self, train_set, val_set=None):
         """Doing hyper-parameter search"""

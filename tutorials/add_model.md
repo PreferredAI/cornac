@@ -81,6 +81,8 @@ class PMF(Recommender):
 Every model extends the generic class `Recommender`. All you need to do is to redefine the functions listed in the above `recom_pmf.py` file.
 
 The `fit()` function should contain or make a call to the necessary codes to fit your model to the training data, while the `score()` function specifies how to perform predictions using your model. Start `fit()` with `Recommender.fit(self, train_set, val_set)`, which sets up the information your model needs later, such as `num_users`, `num_items`, `uid_map` and `iid_map`.
+
+If your model trains in epochs, call `self.on_epoch_end(epoch, loss=..., val_score=...)` at the end of each one. This passes the values of the epoch to the callbacks of the model, which is how `OptunaSearch` stops unpromising trials early. `val_score` is a validation value that is better when larger; leave it out in epochs where you do not compute one.
  
 #### More on the score function 
 When you perform rating prediction evaluation (e.g., in terms of RMSE) Cornac calls the `Recommender.rate()` function, which in turn calls the `score()` function and clips the predicted values to lie in the same range as the original ratings. Analogously, Cornac calls the `Recommender.rank()` function, which returns a ranking of items according to their scores as predicted by the function `score()`. We recommend you to take a look at the `rate()` and `rank()` functions inside the `Recommender` class, as you may wish to redefine them as well, if the default settings do not meet your needs. 

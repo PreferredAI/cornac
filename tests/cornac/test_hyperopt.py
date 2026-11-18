@@ -319,7 +319,7 @@ class TestOptunaSearch(unittest.TestCase):
             best_shift = min(abs(t.params["shift"]) for t in complete)
             for t in pruned:
                 self.assertGreater(abs(t.params["shift"]), best_shift)
-            self.assertNotIn("monitor_value", vars(os_sm.best_model))
+            self.assertEqual(len(os_sm.best_model.callbacks), 0)
 
     def test_copy_and_save(self):
         os_mf = OptunaSearch(
