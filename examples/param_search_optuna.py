@@ -48,7 +48,9 @@ sasrec = SASRec(
     batch_size=128,
     n_epochs=200,
     model_selection="best",
+    val_k=10,
     val_eval_every=5,
+    patience=20,
     device=DEVICE,
     seed=123,
 )
