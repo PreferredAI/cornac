@@ -264,7 +264,7 @@ class TestOptunaSearch(unittest.TestCase):
 
     def test_resume(self):
         train_set, val_set = self.eval_method.train_set, self.eval_method.val_set
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir:
 
             def search(n_trials):
                 return OptunaSearch(
