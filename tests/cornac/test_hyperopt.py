@@ -14,6 +14,7 @@
 # ============================================================================
 
 import unittest
+import warnings
 
 import numpy as np
 import numpy.testing as npt
@@ -70,6 +71,20 @@ class TestCommon(unittest.TestCase):
             user_based=False,
         ).run()
 
+    def test_random_search_n_trails_deprecated(self):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            rs_mf = RandomSearch(
+                model=MF(max_iter=1),
+                space=[Discrete("k", [1, 2, 3])],
+                metric=RMSE(),
+                eval_method=self.eval_method,
+                n_trails=2,
+            )
+        self.assertTrue(any(w.category is DeprecationWarning for w in caught))
+        self.assertEqual(rs_mf.n_trials, 2)
+        self.assertEqual(rs_mf.clone().n_trials, 2)
+
     def test_random_search_next_item_recommender(self):
         data = Reader().read("./tests/sequence.txt", fmt="USIT", sep=" ")
         eval_method = NextItemEvaluation.from_splits(
@@ -88,7 +103,7 @@ class TestCommon(unittest.TestCase):
             space=[Discrete("use_session_popularity", [False, True])],
             metric=metric,
             eval_method=eval_method,
-            n_trails=2,
+            n_trials=2,
         )
 
         test_result, _ = eval_method.evaluate(

@@ -125,7 +125,7 @@ class BaseANN(Recommender):
         top_k_items = knn_items[0]
         top_k_scores = -distances[0]
 
-        item_scores = np.full(self.total_items, -np.Inf)
+        item_scores = np.full(self.total_items, -np.inf)
         item_scores[top_k_items] = top_k_scores
 
         all_items = np.arange(self.total_items)
@@ -223,9 +223,7 @@ class BaseANN(Recommender):
             for u, i in zip(user_idx, knn_items):
                 if u >= train_set.csr_matrix.shape[0]:
                     continue
-                seen_mask = np.in1d(
-                    np.arange(i.size), train_set.csr_matrix.getrow(u).indices
-                )
+                seen_mask = np.isin(i, train_set.csr_matrix.getrow(u).indices)
                 filtered_knn_items.append(i[~seen_mask])
             knn_items = filtered_knn_items
 

@@ -267,23 +267,36 @@ class RandomSearch(BaseSearch):
     eval_method: :obj:`cornac.eval_methods.BaseMethod`, required
         Evaluation method is being used. 
 
-    n_trails: int, default: 10
-        Number of trails for random search.
+    n_trials: int, default: 10
+        Number of trials for random search.
+
+    n_trails: int, default: None
+        Deprecated, use `n_trials` instead.
 
     """
 
-    def __init__(self, model, space, metric, eval_method, n_trails=10):
+    def __init__(self, model, space, metric, eval_method, n_trials=10, n_trails=None):
         super().__init__(
             model, space, metric, eval_method, name="RandomSearch_{}".format(model.name)
         )
-        self.n_trails = n_trails
+        if n_trails is not None:
+            import warnings
+
+            warnings.warn(
+                "n_trails is deprecated, use n_trials instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            n_trials = n_trails
+        self.n_trials = n_trials
+        self.n_trails = None  # clone() reads every __init__ argument back
 
     def _build_param_set(self):
         """Generate searching points"""
         param_set = []
         keys = [d.name for d in self.space]
         rng = get_rng(getattr(self.model, "seed", None))
-        while len(param_set) < self.n_trails:
+        while len(param_set) < self.n_trials:
             params = [d._sample(rng) for d in self.space]
             param_set.append(dict(zip(keys, params)))
         return param_set
