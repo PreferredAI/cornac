@@ -23,6 +23,7 @@ import numpy as np
 from scipy.sparse import csc_matrix, csr_matrix, dok_matrix
 
 from ..utils import estimate_batches, get_rng, validate_format
+from ..utils.common import df_to_tuples
 
 
 class Dataset(object):
@@ -397,6 +398,52 @@ class Dataset(object):
 
         """
         return cls.build(data, fmt="UIRT", seed=seed)
+
+    @classmethod
+    def from_df(
+        cls,
+        df,
+        user_col="user_id",
+        item_col="item_id",
+        rating_col="rating",
+        timestamp_col=None,
+        seed=None,
+    ):
+        """Constructing Dataset from a pandas or polars DataFrame.
+
+        Parameters
+        ----------
+        df: DataFrame, required
+            DataFrame with one row per (user, item, rating) observation.
+
+        user_col: str, default: 'user_id'
+            Name of the column of user ids.
+
+        item_col: str, default: 'item_id'
+            Name of the column of item ids.
+
+        rating_col: str, default: 'rating'
+            Name of the column of ratings.
+
+        timestamp_col: str, optional, default: None
+            Name of the column of integer timestamps. If given, the data is read
+            in UIRT format, as with :meth:`from_uirt`.
+
+        seed: int, optional, default: None
+            Random seed for reproducing data sampling.
+
+        Returns
+        -------
+        res: :obj:`<cornac.data.Dataset>`
+            Dataset object.
+
+        """
+        columns = [user_col, item_col, rating_col]
+        fmt = "UIR"
+        if timestamp_col is not None:
+            columns.append(timestamp_col)
+            fmt = "UIRT"
+        return cls.build(df_to_tuples(df, columns), fmt=fmt, seed=seed)
 
     def reset(self):
         """Reset the random number generator for reproducibility"""

@@ -15,6 +15,9 @@
 
 import unittest
 
+import numpy.testing as npt
+import pandas as pd
+
 from cornac.eval_methods import BaseMethod
 from cornac.data import (
     FeatureModality,
@@ -78,6 +81,27 @@ class TestBaseMethod(unittest.TestCase):
         )
         self.assertEqual(bm.total_users, 10)
         self.assertEqual(bm.total_items, 10)
+
+    def test_dataframe(self):
+        data = Reader().read("./tests/data.txt")
+        df = pd.DataFrame(data, columns=["user", "item", "rating"])
+        self.assertEqual(BaseMethod(df).data, data)
+
+        with self.assertRaises(ValueError):
+            BaseMethod.from_splits(train_data=df, test_data=df[:0])
+
+        bm = BaseMethod.from_splits(
+            train_data=df[:-2], test_data=df[-2:], val_data=df[:1]
+        )
+        ref = BaseMethod.from_splits(
+            train_data=data[:-2], test_data=data[-2:], val_data=data[:1]
+        )
+        self.assertEqual(bm.global_uid_map, ref.global_uid_map)
+        self.assertEqual(bm.global_iid_map, ref.global_iid_map)
+        for name in ["train_set", "test_set", "val_set"]:
+            a, b = getattr(bm, name), getattr(ref, name)
+            for x, y in zip(a.uir_tuple, b.uir_tuple):
+                npt.assert_array_equal(x, y)
 
     def test_with_modalities(self):
         data = Reader().read("./tests/data.txt")

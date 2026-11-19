@@ -141,6 +141,30 @@ def safe_indexing(X, indices):
         return [X[idx] for idx in indices]
 
 
+def df_to_tuples(data, columns=None):
+    """Return the rows of a pandas or polars DataFrame as a list of tuples.
+    Data without a ``columns`` attribute is returned unchanged.
+
+    Parameters
+    ----------
+    data: DataFrame or array-like
+        Data to convert. Each column is read with ``to_list()``.
+
+    columns: list, optional, default: None
+        Columns to read, in this order. If None, all columns are read.
+
+    Returns
+    -------
+    res: list of tuples or array-like
+        One tuple per row, or ``data`` itself if it is not a DataFrame.
+    """
+    if not hasattr(data, "columns"):
+        return data
+    if columns is None:
+        columns = data.columns
+    return list(zip(*(data[col].to_list() for col in columns)))
+
+
 def validate_format(input_format, valid_formats):
     """Check the input format is in list of valid formats
     :raise ValueError if not supported
