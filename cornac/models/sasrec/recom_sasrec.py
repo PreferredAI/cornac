@@ -271,10 +271,8 @@ class SASRec(NextItemRecommender):
                 if inc % 10 == 0 and cnt > 0:
                     progress_bar.set_postfix(loss=(total_loss / cnt))
 
-            if cnt > 0:
-                self.on_epoch_end(epoch_id, loss=float(total_loss / cnt))
-
-            stop = self.early_stop(self.train_set, val_set, patience=patience)
+            logs = {"loss": float(total_loss / cnt)} if cnt > 0 else {}
+            stop = self.early_stop(self.train_set, val_set, patience=patience, **logs)
             if self.best_epoch == epoch_id:
                 best_state = {
                     n: p.detach().clone() for n, p in self.model.state_dict().items()

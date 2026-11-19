@@ -68,17 +68,24 @@ class TestRecommender(unittest.TestCase):
         mf.callbacks = [lambda model, epoch, logs: calls.append((model, epoch, logs))]
         mf.on_epoch_end(1, loss=0.5)
         self.assertEqual(calls, [(mf, 1, {"loss": 0.5})])
+        self.assertIs(mf.clone().callbacks, mf.callbacks)
 
     def test_early_stop(self):
         model = Recommender("model")
         model.reset_info()
-        values = iter([0.1, 0.2, 0.2, 0.2, 0.3])
+        values = iter([0.1, 0.2, None, 0.2, 0.2, 0.3])
         model.monitor_value = lambda train_set, val_set: next(values)
-        # an equal value is not an improvement
-        stops = [model.early_stop(None, None, patience=2) for _ in range(4)]
-        self.assertEqual(stops, [False, False, False, True])
+        events = []
+        model.callbacks = [lambda model, epoch, logs: events.append((epoch, logs))]
+        # an equal value is not an improvement, an epoch without value is not counted
+        stops = [model.early_stop(None, None, patience=2, loss=1.0) for _ in range(5)]
+        self.assertEqual(stops, [False, False, False, False, True])
         self.assertEqual(model.best_epoch, 2)
-        self.assertEqual(model.stopped_epoch, 4)
+        self.assertEqual(model.stopped_epoch, 5)
+        # one event per epoch with all of its values
+        self.assertEqual([epoch for epoch, _ in events], [1, 2, 3, 4, 5])
+        self.assertEqual(events[1][1], {"loss": 1.0, "val_score": 0.2})
+        self.assertEqual(events[2][1], {"loss": 1.0})
 
     def test_rank_cutoff_exceeds_candidates(self):
         dataset = Dataset.from_uir(self.data)

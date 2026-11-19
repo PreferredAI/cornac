@@ -224,7 +224,9 @@ class Recommender:
         for name in self._get_init_params():
             init_params[name] = new_params.get(name, copy.deepcopy(getattr(self, name)))
 
-        return self.__class__(**init_params)
+        model = self.__class__(**init_params)
+        model.callbacks = self.callbacks
+        return model
 
     def save(self, save_dir=None, save_trainset=False, metadata=None):
         """Save a recommender model to the filesystem.
@@ -624,7 +626,7 @@ class Recommender:
         """
         raise NotImplementedError()
 
-    def early_stop(self, train_set, val_set, min_delta=0.0, patience=0):
+    def early_stop(self, train_set, val_set, min_delta=0.0, patience=0, **logs):
         """Check if training should be stopped when validation loss has stopped improving.
 
         Parameters
@@ -642,6 +644,10 @@ class Recommender:
         patience: int, optional, default: 0
             Number of epochs with no improvement after which training should be stopped.
 
+        **logs:
+            Other values of the epoch, e.g., `loss`. They are passed to `on_epoch_end()`
+            together with the monitored value as `val_score`.
+
         Returns
         -------
         res : bool
@@ -650,10 +656,11 @@ class Recommender:
         """
         self.current_epoch += 1
         current_value = self.monitor_value(train_set, val_set)
+        if current_value is not None:
+            logs["val_score"] = current_value
+        self.on_epoch_end(self.current_epoch, **logs)
         if current_value is None:
             return False
-
-        self.on_epoch_end(self.current_epoch, val_score=current_value)
 
         if current_value - self.best_value > min_delta:
             self.best_value = current_value

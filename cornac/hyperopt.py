@@ -379,7 +379,7 @@ class OptunaSearch(BaseSearch):
                     raise optuna.TrialPruned()
 
         model = self.model.clone(params)
-        model.callbacks = [*self.model.callbacks, report]
+        model.callbacks = [*model.callbacks, report]
         try:
             return model.fit(train_set, val_set)
         finally:

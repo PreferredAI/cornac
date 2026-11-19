@@ -266,9 +266,13 @@ class TestOptunaSearch(unittest.TestCase):
         train_set, val_set = self.eval_method.train_set, self.eval_method.val_set
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir:
 
+            callbacks = [lambda model, epoch, logs: None]
+
             def search(n_trials):
+                model = MF(max_iter=1, seed=123)
+                model.callbacks = callbacks
                 return OptunaSearch(
-                    model=MF(max_iter=1, seed=123),
+                    model=model,
                     space=[Discrete("k", [1, 2, 3])],
                     metric=RMSE(),
                     eval_method=self.eval_method,
@@ -291,6 +295,7 @@ class TestOptunaSearch(unittest.TestCase):
             self.assertEqual(third.best_params, second.best_params)
             self.assertEqual(third.best_score, second.best_score)
             self.assertEqual(third.score(0, 0), second.score(0, 0))
+            self.assertIs(third.best_model.callbacks, callbacks)
 
     def test_pruning(self):
         for metric in [RMSE(), AUC()]:
