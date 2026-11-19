@@ -296,6 +296,20 @@ class TestOptunaSearch(unittest.TestCase):
             self.assertEqual(third.best_score, second.best_score)
             self.assertEqual(third.score(0, 0), second.score(0, 0))
             self.assertIs(third.best_model.callbacks, callbacks)
+            self.assertEqual(
+                third.best_score, third._evaluate(third.best_model, train_set, val_set)
+            )
+
+    def test_no_completed_trial(self):
+        os_mf = OptunaSearch(
+            model=MF(max_iter=1),
+            space=[Discrete("k", [1, 2, 3])],
+            metric=RMSE(),
+            eval_method=self.eval_method,
+            n_trials=0,
+        )
+        with self.assertRaises(ValueError):
+            os_mf.fit(self.eval_method.train_set, self.eval_method.val_set)
 
     def test_pruning(self):
         for metric in [RMSE(), AUC()]:

@@ -438,12 +438,19 @@ class OptunaSearch(BaseSearch):
         finally:
             optuna.logging.set_verbosity(verbosity)
 
+        if not self.study.get_trials(
+            deepcopy=False, states=[optuna.trial.TrialState.COMPLETE]
+        ):
+            raise ValueError("No trial completed, there is no best model to select")
+
         best_trial = self.study.best_trial
         self.best_params = best_trial.params
         self.best_score = best_trial.value
         if best_trial.number != best_number:
-            # the best trial comes from an earlier run of a resumed study
+            # the best trial comes from an earlier run of a resumed study,
+            # its score is the one of the model fitted here
             self.best_model = self.model.clone(self.best_params).fit(train_set, val_set)
+            self.best_score = self._evaluate(self.best_model, train_set, val_set)
 
         if self.verbose:
             print("Best parameter settings: {}".format(self.best_params))
