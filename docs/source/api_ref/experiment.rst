@@ -10,8 +10,8 @@ Experiment
 
 Result
 ------
-.. automodule:: cornac.experiment.result
-   :members: Result
+.. autoclass:: cornac.experiment.result.Result
+   :members:
 
 CVResult
 --------

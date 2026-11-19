@@ -55,6 +55,7 @@ tests = [
     "pytest-cov",
     "Flask",
     "optuna",
+    "pandas",
 ]
 
 [tool.ruff]

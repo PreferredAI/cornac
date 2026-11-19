@@ -13,6 +13,7 @@
 # limitations under the License.
 # ============================================================================
 
+import json
 import os
 from datetime import datetime
 
@@ -21,6 +22,18 @@ from .result import CVExperimentResult
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from ..models.recommender import Recommender
+
+
+def _json_params(model):
+    """Return the constructor arguments of a model that can be written to JSON."""
+    params = {}
+    for name in model._get_init_params():
+        try:
+            # A JSON round trip keeps a copy in the form that to_json() writes.
+            params[name] = json.loads(json.dumps(getattr(model, name)))
+        except (AttributeError, TypeError, ValueError):
+            pass
+    return params
 
 
 class Experiment:
@@ -139,12 +152,21 @@ class Experiment:
                 model.verbose = self.verbose
 
         for model in self.models:
+            model_params = _json_params(model)
+            eval_params = {
+                "method": type(self.eval_method).__name__,
+                "seed": self.eval_method.seed,
+            }
             test_result, val_result = self.eval_method.evaluate(
                 model=model,
                 metrics=self.metrics,
                 user_based=self.user_based,
                 show_validation=self.show_validation,
             )
+            for result in (test_result, val_result):
+                if result is not None:
+                    result.model_params = model_params
+                    result.eval_params = eval_params
 
             self.result.append(test_result)
             if self.val_result is not None:

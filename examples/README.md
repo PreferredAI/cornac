@@ -10,6 +10,8 @@
 
 [propensity_stratified_evaluation_example.py](propensity_stratified_evaluation_example.py) - Evaluate the models with [Propensity Stratified Evaluation](https://arxiv.org/abs/2104.08912) method.
 
+[export_results.py](export_results.py) - Export the results of an experiment, with the model parameters and the evaluation seed, to a pandas DataFrame and a JSON file.
+
 [vbpr_tradesy.py](vbpr_tradesy.py) - Image features associate with items/users.
 
 [c2pf_example.py](c2pf_example.py) - Items/users networks as graph modules.
