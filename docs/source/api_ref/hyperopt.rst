@@ -12,6 +12,11 @@ Random Search
 .. autoclass:: cornac.hyperopt.RandomSearch
    :members:
 
+Optuna Search
+--------------------
+.. autoclass:: cornac.hyperopt.OptunaSearch
+   :members:
+
 Search Domain
 ---------------
 .. autoclass:: cornac.hyperopt.Discrete

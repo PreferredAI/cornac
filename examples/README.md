@@ -18,6 +18,8 @@
 
 [param_search.py](param_search.py) - Hyper-parameter tuning with GridSearch and RandomSearch.
 
+[param_search_optuna.py](param_search_optuna.py) - Hyper-parameter tuning with OptunaSearch, pruning unpromising SASRec trials on Amazon Beauty.
+
 [ann_example.py](ann_example.py) - Example for comparing different ANN searchers (Annoy, Faiss, HNSWLib, ScaNN) with BPR model on Netflix dataset.
 
 [ann_all.ipynb](ann_all.ipynb) - Notebook comparing the indexing time, retrieval time and recall of different ANN searchers (Annoy, Faiss, HNSWLib, ScaNN) with MF model on Netflix dataset, and saving and loading them.

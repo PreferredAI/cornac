@@ -125,7 +125,13 @@ class Recommender:
 
     global_mean: float
         Average value over the rating observations.
+
+    callbacks: list
+        Functions called as `callback(model, epoch, logs)` at the end of
+        each training epoch, see `on_epoch_end()`.
     """
+
+    callbacks = ()
 
     def __init__(self, name, trainable=True, verbose=False):
         self.name = name
@@ -218,7 +224,9 @@ class Recommender:
         for name in self._get_init_params():
             init_params[name] = new_params.get(name, copy.deepcopy(getattr(self, name)))
 
-        return self.__class__(**init_params)
+        model = self.__class__(**init_params)
+        model.callbacks = self.callbacks
+        return model
 
     def save(self, save_dir=None, save_trainset=False, metadata=None):
         """Save a recommender model to the filesystem.
@@ -583,6 +591,22 @@ class Recommender:
         recommendations = [self.item_ids[i] for i in item_rank]
         return recommendations
 
+    def on_epoch_end(self, epoch, **logs):
+        """Pass the values of a training epoch to the callbacks of the model.
+        Models call this function at the end of each epoch.
+
+        Parameters
+        ----------
+        epoch: int, required
+            Number of the epoch that has finished, starting from 1.
+
+        **logs:
+            Values of the epoch, e.g., `loss`. A validation value which is
+            better when larger is given as `val_score`.
+        """
+        for callback in self.callbacks:
+            callback(self, epoch, logs)
+
     def monitor_value(self, train_set, val_set):
         """Calculating monitored value used for early stopping on validation set (`val_set`).
         This function will be called by `early_stop()` function.
@@ -602,7 +626,7 @@ class Recommender:
         """
         raise NotImplementedError()
 
-    def early_stop(self, train_set, val_set, min_delta=0.0, patience=0):
+    def early_stop(self, train_set, val_set, min_delta=0.0, patience=0, **logs):
         """Check if training should be stopped when validation loss has stopped improving.
 
         Parameters
@@ -614,11 +638,15 @@ class Recommender:
             User-Item preference data for model selection purposes (e.g., early stopping).
 
         min_delta: float, optional, default: 0.
-            The minimum increase in monitored value on validation set to be considered as improvement,
-            i.e. an increment of less than `min_delta` will count as no improvement.
+            The increase in monitored value on validation set to be considered as improvement,
+            i.e. an increment of `min_delta` or less will count as no improvement.
 
         patience: int, optional, default: 0
             Number of epochs with no improvement after which training should be stopped.
+
+        **logs:
+            Other values of the epoch, e.g., `loss`. They are passed to `on_epoch_end()`
+            together with the monitored value as `val_score`.
 
         Returns
         -------
@@ -628,10 +656,13 @@ class Recommender:
         """
         self.current_epoch += 1
         current_value = self.monitor_value(train_set, val_set)
+        if current_value is not None:
+            logs["val_score"] = current_value
+        self.on_epoch_end(self.current_epoch, **logs)
         if current_value is None:
             return False
 
-        if np.greater_equal(current_value - self.best_value, min_delta):
+        if current_value - self.best_value > min_delta:
             self.best_value = current_value
             self.best_epoch = self.current_epoch
             self.wait = 0
@@ -641,17 +672,18 @@ class Recommender:
                 self.stopped_epoch = self.current_epoch
 
         if self.stopped_epoch > 0:
-            print("Early stopping:")
-            print(
-                "- best epoch = {}, stopped epoch = {}".format(
-                    self.best_epoch, self.stopped_epoch
+            if self.verbose:
+                print("Early stopping:")
+                print(
+                    "- best epoch = {}, stopped epoch = {}".format(
+                        self.best_epoch, self.stopped_epoch
+                    )
                 )
-            )
-            print(
-                "- best monitored value = {:.6f} (delta = {:.6f})".format(
-                    self.best_value, current_value - self.best_value
+                print(
+                    "- best monitored value = {:.6f} (delta = {:.6f})".format(
+                        self.best_value, current_value - self.best_value
+                    )
                 )
-            )
             return True
         return False
 

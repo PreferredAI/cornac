@@ -100,6 +100,11 @@ class SASRec(NextItemRecommender):
         validation score (evaluated every ``val_eval_every`` epochs) is
         restored at the end of ``fit``.
 
+    patience: int, optional, default: None
+        With ``model_selection='best'``, stop training after this many
+        validations in a row without improvement. By default, the model
+        trains for all ``n_epochs``.
+
     val_eval_every: int, optional, default: 5
     val_k: int, optional, default: 20
     val_metric: str, optional, default: 'recall'
@@ -148,6 +153,7 @@ class SASRec(NextItemRecommender):
         val_eval_every=5,
         val_k=20,
         val_metric="recall",
+        patience=None,
     ):
         super().__init__(name, trainable=trainable, verbose=verbose)
         if loss not in SUPPORTED_LOSSES:
@@ -178,6 +184,7 @@ class SASRec(NextItemRecommender):
         self.seed = seed
         self.rng = get_rng(seed)
         self.model_selection = model_selection
+        self.patience = patience
         self.val_eval_every = val_eval_every
         self.val_k = val_k
         self.val_metric = val_metric
@@ -216,8 +223,8 @@ class SASRec(NextItemRecommender):
             self.model.parameters(), lr=self.learning_rate, betas=(0.9, 0.98)
         )
 
-        best_val = -float("inf")
         best_state = None
+        patience = float("inf") if self.patience is None else self.patience
         progress_bar = trange(1, self.n_epochs + 1, disable=not self.verbose)
         for epoch_id in progress_bar:
             self.model.train()
@@ -264,24 +271,36 @@ class SASRec(NextItemRecommender):
                 if inc % 10 == 0 and cnt > 0:
                     progress_bar.set_postfix(loss=(total_loss / cnt))
 
-            if (
-                self.model_selection == "best"
-                and val_set is not None
-                and epoch_id % self.val_eval_every == 0
-            ):
-                score = val_score(
-                    self, self.train_set, val_set, metric=self.val_metric, k=self.val_k
-                )
-                if score is not None and score > best_val:
-                    best_val = score
-                    best_state = {
-                        n: p.detach().clone()
-                        for n, p in self.model.state_dict().items()
-                    }
+            logs = {"loss": float(total_loss / cnt)} if cnt > 0 else {}
+            stop = self.early_stop(self.train_set, val_set, patience=patience, **logs)
+            if self.best_epoch == epoch_id:
+                best_state = {
+                    n: p.detach().clone() for n, p in self.model.state_dict().items()
+                }
+            if stop:
+                break
 
-        if self.model_selection == "best" and best_state is not None:
+        if best_state is not None:
             self.model.load_state_dict(best_state)
         return self
+
+    def monitor_value(self, train_set, val_set):
+        """Validation score of the current epoch, used for model selection
+        and early stopping.
+
+        Returns
+        -------
+        float or None
+            The score, or None in epochs without validation.
+        """
+        if (
+            self.model_selection != "best"
+            or self.current_epoch % self.val_eval_every != 0
+        ):
+            return None
+        return val_score(
+            self, train_set, val_set, metric=self.val_metric, k=self.val_k
+        )
 
     def score(self, user_idx, history_items, **kwargs):
         import torch
