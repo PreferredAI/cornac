@@ -413,6 +413,11 @@ Bundle Construction Recommender Interface
 .. autoclass:: cornac.models.BundleConstructionRecommender
    :members:
 
+Discrete Diffusion for Bundle Construction (DDBC)
+-------------------------------------------------
+.. automodule:: cornac.models.ddbc.recom_ddbc
+   :members:
+
 Cross-view Contrastive Learning for Bundle Recommendation (CrossCBR)
 --------------------------------------------------------------------
 .. automodule:: cornac.models.crosscbr.recom_crosscbr
