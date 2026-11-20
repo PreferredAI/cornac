@@ -183,3 +183,5 @@
 [multicbr_example.py](multicbr_example.py) - Example of MultiCBR three-view bundle recommendation on Youshu.
 
 [bundlegt_example.py](bundlegt_example.py) - Example of BundleGT strategy-aware bundle recommendation on Youshu.
+
+[ddbc_pog.py](ddbc_pog.py) - Example of DDBC bundle completion on POG outfits, with semantic IDs of CLHE item features and `BundleConstructionEvaluation`.
