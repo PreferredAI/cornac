@@ -67,8 +67,9 @@ class DDBC(BundleConstructionRecommender):
         Number of codes per level. The paper uses 128 on POG and 256 on Spotify.
 
     codebook_init: numpy array, optional, default: None
-        Initial codebooks of shape ``(n_codebooks * codebook_size, dim)``, e.g.
-        the ``clhe_weight.npy`` released by the authors. If None, the codebooks
+        Initial codebooks of shape ``(n_codebooks * codebook_size, dim)`` or
+        ``(n_codebooks, codebook_size, dim)``, where ``dim`` is the item feature
+        size, e.g. the ``clhe_weight.npy`` released by the authors. If None, the codebooks
         start from residual k-means on the item features.
 
     kmeans_iters: int, default: 20
@@ -217,6 +218,15 @@ class DDBC(BundleConstructionRecommender):
                     model_selection
                 )
             )
+        for param, value in (
+            ("accumulate", accumulate),
+            ("max_steps", max_steps),
+            ("val_every", val_every),
+        ):
+            if value < 1:
+                raise ValueError(
+                    "{} must be at least 1 but {} is given".format(param, value)
+                )
         if hidden_size % (2 * n_heads) != 0:
             raise ValueError(
                 "hidden_size must be divisible by n_heads with an even size per "
@@ -292,8 +302,9 @@ class DDBC(BundleConstructionRecommender):
             with ``item_feature``. Only the full bundles are used for training.
 
         val_set: :obj:`cornac.data.BundleConstructionDataset`, optional, default: None
-            Missing items of the validation bundles, used when
-            ``model_selection='best'``.
+            Missing items of the validation bundles. Their NLL is reported to
+            the callbacks and, with ``model_selection='best'``, selects the
+            weights.
 
         Returns
         -------
@@ -334,10 +345,15 @@ class DDBC(BundleConstructionRecommender):
                 e, self.n_codebooks, self.codebook_size, self.kmeans_iters, seed
             )
         else:
-            init = torch.from_numpy(
-                np.asarray(self.codebook_init, dtype=np.float32)
-            ).to(device)
-            init = init.reshape(self.n_codebooks, self.codebook_size, -1)
+            init = np.asarray(self.codebook_init, dtype=np.float32)
+            shape = (self.n_codebooks, self.codebook_size, features.shape[1])
+            if init.shape not in (shape, (shape[0] * shape[1], shape[2])):
+                raise ValueError(
+                    "codebook_init must have shape {} or {} but {} is given".format(
+                        (shape[0] * shape[1], shape[2]), shape, init.shape
+                    )
+                )
+            init = torch.from_numpy(init.reshape(shape)).to(device)
         rvq = ResidualVQ(init, self.rvq_beta).to(device)
         rvq.fit(e, self.rvq_steps, self.rvq_lr)
         codes = rvq.encode(e).cpu().numpy()
@@ -381,7 +397,7 @@ class DDBC(BundleConstructionRecommender):
             )
         train_ids = torch.tensor([self.net.encode(w, item_tokens) for w in windows])
         val_ids = None
-        if val_set is not None and self.model_selection == "best":
+        if val_set is not None:
             held_out = self._held_out_bundles(train_set, val_set)
             val_rows = [
                 b[: self.bundle_size] for b in held_out if len(b) >= self.bundle_size
