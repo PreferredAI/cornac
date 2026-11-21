@@ -156,6 +156,7 @@ class DDBC(BundleConstructionRecommender):
 
     seed: int, optional, default: None
         Random seed for initialization, augmentation, training and sampling.
+        If None, each call of ``fit`` draws a new seed.
 
     device: str, default: 'cpu'
         Torch device, e.g. 'cpu' or 'cuda'.
@@ -262,7 +263,6 @@ class DDBC(BundleConstructionRecommender):
         self.model_selection = model_selection
         self.seed = seed
         self.device = device
-        self.rng = get_rng(seed)
 
         self.net = None
         self.item_tokens = None
@@ -271,6 +271,7 @@ class DDBC(BundleConstructionRecommender):
         self.code_to_item = None
         self.given_items = None
         self.best_val_nll = None
+        self.fit_seed = None
 
     @staticmethod
     def _training_bundles(train_set):
@@ -332,7 +333,10 @@ class DDBC(BundleConstructionRecommender):
                 "DDBC requires item features, e.g. item_feature=FeatureModality(...)"
             )
 
-        seed = self.seed if self.seed is not None else 0
+        seed = self.seed
+        if seed is None:
+            seed = int(get_rng(None).randint(np.iinfo(np.int32).max))
+        self.fit_seed = seed
         torch.manual_seed(seed)
         device = torch.device(self.device)
 
@@ -387,7 +391,7 @@ class DDBC(BundleConstructionRecommender):
             self._training_bundles(train_set),
             self.swap_ratio,
             self.bundle_size,
-            self.rng,
+            get_rng(seed),
         )
         if len(windows) == 0:
             raise ValueError(
@@ -570,9 +574,10 @@ class DDBC(BundleConstructionRecommender):
             [self.net.encode(input_items, self.item_tokens, with_eos=False)],
             device=device,
         )
-        sample_seed = zlib.crc32(
-            np.asarray([user_idx] + input_items, dtype=np.int64).tobytes()
-        ) ^ (self.seed or 0)
+        sample_seed = (
+            zlib.crc32(np.asarray([user_idx] + input_items, dtype=np.int64).tobytes())
+            ^ self.fit_seed
+        )
         generator = torch.Generator(device=device).manual_seed(sample_seed)
         codes = (
             self.net.complete(prefix, size, decode=self.decode, generator=generator)[0]
