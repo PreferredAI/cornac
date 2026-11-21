@@ -49,6 +49,8 @@ The paper settings ship as configs. All of them use a 6-block DiT (hidden size 6
 
 - **Codebook initialization.** The reference code starts the quantizer from a released `clhe_weight.npy`. The default here is residual k-means on the item features. Pass `codebook_init=np.load("clhe_weight.npy")` to use the authors' initialization.
 - **Evaluation.** The reference code maps generated items to a small candidate pool and reports F1, Jaccard and OAS. `BundleConstructionEvaluation` ranks and constructs over the whole catalog without negative sampling, so its numbers are not comparable with the paper.
+- **Training objective.** Eq. 7 of the paper writes the masked-token cross-entropy without a weight, while its text calls it a weighted negative ELBO. The loss here weights each masked token by `T / t`, the negative ELBO under the linear schedule `alpha_t = 1 - t / T`. The reference code applies the same weight in continuous time.
+- **Time steps.** Following Section 3.3, `t` is discrete in {1, ..., T} and the denoiser is conditioned on it. The reference code samples a continuous `t` and does not condition on it.
 - **Decoding.** The default `decode="confidence"` is the confidence-ordered argmax unmasking of Algorithm 2, as described in the paper. The reference code samples ancestrally, which produced Table 1. Use `decode="ancestral"` for that. On POG, Algorithm 2 scores much higher.
 - **Sampling.** Ancestral sampling uses a generator seeded from `seed`, the query and its given items, so a query gets the same bundle whatever the evaluation order.
 - **Held-out windows.** The example keeps a random window of k items of each held-out bundle (Section 4.1). The reference code keeps the first k.
