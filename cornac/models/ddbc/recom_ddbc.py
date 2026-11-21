@@ -122,8 +122,7 @@ class DDBC(BundleConstructionRecommender):
 
     val_every: int, default: 32
         When a validation set is given, validation NLL is computed every
-        ``val_every`` batches, counted across epochs, and at the last step if
-        it has not run yet.
+        ``val_every`` batches, counted across epochs, and at the last step.
 
     learning_rate: float, default: 3e-4
         AdamW learning rate.
@@ -420,7 +419,6 @@ class DDBC(BundleConstructionRecommender):
         n_epochs = math.ceil(self.max_steps * self.accumulate / len(loader))
 
         best_nll, best_state, step, n_batches = float("inf"), None, 0, 0
-        validated = False
         progress = tqdm(total=self.max_steps, desc="Training", disable=not self.verbose)
         for epoch in range(1, n_epochs + 1):
             net.train()
@@ -444,10 +442,8 @@ class DDBC(BundleConstructionRecommender):
                     progress.update(1)
 
                 if val_ids is not None and (
-                    n_batches % self.val_every == 0
-                    or (step >= self.max_steps and not validated)
+                    n_batches % self.val_every == 0 or step >= self.max_steps
                 ):
-                    validated = True
                     ema.store(params)
                     ema.copy_to(params)
                     val_nll = validation_nll(net, val_ids, self.batch_size, seed)
