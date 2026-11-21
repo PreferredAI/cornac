@@ -326,7 +326,9 @@ class DDBCNet(nn.Module):
         return (eps_t * self.T).floor().clamp(max=self.T - 1) + 1
 
     def forward(self, x0):
-        """Negative log-likelihood of every token after random masking."""
+        """Masked-token cross-entropy weighted by ``T / t``, the negative ELBO
+        of Eq. 7 under the linear schedule. Eq. 7 omits the weight, while the
+        text and the reference code apply it."""
         t = self.sample_t(x0.shape[0], x0.device)
         move_chance = (
             (t / self.T)[:, None]
@@ -337,7 +339,7 @@ class DDBCNet(nn.Module):
             torch.rand(*x0.shape, device=x0.device) < move_chance, self.mask_index, x0
         )
         log_p = torch.gather(self.denoise(xt, t), -1, x0[:, :, None]).squeeze(-1)
-        return -log_p
+        return -log_p * (self.T / t)[:, None]
 
     def allowed_table(self, seq_len, device):
         key = (seq_len, str(device))

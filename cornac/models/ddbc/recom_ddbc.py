@@ -121,8 +121,9 @@ class DDBC(BundleConstructionRecommender):
         Number of optimizer steps.
 
     val_every: int, default: 32
-        Validation NLL is computed every ``val_every`` batches when
-        ``model_selection='best'``.
+        When a validation set is given, validation NLL is computed every
+        ``val_every`` batches, counted across epochs, and at the last step if
+        it has not run yet.
 
     learning_rate: float, default: 3e-4
         AdamW learning rate.
@@ -217,8 +218,11 @@ class DDBC(BundleConstructionRecommender):
                     model_selection
                 )
             )
-        if hidden_size % n_heads != 0:
-            raise ValueError("hidden_size must be divisible by n_heads")
+        if hidden_size % (2 * n_heads) != 0:
+            raise ValueError(
+                "hidden_size must be divisible by n_heads with an even size per "
+                "head for the rotary embedding"
+            )
 
         self.bundle_size = bundle_size
         self.n_codebooks = n_codebooks
@@ -415,12 +419,14 @@ class DDBC(BundleConstructionRecommender):
         )
         n_epochs = math.ceil(self.max_steps * self.accumulate / len(loader))
 
-        best_nll, best_state, step = float("inf"), None, 0
+        best_nll, best_state, step, n_batches = float("inf"), None, 0, 0
+        validated = False
         progress = tqdm(total=self.max_steps, desc="Training", disable=not self.verbose)
         for epoch in range(1, n_epochs + 1):
             net.train()
             logs = {}
             for b, (x,) in enumerate(loader):
+                n_batches += 1
                 x = x.to(device)
                 with torch.autocast(
                     device_type=device.type, dtype=torch.bfloat16, enabled=self.use_bf16
@@ -437,7 +443,11 @@ class DDBC(BundleConstructionRecommender):
                     step += 1
                     progress.update(1)
 
-                if val_ids is not None and (b + 1) % self.val_every == 0:
+                if val_ids is not None and (
+                    n_batches % self.val_every == 0
+                    or (step >= self.max_steps and not validated)
+                ):
+                    validated = True
                     ema.store(params)
                     ema.copy_to(params)
                     val_nll = validation_nll(net, val_ids, self.batch_size, seed)
