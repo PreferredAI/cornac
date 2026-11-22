@@ -121,17 +121,17 @@ training, validation and test sessions:
 
     VALIDATION:
     ...
-            |    MRR | NDCG@10 | Recall@10 | Time (s)
-    ------- + ------ + ------- + --------- + --------
-    SPop    | 0.2376 |  0.2490 |    0.2926 |   0.1857
-    GRU4Rec | 0.2820 |  0.3134 |    0.4244 |   0.1813
+    |         |    MRR | NDCG@10 | Recall@10 | Time (s) |
+    | ------- | -----: | ------: | --------: | -------: |
+    | SPop    | 0.2376 |  0.2490 |    0.2926 |   0.1857 |
+    | GRU4Rec | 0.2820 |  0.3134 |    0.4244 |   0.1813 |
 
     TEST:
     ...
-            |    MRR | NDCG@10 | Recall@10 | Train (s) | Test (s)
-    ------- + ------ + ------- + --------- + --------- + --------
-    SPop    | 0.2344 |  0.2432 |    0.2776 |    0.0005 |   0.1830
-    GRU4Rec | 0.2587 |  0.2912 |    0.4114 |   32.9294 |   0.1837
+    |         |    MRR | NDCG@10 | Recall@10 | Train (s) | Test (s) |
+    | ------- | -----: | ------: | --------: | --------: | -------: |
+    | SPop    | 0.2344 |  0.2432 |    0.2776 |    0.0005 |   0.1830 |
+    | GRU4Rec | 0.2587 |  0.2912 |    0.4114 |   32.9294 |   0.1837 |
 
 :class:`~cornac.models.spop.recom_spop.SPop` recommends the most popular
 items, boosting those already in the session.
@@ -233,19 +233,19 @@ fifth field with the price and quantity of each item:
 
     VALIDATION:
     ...
-          | HitRatio@10 | NDCG@10 | Recall@10 | Time (s)
-    ----- + ----------- + ------- + --------- + --------
-    GTop  |      0.2606 |  0.0562 |    0.0438 |   3.4698
-    PTop  |      0.3686 |  0.0861 |    0.0778 |   3.6640
-    GPTop |      0.4366 |  0.1052 |    0.0948 |   3.6799
+    |       | HitRatio@10 | NDCG@10 | Recall@10 | Time (s) |
+    | ----- | ----------: | ------: | --------: | -------: |
+    | GTop  |      0.2606 |  0.0562 |    0.0438 |   3.4698 |
+    | PTop  |      0.3686 |  0.0861 |    0.0778 |   3.6640 |
+    | GPTop |      0.4366 |  0.1052 |    0.0948 |   3.6799 |
 
     TEST:
     ...
-          | HitRatio@10 | NDCG@10 | Recall@10 | Train (s) | Test (s)
-    ----- + ----------- + ------- + --------- + --------- + --------
-    GTop  |      0.2418 |  0.0540 |    0.0402 |    0.0409 |   9.0803
-    PTop  |      0.3560 |  0.0807 |    0.0707 |    0.0002 |   9.1993
-    GPTop |      0.4219 |  0.0983 |    0.0879 |    0.0400 |   9.1873
+    |       | HitRatio@10 | NDCG@10 | Recall@10 | Train (s) | Test (s) |
+    | ----- | ----------: | ------: | --------: | --------: | -------: |
+    | GTop  |      0.2418 |  0.0540 |    0.0402 |    0.0409 |   9.0803 |
+    | PTop  |      0.3560 |  0.0807 |    0.0707 |    0.0002 |   9.1993 |
+    | GPTop |      0.4219 |  0.0983 |    0.0879 |    0.0400 |   9.1873 |
 
 The ``Reader`` keeps baskets with 3 to 50 items and users with at least two
 baskets. :class:`~cornac.models.gp_top.recom_gp_top.GPTop` recommends the
@@ -291,9 +291,9 @@ count only new ones:
 
     TEST:
     ...
-          | Recall@10 | Recall@10-rep | Recall@10-expl | Train (s) | Test (s)
-    ----- + --------- + ------------- + -------------- + --------- + --------
-    GPTop |    0.0879 |        0.6439 |         0.0078 |    0.0410 |  10.1125
+    |       | Recall@10 | Recall@10-rep | Recall@10-expl | Train (s) | Test (s) |
+    | ----- | --------: | ------------: | -------------: | --------: | -------: |
+    | GPTop |    0.0879 |        0.6439 |         0.0078 |    0.0410 |  10.1125 |
 
 Almost all of GPTop's hits are repeat purchases: it finds 64% of the target
 items that the user bought before, but under 1% of the new ones.
@@ -545,19 +545,19 @@ too.
 
     VALIDATION:
     ...
-                     | NDCG@20 | Recall@20 | Time (s)
-    ---------------- + ------- + --------- + --------
-    BundlePop-bundle |  0.0950 |    0.2022 |   0.5415
-    BundlePop-item   |  0.0006 |    0.0020 |   0.5165
-    BundlePop-user   |  0.0040 |    0.0100 |   1.3501
+    |                  | NDCG@20 | Recall@20 | Time (s) |
+    | ---------------- | ------: | --------: | -------: |
+    | BundlePop-bundle |  0.0950 |    0.2022 |   0.5415 |
+    | BundlePop-item   |  0.0006 |    0.0020 |   0.5165 |
+    | BundlePop-user   |  0.0040 |    0.0100 |   1.3501 |
 
     TEST:
     ...
-                     | NDCG@20 | Recall@20 | Train (s) | Test (s)
-    ---------------- + ------- + --------- + --------- + --------
-    BundlePop-bundle |  0.1141 |    0.2033 |    0.0025 |   0.5554
-    BundlePop-item   |  0.0008 |    0.0016 |    0.0016 |   0.5355
-    BundlePop-user   |  0.0059 |    0.0104 |    0.0011 |   1.3637
+    |                  | NDCG@20 | Recall@20 | Train (s) | Test (s) |
+    | ---------------- | ------: | --------: | --------: | -------: |
+    | BundlePop-bundle |  0.1141 |    0.2033 |    0.0025 |   0.5554 |
+    | BundlePop-item   |  0.0008 |    0.0016 |    0.0016 |   0.5355 |
+    | BundlePop-user   |  0.0059 |    0.0104 |    0.0011 |   1.3637 |
 
 :class:`~cornac.models.bundle_pop.recom_bundle_pop.BundlePop` is a baseline
 that learns nothing. It scores a bundle by its number of training users
@@ -608,17 +608,17 @@ are given, and the model ranks all items to find the rest:
 
     VALIDATION:
     ...
-                           | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Time (s)
-    ---------------------- + ------- + --------- + ------ + ----------- + --------
-    BundlePop-item         |  0.0459 |    0.0435 | 0.0341 |      0.0185 |   0.5998
-    BundlePop-cooccurrence |  0.1307 |    0.1210 | 0.0875 |      0.0489 |   0.8272
+    |                        | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Time (s) |
+    | ---------------------- | ------: | --------: | -----: | ----------: | -------: |
+    | BundlePop-item         |  0.0459 |    0.0435 | 0.0341 |      0.0185 |   0.5998 |
+    | BundlePop-cooccurrence |  0.1307 |    0.1210 | 0.0875 |      0.0489 |   0.8272 |
 
     TEST:
     ...
-                           | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Train (s) | Test (s)
-    ---------------------- + ------- + --------- + ------ + ----------- + --------- + --------
-    BundlePop-item         |  0.0393 |    0.0382 | 0.0284 |      0.0152 |    0.0034 |   1.2091
-    BundlePop-cooccurrence |  0.1224 |    0.1141 | 0.0820 |      0.0458 |    0.0018 |   1.6959
+    |                        | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Train (s) | Test (s) |
+    | ---------------------- | ------: | --------: | -----: | ----------: | --------: | -------: |
+    | BundlePop-item         |  0.0393 |    0.0382 | 0.0284 |      0.0152 |    0.0034 |   1.2091 |
+    | BundlePop-cooccurrence |  0.1224 |    0.1141 | 0.0820 |      0.0458 |    0.0018 |   1.6959 |
 
 The queries take the place of users: the training set is a
 :class:`~cornac.data.dataset.BundleConstructionDataset` with training bundles
@@ -671,19 +671,19 @@ bundles without users are dropped.
 
     VALIDATION:
     ...
-                     | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Time (s)
-    ---------------- + ------- + --------- + ------ + ----------- + --------
-    BundlePop-item   |  0.1846 |    0.0637 | 0.1368 |      0.0800 |   9.1786
-    BundlePop-bundle |  0.1691 |    0.0575 | 0.1238 |      0.0707 |   7.5300
-    BundlePop-user   |  0.1539 |    0.0503 | 0.1031 |      0.0569 |  11.8434
+    |                  | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Time (s) |
+    | ---------------- | ------: | --------: | -----: | ----------: | -------: |
+    | BundlePop-item   |  0.1846 |    0.0637 | 0.1368 |      0.0800 |   9.1786 |
+    | BundlePop-bundle |  0.1691 |    0.0575 | 0.1238 |      0.0707 |   7.5300 |
+    | BundlePop-user   |  0.1539 |    0.0503 | 0.1031 |      0.0569 |  11.8434 |
 
     TEST:
     ...
-                     | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Train (s) | Test (s)
-    ---------------- + ------- + --------- + ------ + ----------- + --------- + --------
-    BundlePop-item   |  0.0881 |    0.0286 | 0.0599 |      0.0323 |    0.0038 |  14.1484
-    BundlePop-bundle |  0.0848 |    0.0274 | 0.0603 |      0.0323 |    0.0031 |  11.5588
-    BundlePop-user   |  0.1101 |    0.0382 | 0.0728 |      0.0392 |    0.0026 |  18.1682
+    |                  | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard | Train (s) | Test (s) |
+    | ---------------- | ------: | --------: | -----: | ----------: | --------: | -------: |
+    | BundlePop-item   |  0.0881 |    0.0286 | 0.0599 |      0.0323 |    0.0038 |  14.1484 |
+    | BundlePop-bundle |  0.0848 |    0.0274 | 0.0603 |      0.0323 |    0.0031 |  11.5588 |
+    | BundlePop-user   |  0.1101 |    0.0382 | 0.0728 |      0.0392 |    0.0026 |  18.1682 |
 
 The whole example, with the three experiments, is `bundle_pop_youshu.py
 <https://github.com/PreferredAI/cornac/blob/master/examples/bundle_pop_youshu.py>`_.

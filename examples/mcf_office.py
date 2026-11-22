@@ -57,9 +57,9 @@ Experiment(eval_method=ratio_split, models=[mcf], metrics=[rmse, ndcg, rec, pre]
 """
 Output:
     
-    |   RMSE | NDCG@-1 | Recall@20 | Precision@20 | Train (s) | Test (s)
---- + ------ + ------- + --------- + ------------ + --------- + --------
-MCF | 1.0854 |  0.1598 |    0.0348 |       0.0057 |    7.4057 |   4.1801
+|     |   RMSE | NDCG@-1 | Recall@20 | Precision@20 | Train (s) | Test (s) |
+| --- | -----: | ------: | --------: | -----------: | --------: | -------: |
+| MCF | 1.0854 |  0.1598 |    0.0348 |       0.0057 |    7.4057 |   4.1801 |
 
 *Results may change from one run to another due to different random initial parameters
 """

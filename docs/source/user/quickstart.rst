@@ -296,9 +296,9 @@ What does the output mean?
 
   TEST:
   ...
-      | Precision@10 | Recall@10 | Train (s) | Test (s)
-  --- + ------------ + --------- + --------- + --------
-  BPR |       0.1110 |    0.1195 |    4.7624 |   0.7182
+  |     | Precision@10 | Recall@10 | Train (s) | Test (s) |
+  | --- | -----------: | --------: | --------: | -------: |
+  | BPR |       0.1110 |    0.1195 |    4.7624 |   0.7182 |
 
 
 After the training process, Cornac tests the trained model by using the test data
@@ -370,10 +370,10 @@ Now run it again!
 
   TEST:
   ...
-      | Precision@10 | Recall@10 | Train (s) | Test (s)
-  --- + ------------ + --------- + --------- + --------
-  BPR |       0.1110 |    0.1195 |    4.7624 |   0.7182
-  PMF |       0.0813 |    0.0639 |    2.5635 |   0.4254
+  |     | Precision@10 | Recall@10 | Train (s) | Test (s) |
+  | --- | -----------: | --------: | --------: | -------: |
+  | BPR |       0.1110 |    0.1195 |    4.7624 |   0.7182 |
+  | PMF |       0.0813 |    0.0639 |    2.5635 |   0.4254 |
 
 We are now presented with results from our different models. In this easy example,
 we can see how we can easily compare the results from different models.

@@ -26,7 +26,8 @@ def _floats(metrics):
     return {name: float(value) for name, value in metrics.items()}
 
 
-def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
+def _table_format(data, headers=None, index=None, extra_spaces=0):
+    """Format the rows as a Markdown table, with the numbers right-aligned."""
     if headers is not None:
         data.insert(0, headers)
     if index is not None:
@@ -35,19 +36,17 @@ def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
             row.insert(0, idx)
 
     column_widths = np.asarray([[len(str(v)) for v in row] for row in data]).max(axis=0)
+    column_widths = column_widths + extra_spaces
 
-    row_fmt = (
-        " | ".join(["{:>%d}" % (w + extra_spaces) for w in column_widths][1:]) + "\n"
-    )
+    cells = ["{:>%d}" % w for w in column_widths]
+    rule = ["-" * (w - 1) + ":" for w in column_widths]
     if index is not None:
-        row_fmt = "{:<%d} | " % (column_widths[0] + extra_spaces) + row_fmt
+        cells[0] = "{:<%d}" % column_widths[0]
+        rule[0] = "-" * column_widths[0]
+    row_fmt = "| " + " | ".join(cells) + " |\n"
 
-    output = ""
-    for i, row in enumerate(data):
-        if h_bars is not None and i in h_bars:
-            output += row_fmt.format(
-                *["-" * (w + extra_spaces) for w in column_widths]
-            ).replace("|", "+")
+    output = row_fmt.format(*data[0]) + row_fmt.format(*rule)
+    for row in data[1:]:
         output += row_fmt.format(*row)
     return output
 
@@ -87,7 +86,7 @@ class Result:
     def __str__(self):
         headers = list(self.metric_avg_results.keys())
         data = [[NUM_FMT.format(v) for v in self.metric_avg_results.values()]]
-        return _table_format(data, headers, index=[self.model_name], h_bars=[1])
+        return _table_format(data, headers, index=[self.model_name])
 
     def to_dict(self):
         """Return the result as a dictionary.
@@ -206,7 +205,7 @@ class CVResult(list):
         data = np.vstack([data, mean, std])
         data = [[NUM_FMT.format(v) for v in row] for row in data]
         index.extend(["Mean", "Std"])
-        self.table = _table_format(data, headers, index, h_bars=[1, len(data) - 1])
+        self.table = _table_format(data, headers, index)
 
 class PSTResult(list):
     """
@@ -312,7 +311,7 @@ class PSTResult(list):
             )
         )
 
-        self.table = _table_format(data, headers, index, h_bars=[1, 2, 3, len(data)])
+        self.table = _table_format(data, headers, index)
 
 
 class ExperimentResult(list):
@@ -327,7 +326,7 @@ class ExperimentResult(list):
             data.append([NUM_FMT.format(r.metric_avg_results[m]) if m in r.metric_avg_results
                          else "N/A" for m in headers])
             index.append(r.model_name)
-        return _table_format(data, headers, index, h_bars=[1])
+        return _table_format(data, headers, index)
 
     def to_dataframe(self):
         """Return the average results as a DataFrame (requires pandas).

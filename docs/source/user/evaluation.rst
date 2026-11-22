@@ -50,11 +50,11 @@ experiment.
 
     TEST:
     ...
-        |   RMSE | Precision@10 | Recall@10 | Train (s) | Test (s)
-    --- + ------ + ------------ + --------- + --------- + --------
-    BPR | 2.2267 |       0.1110 |    0.1195 |    1.4414 |   0.2735
-    PMF | 0.9138 |       0.0813 |    0.0639 |    1.1986 |   0.2600
-    MF  | 0.8998 |       0.0675 |    0.0463 |    0.0249 |   0.2836
+    |     |   RMSE | Precision@10 | Recall@10 | Train (s) | Test (s) |
+    | --- | -----: | -----------: | --------: | --------: | -------: |
+    | BPR | 2.2267 |       0.1110 |    0.1195 |    1.4414 |   0.2735 |
+    | PMF | 0.9138 |       0.0813 |    0.0639 |    1.1986 |   0.2600 |
+    | MF  | 0.8998 |       0.0675 |    0.0463 |    0.0249 |   0.2836 |
 
 The rest of this page explains each part of an experiment.
 
@@ -142,16 +142,15 @@ set. The results show each fold, then the mean and standard deviation:
     TEST:
     ...
     [MF]
-           |   RMSE | Recall@10 | Train (s) | Test (s)
-    ------ + ------ + --------- + --------- + --------
-    Fold 0 | 0.9126 |    0.0524 |    0.0232 |   0.2862
-    Fold 1 | 0.8996 |    0.0564 |    0.0236 |   0.2819
-    Fold 2 | 0.9112 |    0.0558 |    0.0234 |   0.2828
-    Fold 3 | 0.8923 |    0.0551 |    0.0232 |   0.2810
-    Fold 4 | 0.9113 |    0.0532 |    0.0235 |   0.2825
-    ------ + ------ + --------- + --------- + --------
-    Mean   | 0.9054 |    0.0546 |    0.0234 |   0.2829
-    Std    | 0.0081 |    0.0015 |    0.0002 |   0.0018
+    |        |   RMSE | Recall@10 | Train (s) | Test (s) |
+    | ------ | -----: | --------: | --------: | -------: |
+    | Fold 0 | 0.9126 |    0.0524 |    0.0232 |   0.2862 |
+    | Fold 1 | 0.8996 |    0.0564 |    0.0236 |   0.2819 |
+    | Fold 2 | 0.9112 |    0.0558 |    0.0234 |   0.2828 |
+    | Fold 3 | 0.8923 |    0.0551 |    0.0232 |   0.2810 |
+    | Fold 4 | 0.9113 |    0.0532 |    0.0235 |   0.2825 |
+    | Mean   | 0.9054 |    0.0546 |    0.0234 |   0.2829 |
+    | Std    | 0.0081 |    0.0015 |    0.0002 |   0.0018 |
 
 **Your own splits.** If your data already comes split, for example to compare
 with published results, build the evaluation method with
@@ -189,9 +188,9 @@ keeps unknown users and items by default (``exclude_unknowns=False``):
 
     TEST:
     ...
-       |    MAE |   RMSE | Recall@10 | Train (s) | Test (s)
-    -- + ------ + ------ + --------- + --------- + --------
-    MF | 0.7439 | 0.9159 |    0.0450 |    0.0294 |   0.2023
+    |    |    MAE |   RMSE | Recall@10 | Train (s) | Test (s) |
+    | -- | -----: | -----: | --------: | --------: | -------: |
+    | MF | 0.7439 | 0.9159 |    0.0450 |    0.0294 |   0.2023 |
 
 To read your own files, see :doc:`/user/owndata`.
 
@@ -246,9 +245,9 @@ Ranking metrics are always averaged over users.
 
     TEST:
     ...
-       |    MAE |   RMSE | Train (s) | Test (s)
-    -- + ------ + ------ + --------- + --------
-    MF | 0.7149 | 0.9087 |    0.0252 |   0.1001
+    |    |    MAE |   RMSE | Train (s) | Test (s) |
+    | -- | -----: | -----: | --------: | -------: |
+    | MF | 0.7149 | 0.9087 |    0.0252 |   0.1001 |
 
 Validation sets
 ---------------
@@ -542,17 +541,17 @@ The output of the above code could be as follows:
 
     VALIDATION:
     ...
-                     | Recall@100 | Time (s)
-    ---------------- + ---------- + --------
-    GridSearch_BPR   |     0.6951 |   0.1226
-    RandomSearch_BPR |     0.6949 |   0.1228
+    |                  | Recall@100 | Time (s) |
+    | ---------------- | ---------: | -------: |
+    | GridSearch_BPR   |     0.6951 |   0.1226 |
+    | RandomSearch_BPR |     0.6949 |   0.1228 |
 
     TEST:
     ...
-                     | Recall@100 | Train (s) | Test (s)
-    ---------------- + ---------- + --------- + --------
-    GridSearch_BPR   |     0.6953 |   21.1887 |   0.1410
-    RandomSearch_BPR |     0.6988 |   37.3076 |   0.1402
+    |                  | Recall@100 | Train (s) | Test (s) |
+    | ---------------- | ---------: | --------: | -------: |
+    | GridSearch_BPR   |     0.6953 |   21.1887 |   0.1410 |
+    | RandomSearch_BPR |     0.6988 |   37.3076 |   0.1402 |
 
     {'k': 50, 'learning_rate': 0.01}
     {'k': np.int64(50), 'learning_rate': 0.007993039950008024}
