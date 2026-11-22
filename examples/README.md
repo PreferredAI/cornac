@@ -8,6 +8,8 @@
 
 [given_data.py](given_data.py) - Evaluate the models with your own data splits.
 
+[dataframe_input.py](dataframe_input.py) - Use a pandas DataFrame as input to an evaluation method and a Dataset.
+
 [propensity_stratified_evaluation_example.py](propensity_stratified_evaluation_example.py) - Evaluate the models with [Propensity Stratified Evaluation](https://arxiv.org/abs/2104.08912) method.
 
 [vbpr_tradesy.py](vbpr_tradesy.py) - Image features associate with items/users.

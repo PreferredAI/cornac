@@ -414,6 +414,55 @@ will be used to train the model.
 As before, the ``dataset`` is ready for a model to train on, as shown in
 :doc:`/user/predict`.
 
+Loading data from a DataFrame
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If your data is already in a pandas or polars DataFrame, ``Dataset.from_df``
+reads its columns by name. The names default to ``user_id``, ``item_id`` and
+``rating``; ``timestamp_col`` adds the timestamps, as in the UIRT format. With
+the same ``data.csv`` as above:
+
+.. code-block:: python
+
+    import pandas as pd
+    from cornac.data import Dataset
+
+    df = pd.read_csv('data.csv')
+    dataset = Dataset.from_df(df, user_col='user', item_col='item', rating_col='rating')
+
+pandas reads the IDs in this file as numbers, so the user and item IDs of the
+dataset are integers, where ``Reader`` gives strings. Side information such as
+item text is matched by ID, so its IDs need the same type;
+``pd.read_csv('data.csv', dtype={'user': str, 'item': str})`` keeps them as
+strings.
+
+Drop rows with missing values first, for example with ``df.dropna()``: a missing
+ID would become a user or item of its own. Timestamps must be integers. Convert a
+datetime column first, for example with
+``df['timestamp'].dt.as_unit('s').astype('int64')`` in pandas.
+
+Evaluation methods also take a DataFrame in place of a list of tuples, except
+the bundle evaluation methods. They read its columns by position, in the order
+of ``fmt`` (user, item, rating by default), the same way they read a tuple, and
+do not look at the names. Select the columns in that order first. This splits
+the MovieLens 100K ratings:
+
+.. code-block:: python
+
+    from cornac.eval_methods import RatioSplit
+    from cornac.utils import cache
+
+    fpath = cache(
+        url='https://files.grouplens.org/datasets/movielens/ml-100k/u.data',
+        relative_path='ml-100k/u.data',
+    )
+    ml_df = pd.read_csv(fpath, sep='\t', names=['user_id', 'item_id', 'rating', 'timestamp'])
+    rs = RatioSplit(data=ml_df[['user_id', 'item_id', 'rating']], test_size=0.2, seed=123)
+
+`dataframe_input.py
+<https://github.com/PreferredAI/cornac/blob/master/examples/dataframe_input.py>`_
+runs an experiment with it.
+
 What's Next?
 ------------
 

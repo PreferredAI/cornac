@@ -19,6 +19,7 @@ from collections import OrderedDict
 
 import numpy as np
 import numpy.testing as npt
+import pandas as pd
 
 from cornac.data import (
     BasketDataset,
@@ -29,6 +30,11 @@ from cornac.data import (
     SequentialDataset,
     Reader,
 )
+
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 
 
 class TestDataset(unittest.TestCase):
@@ -65,6 +71,37 @@ class TestDataset(unittest.TestCase):
         train_set = Dataset.from_uirt(self.uirt_data)
 
         self.assertTrue(len(train_set.timestamps) == 10)
+
+    def test_from_df(self):
+        df = pd.DataFrame(
+            self.uirt_data, columns=["user_id", "item_id", "rating", "timestamp"]
+        )
+        uir_set = Dataset.from_uir(self.triplet_data)
+
+        train_set = Dataset.from_df(df)
+        self.assertEqual(train_set.uid_map, uir_set.uid_map)
+        self.assertEqual(train_set.iid_map, uir_set.iid_map)
+        for a, b in zip(train_set.uir_tuple, uir_set.uir_tuple):
+            self.assertEqual(a.dtype, b.dtype)
+            npt.assert_array_equal(a, b)
+        self.assertIsNone(train_set.timestamps)
+
+        train_set = Dataset.from_df(df, timestamp_col="timestamp")
+        npt.assert_array_equal(
+            train_set.timestamps, Dataset.from_uirt(self.uirt_data).timestamps
+        )
+
+    @unittest.skipIf(pl is None, "polars is not installed")
+    def test_from_df_polars(self):
+        df = pl.DataFrame(self.uirt_data, schema=["u", "i", "r", "t"], orient="row")
+        uirt_set = Dataset.from_uirt(self.uirt_data)
+
+        train_set = Dataset.from_df(df, "u", "i", "r", timestamp_col="t")
+        self.assertEqual(train_set.uid_map, uirt_set.uid_map)
+        self.assertEqual(train_set.iid_map, uirt_set.iid_map)
+        for a, b in zip(train_set.uir_tuple, uirt_set.uir_tuple):
+            npt.assert_array_equal(a, b)
+        npt.assert_array_equal(train_set.timestamps, uirt_set.timestamps)
 
     def test_exclude_unknowns_empty_error(self):
         try:

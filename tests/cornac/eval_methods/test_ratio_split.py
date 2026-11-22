@@ -17,10 +17,18 @@ import unittest
 import itertools
 import random
 
+import numpy.testing as npt
+import pandas as pd
+
 from cornac.eval_methods import RatioSplit
 from cornac.data import Reader
 from cornac.models import MF
 from cornac.metrics import MAE, Recall
+
+try:
+    import polars as pl
+except ImportError:
+    pl = None
 
 
 class TestRatioSplit(unittest.TestCase):
@@ -88,6 +96,26 @@ class TestRatioSplit(unittest.TestCase):
         self.assertTrue(ratio_split.train_size == 16)
         self.assertTrue(ratio_split.test_size == 2)
         self.assertTrue(ratio_split.val_size == 2)
+
+    def _assert_same_split(self, df):
+        kwargs = dict(test_size=0.2, val_size=0.1, exclude_unknowns=False, seed=123)
+        ratio_split = RatioSplit(df, **kwargs)
+        ref = RatioSplit(self.data, **kwargs)
+        for name in ["train_set", "test_set", "val_set"]:
+            a, b = getattr(ratio_split, name), getattr(ref, name)
+            self.assertEqual(a.uid_map, b.uid_map)
+            self.assertEqual(a.iid_map, b.iid_map)
+            for x, y in zip(a.uir_tuple, b.uir_tuple):
+                npt.assert_array_equal(x, y)
+
+    def test_splits_df(self):
+        df = pd.DataFrame(self.data, columns=["user", "item", "rating"])
+        self._assert_same_split(df)
+
+    @unittest.skipIf(pl is None, "polars is not installed")
+    def test_splits_polars(self):
+        df = pl.DataFrame(self.data, schema=["user", "item", "rating"], orient="row")
+        self._assert_same_split(df)
 
     def test_evaluate(self):
         ratio_split = RatioSplit(self.data, exclude_unknowns=False, verbose=True)

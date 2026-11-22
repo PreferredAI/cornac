@@ -30,6 +30,7 @@ from ..metrics import RatingMetric
 from ..metrics import RankingMetric
 from ..experiment.result import Result
 from ..utils import get_rng
+from ..utils.common import df_to_tuples
 
 
 def rating_eval(model, metrics, test_set, user_based=False, verbose=False):
@@ -231,8 +232,10 @@ class BaseMethod:
 
     Parameters
     ----------
-    data: array-like, required
+    data: array-like or DataFrame, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value)].
+        A pandas or polars DataFrame also works: its columns are read in `fmt` order,
+        not by name.
 
     fmt: str, default: 'UIR'
         Format of the input data. Currently, we are supporting:
@@ -265,7 +268,7 @@ class BaseMethod:
         verbose=False,
         **kwargs
     ):
-        self.data = data
+        self.data = df_to_tuples(data)
         self.fmt = fmt
         self.train_set = None
         self.test_set = None
@@ -638,6 +641,10 @@ class BaseMethod:
             )
 
     def build(self, train_data, test_data, val_data=None):
+        train_data = df_to_tuples(train_data)
+        test_data = df_to_tuples(test_data)
+        val_data = df_to_tuples(val_data)
+
         if train_data is None or len(train_data) == 0:
             raise ValueError("train_data is required but None or empty!")
         if test_data is None or len(test_data) == 0:
@@ -798,13 +805,14 @@ class BaseMethod:
 
         Parameters
         ----------
-        train_data: array-like
-            Training data
+        train_data: array-like or DataFrame
+            Training data. A pandas or polars DataFrame also works: its columns
+            are read in `fmt` order, not by name.
 
-        test_data: array-like
+        test_data: array-like or DataFrame
             Test data
 
-        val_data: array-like, optional, default: None
+        val_data: array-like or DataFrame, optional, default: None
             Validation data
 
         fmt: str, default: 'UIR'

@@ -27,8 +27,10 @@ class CrossValidation(BaseMethod):
 
     Parameters
     ----------
-    data: array-like, required
+    data: array-like or DataFrame, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value)].
+        A pandas or polars DataFrame also works: its columns are read in `fmt` order,
+        not by name.
 
     n_folds: int, optional, default: 5
         The number of folds for cross validation.

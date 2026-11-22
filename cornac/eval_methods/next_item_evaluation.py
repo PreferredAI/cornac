@@ -25,6 +25,7 @@ from ..experiment.result import Result
 from ..models import NextItemRecommender, SemanticIDMixin
 from ..metrics import Recall, NDCG
 from ..utils import validate_format
+from ..utils.common import df_to_tuples
 from . import BaseMethod
 
 EVALUATION_MODES = frozenset([
@@ -648,8 +649,10 @@ class NextItemEvaluation(BaseMethod):
 
         Parameters
         ----------
-        data: list, required
+        data: list or DataFrame, required
             Raw preference data in the tuple format given by `fmt`.
+            A pandas or polars DataFrame also works: its columns are read in `fmt`
+            order, not by name.
 
         test_timestamp: float, required
             Absolute timestamp (same unit as the timestamps in `data`) marking
@@ -721,6 +724,7 @@ class NextItemEvaluation(BaseMethod):
 
         """
         fmt = validate_format(fmt, ["SIT", "USIT", "SITJson", "USITJson"])
+        data = df_to_tuples(data)
 
         if val_timestamp is not None and val_timestamp >= test_timestamp:
             raise ValueError(
@@ -823,10 +827,11 @@ class NextItemEvaluation(BaseMethod):
 
         Parameters
         ----------
-        data: list, required
+        data: list or DataFrame, required
             Raw preference data in the quadruplet format
             [(user_id, item_id, rating, timestamp)]. Ratings are ignored
-            (implicit next-item feedback).
+            (implicit next-item feedback). A pandas or polars DataFrame also works: its
+            columns are read in `fmt` order, not by name.
 
         fmt: str, default: 'UIRT'
             Format of the input data. Only 'UIRT' is supported.
@@ -870,6 +875,7 @@ class NextItemEvaluation(BaseMethod):
 
         """
         fmt = validate_format(fmt, ["UIRT"])
+        data = df_to_tuples(data)
 
         by_user = OrderedDict()
         for u, i, _, t in data:

@@ -17,6 +17,7 @@ import unittest
 import warnings
 
 import numpy as np
+import pandas as pd
 
 from cornac.data import FeatureModality, Reader
 from cornac.eval_methods import NextItemEvaluation
@@ -131,6 +132,15 @@ class TestFromTimestamps(unittest.TestCase):
         self.assertEqual(_split_sids(m.val_set), {"s3", "s4"})
         # s5 straddles the cutoff (event at 80) yet lands in test by its last
         # event at 100.
+        self.assertEqual(_split_sids(m.test_set), {"s5", "s6"})
+
+    def test_dataframe(self):
+        df = pd.DataFrame(self.usit, columns=["user", "session", "item", "time"])
+        m = NextItemEvaluation.from_timestamps(
+            df, test_timestamp=100, val_timestamp=50, fmt="USIT",
+        )
+        self.assertEqual(_split_sids(m.train_set), {"s1", "s2"})
+        self.assertEqual(_split_sids(m.val_set), {"s3", "s4"})
         self.assertEqual(_split_sids(m.test_set), {"s5", "s6"})
 
     def test_boundary_equality(self):
@@ -255,6 +265,15 @@ class TestLeaveLastOut(unittest.TestCase):
         self.assertEqual(_split_sids(m.train_set), {"u1", "u2"})
         self.assertEqual(_split_sids(m.val_set), {"u1", "u2"})
         self.assertEqual(_split_sids(m.test_set), {"u1", "u2"})
+
+    def test_dataframe(self):
+        df = pd.DataFrame(self.uirt, columns=["user", "item", "rating", "time"])
+        m = NextItemEvaluation.leave_last_out(df, exclude_unknowns=False)
+        ref = NextItemEvaluation.leave_last_out(self.uirt, exclude_unknowns=False)
+        for name in ["train_set", "val_set", "test_set"]:
+            a, b = getattr(m, name), getattr(ref, name)
+            for x, y in zip(a.uir_tuple, b.uir_tuple):
+                np.testing.assert_array_equal(x, y)
 
     def test_exclude_unknowns_default(self):
         # With the default exclude_unknowns=True, val/test items that never

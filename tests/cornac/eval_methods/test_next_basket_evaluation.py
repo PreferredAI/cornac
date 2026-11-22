@@ -14,6 +14,9 @@
 # ============================================================================
 import unittest
 
+import numpy.testing as npt
+import pandas as pd
+
 from cornac.eval_methods import NextBasketEvaluation
 from cornac.data import Reader
 from cornac.models import GPTop
@@ -32,6 +35,21 @@ class TestNextBasketEvaluation(unittest.TestCase):
         self.assertTrue(next_basket_eval.train_size == 8)
         self.assertTrue(next_basket_eval.test_size == 1)
         self.assertTrue(next_basket_eval.val_size == 1)
+
+    def test_splits_df(self):
+        df = pd.DataFrame(
+            self.data, columns=["user_id", "basket_id", "item_id", "timestamp", "extra"]
+        )
+        next_basket_eval = NextBasketEvaluation(
+            df, test_size=0.1, val_size=0.1, seed=123
+        )
+        ref = NextBasketEvaluation(self.data, test_size=0.1, val_size=0.1, seed=123)
+
+        self.assertTrue(next_basket_eval.train_size == 8)
+        for name in ["train_set", "test_set", "val_set"]:
+            a, b = getattr(next_basket_eval, name), getattr(ref, name)
+            for x, y in zip(a.uir_tuple, b.uir_tuple):
+                npt.assert_array_equal(x, y)
 
     def test_evaluate(self):
         next_basket_eval = NextBasketEvaluation(
