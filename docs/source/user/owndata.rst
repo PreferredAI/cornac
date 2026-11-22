@@ -431,11 +431,21 @@ the same ``data.csv`` as above:
     dataset = Dataset.from_df(df, user_col='user', item_col='item', rating_col='rating')
 
 pandas reads the IDs in this file as numbers, so the user and item IDs of the
-dataset are integers, where ``Reader`` gives strings.
+dataset are integers, where ``Reader`` gives strings. Side information such as
+item text is matched by ID, so its IDs need the same type;
+``pd.read_csv('data.csv', dtype={'user': str, 'item': str})`` keeps them as
+strings.
 
-Evaluation methods also take a DataFrame in place of a list of tuples. They read
-its columns in order, as user, item and rating, the same way they read a tuple.
-This splits the MovieLens 100K ratings:
+Drop rows with missing values first, for example with ``df.dropna()``: a missing
+ID would become a user or item of its own. Timestamps must be integers. Convert a
+datetime column first, for example with
+``df['timestamp'].dt.as_unit('s').astype('int64')`` in pandas.
+
+Evaluation methods also take a DataFrame in place of a list of tuples, except
+the bundle evaluation methods. They read its columns by position, in the order
+of ``fmt`` (user, item, rating by default), the same way they read a tuple, and
+do not look at the names. Select the columns in that order first. This splits
+the MovieLens 100K ratings:
 
 .. code-block:: python
 

@@ -27,8 +27,10 @@ class StratifiedSplit(BaseMethod):
 
     Parameters
     ----------
-    data: array-like, required
+    data: array-like or DataFrame, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value, timestamp)].
+        A pandas or polars DataFrame also works: its columns are read in `fmt` order,
+        not by name.
 
     group_by: str, optional, default: 'user'
         Grouping by 'user' or 'item'.

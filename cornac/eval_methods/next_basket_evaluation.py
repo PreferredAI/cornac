@@ -21,7 +21,7 @@ from tqdm.auto import tqdm
 from . import RatioSplit
 from ..data import BasketDataset
 from ..experiment.result import Result
-from ..utils.common import safe_indexing
+from ..utils.common import df_to_tuples, safe_indexing
 
 
 def ranking_eval(
@@ -211,8 +211,10 @@ class NextBasketEvaluation(RatioSplit):
 
     Parameters
     ----------
-    data: list, required
+    data: list or DataFrame, required
         Raw preference data in the tuple format [(user_id, baskets)].
+        A pandas or polars DataFrame also works: its columns are read in `fmt` order,
+        not by name.
 
     test_size: float, optional, default: 0.2
         The proportion of the test set, \
@@ -254,6 +256,7 @@ class NextBasketEvaluation(RatioSplit):
         **kwargs
     ):
         assert fmt.startswith("U")
+        data = df_to_tuples(data)
         data_size = len(set(u for (u, *_) in data))  # number of users
 
         super().__init__(

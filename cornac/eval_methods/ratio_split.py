@@ -25,8 +25,10 @@ class RatioSplit(BaseMethod):
 
     Parameters
     ----------
-    data: array-like, required
+    data: array-like or DataFrame, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value)].
+        A pandas or polars DataFrame also works: its columns are read in `fmt` order,
+        not by name.
 
     test_size: float, optional, default: 0.2
         The proportion of the test set, \

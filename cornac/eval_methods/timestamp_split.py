@@ -38,8 +38,10 @@ class TimestampSplit(BaseMethod):
 
     Parameters
     ----------
-    data: array-like, required
+    data: array-like or DataFrame, required
         Raw preference data in the quadruplet format [(user_id, item_id, rating_value, timestamp)].
+        A pandas or polars DataFrame also works: its columns are read in `fmt` order,
+        not by name.
 
     val_timestamp: int or float, optional, default: None
         Cutoff between training and validation sets. Interactions with timestamp strictly

@@ -234,7 +234,8 @@ class BaseMethod:
     ----------
     data: array-like or DataFrame, required
         Raw preference data in the triplet format [(user_id, item_id, rating_value)].
-        A pandas or polars DataFrame is read as tuples, its columns in `fmt` order.
+        A pandas or polars DataFrame also works: its columns are read in `fmt` order,
+        not by name.
 
     fmt: str, default: 'UIR'
         Format of the input data. Currently, we are supporting:
@@ -805,8 +806,8 @@ class BaseMethod:
         Parameters
         ----------
         train_data: array-like or DataFrame
-            Training data. A pandas or polars DataFrame is read as tuples, its
-            columns in `fmt` order.
+            Training data. A pandas or polars DataFrame also works: its columns
+            are read in `fmt` order, not by name.
 
         test_data: array-like or DataFrame
             Test data
