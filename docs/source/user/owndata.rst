@@ -196,10 +196,10 @@ popularity baseline:
 
     TEST:
     ...
-    |         | Recall@50 | Train (s) | Test (s) |
-    | ------- | --------: | --------: | -------: |
-    | MostPop |    0.3405 |    0.0016 |   0.0949 |
-    | CTR     |    0.4882 |    2.8118 |   0.0954 |
+            | Recall@50 | Train (s) | Test (s)
+    ------- + --------- + --------- + --------
+    MostPop |    0.3405 |    0.0016 |   0.0949
+    CTR     |    0.4882 |    2.8118 |   0.0954
 
 ``Reader(item_set=movie_ids)`` keeps only the movies that have a plot. The
 `Working with Auxiliary Data
