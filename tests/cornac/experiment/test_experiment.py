@@ -26,6 +26,7 @@ from cornac.eval_methods import RatioSplit, CrossValidation
 from cornac.models import PMF
 from cornac.metrics import MAE, RMSE, Recall, FMeasure
 from cornac.experiment.experiment import Experiment
+from cornac.hyperopt import Continuous, Discrete, RandomSearch
 from cornac.experiment.result import (
     Result,
     PSTResult,
@@ -105,6 +106,27 @@ class TestExperiment(unittest.TestCase):
             exp.result.to_json(path)
             with open(path) as f:
                 self.assertEqual(json.load(f), expected)
+
+    def test_search_params(self):
+        ratio_split = RatioSplit(
+            self.data, test_size=0.2, val_size=0.2, exclude_unknowns=False, seed=123
+        )
+        search = RandomSearch(
+            model=PMF(max_iter=1, seed=123),
+            space=[Discrete("k", [1, 2]), Continuous("lambda_reg", 0.001, 0.1)],
+            metric=MAE(),
+            eval_method=ratio_split,
+            n_trials=2,
+        )
+        exp = Experiment(eval_method=ratio_split, models=[search], metrics=[MAE()])
+        exp.run()
+
+        params = exp.result[0].model_params
+        self.assertIsInstance(params["k"], int)
+        self.assertEqual(params["k"], search.best_params["k"])
+        self.assertEqual(params["lambda_reg"], search.best_params["lambda_reg"])
+        self.assertEqual(params["max_iter"], 1)
+        self.assertEqual(json.loads(exp.result.to_json())[0]["params"], params)
 
     @unittest.skipIf(pandas is None, "pandas is not installed")
     def test_result_to_dataframe(self):

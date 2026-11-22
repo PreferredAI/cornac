@@ -17,11 +17,19 @@ import json
 import os
 from datetime import datetime
 
+import numpy as np
+
 from .result import ExperimentResult
 from .result import CVExperimentResult
 from ..metrics.rating import RatingMetric
 from ..metrics.ranking import RankingMetric
 from ..models.recommender import Recommender
+
+
+def _numpy_scalar(value):
+    if isinstance(value, np.generic):
+        return value.item()
+    raise TypeError(type(value).__name__)
 
 
 def _json_params(model):
@@ -30,7 +38,8 @@ def _json_params(model):
     for name in model._get_init_params():
         try:
             # A JSON round trip keeps a copy in the form that to_json() writes.
-            params[name] = json.loads(json.dumps(getattr(model, name)))
+            value = json.dumps(getattr(model, name), default=_numpy_scalar)
+            params[name] = json.loads(value)
         except (AttributeError, TypeError, ValueError):
             pass
     return params
@@ -163,6 +172,9 @@ class Experiment:
                 user_based=self.user_based,
                 show_validation=self.show_validation,
             )
+            # A search model (GridSearch, OptunaSearch, ...) records the model it chose.
+            if getattr(model, "best_model", None) is not None:
+                model_params = _json_params(model.best_model)
             for result in (test_result, val_result):
                 if result is not None:
                     result.model_params = model_params
