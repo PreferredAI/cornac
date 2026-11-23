@@ -13,12 +13,28 @@
 # limitations under the License.
 # ============================================================================
 
-"""Paper configurations of DDBC on POG and Spotify.
+"""Recipes of DDBC on POG and Spotify.
 
-Section 4.1 and Appendices B and C.1 of the paper give the architecture, T,
-the number of steps, the bundle lengths and the swap ratios. The codebook sizes
-are those of the released ``clhe_weight.npy`` files. The optimizer settings
-follow the reference code, since the paper does not state them.
+Usage::
+
+    from cornac.models.ddbc import DDBC, DDBC_RELEASE_POG_CONFIG
+
+    model = DDBC(**{**DDBC_RELEASE_POG_CONFIG, "seed": 1})
+
+``DDBC_PAPER_*`` follows the paper: the 'rvq' tokenizer (Section 3.2), the
+joint decoding sequence (Eq. 8), discrete time with T = 25 and a
+time-conditioned denoiser (Section 3.3, Eq. 6), and confidence decoding in 25
+steps (Algorithm 2, Appendix C.1).
+
+``DDBC_RELEASE_*`` follows the released code (LiAi16/DDBC at e1f4afc5): its
+``configs/config.yaml``, ``scripts/train.sh`` and ``scripts/test.sh``. It
+uses the Faiss tokenizer, the split decoding sequence, continuous time without
+time conditioning, and the ancestral sampler with 256 steps. To compare with
+the released checkpoints, pass the released ``item_sids`` and ``codebooks``,
+since Faiss training is random.
+
+Both share the architecture (Section 4.1) and the optimizer, batch and
+validation settings of the released code, which the paper does not state.
 """
 
 DDBC_CONFIG = dict(
@@ -28,8 +44,6 @@ DDBC_CONFIG = dict(
     n_blocks=6,
     n_heads=8,
     dropout=0.1,
-    n_diffusion_steps=25,
-    decode="confidence",
     batch_size=300,
     accumulate=2,
     max_steps=20000,
@@ -42,12 +56,37 @@ DDBC_CONFIG = dict(
     model_selection="best",
 )
 
-DDBC_POG_CONFIG = dict(DDBC_CONFIG, bundle_size=4, codebook_size=128, swap_ratio=0.8)
-
-DDBC_SPOTIFY30_CONFIG = dict(
-    DDBC_CONFIG, bundle_size=30, codebook_size=256, swap_ratio=0.4
+DDBC_PAPER_CONFIG = dict(
+    DDBC_CONFIG,
+    tokenizer="rvq",
+    codebook_size=128,
+    fallback_levels=3,
+    layout="joint",
+    n_diffusion_steps=25,
+    time_conditioning=True,
+    decode="confidence",
+    sampling_steps=25,
 )
+DDBC_PAPER_POG_CONFIG = dict(DDBC_PAPER_CONFIG, bundle_size=4, swap_ratio=0.8)
+DDBC_PAPER_SPOTIFY30_CONFIG = dict(DDBC_PAPER_CONFIG, bundle_size=30, swap_ratio=0.4)
+DDBC_PAPER_SPOTIFY60_CONFIG = dict(DDBC_PAPER_SPOTIFY30_CONFIG, bundle_size=60)
+DDBC_PAPER_SPOTIFY90_CONFIG = dict(DDBC_PAPER_SPOTIFY30_CONFIG, bundle_size=90)
 
-DDBC_SPOTIFY60_CONFIG = dict(DDBC_SPOTIFY30_CONFIG, bundle_size=60)
-
-DDBC_SPOTIFY90_CONFIG = dict(DDBC_SPOTIFY30_CONFIG, bundle_size=90)
+DDBC_RELEASE_CONFIG = dict(
+    DDBC_CONFIG,
+    tokenizer="faiss",
+    fallback_levels=2,
+    layout="split",
+    n_diffusion_steps=None,
+    time_conditioning=False,
+    decode="ancestral",
+    sampling_steps=256,
+)
+DDBC_RELEASE_POG_CONFIG = dict(
+    DDBC_RELEASE_CONFIG, bundle_size=4, codebook_size=128, swap_ratio=0.8
+)
+DDBC_RELEASE_SPOTIFY30_CONFIG = dict(
+    DDBC_RELEASE_CONFIG, bundle_size=30, codebook_size=256, swap_ratio=0.4
+)
+DDBC_RELEASE_SPOTIFY60_CONFIG = dict(DDBC_RELEASE_SPOTIFY30_CONFIG, bundle_size=60)
+DDBC_RELEASE_SPOTIFY90_CONFIG = dict(DDBC_RELEASE_SPOTIFY30_CONFIG, bundle_size=90)

@@ -16,10 +16,15 @@
 
 A residual vector quantizer turns item features into semantic IDs, and a
 diffusion transformer (DiT) learns to unmask the semantic IDs of the missing
-items of a bundle.
+items of a bundle. The DiT, the masked-token parameterization, the loss and
+the ancestral sampler follow MDLM (Sahoo et al., NeurIPS 2024,
+https://github.com/kuleshov-group/mdlm, Apache-2.0), which DDBC builds on.
 """
 
+import collections
 import math
+import pickle
+import zipfile
 
 import numpy as np
 import torch
@@ -251,14 +256,23 @@ class DIT(nn.Module):
         return x
 
 
+SAMPLING_EPS = 1e-3
+
+
 class DDBCNet(nn.Module):
     """Masked discrete diffusion over the semantic-ID tokens of a bundle.
 
     A bundle is the token sequence ``[BOS, (BOI, c_1, ..., c_L, s) * k, EOS]``,
     where ``c_l`` are the codes of the item at level ``l`` and ``s`` its
-    collision suffix. Token ids: ``0`` is BOS, level ``l`` codes take
-    ``l * C + 1 .. (l + 1) * C``, suffixes ``L * C + 1 .. (L + 1) * C``, then
-    BOI, EOS and the mask token.
+    collision digit. Token ids: ``0`` is BOS, level ``l`` codes take
+    ``(l - 1) * C + 1 .. l * C``, collision digits ``L * C + 1 .. (L + 1) * C``,
+    then BOI, EOS and the mask token.
+
+    With ``n_diffusion_steps=T``, the time ``t`` is a step in ``{1, ..., T}``
+    and tokens are masked with rate ``t / T``. With ``n_diffusion_steps=None``,
+    ``t`` is continuous in ``[1e-3, 1]`` and the rate is ``(1 - 1e-3) t``. With
+    ``time_conditioning``, the denoiser sees ``t`` in discrete time and
+    ``-log(1 - rate)`` in continuous time, otherwise 0.
     """
 
     def __init__(
@@ -272,6 +286,7 @@ class DDBCNet(nn.Module):
         n_heads=8,
         dropout=0.1,
         n_diffusion_steps=25,
+        time_conditioning=True,
         use_bf16=False,
     ):
         super().__init__()
@@ -284,6 +299,7 @@ class DDBCNet(nn.Module):
         self.mask_index = self.eos + 1
         self.vocab_size = self.mask_index + 1
         self.T = n_diffusion_steps
+        self.time_conditioning = time_conditioning
         self.neg_infinity = -1000000.0
         self.use_bf16 = use_bf16
         self.backbone = DIT(
@@ -310,8 +326,37 @@ class DDBCNet(nn.Module):
             ids.append(self.eos)
         return ids
 
+    def query(self, items, item_tokens, n_items, layout="joint"):
+        """Token ids of the given items followed by ``n_items`` masked slots.
+
+        ``'joint'`` puts both in one ``[BOS] ... [EOS]`` sequence. ``'split'``
+        gives the slots their own ``[BOS] ... [EOS]`` segment after the given
+        items, as the reference sampler does.
+        """
+        given = self.encode(items, item_tokens)
+        slots = ([self.boi] + [self.mask_index] * (self.item_width - 1)) * n_items
+        if layout == "split":
+            return given + [self.bos] + slots + [self.eos]
+        return given[:-1] + slots + [self.eos]
+
+    def mask_rate(self, t):
+        if self.T is None:
+            return (1 - SAMPLING_EPS) * t
+        return t / self.T
+
+    def model_time(self, fraction):
+        """Time ``t`` at a fraction of the schedule, 1 being fully masked."""
+        return fraction if self.T is None else fraction * self.T
+
+    def condition(self, t):
+        if not self.time_conditioning:
+            return torch.zeros_like(t)
+        if self.T is None:
+            return -torch.log1p(-self.mask_rate(t))
+        return t
+
     def denoise(self, x, t):
-        logits = self.backbone(x, t).float()
+        logits = self.backbone(x, self.condition(t)).float()
         logits[:, :, self.mask_index] += self.neg_infinity
         logits = logits - torch.logsumexp(logits, dim=-1, keepdim=True)
         unmasked = x != self.mask_index
@@ -320,18 +365,21 @@ class DDBCNet(nn.Module):
         return logits
 
     def sample_t(self, n, device):
-        eps_t = torch.rand(n, device=device)
-        offset = torch.arange(n, device=device) / n
-        eps_t = (eps_t / n + offset) % 1
-        return (eps_t * self.T).floor().clamp(max=self.T - 1) + 1
+        u = torch.rand(n, device=device)
+        u = (u / n + torch.arange(n, device=device) / n) % 1
+        if self.T is None:
+            return (1 - SAMPLING_EPS) * u + SAMPLING_EPS
+        return (u * self.T).floor().clamp(max=self.T - 1) + 1
 
     def forward(self, x0):
-        """Masked-token cross-entropy weighted by ``T / t``, the negative ELBO
-        of Eq. 7 under the linear schedule. Eq. 7 omits the weight, while the
-        text and the reference code apply it."""
+        """Masked-token cross-entropy weighted by ``T / t`` in discrete time
+        and ``1 / t`` in continuous time. Eq. 7 of the paper prints the
+        cross-entropy without a weight. ``T / t`` is the weight of the MDLM
+        bound under the linear schedule, and ``1 / t`` equals the reference
+        code's ``dsigma / expm1(sigma)``."""
         t = self.sample_t(x0.shape[0], x0.device)
         move_chance = (
-            (t / self.T)[:, None]
+            self.mask_rate(t)[:, None]
             .expand(x0.shape)
             .masked_fill(torch.isin(x0, self.special_tokens), 0.0)
         )
@@ -339,88 +387,88 @@ class DDBCNet(nn.Module):
             torch.rand(*x0.shape, device=x0.device) < move_chance, self.mask_index, x0
         )
         log_p = torch.gather(self.denoise(xt, t), -1, x0[:, :, None]).squeeze(-1)
-        return -log_p * (self.T / t)[:, None]
+        weight = 1.0 / t if self.T is None else self.T / t
+        return -log_p * weight[:, None]
 
-    def allowed_table(self, seq_len, device):
-        key = (seq_len, str(device))
+    def slot_allowed(self, n_items, device):
+        """Tokens allowed at each position of ``n_items`` slots: the codes of
+        its own level at a code position, anything at the BOI."""
+        key = (n_items, str(device))
         if key not in self._allowed_cache:
             cb = self.codebook_size
-            allowed = torch.ones(
-                seq_len, self.vocab_size, dtype=torch.bool, device=device
+            block = torch.ones(
+                self.item_width, self.vocab_size, dtype=torch.bool, device=device
             )
-            for pos in range(1, seq_len - 1):
-                level = (pos - 1) % self.item_width
-                if level == 0:
-                    continue
-                allowed[pos] = False
-                allowed[pos, (level - 1) * cb + 1 : level * cb + 1] = True
-            self._allowed_cache[key] = allowed
+            for level in range(1, self.item_width):
+                block[level] = False
+                block[level, (level - 1) * cb + 1 : level * cb + 1] = True
+            self._allowed_cache[key] = block.repeat(n_items, 1)
         return self._allowed_cache[key]
 
     @torch.no_grad()
-    def complete(self, prefix, n_items, decode="ancestral", generator=None):
-        """Generate the codes and suffix ``(n, n_items, n_levels + 1)`` of ``n_items``
-        missing items after ``prefix``, the BOS and the blocks of the seed items.
+    def complete(self, x, n_items, decode="confidence", steps=25, generator=None):
+        """Unmask the ``n_items`` slots at the end of the queries ``x``, built by
+        :meth:`query`, and return their codes and collision digits, shape
+        ``(n, n_items, n_levels + 1)``."""
+        end = x.shape[1] - 1
+        start = end - n_items * self.item_width
+        allowed = self.slot_allowed(n_items, x.device)
+        x = x.clone()
+        if decode == "ancestral":
+            self._ancestral(x, start, end, allowed, steps, generator)
+        else:
+            self._confidence(x, start, end, allowed, steps)
+        return x[:, start:end].reshape(x.shape[0], n_items, self.item_width)[:, :, 1:]
 
-        ``decode='ancestral'`` reveals each masked token with probability 1/t and
-        samples it. ``'confidence'`` reveals the most confident tokens first
-        (Algorithm 2 of the paper).
-        """
-        n = prefix.shape[0]
-        device = prefix.device
-        tail = torch.tensor(
-            ([self.boi] + [self.mask_index] * (self.item_width - 1)) * n_items
-            + [self.eos],
-            device=device,
-        ).repeat(n, 1)
-        x = torch.cat((prefix, tail), dim=1)
-        start = prefix.shape[1]
-        allowed = self.allowed_table(x.shape[1], device)
-        for s in range(1, self.T + 1):
-            t = self.T - s + 1
-            masked = x == self.mask_index
+    def _times(self, n, fraction, device):
+        return torch.full((n,), float(self.model_time(fraction)), device=device)
+
+    def _ancestral(self, x, start, end, allowed, steps, generator):
+        """The reference sampler. N + 1 updates at t = 1, 1 - 1/N, ..., 0: a
+        masked position draws from ``p * dt`` over the tokens and ``t - dt``
+        for the mask, illegal tokens set to -1e9, by Gumbel-max. The denoiser
+        is rerun only after a token changed, or at every update with time
+        conditioning."""
+        n, dt = x.shape[0], 1.0 / steps
+        legal = allowed.clone()
+        legal[:, self.mask_index] = True
+        p_x0 = None
+        for i in range(steps + 1):
+            t = 1.0 - i * dt
+            if p_x0 is None or self.time_conditioning:
+                logp = self.denoise(x, self._times(n, t, x.device))
+                p_x0 = logp[:, start:end].exp()
+            q = p_x0 * dt
+            q[:, :, self.mask_index] = t - dt
+            q = q.masked_fill(~legal, -1e9)
+            u = torch.rand(q.shape, device=x.device, generator=generator)
+            tok = (q / (1e-10 - (u + 1e-10).log())).argmax(dim=-1)
+            region = x[:, start:end]
+            new = torch.where(region == self.mask_index, tok, region)
+            if not torch.equal(new, region):
+                x[:, start:end] = new
+                p_x0 = None
+
+    def _confidence(self, x, start, end, allowed, steps):
+        """At s = S, ..., 1, reveal the ceil(remaining / s) masked positions
+        whose best legal token is most probable, and set each to that token."""
+        n = x.shape[0]
+        for s in range(steps, 0, -1):
+            region = x[:, start:end]
+            masked = region == self.mask_index
             if not bool(masked.any()):
                 break
-            logp = self.denoise(x, torch.full((n,), float(t), device=device))
-            logp = logp.masked_fill(~allowed[None], float("-inf")).log_softmax(dim=-1)
-            if decode == "ancestral":
-                tok = torch.multinomial(
-                    logp.exp().view(-1, logp.shape[-1]), 1, generator=generator
-                ).view(n, -1)
-                reveal = masked & (
-                    torch.rand(x.shape, device=device, generator=generator) < 1.0 / t
-                )
-                x = torch.where(reveal, tok, x)
-            else:
-                conf, tok = logp.max(dim=-1)
-                conf = conf.masked_fill(~masked, float("-inf"))
-                remaining = int(masked.sum(dim=1).max())
-                idx = conf.topk(math.ceil(remaining / t), dim=1).indices
-                x.scatter_(1, idx, tok.gather(1, idx))
-        return x[:, start:-1].reshape(n, n_items, self.item_width)[:, :, 1:]
-
-    @torch.no_grad()
-    def next_item_scores(self, prefix, n_masked, item_tokens):
-        """Log-likelihood ``(n, n_items)`` of every item as the first of ``n_masked``
-        masked blocks after ``prefix``, with the diffusion step matching the masked
-        fraction of the items.
-        """
-        n = prefix.shape[0]
-        device = prefix.device
-        tail = torch.tensor(
-            ([self.boi] + [self.mask_index] * (self.item_width - 1)) * n_masked
-            + [self.eos],
-            device=device,
-        ).repeat(n, 1)
-        x = torch.cat((prefix, tail), dim=1)
-        n_seed = (prefix.shape[1] - 1) // self.item_width
-        t = max(1, math.ceil(self.T * n_masked / (n_seed + n_masked)))
-        allowed = self.allowed_table(x.shape[1], device)
-        logp = self.denoise(x, torch.full((n,), float(t), device=device))
-        logp = logp.masked_fill(~allowed[None], float("-inf")).log_softmax(dim=-1)
-        start = prefix.shape[1] + 1
-        block = logp[:, start : start + self.item_width - 1]
-        return block.gather(-1, item_tokens.T[None].expand(n, -1, -1)).sum(1)
+            logp = self.denoise(x, self._times(n, s / steps, x.device))
+            logp = (
+                logp[:, start:end]
+                .masked_fill(~allowed[None], float("-inf"))
+                .log_softmax(dim=-1)
+            )
+            conf, tok = logp.max(dim=-1)
+            conf = conf.masked_fill(~masked, float("-inf"))
+            k = math.ceil(int(masked.sum(dim=1).max()) / s)
+            idx = conf.topk(k, dim=1).indices
+            region.scatter_(1, idx, tok.gather(1, idx))
 
 
 class ResidualVQ(nn.Module):
@@ -501,8 +549,34 @@ def residual_kmeans(e, n_levels, codebook_size, n_iters=20, seed=0):
     return torch.stack(books)
 
 
+def faiss_residual_codes(e, n_levels, codebook_size):
+    """Codes ``(n_items, n_levels)`` and codebooks
+    ``(n_levels, codebook_size, dim)`` of a Faiss residual quantizer with the
+    inner-product metric, trained on ``e`` and encoding by its default beam
+    search, as the reference code does."""
+    import faiss
+
+    x = np.ascontiguousarray(e, dtype=np.float32)
+    n_bits = int(math.log2(codebook_size))
+    index = faiss.IndexResidualQuantizer(
+        x.shape[1], n_levels, n_bits, faiss.METRIC_INNER_PRODUCT
+    )
+    index.train(x)
+    packed = index.rq.compute_codes(x)
+    bits = np.unpackbits(packed, axis=1, bitorder="little")[:, : n_levels * n_bits]
+    codes = bits.reshape(len(x), n_levels, n_bits).astype(np.int64) @ (
+        1 << np.arange(n_bits)
+    )
+    codebooks = faiss.vector_to_array(index.rq.codebooks).reshape(
+        n_levels, codebook_size, x.shape[1]
+    )
+    return codes, codebooks
+
+
 def semantic_id_tokens(codes, codebook_size):
-    """Token ids ``(n_items, n_levels + 1)`` of the codes plus a suffix that tells colliding items apart."""
+    """Token ids ``(n_items, n_levels + 1)`` of the codes and of a collision
+    digit, 1, 2, ... in item order, that tells items with the same codes
+    apart."""
     n_items, n_levels = codes.shape
     tokens = np.zeros((n_items, n_levels + 1), dtype=np.int64)
     seen = {}
@@ -510,8 +584,8 @@ def semantic_id_tokens(codes, codebook_size):
         seen[sid] = seen.get(sid, 0) + 1
         if seen[sid] > codebook_size:
             raise ValueError(
-                "{} items share the semantic ID {}, more than codebook_size={}; "
-                "increase codebook_size or n_codebooks".format(
+                "{} items share the semantic ID {}, more than codebook_size={}. "
+                "Increase codebook_size or n_codebooks".format(
                     seen[sid], sid, codebook_size
                 )
             )
@@ -541,8 +615,8 @@ def swap_windows(bundles, swap_ratio, seq_len, rng):
 
 
 @torch.no_grad()
-def validation_nll(net, val_ids, batch_size, seed):
-    """Mean NLL of the non-special tokens, with a fixed masking seed."""
+def validation_loss(net, val_ids, batch_size, seed):
+    """Mean weighted loss of the non-special tokens, with a fixed masking seed."""
     net.eval()
     device = next(net.parameters()).device
     total, weight = 0.0, 0.0
@@ -554,8 +628,148 @@ def validation_nll(net, val_ids, batch_size, seed):
             with torch.autocast(
                 device_type=device.type, dtype=torch.bfloat16, enabled=net.use_bf16
             ):
-                nll = net(x)
+                loss = net(x)
             keep = ~torch.isin(x, net.special_tokens)
-            total += (nll * keep).sum().item()
+            total += (loss * keep).sum().item()
             weight += keep.sum().item()
     return total / max(weight, 1.0)
+
+
+_STORAGE_DTYPES = {
+    "DoubleStorage": torch.float64,
+    "FloatStorage": torch.float32,
+    "HalfStorage": torch.float16,
+    "BFloat16Storage": torch.bfloat16,
+    "LongStorage": torch.int64,
+    "IntStorage": torch.int32,
+    "ShortStorage": torch.int16,
+    "CharStorage": torch.int8,
+    "ByteStorage": torch.uint8,
+    "BoolStorage": torch.bool,
+    "UntypedStorage": torch.uint8,
+}
+
+
+class _Inert:
+    """Stand-in for every class a checkpoint names apart from tensors."""
+
+    def __new__(cls, *args, **kwargs):
+        return object.__new__(cls)
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __setstate__(self, state):
+        pass
+
+    def __setitem__(self, key, value):
+        pass
+
+    def append(self, value):
+        pass
+
+    def extend(self, values):
+        pass
+
+
+def _rebuild_tensor(storage, offset, size, stride, *args):
+    return storage.as_strided(tuple(size), tuple(stride), offset)
+
+
+def _rebuild_parameter(data, *args):
+    return data
+
+
+def _rebuild_from_type(func, new_type, args, state):
+    return func(*args)
+
+
+_SAFE_GLOBALS = {
+    ("collections", "OrderedDict"): collections.OrderedDict,
+    ("torch", "Size"): torch.Size,
+    ("torch._utils", "_rebuild_tensor_v2"): _rebuild_tensor,
+    ("torch._utils", "_rebuild_parameter"): _rebuild_parameter,
+    ("torch._utils", "_rebuild_parameter_with_state"): _rebuild_parameter,
+    ("torch._tensor", "_rebuild_from_type_v2"): _rebuild_from_type,
+}
+
+
+class _CheckpointUnpickler(pickle.Unpickler):
+    def __init__(self, file, archive, prefix):
+        super().__init__(file)
+        self.archive = archive
+        self.prefix = prefix
+        self.storages = {}
+
+    def find_class(self, module, name):
+        if module == "torch" and name in _STORAGE_DTYPES:
+            return _STORAGE_DTYPES[name]
+        return _SAFE_GLOBALS.get((module, name), _Inert)
+
+    def persistent_load(self, pid):
+        if not (isinstance(pid, tuple) and pid[0] == "storage"):
+            raise pickle.UnpicklingError("unsupported persistent id {}".format(pid))
+        dtype, key = pid[1], str(pid[2])
+        if not isinstance(dtype, torch.dtype):
+            raise pickle.UnpicklingError("unsupported storage type")
+        if key not in self.storages:
+            data = bytearray(self.archive.read(self.prefix + "data/" + key))
+            self.storages[key] = (
+                torch.frombuffer(data, dtype=dtype)
+                if len(data) > 0
+                else torch.empty(0, dtype=dtype)
+            )
+        return self.storages[key]
+
+
+def read_checkpoint(path):
+    """Read a PyTorch checkpoint without running code from it.
+
+    Tensors are rebuilt from the archive. Every other class the file names,
+    such as the training code's own, becomes an inert stand-in, so a released
+    Lightning checkpoint can be read without ``weights_only=False``.
+    """
+    if not zipfile.is_zipfile(path):
+        raise ValueError("{} is not a PyTorch checkpoint archive".format(path))
+    with zipfile.ZipFile(path) as archive:
+        names = [n for n in archive.namelist() if n.endswith("data.pkl")]
+        if len(names) == 0:
+            raise ValueError("{} is not a PyTorch checkpoint archive".format(path))
+        prefix = min(names, key=len)[: -len("data.pkl")]
+        if prefix + "byteorder" in archive.namelist():
+            if archive.read(prefix + "byteorder").decode().strip() != "little":
+                raise ValueError("only little-endian checkpoints are supported")
+        with archive.open(prefix + "data.pkl") as f:
+            return _CheckpointUnpickler(f, archive, prefix).load()
+
+
+def released_backbone_state(checkpoint, backbone):
+    """State dict of ``backbone`` from a released DDBC checkpoint.
+
+    The parameters take their exponential moving averages, stored under
+    ``checkpoint["ema"]["shadow_params"]`` in the order of the parameters of
+    ``checkpoint["state_dict"]``, which the release evaluates with.
+    """
+    try:
+        weights = checkpoint["state_dict"]
+        shadow = list(checkpoint["ema"]["shadow_params"])
+    except (KeyError, TypeError):
+        raise ValueError("not a released DDBC checkpoint") from None
+    state = collections.OrderedDict(
+        (k[len("backbone.") :], v)
+        for k, v in weights.items()
+        if k.startswith("backbone.")
+    )
+    buffers = {name for name, _ in backbone.named_buffers()}
+    params = [name for name in state if name not in buffers]
+    if len(params) != len(shadow):
+        raise ValueError(
+            "the checkpoint has {} backbone parameters but {} averages".format(
+                len(params), len(shadow)
+            )
+        )
+    for name, average in zip(params, shadow):
+        if average.shape != state[name].shape:
+            raise ValueError("the average of {} has another shape".format(name))
+        state[name] = average
+    return state
