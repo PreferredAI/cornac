@@ -307,6 +307,29 @@ internal user index, which is useful for significance tests. For
 cross-validation, each model's result is a
 :class:`~cornac.experiment.result.CVResult` with one ``Result`` per fold.
 
+To keep the results or work with them in other tools, export them.
+``to_dataframe()`` gives a pandas DataFrame with one row per model and one
+column per metric (``pip install pandas``). ``to_json()`` returns the results as
+JSON, together with each model's parameters and the evaluation method and its
+seed, and also writes them to a file if you give it a path:
+
+.. code-block:: python
+
+    print(exp.result.to_dataframe())
+
+    exp.result.to_json("results.json")
+
+.. code-block:: bash
+    :caption: output
+
+               RMSE  Recall@10  Train (s)  Test (s)
+    model
+    BPR    2.226678   0.119527   1.426678  0.245172
+    MF     0.899831   0.046308   0.025407  0.248784
+
+For cross-validation, the DataFrame has one row per fold, plus the mean and the
+standard deviation, for each model.
+
 Reproducible results
 --------------------
 

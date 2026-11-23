@@ -13,11 +13,17 @@
 # limitations under the License.
 # ============================================================================
 
+import json
+
 import numpy as np
 from collections import OrderedDict
 
 
 NUM_FMT = "{:.4f}"
+
+
+def _floats(metrics):
+    return {name: float(value) for name, value in metrics.items()}
 
 
 def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
@@ -60,17 +66,59 @@ class Result:
 
     metric_user_results: :obj:`OrderedDict`, required
         A dictionary containing the average result per-user across different metrics.
+
+    Attributes
+    ----------
+    model_params: dict, default: None
+        Constructor arguments of the model that can be written to JSON,
+        set by :obj:`cornac.Experiment`.
+
+    eval_params: dict, default: None
+        Class name and seed of the evaluation method, set by :obj:`cornac.Experiment`.
     """
 
     def __init__(self, model_name, metric_avg_results, metric_user_results):
         self.model_name = model_name
         self.metric_avg_results = metric_avg_results
         self.metric_user_results = metric_user_results
+        self.model_params = None
+        self.eval_params = None
 
     def __str__(self):
         headers = list(self.metric_avg_results.keys())
         data = [[NUM_FMT.format(v) for v in self.metric_avg_results.values()]]
         return _table_format(data, headers, index=[self.model_name], h_bars=[1])
+
+    def to_dict(self):
+        """Return the result as a dictionary.
+
+        Returns
+        -------
+        res: dict
+            Model name, model parameters, evaluation method and average
+            results, under the keys `model`, `params`, `eval` and `metrics`.
+        """
+        return {
+            "model": self.model_name,
+            "params": self.model_params,
+            "eval": self.eval_params,
+            "metrics": _floats(self.metric_avg_results),
+        }
+
+    def to_dataframe(self):
+        """Return the average results as a one-row DataFrame (requires pandas).
+
+        Returns
+        -------
+        df: :obj:`pandas.DataFrame`
+            One column per metric, indexed by model name.
+        """
+        import pandas as pd
+
+        return pd.DataFrame(
+            [self.to_dict()["metrics"]],
+            index=pd.Index([self.model_name], name="model"),
+        )
 
 
 class CVResult(list):
@@ -89,6 +137,13 @@ class CVResult(list):
 
     metric_std: :obj:`OrderedDict`
         A dictionary containing the standard deviation of results across all folds per-metric.
+
+    model_params: dict, default: None
+        Constructor arguments of the model that can be written to JSON,
+        set by :obj:`cornac.Experiment`.
+
+    eval_params: dict, default: None
+        Class name and seed of the evaluation method, set by :obj:`cornac.Experiment`.
     """
 
     def __init__(self, model_name):
@@ -96,9 +151,43 @@ class CVResult(list):
         self.model_name = model_name
         self.metric_mean = OrderedDict()
         self.metric_std = OrderedDict()
+        self.model_params = None
+        self.eval_params = None
 
     def __str__(self):
         return "[{}]\n{}".format(self.model_name, self.table)
+
+    def to_dict(self):
+        """Return the result as a dictionary.
+
+        Returns
+        -------
+        res: dict
+            Model name, model parameters, evaluation method and results,
+            under the keys `model`, `params`, `eval` and `metrics`.
+            `metrics` maps each row of the table (`Fold 0`, ..., `Mean`,
+            `Std`) to its results.
+        """
+        rows = [("Fold %d" % f, r.metric_avg_results) for f, r in enumerate(self)]
+        rows += [("Mean", self.metric_mean), ("Std", self.metric_std)]
+        return {
+            "model": self.model_name,
+            "params": self.model_params,
+            "eval": self.eval_params,
+            "metrics": {label: _floats(metrics) for label, metrics in rows},
+        }
+
+    def to_dataframe(self):
+        """Return the results as a DataFrame (requires pandas).
+
+        Returns
+        -------
+        df: :obj:`pandas.DataFrame`
+            One row per row of the table and one column per metric.
+        """
+        import pandas as pd
+
+        return pd.DataFrame.from_dict(self.to_dict()["metrics"], orient="index")
 
     def organize(self):
         headers = list(self[0].metric_avg_results.keys())
@@ -127,14 +216,59 @@ class PSTResult(list):
     ----------
     model_name: string, required
         The name of the recommender model.
+
+    Attributes
+    ----------
+    model_params: dict, default: None
+        Constructor arguments of the model that can be written to JSON,
+        set by :obj:`cornac.Experiment`.
+
+    eval_params: dict, default: None
+        Class name and seed of the evaluation method, set by :obj:`cornac.Experiment`.
     """
 
     def __init__(self, model_name):
         super().__init__()
         self.model_name = model_name
+        self.model_params = None
+        self.eval_params = None
 
     def __str__(self):
         return "[{}]\n{}".format(self.model_name, self.table)
+
+    def to_dict(self):
+        """Return the result as a dictionary.
+
+        Returns
+        -------
+        res: dict
+            Model name, model parameters, evaluation method and results,
+            under the keys `model`, `params`, `eval` and `metrics`.
+            `metrics` maps each row of the table (`Closed`, `IPS`, `Q1`, ...,
+            `Unbiased`) to its results.
+        """
+        strata = ["Q%d" % q for q in range(1, len(self) - 2)]
+        labels = ["Closed", "IPS"] + strata + ["Unbiased"]
+        return {
+            "model": self.model_name,
+            "params": self.model_params,
+            "eval": self.eval_params,
+            "metrics": {
+                label: _floats(r.metric_avg_results) for label, r in zip(labels, self)
+            },
+        }
+
+    def to_dataframe(self):
+        """Return the results as a DataFrame (requires pandas).
+
+        Returns
+        -------
+        df: :obj:`pandas.DataFrame`
+            One row per row of the table and one column per metric.
+        """
+        import pandas as pd
+
+        return pd.DataFrame.from_dict(self.to_dict()["metrics"], orient="index")
 
     def organize(self):
 
@@ -195,6 +329,41 @@ class ExperimentResult(list):
             index.append(r.model_name)
         return _table_format(data, headers, index, h_bars=[1])
 
+    def to_dataframe(self):
+        """Return the average results as a DataFrame (requires pandas).
+
+        Returns
+        -------
+        df: :obj:`pandas.DataFrame`
+            One row per model, indexed by model name, and one column per
+            metric, with NaN where a model has no value for a metric.
+        """
+        import pandas as pd
+
+        return pd.DataFrame(
+            [r.to_dict()["metrics"] for r in self],
+            index=pd.Index([r.model_name for r in self], name="model"),
+        )
+
+    def to_json(self, path=None):
+        """Return the results of all models as a JSON string.
+
+        Parameters
+        ----------
+        path: str, optional, default: None
+            If given, the JSON string is also written to this file.
+
+        Returns
+        -------
+        res: str
+            JSON list with the `to_dict()` of each model's result.
+        """
+        text = json.dumps([r.to_dict() for r in self], indent=2)
+        if path is not None:
+            with open(path, "w") as f:
+                f.write(text)
+        return text
+
 
 class CVExperimentResult(ExperimentResult):
     """
@@ -203,3 +372,20 @@ class CVExperimentResult(ExperimentResult):
 
     def __str__(self):
         return "\n".join([r.__str__() for r in self])
+
+    def to_dataframe(self):
+        """Return the results of all models as a DataFrame (requires pandas).
+
+        Returns
+        -------
+        df: :obj:`pandas.DataFrame`
+            One row per row of each model's table, indexed by model name and
+            row, and one column per metric.
+        """
+        import pandas as pd
+
+        return pd.concat(
+            [r.to_dataframe() for r in self],
+            keys=[r.model_name for r in self],
+            names=["model"],
+        )
