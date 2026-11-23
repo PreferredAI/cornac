@@ -23,10 +23,8 @@ their codebooks (``clhe_weight.npy``). Set ``DDBC_CKPT`` to the released
 ``pog_dense.ckpt`` (https://huggingface.co/liaialley/DDBC) to evaluate that
 checkpoint instead of training the release recipe.
 
-Held-out bundles with at least k = 4 items are cut to their first 4 items and
-the first 2 are given, as in the released test files. The evaluation ranks
-and constructs over the whole item catalog, so the numbers are not comparable
-with the candidate pool used in the paper.
+Held-out bundles are cut to their first 4 items and the first 2 are given,
+as in the released test files.
 """
 
 import json

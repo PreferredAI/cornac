@@ -32,14 +32,13 @@ class DDBC(BundleConstructionRecommender):
     """DDBC: Discrete Diffusion for Bundle Construction.
 
     Item features are quantized into semantic IDs (``n_codebooks`` levels of
-    ``codebook_size`` codes, plus a collision digit that tells items with the
-    same codes apart). A diffusion transformer is trained to unmask the
-    semantic-ID tokens of bundles, and completes a partial bundle by unmasking
-    the tokens of its missing items given its seed items.
+    ``codebook_size`` codes, plus a collision digit). A diffusion transformer
+    learns to unmask the semantic-ID tokens of bundles and completes a partial
+    bundle by unmasking the tokens of its missing items.
 
-    The arguments cover both the paper and the released code. The defaults
-    follow the paper, and ``cornac.models.ddbc`` ships both as recipes:
-    ``DDBC_PAPER_*_CONFIG`` and ``DDBC_RELEASE_*_CONFIG``.
+    The defaults follow the paper. ``cornac.models.ddbc`` ships the paper and
+    the released-code settings as ``DDBC_PAPER_*_CONFIG`` and
+    ``DDBC_RELEASE_*_CONFIG``.
 
     Item features must be provided through the evaluation method, e.g.::
 
@@ -47,18 +46,8 @@ class DDBC(BundleConstructionRecommender):
             ..., item_feature=FeatureModality(features=feats, ids=item_ids)
         )
 
-    DDBC completes the given items of a bundle (``input_ratio`` above 0) or,
-    with ``input_ratio=0``, constructs a bundle from scratch by unmasking every
-    item (Appendix D.1 of the paper). It does not use the user of a query.
-
-    A query is decoded once. :meth:`construct` goes through the generated
-    slots in order. A slot whose ID names a catalog item is represented by
-    that item's vector, any other slot by the sum of the codewords of its
-    first ``fallback_levels`` levels, and each slot takes the free item,
-    neither given nor already taken, with the highest cosine similarity. An ID
-    that names a free item therefore gets that item. :meth:`score` ranks from
-    the same decoded bundle: the constructed items first, in slot order, then
-    every other item by its highest cosine similarity to the slot vectors.
+    With ``input_ratio=0``, a bundle is constructed from scratch. The user of a
+    query is not used.
 
     Parameters
     ----------
@@ -66,150 +55,103 @@ class DDBC(BundleConstructionRecommender):
         The name of the recommender model.
 
     bundle_size: int, default: 4
-        Number of items k of the training windows. Training bundles with fewer
-        items are skipped, longer ones give random windows of k items.
+        Number of items k of the training windows. Shorter training bundles
+        are skipped.
 
     n_codebooks: int, default: 3
-        Number of quantization levels of a semantic ID.
+        Number of levels of a semantic ID.
 
     codebook_size: int, default: 128
-        Number of codes C per level. The released codebooks have 128 codes on
-        POG and 256 on Spotify. It also bounds the collision digit, so at most
-        C items may share a code triple. With the 'rvq' tokenizer, C = 128 was
-        too small for Spotify in our runs.
+        Number of codes C per level. At most C items may share the same codes.
 
     tokenizer: str, default: 'rvq'
-        How the item IDs are built. 'rvq' encodes greedily (Eq. 1, Algorithm
-        1 of the paper) and trains its codebooks by gradient descent on the
-        loss of Eq. 2 (Section 3.2), starting from residual k-means, which the
-        paper does not specify. 'faiss' trains a Faiss residual quantizer
-        with the inner-product metric and encodes by its beam search, as the
-        released code does. It needs ``faiss`` and a power-of-two
-        ``codebook_size``. Unused when ``item_sids`` is given.
+        'rvq' trains a residual quantizer by gradient descent, starting from
+        residual k-means. 'faiss' uses a Faiss residual quantizer with the
+        inner-product metric, as the released code does, and needs a
+        power-of-two ``codebook_size``. Unused when ``item_sids`` is given.
 
     item_sids: array-like of int, optional, default: None
-        Semantic IDs of the items in token form, shape
-        ``(n_items, n_codebooks + 1)``, one row per item index, i.e. in the
-        order of ``item_ids`` of the evaluation method. Code ``c`` of level
-        ``l`` is ``(l - 1) * codebook_size + c + 1`` and the last column holds
-        the collision digit ``d`` as ``n_codebooks * codebook_size + d``, the
-        form of the released ``clhe_token.json``. Given with ``codebooks``, it
-        replaces the tokenizer.
+        Item semantic IDs in token form, shape ``(n_items, n_codebooks + 1)``,
+        in the order of ``item_ids``, e.g. the released ``clhe_token.json``.
+        Replaces the tokenizer. Must be given with ``codebooks``.
 
     codebooks: array-like of float, optional, default: None
         Codebooks of ``item_sids``, shape ``(n_codebooks, codebook_size, dim)``
-        or ``(n_codebooks * codebook_size, dim)``, where ``dim`` is the item
-        feature size, e.g. the released ``clhe_weight.npy``. Must be given
-        with ``item_sids``.
+        or ``(n_codebooks * codebook_size, dim)``, e.g. the released
+        ``clhe_weight.npy``.
 
     kmeans_iters: int, default: 20
-        Lloyd iterations per level of the residual k-means initialization of
-        the 'rvq' tokenizer.
-
     rvq_steps: int, default: 500
-        Full-batch Adam steps of the 'rvq' tokenizer.
-
     rvq_lr: float, default: 1e-3
-        Learning rate of the 'rvq' tokenizer.
-
     rvq_beta: float, default: 0.25
-        Weight of the commitment loss of the 'rvq' tokenizer.
+        Settings of the 'rvq' tokenizer: k-means iterations per level, full-batch
+        Adam steps, learning rate and commitment loss weight.
 
     hidden_size: int, default: 64
-        Hidden size of the transformer. When it equals the feature dimension,
-        the token embeddings of the codes start from their codewords.
-
     cond_dim: int, default: 128
-        Size of the diffusion-step embedding.
-
     n_blocks: int, default: 6
-        Number of transformer blocks.
-
     n_heads: int, default: 8
-        Number of attention heads.
-
     dropout: float, default: 0.1
-        Dropout rate of the transformer blocks.
+        Transformer settings. When ``hidden_size`` equals the feature size, the
+        code embeddings start from their codewords.
 
     n_diffusion_steps: int, optional, default: 25
-        Number of diffusion steps T, with t uniform in {1, ..., T} (Eq. 7) and
-        tokens masked with rate t / T, the linear schedule of Section 4.1.
-        None draws a continuous t in [1e-3, 1] with rate (1 - 1e-3) t, as the
-        released code does.
-
-    time_conditioning: boolean, default: True
-        Whether the denoiser sees the time (Eq. 6): t in discrete time and
-        -log(1 - rate) in continuous time. The released code feeds it 0.
-
-    layout: str, default: 'joint'
-        Decoding input. 'joint' puts the given items and the masked slots in
-        one ``[BOS] ... [EOS]`` sequence (Eq. 8). 'split' gives the slots their
-        own ``[BOS] ... [EOS]`` segment after the given items, as the released
+        Number of diffusion steps T. None uses continuous time, as the released
         code does.
 
+    time_conditioning: boolean, default: True
+        Whether the denoiser sees the time. The released code does not.
+
+    layout: str, default: 'joint'
+        'joint' puts the given items and the masked slots in one
+        ``[BOS] ... [EOS]`` sequence. 'split' gives the slots their own
+        segment, as the released code does.
+
     decode: str, default: 'confidence'
-        'confidence' reveals, at s = S, ..., 1 with S = ``sampling_steps``, the
-        ceil(remaining / s) masked positions whose best legal token is most
-        probable and sets them to that token, one instance of Algorithm 2.
-        'ancestral' is the sampler of the released code, which produced
-        Table 1 of the paper.
+        'confidence' reveals the most confident masked tokens first.
+        'ancestral' is the sampler of the released code.
 
     sampling_steps: int, default: 25
-        Number of decoding steps. The paper uses 25 (Appendix C.1), the
-        released code 256. With time conditioning, both decoders feed the
-        schedule's time.
+        Number of decoding steps. The released code uses 256.
 
     fallback_levels: int, default: 3
-        Number of levels whose codewords are summed into the vector of a
-        generated ID that names no item. The paper's reconstruction sums all
-        semantic levels (Section 3.2), the released code the first two.
+        Number of levels whose codewords are summed for a generated ID that
+        names no item. The released code uses 2.
 
     swap_ratio: float, default: 0.8
         Every training bundle gives ``int(len * swap_ratio)`` windows, each with
-        one random adjacent swap. The paper uses 0.8 on POG and 0.4 on Spotify.
+        one random adjacent swap.
 
     batch_size: int, default: 300
-        Training batch size.
-
     accumulate: int, default: 2
-        Number of batches per optimizer step.
-
     max_steps: int, default: 20000
-        Number of optimizer steps.
+    learning_rate: float, default: 3e-4
+    weight_decay: float, default: 0.0
+    warmup_steps: int, default: 500
+    grad_clip: float, default: 1.0
+        Training settings: batch size, batches per optimizer step, optimizer
+        steps, AdamW learning rate and weight decay, linear warm-up steps and
+        gradient-norm clipping.
 
     val_every: int, default: 32
-        When a validation set is given, the validation loss is computed every
-        ``val_every`` batches, counted across epochs, and at the last step.
-
-    learning_rate: float, default: 3e-4
-        AdamW learning rate.
-
-    weight_decay: float, default: 0.0
-        AdamW weight decay.
-
-    warmup_steps: int, default: 500
-        Linear warm-up steps of the learning rate.
-
-    grad_clip: float, default: 1.0
-        Gradient-norm clipping.
+        With a validation set, the validation loss is computed every
+        ``val_every`` batches and at the last step.
 
     ema_decay: float, default: 0.9999
-        Decay of the exponential moving average of the weights, which is used
-        for validation and inference.
+        Decay of the moving average of the weights used for validation and
+        inference.
 
     use_bf16: boolean, default: False
-        Train and infer with bfloat16 autocast (Ampere GPUs or newer).
+        Use bfloat16 autocast (Ampere GPUs or newer).
 
     model_selection: str, default: 'best'
-        'best' keeps the averaged weights with the lowest validation loss
-        (requires a validation set), 'last' keeps the final ones.
+        'best' keeps the weights with the lowest validation loss (requires a
+        validation set), 'last' keeps the final ones.
 
     pretrained: str, optional, default: None
-        Path of a released DDBC checkpoint (``.ckpt``). ``fit`` then builds the
-        model, loads the exponential moving averages of the released weights,
-        which the release evaluates with, and skips training. The file is read
-        without running code from it. Requires ``item_sids`` and ``codebooks``,
-        since the weights only fit the IDs they were trained with.
+        Path of a released DDBC checkpoint (``.ckpt``). ``fit`` loads its
+        averaged weights and skips training. Requires ``item_sids`` and
+        ``codebooks``.
 
     trainable: boolean, default: True
         When False, the model is not trained.
@@ -218,8 +160,7 @@ class DDBC(BundleConstructionRecommender):
         When True, a progress bar is displayed.
 
     seed: int, optional, default: None
-        Random seed for initialization, augmentation, training and sampling.
-        If None, each call of ``fit`` draws a new seed.
+        Random seed. If None, each call of ``fit`` draws a new seed.
 
     device: str, default: 'cpu'
         Torch device, e.g. 'cpu' or 'cuda'.
@@ -405,16 +346,14 @@ class DDBC(BundleConstructionRecommender):
 
     @staticmethod
     def _held_out_bundles(train_set, val_set):
-        """Validation bundles rebuilt as given items followed by missing items,
-        since Cornac splits them between the training and validation sets."""
+        """Validation bundles as given items followed by missing items."""
         return [
             train_set.bundle_items(i).tolist() + val_set.bundle_items(i).tolist()
             for i in np.unique(val_set.uir_tuple[0])
         ]
 
     def _given_ids(self, dim):
-        """``item_sids`` and ``codebooks``, checked, with the codebooks of
-        shape ``(n_codebooks, codebook_size, dim)``."""
+        """Checked ``item_sids`` and ``codebooks``."""
         tokens = np.asarray(self.item_sids, dtype=np.int64)
         n_levels, size = self.n_codebooks, self.codebook_size
         if tokens.shape != (self.total_items, n_levels + 1):
@@ -444,8 +383,8 @@ class DDBC(BundleConstructionRecommender):
         return tokens, codebooks.reshape(shape)
 
     def fit(self, train_set, val_set=None):
-        """Build the semantic IDs of the items, then train the diffusion model
-        or load the released one given by ``pretrained``.
+        """Build the item semantic IDs, then train the model or load
+        ``pretrained``.
 
         Parameters
         ----------
@@ -454,9 +393,8 @@ class DDBC(BundleConstructionRecommender):
             with ``item_feature``. Only the full bundles are used for training.
 
         val_set: :obj:`cornac.data.BundleConstructionDataset`, optional, default: None
-            Missing items of the validation bundles. Their loss is reported to
-            the callbacks and, with ``model_selection='best'``, selects the
-            weights.
+            Missing items of the validation bundles, used for model
+            selection.
 
         Returns
         -------
@@ -653,12 +591,10 @@ class DDBC(BundleConstructionRecommender):
     def score(self, user_idx, item_idx=None):
         """Score items for a partial bundle from its decoded bundle
 
-        The given items of the bundle instance are decoded with
-        ``bundle_size - len(given)`` slots, at least one, which is the number
-        of missing items when the held-out bundles have ``bundle_size`` items,
-        and with the seed of :meth:`construct`, so both see the same bundle.
-        The constructed items score highest, in slot order, and every other
-        item scores its highest cosine similarity to the slot vectors.
+        The bundle is decoded with ``bundle_size - len(given)`` slots, the
+        same bundle as :meth:`construct`. The constructed items score highest,
+        and every other item scores its highest cosine similarity to the slot
+        vectors.
 
         Parameters
         ----------
@@ -723,8 +659,7 @@ class DDBC(BundleConstructionRecommender):
         return self._decode(user_idx, input_items, size)[0]
 
     def _decode(self, user_idx, input_items, size):
-        """Items and slot vectors of a decoded query, computed once per query
-        so that :meth:`score` and :meth:`construct` see the same bundle."""
+        """Items and slot vectors of a query, decoded once and cached."""
         key = (int(user_idx), tuple(input_items), int(size))
         if key not in self._decoded:
             import torch
@@ -752,11 +687,8 @@ class DDBC(BundleConstructionRecommender):
         return self._decoded[key]
 
     def _slot_items(self, codes, input_items):
-        """Catalog items and unit vectors of the generated slots, in slot
-        order. A slot is the item its ID names or, for an ID that names no
-        item, the sum of the codewords of its first ``fallback_levels`` levels.
-        Each slot takes the free item, neither given nor taken, with the
-        highest cosine similarity, so an ID that names a free item gets it."""
+        """Catalog items and unit vectors of the generated slots. Each slot
+        takes the free item closest to its vector."""
         used = set(input_items)
         items, vectors = [], []
         for row in codes.tolist():

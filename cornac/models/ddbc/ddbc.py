@@ -14,11 +14,8 @@
 # ============================================================================
 """Neural modules for DDBC (Discrete Diffusion for Bundle Construction, ICLR 2026).
 
-A residual vector quantizer turns item features into semantic IDs, and a
-diffusion transformer (DiT) learns to unmask the semantic IDs of the missing
-items of a bundle. The DiT, the masked-token parameterization, the loss and
-the ancestral sampler follow MDLM (Sahoo et al., NeurIPS 2024,
-https://github.com/kuleshov-group/mdlm, Apache-2.0), which DDBC builds on.
+The DiT, the loss and the ancestral sampler follow MDLM (Sahoo et al.,
+NeurIPS 2024, https://github.com/kuleshov-group/mdlm, Apache-2.0).
 """
 
 import collections
@@ -268,11 +265,8 @@ class DDBCNet(nn.Module):
     ``(l - 1) * C + 1 .. l * C``, collision digits ``L * C + 1 .. (L + 1) * C``,
     then BOI, EOS and the mask token.
 
-    With ``n_diffusion_steps=T``, the time ``t`` is a step in ``{1, ..., T}``
-    and tokens are masked with rate ``t / T``. With ``n_diffusion_steps=None``,
-    ``t`` is continuous in ``[1e-3, 1]`` and the rate is ``(1 - 1e-3) t``. With
-    ``time_conditioning``, the denoiser sees ``t`` in discrete time and
-    ``-log(1 - rate)`` in continuous time, otherwise 0.
+    The mask rate is ``t / T`` in discrete time and ``(1 - 1e-3) t`` in
+    continuous time.
     """
 
     def __init__(
@@ -327,12 +321,7 @@ class DDBCNet(nn.Module):
         return ids
 
     def query(self, items, item_tokens, n_items, layout="joint"):
-        """Token ids of the given items followed by ``n_items`` masked slots.
-
-        ``'joint'`` puts both in one ``[BOS] ... [EOS]`` sequence. ``'split'``
-        gives the slots their own ``[BOS] ... [EOS]`` segment after the given
-        items, as the reference sampler does.
-        """
+        """Token ids of the given items followed by ``n_items`` masked slots."""
         given = self.encode(items, item_tokens)
         slots = ([self.boi] + [self.mask_index] * (self.item_width - 1)) * n_items
         if layout == "split":
@@ -373,10 +362,7 @@ class DDBCNet(nn.Module):
 
     def forward(self, x0):
         """Masked-token cross-entropy weighted by ``T / t`` in discrete time
-        and ``1 / t`` in continuous time. Eq. 7 of the paper prints the
-        cross-entropy without a weight. ``T / t`` is the weight of the MDLM
-        bound under the linear schedule, and ``1 / t`` equals the reference
-        code's ``dsigma / expm1(sigma)``."""
+        and ``1 / t`` in continuous time."""
         t = self.sample_t(x0.shape[0], x0.device)
         move_chance = (
             self.mask_rate(t)[:, None]
@@ -391,8 +377,7 @@ class DDBCNet(nn.Module):
         return -log_p * weight[:, None]
 
     def slot_allowed(self, n_items, device):
-        """Tokens allowed at each position of ``n_items`` slots: the codes of
-        its own level at a code position, anything at the BOI."""
+        """Tokens allowed at each slot position."""
         key = (n_items, str(device))
         if key not in self._allowed_cache:
             cb = self.codebook_size
@@ -407,9 +392,8 @@ class DDBCNet(nn.Module):
 
     @torch.no_grad()
     def complete(self, x, n_items, decode="confidence", steps=25, generator=None):
-        """Unmask the ``n_items`` slots at the end of the queries ``x``, built by
-        :meth:`query`, and return their codes and collision digits, shape
-        ``(n, n_items, n_levels + 1)``."""
+        """Unmask the ``n_items`` slots of the queries ``x`` and return their
+        codes, shape ``(n, n_items, n_levels + 1)``."""
         end = x.shape[1] - 1
         start = end - n_items * self.item_width
         allowed = self.slot_allowed(n_items, x.device)
@@ -424,11 +408,7 @@ class DDBCNet(nn.Module):
         return torch.full((n,), float(self.model_time(fraction)), device=device)
 
     def _ancestral(self, x, start, end, allowed, steps, generator):
-        """The reference sampler. N + 1 updates at t = 1, 1 - 1/N, ..., 0: a
-        masked position draws from ``p * dt`` over the tokens and ``t - dt``
-        for the mask, illegal tokens set to -1e9, by Gumbel-max. The denoiser
-        is rerun only after a token changed, or at every update with time
-        conditioning."""
+        """Ancestral sampling as in the released code."""
         n, dt = x.shape[0], 1.0 / steps
         legal = allowed.clone()
         legal[:, self.mask_index] = True
@@ -450,8 +430,7 @@ class DDBCNet(nn.Module):
                 p_x0 = None
 
     def _confidence(self, x, start, end, allowed, steps):
-        """At s = S, ..., 1, reveal the ceil(remaining / s) masked positions
-        whose best legal token is most probable, and set each to that token."""
+        """Reveal the most confident masked positions first."""
         n = x.shape[0]
         for s in range(steps, 0, -1):
             region = x[:, start:end]
@@ -472,7 +451,7 @@ class DDBCNet(nn.Module):
 
 
 class ResidualVQ(nn.Module):
-    """Residual vector quantizer trained by reconstruction (Eq. 2 of the paper)."""
+    """Residual vector quantizer trained by reconstruction."""
 
     def __init__(self, init_codebooks, beta):
         super().__init__()
@@ -528,7 +507,7 @@ def _nearest(x, centers, chunk=65536):
 
 
 def residual_kmeans(e, n_levels, codebook_size, n_iters=20, seed=0):
-    """Initial codebooks, shape (n_levels, codebook_size, dim), by k-means on the residuals of each level."""
+    """Initial codebooks by k-means on the residuals of each level."""
     g = torch.Generator().manual_seed(seed)
     r = e.clone()
     books = []
@@ -550,10 +529,8 @@ def residual_kmeans(e, n_levels, codebook_size, n_iters=20, seed=0):
 
 
 def faiss_residual_codes(e, n_levels, codebook_size):
-    """Codes ``(n_items, n_levels)`` and codebooks
-    ``(n_levels, codebook_size, dim)`` of a Faiss residual quantizer with the
-    inner-product metric, trained on ``e`` and encoding by its default beam
-    search, as the reference code does."""
+    """Codes and codebooks of a Faiss residual quantizer, as in the released
+    code."""
     import faiss
 
     x = np.ascontiguousarray(e, dtype=np.float32)
@@ -574,9 +551,7 @@ def faiss_residual_codes(e, n_levels, codebook_size):
 
 
 def semantic_id_tokens(codes, codebook_size):
-    """Token ids ``(n_items, n_levels + 1)`` of the codes and of a collision
-    digit, 1, 2, ... in item order, that tells items with the same codes
-    apart."""
+    """Token ids of the codes plus a collision digit."""
     n_items, n_levels = codes.shape
     tokens = np.zeros((n_items, n_levels + 1), dtype=np.int64)
     seen = {}
@@ -597,10 +572,7 @@ def semantic_id_tokens(codes, codebook_size):
 
 
 def swap_windows(bundles, swap_ratio, seq_len, rng):
-    """``int(len * swap_ratio)`` copies of every bundle with at least ``seq_len``
-    items, each with one random adjacent swap and cut to a random window of
-    ``seq_len`` items.
-    """
+    """Training windows of ``seq_len`` items with one random adjacent swap."""
     out = []
     for items in bundles:
         if len(items) < seq_len:
@@ -616,7 +588,7 @@ def swap_windows(bundles, swap_ratio, seq_len, rng):
 
 @torch.no_grad()
 def validation_loss(net, val_ids, batch_size, seed):
-    """Mean weighted loss of the non-special tokens, with a fixed masking seed."""
+    """Mean validation loss with a fixed masking seed."""
     net.eval()
     device = next(net.parameters()).device
     total, weight = 0.0, 0.0
@@ -723,12 +695,7 @@ class _CheckpointUnpickler(pickle.Unpickler):
 
 
 def read_checkpoint(path):
-    """Read a PyTorch checkpoint without running code from it.
-
-    Tensors are rebuilt from the archive. Every other class the file names,
-    such as the training code's own, becomes an inert stand-in, so a released
-    Lightning checkpoint can be read without ``weights_only=False``.
-    """
+    """Read a PyTorch checkpoint without running code from it."""
     if not zipfile.is_zipfile(path):
         raise ValueError("{} is not a PyTorch checkpoint archive".format(path))
     with zipfile.ZipFile(path) as archive:
@@ -744,12 +711,8 @@ def read_checkpoint(path):
 
 
 def released_backbone_state(checkpoint, backbone):
-    """State dict of ``backbone`` from a released DDBC checkpoint.
-
-    The parameters take their exponential moving averages, stored under
-    ``checkpoint["ema"]["shadow_params"]`` in the order of the parameters of
-    ``checkpoint["state_dict"]``, which the release evaluates with.
-    """
+    """State dict of ``backbone`` with the averaged weights of a released
+    checkpoint."""
     try:
         weights = checkpoint["state_dict"]
         shadow = list(checkpoint["ema"]["shadow_params"])

@@ -21,20 +21,9 @@ Usage::
 
     model = DDBC(**{**DDBC_RELEASE_POG_CONFIG, "seed": 1})
 
-``DDBC_PAPER_*`` follows the paper: the 'rvq' tokenizer (Section 3.2), the
-joint decoding sequence (Eq. 8), discrete time with T = 25 and a
-time-conditioned denoiser (Section 3.3, Eq. 6), and confidence decoding in 25
-steps (Algorithm 2, Appendix C.1).
-
-``DDBC_RELEASE_*`` follows the released code (LiAi16/DDBC at e1f4afc5): its
-``configs/config.yaml``, ``scripts/train.sh`` and ``scripts/test.sh``. It
-uses the Faiss tokenizer, the split decoding sequence, continuous time without
-time conditioning, and the ancestral sampler with 256 steps. To compare with
-the released checkpoints, pass the released ``item_sids`` and ``codebooks``,
-since Faiss training is random.
-
-Both share the architecture (Section 4.1) and the optimizer, batch and
-validation settings of the released code, which the paper does not state.
+``DDBC_PAPER_*`` follows the paper and ``DDBC_RELEASE_*`` the released code
+(LiAi16/DDBC at e1f4afc5). To compare with the released checkpoints, also
+pass the released ``item_sids`` and ``codebooks``.
 """
 
 DDBC_CONFIG = dict(
@@ -68,7 +57,9 @@ DDBC_PAPER_CONFIG = dict(
     sampling_steps=25,
 )
 DDBC_PAPER_POG_CONFIG = dict(DDBC_PAPER_CONFIG, bundle_size=4, swap_ratio=0.8)
-DDBC_PAPER_SPOTIFY30_CONFIG = dict(DDBC_PAPER_CONFIG, bundle_size=30, swap_ratio=0.4)
+DDBC_PAPER_SPOTIFY30_CONFIG = dict(
+    DDBC_PAPER_CONFIG, bundle_size=30, codebook_size=256, swap_ratio=0.4
+)
 DDBC_PAPER_SPOTIFY60_CONFIG = dict(DDBC_PAPER_SPOTIFY30_CONFIG, bundle_size=60)
 DDBC_PAPER_SPOTIFY90_CONFIG = dict(DDBC_PAPER_SPOTIFY30_CONFIG, bundle_size=90)
 
