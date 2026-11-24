@@ -14,4 +14,4 @@
 - [ ] I have updated the documentation accordingly.
 - [ ] I have updated `README.md` (if you are adding a new model).
 - [ ] I have added an example and updated `examples/README.md` (if you are adding a new model).
-- [ ] I have updated `datasets/README.md` (if you are adding a new dataset).
+- [ ] I have updated `cornac/datasets/README.md` (if you are adding a new dataset).
