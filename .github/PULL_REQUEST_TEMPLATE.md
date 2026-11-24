@@ -10,8 +10,8 @@
 ### Checklist:
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] I have added tests (if you are changing shared code) or an example that runs (if you are adding a new model).
+- [ ] I have added tests (for changes to data, evaluation methods, metrics or experiments; not needed for a new model).
 - [ ] I have updated the documentation accordingly.
 - [ ] I have updated `README.md` (if you are adding a new model).
-- [ ] I have updated `examples/README.md` (if you are adding a new example).
+- [ ] I have added an example and updated `examples/README.md` (if you are adding a new model).
 - [ ] I have updated `datasets/README.md` (if you are adding a new dataset).
