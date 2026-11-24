@@ -47,6 +47,7 @@ from .crosscbr import CrossCBR
 from .ctr import CTR
 from .cvae import CVAE
 from .cvaecf import CVAECF
+from .dcbr import DCBR
 from .dmrl import DMRL
 from .diger import DIGER
 from .diffgrm import DiffGRM

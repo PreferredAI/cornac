@@ -427,3 +427,8 @@ Strategy-aware Bundle Graph Transformer (BundleGT)
 --------------------------------------------------
 .. automodule:: cornac.models.bundlegt.recom_bundlegt
    :members:
+
+Disentangled Contrastive Bundle Recommendation with Conditional Diffusion (DCBR)
+-------------------------------------------------------------------------------
+.. automodule:: cornac.models.dcbr.recom_dcbr
+   :members:
