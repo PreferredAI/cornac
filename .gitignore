@@ -67,3 +67,6 @@ env
 venv
 .env
 .venv
+
+# Personal instructions for Claude Code
+CLAUDE.local.md
