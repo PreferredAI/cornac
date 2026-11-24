@@ -99,19 +99,22 @@ Test results of [`examples/ddbc_pog.py`](../../../examples/ddbc_pog.py) on POG:
 | --- | ---: | ---: | ---: | ---: | ---: |
 | BundlePop-item | 0.1445 | 0.2237 | 0.0841 | 0.0561 | 0.0148 |
 | BundlePop-cooccurrence | **0.2472** | **0.3167** | **0.1656** | **0.1164** | 0.0047 |
-| DDBC-release, released checkpoint | 0.0683 | 0.0817 | 0.0706 | 0.0477 | 0.5386 |
+| DDBC-release, released checkpoint, `sampling_steps=256` | 0.0683 | 0.0817 | 0.0706 | 0.0477 | 0.5386 |
+| DDBC-release, released checkpoint, `sampling_steps=25` | 0.0646 | 0.0764 | 0.0680 | 0.0463 | 0.8186 |
 | DDBC-release, trained | 0.0669 | 0.0777 | 0.0688 | 0.0463 | 1323 |
 | DDBC-paper | 0.1087 | 0.1325 | 0.1091 | 0.0747 | 1336 |
 
-**Setting:** the released `pog_dense` data (20,780 training bundles, 2,521 test queries, 31,217 items), k = 4 with 2 given items, `seed=1`, one Kaggle GPU. DDBC-release uses the released IDs. The example gives the checkpoint row with `DDBC_CKPT` set. The trained row comes from a separate run with the same split and settings.
+**Setting:** the released `pog_dense` data (20,780 training bundles, 2,521 test queries, 31,217 items), k = 4 with 2 given items, `seed=1`, one Kaggle GPU. DDBC-release uses the released IDs. The example gives the 256-step checkpoint row with `DDBC_CKPT` set. The 25-step row and the trained row come from separate runs with the same split and settings. The release recipe decodes with 256 steps, the default of the released `configs/config.yaml`, while the released checkpoints store `sampling.steps: 25`, the value of the paper. Over seeds 1 to 3, the 25-step checkpoint gives Set-F1 0.0680, 0.0656 and 0.0668.
 
 The released Spotify checkpoints, with the same evaluation:
 
-| k | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard |
-| --- | ---: | ---: | ---: | ---: |
-| 30 | 0.0150 | 0.0172 | 0.0128 | 0.0067 |
-| 60 | 0.0226 | 0.0156 | 0.0226 | 0.0118 |
-| 90 | 0.0317 | 0.0141 | 0.0308 | 0.0162 |
+| k | `sampling_steps` | NDCG@20 | Recall@20 | Set-F1 | Set-Jaccard |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 30 | 256 | 0.0150 | 0.0172 | 0.0128 | 0.0067 |
+| 30 | 25 | 0.0159 | 0.0183 | 0.0136 | 0.0071 |
+| 60 | 256 | 0.0226 | 0.0156 | 0.0226 | 0.0118 |
+| 60 | 25 | 0.0237 | 0.0154 | 0.0230 | 0.0120 |
+| 90 | 256 | 0.0317 | 0.0141 | 0.0308 | 0.0162 |
 
 **A few things to note:**
 
