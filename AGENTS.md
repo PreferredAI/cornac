@@ -4,7 +4,7 @@ Notes for coding agents working on Cornac. [CONTRIBUTING.md](CONTRIBUTING.md) ho
 
 ## AI-assisted contributions
 
-The person who opens a pull request is its author, and reads and understands every change in it. Say in the pull request that an AI tool was used, and name the tool. Do not open issues or pull requests, or post replies, until a person has reviewed them.
+The person who opens a pull request is its author, and reads and understands every change in it. End the pull request description with a line that names the tool and the model, for example `Assisted-by: Claude Code (Fable 5.2)`. Commit messages need no such line. Do not open issues or pull requests, or post replies, until a person has reviewed them.
 
 ## Commands
 

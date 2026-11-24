@@ -86,7 +86,7 @@ basis. We thank you for your patience during the review process.
 
 You are welcome to use AI tools, including coding agents, to help with your contribution. You are still the author, so you are responsible for the whole change.
 
-Please read and understand every change before you open a pull request, and be ready to explain it during review. Report only test results that you ran yourself. If an AI tool wrote a large part of the code, tests or description, say so in the pull request and name the tool, so that reviewers know where to look closely. You can also add an `Assisted-by: <tool>` line to your commit messages.
+Please read and understand every change before you open a pull request, and be ready to explain it during review. Report only test results that you ran yourself. If an AI tool wrote a large part of the code, tests or description, say so in the pull request and name the tool and its model, for example `Assisted-by: Claude Code (Fable 5.2)`, so that reviewers know where to look closely. You can also add this line to your commit messages.
 
 Keep pull requests focused. Our maintainers review in their spare time, and we may close very large pull requests that their author does not seem to have reviewed. The same goes for issues and replies to review comments: please read what an AI tool wrote before you post it.
 
