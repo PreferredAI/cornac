@@ -48,12 +48,16 @@ python -c "import sys, cornac; assert not {'torch', 'tensorflow'} & set(sys.modu
 
 ## Adding a Model, Dataset or Metric
 
-A new model lives in its own package, `cornac/models/<name>/`, with an `__init__.py`, a `recom_<name>.py` that holds the recommender class, any backend modules, and a `requirements.txt` if it needs extra packages. Along with the package:
+A new model lives in its own package, `cornac/models/<name>/`, with an `__init__.py`, a `recom_<name>.py` that holds the recommender class (`recom_<name>.pyx` for a model written in Cython), any backend modules, and a `requirements.txt` if it needs extra packages. Along with the package:
 
-- export the class in `cornac/models/__init__.py`;
-- add a row to the model table in `README.md`, following the layout of the existing rows, because the model page of the documentation is generated from it;
-- add an entry to `docs/source/api_ref/models.rst`;
-- add an example script under `examples/` and list it in `examples/README.md`.
+- export the class in `cornac/models/__init__.py`, where the imports are in alphabetical order of the package name;
+- add a row to the model table in `README.md`, under the year of the paper (the newest years come first) and following the layout of the existing rows, because the model page of the documentation is generated from it;
+- add an entry to `docs/source/api_ref/models.rst`, next to related models;
+- add an example script under `examples/` and list it in the section of `examples/README.md` that fits the model.
+
+A model gets its data through `fit()`: the evaluation method builds the training set, with any modalities, and passes it in, so the constructor takes hyper-parameters, not datasets. `score()` keeps the signature of the base class and leaves the model's state unchanged. Evaluation calls it many times, so one-off set-up, such as putting a network in evaluation mode, belongs in `fit()`.
+
+The constructor stores each of its arguments as an attribute of the same name, and `fit()` keeps what it learns in other attributes. `clone()` builds a new model by passing the current value of each of those attributes back to the constructor, and `CrossValidation` and the hyper-parameter searches use it to start every fold or trial from a fresh model.
 
 A dataset loader is a module in `cornac/datasets/`, imported in `cornac/datasets/__init__.py`. Add a test for it in `tests/cornac/datasets/`, an entry in `docs/source/api_ref/datasets.rst`, and a description in `cornac/datasets/README.md`.
 
@@ -63,13 +67,15 @@ Each pull request runs `python docs/check_listings.py`, which reports any model,
 
 ## Tests
 
-Tests live under `tests/cornac/` and run with `pytest`. Changes to shared code, such as data handling, evaluation methods, metrics, experiments and the model base classes, should come with tests, because many models rely on that code. A new model does not need its own test suite, but it should come with an example script that runs, because the example is how reviewers and users check that the model works.
+Tests live under `tests/cornac/` and run with `pytest`. Changes to shared code, such as data handling, evaluation methods, metrics, experiments and the model base classes, should come with tests, because many models rely on that code. A new model does not come with its own test files, which would slow down CI for every pull request. It comes with an example script that runs instead, because the example is how reviewers and users check that the model works.
 
 A plain `pytest` does not run the tests in `tests/cornac/datasets/`, because they download the datasets. To run them, name the folder or a file, for example `pytest tests/cornac/datasets/test_movielens.py`.
 
 ## Pull Requests
 
 Open your pull request against the `master` branch and fill in the template.
+
+For a new model, say in the description where your implementation differs from the paper or the reference code, and show the result of its example, next to the number in the paper or of an existing model on the same data where there is one.
 
 Your pull request will be reviewed by Cornac maintainers.
 They will provide feedback and request changes if necessary.
