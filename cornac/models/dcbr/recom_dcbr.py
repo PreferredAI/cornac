@@ -444,6 +444,8 @@ class DCBR(BundleRecommender):
         positives = binary(train_set.csr_matrix)
         pair_users, pair_bundles = positives.nonzero()
         num_pairs = len(pair_users)
+        keys = pair_users.astype(np.int64) * positives.shape[1] + pair_bundles
+        keys.sort()
 
         self.best_epoch = None
         self.val_history = []
@@ -460,7 +462,7 @@ class DCBR(BundleRecommender):
             for start in range(0, num_pairs, self.batch_size):
                 batch = order[start : start + self.batch_size]
                 users = pair_users[batch]
-                negatives = sample_negatives(positives, users, self.rng)
+                negatives = sample_negatives(positives, users, self.rng, keys)
                 loss, _ = module.loss(
                     torch.as_tensor(users, dtype=torch.long, device=device),
                     torch.as_tensor(

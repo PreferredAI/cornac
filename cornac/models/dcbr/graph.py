@@ -68,31 +68,34 @@ def row_norm(matrix, eps=1e-8):
     return (sp.diags(1.0 / (rows + eps)) @ matrix).tocsr()
 
 
-def sample_negatives(positives, users, rng, max_tries=100):
+def _observed(keys, query):
+    positions = np.searchsorted(keys, query)
+    hit = positions < len(keys)
+    hit[hit] = keys[positions[hit]] == query[hit]
+    return hit
+
+
+def sample_negatives(positives, users, rng, keys, max_tries=100):
     """Uniform negatives: one column of ``positives`` not observed for each user.
 
-    Vectorized rejection sampling against the CSR rows of ``positives``.
+    ``keys`` contains sorted user * num_cols + bundle IDs, built once per fit.
+    Vectorized rejection sampling uses binary searches against these keys.
     """
     num_cols = positives.shape[1]
     users = np.asarray(users, dtype=np.int64)
-    if np.any(np.diff(positives.indptr)[users] == num_cols):
+    if np.any(positives.indptr[users + 1] - positives.indptr[users] == num_cols):
         raise ValueError(
             "each training user needs an unobserved bundle for BPR sampling"
         )
-    keys = np.asarray(positives.indices, dtype=np.int64) + np.repeat(
-        np.arange(positives.shape[0], dtype=np.int64) * num_cols,
-        np.diff(positives.indptr),
-    )
-    keys.sort()
     negatives = rng.randint(num_cols, size=len(users))
     for _ in range(max_tries):
-        hit = np.isin(users * num_cols + negatives, keys, assume_unique=False)
+        hit = _observed(keys, users * num_cols + negatives)
         if not hit.any():
             break
         negatives[hit] = rng.randint(num_cols, size=int(hit.sum()))
     # Rejection sampling can exhaust its budget for dense users. Finish with an
     # exact uniform draw from their complement rather than returning positives.
-    hit = np.isin(users * num_cols + negatives, keys, assume_unique=False)
+    hit = _observed(keys, users * num_cols + negatives)
     for user in np.unique(users[hit]):
         observed = positives.indices[
             positives.indptr[user] : positives.indptr[user + 1]
