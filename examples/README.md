@@ -176,7 +176,7 @@
 
 ## Bundle Algorithms
 
-[bundle_dcbr_ifashion.py](bundle_dcbr_ifashion.py) - DCBR on iFashion fixed splits; use `--smoke` for a download-free CPU example.
+[bundle_dcbr_ifashion.py](bundle_dcbr_ifashion.py) - Example of DCBR bundle recommendation on iFashion.
 
 [bundle_pop_youshu.py](bundle_pop_youshu.py) - Example of bundle popularity baselines (BundlePop) for bundle recommendation, completion and construction.
 
