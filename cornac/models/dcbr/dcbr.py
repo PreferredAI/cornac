@@ -22,14 +22,141 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .graph import bi_norm, bipartite, row_norm
-from .torch_utils import (
-    bpr_loss,
-    info_nce,
-    lightgcn_propagate,
-    perturb,
-    sp_to_torch,
-)
+from ..crosscbr.crosscbr import graph_tensor
+
+
+def binary(matrix):
+    """Binary float64 CSR copy of a sparse matrix (None stays None)."""
+    if matrix is None:
+        return None
+    out = (sp.csr_matrix(matrix) != 0).astype(np.float64).tocsr()
+    out.eliminate_zeros()
+    return out
+
+
+def user_item_matrix(train_set):
+    """Training user x constituent item matrix of a :obj:`BundleDataset`.
+
+    Uses the supplied ``user_item_matrix`` when available, otherwise derives
+    it from the user's training bundles (UB @ BI, binarized). Only training
+    observations are used, so no validation or test signal can leak.
+    """
+    if train_set.user_item_matrix is not None:
+        return binary(train_set.user_item_matrix)
+    return binary(binary(train_set.csr_matrix) @ binary(train_set.bundle_item_matrix))
+
+
+def _observed(keys, query):
+    positions = np.searchsorted(keys, query)
+    hit = positions < len(keys)
+    hit[hit] = keys[positions[hit]] == query[hit]
+    return hit
+
+
+def sample_negatives(positives, users, rng, keys, max_tries=100):
+    """Uniform negatives: one column of ``positives`` not observed for each user.
+
+    ``keys`` contains sorted user * num_cols + bundle IDs, built once per fit.
+    Vectorized rejection sampling uses binary searches against these keys.
+    """
+    num_cols = positives.shape[1]
+    users = np.asarray(users, dtype=np.int64)
+    if np.any(positives.indptr[users + 1] - positives.indptr[users] == num_cols):
+        raise ValueError(
+            "each training user needs an unobserved bundle for BPR sampling"
+        )
+    negatives = rng.randint(num_cols, size=len(users))
+    for _ in range(max_tries):
+        hit = _observed(keys, users * num_cols + negatives)
+        if not hit.any():
+            break
+        negatives[hit] = rng.randint(num_cols, size=int(hit.sum()))
+    # Rejection sampling can exhaust its budget for dense users. Finish with an
+    # exact uniform draw from their complement rather than returning positives.
+    hit = _observed(keys, users * num_cols + negatives)
+    for user in np.unique(users[hit]):
+        observed = positives.indices[
+            positives.indptr[user] : positives.indptr[user + 1]
+        ]
+        candidates = np.setdiff1d(np.arange(num_cols), observed, assume_unique=True)
+        mask = hit & (users == user)
+        negatives[mask] = rng.choice(candidates, size=int(mask.sum()))
+    return negatives
+
+
+def sp_to_torch(matrix, device=None):
+    """SciPy sparse matrix -> coalesced float32 torch sparse COO tensor."""
+    coo = sp.coo_matrix(matrix)
+    indices = torch.from_numpy(np.vstack([coo.row, coo.col]).astype(np.int64))
+    values = torch.from_numpy(coo.data.astype(np.float32))
+    tensor = torch.sparse_coo_tensor(
+        indices, values, coo.shape, check_invariants=False
+    ).coalesce()
+    return tensor if device is None else tensor.to(device)
+
+
+def perturb(h, eps):
+    """Noise augmentation h + sign(h) * eps * unit-norm uniform noise (SimGCL style)."""
+    if eps <= 0:
+        return h
+    noise = F.normalize(torch.rand_like(h), dim=-1)
+    return h + torch.sign(h) * noise * eps
+
+
+def lightgcn_propagate(
+    graph, x, num_layers, layer_weights=None, normalize=False, noise_eps=0.0
+):
+    """LightGCN propagation without feature transforms or nonlinearities.
+
+    Parameters
+    ----------
+    graph: torch sparse tensor
+        Normalized (n x n) adjacency.
+    x: torch.Tensor
+        Layer-0 embeddings (n x d).
+    num_layers: int
+        Number of propagation steps.
+    layer_weights: sequence of float, optional
+        Weights of layers 0..num_layers. Default: plain sum.
+    normalize: bool
+        L2-normalize each propagated layer before combining (layer 0 is kept raw),
+        as in CrossCBR and MultiCBR.
+    noise_eps: float
+        Noise magnitude added after every propagation step (MultiCBR).
+
+    Returns
+    -------
+    torch.Tensor of shape (n x d)
+    """
+    layers = [x]
+    h = x
+    for _ in range(num_layers):
+        h = torch.sparse.mm(graph, h)
+        h = perturb(h, noise_eps)
+        layers.append(F.normalize(h, p=2, dim=1) if normalize else h)
+    if layer_weights is None:
+        return torch.stack(layers, dim=0).sum(dim=0)
+    if len(layer_weights) != num_layers + 1:
+        raise ValueError("layer_weights must have num_layers + 1 values")
+    return sum(w * layer for w, layer in zip(layer_weights, layers))
+
+
+def bpr_loss(pos_scores, neg_scores):
+    """Mean BPR loss -log sigmoid(pos - neg) = softplus(neg - pos)."""
+    return F.softplus(neg_scores - pos_scores).mean()
+
+
+def info_nce(a, b, temperature):
+    """InfoNCE over a batch: row i of ``a`` is positive with row i of ``b``.
+
+    Cosine similarities divided by ``temperature``; every row of ``b``
+    (including the positive) is in the denominator. Returns the mean loss.
+    """
+    a = F.normalize(a, p=2, dim=1)
+    b = F.normalize(b, p=2, dim=1)
+    logits = a @ b.T / temperature
+    targets = torch.arange(a.shape[0], device=a.device)
+    return F.cross_entropy(logits, targets)
 
 
 class Denoiser(nn.Module):
@@ -40,11 +167,11 @@ class Denoiser(nn.Module):
         self.time_emb_size = time_emb_size
         self.norm = norm
         self.time_proj = nn.Linear(time_emb_size, time_emb_size)
-        dims = [num_bundles + time_emb_size] + list(hidden_dims)
+        dims = [num_bundles + time_emb_size, *reversed(hidden_dims)]
         self.encoder = nn.ModuleList(
             nn.Linear(a, b) for a, b in zip(dims[:-1], dims[1:])
         )
-        out_dims = list(reversed(hidden_dims)) + [num_bundles]
+        out_dims = [*hidden_dims, num_bundles]
         self.decoder = nn.ModuleList(
             nn.Linear(a, b) for a, b in zip(out_dims[:-1], out_dims[1:])
         )
@@ -202,41 +329,44 @@ class DCBRModule(nn.Module):
         for weight in (self.users, self.bundles, self.items):
             nn.init.xavier_normal_(weight)
 
-        self.ui_graph = sp_to_torch(bi_norm(bipartite(ui)), device)
-        self.bi_graph = sp_to_torch(bi_norm(bipartite(bi)), device)
-        self.bundle_agg = sp_to_torch(row_norm(bi), device)
-        self.user_agg = sp_to_torch(row_norm(ui), device)
-        self.diffusion = Diffusion(
-            self.num_bundles,
-            diff_steps,
-            noise_scale,
-            noise_min,
-            noise_max,
-            diff_dims,
-            time_emb_size,
-            diff_dropout,
-            norm=diff_norm,
-        ).to(device)
-        self.diff_optimizer = torch.optim.Adam(self.diffusion.parameters(), lr=diff_lr)
-        self.ub_graph = self._ub_graph(self.ub)
+        self.ui_graph = graph_tensor(ui, device, rng)
+        self.bi_graph = graph_tensor(bi, device, rng)
+        self.bundle_agg = graph_tensor(bi, device, rng, bipartite=False)
+        self.user_agg = graph_tensor(ui, device, rng, bipartite=False)
+        if self.c_lambda:
+            self.diffusion = Diffusion(
+                self.num_bundles,
+                diff_steps,
+                noise_scale,
+                noise_min,
+                noise_max,
+                diff_dims,
+                time_emb_size,
+                diff_dropout,
+                norm=diff_norm,
+            ).to(device)
+            self.diff_optimizer = torch.optim.Adam(
+                self.diffusion.parameters(), lr=diff_lr
+            )
+            self.ub_graph = self._ub_graph(self.ub)
 
     def embedding_parameters(self):
-        return [
-            p
-            for name, p in self.named_parameters()
-            if not name.startswith("diffusion.")
-        ]
+        return (self.users, self.bundles, self.items)
 
     def _ub_graph(self, ub):
-        eye = sp.identity(sum(ub.shape), format="csr")
-        return sp_to_torch(bi_norm(bipartite(ub) + eye), self.device)
+        # The rebuilt user-bundle graph includes a self-loop at every node.
+        users, bundles = ub.shape
+        graph = sp.bmat([[sp.eye(users), ub], [ub.T, sp.eye(bundles)]], format="csr")
+        degree = np.asarray(graph.sum(axis=1)).ravel()
+        scale = sp.diags(1.0 / (np.sqrt(degree) + 1e-8))
+        return sp_to_torch(scale @ graph @ scale, self.device)
 
     def _rows(self, users):
         return torch.as_tensor(
             self.ub[users].toarray(), dtype=torch.float32, device=self.device
         )
 
-    def epoch_start(self, epoch):
+    def epoch_start(self):
         """Train the diffusion model one pass, then rebuild the UB view's graph."""
         frozen_u, frozen_b = self.users.detach(), self.bundles.detach()
         self.diffusion.train()
@@ -292,7 +422,7 @@ class DCBRModule(nn.Module):
 
     def views(self, noise, include_ub=True):
         views = {}
-        if include_ub:
+        if include_ub and self.c_lambda:
             u_ub, b_ub, _ = self._view(
                 self.ub_graph, self.users, self.bundles, "UB", noise
             )

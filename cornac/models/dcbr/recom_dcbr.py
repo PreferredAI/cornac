@@ -21,7 +21,6 @@ from tqdm.auto import trange
 from ..recommender import MEASURE_DOT, BundleRecommender
 from ...exception import ScoreException
 from ...utils import get_rng
-from .graph import binary, sample_negatives, user_item_matrix
 
 VIEWS = ("UB", "UI", "BI")
 
@@ -57,7 +56,7 @@ class DCBR(BundleRecommender):
         Weight of the UI view in the fused (scored) representation.
 
     c_lambda: float, default: 0.3
-        Weight of the contrastive loss.
+        Weight of the contrastive loss. Zero skips diffusion and the user-bundle view.
 
     c_temp: float, default: 0.08
         InfoNCE temperature.
@@ -76,7 +75,7 @@ class DCBR(BundleRecommender):
         the first beta is fixed at 1e-4, following the reference.
 
     diff_dims: tuple of int, default: (1000,)
-        Hidden sizes of the denoiser MLP.
+        Hidden sizes in decoder order. The encoder visits them in reverse order.
 
     time_emb_size: int, default: 10
 
@@ -107,19 +106,13 @@ class DCBR(BundleRecommender):
     batch_size: int, default: 2048
         Number of user-positive-negative bundle triples per training step.
 
-    eval_every: int, default: 5
-        Validate every this many epochs, and after the final epoch.
+    early_stopping: dict, optional, default: None
+        Cornac's ``min_delta`` and ``patience`` settings. Requires validation
+        data. Checks Recall@20 each epoch and restores the best scoring vectors.
+        With None, training returns the final epoch's vectors.
 
-    patience: int, optional, default: None
-        Stop after this many validation checks without improvement.
-        Requires a validation set. None trains for all epochs.
-
-    eval_k: int, default: 20
-        Recall and NDCG cutoff for validation-only checkpoint selection.
-        Keep a checkpoint when both metrics improve.
-
-    device: str, optional, default: None
-        PyTorch device. None selects CUDA when available, otherwise CPU.
+    use_gpu: bool, default: False
+        Use CUDA when requested and available.
 
     trainable: bool, default: True
         When False, require fitted vectors and identical catalog mappings.
@@ -132,20 +125,26 @@ class DCBR(BundleRecommender):
 
     Notes
     -----
-    Implementation of Li (2025); numerical objectives and settings checked against
-    https://github.com/recomall/DCBR (commit 502eadf82ecfb6621d9345e18c83e1155d3786af).
-    Defaults are its
-    iFashion configuration. The reference hard-codes CUDA; here the device
-    follows ``device``. ``noise_min``/``noise_max`` and the denoiser's
-    dropout follow DiffRec, on which the reference builds.
+    DCBR follows the released implementation of Li (2025) at
+    https://github.com/recomall/DCBR (commit 502eadf82ecfb6621d9345e18c83e1155d3786af)
+    where it differs from the paper. The denoised scores select the top
+    ``rebuild_k`` bundles per user (one by default). These edges form a binary
+    user-bundle graph with self-loops. Each propagated layer is L2-normalized
+    before pooling, and layer zero keeps its raw embeddings. Diffusion timesteps
+    run from 0 to ``diff_steps - 1``. The default iFashion setting for
+    ``blcc_weight`` (λ₀ = 2) is outside the paper's search grid. The noise
+    bounds and denoiser dropout follow DiffRec, as in the released code.
+
+    Without ``user_item_data``, the user-item view is derived from the items in
+    each user's training bundles. For optional checkpoint selection, Cornac
+    monitors Recall@20 alone. The released implementation uses joint
+    improvement in Recall@20 and NDCG@20.
 
     References
     ----------
     * Li, J. (2025). Disentangled Contrastive Bundle Recommendation with
       Conditional Diffusion. AAAI 2025.
     """
-
-    _ann_supported = True
 
     def __init__(
         self,
@@ -175,10 +174,8 @@ class DCBR(BundleRecommender):
         num_epochs=50,
         learning_rate=1e-3,
         batch_size=2048,
-        eval_every=5,
-        patience=None,
-        eval_k=20,
-        device=None,
+        early_stopping=None,
+        use_gpu=False,
         trainable=True,
         verbose=False,
         seed=None,
@@ -190,10 +187,8 @@ class DCBR(BundleRecommender):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.lambda_reg = lambda_reg
-        self.eval_every = eval_every
-        self.patience = patience
-        self.eval_k = eval_k
-        self.device = device
+        self.early_stopping = early_stopping
+        self.use_gpu = use_gpu
         self.seed = seed
         self.U = None
         self.V = None
@@ -222,8 +217,6 @@ class DCBR(BundleRecommender):
             ("emb_size", emb_size, 1),
             ("num_epochs", num_epochs, 0),
             ("batch_size", batch_size, 1),
-            ("eval_every", eval_every, 1),
-            ("eval_k", eval_k, 1),
             ("num_layers", num_layers, 0),
             ("diff_steps", diff_steps, 1),
             ("rebuild_k", rebuild_k, 1),
@@ -236,12 +229,6 @@ class DCBR(BundleRecommender):
                 or value < minimum
             ):
                 raise ValueError(f"{key} must be an integer >= {minimum}")
-        if patience is not None and (
-            not isinstance(patience, Integral)
-            or isinstance(patience, bool)
-            or patience < 1
-        ):
-            raise ValueError("patience must be a positive integer or None")
         if not np.isfinite(lambda_reg) or lambda_reg < 0:
             raise ValueError("lambda_reg must be finite and nonnegative")
         if not self.diff_dims or any(
@@ -293,7 +280,7 @@ class DCBR(BundleRecommender):
             raise ValueError("diff_norm must be a bool")
 
     def _build_module(self, train_set, device):
-        from .dcbr import DCBRModule
+        from .dcbr import DCBRModule, binary, user_item_matrix
 
         return DCBRModule(
             ui=user_item_matrix(train_set),
@@ -379,17 +366,13 @@ class DCBR(BundleRecommender):
         self.U = users.detach().cpu().numpy().astype(np.float32)
         self.V = bundles.detach().cpu().numpy().astype(np.float32)
 
-    def _validate(self, train_set, val_set):
+    def monitor_value(self, train_set, val_set):
+        if val_set is None:
+            return None
         from ...eval_methods import ranking_eval
-        from ...metrics import NDCG, Recall
+        from ...metrics import Recall
 
-        recall, ndcg = ranking_eval(
-            model=self,
-            metrics=[Recall(k=self.eval_k), NDCG(k=self.eval_k)],
-            train_set=train_set,
-            test_set=val_set,
-        )[0]
-        return recall, ndcg
+        return ranking_eval(self, [Recall(k=20)], train_set, val_set)[0][0]
 
     def fit(self, train_set, val_set=None):
         """Fit the model to observations.
@@ -411,8 +394,10 @@ class DCBR(BundleRecommender):
             self.train_set, self.val_set = train_set, val_set
             return self
         BundleRecommender.fit(self, train_set, val_set)
-        if self.patience is not None and val_set is None:
-            raise ValueError("patience requires a validation BundleDataset")
+        if self.early_stopping is not None and val_set is None:
+            raise ValueError("early_stopping requires a validation BundleDataset")
+        from .dcbr import binary
+
         positives = binary(train_set.csr_matrix)
         if not positives.nnz:
             raise ValueError("training requires positive user-bundle feedback")
@@ -429,34 +414,29 @@ class DCBR(BundleRecommender):
                 torch.cuda.manual_seed_all(self.seed)
         self.rng = get_rng(self.seed)
         device = torch.device(
-            self.device
-            if self.device is not None
-            else ("cuda" if torch.cuda.is_available() else "cpu")
+            "cuda" if self.use_gpu and torch.cuda.is_available() else "cpu"
         )
 
         module = self._build_module(train_set, device).to(device)
         optimizer = self._optimizer(module)
-        return self._train(module, optimizer, train_set, val_set, device)
+        return self._train(module, optimizer, positives, train_set, val_set, device)
 
-    def _train(self, module, optimizer, train_set, val_set, device):
+    def _train(self, module, optimizer, positives, train_set, val_set, device):
         import torch
+        from .dcbr import sample_negatives
 
-        positives = binary(train_set.csr_matrix)
         pair_users, pair_bundles = positives.nonzero()
         num_pairs = len(pair_users)
         keys = pair_users.astype(np.int64) * positives.shape[1] + pair_bundles
         keys.sort()
 
-        self.best_epoch = None
-        self.val_history = []
-        best = (-np.inf, -np.inf)
         best_embeddings = None
-        stale = 0
 
         progress = trange(self.num_epochs, desc="Training", disable=not self.verbose)
-        for epoch in progress:
+        for _ in progress:
             module.train()
-            module.epoch_start(epoch)
+            if self.c_lambda:
+                module.epoch_start()
             order = self.rng.permutation(num_pairs)
             total = 0.0
             for start in range(0, num_pairs, self.batch_size):
@@ -476,26 +456,12 @@ class DCBR(BundleRecommender):
                 total += loss.item() * len(batch)
             progress.set_postfix(loss=total / max(num_pairs, 1))
 
-            last = epoch + 1 == self.num_epochs
-            if val_set is None or not ((epoch + 1) % self.eval_every == 0 or last):
-                continue
-            self._store_embeddings(module)
-            recall, ndcg = self._validate(train_set, val_set)
-            self.val_history.append((epoch + 1, recall, ndcg))
-            if self.verbose:
-                print(
-                    "epoch {}: val Recall@{k}={:.4f} NDCG@{k}={:.4f}".format(
-                        epoch + 1, recall, ndcg, k=self.eval_k
-                    )
-                )
-            if recall > best[0] and ndcg > best[1]:
-                best = (recall, ndcg)
-                best_embeddings = (self.U, self.V)
-                self.best_epoch = epoch + 1
-                stale = 0
-            else:
-                stale += 1
-                if self.patience is not None and stale >= self.patience:
+            if self.early_stopping is not None:
+                self._store_embeddings(module)
+                stopped = self.early_stop(train_set, val_set, **self.early_stopping)
+                if self.best_epoch == self.current_epoch:
+                    best_embeddings = (self.U, self.V)
+                if stopped:
                     break
 
         if best_embeddings is not None:

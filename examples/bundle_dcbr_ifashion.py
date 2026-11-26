@@ -49,7 +49,7 @@ def main():
     parser.add_argument(
         "--smoke", action="store_true", help="Use tiny offline CPU data"
     )
-    parser.add_argument("--device", default=None, help="PyTorch device for iFashion")
+    parser.add_argument("--device", choices=("cpu", "cuda"), default="cuda")
     parser.add_argument(
         "--epochs", type=int, default=None, help="Override training epochs"
     )
@@ -67,9 +67,6 @@ def main():
             diff_batch_size=4,
             batch_size=4,
             num_epochs=2,
-            eval_every=1,
-            eval_k=3,
-            device="cpu",
         )
         k = 3
     else:
@@ -83,7 +80,7 @@ def main():
             verbose=True,
             **bundle.load_ids("iFashion"),
         )
-        settings = dict(device=args.device)
+        settings = dict(use_gpu=args.device == "cuda")
         k = 20
     if args.epochs is not None:
         settings["num_epochs"] = args.epochs
