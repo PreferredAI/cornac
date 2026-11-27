@@ -31,7 +31,12 @@ evaluation = BundleEvaluation.from_splits(
     **bundle.load_ids("iFashion"),
 )
 
-model = DCBR(use_gpu=True, seed=2026, verbose=True)
+model = DCBR(
+    use_gpu=True,
+    early_stopping={"min_delta": 0.0, "patience": 100},
+    seed=2026,
+    verbose=True,
+)
 metrics = [Recall(k=20), NDCG(k=20)]
 
 cornac.Experiment(eval_method=evaluation, models=[model], metrics=metrics).run()

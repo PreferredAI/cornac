@@ -71,8 +71,6 @@ def sample_negatives(positives, users, rng, keys, max_tries=100):
         if not hit.any():
             break
         negatives[hit] = rng.randint(num_cols, size=int(hit.sum()))
-    # Rejection sampling can exhaust its budget for dense users. Finish with an
-    # exact uniform draw from their complement rather than returning positives.
     hit = _observed(keys, users * num_cols + negatives)
     for user in np.unique(users[hit]):
         observed = positives.indices[
@@ -103,42 +101,15 @@ def perturb(h, eps):
     return h + torch.sign(h) * noise * eps
 
 
-def lightgcn_propagate(
-    graph, x, num_layers, layer_weights=None, normalize=False, noise_eps=0.0
-):
-    """LightGCN propagation without feature transforms or nonlinearities.
-
-    Parameters
-    ----------
-    graph: torch sparse tensor
-        Normalized (n x n) adjacency.
-    x: torch.Tensor
-        Layer-0 embeddings (n x d).
-    num_layers: int
-        Number of propagation steps.
-    layer_weights: sequence of float, optional
-        Weights of layers 0..num_layers. Default: plain sum.
-    normalize: bool
-        L2-normalize each propagated layer before combining (layer 0 is kept raw),
-        as in CrossCBR and MultiCBR.
-    noise_eps: float
-        Noise magnitude added after every propagation step (MultiCBR).
-
-    Returns
-    -------
-    torch.Tensor of shape (n x d)
-    """
-    layers = [x]
-    h = x
-    for _ in range(num_layers):
-        h = torch.sparse.mm(graph, h)
-        h = perturb(h, noise_eps)
-        layers.append(F.normalize(h, p=2, dim=1) if normalize else h)
-    if layer_weights is None:
-        return torch.stack(layers, dim=0).sum(dim=0)
+def lightgcn_propagate(graph, x, num_layers, layer_weights, noise_eps=0.0):
+    """Pool the raw embeddings and L2-normalized propagated layers by weight."""
     if len(layer_weights) != num_layers + 1:
         raise ValueError("layer_weights must have num_layers + 1 values")
-    return sum(w * layer for w, layer in zip(layer_weights, layers))
+    pooled = layer_weights[0] * x
+    for weight in layer_weights[1:]:
+        x = perturb(torch.sparse.mm(graph, x), noise_eps)
+        pooled = pooled + weight * F.normalize(x, dim=1)
+    return pooled
 
 
 def bpr_loss(pos_scores, neg_scores):
@@ -362,9 +333,15 @@ class DCBRModule(nn.Module):
         return sp_to_torch(scale @ graph @ scale, self.device)
 
     def _rows(self, users):
-        return torch.as_tensor(
-            self.ub[users].toarray(), dtype=torch.float32, device=self.device
+        observed = self.ub[users].tocoo()
+        rows = torch.zeros(
+            (len(users), self.num_bundles), dtype=torch.float32, device=self.device
         )
+        rows[
+            torch.as_tensor(observed.row, dtype=torch.long, device=self.device),
+            torch.as_tensor(observed.col, dtype=torch.long, device=self.device),
+        ] = 1.0
+        return rows
 
     def epoch_start(self):
         """Train the diffusion model one pass, then rebuild the UB view's graph."""
@@ -415,7 +392,6 @@ class DCBRModule(nn.Module):
             torch.cat([left, right]),
             self.num_layers,
             layer_weights=self.layer_weights[name],
-            normalize=True,
             noise_eps=eps,
         )
         return feats[: left.shape[0]], feats[left.shape[0] :], eps
@@ -453,7 +429,6 @@ class DCBRModule(nn.Module):
         bpr = bpr_loss((u[users] * b[pos]).sum(1), (u[users] * b[neg]).sum(1))
         reg = sum(p.pow(2).sum() for p in self.embedding_parameters())
         total = bpr + self.lambda_reg * reg
-        parts = {"bpr": bpr.item()}
         if self.c_lambda:
             names = ("UB", "UI", "BI")
             inter = [
@@ -469,8 +444,7 @@ class DCBRModule(nn.Module):
             ]
             c_loss = self.gammas[0] * sum(inter) + self.gammas[1] * sum(intra)
             total = total + self.c_lambda * c_loss
-            parts["contrastive"] = c_loss.item()
-        return total, parts
+        return total
 
     def embeddings(self):
         return self.fused(noise=False)

@@ -118,7 +118,7 @@ class DCBR(BundleRecommender):
         When False, require fitted vectors and identical catalog mappings.
 
     verbose: bool, default: False
-        Show training progress and validation results.
+        Show training progress.
 
     seed: int, optional, default: None
         Seed for initialization, sampling and augmentation.
@@ -408,18 +408,20 @@ class DCBR(BundleRecommender):
 
         import torch
 
-        if self.seed is not None:
-            torch.manual_seed(self.seed)
-            if torch.cuda.is_available():
-                torch.cuda.manual_seed_all(self.seed)
         self.rng = get_rng(self.seed)
         device = torch.device(
             "cuda" if self.use_gpu and torch.cuda.is_available() else "cpu"
         )
 
-        module = self._build_module(train_set, device).to(device)
-        optimizer = self._optimizer(module)
-        return self._train(module, optimizer, positives, train_set, val_set, device)
+        devices = [device] if device.type == "cuda" else []
+        with torch.random.fork_rng(devices=devices, enabled=self.seed is not None):
+            if self.seed is not None:
+                torch.random.default_generator.manual_seed(self.seed)
+                if device.type == "cuda":
+                    torch.cuda.manual_seed(self.seed)
+            module = self._build_module(train_set, device).to(device)
+            optimizer = self._optimizer(module)
+            return self._train(module, optimizer, positives, train_set, val_set, device)
 
     def _train(self, module, optimizer, positives, train_set, val_set, device):
         import torch
@@ -443,7 +445,7 @@ class DCBR(BundleRecommender):
                 batch = order[start : start + self.batch_size]
                 users = pair_users[batch]
                 negatives = sample_negatives(positives, users, self.rng, keys)
-                loss, _ = module.loss(
+                loss = module.loss(
                     torch.as_tensor(users, dtype=torch.long, device=device),
                     torch.as_tensor(
                         pair_bundles[batch], dtype=torch.long, device=device
@@ -453,8 +455,10 @@ class DCBR(BundleRecommender):
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                total += loss.item() * len(batch)
-            progress.set_postfix(loss=total / max(num_pairs, 1))
+                if self.verbose:
+                    total += loss.detach() * len(batch)
+            if self.verbose:
+                progress.set_postfix(loss=total.item() / num_pairs)
 
             if self.early_stopping is not None:
                 self._store_embeddings(module)
