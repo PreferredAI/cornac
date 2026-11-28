@@ -26,7 +26,7 @@ Usage::
 pass the released ``item_sids`` and ``codebooks``.
 """
 
-DDBC_CONFIG = dict(
+_DDBC_CONFIG = dict(
     n_codebooks=3,
     hidden_size=64,
     cond_dim=128,
@@ -46,7 +46,7 @@ DDBC_CONFIG = dict(
 )
 
 DDBC_PAPER_CONFIG = dict(
-    DDBC_CONFIG,
+    _DDBC_CONFIG,
     tokenizer="rvq",
     codebook_size=128,
     fallback_levels=3,
@@ -57,14 +57,12 @@ DDBC_PAPER_CONFIG = dict(
     sampling_steps=25,
 )
 DDBC_PAPER_POG_CONFIG = dict(DDBC_PAPER_CONFIG, bundle_size=4, swap_ratio=0.8)
-DDBC_PAPER_SPOTIFY30_CONFIG = dict(
-    DDBC_PAPER_CONFIG, bundle_size=30, codebook_size=256, swap_ratio=0.4
-)
+DDBC_PAPER_SPOTIFY30_CONFIG = dict(DDBC_PAPER_CONFIG, bundle_size=30, swap_ratio=0.4)
 DDBC_PAPER_SPOTIFY60_CONFIG = dict(DDBC_PAPER_SPOTIFY30_CONFIG, bundle_size=60)
 DDBC_PAPER_SPOTIFY90_CONFIG = dict(DDBC_PAPER_SPOTIFY30_CONFIG, bundle_size=90)
 
 DDBC_RELEASE_CONFIG = dict(
-    DDBC_CONFIG,
+    _DDBC_CONFIG,
     tokenizer="faiss",
     fallback_levels=2,
     layout="split",

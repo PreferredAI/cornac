@@ -262,8 +262,8 @@ class DDBCNet(nn.Module):
     A bundle is the token sequence ``[BOS, (BOI, c_1, ..., c_L, s) * k, EOS]``,
     where ``c_l`` are the codes of the item at level ``l`` and ``s`` its
     collision digit. Token ids: ``0`` is BOS, level ``l`` codes take
-    ``(l - 1) * C + 1 .. l * C``, collision digits ``L * C + 1 .. (L + 1) * C``,
-    then BOI, EOS and the mask token.
+    ``(l - 1) * C + 1 .. l * C``, collision digits ``L * C + 1 .. L * C + S``
+    with ``S = collision_size``, then BOI, EOS and the mask token.
 
     The mask rate is ``t / T`` in discrete time and ``(1 - 1e-3) t`` in
     continuous time.
@@ -274,6 +274,7 @@ class DDBCNet(nn.Module):
         codebook,
         n_levels,
         codebook_size,
+        collision_size=None,
         hidden_size=64,
         cond_dim=128,
         n_blocks=6,
@@ -286,9 +287,12 @@ class DDBCNet(nn.Module):
         super().__init__()
         self.n_levels = n_levels
         self.codebook_size = codebook_size
+        self.collision_size = (
+            codebook_size if collision_size is None else collision_size
+        )
         self.item_width = n_levels + 2
         self.bos = 0
-        self.boi = (n_levels + 1) * codebook_size + 1
+        self.boi = n_levels * codebook_size + self.collision_size + 1
         self.eos = self.boi + 1
         self.mask_index = self.eos + 1
         self.vocab_size = self.mask_index + 1
@@ -385,8 +389,9 @@ class DDBCNet(nn.Module):
                 self.item_width, self.vocab_size, dtype=torch.bool, device=device
             )
             for level in range(1, self.item_width):
+                size = cb if level <= self.n_levels else self.collision_size
                 block[level] = False
-                block[level, (level - 1) * cb + 1 : level * cb + 1] = True
+                block[level, (level - 1) * cb + 1 : (level - 1) * cb + size + 1] = True
             self._allowed_cache[key] = block.repeat(n_items, 1)
         return self._allowed_cache[key]
 
@@ -470,7 +475,7 @@ class ResidualVQ(nn.Module):
         codes = []
         for cb in self.codebooks:
             idx = self.quantize(r, cb)
-            q = cb[idx]
+            q = F.one_hot(idx, cb.shape[0]).to(cb.dtype) @ cb
             commit = (
                 commit
                 + ((r.detach() - q) ** 2).sum(1).mean()
@@ -551,19 +556,13 @@ def faiss_residual_codes(e, n_levels, codebook_size):
 
 
 def semantic_id_tokens(codes, codebook_size):
-    """Token ids of the codes plus a collision digit."""
+    """Token ids of the codes plus a collision digit, numbered from 1 in item
+    order among the items that share the codes."""
     n_items, n_levels = codes.shape
     tokens = np.zeros((n_items, n_levels + 1), dtype=np.int64)
     seen = {}
     for item, sid in enumerate(map(tuple, codes.tolist())):
         seen[sid] = seen.get(sid, 0) + 1
-        if seen[sid] > codebook_size:
-            raise ValueError(
-                "{} items share the semantic ID {}, more than codebook_size={}. "
-                "Increase codebook_size or n_codebooks".format(
-                    seen[sid], sid, codebook_size
-                )
-            )
         tokens[item, :n_levels] = [
             c + codebook_size * level + 1 for level, c in enumerate(sid)
         ]

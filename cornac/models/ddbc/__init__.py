@@ -14,7 +14,6 @@
 # ============================================================================
 
 from .ddbc_config import (
-    DDBC_CONFIG,
     DDBC_PAPER_CONFIG,
     DDBC_PAPER_POG_CONFIG,
     DDBC_PAPER_SPOTIFY30_CONFIG,

@@ -14,7 +14,9 @@
 # ============================================================================
 
 import math
+import warnings
 import zlib
+from collections.abc import Mapping
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -62,18 +64,24 @@ class DDBC(BundleConstructionRecommender):
         Number of levels of a semantic ID.
 
     codebook_size: int, default: 128
-        Number of codes C per level. At most C items may share the same codes.
+        Number of codes C per level. The collision digit also takes C values,
+        unless more than C items share the codes of every level. It then takes
+        as many values as the largest such group, with a warning.
 
     tokenizer: str, default: 'rvq'
         'rvq' trains a residual quantizer by gradient descent, starting from
         residual k-means. 'faiss' uses a Faiss residual quantizer with the
         inner-product metric, as the released code does, and needs a
-        power-of-two ``codebook_size``. Unused when ``item_sids`` is given.
+        power-of-two ``codebook_size``. Faiss training takes no seed and its
+        IDs change with the number of OpenMP threads. Unused when
+        ``item_sids`` is given.
 
-    item_sids: array-like of int, optional, default: None
-        Item semantic IDs in token form, shape ``(n_items, n_codebooks + 1)``,
-        in the order of ``item_ids``, e.g. the released ``clhe_token.json``.
-        Replaces the tokenizer. Must be given with ``codebooks``.
+    item_sids: dict, optional, default: None
+        Item semantic IDs in token form, a mapping from raw item ID to its
+        ``n_codebooks + 1`` tokens, e.g. the released ``clhe_token.json``.
+        ``fit`` aligns it with the items of ``train_set`` by ID, so every item
+        must have an entry and extra entries are ignored. Replaces the
+        tokenizer. Must be given with ``codebooks``.
 
     codebooks: array-like of float, optional, default: None
         Codebooks of ``item_sids``, shape ``(n_codebooks, codebook_size, dim)``
@@ -81,26 +89,43 @@ class DDBC(BundleConstructionRecommender):
         ``clhe_weight.npy``.
 
     kmeans_iters: int, default: 20
+        Residual k-means iterations per level of the 'rvq' tokenizer.
+
     rvq_steps: int, default: 500
+        Full-batch Adam steps of the 'rvq' tokenizer.
+
     rvq_lr: float, default: 1e-3
+        Adam learning rate of the 'rvq' tokenizer.
+
     rvq_beta: float, default: 0.25
-        Settings of the 'rvq' tokenizer: k-means iterations per level, full-batch
-        Adam steps, learning rate and commitment loss weight.
+        Commitment loss weight of the 'rvq' tokenizer.
 
     hidden_size: int, default: 64
+        Width of the transformer. When it equals the feature size, the code
+        embeddings start from their codewords.
+
     cond_dim: int, default: 128
+        Width of the time embedding.
+
     n_blocks: int, default: 6
+        Number of transformer blocks.
+
     n_heads: int, default: 8
+        Number of attention heads.
+
     dropout: float, default: 0.1
-        Transformer settings. When ``hidden_size`` equals the feature size, the
-        code embeddings start from their codewords.
+        Dropout rate of the transformer.
 
     n_diffusion_steps: int, optional, default: 25
         Number of diffusion steps T. None uses continuous time, as the released
-        code does.
+        code does. None changes more than the time grid: the mask rate becomes
+        ``(1 - 1e-3) t`` instead of ``t / T``, and with ``time_conditioning``
+        the denoiser sees ``-log(1 - mask rate)`` instead of ``t``.
 
     time_conditioning: boolean, default: True
-        Whether the denoiser sees the time. The released code does not.
+        Whether the denoiser sees the time. The released code evaluates every
+        checkpoint without it, although its Spotify k = 30 checkpoint was
+        trained with it.
 
     layout: str, default: 'joint'
         'joint' puts the given items and the masked slots in one
@@ -114,24 +139,35 @@ class DDBC(BundleConstructionRecommender):
     sampling_steps: int, default: 25
         Number of decoding steps. The released code uses 256.
 
-    fallback_levels: int, default: 3
+    fallback_levels: int, optional, default: None
         Number of levels whose codewords are summed for a generated ID that
-        names no item. The released code uses 2.
+        names no item. None sums all ``n_codebooks`` levels, as the paper does.
+        The released code uses 2.
 
     swap_ratio: float, default: 0.8
         Every training bundle gives ``int(len * swap_ratio)`` windows, each with
         one random adjacent swap.
 
     batch_size: int, default: 300
+        Number of training windows per batch.
+
     accumulate: int, default: 2
+        Number of batches per optimizer step.
+
     max_steps: int, default: 20000
+        Number of optimizer steps.
+
     learning_rate: float, default: 3e-4
+        AdamW learning rate.
+
     weight_decay: float, default: 0.0
+        AdamW weight decay.
+
     warmup_steps: int, default: 500
+        Number of steps of the linear learning-rate warm-up.
+
     grad_clip: float, default: 1.0
-        Training settings: batch size, batches per optimizer step, optimizer
-        steps, AdamW learning rate and weight decay, linear warm-up steps and
-        gradient-norm clipping.
+        Maximum gradient norm.
 
     val_every: int, default: 32
         With a validation set, the validation loss is computed every
@@ -154,7 +190,7 @@ class DDBC(BundleConstructionRecommender):
         ``codebooks``.
 
     trainable: boolean, default: True
-        When False, the model is not trained.
+        When False, the model is not trained. ``pretrained`` is still loaded.
 
     verbose: boolean, default: False
         When True, a progress bar is displayed.
@@ -199,7 +235,7 @@ class DDBC(BundleConstructionRecommender):
         layout="joint",
         decode="confidence",
         sampling_steps=25,
-        fallback_levels=3,
+        fallback_levels=None,
         swap_ratio=0.8,
         batch_size=300,
         accumulate=2,
@@ -273,6 +309,8 @@ class DDBC(BundleConstructionRecommender):
                     sampling_steps
                 )
             )
+        if fallback_levels is None:
+            fallback_levels = n_codebooks
         if not 1 <= fallback_levels <= n_codebooks:
             raise ValueError(
                 "fallback_levels must be between 1 and n_codebooks={} but {} is "
@@ -280,10 +318,23 @@ class DDBC(BundleConstructionRecommender):
             )
         if (item_sids is None) != (codebooks is None):
             raise ValueError("item_sids and codebooks must be given together")
+        if item_sids is not None and not isinstance(item_sids, Mapping):
+            raise ValueError(
+                "item_sids must map raw item IDs to tokens, e.g. the released "
+                "clhe_token.json, but {} is given".format(type(item_sids).__name__)
+            )
         if pretrained is not None and item_sids is None:
             raise ValueError(
                 "pretrained requires the item_sids and codebooks the checkpoint "
                 "was trained with"
+            )
+        if pretrained is not None and (
+            layout != "split" or decode != "ancestral" or n_diffusion_steps is not None
+        ):
+            warnings.warn(
+                "the released checkpoints were trained and evaluated with "
+                "layout='split', decode='ancestral' and n_diffusion_steps=None, "
+                "but other values are given"
             )
 
         self.bundle_size = bundle_size
@@ -325,6 +376,7 @@ class DDBC(BundleConstructionRecommender):
 
         self.net = None
         self.item_tokens = None
+        self.collision_size = None
         self.item_units = None
         self.code_vectors = None
         self.code_to_item = None
@@ -332,6 +384,7 @@ class DDBC(BundleConstructionRecommender):
         self.best_val_loss = None
         self.fit_seed = None
         self._decoded = {}
+        self._size_warned = False
 
     @staticmethod
     def _training_bundles(train_set):
@@ -352,9 +405,50 @@ class DDBC(BundleConstructionRecommender):
             for i in np.unique(val_set.uir_tuple[0])
         ]
 
+    def _item_ids(self, features, device, seed):
+        """Item tokens and codebooks from ``item_sids`` or the tokenizer.
+
+        The residual k-means start of ``"rvq"`` runs on CPU, because its
+        centroid sums are not deterministic on CUDA.
+        """
+        import torch
+
+        from .ddbc import (
+            ResidualVQ,
+            faiss_residual_codes,
+            residual_kmeans,
+            semantic_id_tokens,
+        )
+
+        if self.item_sids is not None:
+            return self._given_ids(features.shape[1])
+        if self.tokenizer == "faiss":
+            codes, codebooks = faiss_residual_codes(
+                features, self.n_codebooks, self.codebook_size
+            )
+            return semantic_id_tokens(codes, self.codebook_size), codebooks
+        e = torch.from_numpy(features)
+        init = residual_kmeans(
+            e, self.n_codebooks, self.codebook_size, self.kmeans_iters, seed
+        )
+        e = e.to(device)
+        rvq = ResidualVQ(init, self.rvq_beta).to(device)
+        rvq.fit(e, self.rvq_steps, self.rvq_lr)
+        tokens = semantic_id_tokens(rvq.encode(e).cpu().numpy(), self.codebook_size)
+        return tokens, rvq.codebooks.detach().cpu().numpy()
+
     def _given_ids(self, dim):
         """Checked ``item_sids`` and ``codebooks``."""
-        tokens = np.asarray(self.item_sids, dtype=np.int64)
+        missing = [iid for iid in self.iid_map if iid not in self.item_sids]
+        if missing:
+            raise ValueError(
+                "item_sids has no entry for {} items, e.g. {}".format(
+                    len(missing), missing[:5]
+                )
+            )
+        tokens = np.asarray(
+            [self.item_sids[iid] for iid in self.iid_map], dtype=np.int64
+        )
         n_levels, size = self.n_codebooks, self.codebook_size
         if tokens.shape != (self.total_items, n_levels + 1):
             raise ValueError(
@@ -404,19 +498,15 @@ class DDBC(BundleConstructionRecommender):
         self.given_items = {
             int(i): train_set.bundle_items(i) for i in train_set.partial_bundles
         }
-        if not self.trainable:
+        if not self.trainable and self.pretrained is None:
             return self
 
         import torch
 
         from .ddbc import (
             DDBCNet,
-            ResidualVQ,
-            faiss_residual_codes,
             read_checkpoint,
             released_backbone_state,
-            residual_kmeans,
-            semantic_id_tokens,
             swap_windows,
         )
 
@@ -430,30 +520,25 @@ class DDBC(BundleConstructionRecommender):
             seed = int(get_rng(None).randint(np.iinfo(np.int32).max))
         self.fit_seed = seed
         self._decoded = {}
+        self._size_warned = False
         torch.manual_seed(seed)
         device = torch.device(self.device)
 
         features = np.asarray(
             train_set.item_feature.features[: self.total_items], dtype=np.float32
         )
-        if self.item_sids is not None:
-            self.item_tokens, codebooks = self._given_ids(features.shape[1])
-        elif self.tokenizer == "faiss":
-            codes, codebooks = faiss_residual_codes(
-                features, self.n_codebooks, self.codebook_size
-            )
-            self.item_tokens = semantic_id_tokens(codes, self.codebook_size)
-        else:
-            e = torch.from_numpy(features).to(device)
-            init = residual_kmeans(
-                e, self.n_codebooks, self.codebook_size, self.kmeans_iters, seed
-            )
-            rvq = ResidualVQ(init, self.rvq_beta).to(device)
-            rvq.fit(e, self.rvq_steps, self.rvq_lr)
-            self.item_tokens = semantic_id_tokens(
-                rvq.encode(e).cpu().numpy(), self.codebook_size
-            )
-            codebooks = rvq.codebooks.detach().cpu().numpy()
+        self.item_tokens, codebooks = self._item_ids(features, device, seed)
+        n_levels, size = self.n_codebooks, self.codebook_size
+        self.collision_size = size
+        if self.item_sids is None:
+            largest = int(self.item_tokens[:, n_levels].max()) - n_levels * size
+            if largest > size:
+                warnings.warn(
+                    "{} items share one semantic ID, more than codebook_size={}. "
+                    "The collision digit takes {} values instead of "
+                    "codebook_size, unlike the paper".format(largest, size, largest)
+                )
+                self.collision_size = largest
         self.code_to_item = {
             tuple(row): item for item, row in enumerate(self.item_tokens.tolist())
         }
@@ -466,6 +551,7 @@ class DDBC(BundleConstructionRecommender):
             codebook=self.code_vectors,
             n_levels=self.n_codebooks,
             codebook_size=self.codebook_size,
+            collision_size=self.collision_size,
             hidden_size=self.hidden_size,
             cond_dim=self.cond_dim,
             n_blocks=self.n_blocks,
@@ -541,6 +627,7 @@ class DDBC(BundleConstructionRecommender):
         for epoch in range(1, n_epochs + 1):
             net.train()
             logs = {}
+            epoch_loss, epoch_batches = 0.0, 0
             for b, (x,) in enumerate(loader):
                 n_batches += 1
                 x = x.to(device)
@@ -549,6 +636,8 @@ class DDBC(BundleConstructionRecommender):
                 ):
                     loss = net(x).sum() / x.shape[1]
                 (loss / self.accumulate).backward()
+                epoch_loss = epoch_loss + loss.detach()
+                epoch_batches += 1
 
                 if (b + 1) % self.accumulate == 0 or b + 1 == len(loader):
                     torch.nn.utils.clip_grad_norm_(params, self.grad_clip)
@@ -577,7 +666,7 @@ class DDBC(BundleConstructionRecommender):
 
                 if step >= self.max_steps:
                     break
-            self.on_epoch_end(epoch, loss=loss.item(), **logs)
+            self.on_epoch_end(epoch, loss=float(epoch_loss) / epoch_batches, **logs)
             if step >= self.max_steps:
                 break
         progress.close()
@@ -591,10 +680,11 @@ class DDBC(BundleConstructionRecommender):
     def score(self, user_idx, item_idx=None):
         """Score items for a partial bundle from its decoded bundle
 
-        The bundle is decoded with ``bundle_size - len(given)`` slots, the
-        same bundle as :meth:`construct`. The constructed items score highest,
-        and every other item scores its highest cosine similarity to the slot
-        vectors.
+        The bundle is decoded with ``bundle_size - len(given)`` slots. It is
+        the same bundle as :meth:`construct` only when ``construct`` is asked
+        for that many items, which holds when held-out bundles are cut to
+        ``bundle_size`` items. The constructed items score highest, and every
+        other item scores its highest cosine similarity to the slot vectors.
 
         Parameters
         ----------
@@ -653,6 +743,16 @@ class DDBC(BundleConstructionRecommender):
             raise ValueError("DDBC is not fitted yet")
 
         input_items = [int(i) for i in input_items]
+        if size != self.bundle_size - len(input_items) and not self._size_warned:
+            self._size_warned = True
+            warnings.warn(
+                "construct is asked for {} items but bundle_size - "
+                "len(input_items) = {}, so score ranks items from a different "
+                "decoded bundle. Cut held-out bundles to bundle_size={} items "
+                "to keep them consistent".format(
+                    size, self.bundle_size - len(input_items), self.bundle_size
+                )
+            )
         size = min(size, self.total_items - len(input_items))
         if size <= 0:
             return np.zeros(0, dtype="int")

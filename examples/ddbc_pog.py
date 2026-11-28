@@ -70,8 +70,7 @@ features = (
 )
 item_ids = [str(i) for i in range(len(features))]
 with open(os.path.join(POG_DIR, "clhe_token.json")) as f:
-    released_ids = json.load(f)
-item_sids = np.asarray([released_ids[i] for i in item_ids])
+    item_sids = json.load(f)
 codebooks = np.load(os.path.join(POG_DIR, "clhe_weight.npy"))
 
 bundle_eval = BundleConstructionEvaluation.from_splits(
