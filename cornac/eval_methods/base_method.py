@@ -195,7 +195,8 @@ def ranking_eval(
 
         # binary mask for ground-truth negative items, removing all positive items
         u_gt_neg_mask = np.ones(test_set.num_items, dtype="int")
-        u_gt_neg_mask[test_pos_items + val_pos_items + train_pos_items] = 0
+        known_val_items = [i for i in val_pos_items if i < test_set.num_items]
+        u_gt_neg_mask[test_pos_items + known_val_items + train_pos_items] = 0
 
         # filter items being considered for evaluation
         if exclude_unknowns:
